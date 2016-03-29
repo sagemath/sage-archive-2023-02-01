@@ -21,8 +21,7 @@ cdef extern from "pynac_cc.h":
 
 include "sage/ext/cdefs.pxi"
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/python.pxi"
-
+from cpython cimport *
 from ginac cimport *
 
 from sage.libs.gsl.types cimport *
@@ -2392,7 +2391,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 We can convert to complex fields::
 

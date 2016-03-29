@@ -202,14 +202,14 @@ class RiggedConfigurationElement(ClonableArray):
                     nu.append(RiggedPartition())
             else:
                 if len(data) != n: # otherwise n should be equal to the number of tableaux
-                    raise ValueError("Incorrect number of partitions")
+                    raise ValueError("incorrect number of partitions")
 
                 nu = []
                 if "rigging_list" in options:
                     rigging_data = options["rigging_list"]
 
                     if len(rigging_data) != n:
-                        raise ValueError("Incorrect number of riggings")
+                        raise ValueError("incorrect number of riggings")
 
                     for i in range(n):
                        nu.append(RiggedPartition(tuple(data[i]), \
@@ -586,7 +586,7 @@ class RiggedConfigurationElement(ClonableArray):
 
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
-        ret_RC = self.__class__(self.parent(), new_partitions)
+        ret_RC = self.__class__(self.parent(), new_partitions, use_vacancy_numbers=True)
         nu = ret_RC.nu()
         if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
             # Update that row's vacancy number
@@ -618,7 +618,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if not self.parent()._cartan_matrix[a][b]:
+        if not self.parent()._cartan_matrix[a,b]:
             return self[b]
 
         new_list = self[b][:]
@@ -626,7 +626,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = self.parent()._cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a,b]
         for i in range(len(new_vac_nums)):
             if new_list[i] < k:
                 break
@@ -634,7 +634,7 @@ class RiggedConfigurationElement(ClonableArray):
             new_vac_nums[i] += value
             new_rigging[i] += value
 
-        return(RiggedPartition(new_list, new_rigging, new_vac_nums))
+        return RiggedPartition(new_list, new_rigging, new_vac_nums)
 
     def f(self, a):
         r"""
@@ -735,7 +735,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         # Note that we do not need to sort the rigging since if there was a
         #   smaller rigging in a larger row, then `k` would be larger.
-        return self.__class__(self.parent(), new_partitions)
+        return self.__class__(self.parent(), new_partitions, use_vacancy_numbers=True)
 
     def _generate_partition_f(self, a, b, k):
         r"""
@@ -761,7 +761,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if not self.parent()._cartan_matrix[a][b]:
+        if not self.parent()._cartan_matrix[a,b]:
             return self[b]
 
         new_list = self[b][:]
@@ -769,7 +769,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = self.parent()._cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a,b]
         for i in range(len(new_vac_nums)):
             if new_list[i] <= k:
                 break
@@ -777,7 +777,7 @@ class RiggedConfigurationElement(ClonableArray):
             new_vac_nums[i] -= value
             new_rigging[i] -= value
 
-        return(RiggedPartition(new_list, new_rigging, new_vac_nums))
+        return RiggedPartition(new_list, new_rigging, new_vac_nums)
 
     def epsilon(self, a):
         r"""

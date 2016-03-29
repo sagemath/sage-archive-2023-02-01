@@ -252,6 +252,12 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Y.retract(x[0]+2*x[1])
                 3*y[2]
 
+                sage: R.<a,b> = QQ[]
+                sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
+                sage: x = C.basis()
+                sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
+                sage: Y = X.quotient_module(gens)
+
             .. SEEALSO::
 
                  - :meth:`Modules.WithBasis.ParentMethods.submodule`
@@ -261,6 +267,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.with_basis.subquotient import SubmoduleWithBasis, QuotientModuleWithBasis
             if not isinstance(submodule, SubmoduleWithBasis):
                 submodule = self.submodule(submodule, check=check,
+                                           unitriangular=True,
                                            already_echelonized=already_echelonized)
             return QuotientModuleWithBasis(submodule, category=category)
 

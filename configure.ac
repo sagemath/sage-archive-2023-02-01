@@ -442,9 +442,11 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        [[0-3]].*|4.[[0-8]].*)
+            # Install our own GCC if the system-provided one is older than GCC-4.9.
+            # GCC-4.8.x breaks because of http://trac.sagemath.org/ticket/14460
+            # which is GCC bug http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
+            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is too old]);;
     esac
 
     # The following tests check that the version of the compilers
@@ -706,8 +708,17 @@ filtered_packages_list() {
 echo >&7 '# Files to track installation of packages'
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     if test "$PKG_NAME" != "$PKG_VERSION"; then
-        echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
-        AC_MSG_RESULT([    $PKG_VERSION])
+        # If $need_to_install_{PKG_NAME} is set to no, then set $PKG_VAR
+        # to some dummy file to skip the installation. Note that an
+        # explicit "./sage -i PKG_NAME" will still install the package.
+        need_to_install="need_to_install_${PKG_NAME}"
+        if test "${!need_to_install}" != no ; then
+            echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
+            AC_MSG_RESULT([    $PKG_VERSION])
+        else
+            echo >&7 "$PKG_VAR = \$(INST)/.dummy"
+            AC_MSG_RESULT([    $PKG_VERSION not installed (configure check)])
+        fi
     fi
 done
 
@@ -746,12 +757,9 @@ else
 fi
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-AS_ECHO_N(>&7 ['TOOLCHAIN ='])
+AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
     AS_ECHO_N(>&7 [' $(inst_ccache)'])
-fi
-if test "$need_to_install_gcc" = yes ; then
-    AS_ECHO_N(>&7 [' $(inst_gcc)'])
 fi
 echo >&7
 echo >&7
@@ -768,9 +776,6 @@ echo >&7
 echo >&7 '# All optional installed packages (triggers the auto-update)'
 echo >&7 'OPTIONAL_INSTALLED_PACKAGES = \'
 filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if [ "$PKG_NAME" = "gcc" ]; then
-        continue
-    fi
     if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
         echo >&7 "    \$($PKG_VAR) \\"
     fi;
@@ -801,6 +806,10 @@ echo >&7
 
 # Copy build/make/deps
 cat >&7 <<EOF
+
+# Dummy target for packages which are not installed
+\$(INST)/.dummy:
+	touch \$@
 
 #==============================================================================
 # What follows now is a copy of
@@ -868,11 +877,11 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger 'sage-spkg $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+sage-logger '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"
-        echo >&7 "$PKG_NAME: \$($PKG_VAR)"
+        echo >&7 "$PKG_NAME: \$(INST)/$PKG_VERSION"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"

@@ -620,6 +620,7 @@ try:
 except ImportError:
     Game = None
 
+
 class NormalFormGame(SageObject, MutableMapping):
     r"""
     An object representing a Normal Form Game. Primarily used to compute the
@@ -1078,7 +1079,7 @@ class NormalFormGame(SageObject, MutableMapping):
             self.utilities = {}
         for profile in product(*strategy_sizes):
             if profile not in self.utilities.keys():
-                self.utilities[profile] = [False]*len(self.players)
+                self.utilities[profile] = [False] * len(self.players)
 
     def add_strategy(self, player):
         r"""
@@ -1420,9 +1421,9 @@ class NormalFormGame(SageObject, MutableMapping):
             scalar *= -1
         for strategy_profile in self.utilities:
             g[strategy_profile][0] = int(scalar *
-                                            self.utilities[strategy_profile][0])
+                                         self.utilities[strategy_profile][0])
             g[strategy_profile][1] = int(scalar *
-                                            self.utilities[strategy_profile][1])
+                                         self.utilities[strategy_profile][1])
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
@@ -1660,7 +1661,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_indifference((0,), (0,), -A.transpose())
             (1)
         """
-        linearsystem = matrix(QQ, len(support2)+1, M.nrows())
+        linearsystem = matrix(QQ, len(support2) + 1, M.nrows())
 
         # Build linear system for player 1
         for strategy1 in support1:
@@ -1742,23 +1743,27 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         # Check that supports are obeyed
-        if not (all([a[i] > 0 for i in p1_support]) and
-            all([b[j] > 0 for j in p2_support]) and
-            all([a[i] == 0 for i in range(len(a)) if i not in p1_support]) and
-            all([b[j] == 0 for j in range(len(b)) if j not in p2_support])):
+        if not(all([a[i] > 0 for i in p1_support]) and
+               all([b[j] > 0 for j in p2_support]) and
+               all([a[i] == 0 for i in range(len(a))
+                    if i not in p1_support]) and
+               all([b[j] == 0 for j in range(len(b))
+                    if j not in p2_support])):
             return False
 
         # Check that have pair of best responses
 
-        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row
-                                                                  in M1.rows()]
-        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col
-                                                               in M2.columns()]
+        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b))
+                      for row in M1.rows()]
+        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a))
+                      for col in M2.columns()]
 
         #if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
-        if not any(i in p1_support for i, x in enumerate(p1_payoffs) if x == max(p1_payoffs)):
+        if not any(i in p1_support for i, x in enumerate(p1_payoffs)
+                   if x == max(p1_payoffs)):
             return False
-        if not any(i in p2_support for i, x in enumerate(p2_payoffs) if x == max(p2_payoffs)):
+        if not any(i in p2_support for i, x in enumerate(p2_payoffs)
+                   if x == max(p2_payoffs)):
             return False
 
         return True
@@ -2019,11 +2024,11 @@ class NormalFormGame(SageObject, MutableMapping):
         M1, M2 = self.payoff_matrices()
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
-                               for player in self.players]
+                              for player in self.players]
 
         # filter out all supports that are pure or empty
-        potential_supports = [[i for i in k if len(i) > 1] for k in
-                                                        potential_supports]
+        potential_supports = [[i for i in k if len(i) > 1]
+                              for k in potential_supports]
 
         potential_support_pairs = [pair for pair in
                                    product(*potential_supports) if

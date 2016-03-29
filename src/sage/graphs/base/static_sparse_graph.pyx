@@ -188,8 +188,16 @@ from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
-from sage.ext.memory cimport check_allocarray
+include "cysignals/memory.pxi"
 from libcpp.vector cimport vector
+
+cdef extern from "fenv.h":
+    int FE_TONEAREST
+    int FE_UPWARD
+    int FE_DOWNWARD
+    int FE_TOWARDZERO
+    int fegetround ()
+    int fesetround (int)
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""
@@ -228,11 +236,11 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     for i, v in enumerate(vertices):
         v_to_id[v] = i
 
-    g.edges = <uint32_t *> sage_malloc(n_edges*sizeof(uint32_t))
+    g.edges = <uint32_t *> sig_malloc(n_edges*sizeof(uint32_t))
     if g.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
 
-    g.neighbors = <uint32_t **> sage_malloc((1+<int>g.n)*sizeof(uint32_t *))
+    g.neighbors = <uint32_t **> sig_malloc((1+<int>g.n)*sizeof(uint32_t *))
     if g.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
@@ -305,11 +313,11 @@ cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
     dst.edge_labels = NULL
     cdef list edge_labels
 
-    dst.edges = <uint32_t *> sage_malloc(n_edges(src)*sizeof(uint32_t))
+    dst.edges = <uint32_t *> sig_malloc(n_edges(src)*sizeof(uint32_t))
     if dst.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
 
-    dst.neighbors = <uint32_t **> sage_malloc((src.n+1)*sizeof(uint32_t *))
+    dst.neighbors = <uint32_t **> sig_malloc((src.n+1)*sizeof(uint32_t *))
     if dst.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
@@ -333,7 +341,7 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     # vector. With this information, we can initialize dst.neighbors to its
     # correct value. The content of dst.edges is not touched at this level.
 
-    cdef int * in_degree = <int *> sage_malloc(src.n*sizeof(int))
+    cdef int * in_degree = <int *> sig_malloc(src.n*sizeof(int))
     if in_degree == NULL:
         raise ValueError("Problem while allocating memory (in_degree)")
 
@@ -347,7 +355,7 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     dst.neighbors[0] = dst.edges
     for i in range(1, src.n+1):
         dst.neighbors[i] = dst.neighbors[i-1] + in_degree[i-1]
-    sage_free(in_degree)
+    sig_free(in_degree)
 
     #### 2/3
     #
@@ -404,7 +412,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     # We will be doing a Depth-First Search. We allocate the stack we need for
     # that, and put "src" on top of it.
-    cdef int * stack = <int *> sage_malloc(g.n*sizeof(int))
+    cdef int * stack = <int *> sig_malloc(g.n*sizeof(int))
     if stack == NULL:
         raise ValueError("Problem while allocating memory (stack)")
 
@@ -437,7 +445,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
             v += 1
 
-    sage_free(stack)
+    sig_free(stack)
 
 cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
     r"""
@@ -773,10 +781,10 @@ cdef strongly_connected_component_containing_vertex(short_digraph g, short_digra
 
 cdef void free_short_digraph(short_digraph g):
     if g.edges != NULL:
-        sage_free(g.edges)
+        sig_free(g.edges)
 
     if g.neighbors != NULL:
-        sage_free(g.neighbors)
+        sig_free(g.neighbors)
 
     if g.edge_labels != NULL:
         cpython.Py_XDECREF(g.edge_labels)
@@ -838,5 +846,209 @@ def triangles_count(G):
     ans = {w:Integer(count[i]/2)
            for i,w in enumerate(G.vertices())}
 
-    sage_free(count)
+    sig_free(count)
     return ans
+
+def spectral_radius(G, prec=1e-10):
+    r"""
+    Return an interval of floating point number that encloses the spectral
+    radius of this graph
+
+    The input graph ``G`` must be *strongly connected*.
+
+    INPUT:
+
+    - ``prec`` -- (default ``1e-10``) an upper bound for the relative precision
+      of the interval
+
+    The algorithm is iterative and uses an inequality valid for non-negative
+    matrices. Namely, if `A` is a non-negative square matrix with
+    Perron-Frobenius eigenvalue `\lambda` then the following inequality is valid
+    for any vector `x`
+
+    .. MATH::
+
+        \min_i  \frac{(Ax)_i}{x_i} \leq \lambda \leq \max_i \frac{(Ax)_i}{x_i}
+
+    .. NOTE::
+
+        The speed of convergence of the algorithm is governed by the spectral
+        gap (the distance to the second largest modulus of other eigenvalues).
+        If this gap is small, then this function might not be appropriate.
+
+        The algorithm is not smart and not parallel! It uses basic interval
+        arithmetic and native floating point arithmetic.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.static_sparse_graph import spectral_radius
+
+        sage: G = DiGraph([(0,0),(0,1),(1,0)], loops=True)
+        sage: phi = (RR(1) + RR(5).sqrt() ) / 2
+        sage: phi  # abs tol 1e-14
+        1.618033988749895
+        sage: e_min, e_max = spectral_radius(G, 1e-14)
+        sage: e_min, e_max     # abs tol 1e-14
+        (1.618033988749894, 1.618033988749896)
+        sage: (e_max - e_min)  # abs tol 1e-14
+        1e-14
+        sage: e_min < phi < e_max
+        True
+
+    This function also works for graphs::
+
+        sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(2,4),(3,4)])
+        sage: e_min, e_max = spectral_radius(G, 1e-14)
+        sage: e = max(G.adjacency_matrix().charpoly().roots(AA, multiplicities=False))
+        sage: e_min < e < e_max
+        True
+
+        sage: G.spectral_radius()  # abs tol 1e-9
+        (2.48119430408, 2.4811943041)
+
+    A larger example::
+
+        sage: G = DiGraph()
+        sage: G.add_edges((i,i+1) for i in range(200))
+        sage: G.add_edge(200,0)
+        sage: G.add_edge(1,0)
+        sage: e_min, e_max = spectral_radius(G, 0.00001)
+        sage: p = G.adjacency_matrix(sparse=True).charpoly()
+        sage: p
+        x^201 - x^199 - 1
+        sage: r = p.roots(AA, multiplicities=False)[0]
+        sage: e_min < r < e_max
+        True
+
+    A much larger example::
+
+        sage: G = DiGraph(100000)
+        sage: r = range(100000)
+        sage: while not G.is_strongly_connected():
+        ....:     shuffle(r)
+        ....:     G.add_edges(enumerate(r))
+        sage: spectral_radius(G, 1e-10)  # random
+        (1.9997956006500042, 1.9998043797692782)
+
+    The algorithm takes care of multiple edges::
+
+        sage: G = DiGraph(2,loops=True,multiedges=True)
+        sage: G.add_edges([(0,0),(0,0),(0,1),(1,0)])
+        sage: spectral_radius(G, 1e-14)  # abs tol 1e-14
+        (2.414213562373094, 2.414213562373095)
+        sage: max(G.adjacency_matrix().eigenvalues(AA))
+        2.414213562373095?
+
+    TESTS::
+
+        sage: spectral_radius(G, 1e-20)
+        Traceback (most recent call last):
+        ...
+        ValueError: precision (=1.00000000000000e-20) is too small
+
+        sage: for _ in range(100):
+        ....:     G = digraphs.RandomDirectedGNM(10,35)
+        ....:     if not G.is_strongly_connected():
+        ....:         continue
+        ....:     e = max(G.adjacency_matrix().charpoly().roots(AA,multiplicities=False))
+        ....:     e_min, e_max = G.spectral_radius(1e-13)
+        ....:     assert e_min < e < e_max
+    """
+    if G.is_directed():
+        if not G.is_strongly_connected():
+            raise ValueError("G must be strongly connected")
+    elif not G.is_connected():
+        raise ValueError("G must be connected")
+
+    cdef double c_prec = prec
+    if 1+c_prec/2 == 1:
+        raise ValueError("precision (={!r}) is too small".format(prec))
+
+    # make a copy of G if needed to obtain a static sparse graph
+    # NOTE: the following potentially copies the labels of the graph which is
+    # comptely useless for the computation!
+    cdef short_digraph g
+    G = G.copy(immutable=True)
+    g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]
+
+    cdef long n = g.n
+    cdef long m = g.m
+    cdef uint32_t ** neighbors = g.neighbors
+
+    cdef double * v1 = <double *> sig_malloc(n * sizeof(double))
+    cdef double * v2 = <double *> sig_malloc(n * sizeof(double))
+    cdef double * v3
+    if v1 == NULL or v2 == NULL:
+        sig_free(v1)
+        sig_free(v2)
+        raise MemoryError
+
+    cdef size_t i
+    cdef uint32_t *p
+    cdef double e_min, e_max
+    cdef double s
+
+    for i in range(n):
+        v1[i] = 1
+    s = n
+
+    cdef int old_rounding = fegetround()
+    e_max = m
+    e_min = 0
+    try:
+        sig_on()
+        while (e_max - e_min) > e_max * c_prec:
+            # renormalize
+            s = n/s
+            for i in range(n):
+                v1[i] *= s
+
+            # computing e_max (with upward rounding)
+            e_max = 0
+            fesetround(FE_UPWARD)
+            p = neighbors[0]
+            for i in range(n):
+                v2[i] = 0
+                while p < neighbors[i+1]:
+                    v2[i] += v1[p[0]]
+                    p += 1
+                e = v2[i] / v1[i]
+                if e > e_max:
+                    e_max = e
+
+            # computing e_min (with downward rounding)
+            e_min = m
+            fesetround(FE_DOWNWARD)
+            p = neighbors[0]
+            for i in range(n):
+                v2[i] = 0
+                while p < neighbors[i+1]:
+                    v2[i] += v1[p[0]]
+                    p += 1
+                s += v2[i]
+                e = v2[i] / v1[i]
+                if e < e_min:
+                    e_min = e
+
+            # computing the next vector (with nearest rounding)
+            fesetround(FE_TONEAREST)
+            s = 0
+            p = neighbors[0]
+            for i in range(n):
+                v2[i] = 0
+                while p < neighbors[i+1]:
+                    v2[i] += v1[p[0]]
+                    p += 1
+                s += v2[i]
+            v3 = v1; v1 = v2; v2 = v3
+
+        sig_off()
+    finally:
+        # be sure that the rounding is back to default
+        fesetround(old_rounding)
+
+        # and that the memory is freed
+        sig_free(v1)
+        sig_free(v2)
+
+    return (e_min, e_max)

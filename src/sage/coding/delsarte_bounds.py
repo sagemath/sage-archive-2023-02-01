@@ -2,20 +2,24 @@ r"""
 Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
 This module provides LP upper bounds for the parameters of codes.
-Exact LP solver, PPL, is used by defaut, ensuring that no rounding/overflow
-problems occur.
+The exact LP solver PPL is used by default, ensuring that no
+rounding/overflow problems occur.
 
 AUTHORS:
 
 - Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
 """
+
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 def Krawtchouk(n,q,l,x,check=True):
     """
     Compute ``K^{n,q}_l(x)``, the Krawtchouk polynomial.

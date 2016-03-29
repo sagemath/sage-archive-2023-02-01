@@ -296,10 +296,8 @@ def _package_lists_from_sage_output(package_type, local=False):
     Local check that all standard packages are installed::
 
         sage: from sage.misc.package import _package_lists_from_sage_output
-        sage: installed, not_installed = _package_lists_from_sage_output('standard',local=True)
-        sage: bool(not_installed)
-        False
-        sage: 'glpk' in installed
+        sage: installed, not_installed = _package_lists_from_sage_output('standard', local=True)
+        sage: 'pari' in installed
         True
     """
     installed     = []

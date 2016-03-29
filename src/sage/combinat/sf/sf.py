@@ -1535,7 +1535,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: KQ = Sym.kBoundedQuotient(3); KQ
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert t to a rational
+            TypeError: unable to convert 't' to a rational
             sage: KQ = Sym.kBoundedQuotient(3,t=1); KQ
             3-Bounded Quotient of Symmetric Functions over Rational Field with t=1
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())

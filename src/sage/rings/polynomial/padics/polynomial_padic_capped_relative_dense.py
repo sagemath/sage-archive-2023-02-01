@@ -317,48 +317,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             self._comp_list()
         return list(self._list)
 
-    def content(self):
-        """
-        Returns the content of self.
-
-        The content is returned to maximum precision: since it's only
-        defined up to a unit, we can choose p^k as the representative.
-
-        Returns an error if the base ring is actually a field: this is
-        probably not a function you want to be using then, since any
-        nonzero answer will be correct.
-
-        The content of the exact zero polynomial is zero.
-
-        EXAMPLES::
-
-            sage: K = Zp(13,7)
-            sage: R.<t> = K[]
-            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-            sage: a.content()
-            13^2 + O(13^9)
-            sage: R(0).content()
-            0
-            sage: P.<x> = ZZ[]
-            sage: f = x + 2
-            sage: f.content()
-            1
-            sage: fp = f.change_ring(pAdicRing(2, 10))
-            sage: fp
-            (1 + O(2^10))*x + (2 + O(2^11))
-            sage: fp.content()
-            1 + O(2^10)
-            sage: (2*fp).content()
-            2 + O(2^11)
-        """
-        if self.base_ring().is_field():
-            raise TypeError("ground ring is a field.  Answer is only defined up to units.")
-        if self._normalized:
-            return self.base_ring()(self.base_ring().prime_pow(self._valbase))
-        if self._valaddeds is None:
-            self._comp_valaddeds()
-        return self.base_ring()(self.base_ring().prime_pow(min(self._valaddeds) + self._valbase))
-
     def lift(self):
         """
         Returns an integer polynomial congruent to this one modulo the precision of each coefficient.

@@ -138,7 +138,7 @@ cdef class CVXOPTBackend(GenericBackend):
             ...
             RuntimeError: CVXOPT only supports continuous variables
         """
-        if obj == None:
+        if obj is None:
             obj = 0.0
         if binary or integer:
             raise RuntimeError("CVXOPT only supports continuous variables")
@@ -1022,7 +1022,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

@@ -165,8 +165,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
-            from sage.rings.real_arb import is_RealBallField
-            from sage.rings.complex_arb import is_ComplexBallField
+            from sage.rings.real_arb import RealBallField
+            from sage.rings.complex_arb import ComplexBallField
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
@@ -192,7 +192,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return base is not self and self.has_coerce_map_from(base)
             elif (R is InfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
-                  or is_RealBallField(R) or is_ComplexBallField(R)
+                  or isinstance(R, RealBallField)
+                  or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):

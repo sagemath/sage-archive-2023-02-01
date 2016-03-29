@@ -304,29 +304,6 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
         mpfr_clear(right)
 
 
-def is_RealBallField(F):
-    r"""
-    Return whether `F` is a real ball field.
-
-    INPUT:
-
-    - ``F`` -- a parent.
-
-    OUTPUT:
-
-    A boolean.
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_arb import is_RealBallField
-        sage: is_RealBallField(RealBallField())
-        True
-        sage: is_RealBallField(RIF)
-        False
-    """
-    return isinstance(F, RealBallField)
-
-
 class RealBallField(UniqueRepresentation, Field):
     r"""
     An approximation of the field of real numbers using mid-rad intervals, also

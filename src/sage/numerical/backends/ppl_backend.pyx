@@ -178,7 +178,13 @@ cdef class PPLBackend(GenericBackend):
             'x'
             sage: p.objective_coefficient(2)
             2/3
+            sage: p.add_variable(integer=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The PPL backend in Sage only supports continuous variables
         """
+        if binary or integer:
+            raise NotImplementedError("The PPL backend in Sage only supports continuous variables")
         for i in range(len(self.Matrix)):
             self.Matrix[i].append(0)
         self.col_lower_bound.append(lower_bound)
@@ -240,6 +246,8 @@ cdef class PPLBackend(GenericBackend):
             sage: p.objective_coefficient(5) # tol 1e-8
             42.0
         """
+        if binary or integer:
+            raise NotImplementedError("The PPL backend in Sage only supports continuous variables")
         for k in range(n):
             for i in range(len(self.Matrix)):
                 self.Matrix[i].append(0)

@@ -2874,6 +2874,19 @@ cdef class MIPVariable(Element):
         """
         return self._dict.values()
 
+    def mip(self):
+        r"""
+        Returns the :class:`MixedIntegerLinearProgram` in which ``self`` is a variable.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p == v.mip()
+            True
+        """
+        return self._p
+
     cdef _matrix_rmul_impl(self, m):
         """
         Implement the action of a matrix multiplying from the right.

@@ -967,12 +967,12 @@ class MathematicaElement(ExpectElement):
             return P.eval('N[%s]'%self.name())
         return P.eval('N[%s,%s]'%(self.name(),precision))
 
-    def n(self, *args):
+    def n(self, *args, **kwargs):
         r"""
         Numerical approximation by converting to Sage object first
 
         Convert the object into a Sage object and return its numerical
-        approximation.
+        approximation. See documentation of the function :func:`n` for details.
 
         EXAMPLES::
 
@@ -980,8 +980,10 @@ class MathematicaElement(ExpectElement):
             3.1
             sage: mathematica('Pi').n()      # optional -- mathematica
             3.14159265358979
+            sage: mathematica('Pi').n(digits=10)   # optional -- mathematica
+            3.141592654
         """
-        return self._sage_().n(*args)
+        return self._sage_().n(*args, **kwargs)
 
 class MathematicaFunction(ExpectFunction):
     def _sage_doc_(self):

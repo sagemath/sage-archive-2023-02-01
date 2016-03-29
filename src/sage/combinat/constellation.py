@@ -1530,12 +1530,6 @@ class Constellations_p(UniqueRepresentation, Parent):
         r"""
         Iterator of the elements in ``self``.
 
-        .. NOTE::
-
-            The algorithm is highly non optimized and is *very* slow for large
-            entries! In order to make a better one, we need an iterator over
-            conjugacy classes of the symmetric group.
-
         TESTS::
 
             sage: C = Constellations([(3,1),(3,1),(2,2)])
@@ -1558,7 +1552,7 @@ class Constellations_p(UniqueRepresentation, Parent):
             g1 (0,1,2)(3)
             g2 (0,2)(1,3)
         """
-        from itertools import product
+        from sage.misc.mrange import cartesian_product_iterator
 
         if self._length == 1:
             if self._degree == 1:
@@ -1566,13 +1560,13 @@ class Constellations_p(UniqueRepresentation, Parent):
             return
 
         S = SymmetricGroup(srange(self._degree))
-        for p in product(S, repeat=self._length - 1):
+        profile = list(self._profile)[:-1]
+        for p in cartesian_product_iterator([S.conjugacy_class(pi)
+                                             for pi in profile]):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            c = Constellations(connected=self._connected)(list(p) + [None],
-                                                          check=False)
-            if c.profile() == self._profile:
-                yield c
+            yield Constellations(connected=self._connected)(list(p) + [None],
+                                                            check=False)
 
     def braid_group_action(self):
         r"""

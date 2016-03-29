@@ -860,7 +860,7 @@ class AbstractLinearCode(module.Module):
             sage: codes.LinearCode(IntegerModRing(4),matrix.ones(4))
             Traceback (most recent call last):
             ...
-            ValueError: 'generator_matrix' must be defined on a field (not a ring)
+            ValueError: 'generator' must be defined on a field (not a ring)
         """
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
@@ -3828,12 +3828,17 @@ class LinearCode(AbstractLinearCode):
             ValueError: this linear code contains no non-zero vector
         """
         from sage.matrix.constructor import matrix
-        basis = generator.basis()
+        
         base_ring = generator.base_ring()
         if not base_ring.is_field():
             raise ValueError("'generator' must be defined on a field (not a ring)")
-        # convert code to generator matrix, if necessary
-        generator = matrix(base_ring, basis)
+        
+        try:
+            basis = generator.row_space().basis() # generator matrix case
+        except AttributeError:
+            basis = generator.basis() # code case
+            # convert code to generator matrix
+            generator = matrix(base_ring, basis)
 
         # if the matrix does not have full rank we replace it
         if generator.rank() != generator.nrows():

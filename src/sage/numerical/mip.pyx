@@ -935,7 +935,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Weird Input
         else:
-          raise ValueError, "constraints() requires a list of integers, though it will accommodate None or an integer."
+          raise ValueError("constraints() requires a list of integers, though it will accommodate None or an integer.")
 
     def polyhedron(self, **kwds):
         r"""
@@ -1283,7 +1283,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             6.0
 
-        To return  the optimal value of ``y[2,9]``::
+        To return the optimal value of ``y[2,9]``::
 
             sage: p.get_values(y[2,9])
             2.0
@@ -1306,10 +1306,42 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        TESTS:
+
+        Test that an error is reported when we try to get the value
+        of something that is not a variable in this problem::
+
+            sage: p.get_values("Something strange")
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: p.get_values("Something stranger", 4711)
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: M1 = MixedIntegerLinearProgram()
+            sage: M2 = MixedIntegerLinearProgram()
+            sage: x = M1.new_variable()
+            sage: y = M1.new_variable()
+            sage: z = M2.new_variable()
+            sage: M2.add_constraint(z[0] <= 5)
+            sage: M2.solve()
+            0.0
+            sage: M2.get_values(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+            sage: M2.get_values(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):
+                if self != l.mip():
+                    raise ValueError("Variable {!r} is a variable from a different problem".format(l))
                 c = {}
                 for (k,v) in l.items():
                     c[k] = self._backend.get_variable_value(self._variables[v])
@@ -1323,6 +1355,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     val.append(c)
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
+            else:
+                raise TypeError("Not a MIPVariable: {!r}".format(l))
 
         if len(lists) == 1:
             return val[0]
@@ -2856,6 +2890,19 @@ cdef class MIPVariable(Element):
             [x_0, x_1]
         """
         return self._dict.values()
+
+    def mip(self):
+        r"""
+        Returns the :class:`MixedIntegerLinearProgram` in which ``self`` is a variable.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p == v.mip()
+            True
+        """
+        return self._p
 
     cdef _matrix_rmul_impl(self, m):
         """

@@ -429,10 +429,17 @@ cdef class CVXOPTBackend(GenericBackend):
             ([], [])
             sage: p.row_bounds(4)
             (None, 2)
+
+        TESTS:
+
+        It does not add mysterious new variables::
+
+            sage: p.ncols()
+            5
+
         """
         for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()),[0]*(self.ncols())), 
-                                       lower_bound, upper_bound, 
+            self.add_linear_constraint([], lower_bound, upper_bound,
                                        name=None if names is None else names[i])
 
     cpdef int solve(self) except -1:

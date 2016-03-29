@@ -983,7 +983,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         TESTS:
 
-        Test that this works with non-integral ideals (#10767)::
+        Test that this works with non-integral ideals (:trac:`10767`)::
 
             sage: K = QuadraticField(-2)
             sage: I = K.ideal(1/2)
@@ -993,7 +993,7 @@ class NumberFieldIdeal(Ideal_generic):
         L = self.number_field()
         other = L.ideal(other)
         nf = L.pari_nf()
-        hnf = nf.idealintersection(self.pari_hnf(), other.pari_hnf())
+        hnf = nf.idealintersect(self.pari_hnf(), other.pari_hnf())
         I = L.ideal(self._NumberFieldIdeal__elements_from_hnf(hnf))
         I.__pari_hnf = hnf
         return I
@@ -1447,18 +1447,20 @@ class NumberFieldIdeal(Ideal_generic):
             sage: i.valuation(0)
             Traceback (most recent call last):
             ...
-            ValueError: p (= 0) must be nonzero
+            ValueError: p (= Ideal (0) of Number Field in a with defining polynomial x^5 + 2) must be nonzero
+            sage: K.ideal(0).valuation(K.factor(2)[0][0])
+            +Infinity
         """
-        if p==0:
-            raise ValueError("p (= %s) must be nonzero"%p)
-        if not isinstance(p, NumberFieldFractionalIdeal):
+        if not isinstance(p, NumberFieldIdeal):
             p = self.number_field().ideal(p)
+        if not p:
+            raise ValueError("p (= %s) must be nonzero"%p)
         if not p.is_prime():
             raise ValueError("p (= %s) must be a prime"%p)
         if p.ring() != self.number_field():
             raise ValueError("p (= %s) must be an ideal in %s"%self.number_field())
         nf = self.number_field().pari_nf()
-        return ZZ(nf.idealval(self.pari_hnf(), p.pari_prime()))
+        return nf.idealval(self.pari_hnf(), p.pari_prime()).sage()
 
     def decomposition_group(self):
         r"""

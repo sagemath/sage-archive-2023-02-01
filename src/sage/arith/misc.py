@@ -2806,7 +2806,7 @@ class Euler_Phi:
             return ZZ(0)
         if n<=2:
             return ZZ(1)
-        return ZZ(pari(n).phi())
+        return ZZ(pari(n).eulerphi())
 
     def plot(self, xmin=1, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):

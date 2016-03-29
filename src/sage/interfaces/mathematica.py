@@ -972,7 +972,8 @@ class MathematicaElement(ExpectElement):
         Numerical approximation by converting to Sage object first
 
         Convert the object into a Sage object and return its numerical
-        approximation. See documentation of the function :func:`n` for details.
+        approximation. See documentation of the function
+        :func:`sage.misc.functional.n` for details.
 
         EXAMPLES::
 

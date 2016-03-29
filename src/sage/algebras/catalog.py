@@ -33,6 +33,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
+- :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.partition_algebra.PartitionAlgebra_pk>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
@@ -66,6 +67,7 @@ lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'Graded
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.diagram_algebras', 'BrauerAlgebra', 'Brauer')
+lazy_import('sage.combinat.diagram_algebras', 'PartitionAlgebra', 'Partition')
 lazy_import('sage.combinat.partition_algebra', 'PartitionAlgebra_pk', 'PlanarPartition')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')

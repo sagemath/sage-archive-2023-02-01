@@ -681,51 +681,114 @@ class TreeNode():
         child.parent = self
 
 
-def minimal_schnyder_wood(graph, minimum=False):
+def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
     """
     Return the minimal Schnyder wood of a planar rooted triangulation.
 
     INPUT:
 
-    a planar triangulation, given by a graph with an embedding.
-    The root edge is assumed to be labelled by ``'a'`` and ``'b'``.
-    The third boundary vertex is then determined using the orientation and
-    will be labelled ``'c'``.
+    - graph -- a planar triangulation, given by a graph with an embedding.
+
+    - root_edge -- a pair of vertices (default is from ``'a'`` to ``'b'``)
+      The third boundary vertex is then determined using the orientation and
+      will be labelled ``'c'``.
+
+    - minimal -- boolean (default ``True``), whether to return a
+      minimal or a maximal Schnyder wood.
+
+    - check -- boolean (default ``True``), whether to check if the input
+      is a planar triangulation
 
     OUTPUT:
 
     a planar graph, with edges oriented and colored. The three outer
     edges of the initial graph are removed.
 
-    The algorithm is taken from [Brehm2000]_.
+    The algorithm is taken from [Brehm2000]_ (section 4.2).
 
     EXAMPLES::
 
         sage: from sage.graphs.schnyder import minimal_schnyder_wood
-        sage: g = Graph([(0,'a'),(0,'b'),(0,'c'),('a','b'),('b','c'),('c','a')], format='list_of_edges')
-        sage: g.set_embedding({'a':['b',0,'c'],'b':['c',0,'a'],'c':['a',0,'b'],0:['a','b','c']})
+        sage: g = Graph([(0,'a'),(0,'b'),(0,'c'),('a','b'),('b','c'),
+        ....:  ('c','a')], format='list_of_edges')
+        sage: g.set_embedding({'a':['b',0,'c'],'b':['c',0,'a'],
+        ....:  'c':['a',0,'b'],0:['a','b','c']})
         sage: newg = minimal_schnyder_wood(g)
         sage: newg.edges()
         [(0, 'a', 'green'), (0, 'b', 'blue'), (0, 'c', 'red')]
-        sage: newg.plot(color_by_label={'red':'red','blue':'blue','green':'green',None:'black'})
+        sage: newg.plot(color_by_label={'red':'red','blue':'blue',
+        ....:  'green':'green',None:'black'})
         Graphics object consisting of 8 graphics primitives
+
+    A larger example::
+
+        sage: g = Graph([(0,'a'),(0,2),(0,1),(0,'c'),('a','c'),('a',2),
+        ....: ('a','b'),(1,2),(1,'c'),(2,'b'),(1,'b'),('b','c')], format='list_of_edges')
+        sage: g.set_embedding({'a':['b',2,0,'c'],'b':['c',1,2,'a'],
+        ....: 'c':['a',0,1,'b'],0:['a',2,1,'c'],1:['b','c',0,2],2:['a','b',1,0]})
+        sage: newg = minimal_schnyder_wood(g)
+        sage: newg.edges()
+        [(0, 2, 'blue'),
+         (0, 'a', 'green'),
+         (0, 'c', 'red'),
+         (1, 0, 'green'),
+         (1, 'b', 'blue'),
+         (1, 'c', 'red'),
+         (2, 1, 'red'),
+         (2, 'a', 'green'),
+         (2, 'b', 'blue')]
+        sage: newg2 = minimal_schnyder_wood(g, minimal=False)
+        sage: newg2.edges()
+        [(0, 1, 'blue'),
+         (0, 'a', 'green'),
+         (0, 'c', 'red'),
+         (1, 2, 'green'),
+         (1, 'b', 'blue'),
+         (1, 'c', 'red'),
+         (2, 0, 'red'),
+         (2, 'a', 'green'),
+         (2, 'b', 'blue')]
 
     TESTS::
 
         sage: minimal_schnyder_wood(graphs.RandomTriangulation(5))
         Digraph on 5 vertices
+        sage: minimal_schnyder_wood(graphs.CompleteGraph(5))
+        Traceback (most recent call last):
+        ...
+        ValueError: not a planar graph
+        sage: minimal_schnyder_wood(graphs.WheelGraph(5))
+        Traceback (most recent call last):
+        ...
+        ValueError: not a triangulation
+        sage: minimal_schnyder_wood(graphs.OctahedralGraph(),root_edge=(0,5))
+        Traceback (most recent call last):
+        ...
+        ValueError: not a valid root edge
 
     REFERENCES:
 
     .. [Brehm2000] Enno Brehm, *3-Orientations and Schnyder
        3-Tree-Decompositions*, 2000
     """
+    if root_edge is None:
+        a = 'a'
+        b = 'b'
+    else:
+        a, b = root_edge
+
+    if check:
+        if not graph.is_planar():
+            raise ValueError('not a planar graph')
+        if not all(len(u) == 3 for u in graph.faces()):
+            raise ValueError('not a triangulation')
+        if not(a in graph.neighbors(b)):
+            raise ValueError('not a valid root edge')
+        
     new_g = DiGraph()
     emb = graph.get_embedding()
 
     # finding the third outer vertex c
-    a = 'a'
-    b = 'b'
     emb_b = emb[b]
     idx_a = emb_b.index(a)
     c = emb_b[(idx_a + 1) % len(emb_b)]
@@ -745,7 +808,7 @@ def minimal_schnyder_wood(graph, minimum=False):
 
     # iterated path shortening
     while len(path) > 2:
-        if not minimum:
+        if minimal:
             v = removable_nodes[-1]   # node to be removed from path
         else:
             v = removable_nodes[0]   # node to be removed from path

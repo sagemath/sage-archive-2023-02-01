@@ -2972,7 +2972,9 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         n = self._size
         tri = RandomTriangulation(n + 3)
         TIP = TamariIntervalPosets
-        return TIP.from_minimal_schnyder_wood(minimal_schnyder_wood(tri))
+        schnyder = minimal_schnyder_wood(tri, root_edge=('a', 'b'),
+                                         check=False)
+        return TIP.from_minimal_schnyder_wood(schnyder)
 
     @lazy_attribute
     def _parent_for(self):

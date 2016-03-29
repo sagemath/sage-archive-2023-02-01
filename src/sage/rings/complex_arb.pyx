@@ -107,6 +107,11 @@ TESTS::
     sage: polygen(CBF, x)^3
     x^3
 
+::
+
+    sage: SR.coerce(CBF(0.42 + 3.33*I))
+    [0.4200000000000000 +/- 1.56e-17] + [3.330000000000000 +/- 7.11e-17]*I
+
 Check that :trac:`19839` is fixed::
 
     sage: log(SR(CBF(0.42))).pyobject().parent()
@@ -199,6 +204,7 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__re, acb_realref(source), precision)
     arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
+
 
 class ComplexBallField(UniqueRepresentation, Field):
     r"""

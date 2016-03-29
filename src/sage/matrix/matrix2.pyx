@@ -1082,7 +1082,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Numpy gives a strange answer due to rounding errors::
 
-            sage: M.pseudoinverse(algorithm="numpy")
+            sage: M.pseudoinverse(algorithm="numpy")  # random
             [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
             [  519646110850445/346430740566963  -300239975158034/600479950316067]
 

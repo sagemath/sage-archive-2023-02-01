@@ -2130,7 +2130,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         NOTE: This function is currently *much* slower than the
         result of ``self.multiplication_by_m()``, because
         constructing an isogeny precomputes a significant amount
-        of information. See trac tickets #7368 and #8014 for the
+        of information. See :trac:`7368` and :trac:`8014` for the
         status of improving this situation.
 
         INPUT:
@@ -2411,7 +2411,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
 
-        This used to be different see trac #3973::
+        This used to be different see :trac:`3973`::
 
             sage: E.short_weierstrass_model()
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3

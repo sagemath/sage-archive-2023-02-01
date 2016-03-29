@@ -217,7 +217,7 @@ cdef class GLPKBackend(GenericBackend):
                 self.objective_coefficient(n_var - i - 1, obj)
 
             if names is not None:
-                glp_set_col_name(self.lp, n_var, names[number - i - 1])
+                glp_set_col_name(self.lp, n_var - i, names[number - i - 1])
 
         return n_var - 1
 

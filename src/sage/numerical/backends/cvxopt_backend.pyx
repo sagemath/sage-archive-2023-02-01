@@ -150,7 +150,7 @@ cdef class CVXOPTBackend(GenericBackend):
         return len(self.objective_function) - 1
 
 
-    cpdef int add_variables(self, int n, lower_bound=None, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
+    cpdef int add_variables(self, int n, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
         """
         Add ``n`` variables.
 
@@ -187,11 +187,23 @@ cdef class CVXOPTBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
+            sage: p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8
+            (-2.0, None)
+            sage: p.col_name(5)
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8
+            42.0
         """
         for i in range(n):
-            self.add_variable()  ## FIXME: This forgets to pass arguments
+            self.add_variable(lower_bound, upper_bound, binary, continuous, integer, obj,
+                              None if names is None else names[i])
         return len(self.objective_function) - 1;
 
 

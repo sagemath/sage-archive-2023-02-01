@@ -226,6 +226,8 @@ class UniqueFactorizationDomains(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: 25*x^2 + 25*x + 25 is not a 2nd power
+                sage: R(0).nth_root(3)
+                0
             """
             from sage.rings.integer_ring import ZZ
 
@@ -236,6 +238,9 @@ class UniqueFactorizationDomains(Category_singleton):
             elif n == 1:
                 return self
             else:
+                if self.is_zero():
+                    return self
+
                 f = self.factor()
                 u = f.unit()
 

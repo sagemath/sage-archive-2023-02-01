@@ -3832,21 +3832,20 @@ class LinearCode(AbstractLinearCode):
         
         base_ring = generator.base_ring()
         if not base_ring.is_field():
-                raise ValueError("'generator' must be defined on a field (not a ring)")
+            raise ValueError("'generator' must be defined on a field (not a ring)")
         
         try:
             basis = generator.row_space().basis() # generator matrix case
             
             # if the matrix does not have full rank we replace it
-            if generator.rank() != generator.nrows():
+            if len(basis) != generator.nrows():
                 from sage.matrix.constructor import matrix
-                basis = generator.row_space().basis()
                 generator = matrix(base_ring, basis)
     
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:
-            # convert code to generator matrix
+            # Assume input is an AbstractLinearCode, extract its generator matrix
             generator = generator.generator_matrix()
 
         super(LinearCode, self).__init__(base_ring, generator.ncols(), "GeneratorMatrix", "Syndrome")

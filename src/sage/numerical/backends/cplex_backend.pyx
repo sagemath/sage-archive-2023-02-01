@@ -861,7 +861,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'CPLEX: The primal has no feasible solution'
+            MIPSolverException: CPLEX: The primal has no feasible solution
         """
         cdef int status
         cdef int ptype

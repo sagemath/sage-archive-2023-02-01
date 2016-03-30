@@ -3704,8 +3704,8 @@ class LinearCode(AbstractLinearCode):
     minimum distance, will use generic, slow algorithms.
 
     If you are looking for constructing a code from a more specific family, see
-    if the family has been implemented by investigating codes.<tab>. These
-    more specific classes use properties particular for that family to allow
+    if the family has been implemented by investigating `codes.<tab>`. These
+    more specific classes use properties particular to that family to allow
     faster algorithms, and could also have family-specific methods.
 
     See :wikipedia:`Linear_code` for more information on unstructured linear codes.
@@ -3759,7 +3759,8 @@ class LinearCode(AbstractLinearCode):
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
         
-    Providing a code as the parameter (see :trac:`20198`)::
+    Providing a code as the parameter in order to "forget" its structure (see
+    :trac:`20198`)::
     
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
@@ -3776,7 +3777,7 @@ class LinearCode(AbstractLinearCode):
     AUTHORS:
 
     - David Joyner (11-2005)
-    - Charles Prior (03-2016)
+    - Charles Prior (03-2016): :trac:`20198`, LinearCode from a code
     """
     def __init__(self, generator, d=None):
         r"""

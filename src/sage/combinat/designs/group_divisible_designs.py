@@ -178,7 +178,7 @@ def GDD_4_2(q,existence=False,check=True):
     if existence:
         return True
 
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     G = GF(q,'x')
     w = G.primitive_element()
     e = w**((q-1)/3)

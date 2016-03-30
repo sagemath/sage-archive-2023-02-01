@@ -43,6 +43,10 @@ cdef class GenericBackend:
     cpdef solver_parameter(self, name, value=*)
     cpdef zero(self)
     cpdef base_ring(self)
+    cpdef bint is_variable_basic(self, int index)
+    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index)
+    cpdef bint is_slack_variable_basic(self, int index)
+    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index)
 
     cdef object obj_constant_term
 

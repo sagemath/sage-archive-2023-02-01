@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Fast calculation of cyclotomic polynomials
 
@@ -26,8 +27,8 @@ method of univariate polynomial ring objects and the top-level
 
 import sys
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 from libc.string cimport memset
 
 from sage.structure.element cimport parent_c
@@ -49,7 +50,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 
-    where `\\mu(d)` is the Moebius function that is 1 if d has an even
+    where `\\mu(d)` is the Möbius function that is 1 if d has an even
     number of distinct prime divisors, -1 if it has an odd number of
     distinct prime divisors, and 0 if d is not squarefree.
 
@@ -148,7 +149,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
     if (<object>max_deg)*sizeof(long) > sys.maxsize:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
-    cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>sig_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     memset(coeffs, 0, sizeof(long) * (max_deg+1))
@@ -194,7 +195,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     else:
         L = [coeffs[k] for k from offset <= k <= deg]
 
-    sage_free(coeffs)
+    sig_free(coeffs)
     return L
 
 def cyclotomic_value(n, x):
@@ -227,7 +228,7 @@ def cyclotomic_value(n, x):
 
         \Phi_n(x) = \prod_{d | n} (x^d - 1)^{\mu(n / d)},
 
-    where `\mu` is the Moebius function.
+    where `\mu` is the Möbius function.
 
     - Handles the case that x^d = 1 for some d, but not the case that
       x^d - 1 is non-invertible: in this case polynomial evaluation is
@@ -297,7 +298,7 @@ def cyclotomic_value(n, x):
 
     P = parent_c(x)
     try:
-        return P(pari.polcyclo_eval(n, x).sage())
+        return P(pari.polcyclo(n, x).sage())
     except Exception:
         pass
     one = P(1)
@@ -329,7 +330,7 @@ def cyclotomic_value(n, x):
             return x
     xd = [x] # the x^d for d | n
     cdef char mu
-    cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
+    cdef char* md = <char*>sig_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
     try:
         md[0] = 1
         if L & 1:
@@ -357,7 +358,7 @@ def cyclotomic_value(n, x):
                 else:
                     den *= xpow - one
     finally:
-        sage_free(md)
+        sig_free(md)
     try:
         ans = num / den
     except ZeroDivisionError:

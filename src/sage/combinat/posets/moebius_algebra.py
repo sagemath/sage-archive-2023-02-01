@@ -269,8 +269,8 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             """
             M = self.realization_of()
             N = M.natural()
-            mobius = M._lattice.mobius_function
-            return N.sum_of_terms((y, mobius(y,x)) for y in M._lattice.order_ideal([x]))
+            moebius = M._lattice.moebius_function
+            return N.sum_of_terms((y, moebius(y,x)) for y in M._lattice.order_ideal([x]))
 
         def product_on_basis(self, x, y):
             """
@@ -456,11 +456,11 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             """
             L = self.realization_of()._lattice
             q = self.realization_of()._q
-            mobius = L.mobius_function
+            moebius = L.moebius_function
             rank = L.rank_function()
             R = L.rank()
             j = L.join(x,y)
-            return self.sum_of_terms(( z, mobius(a,z) * q**(R - rank(a)) )
+            return self.sum_of_terms(( z, moebius(a,z) * q**(R - rank(a)) )
                                      for z in L.order_filter([j])
                                      for a in L.closed_interval(j, z))
 
@@ -478,10 +478,10 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             """
             L = self.realization_of()._lattice
             q = self.realization_of()._q
-            mobius = L.mobius_function
+            moebius = L.moebius_function
             rank = L.rank_function()
             R = L.rank()
-            return self.sum_of_terms((x, mobius(y,x) * q**(rank(y) - R))
+            return self.sum_of_terms((x, moebius(y,x) * q**(rank(y) - R))
                                      for x in L for y in L.order_ideal([x]))
 
     natural = E

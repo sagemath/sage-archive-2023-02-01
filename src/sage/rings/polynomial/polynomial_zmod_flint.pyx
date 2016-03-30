@@ -67,6 +67,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
     r"""
     Polynomial on `\ZZ/n\ZZ` implemented via FLINT.
 
+    TESTS::
+
+        sage: f = Integers(4)['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
+        sage: isinstance(f, Polynomial_zmod_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_
@@ -330,7 +337,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: r.parent() is GF(19)
             True
 
-        The following example shows that #11782 has been fixed::
+        The following example shows that :trac:`11782` has been fixed::
 
             sage: R.<x> = ZZ.quo(9)['x']
             sage: f = 2*x^3 + x^2 + x;  g = 6*x^2 + 2*x + 1

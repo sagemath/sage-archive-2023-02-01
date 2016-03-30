@@ -15,7 +15,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
 def Genus(A):

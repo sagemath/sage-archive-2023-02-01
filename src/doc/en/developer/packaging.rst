@@ -38,8 +38,11 @@ Package types
 Not all packages are built by default, they are divided into standard,
 optional and experimental ones:
 
-- **standard** packages are built by default. They have stringent quality
-  requirements: they should work on all supported platforms. In order
+- **standard** packages are built by default. For a few packages,
+  ``configure`` checks whether they are available from the system,
+  in which case the build of those packages is skipped.
+  Standard packages have stringent quality requirements:
+  they should work on all supported platforms. In order
   for a new standard package to be accepted, it should have been
   optional for a while, see :ref:`section-inclusion-procedure`.
 
@@ -235,7 +238,7 @@ Many packages depend on other packages. Consider for example the
 PARI, NTL and FLINT. So the following is the ``dependencies`` file
 for ``eclib``::
 
-    $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+    pari ntl flint
 
     ----------
     All lines of this file are ignored except the first.

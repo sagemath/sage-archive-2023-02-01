@@ -54,7 +54,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
 
 import sage
 import re
@@ -820,7 +819,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 # set imag part
                 if b is None:
                     if a is None:
-                        raise TypeError, "Unable to convert z (='%s') to a MPComplexNumber." %z
+                        raise TypeError("unable to convert {!r} to a MPComplexNumber".format(z))
                 else:
                     mpfr_set_str(self.value.im, b, base, rnd_im(rnd))
                 return

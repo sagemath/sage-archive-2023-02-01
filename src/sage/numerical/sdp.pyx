@@ -173,9 +173,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method

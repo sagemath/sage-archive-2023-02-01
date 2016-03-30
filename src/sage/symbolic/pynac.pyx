@@ -21,8 +21,7 @@ cdef extern from "pynac_cc.h":
 
 include "sage/ext/cdefs.pxi"
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/python.pxi"
-
+from cpython cimport *
 from ginac cimport *
 
 from sage.libs.gsl.types cimport *
@@ -1098,8 +1097,8 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(object a) except +:
-    if PyInt_CheckExact(a) or isinstance(a, Integer) or\
-            PyLong_CheckExact(a) or type(a) is float:
+    if type(a) is int or isinstance(a, Integer) or\
+            type(a) is long or type(a) is float:
         return True
     return py_imag(a) == 0
 
@@ -1456,6 +1455,48 @@ cdef object py_cos(object x) except +:
         return RR(x).cos()
     except (TypeError, ValueError):
         return CC(x).cos()
+
+cdef object py_stieltjes(object x) except +:
+    """
+    Return the Stieltjes constant of the given index.
+
+    The value is expected to be a non-negative integer.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests as py_stieltjes
+        sage: py_stieltjes(0)
+        0.577215664901533
+        sage: py_stieltjes(1.0)
+        -0.0728158454836767
+        sage: py_stieltjes(RealField(100)(5))
+        0.00079332381730106270175333487744
+        sage: py_stieltjes(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Stieltjes constant of negative index
+    """
+    n = ZZ(x)
+    if n < 0:
+        raise ValueError("Stieltjes constant of negative index")
+    import mpmath
+    if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+        prec = (<Element>x)._parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.stieltjes, n, prec=prec)
+
+def py_stieltjes_for_doctests(x):
+    """
+    This function is for testing py_stieltjes().
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests
+        sage: py_stieltjes_for_doctests(0.0)
+        0.577215664901533
+    """
+    return py_stieltjes(x)
 
 cdef object py_zeta(object x) except +:
     """
@@ -2264,6 +2305,7 @@ def init_function_table():
     py_funcs.py_bernoulli = &py_bernoulli
     py_funcs.py_sin = &py_sin
     py_funcs.py_cos = &py_cos
+    py_funcs.py_stieltjes = &py_stieltjes
     py_funcs.py_zeta = &py_zeta
     py_funcs.py_exp = &py_exp
     py_funcs.py_log = &py_log
@@ -2349,7 +2391,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 We can convert to complex fields::
 
@@ -2376,7 +2418,7 @@ We can convert to complex fields::
     1j
 
     sage: QQbar(I)
-    1*I
+    I
 
     sage: abs(I)
     1

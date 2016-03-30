@@ -17,7 +17,7 @@ multiplication algorithms.
 
 from matrix_window cimport MatrixWindow
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):
@@ -44,7 +44,7 @@ def strassen_window_multiply(C, A,B, cutoff):
     AUTHORS:
 
     - David Harvey
-    - Simon King (2011-07): Improve memory efficiency; trac ticket #11610
+    - Simon King (2011-07): Improve memory efficiency; :trac:`11610`
     """
     strassen_window_multiply_c(C, A, B, cutoff)
 

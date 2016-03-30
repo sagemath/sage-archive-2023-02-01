@@ -64,7 +64,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 import sage.rings.integer as integer
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
-import sage.rings.finite_rings.constructor
+import sage.rings.finite_rings.finite_field_constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
 import sage.modules.free_module
@@ -1018,7 +1018,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
                 return matrix_generic_dense.Matrix_generic_dense
-            elif sage.rings.finite_rings.constructor.is_FiniteField(R):
+            elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
                 if R.characteristic() == 2:
                     if R.order() <= 65536:
                         return matrix_gf2e_dense.Matrix_gf2e_dense
@@ -1127,7 +1127,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: Er = MS2.identity_matrix()
             Traceback (most recent call last):
             ...
-            TypeError: self must be a space of square matrices
+            TypeError: identity matrix must be square
 
         TESTS::
 
@@ -1137,7 +1137,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         if self.__nrows != self.__ncols:
-            raise TypeError("self must be a space of square matrices")
+            raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
         for i in xrange(self.__nrows):
             A[i,i] = 1
@@ -1445,7 +1445,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                                       copy=False, coerce=coerce)
                         else:
                             return MC(self, new_x, copy=False, coerce=coerce)
-                    except TypeError:
+                    except (TypeError, ValueError):
                         pass
             if len(x) != m * n:
                 raise TypeError("cannot construct an element of {} from {}!"

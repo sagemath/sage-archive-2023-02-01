@@ -193,16 +193,18 @@ AUTHORS:
 
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 
-from sage.rings.commutative_ring import is_CommutativeRing, CommutativeRing
+from sage.rings.ring import CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
@@ -682,7 +684,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             except NotImplementedError:
                 B = all(v.valuation() > 0 for v in im_gens)
             return B
-        if is_CommutativeRing(codomain):
+        if isinstance(codomain, CommutativeRing):
             return all(v.is_nilpotent() for v in im_gens)
 
 

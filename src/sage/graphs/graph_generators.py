@@ -232,6 +232,7 @@ __append_to_doc(
      "strongly_regular_graph",
      "trees",
      "triangulations",
+     "TuranGraph",
      "WheelGraph"])
 
 
@@ -381,6 +382,8 @@ AUTHORS:
 - Birk Eisermann (2013-07-29): new section 'intersection graphs',
   added (random, bounded) tolerance graphs
 
+- Marco Cognetta (2016-03-03): added TuranGraph
+
 
 Functions and methods
 ---------------------
@@ -429,7 +432,7 @@ class GraphGenerators():
     representatives. Iterates over distinct, exhaustive
     representatives.
 
-    Also: see the use of the optional nauty package for generating graphs
+    Also: see the use of the nauty package for generating graphs
     at the :meth:`nauty_geng` method.
 
     INPUT:
@@ -770,13 +773,6 @@ class GraphGenerators():
         r"""
         Returns a generator which creates graphs from nauty's geng program.
 
-        .. note::
-
-            Due to license restrictions, the nauty package is distributed
-            as a Sage optional package.  At a system command line, execute
-            ``sage -i nauty`` to see the nauty license and install the
-            package.
-
         INPUT:
 
         - ``options`` - a string passed to  geng  as if it was run at
@@ -838,12 +834,12 @@ class GraphGenerators():
         create an entire list all at once if there is sufficient memory
         to contain it.  ::
 
-            sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: next(gen) # optional nauty
+            sage: gen = graphs.nauty_geng("2")
+            sage: next(gen)
             Graph on 2 vertices
-            sage: next(gen) # optional nauty
+            sage: next(gen)
             Graph on 2 vertices
-            sage: next(gen) # optional nauty
+            sage: next(gen)
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
@@ -851,15 +847,15 @@ class GraphGenerators():
         A list of all graphs on 7 vertices.  This agrees with
         :oeis:`A000088`.  ::
 
-            sage: gen = graphs.nauty_geng("7") # optional nauty
-            sage: len(list(gen))  # optional nauty
+            sage: gen = graphs.nauty_geng("7")
+            sage: len(list(gen))
             1044
 
         A list of just the connected graphs on 7 vertices.  This agrees with
         :oeis:`A001349`.  ::
 
-            sage: gen = graphs.nauty_geng("7 -c") # optional nauty
-            sage: len(list(gen))  # optional nauty
+            sage: gen = graphs.nauty_geng("7 -c")
+            sage: len(list(gen))
             853
 
         The ``debug`` switch can be used to examine geng's reaction
@@ -868,14 +864,11 @@ class GraphGenerators():
         "-q" switch to geng will supress the indicator of a
         successful initiation.  ::
 
-            sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print next(gen) # optional nauty
+            sage: gen = graphs.nauty_geng("4", debug=True)
+            sage: print next(gen)
             >A geng -d0D3 n=4 e=0-6
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("the optional nauty package is not installed")
         sp = subprocess.Popen("geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
@@ -2015,6 +2008,7 @@ class GraphGenerators():
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
+    TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
 ###########################################################################

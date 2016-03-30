@@ -16,10 +16,11 @@
 
 from __future__ import division
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 
 from ntl_ZZ import unpickle_class_value
@@ -529,7 +530,7 @@ cdef class ntl_GF2X(object):
         """
         if R is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
         return R(map(int,self.list()))

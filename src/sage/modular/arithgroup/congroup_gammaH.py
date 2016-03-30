@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_H(N)`
 
@@ -1293,7 +1294,7 @@ def mumu(N):
     `(-2)^v` where `v` is the number of primes that
     exactly divide `N`.
 
-    This is similar to the Moebius function.
+    This is similar to the Möbius function.
 
     INPUT:
 

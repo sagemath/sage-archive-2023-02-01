@@ -840,7 +840,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -903,7 +903,7 @@ class AlgebraicConverter(Converter):
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
             if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -923,7 +923,7 @@ def algebraic(ex, field):
         sage: type(QQbar(a))
         <class 'sage.rings.qqbar.AlgebraicNumber'>
         sage: QQbar(i)
-        1*I
+        I
         sage: AA(golden_ratio)
         1.618033988749895?
         sage: QQbar(golden_ratio)

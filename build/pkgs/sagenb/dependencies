@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
+$(PYTHON) setuptools pexpect jinja2 sphinx docutils
 
 ----------
 All lines of this file are ignored except the first.

@@ -1655,7 +1655,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        Some new MOLS of order 2np for p a prime power,
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
     from itertools import izip,combinations
     from designs_pyx import is_difference_matrix
@@ -1855,7 +1855,7 @@ def OA_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
@@ -1905,7 +1905,7 @@ def QDM_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq = FiniteField(q, 'x')
     w = Fq.multiplicative_generator()

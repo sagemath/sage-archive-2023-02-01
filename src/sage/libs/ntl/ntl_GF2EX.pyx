@@ -13,10 +13,11 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_ZZ import unpickle_class_args
 from ntl_GF2EContext import ntl_GF2EContext
 from ntl_GF2EContext cimport ntl_GF2EContext_class

@@ -628,6 +628,18 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return 'Algebraic closure of %s' % self.base_ring()
 
+    def _latex_(self):
+        """
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(3).algebraic_closure()
+            sage: latex(F)
+            \overline{\Bold{F}_{3}}
+        """
+        return "\\overline{{{}}}".format(self.base_ring()._latex_())
+
     def _to_common_subfield(self, x, y):
         """
         Coerce `x` and `y` to a common subfield of ``self``.
@@ -700,7 +712,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         if n == 1:
             return self.base_ring()
         else:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             return FiniteField(self.base_ring().cardinality() ** n,
                                name=self.variable_name() + str(n),
                                modulus=self._get_polynomial(n),

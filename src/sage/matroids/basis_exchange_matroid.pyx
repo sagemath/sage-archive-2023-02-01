@@ -1010,9 +1010,8 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__pack(self._input, F)
         return self.__is_independent(self._input)
 
-
     # connectivity
-    
+
     cpdef components(self):
         """
         Return an iterable containing the components of the matroid.
@@ -1040,10 +1039,10 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: setprint(M.components())
             [{0, 1, 3, 4}, {2, 5}]
         """
-        if len(self._E)==0:
+        if not self._E:
             return SetSystem(self._E)
         cdef bitset_t *comp
-        comp = <bitset_t*>sage_malloc((self.full_rank()) * sizeof(bitset_t))
+        comp = <bitset_t*>sig_malloc((self.full_rank()) * sizeof(bitset_t))
         e = bitset_first(self._current_basis)
         i=0
         while e>=0:
@@ -1051,7 +1050,7 @@ cdef class BasisExchangeMatroid(Matroid):
             self.__fundamental_cocircuit(comp[i], e)
             e=bitset_next(self._current_basis, e+1)
             i=i+1
-        
+
         cdef bitset_t active_rows
         bitset_init(active_rows,self.full_rank()+1)
         bitset_set_first_n(active_rows, self.full_rank())
@@ -1064,13 +1063,13 @@ cdef class BasisExchangeMatroid(Matroid):
                     bitset_discard(active_rows, j)
                 j = bitset_next(active_rows, j+1) 
             i = bitset_next(active_rows, i+1)
-        
+
         res = SetSystem(self._E)
         i = bitset_first(active_rows)
         while i>=0:
             res._append(comp[i])
             i = bitset_next(active_rows, i+1)
-        
+
         cdef bitset_t loop, loops
         bitset_init(loops, self._bitset_size)
         bitset_set_first_n(loops, len(self))
@@ -1078,7 +1077,7 @@ cdef class BasisExchangeMatroid(Matroid):
         while i>=0:
             bitset_difference(loops, loops, comp[i])
             i = bitset_next(active_rows, i+1)
-        
+
         bitset_init(loop, self._bitset_size)
         bitset_clear(loop)
         e = bitset_first(loops)
@@ -1087,7 +1086,7 @@ cdef class BasisExchangeMatroid(Matroid):
             res._append(loop)
             bitset_discard(loop, e)
             e = bitset_next(loops, e+1)
-        
+
         bitset_free(loops)
         bitset_free(loop)    
         bitset_free(active_rows)
@@ -1161,7 +1160,7 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(out_neighbors, self._groundset_size)
         bitset_init(R, self._groundset_size)
         cdef long* predecessor
-        predecessor = <long*>sage_malloc(self._groundset_size*sizeof(long))
+        predecessor = <long*>sig_malloc(self._groundset_size*sizeof(long))
         cdef long e, u, y
         cdef bint found_path = True
         while found_path:
@@ -1236,7 +1235,7 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_free(todo)
         bitset_free(out_neighbors)
         bitset_free(R)
-        sage_free(predecessor)
+        sig_free(predecessor)
 
         return II, RR
 
@@ -1264,8 +1263,8 @@ cdef class BasisExchangeMatroid(Matroid):
         cdef bitset_t *todo
         if self._matroid_rank == 0:
             return [0]
-        flats = <bitset_t*>sage_malloc((self.full_rank() + 1) * sizeof(bitset_t))
-        todo = <bitset_t*>sage_malloc((self.full_rank() + 1) * sizeof(bitset_t))
+        flats = <bitset_t*>sig_malloc((self.full_rank() + 1) * sizeof(bitset_t))
+        todo = <bitset_t*>sig_malloc((self.full_rank() + 1) * sizeof(bitset_t))
 
         for i in xrange(self.full_rank() + 1):
             bitset_init(flats[i], self._bitset_size)
@@ -1279,8 +1278,8 @@ cdef class BasisExchangeMatroid(Matroid):
         for i in xrange(self.full_rank() + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
-        sage_free(flats)
-        sage_free(todo)
+        sig_free(flats)
+        sig_free(todo)
         return f_vec
 
     cdef _f_vector_rec(self, object f_vec, bitset_t* flats, bitset_t* todo, long elt, long i):
@@ -1337,8 +1336,8 @@ cdef class BasisExchangeMatroid(Matroid):
             return SetSystem(self._E)
         if r == self.full_rank():
             return SetSystem(self._E, subsets=[self.groundset()])
-        flats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
-        todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
+        flats = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
+        todo = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
 
         for i in xrange(r + 1):
             bitset_init(flats[i], self._bitset_size)
@@ -1352,8 +1351,8 @@ cdef class BasisExchangeMatroid(Matroid):
         for i in xrange(r + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
-        sage_free(flats)
-        sage_free(todo)
+        sig_free(flats)
+        sig_free(todo)
         return Rflats
 
     cdef _flats_rec(self, SetSystem Rflats, long R, bitset_t* flats, bitset_t* todo, long elt, long i):
@@ -1412,8 +1411,8 @@ cdef class BasisExchangeMatroid(Matroid):
             return SetSystem(self._E)
         if r == self.full_corank():
             return SetSystem(self._E, subsets=[self.groundset()])
-        coflats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
-        todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
+        coflats = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
+        todo = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
 
         for i in xrange(r + 1):
             bitset_init(coflats[i], self._bitset_size)
@@ -1427,8 +1426,8 @@ cdef class BasisExchangeMatroid(Matroid):
         for i in xrange(r + 1):
             bitset_free(coflats[i])
             bitset_free(todo[i])
-        sage_free(coflats)
-        sage_free(todo)
+        sig_free(coflats)
+        sig_free(todo)
         return Rcoflats
 
     cdef _coflats_rec(self, SetSystem Rcoflats, long R, bitset_t* coflats, bitset_t* todo, long elt, long i):
@@ -1459,8 +1458,8 @@ cdef class BasisExchangeMatroid(Matroid):
         cdef bitset_t *todo
         if self._groundset_size == 0:
             return {}, tuple()
-        flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
-        todo = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
+        flats = <bitset_t*>sig_malloc((k + 1) * sizeof(bitset_t))
+        todo = <bitset_t*>sig_malloc((k + 1) * sizeof(bitset_t))
 
         for i in xrange(k + 1):
             bitset_init(flats[i], self._bitset_size)
@@ -1474,8 +1473,8 @@ cdef class BasisExchangeMatroid(Matroid):
         for i in xrange(k + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
-        sage_free(flats)
-        sage_free(todo)
+        sig_free(flats)
+        sig_free(todo)
         fie = {}
         for e in range(self._groundset_size):
             t = tuple([f_inc[i][e] for i in xrange(k + 1)])
@@ -1545,6 +1544,62 @@ cdef class BasisExchangeMatroid(Matroid):
             repeat = nxksrd(self._input, self._groundset_size, self._matroid_rank, True)
         self._bcount = res
         return self._bcount
+
+    cpdef independent_sets(self):
+        r"""
+        Return the list of independent subsets of the matroid.
+
+        OUTPUT:
+
+        An iterable containing all independent subsets of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: I = M.independent_sets()
+            sage: len(I)
+            57
+        """
+        cdef bitset_t *I
+        cdef bitset_t *T
+        cdef long i, e, r
+
+        res = SetSystem(self._E)
+        bitset_clear(self._input)
+        res._append(self._input)
+        if not self._E:
+            return res
+
+        r = self.full_rank()
+        I = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
+        T = <bitset_t*>sig_malloc((r + 1) * sizeof(bitset_t))
+        for i in range(r + 1):
+            bitset_init(I[i], self._bitset_size)
+            bitset_init(T[i], self._bitset_size)
+
+        i = 0
+        bitset_clear(I[0])
+        bitset_copy(self._input, I[0])
+        self.__closure(T[0], self._input)
+        while i >= 0:
+            e = bitset_first_in_complement(T[i])
+            if e >= 0:
+                bitset_add(T[i], e)
+                bitset_copy(I[i+1], I[i])
+                bitset_add(I[i+1], e)
+                res._append(I[i+1])
+                bitset_copy(self._input, I[i+1])
+                self.__closure(T[i+1], self._input)
+                bitset_union(T[i+1],T[i+1],T[i])
+                i = i + 1
+            else:
+                i = i - 1
+        for i in range(r + 1):
+            bitset_free(I[i])
+            bitset_free(T[i])
+        sig_free(I)
+        sig_free(T)
+        return res
 
     cpdef independent_r_sets(self, long r):
         """
@@ -1633,7 +1688,7 @@ cdef class BasisExchangeMatroid(Matroid):
             while repeat:
                 NB._append(self._input)
                 repeat = nxksrd(self._input, self._groundset_size, r, True)
-        else:    
+        else:
             while repeat:
                 if not self.__is_independent(self._input):
                     NB._append(self._input)
@@ -1786,7 +1841,6 @@ cdef class BasisExchangeMatroid(Matroid):
              ['a', 'c', 'd', 'f'], ['a', 'e', 'f', 'g'], ['b', 'c', 'e', 'f'],
              ['b', 'd', 'f', 'g'], ['c', 'd', 'e', 'g']]
         """
-
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
         if self._groundset_size == 0:
@@ -2150,7 +2204,7 @@ cdef class BasisExchangeMatroid(Matroid):
             return None
         if self.full_rank() == 0 or self.full_corank() == 0:
             return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}
-        
+
         if self._weak_invariant() != other._weak_invariant():
             return None
         PS = self._weak_partition()
@@ -2186,8 +2240,8 @@ cdef class BasisExchangeMatroid(Matroid):
             if self.__is_isomorphism(other, morphism):
                 return morphism
 
-        return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO) 
-        
+        return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO)
+
     cpdef _is_isomorphic(self, other):
         """
         Test if ``self`` is isomorphic to ``other``.
@@ -2287,6 +2341,14 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M = Matroid(groundset='abcd', bases=['ab', 'cd'])
             sage: M.is_valid()
             False
+
+        TESTS:
+
+        Verify that :trac:`20172` was fixed::
+
+            sage: M=Matroid(groundset='1234',bases=['12','13','23','34'])
+            sage: M.is_valid()
+            False
         """
         cdef long pointerX, pointerY, x, y, ln
         cdef bint foundpair
@@ -2301,6 +2363,10 @@ cdef class BasisExchangeMatroid(Matroid):
                 bitset_difference(self._inside, self._current_basis, BB._subsets[pointerY])
                 bitset_difference(self._outside, BB._subsets[pointerY], self._current_basis)
                 self.__move(self._inside, self._outside)
+                if not bitset_eq(self._current_basis, BB._subsets[pointerY]):
+                    # We failed to set the current basis to Y through basis exchanges.
+                    # Therefore, the exchange axioms are violated!
+                    return False
                 bitset_difference(self._input, BB._subsets[pointerX], BB._subsets[pointerY])
                 bitset_difference(self._input2, BB._subsets[pointerY], BB._subsets[pointerX])
                 x = bitset_first(self._input)
@@ -2319,7 +2385,6 @@ cdef class BasisExchangeMatroid(Matroid):
                 pointerY += 1
             pointerX += 1
         return True
-
 
 cdef bint nxksrd(bitset_s* b, long n, long k, bint succ):
     """

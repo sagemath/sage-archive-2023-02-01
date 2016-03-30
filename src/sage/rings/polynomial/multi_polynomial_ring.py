@@ -52,27 +52,17 @@ TESTS::
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# Changed:
-# Kiran Kedlaya (2006-02-12): added Macaulay2 names to TermOrder
 
-import sage.rings.integral_domain as integral_domain
+from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
 
 from sage.rings.integer_ring import is_IntegerRing
@@ -531,7 +521,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             c = self.base_ring()(x)
             return MPolynomial_polydict(self, {self._zero_tuple:c})
 
-class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
+class MPolynomialRing_polydict_domain(IntegralDomain,
                                       MPolynomialRing_polydict):
     def __init__(self, base_ring, n, names, order):
         order = TermOrder(order,n)

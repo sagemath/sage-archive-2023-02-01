@@ -208,9 +208,7 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 # imports
 from sage.misc.all import prod, verbose
-from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF
-
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
@@ -297,7 +295,7 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
         raise ValueError("M must be coprime to N")
     if weight < 2:
         raise ValueError("weight must be at least 2")
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, CommutativeRing):
         raise TypeError("base_ring must be a commutative ring")
     key = (N, M, weight, base_ring)
     if use_cache:
@@ -1444,7 +1442,7 @@ def quaternion_order_with_given_level(A, level):
     B = O.basis()
 
     for (p, r) in fact:
-        a = int((-p/2))
+        a = int(-p) // 2
         for v in GF(p)**4:
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()

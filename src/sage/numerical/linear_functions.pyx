@@ -73,7 +73,6 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 from cpython.object cimport *
 
 from sage.misc.fast_methods cimport hash_by_id

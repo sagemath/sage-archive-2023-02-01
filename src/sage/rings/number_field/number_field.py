@@ -854,7 +854,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         sage: latex(QuadraticField(-1, 'a', latex_name=None).gen())
         a
 
-    The name of the generator does not interfere with Sage preparser, see #1135::
+    The name of the generator does not interfere with Sage preparser, see :trac:`1135`::
 
         sage: K1 = QuadraticField(5, 'x')
         sage: K2.<x> = QuadraticField(5)
@@ -5163,13 +5163,13 @@ class NumberField_generic(number_field_base.NumberField):
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
-                # Trial divide the discriminant
-                m = self.pari_polynomial().poldisc().abs().factor(limit=0)
+                # Trial divide the discriminant with primes up to 10^6
+                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
                 # Since we only need a *squarefree* factorization for
                 # primes with exponent 1, we need trial division up to D^(1/3)
                 # instead of D^(1/2).
-                trialdivlimit2 = pari(pari._primelimit()**2)
-                trialdivlimit3 = pari(pari._primelimit()**3)
+                trialdivlimit2 = pari(10**12)
+                trialdivlimit3 = pari(10**18)
                 if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:
@@ -7149,18 +7149,18 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a0 with defining polynomial x
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
               Defn: 0 |--> 0, None),
-            (Number Field in a1 with defining polynomial x^2 + 4, Ring morphism:
-              From: Number Field in a1 with defining polynomial x^2 + 4
+            (Number Field in a1 with defining polynomial x^2 - 2, Ring morphism:
+              From: Number Field in a1 with defining polynomial x^2 - 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a1 |--> 2*a^3 + 7*a, None),
-            (Number Field in a2 with defining polynomial x^2 + 2, Ring morphism:
-              From: Number Field in a2 with defining polynomial x^2 + 2
+              Defn: a1 |--> a^2 + 3/2, None),
+            (Number Field in a2 with defining polynomial x^2 + 4, Ring morphism:
+              From: Number Field in a2 with defining polynomial x^2 + 4
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a2 |--> 2*a^3 + 5*a, None),
-            (Number Field in a3 with defining polynomial x^2 - 2, Ring morphism:
-              From: Number Field in a3 with defining polynomial x^2 - 2
+              Defn: a2 |--> 2*a^3 + 7*a, None),
+            (Number Field in a3 with defining polynomial x^2 + 2, Ring morphism:
+              From: Number Field in a3 with defining polynomial x^2 + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a3 |--> a^2 + 3/2, None),
+              Defn: a3 |--> 2*a^3 + 5*a, None),
             (Number Field in a4 with defining polynomial x^4 + 1, Ring morphism:
               From: Number Field in a4 with defining polynomial x^4 + 1
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
@@ -8141,7 +8141,11 @@ class NumberField_absolute(NumberField_generic):
 
             sage: L = NumberField(x^4 + 1, 'a')
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
-            [Number Field in c with defining polynomial x^4 + 1 over its base field, Number Field in c with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c with defining polynomial x - a4 over its base field]
+            [Number Field in c with defining polynomial x^4 + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - a1*x + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - 1/2*a2 over its base field,
+             Number Field in c with defining polynomial x^2 - a3*x - 1 over its base field,
+             Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::
 
@@ -9516,14 +9520,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             1
             sage: F(b[1,2])
             1
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
 
         It also word with libGAP instead of GAP::
 
             sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
         """

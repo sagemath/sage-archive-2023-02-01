@@ -2,9 +2,9 @@ r"""
 Base class for multivariate polynomial rings
 """
 
-from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
+from sage.structure.parent cimport Parent
 from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
@@ -45,7 +45,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         TESTS:
 
-        Check that containment works correctly (ticket #10355)::
+        Check that containment works correctly (:trac:`10355`)::
 
             sage: A1.<a> = PolynomialRing(QQ)
             sage: A2.<a,b> = PolynomialRing(QQ)
@@ -332,7 +332,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return D
 
     def __richcmp__(left, right, int op):
-        return (<ParentWithGens>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):

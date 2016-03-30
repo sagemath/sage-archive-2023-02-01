@@ -78,7 +78,7 @@ REFERENCES:
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
 from sage.rings.all import ZZ, Zmod, Infinity, Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modular.modform.all import ModularForms, ModularFormsRing, delta_qexp, eisenstein_series_qexp
 from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly

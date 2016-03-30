@@ -182,8 +182,8 @@ REFERENCES:
   http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 from cpython.object cimport Py_EQ, Py_NE
 
 import operator
@@ -194,7 +194,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -364,7 +364,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if n < 1:
             raise ValueError, "Number of variables must be greater than 1."
 
-        self.pbind = <Py_ssize_t*>sage_malloc(n*sizeof(Py_ssize_t))
+        self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
         cdef char *_n
 
         order = TermOrder(order, n)
@@ -447,7 +447,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
 
     def __dealloc__(self):
-        sage_free(self.pbind)
+        sig_free(self.pbind)
         # destruction of _pbring handled by C++ object
 
     def __reduce__(self):
@@ -566,7 +566,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         names, and any polynomial ring with compatible variable
         names and base ring.
 
-        Before trac ticket #9138, boolean polynomial rings had
+        Before :trac:`9138`, boolean polynomial rings had
         a custom containment test, but that is not needed now
         since it now uses Sage's new coercion model. So, we
         move the tests from the old ``__contains__`` to here.
@@ -600,7 +600,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: 7 in GF(2)
             True
 
-        We test that #10173 is fixed::
+        We test that :trac:`10173` is fixed::
 
             sage: R = BooleanPolynomialRing(256,'x')
             sage: S = PolynomialRing(GF(2),256,'y')
@@ -756,7 +756,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P(x)
             x
 
-        Test that #10797 is really fixed::
+        Test that :trac:`10797` is really fixed::
 
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: I = ideal(a*b + a + b*e + c*e + 1, a + b + c*d + c + 1, a*c + c + d*f + d + 1, a*c + c*f + c + d*f + 1, c*f + c + d + e + 1, a + b*c + b*d + e*f + 1)
@@ -887,7 +887,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
 
         We test that univariate polynomials convert into the
-        boolean polynomial ring (trac ticket #9138)::
+        boolean polynomial ring (:trac:`9138`)::
 
             sage: R.<x> = ZZ[]
             sage: p = x^3+2*x^2+x+1
@@ -1771,7 +1771,7 @@ def get_var_mapping(ring, other):
     """
 
     my_names = list(ring._names) # we need .index(.)
-    if isinstance(other, (ParentWithGens,BooleanMonomialMonoid)):
+    if isinstance(other, (Parent, BooleanMonomialMonoid)):
         indices = range(other.ngens())
         ovar_names = other._names
     else:
@@ -1821,7 +1821,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         sage: type(M.gen(0))
         <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
 
-    Since trac ticket #9138, boolean monomial monoids are
+    Since :trac:`9138`, boolean monomial monoids are
     unique parents and are fit into the category framework::
 
         sage: loads(dumps(M)) is M
@@ -2196,8 +2196,6 @@ cdef class BooleanMonomial(MonoidElement):
 
           See class documentation for parameters.
         """
-
-        _parent = <ParentWithBase>parent
         self._ring = parent._ring
         self._pbmonom = PBMonom_Constructor((<BooleanPolynomialRing>self._ring)._pbring)
 
@@ -2377,7 +2375,10 @@ cdef class BooleanMonomial(MonoidElement):
             sage: m.index()
             0
 
-            # Check that Ticket #13133 is resolved:
+        TESTS:
+
+        Check that :trac:`13133` is resolved::
+
             sage: B(1).lm().index()
             Traceback (most recent call last):
             ...
@@ -2898,9 +2899,8 @@ cdef class BooleanPolynomial(MPolynomial):
         use the appropriate ``__call__`` method in the parent.
     """
     def __init__(self, parent):
-        self._parent = <ParentWithBase>parent
+        self._parent = parent
         self._pbpoly = PBPoly_Constructor_ring((<BooleanPolynomialRing>parent)._pbring)
-
 
     def _repr_(self):
         """
@@ -6294,7 +6294,7 @@ cdef class ReductionStrategy:
 
         TESTS:
 
-        Check if #8966 is fixed::
+        Check if :trac:`8966` is fixed::
 
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(None)
@@ -7693,7 +7693,7 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
 
     cdef int n = _ring.nVariables()
 
-    self.pbind = <Py_ssize_t*>sage_malloc(n*sizeof(Py_ssize_t))
+    self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
 
     T = TermOrder_from_PBRing(_ring)
 

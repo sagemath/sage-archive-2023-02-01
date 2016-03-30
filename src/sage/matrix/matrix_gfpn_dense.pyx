@@ -45,7 +45,7 @@ MtxLibDir = PyString_AsString(os.path.join(DOT_SAGE,'meataxe'))
 ####################
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 from sage.matrix.constructor import random_matrix
 from sage.rings.arith import is_prime_power, factor
@@ -55,12 +55,11 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
 from libc.stdlib cimport free
-from sage.ext.memory cimport check_realloc
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ####################
 #

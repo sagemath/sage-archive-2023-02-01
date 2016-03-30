@@ -278,7 +278,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("cdef long i, s = 0\nfor i in range(1000): s += i\nprint s")
+        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint Integer(s)")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print out

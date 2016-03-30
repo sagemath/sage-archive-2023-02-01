@@ -121,7 +121,7 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport Element
@@ -1255,7 +1255,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXFMElement zero
         if lift_mode == 'simple':

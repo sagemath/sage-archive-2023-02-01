@@ -30,22 +30,27 @@ AUTHORS:
 
 import operator
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
+from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.sage_object cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
+from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
+
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 cimport number_field_base
 import number_field
@@ -768,22 +773,42 @@ cdef class NumberFieldElement(FieldElement):
             P = <number_field_base.NumberField?> left._parent
         except TypeError:
             P = left._parent.number_field()
-        cdef size_t i = 0
+        cdef size_t i = 0                # level of the approximation
+        cdef RealIntervalFieldElement v  # approximation of the nf generator
+        cdef mpfi_t la, ra               # left and right approximations
+        cdef mpz_t ld, rd                # left and right denominators
         if P._embedded_real:
-            # TODO: optimize this computation without any call to the method
-            # polynomial!
-            lp = left.polynomial()
-            rp = _right.polynomial()
-            la = lp(P._get_embedding_approx(0))
-            ra = rp(P._get_embedding_approx(0))
-            while la.overlaps(ra):
+            mpz_init(ld)
+            mpz_init(rd)
+            ZZ_to_mpz(ld, &left.__denominator)
+            ZZ_to_mpz(rd, &_right.__denominator)
+
+            v = <RealIntervalFieldElement> P._get_embedding_approx(0)
+            mpfi_init2(la, mpfi_get_prec(v.value))
+            mpfi_init2(ra, mpfi_get_prec(v.value))
+            ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+            mpfi_div_z(la, la, ld)
+            ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+            mpfi_div_z(ra, ra, rd)
+            while mpfr_greaterequal_p(&la.right, &ra.left) \
+                  and mpfr_greaterequal_p(&ra.right, &la.left):
                 i += 1
-                la = lp(P._get_embedding_approx(i))
-                ra = rp(P._get_embedding_approx(i))
+                v = <RealIntervalFieldElement> P._get_embedding_approx(i)
+                mpfi_set_prec(la, mpfi_get_prec(v.value))
+                mpfi_set_prec(ra, mpfi_get_prec(v.value))
+                ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+                mpfi_div_z(la, la, ld)
+                ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+                mpfi_div_z(ra, ra, rd)
             if op == Py_LT or op == Py_LE:
-                return la.upper() < ra.lower()
+                res = mpfr_less_p(&la.right, &ra.left)
             elif op == Py_GT or op == Py_GE:
-                return la.lower() > ra.upper()
+                res = mpfr_greater_p(&la.left, &ra.right)
+            mpfi_clear(la)
+            mpfi_clear(ra)
+            mpz_clear(ld)
+            mpz_clear(rd)
+            return bool(res)
         else:
             return rich_to_bool(op, 1)
 
@@ -1707,7 +1732,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS:
 
         Check that the output is correct even for numbers that are
-        very close to zero (ticket #9596)::
+        very close to zero (:trac:`9596`)::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: a = 30122754096401; b = 21300003689580
@@ -3246,7 +3271,7 @@ cdef class NumberFieldElement(FieldElement):
 
         -  ``P`` - a prime ideal of the parent of self
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
@@ -3416,7 +3441,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3443,7 +3468,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3984,7 +4009,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES:
 
@@ -4331,7 +4356,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES::
 
@@ -4492,9 +4517,10 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent! This fixes trac #4190.
+        parent! This fixes :trac:`4190`.
 
         EXAMPLES::
 
@@ -4547,7 +4573,9 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     def __invert__(self):
         r"""
         Implement inversion, checking that the return value has the right
-        parent. See trac #4190.
+        parent.
+
+        See :trac:`4190`.
 
         EXAMPLE::
 
@@ -4617,9 +4645,10 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent. This fixes trac #4190.
+        parent. This fixes trac :trac:`4190`.
 
         EXAMPLES::
 
@@ -4643,7 +4672,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     def __invert__(self):
         r"""
         Implement division, checking that the result has the right parent.
-        See trac #4190.
+
+        See :trac:`4190`.
 
         EXAMPLES::
 

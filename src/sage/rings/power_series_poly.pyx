@@ -1182,12 +1182,20 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
             sage: _.is_terminating_series()
             True
+
+        TESTS:
+
+        Check that :trac:``18094`` is fixed::
+
+            sage: R.<x>=PolynomialRing(ZZ)
+            sage: SR(R(0).add_bigoh(20))
+            Order(x^20)
         """
         from sage.symbolic.ring import SR
         from sage.rings.infinity import PlusInfinity
         poly = self.polynomial()
         pex = SR(poly)
-        var = pex.variables()[0]
+        var = SR.var(self.variable())
         if not isinstance(self.prec(), PlusInfinity):
             # GiNaC does not allow manual addition of bigoh,
             # so we use a trick.

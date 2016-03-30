@@ -86,7 +86,6 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
 import sage.rings.all as rings
-from sage.rings.commutative_ring import is_CommutativeRing
 
 
 def canonical_parameters(group, weight, sign, base_ring):
@@ -129,7 +128,7 @@ def canonical_parameters(group, weight, sign, base_ring):
     if base_ring is None:
         base_ring = rational_field.RationalField()
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     if not base_ring.is_field():
@@ -277,7 +276,7 @@ def ModularSymbols(group  = 1,
     ::
 
         sage: G = DirichletGroup(13,GF(4,'a')); G
-        Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
+        Group of Dirichlet characters modulo 13 with values in Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
         Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a + 1
         sage: M = ModularSymbols(e,4); M

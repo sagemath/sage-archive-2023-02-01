@@ -40,13 +40,12 @@ AUTHORS:
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, CommutativeRing
 from sage.arith.all import gcd
 
 from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -154,14 +153,14 @@ class SchemeHomsetFactory(UniqueFactory):
              'base_ring': Integer Ring,
              'check': False}
         """
-        if is_CommutativeRing(X):
+        if isinstance(X, CommutativeRing):
             X = AffineScheme(X)
-        if is_CommutativeRing(Y):
+        if isinstance(Y, CommutativeRing):
             Y = AffineScheme(Y)
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
-        elif is_CommutativeRing(base):
+        elif isinstance(base, CommutativeRing):
             base_spec = AffineScheme(base)
             base_ring = base
         else:

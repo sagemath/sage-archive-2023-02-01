@@ -69,7 +69,7 @@ TESTS::
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 from cpython.int cimport *
@@ -128,7 +128,7 @@ def Mod(n, m, parent=None):
         sage: mod(12,5)
         2
 
-    Illustrates that trac #5971 is fixed. Consider `n` modulo `m` when
+    Illustrates that :trac:`5971` is fixed. Consider `n` modulo `m` when
     `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0`
     is equivalent to `n` for any integer value of `n`::
 
@@ -549,12 +549,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We check that #9205 is fixed::
+        We check that :trac:`9205` is fixed::
 
             sage: Mod(5,9).log(Mod(2, 9))
             5
 
-        We test against a bug (side effect on PARI) fixed in #9438::
+        We test against a bug (side effect on PARI) fixed in :trac:`9438`::
 
             sage: R.<a, b> = QQ[]
             sage: pari(b)
@@ -984,8 +984,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 R = self.parent()['x']
                 modulus = R.gen()**2 - R(self)
                 if self._parent.is_field():
-                    import constructor
-                    Q = constructor.FiniteField(self.__modulus.sageInteger**2, y, modulus)
+                    from finite_field_constructor import FiniteField
+                    Q = FiniteField(self.__modulus.sageInteger**2, y, modulus)
                 else:
                     R = self.parent()['x']
                     Q = R.quotient(modulus, names=(y,))
@@ -1202,7 +1202,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...       except ValueError:
             ...           pass
 
-        We check that #13172 is resolved::
+        We check that :trac:`13172` is resolved::
 
             sage: mod(-1, 4489).nth_root(2, all=True)
             []
@@ -2190,13 +2190,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
 
-    def _make_new_with_parent_c(self, parent): #ParentWithBase parent):
-        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
-        x._parent = parent
-        x.__modulus = parent._pyx_order
-        x.ivalue = self.ivalue
-        return x
-
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)
@@ -2553,7 +2546,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef long long_exp
         cdef int_fast32_t res
         cdef mpz_t res_mpz
-        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
             long_exp = PyInt_AS_LONG(exp)
         elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
@@ -3381,7 +3374,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef long long_exp
         cdef int_fast64_t res
         cdef mpz_t res_mpz
-        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
             long_exp = PyInt_AS_LONG(exp)
         elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
             long_exp = mpz_get_si((<Integer>exp).value)
@@ -3512,7 +3505,7 @@ cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
     cdef bint invert = False
     cdef long long_exp
 
-    if PyInt_CheckExact(exp):
+    if type(exp) is int:
         long_exp = PyInt_AS_LONG(exp)
         if long_exp < 0:
             long_exp = -long_exp

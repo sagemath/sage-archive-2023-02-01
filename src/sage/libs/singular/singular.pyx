@@ -15,7 +15,6 @@ AUTHOR:
 ###############################################################################
 
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
 
 cdef extern from "limits.h":
     long INT_MAX
@@ -47,7 +46,6 @@ from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
 from sage.libs.gmp.all cimport *
 
-from sage.structure.parent_base cimport ParentWithBase
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
 _saved_options = (int(0),0,0)
@@ -668,8 +666,7 @@ cdef int overflow_check(long e, ring *_ring) except -1:
     TESTS:
 
     Whether an overflow occurs or not, partially depends
-    on the number of variables in the ring. See trac ticket
-    #11856::
+    on the number of variables in the ring. See :trac:`11856`::
 
         sage: P.<x,y,z> = QQ[]
         sage: y^2^30

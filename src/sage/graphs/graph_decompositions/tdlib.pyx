@@ -69,8 +69,7 @@ from libcpp.vector cimport vector
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
 
 cdef extern from "tdlib/sage_tdlib.cpp":
      int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)

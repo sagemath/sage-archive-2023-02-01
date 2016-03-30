@@ -159,8 +159,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
@@ -1833,7 +1833,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         if lift_mode == 'simple':
             ulist = self.ext_p_list(1)

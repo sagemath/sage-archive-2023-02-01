@@ -17,7 +17,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.long cimport pyobject_to_long
 
@@ -74,6 +74,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     Internally, we represent rational polynomial as the quotient of an integer
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
+
+    TESTS::
+
+        sage: f = QQ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+        sage: isinstance(f, Polynomial_rational_flint)
+        True
 
     .. automethod:: _add_
     .. automethod:: _sub_
@@ -233,14 +240,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
             sig_on()
-            L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
+            L2 = <mpq_t *> sig_malloc(n * sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
                 mpq_set(L2[deg], (<Rational> L1[deg]).value)
             fmpq_poly_set_array_mpq(self.__poly, L2, n)
             for deg from 0 <= deg < n:
                 mpq_clear(L2[deg])
-            sage_free(L2)
+            sig_free(L2)
             sig_off()
 
 #           deg = 0
@@ -962,7 +969,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         TESTS:
 
-        The following example used to crash (cf. #11771)::
+        The following example used to crash (cf. :trac:`11771`)::
 
             sage: R.<t> = QQ[]
             sage: f = 10**383 * (t+1)
@@ -2090,7 +2097,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():

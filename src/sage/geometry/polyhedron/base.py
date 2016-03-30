@@ -3310,7 +3310,6 @@ class Polyhedron_base(Element):
 
         d = self.dim()
         n = len(vertices)
-        X = set(range(n))
 
         pairs = []
         for i,j in combinations(range(n),2):
@@ -3318,7 +3317,7 @@ class Polyhedron_base(Element):
             if not common_ineq: # or len(common_ineq) < d-2:
                 continue
 
-            if len(X.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
+            if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
                 pairs.append((i,j))
 
         from sage.graphs.graph import Graph
@@ -4421,8 +4420,8 @@ class Polyhedron_base(Element):
         Return the restricted automorphism group.
 
         First, let the linear automorphism group be the subgroup of
-        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
-        preserving the `d`-dimensional polyhedron. The Euclidean group
+        the affine group `AGL(d,\RR) = GL(d,\RR) \ltimes \RR^d`
+        preserving the `d`-dimensional polyhedron. The affine group
         acts in the usual way `\vec{x}\mapsto A\vec{x}+b` on the
         ambient space.
 
@@ -4462,8 +4461,8 @@ class Polyhedron_base(Element):
 
         Note that there are no translations that map the quadrant `Q`
         to itself, so the linear automorphism group is contained in
-        the subgroup of rotations of the whole Euclidean group. The
-        restricted automorphism group is
+        the general linear group (the subgroup of transformations
+        preserving the origin). The restricted automorphism group is
 
         .. MATH::
 
@@ -4531,7 +4530,7 @@ class Polyhedron_base(Element):
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(1,2)]
 
-        Translations do not change the restricted automorphism
+        Affine transformations do not change the restricted automorphism
         group. For example, any non-degenerate triangle has the
         dihedral group with 6 elements, `D_6`, as its automorphism
         group::
@@ -4622,9 +4621,7 @@ class Polyhedron_base(Element):
                 c_ij = rational_approximation( v_i * Qinv * v_j )
                 G.add_edge(i+1,j+1, edge_label(i,j,c_ij))
 
-        group = G.automorphism_group(edge_labels=True)
-        self._restricted_automorphism_group = group
-        return group
+        return G.automorphism_group(edge_labels=True)
 
     def is_full_dimensional(self):
         """
@@ -4684,7 +4681,7 @@ class Polyhedron_base(Element):
             gens.append(l.vector())
 
         # Pick subset of coordinates to coordinatize the affine span
-        pivots = matrix(gens, base_ring=self.base_ring()).pivots()
+        pivots = matrix(gens).pivots()
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 

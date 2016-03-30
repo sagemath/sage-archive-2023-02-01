@@ -266,6 +266,12 @@ class DyckWord(CombinatorialElement):
     the `NE = (1,1)` and the `SE = (1,-1)` direction such that it does not
     pass below the horizontal axis.
 
+    .. PLOT::
+        :width: 400 px
+
+        d = DyckWord([1,0,1,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,1,0,0,0,0,0])
+        sphinx_plot(d.plot(aspect_ratio=1))
+
     A path representing a Dyck word (either using `N` and `E` steps, or
     using `NE` and `SE` steps) is called a Dyck path.
 
@@ -914,6 +920,25 @@ class DyckWord(CombinatorialElement):
         res += ";\n"
         res += "\\end{tikzpicture}$}}"
         return res
+
+    def plot(self, **kwds):
+        """
+        Plot a Dyck word as a continuous path.
+
+        EXAMPLES::
+
+            sage: w = DyckWords(100).random_element()
+            sage: w.plot()
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        step = [-1, 1]
+        sigma = 0
+        list_sigma = [0]
+        for l in self:
+            sigma += step[l]
+            list_sigma.append(sigma)
+        return list_plot(list_sigma, plotjoined=True, **kwds)
 
     def length(self):
         r"""

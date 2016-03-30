@@ -774,7 +774,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 ReyName = 't'+singular._next_var_name()
                 singular.eval('matrix %s[%d][%d]'%(ReyName,self.cardinality(),n))
                 for i in range(1,self.cardinality()+1):
-                    M = Matrix(elements[i-1],F)
+                    M = Matrix(F, elements[i-1])
                     D = [{} for foobar in range(self.degree())]
                     for x,y in M.dict().items():
                         D[x[0]][x[1]] = y

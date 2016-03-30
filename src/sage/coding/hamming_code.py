@@ -153,12 +153,7 @@ class HammingCode(AbstractLinearCode):
         PFn = [list(p) for p in X.point_set(F).points(F)]
 
         H = MS(PFn).transpose()
-        if m % 2 == 0:
-            for i in range(m//2):
-                H.swap_rows(i, m-1)
-        else:
-            for i in range(m//2):
-                H.swap_rows(i, m-1)
+        H = H[::-1, :]
 
         return H
 

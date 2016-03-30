@@ -529,7 +529,17 @@ class GRSGuruswamiSudanDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: Impossible parameters for the Guruswami-Sudan algorithm
+
+        If ``code`` is not a GRS code, an error is raised::
+
+            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: code has to be a generalized Reed-Solomon code
         """
+        if not isinstance(code, GeneralizedReedSolomonCode):
+            raise ValueError("code has to be a generalized Reed-Solomon code")
         n, k = code.length(), code.dimension()
         if tau and parameters:
             if not GRSGuruswamiSudanDecoder.gs_satisfactory(tau, parameters[0], parameters[1], C = code):

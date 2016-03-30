@@ -15,6 +15,8 @@ AUTHORS:
 
 - Vincent Delecroix (2014): modifies continued fractions because of :trac:`14567`
 
+- Moritz Firsching (2016): modifies handling of dead sequence, see :trac:`17330`
+
 EXAMPLES::
 
         sage: oeis
@@ -644,6 +646,12 @@ class OEISSequence(SageObject):
 
             sage: sfibo = oeis('A039834')               # optional -- internet
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17)                              # optional -- internet
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            A000017: Erroneous version of A032522.
+
             sage: s = oeis._imaginary_sequence()
         """
         self._raw = entry
@@ -651,6 +659,11 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
+        if 'dead' in self.keywords(): 
+            ("This sequence is dead: \""+self.name()+"\"")
+            from warnings import warn
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+
 
     def id(self, format='A'):
         r"""
@@ -837,11 +850,11 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            sage: f = oeis(53) ; f                      # optional -- internet
+            A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'nice', 'easy', 'hear')
+            ('nonn', 'fini', 'full')
 
         TESTS::
 
@@ -1083,6 +1096,14 @@ class OEISSequence(SageObject):
             sage: f.first_terms()[:10]                  # optional -- internet
             (0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17).first_terms(12)              # optional -- internet  
+            oeis(17).first_terms(12)
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)            
+
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
@@ -1107,7 +1128,7 @@ class OEISSequence(SageObject):
             sage: s(42)
             1
         """
-        if absolute_value or ('nonn' in self.keywords()):
+        if absolute_value or ('nonn' in self.keywords()) or ('dead' in self.keywords()):
             fields = ['S', 'T', 'U']
         elif ('sign' in self.keywords()):
             fields = ['V', 'W', 'X']

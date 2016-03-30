@@ -5240,7 +5240,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
       cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
       don't care.
 
-    * ``solid`` (defalt: random) -- Whether or not to make the returned
+    * ``solid`` (default: random) -- Whether or not to make the returned
       cone solid. Specify ``True`` for a solid cone, ``False`` for a
       non-solid cone, or ``None`` if you don't care.
 

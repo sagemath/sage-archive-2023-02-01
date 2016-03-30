@@ -47,7 +47,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             ...
             AssertionError: Category of commutative additive groups is not a subcategory of Category of groups
 
-         Check for #8119::
+         Check for :trac:`8119`::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)

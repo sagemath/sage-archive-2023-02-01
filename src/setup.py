@@ -24,7 +24,7 @@ def excepthook(*exc):
 
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
-                "sage-%s.log" % os.environ['SAGE_VERSION'])
+                "sagelib-%s.log" % os.environ['SAGE_VERSION'])
     except:
         pass
     else:
@@ -71,23 +71,9 @@ include_dirs = sage_include_directories(use_sources=True)
 extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
 DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
-
-# Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
-# as witnessed by a doctest in sage/libs/gap/element.pyx if the
-# compiler flag -Og is used. See also
-# * http://trac.sagemath.org/sage_trac/ticket/14460
-# * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
-if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-dominator-opts')
 
 #########################################################
 ### Testing related stuff

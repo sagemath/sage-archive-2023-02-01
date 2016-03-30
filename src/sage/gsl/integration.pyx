@@ -9,7 +9,7 @@ AUTHORS:
 
 - Robert Bradshaw (2008-08): fast float integration
 
-- Jeroen Demeyer (2011-11-23): Trac #12047: return 0 when the
+- Jeroen Demeyer (2011-11-23): :trac:`12047`: return 0 when the
   integration interval is a point; reformat documentation and add to
   the reference manual.
 """
@@ -187,7 +187,7 @@ def numerical_integral(func, a, b=None,
 
     If the interval of integration is a point, then the result is
     always zero (this makes sense within the Lebesgue theory of
-    integration), see Trac ticket #12047::
+    integration), see :trac:`12047`::
 
         sage: numerical_integral(log, 0, 0)
         (0.0, 0.0)
@@ -206,7 +206,7 @@ def numerical_integral(func, a, b=None,
     TESTS:
 
     Make sure that constant Expressions, not merely uncallable arguments,
-    can be integrated (trac #10088), at least if we can coerce them
+    can be integrated (:trac:`10088`), at least if we can coerce them
     to float::
 
         sage: f, g = x, x-1

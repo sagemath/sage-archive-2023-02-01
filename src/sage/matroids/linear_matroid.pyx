@@ -289,7 +289,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M = None
         """
         if self._prow is not NULL:
-            sage_free(self._prow)
+            sig_free(self._prow)
             self._prow = NULL
 
     cdef list _setup_internal_representation(self, matrix, reduced_matrix, ring, keep_initial_representation):
@@ -318,7 +318,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             else:
                 self._A = (<LeanMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
             P = range(self._A.nrows())
-        self._prow = <long* > sage_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):
                 self._prow[P[r]] = r
@@ -3024,7 +3024,7 @@ cdef class BinaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -4066,7 +4066,7 @@ cdef class TernaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -4943,7 +4943,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -5647,7 +5647,7 @@ cdef class RegularMatroid(LinearMatroid):
             else:
                 self._A = (<IntegerMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
             P = range(self._A.nrows())
-        self._prow = <long* > sage_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):
                 self._prow[P[r]] = r
@@ -5967,7 +5967,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2.delete('a'))
             True
 
-        Check that trac ticket #17316 was fixed::
+        Check that :trac:`17316` was fixed::
 
             sage: from sage.matroids.advanced import *
             sage: Mnew = RegularMatroid(groundset=range(12), matrix=Matrix(ZZ,

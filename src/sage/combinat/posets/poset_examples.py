@@ -24,17 +24,23 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
+    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
     :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
+    :meth:`~Posets.SymmetricGroupAbsoluteOrderPoset` | The poset of permutations with respect to absolute order.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
     :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
     :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
+    :meth:`~Posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
+    :meth:`~Posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
+    :meth:`~Posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
 
 Constructions
 -------------
@@ -59,7 +65,8 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset, FinitePosets_n
-from sage.combinat.posets.lattices import LatticePoset
+from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
+                                           JoinSemilattice)
 from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
@@ -154,12 +161,13 @@ class Posets(object):
             Finite lattice containing 6 elements
             sage: C.linear_extension()
             [0, 1, 2, 3, 4, 5]
-            sage: for i in range(5):
-            ...       for j in range(5):
-            ...           if C.covers(C(i),C(j)) and j != i+1:
-            ...              print "TEST FAILED"
 
-        TESTS:
+        TESTS::
+
+            sage: for i in range(5):
+            ....:     for j in range(5):
+            ....:         if C.covers(C(i),C(j)) and j != i+1:
+            ....:             print "TEST FAILED"
 
         Check that :trac:`8422` is solved::
 
@@ -192,10 +200,13 @@ class Posets(object):
 
             sage: A = Posets.AntichainPoset(6); A
             Finite poset containing 6 elements
+
+        TESTS::
+
             sage: for i in range(5):
-            ...       for j in range(5):
-            ...           if A.covers(A(i),A(j)):
-            ...              print "TEST FAILED"
+            ....:     for j in range(5):
+            ....:         if A.covers(A(i),A(j)):
+            ....:             print "TEST FAILED"
 
         TESTS:
 
@@ -386,7 +397,45 @@ class Posets(object):
         return Poset(H.reverse())
 
     @staticmethod
-    def RandomPoset(n,p):
+    def IntegerPartitionsDominanceOrder(n):
+        r"""
+        Return the poset of integer partitions on the integer `n`
+        ordered by dominance.
+
+        That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are
+        integer partitions of `n`, then `p` is greater than `q` if and
+        only if `p_1+\cdots+p_k > q_1+\cdots+q_k` for all `k`.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = Posets.IntegerPartitionsDominanceOrder(6); P
+            Finite lattice containing 11 elements
+            sage: P.cover_relations()
+            [[[1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1]],
+             [[2, 1, 1, 1, 1], [2, 2, 1, 1]],
+             [[2, 2, 1, 1], [2, 2, 2]],
+             [[2, 2, 1, 1], [3, 1, 1, 1]],
+             [[2, 2, 2], [3, 2, 1]],
+             [[3, 1, 1, 1], [3, 2, 1]],
+             [[3, 2, 1], [3, 3]],
+             [[3, 2, 1], [4, 1, 1]],
+             [[3, 3], [4, 2]],
+             [[4, 1, 1], [4, 2]],
+             [[4, 2], [5, 1]],
+             [[5, 1], [6]]]
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if n not in NN:
+            raise ValueError('n must be an integer')
+        from sage.combinat.partition import Partitions, Partition
+        return LatticePoset((Partitions(n), Partition.dominates)).dual()
+
+    @staticmethod
+    def RandomPoset(n, p):
         r"""
         Generate a random poset on ``n`` vertices according to a
         probability ``p``.
@@ -459,6 +508,28 @@ class Posets(object):
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)
         return Poset(D,cover_relations=False)
+
+    @staticmethod
+    def SetPartitions(n):
+        r"""
+        Return the lattice of set partitions of the set `\{1,\ldots,n\}`
+        ordered by refinement.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: Posets.SetPartitions(4)
+            Finite lattice containing 15 elements
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if n not in NN:
+            raise ValueError('n must be an integer')
+        from sage.combinat.set_partition import SetPartitions
+        S = SetPartitions(n)
+        return LatticePoset((S, S.is_less_than))
 
     @staticmethod
     def SSTPoset(s,f=None):
@@ -774,6 +845,179 @@ class Posets(object):
     # Tamari lattices
     import sage.combinat.tamari_lattices
     TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+
+    @staticmethod
+    def CoxeterGroupAbsoluteOrderPoset(W, use_reduced_words=True):
+        r"""
+        Return the poset of elements of a Coxeter group with respect
+        to absolute order.
+
+        INPUT:
+
+        - ``W`` -- a Coxeter group
+        - ``use_reduced_words`` -- boolean (default: ``True``); if
+          ``True``, then the elements are labeled by their lexicographically
+          minimal reduced word
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['B', 3])
+            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W)
+            Finite poset containing 48 elements
+
+            sage: W = WeylGroup(['B', 2], prefix='s')
+            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W, False)
+            Finite poset containing 8 elements
+        """
+        if use_reduced_words:
+            element_labels = {s: tuple(s.reduced_word()) for s in W}
+            return Poset({s: s.absolute_covers() for s in W}, element_labels)
+        return Poset({s: s.absolute_covers() for s in W})
+
+    @staticmethod
+    def SymmetricGroupAbsoluteOrderPoset(n, labels="permutations"):
+        r"""
+        Return the poset of permutations with respect to absolute order.
+
+        INPUT:
+
+        - ``n`` --  a positive integer
+
+        - ``label`` -- (default: ``'permutations'``) a label for the elements
+          of the poset returned by the function; the options are
+
+          * ``'permutations'`` - labels the elements are given by their
+            one-line notation
+          * ``'reduced_words'`` - labels the elements by the
+            lexicographically minimal reduced word
+          * ``'cycles'`` - labels the elements by their expression
+            as a product of cycles
+
+        EXAMPLES::
+
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(4)
+            Finite poset containing 24 elements
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
+            Finite poset containing 6 elements
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
+            Finite poset containing 6 elements
+        """
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        W = SymmetricGroup(n)
+        if labels == "permutations":
+            element_labels = {s: s.tuple() for s in W}
+        if labels == "reduced_words":
+            element_labels = {s: tuple(s.reduced_word()) for s in W}
+        if labels == "cycles":
+            element_labels = {s: "".join(x for x in s.cycle_string() if x != ',')
+                              for s in W}
+
+        return Poset({s: s.absolute_covers() for s in W}, element_labels)
+
+    @staticmethod
+    def YoungDiagramPoset(lam):
+        """
+        Return the poset of cells in the Young diagram of a partition.
+
+        INPUT:
+
+        - ``lam`` -- a partition
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungDiagramPoset(Partition([2,2])); P
+            Finite meet-semilattice containing 4 elements
+            sage: P.cover_relations()
+            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0),
+            (1, 1)]]
+        """
+        def cell_leq(a, b):
+            """
+            Nested function that returns `True` if the cell `a` is
+            to the left or above
+            the cell `b` in the (English) Young diagram.
+            """
+            return ((a[0] == b[0] - 1 and a[1] == b[1])
+                    or (a[1] == b[1] - 1 and a[0] == b[0]))
+        return MeetSemilattice((lam.cells(), cell_leq), cover_relations=True)
+
+    @staticmethod
+    def YoungsLattice(n):
+        """
+        Return Young's Lattice up to rank `n`.
+
+        In other words, the poset of partitions
+        of size less than or equal to `n` ordered by inclusion.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungsLattice(3); P
+            Finite meet-semilattice containing 7 elements
+            sage: P.cover_relations()
+            [[[], [1]],
+             [[1], [1, 1]],
+             [[1], [2]],
+             [[1, 1], [1, 1, 1]],
+             [[1, 1], [2, 1]],
+             [[2], [2, 1]],
+             [[2], [3]]]
+        """
+        from sage.combinat.partition import Partitions, Partition
+        from sage.misc.flatten import flatten
+        partitions = flatten([list(Partitions(i)) for i in range(n + 1)])
+        return JoinSemilattice((partitions, Partition.contains)).dual()
+
+    @staticmethod
+    def YoungsLatticePrincipalOrderIdeal(lam):
+        """
+        Return the principal order ideal of the
+        partition `lam` in Young's Lattice.
+
+        INPUT:
+
+        - ``lam`` -- a partition
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
+            sage: P
+            Finite lattice containing 6 elements
+            sage: P.cover_relations()
+            [[[], [1]],
+             [[1], [1, 1]],
+             [[1], [2]],
+             [[1, 1], [2, 1]],
+             [[2], [2, 1]],
+             [[2, 1], [2, 2]]]
+        """
+        from sage.misc.flatten import flatten
+        from sage.combinat.partition import Partition
+
+        def lower_covers(l):
+            """
+            Nested function returning those partitions obtained
+            from the partition `l` by removing
+            a single cell.
+            """
+            return [l.remove_cell(c[0], c[1]) for c in l.removable_cells()]
+
+        def contained_partitions(l):
+            """
+            Nested function returning those partitions contained in
+            the partition `l`
+            """
+            if l == Partition([]):
+                return l
+            return flatten([l, [contained_partitions(m)
+                                for m in lower_covers(l)]])
+
+        ideal = list(set(contained_partitions(lam)))
+        H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
+        return LatticePoset(H.reverse())
 
 
 posets = Posets

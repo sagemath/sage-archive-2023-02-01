@@ -525,7 +525,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 ### basis algorithms. They do only superficial type/sanity checks
 ### and should be called carefully.
 
-    def monomial_quotient(self,f, g, coeff=False):
+    def monomial_quotient(self, f, g, coeff=False):
         r"""
         Return ``f/g``, where both ``f`` and ``g`` are treated as monomials.
 
@@ -677,9 +677,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     def monomial_reduce(self, f, G):
         r"""
-        Try to find a `g` in ``G`` where ``g.lm()`` divides ``f``.
+        Try to find a ``g`` in ``G`` where ``g.lm()`` divides ``f``.
 
-        If found, `(flt,g)` is returned, `(0,0)` otherwise, where
+        If found, ``(flt,g)`` is returned, ``(0,0)`` otherwise, where
         ``flt`` is ``f/g.lm()``. It is assumed that ``G`` is iterable and contains
         ONLY elements in this ring.
 
@@ -833,7 +833,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         return self.monomial_lcm(g,h) == g*h
 
-    def monomial_all_divisors(self,t):
+    def monomial_all_divisors(self, t):
         r"""
         Return a list of all monomials that divide ``t``, coefficients are
         ignored.

@@ -1231,19 +1231,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return sublattices from the vertical decomposition of the lattice.
 
-        Let `d_1, \ldots, d_n` be elements comparable to every element
-        of the lattice, excluding the top and bottom elements. Let `b`
-        be a bottom element and `t` be the top element. This function
+        Let `d_1, \ldots, d_n` be elements (excluding the top and bottom
+        elements) comparable to every element of the lattice. Let `b`
+        be the bottom element and `t` be the top element. This function
         returns either a list `d_1, \ldots, d_n`, or the list of
         intervals `[b, d_1], [d_1, d_2], \ldots, [d_{n-1}, d_n], [d_n,
         t]` as lattices.
 
-        Informally said, this returns the lattice splitted to parts from
+        Informally said, this returns the lattice split into parts at
         every single-element "cutting point".
 
         INPUT:
 
-        - ``elements_only`` - if ``True``, return the list on decomposing
+        - ``elements_only`` - if ``True``, return the list of decomposing
           elements as defined above; if ``False`` (the default),
           return the list of sublattices so that the lattice is a
           vertical composition of them.
@@ -1294,7 +1294,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ``False`` otherwise.
 
         A lattice is vertically decomposable if it has an element that
-        is comparable to all elements and is not the bottom neither
+        is comparable to all elements and is neither the bottom nor
         the top element.
 
         Informally said, a lattice is vertically decomposable if it

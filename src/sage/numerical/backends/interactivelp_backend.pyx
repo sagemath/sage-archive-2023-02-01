@@ -735,7 +735,6 @@ cdef class InteractiveLPBackend:
                 return self.prob_name
             else:
                 return ""
-            return self.prob_name
         else:
             self.prob_name = str(name)
 

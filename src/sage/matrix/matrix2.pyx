@@ -1741,7 +1741,7 @@ cdef class Matrix(matrix1.Matrix):
         # TypeError with the following kind of message:
         #   absolute value is not defined on matrices. If you want the
         #   L^1-norm use m.norm(1) and if you want the matrix obtained by
-        #   applying the absolute value to the coefficents use
+        #   applying the absolute value to the coefficients use
         #   m.apply_map(abs).
         from sage.misc.superseded import deprecation
         deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"

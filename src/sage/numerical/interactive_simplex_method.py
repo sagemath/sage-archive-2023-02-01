@@ -1597,9 +1597,10 @@ class InteractiveLPProblem(SageObject):
             Domain: Vector space of dimension 2 over Rational Field
             Codomain: Vector space of dimension 2 over Rational Field
             
-        A more complicated transfromation map::
+        A more complicated transformation map::
 
-            sage: P = InteractiveLPProblem(A, b, c, variable_type=["<=", ""])
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=["<=", ""],
+            ....:                          objective_constant_term=42)
             sage: PSF, f = P.standard_form(True)
             sage: f
             Vector space morphism represented by the matrix:
@@ -1618,6 +1619,10 @@ class InteractiveLPProblem(SageObject):
             TypeError: given input is not a solution for this problem
             sage: P.is_optimal(f(PSF.optimal_solution()))
             True
+            sage: PSF.optimal_value()
+            5042
+            sage: P.optimal_value()
+            5042
         """
         A, b, c, x = self.Abcx()
         f = identity_matrix(self.n()).columns()

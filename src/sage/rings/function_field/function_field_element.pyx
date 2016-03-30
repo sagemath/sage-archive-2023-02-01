@@ -331,7 +331,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 

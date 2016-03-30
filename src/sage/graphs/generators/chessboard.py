@@ -36,7 +36,7 @@ def ChessboardGraphGenerator(dim_list,
     Graphs, Bishop Graph, and many generalizations. It also allows to avoid
     redondant code.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -66,7 +66,7 @@ def ChessboardGraphGenerator(dim_list,
     - ``relabel`` -- (default: ``False``) a boolean set to ``True`` if vertices
       must be relabeled as integers.
 
-    OUTPUTS:
+    OUTPUT:
 
     - A Graph build on a `d`-dimensional chessboard with prescribed dimensions,
       and with edges according given parameters.
@@ -82,7 +82,7 @@ def ChessboardGraphGenerator(dim_list,
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
         True
 
-    A Rook's Graph in 2 dimensions is isomporphic to the cartesian product of 2
+    A Rook's Graph in 2 dimensions is isomporphic to the Cartesian product of 2
     complete graphs::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [3,4], rook=True, rook_radius=None, bishop=False, knight=False )
@@ -248,7 +248,7 @@ def QueenGraph(dim_list, radius=None, relabel=False):
     chromatic number of a `(n,n)`-Queen Graph is at least `n`, and it is exactly
     `n` when `n\equiv 1,5 \bmod{6}`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -321,7 +321,7 @@ def KingGraph(dim_list, radius=None, relabel=False):
     All 2-dimensional King Graphs are Hamiltonian, biconnected, and have
     chromatic number 4 as soon as both dimensions are larger or equal to 2.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -382,7 +382,7 @@ def KnightGraph(dim_list, one=1, two=2, relabel=False):
 
     The `(n,n)`-Knight Graph is Hamiltonian for even `n > 4`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -443,7 +443,7 @@ def RookGraph(dim_list, radius=None, relabel=False):
     The Rook's Graph for an `n\times m` chessboard may also be defined as the
     Cartesian product of two complete graphs `K_n \square K_m`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -457,7 +457,7 @@ def RookGraph(dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The `(n,m)`-Rook's Graph is isomorphic to the cartesian product of two
+    The `(n,m)`-Rook's Graph is isomorphic to the Cartesian product of two
     complete graphs::
 
         sage: G = graphs.RookGraph( [3, 4] )
@@ -497,7 +497,7 @@ def BishopGraph(dim_list, radius=None, relabel=False):
 
     The Bishop Graph is not connected.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.

@@ -50,6 +50,19 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
         sage: b.f(1).e(1) == b
         True
 
+    Only the following basic operations are implemented:
+
+    - :meth:`~sage.categories.crystals.Crystals.cartan_type` or an attribute _cartan_type
+    - an attribute module_generators
+    - :meth:`.Element.e`
+    - :meth:`.Element.f`
+
+    All the other usual crystal operations are inherited from the
+    categories; for example::
+
+        sage: C.cardinality()
+        4
+
     TESTS::
 
         sage: C = Crystals().example()
@@ -78,18 +91,6 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
         running ._test_stembridge_local_axioms() . . . pass
-
-    Only the following basic operations are implemented:
-     - :meth:`~sage.categories.crystals.Crystals.cartan_type` or an attribute _cartan_type
-     - an attribute module_generators
-     - :meth:`.Element.e`
-     - :meth:`.Element.f`
-
-    All the other usual crystal operations are inherited from the
-    categories; for example::
-
-        sage: C.cardinality()
-        4
     """
 
     def __init__(self, n = 3):

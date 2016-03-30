@@ -33,9 +33,12 @@ Classes and methods
 -------------------
 """
 from sage.misc.superseded import deprecated_function_alias
-import urllib
 from sage.structure.all import Sequence
 from datetime import date
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
+
 
 class OHLC:
     def __init__(self, timestamp, open, high, low, close, volume):
@@ -214,7 +217,7 @@ class Stock:
              'volume': ...}
         """
         url = 'http://finance.yahoo.com/d/quotes.csv?s=%s&f=%s' % (self.symbol, 'l1c1va2xj1b4j4dyekjm3m4rr5p5p6s7')
-        values = urllib.urlopen(url).read().strip().strip('"').split(',')
+        values = urlopen(url).read().strip().strip('"').split(',')
         data = {}
         data['price'] = values[0]
         data['change'] = values[1]
@@ -595,7 +598,7 @@ class Stock:
             url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(exchange, symbol.upper(), startdate, enddate, histperiod)
         else:
             url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(cid, startdate, enddate, histperiod)
-        data = urllib.urlopen(url).read()
+        data = urlopen(url).read()
         if "Bad Request" in data or "The requested URL was not found on this server." in data:
             raise RuntimeError("Google reported a wrong request (did you specify a cid?)")
         return data

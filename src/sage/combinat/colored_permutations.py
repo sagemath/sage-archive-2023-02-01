@@ -154,7 +154,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
             sage: s1*s2 != s2*s1
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         """

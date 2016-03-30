@@ -24,7 +24,7 @@ from sage.misc.decorators import rename_keyword
 
 
 
-# Various hacks for the deprecation period in :trac:`18292` are
+# Various hacks for the deprecation period in trac #18292 are
 # conditional on this bool
 _old_and_deprecated_behavior = True
 

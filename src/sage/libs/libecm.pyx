@@ -38,7 +38,7 @@ EXAMPLES::
 #*****************************************************************************
 
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 

@@ -1187,7 +1187,7 @@ class BranchingRule(SageObject):
         if self._R.is_compound():
             raise ValueError("Cannot describe branching rule from reducible type")
         if not no_r:
-            print "\n%s"%(self._R.affine().dynkin_diagram()).__repr__()
+            print "\n%r"%(self._R.affine().dynkin_diagram())
         if self._S.is_compound():
             for j in range(len(self._S.component_types())):
                 ctype = self._S.component_types()[j]
@@ -1198,7 +1198,7 @@ class BranchingRule(SageObject):
                 print "\nfor more detailed information use verbose=True"
         else:
             print "root restrictions %s => %s:"%(self._R._repr_(compact=True),self._S._repr_(compact=True))
-            print "\n%s\n"%(self._S.dynkin_diagram().__repr__())
+            print "\n%r\n"%(self._S.dynkin_diagram())
             for j in self._R.affine().index_set():
                 if j == 0:
                     r = -Rspace.highest_root()
@@ -1320,7 +1320,7 @@ def branching_rule(Rtype, Stype, rule="default"):
             else:
                 raise ValueError("Rule not found")
         else:
-            name = rule.__repr__()
+            name = repr(rule)
         rules = []
         stor = []
         for i in range(len(Rtypes)):

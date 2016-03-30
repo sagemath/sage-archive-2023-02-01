@@ -8,20 +8,14 @@ Crystals of letters
 #                          Daniel Bump    <bump at match.stanford.edu>
 #                          Brant Jones    <brant at math.ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
 
-include "../../ext/python.pxi"
-
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
@@ -539,6 +533,34 @@ cdef class EmptyLetter(Element):
             True
         """
         return hash(self.value)
+
+    cpdef _richcmp_(left, Element right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['C', 3])
+            sage: C('E') == C(2)
+            False
+            sage: C('E') < C(2)
+            False
+            sage: C('E') <= C(2)
+            False
+            sage: C('E') != C(2)
+            True
+            sage: C('E') == C('E')
+            True
+            sage: C('E') != C('E')
+            False
+            sage: C('E') >= C('E')
+            True
+            sage: C('E') < C('E')
+            False
+        """
+        if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
+           return op == Py_EQ or op == Py_LE or op == Py_GE
+        return op == Py_NE
 
     def weight(self):
         """

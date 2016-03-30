@@ -78,6 +78,15 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             <BLANKLINE>
             0[]0
             <BLANKLINE>
+
+        TESTS:
+
+        Check that :trac:`19384` is fixed::
+
+            sage: RC = RiggedConfigurations(['B',3,1], [[3,1],[3,1]])
+            sage: RC._test_bijection()
+            sage: RC = RiggedConfigurations(['B',3,1], [[1,1],[3,1],[1,1]])
+            sage: RC._test_bijection()
         """
         if verbose:
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element \
@@ -180,7 +189,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                         bij.ret_rig_con[i]._list[j] //= 2
                         bij.ret_rig_con[i].rigging[j] //= 2
                         bij.ret_rig_con[i].vacancy_numbers[j] //= 2
-                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con)
+                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con, use_vacancy_numbers=True)
                 # Make it mutable so we don't have to keep making copies, at the
                 #   end of the bijection, we will make it immutable again
                 self.ret_rig_con._set_mutable()

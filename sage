@@ -123,6 +123,12 @@ fi
 
 export SAGE_ROOT
 
+# If this is a freshly-unpacked binary tarball then run the installer
+# Note: relocate-once.py deletes itself upon successful completion
+if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
+    "$SAGE_ROOT/relocate-once.py"
+fi
+
 # Run the actual Sage script
 if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
     exec "$SAGE_ROOT/src/bin/sage" "$@"

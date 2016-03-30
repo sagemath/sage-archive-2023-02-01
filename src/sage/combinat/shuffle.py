@@ -57,7 +57,7 @@ Author:
 import collections
 import itertools
 
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.structure.sage_object import SageObject
 
 ## TODO: Think about Parent/Element for this and the category

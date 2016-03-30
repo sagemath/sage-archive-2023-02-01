@@ -375,7 +375,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: (phi*inv).is_identity()
             True
         """
-        return self.__invert__()
+        return ~self
 
     def __rmul__(self, left):
         """

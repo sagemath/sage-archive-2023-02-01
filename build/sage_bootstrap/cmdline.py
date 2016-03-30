@@ -18,6 +18,7 @@ Note that argparse is not part of Python 2.6, so we cannot rely on it here.
 
 import os
 import sys
+import re
 from textwrap import dedent
 import logging
 log = logging.getLogger()
@@ -31,6 +32,8 @@ from sage_bootstrap.tarball import Tarball
 
 class CmdlineSubcommands(object):
 
+    KEYWORD_RE = re.compile('--(?P<option>[A-Za-z][A-Za-z0-9]*)=(?P<value>.*)')
+    
     def __init__(self, argv=None):
         if argv is None:
             argv = sys.argv
@@ -38,8 +41,20 @@ class CmdlineSubcommands(object):
             self.print_help()
             sys.exit(0)
         self.subcommand = argv[1]
-        self.extra_args = argv[2:]
+        self._init_argparse(argv[2:])
 
+    def _init_argparse(self, cmdline_args):
+        args = []
+        kwds = {}
+        for cmd in cmdline_args:
+            match = self.KEYWORD_RE.match(cmd)
+            if match is None:
+                args.append(cmd)
+            else:
+                kwds[match.group('option')] = match.group('value')
+        self.extra_args = args
+        self.extra_kwds = kwds
+            
     def print_help(self):
         print(dedent(self.__doc__).lstrip())
         print('Usage:')
@@ -59,10 +74,11 @@ class CmdlineSubcommands(object):
             log.error('unknown subcommand: {0}'.format(self.subcommand))
             sys.exit(1)
         try:
-            method(*self.extra_args)
+            method(*self.extra_args, **self.extra_kwds)
         except TypeError as err:
-            log.error('invalid arguments to the {0} subcommand: {1}'
-                      .format(self.subcommand, self.extra_args))
+            log.error(str(err))
+            log.error('invalid arguments to the {0} subcommand: {1} {2}'
+                      .format(self.subcommand, self.extra_args, self.extra_kwds))
             sys.exit(1)
 
             
@@ -78,7 +94,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         config: Print the configuration
 
-        $ sage-package config
+        $ sage --package config
         Configuration:
           * log = info
           * interactive = True
@@ -90,7 +106,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         list: Print a list of all available packages
 
-        $ sage-package list | sort
+        $ sage --package list | sort
         4ti2
         arb
         atlas
@@ -105,7 +121,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         name: Find the package name given a tarball filename
     
-        $ sage-package name pari-2.8-1564-gdeac36e.tar.gz
+        $ sage --package name pari-2.8-1564-gdeac36e.tar.gz
         pari
         """
         tarball = Tarball(os.path.basename(tarball_filename))
@@ -115,7 +131,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         tarball: Find the tarball filename given a package name
     
-        $ sage-package tarball pari
+        $ sage --package tarball pari
         pari-2.8-1564-gdeac36e.tar.gz
         """
         package = Package(package_name)
@@ -125,7 +141,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         apropos: Find up to 5 package names that are close to the given name
 
-        $ sage-package apropos python
+        $ sage --package apropos python
         Did you mean: cython, ipython, python2, python3, patch?
         """
         from sage_bootstrap.levenshtein import Levenshtein, DistanceExceeded
@@ -142,6 +158,18 @@ class SagePkgApplication(CmdlineSubcommands):
         else:
             print('There is no package similar to {0}'.format(incorrect_name))
             print('You can find further packages at http://files.sagemath.org/spkg/')
+
+    def run_update(self, package_name, new_version, url=None):
+        """
+        update: Update a package. This modifies the Sage sources. 
+    
+        $ sage --package update pari 2015 --url=http://localhost/pari/tarball.tgz
+        """
+        from sage_bootstrap.updater import PackageUpdater
+        update = PackageUpdater(package_name, new_version)
+        if url is not None:
+            update.download_upstream(url)
+        update.fix_checksum()
 
 
 class SageDownloadFileApplication(object):    

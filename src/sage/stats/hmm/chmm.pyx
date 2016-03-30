@@ -13,7 +13,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
 cdef double sqrt2pi = sqrt(2*M_PI)
@@ -143,7 +143,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         matrix A, normal emissions given by B, and initial state
         probability distribution pi.
 
-        INPUT::
+        INPUT:
 
            - A -- a list of lists or a square N x N matrix, whose
              (i,j) entry gives the probability of transitioning from
@@ -345,7 +345,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             ...
             ValueError: length must be nonnegative
 
-        Example in which the starting state is 0 (see trac 11452)::
+        Example in which the starting state is 0 (see :trac:`11452`)::
 
             sage: set_random_seed(23);  m.generate_sequence(2)
             ([0.6501, -2.0151], [0, 1])

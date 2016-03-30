@@ -227,8 +227,6 @@ class PseudolineArrangement:
             sage: PseudolineArrangement(matrix) == p
             True
 
-        TESTS:
-
         Wrong input::
 
             sage: PseudolineArrangement([[5, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]])

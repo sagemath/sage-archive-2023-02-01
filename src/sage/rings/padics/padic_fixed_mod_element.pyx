@@ -28,6 +28,25 @@ from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a fixed-modulus padic ring.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_fixed_mod_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'fixed-mod'
+        """
+        self._prec_type = 'fixed-mod'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
+
 cdef class pAdicFixedModElement(FMElement):
     r"""
     INPUT:
@@ -99,12 +118,12 @@ cdef class pAdicFixedModElement(FMElement):
         sage: R(Integers(49)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 49
 
         sage: R(Integers(48)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 48
 
     Some other conversions::
 

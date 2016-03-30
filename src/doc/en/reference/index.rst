@@ -78,7 +78,7 @@ Calculus
 * :doc:`Symbolic Calculus <calculus/index>`
 * :doc:`Mathematical Constants <constants/index>`
 * :doc:`Elementary and Special Functions <functions/index>`
-* :doc:`Asymptotic Expansions <rings/asymptotic_expansions_index>` (experimental)
+* :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
 
 Geometry and Topology
 ---------------------
@@ -86,7 +86,9 @@ Geometry and Topology
 * :doc:`Combinatorial Geometry <geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
+* :doc:`Manifolds <manifolds/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
+* :doc:`Knot Theory <knots/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------

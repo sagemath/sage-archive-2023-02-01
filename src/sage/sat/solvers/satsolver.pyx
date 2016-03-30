@@ -210,10 +210,10 @@ cdef class SatSolver:
         """
         TESTS::
 
-        sage: from sage.sat.solvers.satsolver import SatSolver
-        sage: solver = SatSolver()
-        sage: solver
-        a generic SAT solver (don't use me, inherit from me)
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver
+            a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
 

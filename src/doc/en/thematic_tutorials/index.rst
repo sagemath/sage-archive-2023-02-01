@@ -78,6 +78,7 @@ Combinatorics
 
 * :ref:`sage.combinat.tutorial`
 * :ref:`coding_theory`
+* :ref:`structures_in_coding_theory`
 
 Algebraic Combinatorics
 -----------------------

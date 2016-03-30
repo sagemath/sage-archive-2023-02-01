@@ -2908,7 +2908,7 @@ class StrongTableau(ClonableList):
         Return a dictionary of values and lists of cells where the heads with the values
         are located.
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -2957,7 +2957,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of pairs of integers of the coordinates of the heads of the ribbons
           with label ``v``
@@ -3001,7 +3001,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of integers of the content of the heads of the ribbons with label ``v``
 
@@ -3726,7 +3726,7 @@ class StrongTableau(ClonableList):
 
         - ``tij`` -- a transposition represented as a pair `(i, j)`.
 
-        OUPUT:
+        OUTPUT:
 
         - ``self`` after it has been modified by the action of the transposition ``tij``
 
@@ -4003,7 +4003,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return next(self.__iter__())
+        return next(iter(self))
 
     def outer_shape(self):
         r"""
@@ -4377,7 +4377,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         - ``outer_shape`` - a list which is a `k+1`-core (default: ``None``)
         - ``inner_shape`` - a list which is a `k+1`-core (default: [])
 
-        OUPUT:
+        OUTPUT:
 
         - an iterator which returns the standard marked tableaux with ``size`` cells
           and that are contained in ``outer_shape`` and contain ``inner_shape``
@@ -4420,7 +4420,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         - ``T`` -- a strong standard unmarked tableau as a list of lists
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries

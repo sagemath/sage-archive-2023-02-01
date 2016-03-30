@@ -22,7 +22,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from mpz cimport *
 from mpq cimport *

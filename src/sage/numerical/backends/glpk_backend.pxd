@@ -34,4 +34,7 @@ cdef class GLPKBackend(GenericBackend):
     cpdef int get_col_stat(self, int variable)
     cpdef eval_tab_row(self, int k)
     cpdef eval_tab_col(self, int k)
-
+    cpdef get_row_prim(self, int i)
+    cpdef set_row_stat(self, int i, int stat)
+    cpdef set_col_stat(self, int j, int stat)
+    cpdef int warm_up(self)

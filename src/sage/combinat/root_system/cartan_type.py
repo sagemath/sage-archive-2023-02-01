@@ -751,7 +751,6 @@ class CartanTypeFactory(SageObject):
         """
         return "CartanType"
 
-    @rename_keyword(deprecation=14673, crystalographic='crystallographic')
     def samples(self, finite=None, affine=None, crystallographic=None):
         """
         Return a sample of the available Cartan types.
@@ -808,10 +807,6 @@ class CartanTypeFactory(SageObject):
         TESTS::
 
             sage: for ct in CartanType.samples(): TestSuite(ct).run()
-            sage: CartanType.samples(crystalographic=False)
-            doctest:...: DeprecationWarning: use the option 'crystallographic' instead of 'crystalographic'
-            See http://trac.sagemath.org/14673 for details.
-            [['I', 5], ['H', 3], ['H', 4]]
         """
         result = self._samples()
         if crystallographic is not None:

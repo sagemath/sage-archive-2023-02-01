@@ -219,7 +219,7 @@ class ReducedPermutation(SageObject) :
             sage: print p[1]
             [1, 0]
         """
-        return self.list().__getitem__(i)
+        return self.list()[i]
 
     def __copy__(self) :
         r"""

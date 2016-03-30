@@ -12,7 +12,7 @@ is a surjective morphism
 from the modular curve `X_0(N)`, where `N` is the conductor of `E`.
 The map sends the cusp `\infty` to the origin of `E`.
 
-EXMAPLES::
+EXAMPLES::
 
         sage: phi = EllipticCurve('11a1').modular_parametrization()
         sage: phi

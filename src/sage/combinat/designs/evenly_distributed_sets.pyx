@@ -16,14 +16,12 @@ Classes and methods
 -------------------
 """
 
-include "sage/ext/stdsage.pxi"
-
 cimport cython
 
 from libc.limits cimport UINT_MAX
 from libc.string cimport memset, memcpy
 
-from sage.ext.memory cimport check_malloc, check_calloc
+include "cysignals/memory.pxi"
 
 from sage.rings.integer cimport Integer,smallInteger
 
@@ -172,15 +170,15 @@ cdef class EvenlyDistributedSetsBacktracker:
 
     def __dealloc__(self):
         if self.diff != NULL:
-            sage_free(self.diff[0])
-            sage_free(self.diff)
+            sig_free(self.diff[0])
+            sig_free(self.diff)
         if self.ratio != NULL:
-            sage_free(self.ratio[0])
-            sage_free(self.ratio)
-        sage_free(self.min_orb)
-        sage_free(self.B)
-        sage_free(self.cosets)
-        sage_free(self.t)
+            sig_free(self.ratio[0])
+            sig_free(self.ratio)
+        sig_free(self.min_orb)
+        sig_free(self.B)
+        sig_free(self.cosets)
+        sig_free(self.t)
 
     def __init__(self, K, k, up_to_isomorphism=True, check=False):
         r"""

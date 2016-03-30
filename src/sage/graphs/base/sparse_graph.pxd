@@ -40,6 +40,6 @@ cdef class SparseGraph(CGraph):
     cdef list out_arcs_unsafe(self, int u, bint labels)
 
 cdef class SparseGraphBackend(CGraphBackend):
-    pass
-
-cdef int new_edge_label(object l, dict edge_labels)
+    cdef int edge_labels_max
+    cdef list edge_labels_available_ids
+    cdef inline int new_edge_label(self, object l)

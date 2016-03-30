@@ -17,7 +17,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.long cimport pyobject_to_long
 
@@ -74,6 +74,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     Internally, we represent rational polynomial as the quotient of an integer
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
+
+    TESTS::
+
+        sage: f = QQ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+        sage: isinstance(f, Polynomial_rational_flint)
+        True
 
     .. automethod:: _add_
     .. automethod:: _sub_
@@ -233,14 +240,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
             sig_on()
-            L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
+            L2 = <mpq_t *> sig_malloc(n * sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
                 mpq_set(L2[deg], (<Rational> L1[deg]).value)
             fmpq_poly_set_array_mpq(self.__poly, L2, n)
             for deg from 0 <= deg < n:
                 mpq_clear(L2[deg])
-            sage_free(L2)
+            sig_free(L2)
             sig_off()
 
 #           deg = 0
@@ -376,38 +383,27 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return smallInteger(fmpq_poly_degree(self.__poly))
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         INPUT:
 
-        - ``n`` - Degree of the monomial whose coefficient is to be returned
-                  or a slice.
+        - ``n`` -- Degree of the monomial whose coefficient is to be
+          returned.
 
         EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
-            sage: f[-1], f[0], f[3], f[5]            # indirect doctest
+            sage: f[-1], f[0], f[3], f[5]           # indirect doctest
             (0, 1, 1/3, 0)
-            sage: f[1:3]                             # indirect doctest
-            1/2*t^2 + t
+            sage: f[:3]                             # indirect doctest
+            1/2*t^2 + t + 1
         """
         cdef Rational z = Rational.__new__(Rational)
-        cdef Polynomial_rational_flint res = self._new()
-        cdef bint do_sig = _do_sig(self.__poly)
-        if isinstance(n, slice):
-            start, stop, step = n.indices(self.degree() + 1)
-            if do_sig: sig_str("FLINT exception")
-            fmpq_poly_get_slice(res.__poly, self.__poly, start, stop)
-            if do_sig: sig_off()
-            return res
-        else:
-            if 0 <= n and n < fmpq_poly_length(self.__poly):
-                fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
-            return z
+        fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
+        return z
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """
@@ -829,8 +825,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = R.random_element(2000)
             sage: f - f/2 == 1/2 * f          # indirect doctest
             True
-            sage: f[:1000] == f - f[1000:]    # indirect doctest
-            True
         """
         cdef Polynomial_rational_flint op2 = <Polynomial_rational_flint> right
         cdef Polynomial_rational_flint res = self._new()
@@ -975,7 +969,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         TESTS:
 
-        The following example used to crash (cf. #11771)::
+        The following example used to crash (cf. :trac:`11771`)::
 
             sage: R.<t> = QQ[]
             sage: f = 10**383 * (t+1)
@@ -2103,7 +2097,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
         p = Integer(p)
         if not p.is_prime():

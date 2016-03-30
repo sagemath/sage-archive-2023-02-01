@@ -1012,7 +1012,7 @@ class FinitePosets(CategoryWithAxiom):
                 x = FF.one() / b
             else:
                 x = FF.sum(FF.one() / newdict[j] for j in uppers)
-                # ``FF.sum``, not ``sum``, see :trac:`15591`.
+                # ``FF.sum``, not ``sum``, see trac #15591.
             x = FF.one() / x
             # Construct the sum ``y`` of the labels at the elements
             # covered by ``v``:

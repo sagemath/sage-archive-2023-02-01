@@ -110,19 +110,14 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
                      int precision, int flags)
 
     cdef cppclass BKZParam:
-         ZZ_mat[mpz_t]* b
-         ZZ_mat[mpz_t]* u
          int blockSize
          double delta
-         FloatType floatType
-         int precision
          int flags
          int maxLoops
          double maxTime
          vector[double] pruning
 
-    int bkzReduction(BKZParam &param)
-    int bkzReduction(ZZ_mat[mpz_t] b, int blockSize)
+    int bkzReduction(ZZ_mat[mpz_t]* B, ZZ_mat[mpz_t]* U, BKZParam& param, FloatType floatType, int precision)
 
     int hkzReduction(ZZ_mat[mpz_t] b)
     int shortestVector(ZZ_mat[mpz_t] b,

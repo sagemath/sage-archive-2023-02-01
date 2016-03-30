@@ -1232,9 +1232,52 @@ cdef class InteractiveLPBackend:
         # which would for other solvers return backend dictionaries (#18804)
         """
         Return a dictionary representing the current basis.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="InteractiveLP")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(11/2 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: # Backend-specific commands to instruct solver to use simplex method here
+            sage: b.solve()
+            0
+            sage: d = b.dictionary(); d
+            LP problem dictionary ...
+            sage: set(d.basic_variables())
+            {x1, x3}
+            sage: d.basic_solution()
+            (17/8, 0)
+
+        TESTS:
+
+        Compare with a dictionary obtained in another way::
+
+            sage: lp, basis = p.interactive_lp_problem()
+            sage: lp.dictionary(*basis).basic_solution()
+            (17/8, 0)
+
         """
         return self.final_dictionary
 
     cpdef interactive_lp_problem(self):
 
+        """
+        Return the :class:`InteractiveLPProblem` object associated with this backend.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True,\
+                                                solver="InteractiveLP")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(-x[0] + x[1] <= 2)
+            sage: p.add_constraint(8 * x[0] + 2 * x[1] <= 17)
+            sage: p.set_objective(11/2 * x[0] - 3 * x[1])
+            sage: b = p.get_backend()
+            sage: b.interactive_lp_problem()
+            LP problem ...
+        """
         return self.lp

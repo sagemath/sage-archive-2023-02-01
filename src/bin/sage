@@ -363,7 +363,9 @@ sage_setup() {
     fi
 
     # Display the startup banner
-    if [ "$SAGE_BANNER" != "no" ]; then
+    if [ "$SAGE_BANNER" = "bare" ]; then
+	cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
         cat "$SAGE_LOCAL/bin/sage-banner"
     fi
 

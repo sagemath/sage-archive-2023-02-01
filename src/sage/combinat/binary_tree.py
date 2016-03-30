@@ -2068,10 +2068,40 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BT.comb('right')
             [.]
             sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                     ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o          
             sage: BT.comb('left')
             [[[., .], [[[., .], [., .]], [., .]]], ., [., .]]
+            sage: ascii_art(BT.comb('left'))
+            [   __o___     , , o ]
+            [  /      \          ]
+            [ o       _o_        ]
+            [        /   \       ]
+            [       o     o      ]
+            [      / \           ]
+            [     o   o          ]
             sage: BT.comb('right')
             [., [[., .], [[[., .], [., .]], .]]]
+            sage: ascii_art(BT.comb('right'))
+            [ ,   __o__   ]
+            [    /     \  ]
+            [   o       o ]
+            [          /  ]
+            [         o   ]
+            [        / \  ]
+            [       o   o ]
         """
         def _comb(side):
             if self.is_empty():
@@ -2108,10 +2138,29 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BT = BinaryTree( '[.,.]' )
             sage: BT.hook_number()
             1
-            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' ); ascii_art(BT)
+                o
+               / \
+              o   o
+             /    
+            o     
             sage: BT.hook_number()
             1
             sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                    ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o
             sage: BT.hook_number()
             6
         """
@@ -2136,13 +2185,39 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BT = BinaryTree( '[.,.]' )
             sage: BT.twisting_number()
             [0, 0]
-            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' ); ascii_art(BT)
+                o
+               / \
+              o   o
+             /    
+            o     
             sage: BT.twisting_number()
             [1, 1]
             sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                    ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o
             sage: BT.twisting_number()
             [5, 6]
-            sage: BT = BinaryTree( '[.,[[[.,.],.],.]]' )
+            sage: BT = BinaryTree( '[.,[[[.,.],.],.]]' ); ascii_art(BT)
+              o
+               \
+                o
+               /
+              o
+             /
+            o
             sage: BT.twisting_number()
             [1, 1]
         """

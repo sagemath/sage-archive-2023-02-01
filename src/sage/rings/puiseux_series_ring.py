@@ -41,14 +41,29 @@ from sage.categories.complete_discrete_valuation import CompleteDiscreteValuatio
 from sage.categories.fields import Fields
 from sage.rings.laurent_series_ring import (is_LaurentSeriesRing,
                                             LaurentSeriesRing)
+from sage.rings.laurent_series_ring_element import LaurentSeries
 from sage.rings.power_series_ring import is_PowerSeriesRing, PowerSeriesRing
-
+from sage.rings.power_series_ring_element import PowerSeries
 
 puiseux_series = {}
 
 
 def PuiseuxSeriesRing(base_ring, name=None, names=None, default_prec=None,
                       sparse=False):
+    """
+    Rings of Puiseux series.
+
+    EXAMPLES::
+
+        sage: P = PuiseuxSeriesRing(QQ,'y')
+        sage: y = P.gen()
+        sage: f = y**(4/3)+y**(-5/6); f
+        y^(-5/6) + y^(4/3)
+        sage: f.add_bigoh(2)
+        y^(-5/6) + y^(4/3) + O(y^2)
+        sage: f.add_bigoh(1)
+        y^(-5/6) + O(y)
+    """
     if not names is None:
         name = names
     if name is None:
@@ -79,12 +94,27 @@ def PuiseuxSeriesRing(base_ring, name=None, names=None, default_prec=None,
 
 
 def is_PuiseuxSeriesRing(x):
+    """
+    Return whether this ring is a Puiseux series ring.
+
+    EXAMPLES::
+
+        sage: from sage.rings.puiseux_series_ring import is_PuiseuxSeriesRing
+        sage: is_PuiseuxSeriesRing(QQ)
+        False
+        sage: P = PuiseuxSeriesRing(QQ,'y')
+        sage: is_PuiseuxSeriesRing(P)
+        True
+    """
     return isinstance(x, PuiseuxSeriesRing_generic)
 
 
 class PuiseuxSeriesRing_generic(CommutativeRing):
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
                  category=None):
+        """
+        Generic class for Puiseux series rings.
+        """
         CommutativeRing.__init__(self, base_ring, names=name,
                                  category=getattr(self, '_default_category',
                                                   Fields()))
@@ -185,6 +215,16 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         return self.laurent_series_ring().is_dense()
 
     def __reduce__(self):
+        """
+        Used for pickling.
+
+        EXAMPLES::
+
+            sage: P = PuiseuxSeriesRing(QQ,'y')
+            sage: P.__reduce__()
+            (<class 'sage.rings.puiseux_series_ring.PuiseuxSeriesRing_field_with_category'>,
+             (Rational Field, 'y', 20, False))
+        """
         return self.__class__, (self.base_ring(), self.variable_name(),
                                 self.default_prec(), self.is_sparse())
 
@@ -216,6 +256,27 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         - ``a`` -- (default: 0) the series is in powers of (var - a)
 
         - ``e`` -- (default: 1) the ramification index of the series
+
+        EXAMPLES::
+
+            sage: P = PuiseuxSeriesRing(QQ,'y')
+            sage: y = P.gen()
+            sage: P([1,3,5,7])
+            1 + 3*y + 5*y^2 + 7*y^3
+            sage: P(33/14)
+            33/14
+
+            sage: Q = PowerSeriesRing(QQ,'y')
+            sage: z = Q([1,2,4,5]).O(6); z
+            1 + 2*y + 4*y^2 + 5*y^3 + O(y^6)
+            sage: P(z) + y**(1/2)
+            1 + y^(1/2) + 2*y + 4*y^2 + 5*y^3 + O(y^6)
+
+            sage: Q = LaurentSeriesRing(QQ,'y')
+            sage: z = Q([3,2,1,2]).add_bigoh(5); z
+            3 + 2*y + y^2 + 2*y^3 + O(y^5)
+            sage: P(z) + y**(1/2)
+            3 + y^(1/2) + 2*y + y^2 + 2*y^3 + O(y^5)
         """
         P = parent(x)
 
@@ -228,7 +289,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
             l = self.laurent_series_ring()(x.laurent_part)
             e = x.ramification_index
         # 3. x is a member of the base ring then convert x to a laurent series
-        #    and set the ramificaiton index of the Puiseux series to 1.
+        #    and set the ramification index of the Puiseux series to 1.
         elif P is self.base_ring():
             l = self.laurent_series_ring()(x)
             e = 1

@@ -77,8 +77,6 @@ cdef class InteractiveLPBackend:
         else:
             self.set_sense(-1)
 
-        self.obj_constant_term = 0
-
         self.row_names = []
 
     cpdef base_ring(self):
@@ -199,7 +197,7 @@ cdef class InteractiveLPBackend:
             sage: p.objective_coefficient(1)
             1
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:
             continuous = True
@@ -222,7 +220,7 @@ cdef class InteractiveLPBackend:
         x = tuple(x) + (name,)
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
         return self.ncols() - 1
 
     cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
@@ -301,7 +299,7 @@ cdef class InteractiveLPBackend:
         else:
             raise NotImplementedError()
 
-    def _AbcxCVPR(self):
+    def _AbcxCVPRd(self):
         """
         Retrieve all problem data from the LP.
 
@@ -309,15 +307,16 @@ cdef class InteractiveLPBackend:
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
-            sage: p._AbcxCVPR()
-            ([], (), (), (), (), (), 'max', Algebraic Real Field)
+            sage: p._AbcxCVPRd()
+            ([], (), (), (), (), (), 'max', Algebraic Real Field, 0)
         """
         A, b, c, x = self.lp.Abcx()
         constraint_types = self.lp.constraint_types()
         variable_types = self.lp.variable_types()
         problem_type = self.lp.problem_type()
         base_ring = self.lp.base_ring()
-        return A, b, c, x, constraint_types, variable_types, problem_type, base_ring
+        d = self.lp.objective_constant_term()
+        return A, b, c, x, constraint_types, variable_types, problem_type, base_ring, d
 
     cpdef set_sense(self, int sense):
         """
@@ -340,14 +339,14 @@ cdef class InteractiveLPBackend:
             sage: p.is_maximization()
             False
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         if sense == +1:
             problem_type = "max"
         else:
             problem_type = "min"
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef objective_coefficient(self, int variable, coeff=None):
         """
@@ -375,12 +374,12 @@ cdef class InteractiveLPBackend:
         if coeff is None:
             return self.lp.objective_coefficients()[variable]
         else:
-            A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+            A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
             c = list(c)
             c[variable] = coeff
             self.lp = InteractiveLPProblem(A, b, c, x,
                                            constraint_types, variable_types,
-                                           problem_type, ring)
+                                           problem_type, ring, objective_constant_term=d)
 
     cpdef set_objective(self, list coeff, d = 0):
         """
@@ -426,12 +425,11 @@ cdef class InteractiveLPBackend:
             -47/5
 
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, _, x, constraint_types, variable_types, problem_type, ring, _ = self._AbcxCVPRd()
         c = coeff
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
-        self.obj_constant_term = d
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef set_verbosity(self, int level):
         """
@@ -473,13 +471,13 @@ cdef class InteractiveLPBackend:
             sage: p.get_values([x,y])
             [0, 3]
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         A = A.delete_rows((i,))
         b = list(b); del b[i]
         constraint_types=list(constraint_types); del constraint_types[i]
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
@@ -514,7 +512,7 @@ cdef class InteractiveLPBackend:
             sage: p.row_name(1)
             'foo'
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         if lower_bound is None:
            if upper_bound is None:
                raise ValueError("At least one of lower_bound and upper_bound must be provided")
@@ -540,7 +538,7 @@ cdef class InteractiveLPBackend:
 
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
 
     cpdef add_col(self, list indices, list coeffs):
@@ -678,7 +676,7 @@ cdef class InteractiveLPBackend:
         v = d.objective_value()
         if self.lp_std_form.is_negative():
             v = - v
-        return self.obj_constant_term + v
+        return v
 
     cpdef get_variable_value(self, int variable):
         """
@@ -1030,12 +1028,12 @@ cdef class InteractiveLPBackend:
         else:
             if value != bounds[1]:
                 bounds = (bounds[0], value)
-                A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+                A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
                 variable_types = list(variable_types)
                 variable_types[index] = self._variable_type_from_bounds(*bounds)
                 self.lp = InteractiveLPProblem(A, b, c, x,
                                                constraint_types, variable_types,
-                                               problem_type, ring)
+                                               problem_type, ring, objective_constant_term=d)
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1074,12 +1072,12 @@ cdef class InteractiveLPBackend:
         else:
             if value != bounds[0]:
                 bounds = (value, bounds[1])
-                A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+                A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
                 variable_types = list(variable_types)
                 variable_types[index] = self._variable_type_from_bounds(*bounds)
                 self.lp = InteractiveLPProblem(A, b, c, x,
                                                constraint_types, variable_types,
-                                               problem_type, ring)
+                                               problem_type, ring, objective_constant_term=d)
 
     cpdef bint is_variable_basic(self, int index):
         """

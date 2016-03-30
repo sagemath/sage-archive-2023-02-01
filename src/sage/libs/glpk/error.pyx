@@ -12,7 +12,7 @@ Error handler for the GLPK library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from .env cimport *
 from cpython.exc cimport PyErr_SetObject
 from sage.numerical.mip import MIPSolverException
@@ -71,7 +71,7 @@ def setup_glpk_error_handler():
         sage: cython('''
         ....: #clib glpk z gmp
         ....: from sage.libs.glpk.env cimport glp_term_out
-        ....: include 'sage/ext/interrupt.pxi'
+        ....: include "cysignals/signals.pxi"
         ....:
         ....: sig_on()
         ....: glp_term_out(12345)  # invalid value

@@ -31,7 +31,7 @@ a native Sage object::
     sage: mobj2.parent()                        # optional - mathematica
     Mathematica
     sage: sobj = mobj2.sage(); sobj             # optional - mathematica
-    (x - 1)*(x + 1)
+    (x + 1)*(x - 1)
     sage: sobj.parent()                         # optional - mathematica
     Symbolic Ring
 
@@ -232,11 +232,7 @@ We factor an integer::
     sage: F[4]                               # optional - mathematica
     {541, 1}
 
-We can also load the ECM package and factoring using it::
-
-    sage: _ = mathematica.eval("<<NumberTheory`FactorIntegerECM`");  # optional - mathematica
-    sage: mathematica.FactorIntegerECM('932901*939321')              # optional - mathematica
-    8396109
+Mathematica's ECM package is no longer available. 
 
 Long Input
 ----------
@@ -313,8 +309,7 @@ OTHER Examples::
     ...       return mathematica(nu).BesselK(x).N(20)
     ...
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    0.180489972066962*I - 2.592886175491197             # 32-bit
-    -2.59288617549119697817 + 0.18048997206696202663*I  # 64-bit
+    -2.5928861754911969782 + 0.1804899720669620266 I
 
 ::
 
@@ -639,10 +634,9 @@ class MathematicaElement(ExpectElement):
             raise AttributeError
         return MathematicaFunctionElement(self, attrname)
 
-    def __float__(self):
+    def __float__(self, precision=16):
         P = self.parent()
-        # TODO: Is 16 enough?
-        return float(P.eval('N[%s,16]'%self.name()))
+        return float(P.eval('N[%s,%s]'%(self.name(),precision)))
 
     def _reduce(self):
         return self.parent().eval('InputForm[%s]'%self.name())
@@ -855,7 +849,7 @@ class MathematicaElement(ExpectElement):
 
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
             sage: filename = tmp_filename()                      # optional - mathematica
-            sage: P.save(filename, ImageSize=800)                # optional - mathematica
+            sage: P.save_image(filename, ImageSize=800)                # optional - mathematica
         """
         P = self._check_valid()
         if not self._is_graphics():
@@ -884,14 +878,15 @@ class MathematicaElement(ExpectElement):
                 return
             if OutputImagePng in display_manager.supported_output():
                 return display_manager.graphics_from_save(
-                    self.save, kwds, '.png', OutputImagePng)
+                    self.save_image, kwds, '.png', OutputImagePng)
         else:
             OutputLatex = display_manager.types.OutputLatex
-            if display_manager.preferences.text == 'plain':
+            dmp = display_manager.preferences.text
+            if dmp is None or dmp == 'plain':
                 return
-            if OutputLatex in display_manager.supported_output():
+            if dmp == 'latex' and OutputLatex in display_manager.supported_output():
                 return OutputLatex(self._latex_())
-        
+
     def show(self, ImageSize=600):
         r"""
         Show a mathematica expression immediately.
@@ -918,12 +913,12 @@ class MathematicaElement(ExpectElement):
             sage: P.show(ImageSize=800)                          # optional - mathematica
             sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
             sage: show(Q)                                        # optional - mathematica
-            <html><div class="math">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</div></html>
+            <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, ImageSize=ImageSize) 
-        
+        dm.display_immediately(self, ImageSize=ImageSize)
+
     def str(self):
         return str(self)
 
@@ -941,20 +936,55 @@ class MathematicaElement(ExpectElement):
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
 
-    def N(self, *args):
-        """
+    def N(self, precision=None):
+        r"""
+        Numerical approximation by calling Mathematica's `N[]`
+
+        Calling Mathematica's `N[]` function, with optional precision in decimal digits.
+        Unlike Sage's `n()`, `N()` can be applied to symbolic Mathematica objects.
+
+        A workaround for :trac:`18888` backtick issue, stripped away by `get()`,
+        is included.
+
+        .. note::
+
+            The base class way up the hierarchy defines an `N` (modeled
+            after Mathematica's)  which overwrites the Mathematica one,
+            and doesn't work at all. We restore it here.
+
         EXAMPLES::
 
-            sage: mathematica('Pi').N(10)    # optional -- mathematica
-            3.1415926536
-            sage: mathematica('Pi').N(50)    # optional -- mathematica
-            3.14159265358979323846264338327950288419716939937511
+            sage: mathematica('Pi/2').N(10)        # optional -- mathematica
+            1.570796327
+            sage: mathematica('Pi').N(50)          # optional -- mathematica
+            3.1415926535897932384626433832795028841971693993751
+            sage: mathematica('Pi*x^2-1/2').N()    # optional -- mathematica
+                            2
+            -0.5 + 3.14159 x
         """
-        # The base class way up the hierarchy defines an "N" (modeled
-        # after Mathematica's!)  which overwrites the Mathematica one,
-        # and doesn't work at all. We restore it here.
-        return self.parent().N(self, *args)
+        P = self.parent()
+        if precision is None:
+            return P.eval('N[%s]'%self.name())
+        return P.eval('N[%s,%s]'%(self.name(),precision))
 
+    def n(self, *args, **kwargs):
+        r"""
+        Numerical approximation by converting to Sage object first
+
+        Convert the object into a Sage object and return its numerical
+        approximation. See documentation of the function
+        :func:`sage.misc.functional.n` for details.
+
+        EXAMPLES::
+
+            sage: mathematica('Pi').n(10)    # optional -- mathematica
+            3.1
+            sage: mathematica('Pi').n()      # optional -- mathematica
+            3.14159265358979
+            sage: mathematica('Pi').n(digits=10)   # optional -- mathematica
+            3.141592654
+        """
+        return self._sage_().n(*args, **kwargs)
 
 class MathematicaFunction(ExpectFunction):
     def _sage_doc_(self):

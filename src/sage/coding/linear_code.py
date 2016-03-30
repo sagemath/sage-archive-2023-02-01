@@ -3723,7 +3723,6 @@ class LinearCode(AbstractLinearCode):
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
-
     EXAMPLES::
 
         sage: MS = MatrixSpace(GF(2),4,7)
@@ -3829,26 +3828,25 @@ class LinearCode(AbstractLinearCode):
             ...
             ValueError: this linear code contains no non-zero vector
         """
-        from sage.matrix.constructor import matrix
         
         base_ring = generator.base_ring()
         if not base_ring.is_field():
-            raise ValueError("'generator' must be defined on a field (not a ring)")
+                raise ValueError("'generator' must be defined on a field (not a ring)")
         
         try:
             basis = generator.row_space().basis() # generator matrix case
+            
+            # if the matrix does not have full rank we replace it
+            if generator.rank() != generator.nrows():
+                from sage.matrix.constructor import matrix
+                basis = generator.row_space().basis()
+                generator = matrix(base_ring, basis)
+    
+                if generator.nrows() == 0:
+                    raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:
-            basis = generator.basis() # code case
             # convert code to generator matrix
-            generator = matrix(base_ring, basis)
-
-        # if the matrix does not have full rank we replace it
-        if generator.rank() != generator.nrows():
-            basis = generator.row_space().basis()
-            generator = matrix(base_ring, basis)
-
-            if generator.nrows() == 0:
-                raise ValueError("this linear code contains no non-zero vector")
+            generator = generator.generator_matrix()
 
         super(LinearCode, self).__init__(base_ring, generator.ncols(), "GeneratorMatrix", "Syndrome")
         self._generator_matrix = generator

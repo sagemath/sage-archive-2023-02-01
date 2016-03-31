@@ -874,7 +874,7 @@ def is_valid_ordering(G, L):
     OUTPUT:
 
     Returns ``True`` if `L` is a valid vertex ordering for `G`, and ``False``
-    oterwise.
+    otherwise.
 
 
     EXAMPLE:

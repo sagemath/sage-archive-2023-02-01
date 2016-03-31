@@ -5,29 +5,24 @@ Hasse diagrams of posets
 {INDEX_OF_FUNCTIONS}
 
 """
+
 #*****************************************************************************
-#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
-#                          Franco Saliola <saliola@gmail.com>
+#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
+#       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import copy
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.misc.misc import uniq
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 class HasseDiagram(DiGraph):
     """
@@ -707,7 +702,6 @@ class HasseDiagram(DiGraph):
         """
         return self.order()
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function(self,i,j): # dumb algorithm
         r"""
         Returns the value of the Möbius function of the poset
@@ -743,7 +737,6 @@ class HasseDiagram(DiGraph):
         return self._moebius_function_values[(i,j)]
     mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function_matrix(self):
         r"""
         Returns the matrix of the Möbius function of this poset
@@ -789,7 +782,6 @@ class HasseDiagram(DiGraph):
     mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
     # Redefine self.moebius_function
-    from sage.misc.superseded import deprecated_function_alias
     def _moebius_function_from_matrix(self, i,j):
         r"""
         Returns the value of the Möbius function of the poset
@@ -1703,6 +1695,4 @@ class HasseDiagram(DiGraph):
                 all(e in ms for ms in max_sublats)]
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
-import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
-

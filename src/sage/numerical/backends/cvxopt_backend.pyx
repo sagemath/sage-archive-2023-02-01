@@ -35,7 +35,6 @@ cdef class CVXOPTBackend(GenericBackend):
     cdef list col_name_var
     cdef dict answer
     cdef dict param
-    cdef str name
 
     def __cinit__(self, maximization = True):
         """
@@ -50,7 +49,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
         self.objective_function = [] #c_matrix in the example for cvxopt
         self.G_matrix = []
-        self.prob_name = None
+        self.prob_name = ''
         self.obj_constant_term = 0
         self.is_maximize = 1
 
@@ -707,13 +706,15 @@ cdef class CVXOPTBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
+            sage: p.problem_name()
+            ''
             sage: p.problem_name("There once was a french fry")
             sage: print p.problem_name()
             There once was a french fry
         """
         if name == NULL:
-            return self.name
-        self.name = str(<bytes>name)
+            return self.prob_name
+        self.prob_name = str(<bytes>name)
 
 
     cpdef row(self, int i):

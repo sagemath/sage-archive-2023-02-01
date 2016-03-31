@@ -20,6 +20,11 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 - :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
 
+**Cyclic code decoder**
+
+- :class:`cyclic_code.CyclicCodeSurroundingBCHDecoder <sage.coding.cyclic_code.CyclicCodeSurroundingBCHDecoder>`
+
+
 **BCH code decoder**
 
 - :class:`bch.BCHUnderlyingGRSDecoder <sage.coding.bch.BCHUnderlyingGRSDecoder>`
@@ -48,3 +53,4 @@ from grs import (GRSBerlekampWelchDecoder,
                  GRSErrorErasureDecoder)
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from bch import BCHUnderlyingGRSDecoder
+from cyclic_code import CyclicCodeSurroundingBCHDecoder

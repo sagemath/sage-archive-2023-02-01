@@ -310,10 +310,13 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: D.bch_word_to_grs(c)
             (0, z4^2 + z4, 1, z4^2 + z4, 0, 1, 1, 1, z4^2 + z4, 0, 0, z4^2 + z4 + 1, z4^2 + z4, 0, 1)
         """
-        mapping = self.code()._field_embedding.embedding()
-        a = [mapping(i) for i in c]
-
-        return vector(a)
+        C = self.code()
+        if hasattr(self.code(), "field_embedding"):
+            mapping = self.code()._field_embedding.embedding()
+            a = [mapping(i) for i in c]
+            return vector(a)
+        else:
+            return c
 
     def grs_word_to_bch(self, c):
         r"""
@@ -331,11 +334,13 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (0, a, 1, a, 0, 1, 1, 1, a, 0, 0, a + 1, a, 0, 1)
         """
         C = self.code()
-        FE = C._field_embedding
-        a = []
-        for i in c:
-            a.append(FE.small_field_polynomial_representation(i))
-        return vector(a)
+        if hasattr(self.code(), "field_embedding"):
+            FE = C._field_embedding
+            a = []
+            for i in c:
+                a.append(FE.small_field_polynomial_representation(i))
+            return vector(a)
+        return c
 
     def decode_to_code(self, y):
         r"""

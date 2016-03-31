@@ -752,8 +752,27 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         c = vector(C.base_ring(), [col_mults[i]*p(alphas[i]) for i in range(C.length())])
         return c
 
-    #Alias for encode method
-    __call__ = encode
+    def __call__(self, m):
+        r"""
+        Returns either ``m`` if it is a codeword or ``self.encode(m)``
+        if it is an element of the message space of the encoder used by
+        ``encode``.
+
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(11).list()[:10], 5)
+            sage: word = vector((0, 1, 3, 5, 4))
+            sage: C(word)
+            (0, 2, 8, 5, 10, 4, 9, 0, 4, 1)
+
+            sage: c = C.random_element()
+            sage: C(c) == c
+            True
+        """
+        if m in self:
+            return m
+        else:
+            return self.encode(m)
 
     def unencode_nocheck(self, c):
         r"""

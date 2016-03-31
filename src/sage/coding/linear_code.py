@@ -1976,8 +1976,28 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.encode(word)
 
-    #Alias for encode method
-    __call__ = encode
+    def __call__(self, m):
+        r"""
+        Returns either ``m`` if it is a codeword or ``self.encode(m)``
+        if it is an element of the message space of the encoder used by
+        ``encode``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0))
+            sage: C(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+            sage: c = C.random_element()
+            sage: C(c) == c
+            True
+        """
+        if m in self:
+            return m
+        else:
+            return self.encode(m)
 
     @cached_method
     def encoder(self, encoder_name=None, **kwargs):

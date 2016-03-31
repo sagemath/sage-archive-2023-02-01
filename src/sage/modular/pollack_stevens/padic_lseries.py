@@ -87,7 +87,7 @@ class pAdicLseries(SageObject):
         sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec) # long time
         sage: L2  = pAdicLseries(phi2p) # long time
         sage: L1[1]*L2[1] # long time
-        13 + 9*19 + O(19^2)
+        13 + 9*19 + 18*19^2 + O(19^3)
     """
     def __init__(self, symb, gamma=None, quadratic_twist=1, precision=None):
         r"""

@@ -523,6 +523,7 @@ class CyclicCode(AbstractLinearCode):
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 FE = FieldEmbedding(Fsplit, F, embedding = F_to_Fsplit)
+                self._field_embedding = FE
                 if primitive_element is not None and (primitive_element not in Fsplit or
                         multiplicative_order(primitive_element) != n):
                     raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")

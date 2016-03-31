@@ -87,16 +87,16 @@ def is_homogeneous(self):
     return len(self.homogeneous_components()) == 1
 
 def homogeneous_components(self):
-    deg_matrix = block_matrix([[self.parent()._M0,-self.parent()._B0]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rk),-self.parent()._B0]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
     for m in monomials:
-        gvect = tuple(deg_matrix*vector(m.exponents()[0]))
-        if gvect in components:
-            components[gvect] += self.parent().retract(x.monomial_coefficient(m)*m)
+        g_vect = tuple(deg_matrix*vector(m.exponents()[0]))
+        if g_vect in components:
+            components[g_vect] += self.parent().retract(x.monomial_coefficient(m)*m)
         else:
-            components[gvect] = self.parent().retract(x.monomial_coefficient(m)*m)
+            components[g_vect] = self.parent().retract(x.monomial_coefficient(m)*m)
     return components
 
 
@@ -393,7 +393,7 @@ class ClusterAlgebra(Parent):
             M0 = I
         else:
             M0 = Q.b_matrix()[n:,:]
-        m = M0.nrows() + n
+        m = M0.nrows()
 
         # Ambient space for F-polynomials
         # NOTE: for speed purposes we need to have QQ here instead of the more natural ZZ. The reason is that _mutated_F is faster if we do not cast the result to polynomials but then we get "rational" coefficients
@@ -424,12 +424,12 @@ class ClusterAlgebra(Parent):
             scalars = ZZ
 
         # Determine coefficients and setup self._base
-        if m>n:
+        if m>0:
             if 'coefficients_names' in kwargs:
-                if len(kwargs['coefficients_names']) == m-n:
+                if len(kwargs['coefficients_names']) == m:
                     coefficients = kwargs['coefficients_names']
                 else:
-                    raise ValueError("coefficients_names should be a list of %d valid variable names"%(m-n))
+                    raise ValueError("coefficients_names should be a list of %d valid variable names"%m)
             else:
                 try:
                     coefficients_prefix = kwargs['coefficients_prefix']
@@ -439,7 +439,7 @@ class ClusterAlgebra(Parent):
                     offset = n
                 else:
                     offset = 0
-                coefficients = [coefficients_prefix+'%s'%i for i in xrange(offset,m-n+offset)]
+                coefficients = [coefficients_prefix+'%s'%i for i in xrange(offset,m+offset)]
             # TODO: (***) base should eventually become the group algebra of a tropical semifield
             base = LaurentPolynomialRing(scalars, coefficients)
         else:
@@ -456,8 +456,8 @@ class ClusterAlgebra(Parent):
 
         # Data to compute cluster variables using separation of additions
         # BUG WORKAROUND: if your sage installation does not have trac:`19538` merged uncomment the following line and comment the next
-        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
-        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # Have we principal coefficients?
@@ -465,9 +465,7 @@ class ClusterAlgebra(Parent):
 
         # Store initial data
         self._B0 = copy(B0)
-        self._M0 = copy(M0)
         self._n = n
-        self._m = m
         self.reset_current_seed()
 
         # Internal data for exploring the exchange graph
@@ -506,9 +504,7 @@ class ClusterAlgebra(Parent):
         other._yhat = copy(self._yhat)
         other._is_principal = self._is_principal
         other._B0 = copy(self._B0)
-        other._M0 = copy(self._M0)
         other._n = self._n
-        other._m = self._m
         # We probably need to put n=2 initializations here also
         return other
 
@@ -768,9 +764,6 @@ class ClusterAlgebra(Parent):
         algebra._F_poly_dict = new_F_dict
 
         algebra._B0.mutate(k)
-
-        #modify algebra._M0
-        #modify algebra._yhat
 
         if not inplace:
             return algebra

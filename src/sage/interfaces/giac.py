@@ -985,7 +985,7 @@ class GiacElement(ExpectElement):
             matrix[[0,1-y,1-y^2,1-y^3],[x-1,x-y,x-y^2,x-y^3],[x^2-1,x^2-y,x^2-y^2,x^2-y^3],[x^3-1,x^3-y,x^3-y^2,x^3-y^3]]
             sage: M.eigenvals()       # random; optional - giac
             0,0,(x^3+x^2+x-y^3-y^2-y+sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2,(x^3+x^2+x-y^3-y^2-y-sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2
-            sage: Z=matrix(M,R);Z                                # optional - giac
+            sage: Z=matrix(R,M);Z                                # optional - giac
             [         0     -y + 1   -y^2 + 1   -y^3 + 1]
             [     x - 1      x - y   -y^2 + x   -y^3 + x]
             [   x^2 - 1    x^2 - y  x^2 - y^2 -y^3 + x^2]

@@ -4621,10 +4621,7 @@ class FiniteWord_class(Word_class):
             sage: f['3'] == 1
             True
         """
-        d = {}
-        for a in self:
-            d[a] = d.get(a,0) + 1
-        return d
+        return evaluation_dict(self)
 
     def evaluation_sparse(self):
         r"""
@@ -4915,20 +4912,8 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, cmp=self.parent().cmp_letters)
 
     def _s(self, i):
         r"""
@@ -6966,4 +6951,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

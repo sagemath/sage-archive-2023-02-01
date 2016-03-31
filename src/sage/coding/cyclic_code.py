@@ -50,6 +50,7 @@ from sage.categories.homset import Hom
 from copy import copy
 from field_embedding import FieldEmbedding
 from sage.groups.generic import discrete_log
+from sage.misc.functional import multiplicative_order
 
 def find_generator_polynomial(code, probabilistic = False):
     r"""
@@ -369,6 +370,13 @@ class CyclicCode(AbstractLinearCode):
 
     - ``field`` -- (default: ``None``) the base field for this code.
 
+    - ``primitive_element`` -- (default: ``None``) the primitive element
+      to use when creating the set of roots for the generating polynomial
+      over the splitting field. It has to be of multiplicative order ``length`` over this
+      field. If the splitting field is not ``field``, it also have to be a polynomial in ``zx``,
+      where ``x`` is the degree of the extension field. For instance,
+      over ``GF(16)``, it has to be a polynomial in ``z4``.
+
     EXAMPLES:
 
     We can construct a Cyclic Code using three different methods.
@@ -410,7 +418,7 @@ class CyclicCode(AbstractLinearCode):
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, generator_pol=None, length=None, code=None, probabilistic = False, D = None, field = None):
+    def __init__(self, generator_pol=None, length=None, code=None, probabilistic = False, D = None, field = None, primitive_element = None):
         r"""
         TESTS:
 
@@ -501,13 +509,28 @@ class CyclicCode(AbstractLinearCode):
                     if not r in pows:
                         pows = pows.union(cyclotomic_coset(n, r, q))
 
+                if primitive_element is not None and (primitive_element not in F or
+                        multiplicative_order(primitive_element) != n):
+                    raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
+                elif primitive_element is not None:
+                    alpha = primitive_element
+                else:
+                    alpha = F.zeta(n)
+                self._primitive_element = alpha
                 alpha = F.gen() ** ((q - 1) // n)
                 g = R(prod(x - alpha ** p for p in pows))
 
             else:
-                Fsplit, F_to_Fsplit = F.extension(Integer(s), 'b', map = True)
+                Fsplit, F_to_Fsplit = F.extension(Integer(s), map = True)
                 FE = FieldEmbedding(Fsplit, F, embedding = F_to_Fsplit)
-                beta = Fsplit.zeta(n)
+                if primitive_element is not None and (primitive_element not in Fsplit or
+                        multiplicative_order(primitive_element) != n):
+                    raise ValueError("primitive_element has to be an element of multplicative order n in the extension field used to compute the generator polynomial")
+                elif primitive_element is not None:
+                    beta = primitive_element
+                else:
+                    beta = Fsplit.zeta(n)
+                self._primitive_element = beta
                 Rsplit = Fsplit['xx']
                 xx = Rsplit.gen()
 
@@ -653,6 +676,42 @@ class CyclicCode(AbstractLinearCode):
             x^3 + x + 1
         """
         return self._generator_polynomial
+
+    def primitive_element(self):
+        r"""
+        Returns the primitive element that was used as a root of
+        the generator polynomial over the extension field.
+
+        EXAMPLES::
+
+            sage: F.<x> = GF(2)[]
+            sage: n = 7
+            sage: g = x ** 3 + x + 1
+            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C.primitive_element()
+            z3
+
+            sage: F = GF(16, 'a')
+            sage: n = 15
+            sage: a = F.gen()
+            sage: Cc = codes.CyclicCode(length = n, field = F, D = [1,2], primitive_element = a^2 + 1)
+            sage: Cc.primitive_element()
+            a^2 + 1
+        """
+        if hasattr(self, "_primitive_element"):
+            return self._primitive_element
+        else:
+            F = self.base_field()
+            q = F.cardinality()
+            n = self.length()
+            s = 1
+            while not n.divides(q ** s - 1):
+                s += 1
+
+            Fsplit = F.extension(Integer(s))
+            beta = Fsplit.zeta(n)
+            self._primitive_element = beta
+            return beta
 
     def check_polynomial(self):
         r"""

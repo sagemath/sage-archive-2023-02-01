@@ -27,6 +27,26 @@ include "CR_template.pxi"
 from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
+from sage.rings.padics.pow_computer cimport PowComputer_class
+
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a capped-relative padic ring or field.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_capped_relative_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'capped-rel'
+        """
+        self._prec_type = 'capped-rel'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
 
 cdef class pAdicCappedRelativeElement(CRElement):
     """
@@ -83,14 +103,14 @@ cdef class pAdicCappedRelativeElement(CRElement):
         sage: R(Integers(49)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 49
 
     ::
 
         sage: R(Integers(48)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 48
 
     Some other conversions::
 

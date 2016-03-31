@@ -1885,12 +1885,6 @@ class AbstractLinearCode(module.Module):
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C1 == C2
             True
-            sage: C2 = C1.extended_code()
-            sage: C3 = C2.punctured([7])
-            sage: G1 = C1.generator_matrix().echelon_form()
-            sage: G3 = C3.generator_matrix().echelon_form()
-            sage: G1 == G3
-            True
 
         TESTS:
 
@@ -2905,7 +2899,7 @@ class AbstractLinearCode(module.Module):
             sage: Cg = C.permuted_code(g)
             sage: Cg
             Linear code of length 7, dimension 4 over Finite Field of size 2
-            sage: C.generator_matrix() == Cg.generator_matrix().echelon_form()
+            sage: C.generator_matrix() == Cg.generator_matrix_systematic()
             True
         """
         F = self.base_ring()
@@ -3551,7 +3545,7 @@ class AbstractLinearCode(module.Module):
     @cached_method
     def zero(self):
         r"""
-        Return the zero vector.
+        Returns the zero vector of ``self``.
 
         EXAMPLES::
 
@@ -3563,9 +3557,7 @@ class AbstractLinearCode(module.Module):
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        v = 0*self.gens()[0]
-        v.set_immutable()
-        return v
+        return self.ambient_space().zero()
 
     def zeta_polynomial(self, name="T"):
         r"""

@@ -2925,7 +2925,7 @@ class AbstractLinearCode(module.Module):
 
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.punctured([1,2])
-            Punctured code coming from Linear code of length 7, dimension 4 over Finite Field of size 2 punctured on position(s) [1, 2]
+            Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) [1, 2]
         """
         from punctured_code import PuncturedCode
         return PuncturedCode(self, L)

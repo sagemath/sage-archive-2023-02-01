@@ -28,7 +28,8 @@ from decoder import Decoder, DecodingError
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
 from sage.rings.integer import Integer
-from sage.rings.ring import Field
+from sage.categories.fields import Fields
+from sage.rings.integer_ring import ZZ
 from copy import copy
 
 class BCHCode(CyclicCode):
@@ -41,66 +42,72 @@ class BCHCode(CyclicCode):
 
     - ``length`` -- the length of the code
 
-    - ``starting_point`` -- the first element to add in the defining set
+    - ``designed_distance`` -- the resulting minimum distance of the code
 
-    - ``delta`` -- the ending point for the elements in the defining set
+    - ``primitive_element`` -- (default: ``None``) the primitive element
+      to use when creating the set of roots for the generating polynomial
+      over the splitting field. It has to be of multiplicative order ``length`` over this
+      field. If the splitting field is not ``field``, it also have to be a polynomial in ``zx``,
+      where ``x`` is the degree of the extension field. For instance,
+      over ``GF(16)``, it has to be a polynomial in ``z4``.
+
+    - ``offset`` -- (default: ``0``) the first element to add in the defining set
 
     - ``jump_size`` -- (default: ``1``) the jump size between two elements of the defining set
 
-    - ``b`` -- (default: ``0``) is exactly the same as ``starting_point``. It is only here
+    - ``b`` -- (default: ``0``) is exactly the same as ``offset``. It is only here
       for retro-compatibility purposes with the old signature of `BCHCode` and will be removed soon.
 
     EXAMPLES::
 
-        sage: C = codes.BCHCode(GF(2), 15, 1, 7)
+        sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
         sage: C
         [15, 5] BCH Code over Finite Field of size 2 with x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 as generator polynomial
 
-        sage: C = codes.BCHCode(GF(2), 15, 1, 4, 3)
+        sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1, jump_size = 3)
         sage: C
         [15, 7] BCH Code over Finite Field of size 2 with x^8 + x^7 + x^5 + x^4 + x^3 + x + 1
         as generator polynomial
     """
 
-    def __init__(self, base_field, length, starting_point, delta, jump_size = 1, b = 0):
+    def __init__(self, base_field, length, designed_distance, primitive_element = None, offset = 0, jump_size = 1, b = 0):
         """
         TESTS:
 
-        ``delta`` must be between 2 and ``length`` (inclusive), otherwise an exception
+        ``designed_distance`` must be between 2 and ``length`` (inclusive), otherwise an exception
         will be raised::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 16)
+            sage: C = codes.BCHCode(GF(2), 15, 16)
             Traceback (most recent call last):
             ...
-            ValueError: delta must belong to [2, n]
+            ValueError: designed_distance must belong to [2, n]
         """
-        if not (delta <= length and delta > 1):
-            raise ValueError("delta must belong to [2, n]")
-        if isinstance(base_field, (Integer, int)) and isinstance(starting_point, Field):
+        if not (designed_distance <= length and designed_distance > 1):
+            raise ValueError("designed_distance must belong to [2, n]")
+        if base_field in ZZ and designed_distance in Fields:
             from sage.misc.superseded import deprecation
-            deprecation(42042, "codes.BCHCode(n, delta, F, b=0) is now deprecated. Please use the new signature instead.")
-            delta = copy(length)
-            length = copy(base_field)
-            F = copy(base_field)
-        if not isinstance(base_field, Field):
+            deprecation(20335, "codes.BCHCode(n, designed_distance, F, b=0) is now deprecated. Please use the new signature instead.")
+            (length, designed_distance, base_field) = (base_field, length, designed_distance)
+            offset = b
+        if not base_field in Fields or not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
         elif not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
 
         D = []
-        point = copy(starting_point)
-        for i in range(0, delta - 1):
+        point = copy(offset)
+        for i in range(0, designed_distance - 1):
             D.append(point)
             point = (point + jump_size) % length
 
         try:
-            super(BCHCode, self).__init__(field = base_field, length = length, D = D)
+            super(BCHCode, self).__init__(field = base_field, length = length, D = D, primitive_element = primitive_element)
         except ValueError, e:
             raise e
-        self._default_decoder_name = "UnderlyingGRS"
+        #self._default_decoder_name = "UnderlyingGRS"
         self._jump_size = jump_size
-        self._starting_point = b
-        self._delta = delta
+        self._offset = offset
+        self._designed_distance = designed_distance
 
     def __eq__(self, other):
         r"""
@@ -110,15 +117,16 @@ class BCHCode(CyclicCode):
 
             sage: F = GF(16, 'a')
             sage: n = 15
-            sage: C1 = codes.BCHCode(F, n, 1, 2)
-            sage: C2 = codes.BCHCode(F, n, 1, 2)
+            sage: C1 = codes.BCHCode(F, n, 2)
+            sage: C2 = codes.BCHCode(F, n, 2)
             sage: C1 == C2
             True
         """
         return isinstance(other, BCHCode) \
                 and self.length() == other.length() \
                 and self.jump_size() == other.jump_size() \
-                and self.starting_point() == other.starting_point() \
+                and self.offset() == self.offset()\
+                and self.primitive_element() == self.primitive_element()
 
     def _repr_(self):
         r"""
@@ -126,7 +134,7 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 7)
+            sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
             sage: C
             [15, 5] BCH Code over Finite Field of size 2 with x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 as generator polynomial
         """
@@ -140,7 +148,7 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 7)
+            sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
             sage: latex(C)
             [15, 5] \textnormal{ BCH Code over } \Bold{F}_{2} \textnormal{ with } x^{10} + x^{8} + x^{5} + x^{4} + x^{2} + x + 1 \textnormal{ as generator polynomial}
         """
@@ -154,24 +162,24 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 4, 2)
+            sage: C = codes.BCHCode(GF(2), 15, 4, jump_size = 2)
             sage: C.jump_size()
             2
         """
         return self._jump_size
 
-    def starting_point(self):
+    def offset(self):
         r"""
-        Returns the starting point which was used to compute the elements in
+        Returns the offset which was used to compute the elements in
         the defining set of ``self``.
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 4, 2)
-            sage: C.starting_point
+            sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1)
+            sage: C.offset()
             1
         """
-        return self._starting_point
+        return self._offset
 
     def bch_to_grs(self):
         r"""
@@ -179,13 +187,13 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 1, 2, 2)
+            sage: C = codes.BCHCode(GF(2), 15, 2, jump_size = 2, offset = 1)
             sage: C.bch_to_grs()
-            [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in b of size 2^4
+            [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in z4 of size 2^4
         """
         l = self.jump_size()
-        alpha = self.root_of_unity()
-        b = self.starting_point()
+        alpha = self.primitive_element()
+        b = self.offset()
         n = self.length()
 
         grs_dim = n - self.bch_bound(arithmetic = True) + 1

@@ -18,7 +18,7 @@ The ``codes`` object may be used to access the codes that Sage can build.
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+from code_constructions import (BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,

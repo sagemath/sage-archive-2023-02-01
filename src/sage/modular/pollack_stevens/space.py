@@ -820,18 +820,16 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: E = EllipticCurve('113a1')
-        sage: symb = ps_modsym_from_elliptic_curve(E)
+        sage: symb = E.modular_symbol(implementation = 'pollack-stevens') # indirect doctest
         sage: symb
         Modular symbol of level 113 with values in Sym^0 Q^2
         sage: symb.values()
         [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
         0, 2, 0, 0]
 
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: E = EllipticCurve([0,1])
-        sage: symb = ps_modsym_from_elliptic_curve(E)
+        sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
         sage: symb.values()
         [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
     """
@@ -936,9 +934,9 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
 
     A consistency check with :meth:`sage.modular.pollack_stevens.space.ps_modsym_from_simple_modsym_space`::
 
-        sage: from sage.modular.pollack_stevens.space import (ps_modsym_from_elliptic_curve, ps_modsym_from_simple_modsym_space)
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
         sage: E = EllipticCurve('11a')
-        sage: f_E = ps_modsym_from_elliptic_curve(E); f_E.values()
+        sage: f_E = E.modular_symbol(implementation = 'pollack-stevens'); f_E.values()
         [-1/5, 3/2, -1/2]
         sage: A = ModularSymbols(11, sign=1, weight=2).decomposition()[0]
         sage: f_plus = ps_modsym_from_simple_modsym_space(A); f_plus.values()

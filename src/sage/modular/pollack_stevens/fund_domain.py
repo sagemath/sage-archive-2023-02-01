@@ -1445,8 +1445,7 @@ class ManinRelations(PSModularSymbolsDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: M = phi.parent().source()
@@ -1516,8 +1515,7 @@ class ManinRelations(PSModularSymbolsDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: M = phi.parent().source()

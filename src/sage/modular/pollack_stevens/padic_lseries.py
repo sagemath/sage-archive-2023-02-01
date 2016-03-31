@@ -36,11 +36,10 @@ class pAdicLseries(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: E = EllipticCurve('37a')
         sage: p = 5
         sage: prec = 4
-        sage: phi = ps_modsym_from_elliptic_curve(E)
+        sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
         sage: Phi = phi.p_stabilize_and_lift(p,prec,eigensymbol=True) # long time
         sage: L = pAdicLseries(Phi) # long time
         sage: L[1] # long time
@@ -98,7 +97,7 @@ class pAdicLseries(SageObject):
             sage: p = 37
             sage: prec = 3
             sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
-            sage: Phi = phi.lift(p,prec,algorithm='stevens',eigensymbol=True)
+            sage: Phi = phi.lift(p,prec,eigensymbol=True)
             sage: L = pAdicLseries(Phi)
             sage: L[1]
             4 + 37 + O(37^2)
@@ -125,7 +124,6 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
@@ -178,8 +176,8 @@ class pAdicLseries(SageObject):
         EXAMPLE::
 
             sage: E = EllipticCurve('11a')
-            sage: S = sage.modular.pollack_stevens.space.ps_modsym_from_elliptic_curve(E)
-            sage: SS = S.lift(11, M=10, algorithm='stevens')
+            sage: S = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: SS = S.lift(11, M=10)
             sage: L = pAdicLseries(SS)
             sage: L == loads(dumps(L)) # indirect doctest
             True
@@ -196,13 +194,12 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True) # long time
+            sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.symb() is Phi # long time
             True
@@ -215,13 +212,12 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: Phi = phi_stabilized.lift(p,prec,None,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.prime() # long time
             5
@@ -234,13 +230,12 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: Phi = phi_stabilized.lift(p,prec,None,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.quadratic_twist() # long time
             1
@@ -253,13 +248,12 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time 
+            sage: Phi = phi_stabilized.lift(p,prec,None,eigensymbol=True) # long time 
             sage: L = pAdicLseries(Phi) # long time
             sage: L._repr_() # long time
             '5-adic L-series of Modular symbol of level 185 with values in Space of 5-adic distributions with k=0 action and precision cap 9'
@@ -274,13 +268,12 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True) # long time
+            sage: Phi = phi_stabilized.lift(p,prec,None,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.series(3,4) # long time
             O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2
@@ -304,11 +297,10 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: ap = phi.Tq_eigenvalue(p) # long time
@@ -404,11 +396,10 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
             sage: Phi = phi.p_stabilize_and_lift(p,prec,eigensymbol = True) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.eval_twisted_symbol_on_Da(1) # long time

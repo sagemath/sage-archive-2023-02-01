@@ -34,6 +34,11 @@ Test deprecation::
     Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
     See http://trac.sagemath.org/20094 for details.
     [0, 1, 2, 3, 4]
+    sage: sage.misc.all.srange(5)
+    doctest:...: DeprecationWarning:
+    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
+    See http://trac.sagemath.org/20334 for details.
+    [0, 1, 2, 3, 4]
     sage: sage.misc.misc.sxrange(5)
     doctest:...: DeprecationWarning:
     Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange

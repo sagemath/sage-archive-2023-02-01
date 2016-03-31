@@ -31,6 +31,7 @@ AUTHORS:
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *

@@ -30,6 +30,7 @@ include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args

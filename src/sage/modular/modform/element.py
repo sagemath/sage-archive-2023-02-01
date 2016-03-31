@@ -1692,7 +1692,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
             sage: eps.parent()
-            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            Group of Dirichlet characters modulo 3 with values in Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
             Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1

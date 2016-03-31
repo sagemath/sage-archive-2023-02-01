@@ -26,6 +26,7 @@ from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA,
 from sage.rings.padics.padic_fixed_mod_element import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):
+    _implementation = 'GMP'
     def __init__(self, p, prec, print_mode, names, element_class):
         """
         Initialization
@@ -34,7 +35,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
+        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._prec_type())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
             coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]

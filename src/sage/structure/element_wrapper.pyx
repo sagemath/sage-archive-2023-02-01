@@ -8,15 +8,19 @@ AUTHORS:
 - Nicolas Thiery (2008-2010): Initial version
 - Travis Scrimshaw (2013-05-04): Cythonized version
 """
-#*****************************************************************************
-#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
 
-include "../ext/python.pxi"
+#*****************************************************************************
+#       Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from cpython cimport bool
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element

@@ -47,7 +47,7 @@ from sage.graphs.base.dense_graph cimport DenseGraph
 from sage.graphs.graph import Graph
 
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 
@@ -124,17 +124,17 @@ cdef class simple_connected_genus_backtracker:
         cdef int i
 
         if self.vertex_darts != NULL:
-            sage_free(self.vertex_darts[0])
-            sage_free(self.vertex_darts)
+            sig_free(self.vertex_darts[0])
+            sig_free(self.vertex_darts)
 
         if self.swappers != NULL:
-            sage_free(self.swappers[0])
-            sage_free(self.swappers)
+            sig_free(self.swappers[0])
+            sig_free(self.swappers)
 
-        sage_free(self.face_map)
-        sage_free(self.visited)
-        sage_free(self.face_freeze)
-        sage_free(self.degree)
+        sig_free(self.face_map)
+        sig_free(self.visited)
+        sig_free(self.face_freeze)
+        sig_free(self.degree)
 
     cdef int got_memory(self):
         """
@@ -192,20 +192,20 @@ cdef class simple_connected_genus_backtracker:
         if self.num_verts <= 1:
             return
 
-        self.face_map     = <int *> sage_malloc(self.num_darts * sizeof(int))
-        self.vertex_darts = <int **>sage_malloc(self.num_verts * sizeof(int *))
-        self.swappers     = <int **>sage_malloc(self.num_verts * sizeof(int *))
-        self.degree       = <int *> sage_malloc(self.num_verts * sizeof(int))
-        self.visited      = <int *> sage_malloc(self.num_darts * sizeof(int))
-        self.face_freeze  = <int *> sage_malloc(self.num_darts * sizeof(int))
+        self.face_map     = <int *> sig_malloc(self.num_darts * sizeof(int))
+        self.vertex_darts = <int **>sig_malloc(self.num_verts * sizeof(int *))
+        self.swappers     = <int **>sig_malloc(self.num_verts * sizeof(int *))
+        self.degree       = <int *> sig_malloc(self.num_verts * sizeof(int))
+        self.visited      = <int *> sig_malloc(self.num_darts * sizeof(int))
+        self.face_freeze  = <int *> sig_malloc(self.num_darts * sizeof(int))
 
         if self.got_memory() == 0:
             # dealloc is NULL-safe and frees everything that did get alloc'd
             raise MemoryError, "Error allocating memory for graph genus a"
 
-        w = <int *>sage_malloc((self.num_verts + self.num_darts) * sizeof(int))
+        w = <int *>sig_malloc((self.num_verts + self.num_darts) * sizeof(int))
         self.vertex_darts[0] = w
-        s = <int *>sage_malloc( 2 * (self.num_darts - self.num_verts) * sizeof(int))
+        s = <int *>sig_malloc( 2 * (self.num_darts - self.num_verts) * sizeof(int))
         self.swappers[0] = s
 
         if w == NULL or s == NULL:

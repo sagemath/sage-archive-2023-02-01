@@ -7,8 +7,9 @@ The GUAVA wrappers are in guava.py.
 
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.HammingCode(3,GF(2))
-    Linear code of length 7, dimension 4 over Finite Field of size 2
+    sage: codes.HammingCode(GF(2), 3)
+    [7, 4] Hamming Code over Finite Field of size 2
+
 
 Let `F` be a finite field with `q` elements.
 Here's a constructive definition of a cyclic code of length
@@ -907,53 +908,6 @@ def ExtendedTernaryGolayCode():
     # C = TernaryGolayCode()
     # return C.extended_code()
 
-def HammingCode(r,F):
-    r"""
-    Implements the Hamming codes.
-
-    The `r^{th}` Hamming code over `F=GF(q)` is an
-    `[n,k,d]` code with length `n=(q^r-1)/(q-1)`,
-    dimension `k=(q^r-1)/(q-1) - r` and minimum distance
-    `d=3`. The parity check matrix of a Hamming code has rows
-    consisting of all nonzero vectors of length r in its columns,
-    modulo a scalar factor so no parallel columns arise. A Hamming code
-    is a single error-correcting code.
-
-    INPUT:
-
-
-    -  ``r`` - an integer 2
-
-    -  ``F`` - a finite field.
-
-
-    OUTPUT: Returns the r-th q-ary Hamming code.
-
-    EXAMPLES::
-
-        sage: codes.HammingCode(3,GF(2))
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C = codes.HammingCode(3,GF(3)); C
-        Linear code of length 13, dimension 10 over Finite Field of size 3
-        sage: C.minimum_distance()
-        3
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=3
-        3
-        sage: C = codes.HammingCode(3,GF(4,'a')); C
-        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
-    """
-    q = F.order()
-    n =  (q**r-1)/(q-1)
-    k = n-r
-    MS = MatrixSpace(F,n,r)
-    X = ProjectiveSpace(r-1,F)
-    PFn = [list(p) for p in X.point_set(F).points(F)]
-    H = MS(PFn).transpose()
-    Cd = LinearCode(H)
-    # Hamming code always has distance 3, so we provide the distance.
-    return LinearCode(Cd.dual_code().generator_matrix(), d=3)
-
-
 def LinearCodeFromCheckMatrix(H):
     r"""
     A linear [n,k]-code C is uniquely determined by its generator
@@ -975,18 +929,22 @@ def LinearCodeFromCheckMatrix(H):
 
     EXAMPLES::
 
-        sage: C = codes.HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(GF(2), 3)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix_systematic()
+        sage: Gh == Gc
         True
-        sage: C = codes.HammingCode(2,GF(3))
+        sage: C = codes.HammingCode(GF(3), 2)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix_systematic()
+        sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
         sage: H = C.parity_check_matrix()

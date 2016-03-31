@@ -22,10 +22,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
-from cpython.list cimport *
-from cpython.object cimport *
-from cpython.tuple cimport *
+from cpython cimport *
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -796,7 +793,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         If we're given lists as arguments, we should throw an
         appropriate error when those lists do not contain valid
-        indices (trac #6569)::
+        indices (:trac:`6569`)::
 
             sage: A = matrix(4, range(1,17))
             sage: A[[1.5], [1]]
@@ -812,7 +809,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
-        Before trac #6569 was fixed, sparse/dense matrices behaved
+        Before :trac:`6569` was fixed, sparse/dense matrices behaved
         differently due to implementation details. Given invalid
         indices, they should fail in the same manner. These tests
         just repeat the previous set with a sparse matrix::
@@ -4242,7 +4239,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT: a tuple of Python integers: the position of the
         first nonzero entry in each row of the echelon form.
 
-        This returns a tuple so it is immutable; see #10752.
+        This returns a tuple so it is immutable; see :trac:`10752`.
 
         EXAMPLES::
 
@@ -5188,7 +5185,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(~1)
             Rational Field
 
-        A matrix with 0 rows and 0 columns is invertible (see trac #3734)::
+        A matrix with 0 rows and 0 columns is invertible (see :trac:`3734`)::
 
             sage: M = MatrixSpace(RR,0,0)(0); M
             []
@@ -5225,7 +5222,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             ZeroDivisionError: input matrix must be nonsingular
 
-        Check to make sure that trac #2256 is still fixed::
+        Check to make sure that :trac:`2256` is still fixed::
 
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M

@@ -721,13 +721,12 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: F(-5)
             Traceback (most recent call last):
             ...
-            ValueError: unable to convert -5, use gen() instead
+            TypeError: unable to convert -5, use gen() instead
         """
         if x is None:
             return self.one()
         if x in self._indices:
-            raise ValueError("unable to convert {}, use gen() instead".format(x))
-        #    return self.gens()[x]
+            raise TypeError("unable to convert {!r}, use gen() instead".format(x))
         return self.element_class(self, x)
 
     def _an_element_(self):

@@ -124,7 +124,7 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
         """
         return Cusp(x, parent=self)
 
@@ -230,7 +230,7 @@ class Cusp(Element):
             sage: Cusp(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert I to a Cusp
+            TypeError: unable to convert I to a cusp
 
         ::
 
@@ -265,21 +265,21 @@ class Cusp(Element):
             sage: Cusp(0,0)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (0, 0) to a Cusp
+            TypeError: unable to convert (0, 0) to a cusp
 
         ::
 
             sage: Cusp(oo,oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (+Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (+Infinity, +Infinity) to a cusp
 
         ::
 
             sage: Cusp(Cusp(oo),oo)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert (Infinity, +Infinity) to a Cusp
+            TypeError: unable to convert (Infinity, +Infinity) to a cusp
         """
         if parent is None:
             parent = Cusps
@@ -307,7 +307,7 @@ class Cusp(Element):
                 self.__b = ZZ(1)
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
                 if ZZ(a[1]) == 0:
                     self.__a = ZZ(1)
                     self.__b = ZZ(0)
@@ -317,25 +317,25 @@ class Cusp(Element):
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
             else:
                 try:
                     r = QQ(a)
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a Cusp"%a)
+                    raise TypeError("unable to convert %r to a cusp"%a)
             return
 
         if is_InfinityElement(b):
             if is_InfinityElement(a) or (isinstance(a, Cusp) and a.is_infinity()):
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             self.__a = ZZ(0)
             self.__b = ZZ(1)
             return
         elif not b:
             if not a:
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return
@@ -357,13 +357,13 @@ class Cusp(Element):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
             r = ZZ(a[0]) / (ZZ(a[1]) * b)
         else:
             try:
                 r = QQ(a) / b
             except (ValueError, TypeError):
-                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
+                raise TypeError("unable to convert (%r, %r) to a cusp"%(a, b))
 
         self.__a = r.numer()
         self.__b = r.denom()

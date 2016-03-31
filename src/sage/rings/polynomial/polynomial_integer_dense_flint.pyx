@@ -533,7 +533,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             name = self.parent().variable_name()
         cdef long i
         cdef Integer coef = PY_NEW(Integer)
-        all = []
+        cdef list all = []
         for i from fmpz_poly_degree(self.__poly) >= i >= 0:
             fmpz_poly_get_coeff_mpz(coef.value, self.__poly, i)
             if coef:
@@ -550,15 +550,15 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                         coeff_str = coeff_str + '*'
                 if i > 1:
                     if latex:
-                        PyList_Append(all, " %s %s%s^{%s}" % (sign_str,
+                        all.append(" %s %s%s^{%s}" % (sign_str,
                             coeff_str, name, i))
                     else:
-                        PyList_Append(all, " %s %s%s^%s" % (sign_str,
+                        all.append(" %s %s%s^%s" % (sign_str,
                             coeff_str, name, i))
                 elif i == 1:
-                    PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
+                    all.append(" %s %s%s" % (sign_str, coeff_str, name))
                 else:
-                    PyList_Append(all, " %s %s" % (sign_str, coeff_str))
+                    all.append(" %s %s" % (sign_str, coeff_str))
         if len(all) == 0:
             return '0'
         leading = all[0]
@@ -682,7 +682,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: z.quo_rem(2*x)
             (0, 0)
 
-        Ticket #383, make sure things get coerced correctly::
+        :trac:`383`, make sure things get coerced correctly::
 
             sage: f = x+1; parent(f)
             Univariate Polynomial Ring in x over Integer Ring
@@ -1373,8 +1373,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fmpz_poly_set_ZZX(fac.__poly, v[i][0])
             F.append( (fac,e[i]) )
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
 
         return Factorization(F, unit=z, sort=False)
 

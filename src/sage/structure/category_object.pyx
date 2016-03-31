@@ -56,7 +56,6 @@ from __future__ import division
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
 cimport generators
 cimport sage_object
 from sage.categories.category import Category

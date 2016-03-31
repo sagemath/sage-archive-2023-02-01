@@ -175,6 +175,8 @@ from sage.matroids.all   import *
 
 from sage.game_theory.all import *
 
+from sage.knots.all import *
+
 from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm

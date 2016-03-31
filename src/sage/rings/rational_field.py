@@ -85,7 +85,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         sage: QQ('sage')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert sage to a rational
+        TypeError: unable to convert 'sage' to a rational
 
     Conversion from the reals to the rationals is done by default using
     continued fractions.

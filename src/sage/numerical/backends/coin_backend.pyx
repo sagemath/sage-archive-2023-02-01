@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.numerical.mip import MIPSolverException
@@ -454,13 +454,13 @@ cdef class CoinBackend(GenericBackend):
 
             c = constraints[i]
             if c < 0 or c >= nrows:
-                sage_free(rows)
+                sig_free(rows)
                 raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
 
             rows[i] = c
 
         self.si.deleteRows(m,rows)
-        sage_free(rows)
+        sig_free(rows)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -1310,8 +1310,8 @@ cdef class CoinBackend(GenericBackend):
             rstat = [c_rstat[j] for j in range(m)]
             return (cstat, rstat)
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef int set_basis_status(self, list cstat, list rstat) except -1:
         """
@@ -1440,8 +1440,8 @@ cdef class CoinBackend(GenericBackend):
         else:
             return result
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef get_binva_row(self, int i):
         """
@@ -1508,8 +1508,8 @@ cdef class CoinBackend(GenericBackend):
             ithrow = [c_z[j] for j in range(n)]
             return (ithrow, slack)
         finally:
-            sage_free(c_slack)
-            sage_free(c_z)
+            sig_free(c_slack)
+            sig_free(c_z)
 
     cpdef get_binva_col(self, int j):
         """
@@ -1569,7 +1569,7 @@ cdef class CoinBackend(GenericBackend):
             jthcol = [c_vec[i] for i in range(m)]
             return jthcol
         finally:
-            sage_free(c_vec)
+            sig_free(c_vec)
 
     cpdef get_basics(self):
         r"""
@@ -1611,7 +1611,7 @@ cdef class CoinBackend(GenericBackend):
             indices = [c_indices[j] for j in range(m)]
             return indices 
         finally:
-            sage_free(c_indices)
+            sig_free(c_indices)
 
     cpdef get_row_price(self):
         r"""

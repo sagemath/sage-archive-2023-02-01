@@ -724,6 +724,29 @@ written.
 Special Markup to Influence Tests
 ---------------------------------
 
+Overly complicated output in the example code can be shortened
+by an ellipsis marker ``...``::
+
+    sage: [ZZ(n).ordinal_str() for n in range(25)]
+    ['0th',
+     '1st',
+     '2nd',
+     '3rd',
+     '4th',
+     '5th',
+     ...
+     '21st',
+     '22nd',
+     '23rd',
+     '24th']
+    sage: ZZ('sage')
+    Traceback (most recent call last):
+    ...
+    TypeError: unable to convert 'sage' to an integer
+
+On the proper usage of the ellipsis marker, see :python:`Python's documentation
+<library/doctest.html#doctest.ELLIPSIS>`.
+
 There are a number of magic comments that you can put into the example
 code that change how the output is verified by the Sage doctest
 framework. Here is a comprehensive list:
@@ -977,7 +1000,7 @@ The Pickle Jar
 Sage maintains a pickle jar at
 ``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` which is a tar
 file of "standard" pickles created by ``sage``. This pickle jar is
-used to ensure that sage maintains backward compatibility by have
+used to ensure that sage maintains backward compatibility by
 having :func:`sage.structure.sage_object.unpickle_all` check that
 ``sage`` can always unpickle all of the pickles in the pickle jar as
 part of the standard doc testing framework.

@@ -589,7 +589,7 @@ class GraphClass(SageObject, CachedRepresentation):
         excluded = self.forbidden_subgraphs()
 
         if excluded is None:
-            raise NotImplementedError("No recognition agorithm is available"+
+            raise NotImplementedError("No recognition algorithm is available "+
                                       "for this class.")
 
         for gg in excluded:

@@ -56,21 +56,14 @@ We verify Lagrange's four squares identity::
 
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
-
-
 from sage.misc.all import prod
 import sage.rings.integer
-
 import polydict
-
 from sage.structure.factorization import Factorization
-
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
-
 from sage.structure.sequence import Sequence
-
-
 from multi_polynomial import MPolynomial
+from sage.categories.morphism import Morphism
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -302,7 +295,37 @@ class MPolynomial_element(MPolynomial):
         return self.__element
 
     def change_ring(self, R):
-        return self.parent().change_ring(R)(self)
+        r"""
+        Change the base ring of this polynomial to ``R``.
+
+        INPUT:
+
+        - ``R`` -- ring or morphism.
+
+        OUTPUT: a new polynomial converted to ``R``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = x^2 + 5*y
+            sage: f.change_ring(GF(5))
+            x^2
+
+        ::
+
+            sage: K.<w> = CyclotomicField(5)
+            sage: R.<x,y> = K[]
+            sage: f = x^2 + w*y
+            sage: f.change_ring(K.embeddings(QQbar)[1])
+            x^2 + (-0.8090169943749474? + 0.5877852522924731?*I)*y
+        """
+        if isinstance(R, Morphism):
+            #if we're given a hom of the base ring extend to a poly hom
+            if R.domain() == self.base_ring():
+                R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
+            return R(self)
+        else:
+            return self.parent().change_ring(R)(self)
 
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):

@@ -352,7 +352,7 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
 \DeclareUnicodeCharacter{2113}{\ell}
 
-\DeclareUnicodeCharacter{221A}{\sqrt}
+\DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
 \DeclareUnicodeCharacter{2264}{\leq}
 \DeclareUnicodeCharacter{2265}{\geq}
 \DeclareUnicodeCharacter{221E}{\infty}

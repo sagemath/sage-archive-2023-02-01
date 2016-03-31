@@ -128,7 +128,7 @@ underscores).
 
 from libc.limits cimport LONG_MAX, LONG_MIN
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject

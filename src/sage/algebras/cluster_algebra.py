@@ -731,9 +731,9 @@ class ClusterAlgebra(Parent):
                 new_path = []
 
             #compute new g-vector
+            new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
             for i in xrange(n):
                 new_g_vect += max(sign(g_vect[k])*algebra._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
-            new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
             new_path_dict[tuple(new_g_vect)] = new_path
 
             #compute new F-polynomial

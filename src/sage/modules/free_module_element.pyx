@@ -580,8 +580,8 @@ def prepare(v, R, degree=None):
         sage: prepare(c, None)
         ([2.0, 3.0], Real Double Field)
 
-    This checks a bug listed at Trac #10595.  Without good evidence for a ring, the default
-    is the integers. ::
+    This checks a bug listed at :trac:`10595`. Without good evidence
+    for a ring, the default is the integers. ::
 
         sage: prepare([], None)
         ([], Integer Ring)

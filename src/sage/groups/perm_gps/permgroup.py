@@ -549,7 +549,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         whether one of the groups is subgroup of the other. If this is not the
         case then the ordering is whatever it is in Gap.
 
-        NOTE:
+        .. NOTE::
+
             The comparison does not provide a total ordering, as can be seen
             in the examples below.
 
@@ -601,7 +602,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLE::
 
-            sage: SymmetricGroup(17)._element_class()
+            sage: AlternatingGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         """
         return PermutationGroupElement
@@ -4246,7 +4247,8 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         Compare ``self`` and ``other``.
 
         First, ``self`` and ``other`` are compared as permutation
-        groups, see :method:`PermutationGroup_generic.__cmp__`.
+        groups, see :meth:`PermutationGroup_generic.__cmp__`.
+
         Second, if both are equal, the ambient groups are compared,
         where (if necessary) ``other`` is considered a subgroup of
         itself.

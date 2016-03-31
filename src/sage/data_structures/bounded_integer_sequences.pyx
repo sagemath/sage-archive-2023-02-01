@@ -111,7 +111,7 @@ include "cysignals/signals.pxi"
 include 'sage/data_structures/bitset.pxi'
 
 from cpython.int cimport PyInt_FromSize_t
-from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
+from cpython.slice cimport PySlice_GetIndicesEx
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.libs.flint.flint cimport FLINT_BIT_COUNT as BIT_COUNT
 
@@ -948,7 +948,7 @@ cdef class BoundedIntegerSequence:
         """
         cdef BoundedIntegerSequence out
         cdef Py_ssize_t start, stop, step, slicelength
-        if PySlice_Check(index):
+        if isinstance(index, slice):
             PySlice_GetIndicesEx(index, self.data.length, &start, &stop, &step, &slicelength)
             if start==0 and stop==self.data.length and step==1:
                 return self

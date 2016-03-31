@@ -38,7 +38,18 @@ class PariArgument(object):
           start counting at 1.
         """
         self.index = index
-        self.name = self.get_argument_name(namesiter)
+        try:
+            self.name = self.get_argument_name(namesiter)
+        except StopIteration:
+            # No more names available, use something default.
+            # This is used in listcreate() and polsturm() for example
+            # which have deprecated arguments which are not listed in
+            # the help.
+            self.name = "_arg%s" % index
+            self.undocumented = True
+        else:
+            self.undocumented = False
+
         if self.index == 0:  # "self" argument can never have a default
             self.default = None
         elif default is None:
@@ -80,23 +91,30 @@ class PariArgument(object):
         Return the name for this argument, given ``namesiter`` which is
         an iterator over the argument names given by the help string.
         """
+        n = next(namesiter)
         try:
-            n = next(namesiter)
-            try:
-                return replacements[n]
-            except KeyError:
-                return n
-        except StopIteration:
-            # No more names available, use something default.
-            # This is used in listcreate() for example which has a
-            # deprecated argument which is not listed in the help.
-            return "_arg%s" % self.index
+            return replacements[n]
+        except KeyError:
+            return n
 
     def prototype_code(self):
         """
         Return code to appear in the prototype of the Cython wrapper.
         """
         raise NotImplementedError
+
+    def deprecation_warning_code(self, function):
+        """
+        Return code to appear in the function body to give a
+        deprecation warning for this argument, if applicable.
+        ``function`` is the function name to appear in the message.
+        """
+        if not self.undocumented:
+            return ""
+        s  = "        if {name} is not None:\n"
+        s += "            from warnings import warn\n"
+        s += "            warn('argument {index} of the PARI/GP function {function} is undocumented and deprecated', DeprecationWarning)\n"
+        return s.format(name=self.name, index=self.index, function=function)
 
     def convert_code(self):
         """

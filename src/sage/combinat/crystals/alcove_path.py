@@ -26,6 +26,7 @@ from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.graphs.all import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
@@ -256,7 +257,9 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             #switch positional arguments
             cartan_type, starting_weight = CartanType(starting_weight), cartan_type
 
-            if highest_weight_crystal == False:
+            if highest_weight_crystal is False:
+                if not cartan_type.is_affine():
+                    raise ValueError("non-highest weight crystals only valid for affine types")
                 cartan_type = cartan_type.classical()
 
             if cartan_type.is_affine():
@@ -296,6 +299,12 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
             sage: C = crystals.AlcovePaths(['A',2,1],[1,0],False)
             sage: TestSuite(C).run(skip="_test_stembridge_local_axioms") #long time
+
+        Check that :trac:`20292` is fixed::
+
+            sage: A = crystals.AlcovePaths(['A',2], [1,0])
+            sage: A.category()
+            Category of classical crystals
         """
         ##########################################################################
         # NOTE:
@@ -314,17 +323,18 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         self._cartan_type = cartan_type
 
 
-        if cartan_type.is_finite() and highest_weight_crystal == True:
-            Parent.__init__(self, category = FiniteCrystals() )
+        if cartan_type.is_finite() and highest_weight_crystal:
+            Parent.__init__(self, category=ClassicalCrystals() )
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
-        elif cartan_type.is_finite() and highest_weight_crystal == False:
-            Parent.__init__(self, category = FiniteCrystals() )
+        elif cartan_type.is_finite() and not highest_weight_crystal:
+            Parent.__init__(self, category=FiniteCrystals() )
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
             self._cartan_type = cartan_type.affine()
         else:
-            Parent.__init__(self, category = HighestWeightCrystals())
+            assert highest_weight_crystal
+            Parent.__init__(self, category=HighestWeightCrystals())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = False
 
@@ -511,10 +521,14 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             sage: C = crystals.AlcovePaths("B3",[1,0,0])
             sage: C.weight_lattice_realization()
             Ambient space of the Root system of type ['B', 3]
+
+            sage: A = crystals.AlcovePaths(['A',2,1], [1,0], highest_weight_crystal=False)
+            sage: A.weight_lattice_realization()
+            Weight lattice of the Root system of type ['A', 2, 1]
         """
         F = self.cartan_type().root_system()
         if self.cartan_type().is_affine():
-            return F.weight_lattice(extended=True)
+            return F.weight_lattice(extended=self._highest_weight_crystal)
         if self.cartan_type().is_finite() and F.ambient_space() is not None:
             return F.ambient_space()
         return F.weight_lattice()
@@ -670,9 +684,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.phi(1) for c in C]
-            [1, 0, 2, 1, 0, 1, 0, 0]
+            [1, 0, 0, 1, 0, 2, 1, 0]
             sage: [c.phi(2) for c in C]
-            [1, 2, 0, 0, 1, 0, 1, 0]
+            [1, 2, 1, 0, 0, 0, 0, 1]
         """
         highest_weight_crystal = self.parent()._highest_weight_crystal
         positions, gi = self._gi(i)
@@ -694,9 +708,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[1,1])
             sage: [c.epsilon(1) for c in C]
-            [0, 1, 0, 1, 0, 0, 2, 1]
+            [0, 1, 0, 0, 1, 0, 1, 2]
             sage: [c.epsilon(2) for c in C]
-            [0, 0, 1, 0, 1, 2, 0, 1]
+            [0, 0, 1, 2, 1, 1, 0, 0]
         """
         #crude but functional
         j = 0
@@ -716,12 +730,12 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
             sage: C = crystals.AlcovePaths(['A',2],[2,0])
             sage: for i in C: i.weight()
+            (2, 0, 0)
+            (1, 1, 0)
             (0, 2, 0)
-            (0, 0, 1)
-            (0, -2, 2)
-            (0, 1, -1)
             (0, -1, 0)
-            (0, 0, -2)
+            (-1, 0, 0)
+            (-2, -2, 0)
             sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
             sage: p = B.module_generators[0].f_string([0,1,2])
             sage: p.weight()
@@ -736,6 +750,13 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             sage: phi = C1.crystal_morphism(C2.module_generators, scaling_factors={1:2, 2:2})
             sage: [phi(x) for x in C1]
             [(), ((alpha[1], 0),), ((alpha[1], 0), (alpha[1] + alpha[2], 0))]
+
+        Check that all weights are of level 0 in the KR crystal setting
+        (:trac:`20292`)::
+
+            sage: A = crystals.AlcovePaths(['A',2,1], [1,0], highest_weight_crystal=False)
+            sage: all(x.weight().level() == 0 for x in A)
+            True
         """
         root_space = self.parent().R.root_space()
         weight = -self.parent().weight
@@ -744,9 +765,17 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             weight = -i.height*root + weight.reflection(root)
 
         WLR = self.parent().weight_lattice_realization()
-        B = WLR.basis()
-        return WLR._from_dict({i: Integer(c) for i,c in -weight},
-                              remove_zeros=False)
+        if self.cartan_type().is_affine() and self.parent()._highest_weight_crystal:
+            # We assume that WLR is the (extended) weight lattice
+            wt = WLR._from_dict({i: Integer(c) for i,c in -weight},
+                                remove_zeros=False)
+            return wt
+        La = WLR.fundamental_weights()
+        wt = WLR.sum(Integer(c) * La[i] for i,c in -weight)
+        if self.cartan_type().is_affine():
+            assert not self.parent()._highest_weight_crystal
+            wt -= La[0] * wt.level()
+        return wt
 
     #def __repr__(self):
         #return str(self.integer_sequence())

@@ -91,6 +91,7 @@ _Fields = Fields()
 
 from sage.categories.homset import Hom
 from sage.categories.number_fields import NumberFields
+from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
@@ -665,7 +666,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``R`` -- commutative ring.
+        - ``R`` -- commutative ring or morphism.
 
         OUTPUT:
 
@@ -684,8 +685,19 @@ class ProjectiveSpace_ring(AmbientSpace):
             Projective Space of dimension 2 over Rational Field
             sage: PQ.change_ring(GF(5))
             Projective Space of dimension 2 over Finite Field of size 5
+
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: P = ProjectiveSpace(K,2,'t')
+            sage: P.change_ring(K.embeddings(QQbar)[0])
+            Projective Space of dimension 2 over Algebraic Field
         """
-        return ProjectiveSpace(self.dimension_relative(), R,
+        if isinstance(R, Map):
+            return ProjectiveSpace(self.dimension_relative(), R.codomain(),
+                               self.variable_names())
+        else:
+            return ProjectiveSpace(self.dimension_relative(), R,
                                self.variable_names())
 
     def is_projective(self):

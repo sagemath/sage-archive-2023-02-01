@@ -24,7 +24,8 @@ from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose, sxrange
+from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
@@ -953,9 +954,9 @@ class ModularForm_abstract(ModuleElement):
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
-                       for n in sxrange(1, lcoeffs_prec + 1) ]
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
         # The Dirichlet series for 1 / \zeta(s - k + 1)
-        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
         conv_series = dirichlet_convolution(mu_series, riemann_series)
 
         dirichlet_series = dirichlet_convolution(conv_series, F_series)
@@ -1691,7 +1692,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
             sage: eps.parent()
-            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            Group of Dirichlet characters modulo 3 with values in Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
             Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1

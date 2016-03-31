@@ -20,6 +20,7 @@ include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
@@ -161,7 +162,7 @@ cdef class ntl_ZZ_pX(object):
         self.c.restore_c()
         #cdef char* s = ZZ_pX_repr(&self.x)
         #t = str(s)
-        #sage_free(s)
+        #sig_free(s)
         return ZZ_pX_to_PyString(&self.x)
         #return t
 
@@ -950,8 +951,8 @@ cdef class ntl_ZZ_pX(object):
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return F
 
     def linear_roots(self):
@@ -996,7 +997,7 @@ cdef class ntl_ZZ_pX(object):
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
+        sig_free(v)
         return F
 
     def reverse(self, hi=None):

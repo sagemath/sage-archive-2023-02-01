@@ -442,9 +442,11 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        [[0-3]].*|4.[[0-8]].*)
+            # Install our own GCC if the system-provided one is older than GCC-4.9.
+            # GCC-4.8.x breaks because of http://trac.sagemath.org/ticket/14460
+            # which is GCC bug http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
+            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is too old]);;
     esac
 
     # The following tests check that the version of the compilers
@@ -628,12 +630,13 @@ cat >&7 <<EOF
 # You should not edit it by hand
 #==============================================================================
 
-EOF
+# Always use bash for make rules
+SHELL = `command -v bash`
 
-# Use bash as shell for the Makefile (bash obviously exists, since
-# this build/make/install script runs under bash).
-echo >&7 "SHELL = `command -v bash`"
-echo >&7
+# Directory to keep track of which packages are installed
+INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
+EOF
 
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
@@ -677,7 +680,7 @@ filtered_packages_list() {
         else
             echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
             echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
-            return 1
+            exit 1
         fi
 
         # Check consistency of 'DIR/type' file
@@ -688,47 +691,46 @@ filtered_packages_list() {
            [ "$PKG_TYPE" != "script" ] && \
            [ "$PKG_TYPE" != "pip" ]; then
             echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
-            return 1
+            exit 1
         fi
 
         # Filter
         if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
             PKG_NAME=$(basename $DIR)
-            PKG_VAR="$(echo $PKG_NAME | sed 's/^4/FOUR/' | tr '[:lower:]' '[:upper:]')"
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
             PKG_VERSION=$(newest_version $PKG_NAME)
             echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
         fi
     done
 }
+]
 
-# Check that all packages define a (valid) 'type' file, or exit
-filtered_packages_list none || exit $?
-
-echo >&7 "# All Sage packages"
-
+echo >&7 '# Files to track installation of packages'
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     if test "$PKG_NAME" != "$PKG_VERSION"; then
-        echo >&7 "$PKG_VAR = $PKG_VERSION"
-        ]AC_MSG_RESULT([    $PKG_VAR=$PKG_VERSION])[
+        # If $need_to_install_{PKG_NAME} is set to no, then set $PKG_VAR
+        # to some dummy file to skip the installation. Note that an
+        # explicit "./sage -i PKG_NAME" will still install the package.
+        need_to_install="need_to_install_${PKG_NAME}"
+        if test "${!need_to_install}" != no ; then
+            echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
+            AC_MSG_RESULT([    $PKG_VERSION])
+        else
+            echo >&7 "$PKG_VAR = \$(INST)/.dummy"
+            AC_MSG_RESULT([    $PKG_VERSION not installed (configure check)])
+        fi
     fi
 done
 
-cat >&7 <<EOF
-
-# Directory to keep track of which packages are installed
-INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
-
-# Aliases for optional packages selected at build time
-EOF
-
+echo >&7
+echo >&7 '# Aliases for optional packages selected at configure time'
 
 # Python version
-if [ "$SAGE_PYTHON3" = yes ]; then
-    echo >&7 'PYTHON = $(PYTHON3)'
+if test "$SAGE_PYTHON3" = yes; then
+    echo >&7 'PYTHON = $(inst_python3)'
 else
-    echo >&7 'PYTHON = $(PYTHON2)'
+    echo >&7 'PYTHON = $(inst_python2)'
 fi
-]
 
 # Sage MP library
 AC_MSG_CHECKING([multiprecision library])
@@ -748,15 +750,16 @@ esac
 
 AC_MSG_RESULT([$with_mp])
 
-echo >&7 "SAGE_MP_LIBRARY = \$($with_mp)"
+if test $with_mp = MPIR; then
+    echo >&7 'MP_LIBRARY = $(inst_mpir)'
+else
+    echo >&7 'MP_LIBRARY = $(inst_gmp)'
+fi
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-AS_ECHO_N(>&7 ['TOOLCHAIN ='])
+AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    AS_ECHO_N(>&7 [' $(INST)/$(CCACHE)'])
-fi
-if test "$need_to_install_gcc" = yes ; then
-    AS_ECHO_N(>&7 [' $(INST)/$(GCC)'])
+    AS_ECHO_N(>&7 [' $(inst_ccache)'])
 fi
 echo >&7
 echo >&7
@@ -765,7 +768,7 @@ echo >&7
 echo >&7 '# All standard packages'
 echo >&7 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+    echo >&7 "    \$($PKG_VAR) \\"
 done
 echo >&7
 echo >&7
@@ -773,11 +776,8 @@ echo >&7
 echo >&7 '# All optional installed packages (triggers the auto-update)'
 echo >&7 'OPTIONAL_INSTALLED_PACKAGES = \'
 filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if [ "$PKG_NAME" = "gcc" ]; then
-        continue
-    fi
     if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
-        echo >&7 "    \$(INST)/\$($PKG_VAR) \\"
+        echo >&7 "    \$($PKG_VAR) \\"
     fi;
 done
 echo >&7
@@ -807,6 +807,10 @@ echo >&7
 # Copy build/make/deps
 cat >&7 <<EOF
 
+# Dummy target for packages which are not installed
+\$(INST)/.dummy:
+	touch \$@
+
 #==============================================================================
 # What follows now is a copy of
 #   $SAGE_ROOT/build/make/deps
@@ -826,17 +830,22 @@ cat >&7 <<EOF
 EOF
 
 # Add a Makefile target corresponding to a given package
-filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+filtered_packages_list all | {
+while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
     TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
     if [ -f "$DEP_FILE" ]; then
-        DEPS=" $(head -n 1 $DEP_FILE)"
+        # DEPS is first line of $DEP_FILE with some modifications:
+        # - start with a single space
+        # - the # symbol is treated as comment which is removed
+        # - lower-case words "foo" are replaced by "$(inst_foo)"
+        DEPS=`sed 's/^ */ /; s/ *#.*//; s/ \([a-z0-9][a-z0-9_]*\)/ $(inst_\1)/g; q' $DEP_FILE`
     elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
     elif [ "$TYPE" = script ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
     elif [ "$TYPE" = pip ]; then
-        DEPS=' | $(INST)/$(PIP)'
+        DEPS=' | $(inst_pip)'
     else
         DEPS=""
     fi
@@ -868,19 +877,23 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
+        echo >&7 "	+sage-logger '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"
-        echo >&7 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+        echo >&7 "$PKG_NAME: \$(INST)/$PKG_VERSION"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	rm -f \$(INST)/\$($PKG_VAR)"
+        echo >&7 "	rm -f \$(INST)/$PKG_VERSION"
         echo >&7
     fi
+
+    PHONY="$PHONY $PKG_NAME"
 done
+echo >&7 ".PHONY:$PHONY"
+}
 
 # Close the Makefile
 exec 7>&-

@@ -76,6 +76,13 @@ expanded to a series. This must be explicitly done by the user::
     sin(1*x + (-1/6)*x^3 + Order(x^4))
     sage: sin(ex1).series(x,9)
     1*x + (-1/3)*x^3 + 11/120*x^5 + (-53/2520)*x^7 + Order(x^9)
+
+TESTS:
+
+Check that :trac:`20088` is fixed::
+
+    sage: ((1+x).series(x)^pi).series(x,3)
+    1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
 """
 ########################################################################
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>

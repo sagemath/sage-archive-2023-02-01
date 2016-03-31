@@ -227,7 +227,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The following was fixed at trac ticket #10475::
+        The following was fixed at :trac:`10475`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]

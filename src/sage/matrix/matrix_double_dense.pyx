@@ -1729,7 +1729,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
+            TypeError: entries has wrong length
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1739,7 +1739,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
+            TypeError: float() argument must be a string or a number
 
         With a coefficient matrix over ``RDF``, a vector of constants
         over ``CDF`` can be accomodated by converting the base ring
@@ -1750,7 +1750,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
+            TypeError: unable to convert 1.0 + 1.0*I to float; use abs() or real_part() as desired
 
             sage: B = A.change_ring(CDF)
             sage: B.solve_right(b)
@@ -1762,16 +1762,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         # Turn b into a matrix over the same ring as self.
         b_is_matrix = is_Matrix(b)
         if b_is_matrix:
-            try:
-                b = b.change_ring(self.base_ring())
-            except TypeError:
-                raise TypeError("matrix over %s incompatible with matrix over %s", (b.base_ring(), self.base_ring()))
+            b = b.change_ring(self.base_ring())
         else:
             M = self._column_ambient_module()
-            try:
-                vec = M(b)
-            except TypeError:
-                raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
+            vec = M(b)
             if vec.degree() != self.nrows():
                 raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
             b = vec.column()
@@ -1902,7 +1896,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
+            TypeError: entries has wrong length
 
         The vector of constants needs to be compatible with
         the base ring of the coefficient matrix.  ::
@@ -1912,7 +1906,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
+            TypeError: float() argument must be a string or a number
 
         With a coefficient matrix over ``RDF``, a vector of constants
         over ``CDF`` can be accomodated by converting the base ring
@@ -1923,7 +1917,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
+            TypeError: unable to convert 1.0 + 1.0*I to float; use abs() or real_part() as desired
 
             sage: B = A.change_ring(CDF)
             sage: B.solve_left(b)
@@ -1935,16 +1929,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         # Turn b into a matrix over the same ring as self.
         b_is_matrix = is_Matrix(b)
         if b_is_matrix:
-            try:
-                b = b.change_ring(self.base_ring())
-            except TypeError:
-                raise TypeError("matrix over %s incompatible with matrix over %s", (b.base_ring(), self.base_ring()))
+            b = b.change_ring(self.base_ring())
         else:
             M = self._column_ambient_module()
-            try:
-                vec = M(b)
-            except TypeError:
-                raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
+            vec = M(b)
             if vec.degree() != self.ncols():
                 raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
             b = vec.row()

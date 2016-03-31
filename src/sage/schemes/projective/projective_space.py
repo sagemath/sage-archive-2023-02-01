@@ -1026,7 +1026,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         r"""
         Conjugates one projective space to another to determine equivalence by
         finding element of PGL that conjugates one space to another.
-        
+
+
         Warning :: will not work over precision fields
 
         INPUT:
@@ -1038,7 +1039,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         OUTPUT: Transformation matrix - element of PGL.
 
         EXAMPLES::
-        
+
             sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
             sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
             sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
@@ -1048,18 +1049,18 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             [ -45/59 -196/59       1]
             sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
             [True, True, True, True]
-            
+
         ::
-        
+
             sage: P.<a,b> = ProjectiveSpace(GF(13),1)
             sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
             sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
             sage: P.point_transformation_matrix(points_source, points_target)
             [10  4]
             [10  1]
-            
+
         ::
-        
+
             sage: P.<a,b> = ProjectiveSpace(QQ,1)
             sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
             sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
@@ -1067,9 +1068,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             Traceback (most recent call last):
             ...
             ValueError: source points not independent
-            
+
         ::
-        
+
             sage: P.<a,b> = ProjectiveSpace(QQ,1)
             sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
             sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]

@@ -495,6 +495,25 @@ class ClusterAlgebra(Parent):
         # TODO: understand if we need this
         #self._populate_coercion_lists_()
 
+    def __copy__(self):
+        other = type(self).__new__(type(self))
+        other._U = self._U
+        other._path_dict = copy(self._path_dict)
+        other._F_poly_dict = copy(self._F_poly_dict)
+        other._ambient = self._ambient
+        other._ambient_field = self._ambient_field
+        other._y = copy(self._y)
+        other._yhat = copy(self._yhat)
+        other._is_principal = self._is_principal
+        other._B0 = copy(self._B0)
+        other._M0 = copy(self._M0)
+        other._n = self._n
+        other._m = self._m
+        # We probably need to put n=2 initializations here also
+
+    def __eq__(self,other):
+        return self._B0 == other._B0 and  self._yhat == other._yhat
+
     # enable standard coercions: everything that is in the base can be coerced
     def _coerce_map_from_(self, other):
         return self.base().has_coerce_map_from(other)

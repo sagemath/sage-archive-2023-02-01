@@ -703,7 +703,7 @@ class QuotientRingElement(RingElement):
 
     def lc(self):
         """
-        Return the leading coefficent of this quotient ring element.
+        Return the leading coefficient of this quotient ring element.
 
         EXAMPLE::
 

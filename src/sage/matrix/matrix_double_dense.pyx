@@ -1685,7 +1685,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])
@@ -1825,7 +1825,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])

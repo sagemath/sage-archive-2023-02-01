@@ -510,6 +510,7 @@ class ClusterAlgebra(Parent):
         other._n = self._n
         other._m = self._m
         # We probably need to put n=2 initializations here also
+        return other
 
     def __eq__(self,other):
         return self._B0 == other._B0 and  self._yhat == other._yhat

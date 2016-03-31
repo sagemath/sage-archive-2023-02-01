@@ -2250,7 +2250,8 @@ class ClusterSeed(SageObject):
         - ``"all_urban_renewals"`` or ``"all_urban"``: mutates at all urban renewal vertices.
         
        - ``input_type`` -- (default: None) indicates the type of data contained in the sequence.  If no value is given,
-         preference will be given to vertex names, then indices, then cluster variables. 
+         preference will be given to vertex names, then indices, then cluster variables.  If all input is not of the same type,
+         an error is given.
        
        Possible values for ``input_type`` are:
        - ``"vertices"``: interprets the input sequence as vertices
@@ -2382,28 +2383,28 @@ class ClusterSeed(SageObject):
             sage: S._mut_path
             [0, 1, 0, 1, 0, 2, 1]
             
-            sage: S = ClusterSeed(DiGraph([[1,2],[2,3]]));S
+            sage: S = ClusterSeed(DiGraph([[1,2],[2,'c']]));S
             A seed for a cluster algebra of rank 3
             sage: S.mutate(1)
-            Warning: Input is both an index and a vertex label. Mutating at vertices by default.
+            Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.
             sage: S.cluster()
-            [(x2 + 1)/x1, x2, x3]
+            [(x2 + 1)/x1, x2, c]
             sage: S.mutate(1, input_type = "indices")
             sage: S.cluster()
-            [(x2 + 1)/x1, (x2*x3 + x1 + x3)/(x1*x2), x3]
+            [(x2 + 1)/x1, (x2*c + x1 + c)/(x1*x2), c]
             
             sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['d','b']]))
             sage: S.mutate(['a','b','a','b','a'])
             sage: S.cluster()
             [b, a, c, d]
             sage: S.mutate('a')
-            Warning: Variable provided is both a cluster variable and a vertex lable. Mutating at the vertex by default.
+            Warning: Some of the input can be ambiguously interpreted as both vertices and cluster variables. Mutating at vertices by default.
             sage: S.cluster()
             [(a*c*d + 1)/b, a, c, d]
             sage: S.mutate('a',input_type = "cluster_vars")
             sage: S.cluster()
             [(a*c*d + 1)/b, (a*c*d + b + 1)/(a*b), c, d]
-            sage: S.mutate(['(a*c*d + 1)/b','d'],input_type = "cluster_vars")
+            sage: S.mutate(['(a*c*d + 1)/b','d'])
             sage: S.cluster()
             [(b + 1)/a, (a*c*d + b + 1)/(a*b), c, (a*c*d + b^2 + 2*b + 1)/(a*b*d)]
 
@@ -2461,22 +2462,10 @@ class ClusterSeed(SageObject):
             IE = []
         
         n, m = seed.n(), seed.m()
-        V = IE + range(n)        
-        #if seed._use_fpolys and isinstance(sequence, str) and not input_type == "cluster_vars":
-        #    if sequence in V:
-        #        X = seed.cluster_index(sequence)
-        #        sequence = V.index(sequence)
-        #        if isinstance(X,int) and X != sequence:
-        #            print "Warning: Variable provided is both a cluster variable and a vertex label. Mutating at the vertex by default."
-        #    else:    
-        #        sequence = seed.cluster_index(sequence)
-        #    if sequence is None:
-        #        raise ValueError("Variable provided is not in our cluster")
+        V = IE + range(n)
 
         if (sequence in xrange(n)) or (sequence in IE) or isinstance(sequence,str):
             seqq = [sequence]
-        #elif input_type == "cluster_vars" and isinstance(sequence,str):
-        #    seqq == [sequence]
         else:
             seqq = sequence
             
@@ -2487,33 +2476,24 @@ class ClusterSeed(SageObject):
                         
         isVertices = set(seqq).issubset(set(seed.nlist()))
         isIndices = set(seqq).issubset(set(range(n)))
-        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some possibilities.
+        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
         isClusterVars = reduce(lambda x,y:isinstance(y,str),seqq,1) and seed._use_fpolys
         
         # Ensures the sequence has elements of type input_type.
         if input_type:
             if input_type == "vertices" and not isVertices:
-                raise ValueError('input_type set to "vertices" but not everything in the mutation sequence is a vertex')
+                raise ValueError('input_type set to "vertices" but not everything in the mutation sequence is a vertex.')
         
             elif input_type == "indices" and not isIndices:
-                raise ValueError('input_type set to "indices" but not everything in the mutation sequence is an index')
+                raise ValueError('input_type set to "indices" but not everything in the mutation sequence is an index.')
         
             elif input_type == "cluster_vars" and not isClusterVars:
-                raise ValueError('input_type set to "cluster_vars" but not everything in the mutation sequence is a cluster variable')
-                #try:
-                #    if len(seqq) == 1:
-                #        seqq[0] = seed.cluster_index(seqq[0])
-                #        input_type = "indices"
-                #    else:    
-                #        for cluster_var in seqq:
-                #            seed.mutate(cluster_var, input_type = "cluster_vars")
-                #except:
-                #    raise ValueError('input_type set to "cluster_vars" but the input sequence did not consist of cluster variables"')
+                raise ValueError('input_type set to "cluster_vars" but not everything in the mutation sequence is a cluster variable.')
             
             elif input_type not in ["vertices", "indices", "cluster_vars"]:
                 raise ValueError('Invalid input_type. Possible values for input_type are "vertices," "indices," and "cluster_vars.')
 
-        # Classifies the input_type and raises warnings if the input is ambiguous 
+        # Classifies the input_type.  Raises warnings if the input is ambiguous, and errors if the input is not all of the same type.
         else:
             if isVertices:
                 input_type = "vertices"
@@ -2545,19 +2525,12 @@ class ClusterSeed(SageObject):
                 for cluster_var in seqq:
                     mutation_seed.mutate(cluster_var, input_type = "cluster_vars")
             except:
-                raise ValueError('Input interpreted as cluster variables but the input sequence did not consist of cluster variables"')
+                raise ValueError('Input interpreted as cluster variables but the input sequence did not consist of cluster variables.')
             mutation_seed._cluster = None
             mutation_seed._quiver = None
                                  
             if not inplace:
                 return mutation_seed
-
-
-        ## remove ineligible vertices
-        #if any( v not in V for v in seqq ) and not input_type == "cluster_vars":
-        #    v = filter( lambda v: v not in V, seqq )[0]
-        #    raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
-
         
         seq = iter(seqq)
 
@@ -2603,8 +2576,6 @@ class ClusterSeed(SageObject):
 
                        
         # a mutation invalidates the cluster although it can be recomputed by F-polys and g-vectors
-        # moving this into the for loop in case it does some mutations in 'seq' before finding a ValueError
-        # moving this back out of the loop, as this should now be caught by the cluster_vars check.
         seed._cluster = None
         seed._quiver = None
                                  

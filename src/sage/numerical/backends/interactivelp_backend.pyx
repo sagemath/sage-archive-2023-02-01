@@ -24,6 +24,21 @@ from sage.numerical.interactive_simplex_method import InteractiveLPProblem, defa
 from sage.modules.all import vector
 
 cdef class InteractiveLPBackend:
+    """
+    MIP Backend that works with :class:`InteractiveLPProblem`.
+
+    This backend should be used only for linear programs over general fields,
+    or for educational purposes.  For fast computations with floating point
+    arithmetic, use one of the numerical backends. For exact computations
+    with rational numbers, use backend 'PPL'.
+
+    There is no support for integer variables.
+
+    EXAMPLE::
+
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: p = get_solver(solver = "InteractiveLP")
+    """
 
     def __cinit__(self, maximization = True, base_ring = None):
         """

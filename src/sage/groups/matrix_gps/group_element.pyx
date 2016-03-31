@@ -291,7 +291,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             [ 0  1  0]
             [ 0  0  1]
             sage: parent(g.matrix())
-            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
 
         Matrices have extra functionality that matrix group elements
         do not have::
@@ -322,6 +322,24 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         # Make it immutable so the constructor doesn't make a copy
         M.set_immutable()
         return parent.element_class(parent, M, check=False, convert=False)
+
+    def is_one(self):
+        """
+        Return whether ``self`` is the identity of the group.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3])
+            sage: g = W.gen(0)
+            sage: g.is_one()
+            False
+
+            sage: W.an_element().is_one()
+            False
+            sage: W.one().is_one()
+            True
+        """
+        return self._matrix.is_one()
 
     def __invert__(self):
         """

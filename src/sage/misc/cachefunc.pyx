@@ -2493,6 +2493,27 @@ cdef class CachedMethod(object):
         sage: a = A()
         sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
         True
+
+    Cached methods can not be copied like usual methods, see :trac:`12603`.
+    Copying them can lead to very surprising results::
+
+        sage: class A:
+        ....:     @cached_method
+        ....:     def f(self):
+        ....:         return 1
+        sage: class B:
+        ....:     g=A.f
+        ....:     def f(self):
+        ....:         return 2
+
+        sage: b=B()
+        sage: b.f()
+        2
+        sage: b.g()
+        1
+        sage: b.f()
+        1
+
     """
     def __init__(self, f, name=None, key=None):
         """
@@ -2574,12 +2595,12 @@ cdef class CachedMethod(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: class Foo(object):
-            ...       def __init__(self, x):
-            ...           self._x = x
-            ...       @cached_method
-            ...       def f(self,n=2):
-            ...           return self._x^n
-            ...       g = deprecated_function_alias(57, f)
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
+            ....:     g = deprecated_function_alias(57, f)
             sage: a = Foo(2)
             sage: Foo.__dict__['f'](a)
             4

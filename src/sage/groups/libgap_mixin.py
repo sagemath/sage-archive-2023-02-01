@@ -237,6 +237,38 @@ class GroupMixinLibGAP(object):
             center = [G.One()]
         return self.subgroup(center)
 
+    def intersection(self, other):
+        """
+        Return the intersection of two groups (if it makes sense) as a
+        subgroup of the first group.
+
+        EXAMPLES::
+
+            sage: A = Matrix([(0, 1/2, 0), (2, 0, 0), (0, 0, 1)])
+            sage: B = Matrix([(0, 1/2, 0), (-2, -1, 2), (0, 0, 1)])
+            sage: G = MatrixGroup([A,B])
+            sage: len(G)  # isomorphic to S_3
+            6
+            sage: G.intersection(GL(3,ZZ))
+            Matrix group over Rational Field with 1 generators (
+            [ 1  0  0]
+            [-2 -1  2]
+            [ 0  0  1]
+            )
+            sage: GL(3,ZZ).intersection(G)
+            Matrix group over Integer Ring with 1 generators (
+            [ 1  0  0]
+            [-2 -1  2]
+            [ 0  0  1]
+            )
+            sage: G.intersection(SL(3,ZZ))
+            Matrix group over Rational Field with 0 generators ()
+        """
+        G = self.gap()
+        H = other.gap()
+        C = G.Intersection(H)
+        return self.subgroup(C.GeneratorsOfGroup())
+
     @cached_method
     def irreducible_characters(self):
         """

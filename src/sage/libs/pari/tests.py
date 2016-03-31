@@ -7,6 +7,9 @@ Deprecation checks::
     doctest:...: DeprecationWarning: poltchebi is deprecated. Please use polchebyshev instead.
     See http://trac.sagemath.org/18203 for details.
     512*x^10 - 1280*x^8 + 1120*x^6 - 400*x^4 + 50*x^2 - 1
+    sage: pari("x^3 + 1").polsturm(-1, 1)
+    doctest:...: DeprecationWarning: argument 2 of the PARI/GP function polsturm is undocumented and deprecated
+    1
     sage: pari.nth_prime(10)
     doctest:...: DeprecationWarning: nth_prime is deprecated. Please use prime instead.
     See http://trac.sagemath.org/20216 for details.

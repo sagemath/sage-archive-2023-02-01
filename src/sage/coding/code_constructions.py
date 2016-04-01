@@ -859,12 +859,12 @@ def ExtendedQuadraticResidueCode(n,F):
         sage: C1 = codes.QuadraticResidueCode(7,GF(2))
         sage: C2 = C1.extended_code()
         sage: C3 = codes.ExtendedQuadraticResidueCode(7,GF(2)); C3
-        Linear code of length 8, dimension 4 over Finite Field of size 2
+        Extended code coming from Linear code of length 7, dimension 4 over Finite Field of size 2
         sage: C2 == C3
         True
         sage: C = codes.ExtendedQuadraticResidueCode(17,GF(2))
         sage: C
-        Linear code of length 18, dimension 9 over Finite Field of size 2
+        Extended code coming from Linear code of length 17, dimension 9 over Finite Field of size 2
         sage: C3 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C3x = C3.extended_code()
         sage: C4 = codes.ExtendedQuadraticResidueCode(7,GF(2))
@@ -1093,14 +1093,10 @@ def QuadraticResidueCodeOddPair(n,F):
         sage: C2x.spectrum(); C1x.spectrum()
         [1, 0, 0, 0, 0, 0, 102, 0, 153, 0, 153, 0, 102, 0, 0, 0, 0, 0, 1]
         [1, 0, 0, 0, 0, 0, 102, 0, 153, 0, 153, 0, 102, 0, 0, 0, 0, 0, 1]
-        sage: C2x == C1x.dual_code()
-        True
         sage: C3 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C3x = C3.extended_code()
         sage: C3x.spectrum()
         [1, 0, 0, 0, 14, 0, 0, 0, 1]
-        sage: C3x.is_self_dual()
-        True
 
     This is consistent with Theorem 6.6.14 in [HP]_.
 

@@ -2012,10 +2012,10 @@ class AbstractLinearCode(module.Module):
             sage: C(word)
             Traceback (most recent call last):
             ...
-            ValueError: If the input is a vector whose length is equal to self.length(), is has to be a codeword
+            ValueError: If the input is a vector whose length is equal to self.length(), it has to be a codeword
         """
         if m in self.ambient_space() and m not in self:
-            raise ValueError("If the input is a vector whose length is equal to self.length(), is has to be a codeword")
+            raise ValueError("If the input is a vector whose length is equal to self.length(), it has to be a codeword")
         if m in self:
             return m
         else:

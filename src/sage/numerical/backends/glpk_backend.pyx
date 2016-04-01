@@ -847,8 +847,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            GLPKError: Assertion failed: col->lb < col->ub
-            Error detected in file glpnpp05.c at line ...
+            GLPKError: Assertion failed: ...
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):

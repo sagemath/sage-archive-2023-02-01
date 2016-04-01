@@ -2639,67 +2639,50 @@ cdef class MixedIntegerLinearProgram(SageObject):
 class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
+
+    EXAMPLE::
+
+        sage: from sage.numerical.mip import MIPSolverException
+        sage: e = MIPSolverException("Error")
+        sage: e
+        MIPSolverException('Error',)
+        sage: print e
+        Error
+
+    TESTS:
+
+    No continuous solution::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: v = p.new_variable(nonnegative=True)
+        sage: p.add_constraint(v[0],max=5.5)
+        sage: p.add_constraint(v[0],min=7.6)
+        sage: p.set_objective(v[0])
+
+    Tests of GLPK's Exceptions::
+
+        sage: p.solve()
+        Traceback (most recent call last):
+        ...
+        MIPSolverException: GLPK: Problem has no feasible solution
+
+    No integer solution::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: v = p.new_variable(nonnegative=True)
+        sage: p.add_constraint(v[0],max=5.6)
+        sage: p.add_constraint(v[0],min=5.2)
+        sage: p.set_objective(v[0])
+        sage: p.set_integer(v)
+
+    Tests of GLPK's Exceptions::
+
+        sage: p.solve()
+        Traceback (most recent call last):
+        ...
+        MIPSolverException: GLPK: Problem has no feasible solution
     """
-
-    def __init__(self, value):
-        r"""
-        Constructor for ``MIPSolverException``.
-
-        ``MIPSolverException`` is the exception raised when the solver fails.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import MIPSolverException
-            sage: MIPSolverException("Error")
-            MIPSolverException()
-
-        TESTS:
-
-        No continuous solution::
-
-            sage: p=MixedIntegerLinearProgram(solver="GLPK")
-            sage: v=p.new_variable(nonnegative=True)
-            sage: p.add_constraint(v[0],max=5.5)
-            sage: p.add_constraint(v[0],min=7.6)
-            sage: p.set_objective(v[0])
-
-        Tests of GLPK's Exceptions::
-
-            sage: p.solve()
-            Traceback (most recent call last):
-            ...
-            MIPSolverException: 'GLPK : Problem has no feasible solution'
-
-        No integer solution::
-
-            sage: p=MixedIntegerLinearProgram(solver="GLPK")
-            sage: v=p.new_variable(nonnegative=True)
-            sage: p.add_constraint(v[0],max=5.6)
-            sage: p.add_constraint(v[0],min=5.2)
-            sage: p.set_objective(v[0])
-            sage: p.set_integer(v)
-
-        Tests of GLPK's Exceptions::
-
-            sage: p.solve()
-            Traceback (most recent call last):
-            ...
-            MIPSolverException: 'GLPK : Problem has no feasible solution'
-        """
-        self.value = value
-
-    def __str__(self):
-        r"""
-        Returns the value of the instance of ``MIPSolverException``.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import MIPSolverException
-            sage: e = MIPSolverException("Error")
-            sage: print e
-            'Error'
-        """
-        return repr(self.value)
+    pass
 
 
 cdef class MIPVariable(Element):

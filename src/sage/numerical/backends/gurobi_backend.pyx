@@ -686,7 +686,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.solve()                                                       # optional - Gurobi
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'Gurobi: The problem is infeasible'
+            MIPSolverException: Gurobi: The problem is infeasible
         """
         cdef int error
         global mip_status

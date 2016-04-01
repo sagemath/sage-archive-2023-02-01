@@ -123,12 +123,11 @@ class ClusterAlgebraSeed(SageObject):
         return other
 
     def __eq__(self, other):
-        return frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+        return self.parent() == other.parent() and  frozenset(self.g_vectors()) == frozenset(other.g_vectors())
         # Why was I doing something so convoluted?
         # It looks like the idea was to consider seeds up to simultaneous permutation of rows and columns,
         # the relation P between the c-matrices determines if there could exist such a permutation,
         # the remaining checks then ask about the remaining data
-        # We should still check that parents are the same, right?  Then equality of g-vectors guarantees everything is the same (up to permutation).
 
         #P = self.c_matrix().inverse()*other.c_matrix()
         #return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
@@ -407,6 +406,7 @@ class ClusterAlgebra(Parent):
         if 'cluster_variables_names' in kwargs:
             if len(kwargs['cluster_variables_names']) == n:
                 variables = kwargs['cluster_variables_names']
+                cluster_variables_prefix='dummy' # this is just to avoid checking again if cluster_variables_prefix is defined. Make this better before going public
             else:
                     raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
         else:
@@ -508,8 +508,8 @@ class ClusterAlgebra(Parent):
         # We probably need to put n=2 initializations here also
         return other
 
-    def __eq__(self,other):
-        return self._B0 == other._B0 and  self._yhat == other._yhat
+    def __eq__(self, other):
+        return type(self) == type(other) and self._B0 == other._B0 and  self._yhat == other._yhat
 
     # enable standard coercions: everything that is in the base can be coerced
     def _coerce_map_from_(self, other):

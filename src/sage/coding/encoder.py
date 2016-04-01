@@ -158,8 +158,37 @@ class Encoder(SageObject):
             raise ValueError("The value to encode must be in %s" % M)
         return vector(word) * self.generator_matrix()
 
-    #Alias for encode method
-    __call__ = encode
+    def __call__(self, m):
+        r"""
+        Transforms an element of the message space into a codeword.
+
+        This behaves the same as `self.encode`.
+        See `sage.coding.encoder.Encoder.encode` for details.
+
+        INPUT:
+
+        - ``word`` -- a vector of the message space of the ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector(GF(2), (0, 1, 1, 0))
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+            sage: F = GF(11)
+            sage: Fx.<x> = F[]
+            sage: n, k = 10 , 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: E = C.encoder("EvaluationPolynomial")
+            sage: p = x^2 + 3*x + 10
+            sage: E.encode(p)
+            (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
+        """
+        return self.encode(m)
+
 
     def unencode(self, c, nocheck=False):
         r"""

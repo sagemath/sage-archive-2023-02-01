@@ -752,9 +752,6 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         c = vector(C.base_ring(), [col_mults[i]*p(alphas[i]) for i in range(C.length())])
         return c
 
-    #Alias for encode method
-    __call__ = encode
-
     def unencode_nocheck(self, c):
         r"""
         Returns the message corresponding to the codeword ``c``.

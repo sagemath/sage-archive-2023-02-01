@@ -30,9 +30,13 @@ lapack_include_dirs = list(lapack_pc['include_dirs'])
 # FFLAS-FFPACK
 fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
 fflas_ffpack_libs = list(fflas_ffpack_pc['libraries'])
+fflas_ffpack_library_dirs = list(fflas_ffpack_pc['library_dirs'])
 fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
 
 # Givaro
+givaro_pc = pkgconfig.parse('givaro')
+givaro_libs = list(givaro_pc['libraries'])
+givaro_library_dirs = list(givaro_pc['library_dirs'])
 givaro_cflags = pkgconfig.cflags('givaro').split()
 
 # GNU Scientific Library
@@ -47,6 +51,12 @@ gd_pc = pkgconfig.parse('gdlib')
 gd_libs = list(gd_pc['libraries'])
 gd_library_dirs = list(gd_pc['library_dirs'])
 gd_include_dirs = list(gd_pc['include_dirs'])
+
+# LinBox
+linbox_pc = pkgconfig.parse('linbox')
+linbox_libs = list(linbox_pc['libraries'])
+linbox_library_dirs = list(linbox_pc['library_dirs'])
+linbox_cflags = pkgconfig.cflags('linbox').split()
 
 # PNG image library
 png_pc = pkgconfig.parse('libpng')
@@ -70,10 +80,16 @@ singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 aliases = dict(
     FFLASFFPACK_CFLAGS=fflas_ffpack_cflags,
     FFLASFFPACK_LIBRARIES=fflas_ffpack_libs,
+    FFLASFFPACK_LIBDIR=fflas_ffpack_library_dirs,
     GIVARO_CFLAGS=givaro_cflags,
+    GIVARO_LIBRARIES=givaro_libs,
+    GIVARO_LIBDIR=givaro_library_dirs,
     GSL_LIBRARIES=gsl_libs,
     GSL_LIBDIR=gsl_library_dirs,
     GSL_INCDIR=gsl_include_dirs,
+    LINBOX_CFLAGS=linbox_cflags,
+    LINBOX_LIBRARIES=linbox_libs,
+    LINBOX_LIBDIR=linbox_library_dirs,
 )
 
 #########################################################
@@ -108,8 +124,7 @@ singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 # at the very end of the list.
 library_order_list = [
     "singular", "ec", "ecm",
-    "linboxsage", "ntl", "iml", "linbox", "givaro",
-] + gsl_libs + [
+] + linbox_libs  + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "polybori",
@@ -594,8 +609,7 @@ ext_modules = [
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
-              libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
-                           'givaro', 'mpfr', 'gmp', 'gmpxx'] + cblas_libs,
+              libraries = linbox_libs,
               language = 'c++',
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs),
@@ -920,14 +934,14 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
+              libraries = linbox_libs + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp'] + cblas_libs,
+              libraries = linbox_libs + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
               extra_compile_args = ["-D_XPG6"]),

@@ -1,5 +1,6 @@
 # distutils: extra_compile_args = FFLASFFPACK_CFLAGS
 # distutils: libraries = FFLASFFPACK_LIBRARIES
+# distutils: library_dirs = FFLASFFPACK_LIBDIR
 
 from modular cimport ModDoubleField, ModFloatField, ModDoubleFieldElement, ModFloatFieldElement
 

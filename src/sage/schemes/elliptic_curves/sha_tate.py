@@ -89,6 +89,7 @@ from math import sqrt
 from sage.misc.all import verbose
 import sage.arith.all as arith
 from sage.rings.padics.factory import Qp
+from sage.modules.free_module_element import vector
 
 factor = arith.factor
 valuation = arith.valuation
@@ -542,22 +543,27 @@ class Sha(SageObject):
         E = self.Emin
         tam = E.tamagawa_product()
         tors = E.torsion_order()**2
-        reg = E.padic_regulator(p)
         r = E.rank()
-
+        if r > 0 :
+            reg = E.padic_regulator(p)
+        else:
+            if E.is_supersingular(p):
+                reg = vector([ Qp(p,20)(1), 0 ])
+            else:
+                reg = Qp(p,20)(1)
 
         if use_twists and p > 2:
             Et, D = E.minimal_quadratic_twist()
             # trac 6455 : we have to assure that the twist back is allowed
             D = ZZ(D)
             if D % p == 0:
-                D = D/p
+                D = ZZ(D/p)
             for ell in D.prime_divisors():
                 if ell % 2 == 1:
                     if Et.conductor() % ell**2 == 0:
-                        D = D/ell
+                        D = ZZ(D/ell)
             ve = valuation(D,2)
-            de = (D/2**ve).abs()
+            de = ZZ( (D/2**ve).abs() )
             if de % 4 == 3:
                 de = -de
             Et = E.quadratic_twist(de)

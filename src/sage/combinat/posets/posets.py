@@ -3736,10 +3736,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         non-empty subposets `P_1, \ldots, P_n` whose ordinal sum is `P`. This
         decomposition is unique.
 
-        .. SEEALSO::
-
-            :meth:`ordinal_sum`
-
         EXAMPLES::
 
             sage: P = Poset({'a': ['c', 'd'], 'b': ['d'], 'c': ['x', 'y'],
@@ -3751,6 +3747,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = parts[0].ordinal_sum(parts[1])
             sage: Q.is_isomorphic(P)
             True
+
+        .. SEEALSO::
+
+            :meth:`ordinal_sum`
 
         ALGORITHM:
 
@@ -3905,8 +3905,6 @@ class FinitePoset(UniqueRepresentation, Parent):
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
-        .. SEEALSO:: :meth:`connected_components`
-
         EXAMPLES::
 
             sage: P1 = Poset({'a': 'b'})
@@ -3929,6 +3927,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = P1.disjoint_union(P2).relabel(lambda x: x[1])
             sage: sorted(P.cover_relations())
             [['a', 'b'], ['c', 'd']]
+
+        .. SEEALSO:: :meth:`connected_components`
 
         TESTS::
 
@@ -3971,10 +3971,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``labels`` -- either ``'integers'`` or ``'pairs'`` (default); how
           the resulting poset will be labeled
 
-        .. SEEALSO::
-
-            :meth:`product`, :meth:`ordinal_sum`
-
         EXAMPLES::
 
             sage: P1 = Poset((['a', 'b'], [['a', 'b']]))
@@ -3984,6 +3980,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: sorted(P.cover_relations())
             [[('a', 'c'), ('a', 'd')], [('a', 'd'), ('b', 'c')],
             [('b', 'c'), ('b', 'd')]]
+
+        .. SEEALSO::
+
+            :meth:`product`, :meth:`ordinal_sum`
 
         TESTS::
 
@@ -4056,7 +4056,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         common element; here we force that by giving them different
         names in the resulting poset.
 
-        The ordinal sum on lattices is lattice; resp. for meet- and
+        The ordinal sum on lattices is a lattice; resp. for meet- and
         join-semilattices.
 
         INPUT:
@@ -4068,10 +4068,6 @@ class FinitePoset(UniqueRepresentation, Parent):
           element ``u`` in ``other`` will be named ``(1,u)`` in the
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
-
-        .. SEEALSO::
-
-            :meth:`ordinal_summands`, :meth:`disjoint_union`, :meth:`ordinal_product`
 
         EXAMPLES::
 
@@ -4105,6 +4101,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 4 elements
             sage: L.ordinal_sum(L)
             Finite lattice containing 4 elements
+
+        .. SEEALSO::
+
+            :meth:`ordinal_summands`, :meth:`disjoint_union`, :meth:`ordinal_product`
 
         TESTS::
 
@@ -4149,8 +4149,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         In the dual of a poset `P` we have `x \le y` iff `y \le x` in `P`.
 
-        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual`
-
         EXAMPLES::
 
             sage: P = Poset({1: [2, 3], 3: [4]})
@@ -4160,7 +4158,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[4, 3], [3, 1], [2, 1]]
 
-        Dual of a lattice is lattice; dual of a meet-semilattice is
+        Dual of a lattice is a lattice; dual of a meet-semilattice is
         join-semilattice and vice versa. Also the dual of a (non-)facade poset
         is again (non-)facade::
 
@@ -4169,6 +4167,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 3 elements
             sage: A(2) < A(1)
             True
+
+        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual`
 
         TESTS::
 

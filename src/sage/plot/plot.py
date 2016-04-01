@@ -406,6 +406,12 @@ Pi Axis::
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
     sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
+.. PLOT::
+
+    g1 = plot(sin(x), 0, 2*pi, ticks=pi/6, tick_formatter=pi)
+    g2 = plot(cos(x), 0, 2*pi, linestyle = "--", ticks=pi/6, tick_formatter=pi)
+    sphinx_plot(g1+g2)
+
 An illustration of integration::
 
     sage: f(x) = (x-3)*(x-5)*(x-7)+40

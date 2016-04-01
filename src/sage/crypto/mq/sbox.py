@@ -2,6 +2,7 @@ r"""
 S-Boxes and Their Algebraic Representations
 """
 
+from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
 from sage.matrix.constructor import Matrix
 from sage.misc.misc_c import prod as mul
@@ -455,6 +456,7 @@ class SBox(SageObject):
         """
         return self.maximal_difference_probability_absolute()/(2.0**self.n)
 
+    @cached_method
     def linear_approximation_matrix(self):
         """
         Return linear approximation matrix ``A`` for this S-box.
@@ -513,6 +515,7 @@ class SBox(SageObject):
 
         A = Matrix(ZZ, ncols, nrows, L)
         A = -A.transpose()/2
+        A.set_immutable()
 
         self._linear_approximation_matrix = A
         return A
@@ -987,17 +990,17 @@ class SBox(SageObject):
     def component_function(self, b):
         r"""
         Return a Boolean function corresponding to the component function
-        $b \cdot S(x)$.
+        `b \cdot S(x)`.
 
-        If $S$ is an $m \times n$ S-Box, then $b \in \mathbb{F}_2^n$ and
-        $\cdot$ denotes dot product of two vectors.
+        If `S` is an `m \times n` S-Box, then `b \in \GF{2}^n` and
+        `\cdot` denotes dot product of two vectors.
 
         INPUT:
 
-        - ``b`` - either an integer or a tuple of $\mathbb{F}_2$ elements of
-          length ``self.n``.
+        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
+          length ``self.n``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: f3 = S.component_function(3)
@@ -1017,7 +1020,7 @@ class SBox(SageObject):
         elif len(b) == n:
             b = vector(GF(2), b)
         else:
-            raise TypeError("Cannot compute component function using parameter %s"%(b,))
+            raise TypeError("cannot compute component function using parameter %s"%(b,))
 
         for x in xrange(1<<m):
             ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
@@ -1027,13 +1030,13 @@ class SBox(SageObject):
         r"""
         Return the differential uniformity of this S-Box.
 
-        An $m \times n$ S-Box $S$ is said to have differential uniformity
-        $\delta$ if for every nonzero $\alpha \in \mathbb{F}_2^m$ and every
-        $\beta \in \mathbb{F}_2^n$ the equation
-        $S(x) \oplus S(x \oplus \alpha) = \beta$ has at most $\delta$
+        An `m \times n` S-Box `S` is said to have differential uniformity
+        `\delta` if for every nonzero `\alpha \in \GF{2}^m` and every
+        `\beta \in \GF{2}^n` the equation
+        `S(x) \oplus S(x \oplus \alpha) = \beta` has at most `\delta`
         solutions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.differential_uniformity()
@@ -1048,7 +1051,7 @@ class SBox(SageObject):
         The nonlinearity of an S-Box is defined as the minimum nonlinearity
         of all its component functions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SR(1,4,4,8).sbox()
             sage: S.nonlinearity()
@@ -1062,33 +1065,37 @@ class SBox(SageObject):
         Return ``True`` if this S-Box is an almost perfect nonlinear (APN)
         function.
 
-        An $m \times m$ S-Box $S$ is called almost perfect nonlinear if for
-        every nonzero $\alpha \in \mathbb{F}_2^m$ and every
-        $\beta \in \mathbb{F}_2^m$, the equation
-        $S(x) \oplus S(x \oplus \alpha) = \beta$ has 0 or 2 solutions.
-        Equivalently, the differential uniformity of $S$ is equal to 2.
+        An `m \times m` S-Box `S` is called almost perfect nonlinear if for
+        every nonzero `\alpha \in \GF{2}^m` and every
+        `\beta \in \GF{2}^m`, the equation
+        `S(x) \oplus S(x \oplus \alpha) = \beta` has 0 or 2 solutions.
+        Equivalently, the differential uniformity of `S` is equal to 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: S = mq.SBox([0,54,48,13,15,18,53,35,25,63,45,52,3,20,41,33,59,36,2,34,10,8,57,37,60,19,42,14,50,26,58,24,39,27,21,17,16,29,1,62,47,40,51,56,7,43,44,38,31,11,4,28,61,46,5,49,9,6,23,32,30,12,55,22])
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
             sage: S.is_apn()
             True
+            sage: S.differential_uniformity()
+            2
         """
         if self.m != self.n:
             raise TypeError("APN function is only defined for self.m == self.n")
-        return (self.differential_uniformity() == 2)
+        return self.differential_uniformity() == 2
 
     def differential_branch_number(self):
         r"""
         Return differential branch number of this S-Box.
 
-        The differential branch number of an S-Box $S$ is defined as
+        The differential branch number of an S-Box `S` is defined as
 
-        .. math:: \min_{v, w \neq v} \{ \text{wt}(v \oplus w) + \text{wt}(S(v) \oplus S(w)) \}
+        .. MATH::
 
-        where $\text{wt}(x)$ denotes the Hamming weight of vector $x$.
+            \min_{v, w \neq v} \{ \mathrm{wt}(v \oplus w) + \mathrm{wt}(S(v) \oplus S(w)) \}
 
-        EXAMPLE::
+        where `\mathrm{wt}(x)` denotes the Hamming weight of vector `x`.
+
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.differential_branch_number()
@@ -1112,15 +1119,18 @@ class SBox(SageObject):
         r"""
         Return linear branch number of this S-Box.
 
-        The linear branch number of an S-Box $S$ is defined as
+        The linear branch number of an S-Box `S` is defined as
 
-        .. math:: \min_{\substack{\alpha \neq 0, \beta \\ \text{LAM}(\alpha, \beta) \neq 0}} \{ \text{wt}(\alpha) + \text{wt}(\beta) \}
+        .. MATH::
 
-        where $\text{LAM}(\alpha, \beta)$ is the entry at row $\alpha$ and
-        column $\beta$ of linear approximation matrix correspond to this
-        S-Box. The $\text{wt}(x)$ denotes the Hamming weight of $x$.
+            \min_{\substack{\alpha \neq 0, \beta \\ \mathrm{LAM}(\alpha, \beta) \neq 0}}
+                \{ \mathrm{wt}(\alpha) + \mathrm{wt}(\beta) \}
 
-        EXAMPLE::
+        where `\mathrm{LAM}(\alpha, \beta)` is the entry at row `\alpha` and
+        column `\beta` of linear approximation matrix correspond to this
+        S-Box. The `\mathrm{wt}(x)` denotes the Hamming weight of `x`.
+
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.linear_branch_number()
@@ -1139,20 +1149,23 @@ class SBox(SageObject):
                         ret = w
         return ret
 
+    @cached_method
     def autocorrelation_matrix(self):
         r"""
         Return autocorrelation matrix correspond to this S-Box.
 
-        for an $m \times n$ S-Box $S$, its autocorrelation matrix entry at
-        row $a \in \mathbb{F}_2^m$ and column $b \in \mathbb{F}_2^n$
+        for an `m \times n` S-Box `S`, its autocorrelation matrix entry at
+        row `a \in \GF{2}^m` and column `b \in \GF{2}^n`
         (considering their integer representation) is defined as:
 
-        .. math:: \sum_{x \in \mathbb{F}_2^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
+        .. MATH::
 
-        Equivalently, the columns $b$ of autocorrelation matrix correspond to
-        the autocorrelation spectrum of component function $b \cdot S(x)$.
+            \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
 
-        EXAMPLE::
+        Equivalently, the columns `b` of autocorrelation matrix correspond to
+        the autocorrelation spectrum of component function `b \cdot S(x)`.
+
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.autocorrelation_matrix()
@@ -1174,32 +1187,33 @@ class SBox(SageObject):
 
         n = self.n
         A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
+        A.set_immutable()
 
         self._autocorrelation_matrix = A
         return A
 
     def linear_structures(self):
         r"""
-        Return a list of 3-valued tuple $(b, \alpha, c)$ such that $\alpha$ is
-        a $c$-linear structure of the component function $b \cdot S(x)$.
+        Return a list of 3-valued tuple `(b, \alpha, c)` such that `\alpha` is
+        a `c`-linear structure of the component function `b \cdot S(x)`.
 
-        A Boolean function $f : \mathbb{F}_2^m \mapsto \mathbb{F}_2$ is said
-        to have a $c$-linear structure if there exists a nonzero $\alpha$ such
-        that $f(x) \oplus f(x \oplus \alpha)$ is a constant function $c$.
+        A Boolean function `f : \GF{2}^m \mapsto \GF{2}` is said
+        to have a `c`-linear structure if there exists a nonzero `\alpha` such
+        that `f(x) \oplus f(x \oplus \alpha)` is a constant function `c`.
 
-        An $m \times n$ S-Box $S$ has a linear structure if there exists a
-        component function $b \cdot S(x)$ that has a linear structure.
+        An `m \times n` S-Box `S` has a linear structure if there exists a
+        component function `b \cdot S(x)` that has a linear structure.
 
-        The three valued tuple $(b, \alpha, c)$ shows that $\alpha$ is a
-        $c$-linear structure of the component function $b \cdot S(x)$. This
-        implies that for all output differences $\beta$ of the S-Box
-        correspond to input difference $\alpha$, we have $b \cdot \beta = c$.
+        The three valued tuple `(b, \alpha, c)` shows that `\alpha` is a
+        `c`-linear structure of the component function `b \cdot S(x)`. This
+        implies that for all output differences `\beta` of the S-Box
+        correspond to input difference `\alpha`, we have `b \cdot \beta = c`.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
             sage: S.linear_structures()
-            [(1, 1, 1), (1, 8, 1), (1, 9, 0), (10, 1, 1), (10, 14, 1), (10, 15, 0), (11, 1, 0), (11, 6, 1), (11, 7, 1)]
+            [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
         """
         n = self.n
         m = self.m
@@ -1217,7 +1231,7 @@ class SBox(SageObject):
         """
         Return the maximal algebraic degree of all its component functions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.max_degree()
@@ -1236,7 +1250,7 @@ class SBox(SageObject):
         """
         Return the minimal algebraic degree of all its component functions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.min_degree()
@@ -1257,7 +1271,7 @@ class SBox(SageObject):
 
         An S-Box is balanced if all its component functions are balanced.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.is_balanced()
@@ -1275,22 +1289,22 @@ class SBox(SageObject):
         r"""
         Return ``True`` if this S-Box is an almost bent (AB) function.
 
-        An $m \times m$ S-Box $S$, for $m$ odd, is called almost bent if its
-        nonlinearity is equal to $2^{m-1} - 2^{(m-1)/2}$.
+        An `m \times m` S-Box `S`, for `m` odd, is called almost bent if its
+        nonlinearity is equal to `2^{m-1} - 2^{(m-1)/2}`.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: S = mq.SBox([1,0,25,26,17,29,21,27,20,5,4,23,14,18,2,28,15,8,6,3,13,7,24,16,30,9,31,10,22,12,11,19])
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
             sage: S.is_almost_bent()
             True
         """
         if self.m != self.n:
-            raise TypeError("Almost bent function only exists for self.m == self.n")
+            raise TypeError("almost bent function only exists for self.m == self.n")
 
         m = self.m
 
-        if ((m & 1) == 0):
-            raise TypeError("Almost bent function only defined for an odd size S-Box.")
+        if m & 1 == 0:
+            raise TypeError("almost bent function only defined for an odd size S-Box")
 
         return (self.nonlinearity() == (1<<(m-1)) - (1<<((m-1)>>1)))
 
@@ -1298,7 +1312,7 @@ class SBox(SageObject):
         """
         Return a list of all fixed points of this S-Box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([0,1,3,6,7,4,5,2])
             sage: S.fixed_points()
@@ -1312,9 +1326,9 @@ class SBox(SageObject):
         Return the inverse of this S-Box.
 
         Note that the S-Box must be invertible, otherwise it will raise
-        a TypeError.
+        a ``TypeError``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([0, 1, 3, 6, 7, 4, 5, 2])
             sage: Sinv = S.inverse()
@@ -1322,7 +1336,7 @@ class SBox(SageObject):
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
         if not self.is_permutation():
-            raise TypeError("S-Box must be a permutation.")
+            raise TypeError("S-Box must be a permutation")
 
         m = self.m
         L = [self(i) for i in xrange(1<<m)]
@@ -1332,7 +1346,7 @@ class SBox(SageObject):
         """
         Return ``True`` if this S-Box is a monomial/power function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([0,1,3,6,7,4,5,2])
             sage: S.is_monomial_function()

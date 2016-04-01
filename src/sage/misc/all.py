@@ -15,8 +15,7 @@ from misc import (alarm, cancel_alarm,
                   newton_method_sizes, compose,
                   self_compose, nest)
 
-# Should be deprecated, but still needed in sagenb
-lazy_import('sage.arith.srange', 'srange')
+lazy_import('sage.arith.srange', 'srange', deprecation=20334)
 
 from banner import version, banner
 

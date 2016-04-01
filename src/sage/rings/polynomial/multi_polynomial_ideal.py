@@ -889,9 +889,9 @@ class MPolynomialIdeal_singular_repr(
 
         -  ``algorithm`` - string:
 
-        -  ``'sy'`` - (default) use the shimoyama-yokoyama algorithm
+        -  ``'sy'`` - (default) use the Shimoyama-Yokoyama algorithm
 
-        -  ``'gtz'`` - use the gianni-trager-zacharias algorithm
+        -  ``'gtz'`` - use the Gianni-Trager-Zacharias algorithm
 
 
         OUTPUT:
@@ -1971,12 +1971,12 @@ class MPolynomialIdeal_singular_repr(
     @libsingular_gb_standard_options
     def elimination_ideal(self, variables):
         r"""
-        Returns the elimination ideal this ideal with respect to the
+        Return the elimination ideal of this ideal with respect to the
         variables given in ``variables``.
 
         INPUT:
 
-        - ``variables`` - a list or tuple of variables in ``self.ring()``
+        - ``variables`` -- a list or tuple of variables in ``self.ring()``
 
         EXAMPLE::
 

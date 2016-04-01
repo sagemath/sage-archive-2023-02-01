@@ -479,7 +479,7 @@ class RealBallField(UniqueRepresentation, Field):
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
-        raise TypeError("unable to convert {} to a RealBall".format(mid))
+        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
 
     def _repr_option(self, key):
         """
@@ -876,6 +876,82 @@ class RealBallField(UniqueRepresentation, Field):
             fmpz_clear(tmpz)
         return res
 
+    def bell_number(self, n):
+        """
+        Return a ball enclosing the ``n``-th Bell number.
+
+        EXAMPLES::
+
+            sage: [RBF.bell_number(n) for n in xrange(7)]
+            [1.000000000000000,
+             1.000000000000000,
+             2.000000000000000,
+             5.000000000000000,
+             15.00000000000000,
+             52.00000000000000,
+             203.0000000000000]
+            sage: RBF.bell_number(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+            sage: RBF.bell_number(10**20)
+            [5.38270113176282e+1794956117137290721328 +/- 5.44e+1794956117137290721313]
+        """
+        cdef fmpz_t tmpz
+        cdef RealBall res = self.element_class(self)
+        cdef Integer n_as_Integer = ZZ.coerce(n)
+        if n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        try:
+            if _do_sig(self._prec): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, n_as_Integer.value)
+            arb_bell_fmpz(res.value, tmpz, self._prec)
+            if _do_sig(self._prec): sig_off()
+        finally:
+            fmpz_clear(tmpz)
+        return res
+
+    def double_factorial(self, n):
+        """
+        Return a ball enclosing the ``n``-th double factorial.
+
+        EXAMPLES::
+
+            sage: [RBF.double_factorial(n) for n in range(7)]
+            [1.000000000000000,
+             1.000000000000000,
+             2.000000000000000,
+             3.000000000000000,
+             8.000000000000000,
+             15.00000000000000,
+             48.00000000000000]
+            sage: RBF.double_factorial(2**20)
+            [1.4483729903e+2928836 +/- 8.96e+2928825]
+            sage: RBF.double_factorial(2**1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument too large
+            sage: RBF.double_factorial(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+
+        """
+        cdef RealBall res
+        cdef Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            res = self.element_class(self)
+            if _do_sig(self._prec): sig_on()
+            arb_doublefac_ui(res.value, mpz_get_ui(n_as_Integer.value), self._prec)
+            if _do_sig(self._prec): sig_off()
+            return res
+        elif n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            # TODO: Fall back to a Sage implementation in this case?
+            raise ValueError("argument too large")
+
     def maximal_accuracy(self):
         r"""
         Return the relative accuracy of exact elements measured in bits.
@@ -1014,6 +1090,28 @@ cdef class RealBall(RingElement):
             sage: RBF(NaN)
             nan
 
+        Strings can be given as input. Strings must contain decimal
+        floating-point literals. A valid string must consist of a midpoint,
+        a midpoint and a radius separated by "+/-", or just a
+        radius prefixed by "+/-". Optionally, the whole string can be enclosed
+        in square brackets. In general, the string representation of a
+        real ball as returned by ``str()`` can be parsed back (the result
+        will be larger than the original ball if rounding occurs).
+        A few examples::
+
+            sage: RBF("1.1")
+            [1.100000000000000 +/- 3.56e-16]
+            sage: RBF(str(RBF("1.1")))
+            [1.100000000000000 +/- 7.12e-16]
+            sage: RBF("3.25")
+            3.250000000000000
+            sage: RBF("-3.1 +/- 1e-10")
+            [-3.100000000 +/- 1.01e-10]
+            sage: RBF("[+/-1]")
+            [+/- 1.01]
+            sage: RBF("inf +/- inf")
+            [+/- inf]
+
         .. SEEALSO:: :meth:`RealBallField._element_constructor_`
 
         TESTS::
@@ -1033,6 +1131,15 @@ cdef class RealBall(RingElement):
             [2.718281828459045 +/- 5.35e-16]
             sage: RealBall(RBF, sage.symbolic.constants.EulerGamma())
             [0.577215664901533 +/- 3.57e-16]
+            sage: RBF("1 +/- 0.001")
+            [1.00 +/- 1.01e-3]
+            sage: RBF("2.3e10000000000000000000000 +/- 0.00005e10000000000000000000000")
+            [2.3000e+10000000000000000000000 +/- 5.01e+9999999999999999999995]
+            sage: RBF("0.3 +/- 0.2 +/- 0.1")
+            Traceback (most recent call last):
+            ...
+            ValueError: unsupported string format
+
         """
         import sage.symbolic.constants
         cdef fmpz_t tmpz
@@ -1106,6 +1213,9 @@ cdef class RealBall(RingElement):
             mpfi_to_arb(self.value,
                 (<RealIntervalFieldElement> mid).value,
                 prec(self))
+        elif isinstance(mid, str):
+            if arb_set_str(self.value, mid, prec(self)) != 0:
+                raise ValueError("unsupported string format")
         else:
             raise TypeError("unsupported midpoint type")
 
@@ -1370,7 +1480,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).rad().parent()
             Real Field with 30 bits of precision
 
-        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`, :meth:`diameter`
 
         TESTS::
 
@@ -1392,6 +1502,23 @@ cdef class RealBall(RingElement):
         sig_off()
         arf_clear(tmp)
         return rad
+
+    def diameter(self):
+        r"""
+        Return the diameter of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).diameter()
+            1.1102230e-16
+            sage: RBF(1/3).diameter().parent()
+            Real Field with 30 bits of precision
+            sage: RBF(RIF(1.02, 1.04)).diameter()
+            0.020000000
+
+        .. SEEALSO:: :meth:`rad`, :meth:`rad_as_ball`, :meth:`mid`
+        """
+        return 2 * self.rad()
 
     def squash(self):
         """
@@ -2268,6 +2395,19 @@ cdef class RealBall(RingElement):
         """
         return arb_contains_zero(self.value)
 
+    def contains_integer(self):
+        """
+        Return ``True`` iff this ball contains any integer.
+
+        EXAMPLES::
+
+            sage: RBF(3.1, 0.1).contains_integer()
+            True
+            sage: RBF(3.1, 0.05).contains_integer()
+            False
+        """
+        return arb_contains_int(self.value)
+
     def is_negative_infinity(self):
         """
         Return ``True`` if this ball is the point -∞.
@@ -3066,6 +3206,28 @@ cdef class RealBall(RingElement):
         arb_rgamma(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    def rising_factorial(self, n):
+        """
+        Return the ``n``-th rising factorial of this ball.
+
+        The `n`-th rising factorial of `x` is equal to `x (x+1) \cdots (x+n-1)`.
+
+        For real `n`, it is a quotient of gamma functions.
+
+        EXAMPLES::
+
+            sage: RBF(1).rising_factorial(5)
+            120.0000000000000
+            sage: RBF(1/2).rising_factorial(1/3)
+            [0.63684988431797 +/- 5.71e-15]
+        """
+        cdef RealBall result = self._new()
+        cdef RealBall my_n = self._parent.coerce(n)
+        if _do_sig(prec(self)): sig_on()
+        arb_rising(result.value, self.value, my_n.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
 
     cpdef RealBall psi(self):
         """

@@ -21,8 +21,7 @@ cdef extern from "pynac_cc.h":
 
 include "sage/ext/cdefs.pxi"
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/python.pxi"
-
+from cpython cimport *
 from ginac cimport *
 
 from sage.libs.gsl.types cimport *
@@ -1098,8 +1097,8 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(object a) except +:
-    if PyInt_CheckExact(a) or isinstance(a, Integer) or\
-            PyLong_CheckExact(a) or type(a) is float:
+    if type(a) is int or isinstance(a, Integer) or\
+            type(a) is long or type(a) is float:
         return True
     return py_imag(a) == 0
 
@@ -2392,7 +2391,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 We can convert to complex fields::
 

@@ -203,6 +203,7 @@ List of Poset methods
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset.
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
     :meth:`~FinitePoset.list` | List the elements of the poset.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
@@ -3184,10 +3185,21 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def coxeter_transformation(self):
         r"""
-        Returns the matrix of the Auslander-Reiten translation acting
-        on the Grothendieck group of the derived category of modules
-        on the poset ``self``, in the basis of simple modules. This matrix is
-        usually called the Coxeter transformation.
+        Return the Coxeter transformation of the poset.
+
+        OUTPUT:
+
+        a square matrix with integer coefficients
+
+        The output is the matrix of the Auslander-Reiten translation
+        acting on the Grothendieck group of the derived category of
+        modules on the poset, in the basis of simple
+        modules. This matrix is usually called the Coxeter
+        transformation.
+
+        .. SEEALSO::
+
+            :meth:`coxeter_polynomial`
 
         EXAMPLES::
 
@@ -3200,11 +3212,39 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = Posets.PentagonPoset().coxeter_transformation()
-            sage: M**8 == 1
+            sage: M = posets.PentagonPoset().coxeter_transformation()
+            sage: M ** 8 == 1
             True
         """
         return self._hasse_diagram.coxeter_transformation()
+
+    def coxeter_polynomial(self):
+        """
+        Return the Coxeter polynomial of the poset.
+
+        OUTPUT:
+
+        a polynomial in one variable
+
+        The output is the characteristic polynomial of the Coxeter
+        transformation. This polynomial only depends on the derived
+        category of modules on the poset.
+
+        .. SEEALSO::
+
+            :meth:`coxeter_transformation`
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.coxeter_polynomial()
+            x^5 + x^4 + x + 1
+
+            sage: p = posets.SymmetricGroupWeakOrderPoset(3)
+            sage: p.coxeter_polynomial()
+            x^6 + x^5 - x^3 + x + 1
+        """
+        return self._hasse_diagram.coxeter_transformation().charpoly()
 
     def meet_matrix(self):
         """

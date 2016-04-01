@@ -460,9 +460,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         self.n = max(parent.degree(), 1)
 
         if self.perm is NULL or self.perm is self.perm_buf:
-            self.perm = <int *>sage_malloc(sizeof(int) * self.n)
+            self.perm = <int *>sig_malloc(sizeof(int) * self.n)
         else:
-            self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
+            self.perm = <int *>sig_realloc(self.perm, sizeof(int) * self.n)
 
 
         cdef int i, vn = len(v)
@@ -481,7 +481,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def __dealloc__(self):
         if self.perm is not NULL and self.perm is not self.perm_buf:
-            sage_free(self.perm)
+            sig_free(self.perm)
 
     def __reduce__(self):
         """
@@ -508,7 +508,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if other.n <= sizeof(other.perm_buf) / sizeof(int):
             other.perm = other.perm_buf
         else:
-            other.perm = <int *>sage_malloc(sizeof(int) * other.n)
+            other.perm = <int *>sig_malloc(sizeof(int) * other.n)
         return other
 
     def _gap_(self, gap=None):
@@ -1059,7 +1059,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef long long order_c = 1
         cdef int cycle_len
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1076,7 +1076,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 order_c = (order_c * cycle_len) / arith.c_gcd_longlong(order_c, cycle_len)
                 if order_c > LONG_LONG_MAX / (self.n - i):
                     order = Integer(order_c)
-        sage_free(seen)
+        sig_free(seen)
         return Integer(order_c) if order is None else order
 
     def inverse(self):
@@ -1133,7 +1133,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         cdef int cycle_len_sum = 0
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1143,7 +1143,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 seen[k] = 1
                 k = self.perm[k]
                 cycle_len_sum += 1
-        sage_free(seen)
+        sig_free(seen)
         return 1 - 2*(cycle_len_sum % 2) # == (-1)^cycle_len
 
 
@@ -1208,7 +1208,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         L = []
         cdef PermutationGroupElement cycle
         cdef int i, j, k, next_k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1221,7 +1221,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 next_k = cycle.perm[k] = self.perm[k]
                 k = next_k
             PyList_Append(L, cycle)
-        sage_free(seen)
+        sig_free(seen)
         return L
 
     def cycle_tuples(self, singletons=False):
@@ -1259,7 +1259,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         from_gap = self._parent._domain_from_gap
         L = []
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i]:
@@ -1279,7 +1279,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                     seen[k] = 1
                     k = self.perm[k]
                 PyList_Append(L, tuple(cycle))
-        sage_free(seen)
+        sig_free(seen)
         return L
 
     def cycle_string(self, singletons=False):
@@ -1438,6 +1438,31 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
+
+cdef class SymmetricGroupElement(PermutationGroupElement):
+    """
+    An element of the symmetric group.
+    """
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``.
+
+        The absolute length is the size minus the number of its disjoint
+        cycles. Alternatively, it is the length of the shortest
+        expression of the element as a product of reflections.
+
+        .. SEEALSO::
+
+            :meth:`absolute_le`
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(3)
+            sage: [x.absolute_length() for x in S]
+            [0, 1, 2, 2, 1, 1]
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self).absolute_length()
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

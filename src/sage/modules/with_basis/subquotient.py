@@ -173,6 +173,8 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
       :class:`module with basis <ModulesWithBasis>` `V`, or data that
       can be converted into such a family
 
+    - ``unitriangular`` -- if the lift morphism is unitriangular
+
     - ``ambient`` -- the ambient space `V`
 
     - ``category`` -- a category
@@ -190,7 +192,8 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
     """
 
     @staticmethod
-    def __classcall_private__(cls, basis, ambient=None, category=None, *args, **opts):
+    def __classcall_private__(cls, basis, ambient=None, unitriangular=False,
+                              category=None, *args, **opts):
         r"""
         Normalize the input.
 
@@ -209,9 +212,9 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         default_category = ModulesWithBasis(ambient.category().base_ring()).Subobjects()
         category = default_category.or_subcategory(category, join=True)
         return super(SubmoduleWithBasis, cls).__classcall__(
-            cls, basis, ambient, category, *args, **opts)
+            cls, basis, ambient, unitriangular, category, *args, **opts)
 
-    def __init__(self, basis, ambient, category):
+    def __init__(self, basis, ambient, unitriangular, category):
         r"""
         Initialization.
 
@@ -234,6 +237,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
                                          category=category.Subobjects())
         self._ambient = ambient
         self._basis = basis
+        self._unitriangular = unitriangular
         self.lift_on_basis = self._basis.__getitem__
 
     def ambient(self):
@@ -270,6 +274,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         return self.module_morphism(self.lift_on_basis,
                                     codomain=self.ambient(),
                                     triangular="lower",
+                                    unitriangular=self._unitriangular,
                                     cmp=self.ambient().get_order_cmp(),
                                     inverse_on_support="compute")
 

@@ -1976,11 +1976,18 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.encode(word)
 
-    def __call__(self, m):
+    def __call__(self, m, **kwargs):
         r"""
         Returns either ``m`` if it is a codeword or ``self.encode(m)``
         if it is an element of the message space of the encoder used by
         ``encode``.
+
+        INPUT:
+
+        - ``m`` -- a vector whose length equals to code's length or an element
+          of the message space used by ``encode``
+
+        - ``**kwargs`` -- extra arguments are forwarded to ``encode``
 
         EXAMPLES::
 
@@ -1993,7 +2000,22 @@ class AbstractLinearCode(module.Module):
             sage: c = C.random_element()
             sage: C(c) == c
             True
+
+        TESTS:
+
+        If one passes a vector whose length is ``self.length()``, it has to be a codeword.
+        Otherwise, an exception is raised::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0, 0, 1, 0))
+            sage: C(word)
+            Traceback (most recent call last):
+            ...
+            ValueError: If the input is a vector whose length is equal to self.length(), is has to be a codeword
         """
+        if m in self.ambient_space() and m not in self:
+            raise ValueError("If the input is a vector whose length is equal to self.length(), is has to be a codeword")
         if m in self:
             return m
         else:

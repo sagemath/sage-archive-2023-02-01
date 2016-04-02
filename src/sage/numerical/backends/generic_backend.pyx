@@ -210,6 +210,29 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    cpdef objective_constant_term(self, d=None):
+        """
+        Set or get the constant term in the objective function
+
+        INPUT:
+
+        - ``d`` (double) -- its coefficient.  If `None` (default), return the current value.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: p.objective_constant_term()                        # optional - Nonexistent_LP_solver
+            0.0
+            sage: p.objective_constant_term(42)                      # optional - Nonexistent_LP_solver
+            sage: p.objective_constant_term()                        # optional - Nonexistent_LP_solver
+            42.0
+        """
+        if d is None:
+            return self.obj_constant_term
+        else:
+            self.obj_constant_term = d
+
     cpdef set_objective(self, list coeff, d = 0.0):
         """
         Set the objective function.

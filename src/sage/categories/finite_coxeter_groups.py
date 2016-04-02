@@ -11,8 +11,9 @@ Finite Coxeter Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.coxeter_groups import CoxeterGroups
+from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
@@ -46,9 +47,22 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
     """
+    _base_category_class_and_axiom = (CoxeterGroups, "Finite")
+
+    @cached_method
+    def extra_super_categories(self):
+        r"""
+        EXAMPLES::
+
+            sage: ComplexReflectionGroups().super_categories()
+            [Category of groups]
+        """
+        return [ComplexReflectionGroups().Finite().WellGenerated()]
+
+    class SubcategoryMethods:
+        Irreducible = axiom("Irreducible")
 
     class ParentMethods:
-
         """
         Ambiguity resolution: the implementation of ``some_elements``
         is preferable to that of :class:`FiniteGroups`. The same holds
@@ -612,3 +626,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             G.add_vertices(R)
             G.add_edges([v,vp] for v in R for vp in self.coxeter_knuth_neighbor(v))
             return G
+
+    class Irreducible(CategoryWithAxiom):
+        r"""
+        The category of finite irreducible Coxeter groups.
+        """
+        class ParentMethods:
+            pass
+
+        class ElementMethods:
+            pass

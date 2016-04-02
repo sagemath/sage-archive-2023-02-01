@@ -25,6 +25,14 @@ from copy import copy
 
 cdef class CoinBackend(GenericBackend):
 
+    """
+    TESTS::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                       # optional - cbc
+            sage: TestSuite(p).run(skip="_test_pickling")               # optional - cbc
+    """
+
     def __cinit__(self, maximization = True):
         """
         Cython constructor

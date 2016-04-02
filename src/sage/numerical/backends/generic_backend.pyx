@@ -481,6 +481,16 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    def _test_add_linear_constraints(self, **options):
+        """
+        Run tests on the method :meth:`.add_linear_constraints`.
+        """
+        tester = self._tester(**options)
+        self.add_variables(5)
+        self.add_linear_constraints(5, None, 2)
+        tester.assertEqual(self.row(4), ([], []))
+        tester.assertEqual(self.row_bounds(4), (None, 2.0))
+
     cpdef int solve(self) except -1:
         """
         Solve the problem.

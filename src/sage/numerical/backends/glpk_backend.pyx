@@ -34,6 +34,13 @@ include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
+    """
+    TESTS::
+
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor

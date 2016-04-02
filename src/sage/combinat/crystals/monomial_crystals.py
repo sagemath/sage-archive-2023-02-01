@@ -108,6 +108,9 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
+from sage.rings.integer_ring import ZZ
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.matrix_space import MatrixSpace
 
 class NakajimaYMonomial(Element):
     r"""
@@ -150,17 +153,13 @@ class NakajimaYMonomial(Element):
             sage: M({(1,0):1,(2,2):-2,(0,5):10})
             Y(0,5)^10 Y(1,0) Y(2,2)^-2
         """
-        if self._dict == {}:
+        if not self._dict:
             return "1"
-        else:
-            L = sorted(self._dict.iteritems(), key=lambda x:(x[0][0],x[0][1]))
-            return_str = ''
-            for x in range(len(L)):
-                if L[x][1] != 1:
-                    return_str += "Y(%s,%s)"%(L[x][0][0],L[x][0][1]) + "^%s "%L[x][1]
-                else:
-                    return_str += "Y(%s,%s) "%(L[x][0][0],L[x][0][1])
-            return return_str
+
+        L = sorted(self._dict.iteritems(), key=lambda x: (x[0][0], x[0][1]))
+        exp = lambda e: "^{}".format(e) if e != 1 else ""
+        return ' '.join("Y({},{})".format(mon[0][0], mon[0][1]) + exp(mon[1])
+                        for mon in L)
 
     def __hash__(self):
         r"""
@@ -298,7 +297,7 @@ class NakajimaYMonomial(Element):
         P = self.parent().weight_lattice_realization()
         return P(self.weight_in_root_lattice())
 
-    def epsilon(self,i):
+    def epsilon(self, i):
         r"""
         Return the value of `\varepsilon_i` on ``self``.
 
@@ -318,7 +317,7 @@ class NakajimaYMonomial(Element):
         h = self.parent().weight_lattice_realization().simple_coroots()
         return self.phi(i) - self._classical_weight().scalar(h[i])
 
-    def phi(self,i):
+    def phi(self, i):
         r"""
         Return the value of `\varphi_i` on ``self``.
 
@@ -335,25 +334,20 @@ class NakajimaYMonomial(Element):
         """
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
-        dict = self._dict
-        if dict == {}:
-            return 0
-        else:
-            L = [x[0] for x in dict.keys()]
-            if i not in L:
-                return 0
-            else:
-                d = copy(dict)
-                K = max(x[1] for x in list(d) if x[0] ==i)
-                for a in range(K):
-                    if (i,a) in d:
-                        continue
-                    else:
-                        d[(i,a)] = 0
-                S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
-                return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
+        if not self._dict or all(x[0] != i for x in self._dict):
+            return ZZ.zero()
 
-    def _ke(self,i):
+        d = copy(self._dict)
+        K = max(x[1] for x in d if x[0] == i)
+        for a in range(K):
+            if (i,a) in d:
+                continue
+            else:
+                d[(i,a)] = 0
+        S = sorted((x for x in d.iteritems() if x[0][0] == i), key=lambda x: x[0][1])
+        return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
+
+    def _ke(self, i):
         r"""
         Return the value `k_e` with respect to ``i`` and ``self``.
 
@@ -368,31 +362,29 @@ class NakajimaYMonomial(Element):
             sage: [m._ke(i) for i in M.index_set()]
             [+Infinity, 0, +Infinity]
         """
-        dict = self._dict
-        sum = 0
-        L = []
+        h = self.parent().weight_lattice_realization().simple_coroots()
         phi = self.phi(i)
-        if self.epsilon(i) == 0:
+        if phi == self._classical_weight().scalar(h[i]): # self.epsilon(i) == 0
             return Infinity
-        else:
-            d = copy(dict)
-            K = max(x[1] for x in list(d) if x[0] ==i)
-            for a in range(K):
-                if (i,a) in d:
-                    continue
-                else:
-                    d[(i,a)] = 0
-            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
-            for var,exp in S:
-                sum += exp
-                if sum == phi:
-                    L.append(var[1])
-            if L == []:
-                return 0
-            else:
-                return max(L)
 
-    def _kf(self,i):
+        d = copy(self._dict)
+        K = max(x[1] for x in d if x[0] == i)
+        for a in range(K):
+            if (i,a) in d:
+                continue
+            else:
+                d[(i,a)] = 0
+        total = ZZ.zero()
+        L = []
+        S = sorted((x for x in d.iteritems() if x[0][0] == i), key=lambda x: x[0][1])
+        for var,exp in S:
+            total += exp
+            if total == phi:
+                L.append(var[1])
+
+        return max(L) if L else ZZ.zero()
+
+    def _kf(self, i):
         r"""
         Return the value `k_f` with respect to ``i`` and ``self``.
 
@@ -407,18 +399,17 @@ class NakajimaYMonomial(Element):
             sage: [m._kf(i) for i in M.index_set()]
             [0, 0, 2, 0, 0]
         """
-        d = copy(self._dict)
-        I = [x[0] for x in d]
-        if i not in I:
-            return 0
+        if all(i != x[0] for x in self._dict):
+            return ZZ.zero()
         else:
-            K = max(x[1] for x in list(d) if x[0] ==i)
+            d = copy(self._dict)
+            K = max(key[1] for key in d if key[0] == i)
             for a in range(K):
                 if (i,a) in d:
                     continue
                 else:
                     d[(i,a)] = 0
-            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
+            S = sorted((x for x in d.iteritems() if x[0][0] == i), key=lambda x: x[0][1])
             sum = 0
             phi = self.phi(i)
             for var,exp in S:
@@ -426,7 +417,7 @@ class NakajimaYMonomial(Element):
                 if sum == phi:
                     return var[1]
 
-    def e(self,i):
+    def e(self, i):
         r"""
         Return the action of `e_i` on ``self``.
 
@@ -442,7 +433,7 @@ class NakajimaYMonomial(Element):
             [None,
              None,
              None,
-             Y(0,0)^-1 Y(1,1)^-1 Y(2,1) Y(3,0) Y(3,1) Y(4,0)^-1 Y(4,1)^-1 Y(5,0) ,
+             Y(0,0)^-1 Y(1,1)^-1 Y(2,1) Y(3,0) Y(3,1) Y(4,0)^-1 Y(4,1)^-1 Y(5,0),
              None,
              None,
              None,
@@ -451,9 +442,9 @@ class NakajimaYMonomial(Element):
             sage: M = crystals.infinity.NakajimaMonomials("C5")
             sage: m = M.module_generators[0].f_string([1,3])
             sage: [m.e(i) for i in M.index_set()]
-            [Y(2,1) Y(3,0)^-1 Y(3,1)^-1 Y(4,0) ,
+            [Y(2,1) Y(3,0)^-1 Y(3,1)^-1 Y(4,0),
              None,
-             Y(1,0)^-1 Y(1,1)^-1 Y(2,0) ,
+             Y(1,0)^-1 Y(1,1)^-1 Y(2,0),
              None,
              None]
         """
@@ -464,33 +455,30 @@ class NakajimaYMonomial(Element):
 
         newdict = copy(self._dict)
         ke = self._ke(i)
-        Aik = {(i, ke):1, (i, ke+1):1}
+        Aik = {(i, ke): 1, (i, ke+1): 1}
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
         shift = 0
         if self.parent().cartan_type().is_finite():
             shift = 1
-        for j in self.parent().index_set():
+        for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
-            c = 0
-            if i > j:
-                c = 1
-            if ct.is_affine() and ct.type() == 'A' and abs(i-j) == ct.rank() - 1:
-                c = 1 - c
-            if cm[j-shift][i-shift] != 0:
-                Aik[(j, ke+c)] = cm[j-shift][i-shift]
+            c = self.parent()._c[i-shift,j_index]
+            if cm[j_index,i-shift] != 0:
+                Aik[(j, ke+c)] = cm[j_index,i-shift]
+        # Multiply by Aik
         for key,value in Aik.iteritems():
             if key in newdict:
-                newdict[key] +=value
+                if newdict[key] == -value: # The result would be a 0 exponent
+                    del newdict[key]
+                else:
+                    newdict[key] += value
             else:
                 newdict[key] = value
-        for k in list(newdict):
-            if newdict[k] == 0:
-                newdict.pop(k)
-        return self.__class__(self.parent(),newdict)
+        return self.__class__(self.parent(), newdict)
 
-    def f(self,i):
+    def f(self, i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -503,40 +491,37 @@ class NakajimaYMonomial(Element):
             sage: M = crystals.infinity.NakajimaMonomials("B4")
             sage: m = M.module_generators[0].f_string([1,3,4])
             sage: [m.f(i) for i in M.index_set()]
-            [Y(1,0)^-2 Y(1,1)^-2 Y(2,0)^2 Y(2,1) Y(3,0)^-1 Y(4,0) Y(4,1)^-1 ,
-             Y(1,0)^-1 Y(1,1)^-1 Y(1,2) Y(2,0) Y(2,2)^-1 Y(3,0)^-1 Y(3,1) Y(4,0) Y(4,1)^-1 ,
-             Y(1,0)^-1 Y(1,1)^-1 Y(2,0) Y(2,1)^2 Y(3,0)^-2 Y(3,1)^-1 Y(4,0)^3 Y(4,1)^-1 ,
-             Y(1,0)^-1 Y(1,1)^-1 Y(2,0) Y(2,1) Y(3,0)^-1 Y(3,1) Y(4,1)^-2 ]
+            [Y(1,0)^-2 Y(1,1)^-2 Y(2,0)^2 Y(2,1) Y(3,0)^-1 Y(4,0) Y(4,1)^-1,
+             Y(1,0)^-1 Y(1,1)^-1 Y(1,2) Y(2,0) Y(2,2)^-1 Y(3,0)^-1 Y(3,1) Y(4,0) Y(4,1)^-1,
+             Y(1,0)^-1 Y(1,1)^-1 Y(2,0) Y(2,1)^2 Y(3,0)^-2 Y(3,1)^-1 Y(4,0)^3 Y(4,1)^-1,
+             Y(1,0)^-1 Y(1,1)^-1 Y(2,0) Y(2,1) Y(3,0)^-1 Y(3,1) Y(4,1)^-2]
         """
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
         newdict = copy(self._dict)
         kf = self._kf(i)
-        Aik = {(i, kf):-1, (i, kf+1):-1}
+        Aik = {(i, kf): -1, (i, kf+1): -1}
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
         shift = 0
         if ct.is_finite():
             shift = 1
-        for j in self.parent().index_set():
+        for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
-            c = 0
-            if i > j:
-                c = 1
-            if ct.is_affine() and ct.type() == 'A' and abs(i-j) == ct.rank() - 1:
-                c = 1 - c
-            if cm[j-shift][i-shift] != 0:
-                Aik[(j, kf+c)] = -cm[j-shift][i-shift]
+            c = self.parent()._c[i-shift,j_index]
+            if cm[j_index,i-shift] != 0:
+                Aik[(j, kf+c)] = -cm[j_index,i-shift]
+        # Multiply by Aik
         for key,value in Aik.iteritems():
             if key in newdict:
-                newdict[key] +=value
+                if newdict[key] == -value: # The result would be a 0 exponent
+                    del newdict[key]
+                else:
+                    newdict[key] += value
             else:
                 newdict[key] = value
-        for k in list(newdict):
-            if newdict[k] == 0:
-                newdict.pop(k)
-        return self.__class__(self.parent(),newdict)
+        return self.__class__(self.parent(), newdict)
 
 class NakajimaAMonomial(NakajimaYMonomial):
     r"""
@@ -565,17 +550,12 @@ class NakajimaAMonomial(NakajimaYMonomial):
             sage: m
             A(1,1)^-1 A(2,0)^-1 A(4,0)^-1
         """
-        if self._dict == {}:
+        if not self._dict:
             return "1"
-        else:
-            L = sorted(self._dict.iteritems(), key=lambda x:(x[0][0],x[0][1]))
-            return_str = ''
-            for x in range(len(L)):
-                if L[x][1] != 1:
-                    return_str += "A(%s,%s)"%(L[x][0][0],L[x][0][1]) + "^%s "%L[x][1]
-                else:
-                    return_str += "A(%s,%s) "%(L[x][0][0],L[x][0][1])
-            return return_str
+        L = sorted(self._dict.iteritems(), key=lambda x: (x[0][0], x[0][1]))
+        exp = lambda e: "^{}".format(e) if e != 1 else ""
+        return ' '.join("A({},{})".format(mon[0][0], mon[0][1]) + exp(mon[1])
+                        for mon in L)
 
     def _latex_(self):
         r"""
@@ -602,6 +582,8 @@ class NakajimaAMonomial(NakajimaYMonomial):
 
     def to_Y_monomial(self):
         r"""
+        Convert ``self`` to a monomial in the `Y_{ik}` variables.
+
         Represent `\prod_{(i,k)} A_{i,k}^{a_{i}(k)}` in the form
         `\prod_{(i,k)} Y_{i,k}^{y_i(k)}` using the formula
 
@@ -612,36 +594,31 @@ class NakajimaAMonomial(NakajimaYMonomial):
 
         EXAMPLES::
 
-            sage: M = crystals.infinity.NakajimaMonomials(['A',2,1],use_Y=False)
+            sage: M = crystals.infinity.NakajimaMonomials(['A',2,1], use_Y=False)
             sage: m = M.module_generators[0].f_string([2,0,1,2,1])
             sage: m
-            A(0,0)^-1 A(1,0)^-1 A(1,1)^-1 A(2,0)^-1 A(2,1)^-1
+            A(0,1)^-1 A(1,1)^-2 A(2,0)^-1 A(2,1)^-1
             sage: m.to_Y_monomial()
-            Y(0,1) Y(0,2) Y(1,1)^-1 Y(2,2)^-1
+            Y(0,2)^2 Y(1,2)^-1 Y(2,0)^-1 Y(2,1) Y(2,2)^-1
         """
         Y = {}
-        d = self._dict
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
-        for k,v in d.iteritems():
+        shift = 0
+        if ct.is_finite():
+            shift = 1
+        for k,v in self._dict.iteritems():
             Y[k] = Y.get(k,0) + v
             Y[(k[0],k[1]+1)] = Y.get((k[0],k[1]+1), 0) + v
-            shift = 0
-            if ct.is_finite():
-                shift = 1
-            for j in self.parent().index_set():
+            for j_index,j in enumerate(self.parent().index_set()):
                 if k[0] == j:
                     continue
-                c = 0
-                if k[0] > j:
-                    c = 1
-                if ct.is_affine() and ct.type() == 'A' and abs(k[0]-j) == ct.rank() - 1:
-                    c = 1 - c
-                if cm[j-shift][k[0]-shift] != 0:
-                    Y[(j, k[1]+c)] = Y.get((j,k[1]+c),0) + v*cm[j-shift][k[0]-shift]
+                c = self.parent()._c[k[0]-shift,j_index]
+                if cm[j_index,k[0]-shift] != 0:
+                    Y[(j,k[1]+c)] = Y.get((j,k[1]+c), 0) + v*cm[j_index,k[0]-shift]
         for k in Y.keys():
             if Y[k] == 0:
-                Y.pop(k)
+                del Y[k]
         return NakajimaYMonomial(self.parent(), Y)
 
     def weight(self):
@@ -722,10 +699,10 @@ class NakajimaAMonomial(NakajimaYMonomial):
             sage: M = crystals.infinity.NakajimaMonomials(['D',4,1],use_Y=False)
             sage: m = M.module_generators[0].f_string([4,2,3,0])
             sage: [m.e(i) for i in M.index_set()]
-            [A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 ,
+            [A(2,1)^-1 A(3,1)^-1 A(4,0)^-1,
              None,
              None,
-             A(0,2)^-1 A(2,1)^-1 A(4,0)^-1 ,
+             A(0,2)^-1 A(2,1)^-1 A(4,0)^-1,
              None]
         """
         if i not in self.parent().index_set():
@@ -740,7 +717,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
                 d.pop(k)
         return self.__class__(self.parent(), d)
 
-    def f(self,i):
+    def f(self, i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -755,14 +732,14 @@ class NakajimaAMonomial(NakajimaYMonomial):
             sage: m
             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1
             sage: [m.f(i) for i in M.index_set()]
-            [A(1,2)^-1 A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1 ,
-             A(2,0)^-1 A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,0)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(4,1)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(5,0)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(6,0)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(7,1)^-1 A(8,0)^-1 ,
-             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-2 ]
+            [A(1,2)^-1 A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1,
+             A(2,0)^-1 A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,0)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(4,1)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(5,0)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(6,0)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(7,1)^-1 A(8,0)^-1,
+             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-2]
         """
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
@@ -855,9 +832,44 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         sage: BG.is_isomorphic(MG,edge_labels=True) # long time
         True
     """
+    @staticmethod
+    def _normalize_c(c, n):
+        """
+        Normalize the input ``c``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.monomial_crystals import InfinityCrystalOfNakajimaMonomials
+            sage: InfinityCrystalOfNakajimaMonomials._normalize_c(None, 4)
+            [0 0 0 0]
+            [1 0 0 0]
+            [1 1 0 0]
+            [1 1 1 0]
+            sage: c = matrix([[0,1,1],[0,0,0],[0,1,0]]); c
+            [0 1 1]
+            [0 0 0]
+            [0 1 0]
+            sage: c.is_mutable()
+            True
+            sage: C = InfinityCrystalOfNakajimaMonomials._normalize_c(c, 3); C
+            [0 1 1]
+            [0 0 0]
+            [0 1 0]
+            sage: C.is_mutable()
+            False
+        """
+        if c is None:
+            # Default is i > j <=> c_{ij} = 1 (0 otherwise)
+            c = [[1 if i > j else 0 for j in range(n)] for i in range(n)]
+        MS = MatrixSpace(ZZ, n, n)
+        c = MS(c)
+        c.set_immutable()
+        if any(c[i,i] != 0 for i in range(n)):
+            raise ValueError("the c matrix must have 0's on the diagonal")
+        return c
 
     @staticmethod
-    def __classcall_private__(cls, ct, category=None, use_Y=True):
+    def __classcall_private__(cls, ct, c=None, use_Y=True):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -881,9 +893,11 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         else:
             elt_class = use_Y
         cartan_type = CartanType(ct)
-        return super(InfinityCrystalOfNakajimaMonomials,cls).__classcall__(cls,cartan_type,category,elt_class)
+        n = len(cartan_type.index_set())
+        c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
+        return super(InfinityCrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, c, elt_class)
 
-    def __init__(self, ct, category, elt_class):
+    def __init__(self, ct, c, elt_class, category=None):
         r"""
         EXAMPLES::
 
@@ -891,6 +905,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: TestSuite(Minf).run() # long time
         """
         self._cartan_type = ct
+        self._c = c
 
         self.Element = elt_class
         if category is None:
@@ -925,6 +940,27 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             Y(1,0)^-1 Y(1,1)^-1 Y(2,0)
         """
         return "Infinity Crystal of modified Nakajima monomials of type {}".format(self._cartan_type)
+
+    def c(self):
+        """
+        Return the matrix `c_{ij}` of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['B',3]).weight_lattice().fundamental_weights()
+            sage: M = crystals.NakajimaMonomials(La[1]+La[2])
+            sage: M.c()
+            [0 0 0]
+            [1 0 0]
+            [1 1 0]
+
+            sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
+            sage: M.c() == c
+            True
+        """
+        return self._c
 
     def cardinality(self):
         r"""
@@ -985,7 +1021,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
         Y(0,0)^2 Y(0,1)^-1 Y(2,0)
         sage: TestSuite(m).run()
     """
-    def f(self,i):
+    def f(self, i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -999,7 +1035,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
             sage: M = crystals.NakajimaMonomials(['A',5,2],3*La[0])
             sage: m = M.module_generators[0]
             sage: [m.f(i) for i in M.index_set()]
-            [Y(0,0)^2 Y(0,1)^-1 Y(2,0) , None, None, None]
+            [Y(0,0)^2 Y(0,1)^-1 Y(2,0), None, None, None]
         """
         if self.phi(i) == 0:
             return None
@@ -1087,9 +1123,23 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GB = B.digraph(subset=SB)
         sage: GM.is_isomorphic(GB,edge_labels=True)
         True
+
+        sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
+        sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+        sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
+        sage: list(M.subcrystal(max_depth=3))
+        [Y(1,0)^2,
+         Y(0,1) Y(1,0) Y(1,1)^-1 Y(2,0),
+         Y(0,2)^-1 Y(1,0) Y(2,0) Y(2,2),
+         Y(0,1)^2 Y(1,1)^-2 Y(2,0)^2,
+         Y(0,0) Y(0,1) Y(1,0) Y(2,1)^-1,
+         Y(0,0) Y(0,2)^-1 Y(1,0) Y(1,1) Y(2,1)^-1 Y(2,2),
+         Y(0,1) Y(0,2)^-1 Y(1,1)^-1 Y(2,0)^2 Y(2,2),
+         Y(0,0) Y(0,1)^2 Y(1,1)^-1 Y(2,0) Y(2,1)^-1,
+         Y(1,0) Y(1,3) Y(2,0) Y(2,3)^-1]
     """
     @staticmethod
-    def __classcall_private__(cls, cartan_type, La):
+    def __classcall_private__(cls, cartan_type, La=None, c=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -1102,14 +1152,19 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
             sage: M is M1 is M2
             True
         """
+        if La is None:
+            La = cartan_type
+            cartan_type = La.parent().cartan_type()
         cartan_type = CartanType(cartan_type)
         if cartan_type.is_affine():
             La = RootSystem(cartan_type).weight_lattice(extended=True)(La)
         else:
             La = RootSystem(cartan_type).weight_lattice()(La)
-        return super(CrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, La)
+        n = len(cartan_type.index_set())
+        c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
+        return super(CrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, La, c)
 
-    def __init__(self, ct, La):
+    def __init__(self, ct, La, c):
         r"""
         EXAMPLES::
 
@@ -1125,8 +1180,8 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
             cat = ClassicalCrystals()
         else:
             cat = (RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets())
-        InfinityCrystalOfNakajimaMonomials.__init__( self, ct, cat,
-                CrystalOfNakajimaMonomialsElement )
+        InfinityCrystalOfNakajimaMonomials.__init__(self, ct, c,
+                CrystalOfNakajimaMonomialsElement, cat)
         self._cartan_type = ct
         self.hw = La
         gen = {}

@@ -1121,6 +1121,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Variables:
               x_0 is a continuous variable (min=0, max=+oo)
               x_1 is a continuous variable (min=0, max=+oo)
+
+        With a constant term in the objective::
+
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + 42)
+            sage: p.show()
+            Maximization:
+              x_0 + 42
+            Constraints:
+            Variables:
+              x_0 is a continuous variable (min=0, max=+oo)
         """
         cdef int i, j
         cdef GenericBackend b = self._backend
@@ -1148,8 +1160,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" "))+varid_name[i]
                    ),
             first = False
-        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
-        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
+        d = b.objective_constant_term()
+        if d > self._backend.zero(): print "+", d,
+        elif d < self._backend.zero(): print "-", -d,
         print
 
         ##### Constraints

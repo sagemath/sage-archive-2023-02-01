@@ -75,10 +75,10 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
     We now use the ``implementation`` option::
 
-        sage: W = CoxeterGroup(["A",2], implementation = "permutation") # optional - chevie
-        sage: W                                                         # optional - chevie
+        sage: W = CoxeterGroup(["A",2], implementation = "permutation") # optional - gap3
+        sage: W                                                         # optional - gap3
         Permutation Group with generators [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6)]
-        sage: W.category()                       # optional - chevie
+        sage: W.category()                       # optional - gap3
         Join of Category of finite permutation groups and Category of finite coxeter groups
 
         sage: W = CoxeterGroup(["A",2], implementation="matrix")
@@ -181,9 +181,9 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
         TESTS::
 
             sage: from sage.combinat.root_system.coxeter_group import CoxeterGroupAsPermutationGroup
-            sage: W1 = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - chevie
-            sage: W2 = CoxeterGroupAsPermutationGroup(["H",3])             # optional - chevie
-            sage: W1 is W2                                                 # optional - chevie
+            sage: W1 = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - gap3
+            sage: W2 = CoxeterGroupAsPermutationGroup(["H",3])             # optional - gap3
+            sage: W1 is W2                                                 # optional - gap3
             True
         """
         cartan_type = CartanType(cartan_type)
@@ -198,8 +198,8 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
         TESTS::
 
             sage: from sage.combinat.root_system.coxeter_group import CoxeterGroupAsPermutationGroup
-            sage: W = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - chevie
-            sage: TestSuite(W).run()             # optional - chevie
+            sage: W = CoxeterGroupAsPermutationGroup(CartanType(["H",3])) # optional - gap3
+            sage: TestSuite(W).run()             # optional - gap3
         """
         assert cartan_type.is_finite()
         assert cartan_type.is_irreducible()
@@ -222,8 +222,8 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
         TESTS::
 
-            sage: W = CoxeterGroup(["H",3])                                  # optional - chevie
-            sage: W._element_class() is W.element_class                      # optional - chevie
+            sage: W = CoxeterGroup(["H",3])                                  # optional - gap3
+            sage: W._element_class() is W.element_class                      # optional - gap3
             True
         """
         return self.element_class
@@ -234,8 +234,8 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(["H",3], implementation = "permutation")  # optional - chevie
-            sage: W.index_set() # optional - chevie
+            sage: W = CoxeterGroup(["H",3], implementation = "permutation")  # optional - gap3
+            sage: W.index_set() # optional - gap3
             [1, 2, 3]
 
         """
@@ -251,18 +251,18 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(["H",3], implementation = "permutation") # optional - chevie
-            sage: W.simple_reflection(1) # optional - chevie
+            sage: W = CoxeterGroup(["H",3], implementation = "permutation") # optional - gap3
+            sage: W.simple_reflection(1) # optional - gap3
             (1,16)(2,5)(4,7)(6,9)(8,10)(11,13)(12,14)(17,20)(19,22)(21,24)(23,25)(26,28)(27,29)
-            sage: W.simple_reflection(2) # optional - chevie
+            sage: W.simple_reflection(2) # optional - gap3
             (1,4)(2,17)(3,6)(5,7)(9,11)(10,12)(14,15)(16,19)(18,21)(20,22)(24,26)(25,27)(29,30)
-            sage: W.simple_reflection(3) # optional - chevie
+            sage: W.simple_reflection(3) # optional - gap3
             (2,6)(3,18)(4,8)(5,9)(7,10)(11,12)(13,14)(17,21)(19,23)(20,24)(22,25)(26,27)(28,29)
-            sage: W.reflection(4)        # optional - chevie
+            sage: W.reflection(4)        # optional - gap3
             (1,5)(2,22)(3,11)(4,19)(7,17)(8,12)(9,13)(10,15)(16,20)(18,26)(23,27)(24,28)(25,30)
-            sage: W.reflection(5)        # optional - chevie
+            sage: W.reflection(5)        # optional - gap3
             (1,22)(2,4)(3,9)(5,20)(6,13)(7,16)(8,14)(12,15)(17,19)(18,24)(21,28)(23,29)(27,30)
-            sage: W.reflection(6)        # optional - chevie
+            sage: W.reflection(6)        # optional - gap3
             (1,8)(2,18)(3,17)(5,12)(6,21)(7,11)(9,10)(13,15)(16,23)(20,27)(22,26)(24,25)(28,30)
         """
         return self(str(self._gap_group.Reflection(i)))
@@ -312,11 +312,11 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(["A",3], implementation = "permutation") # optional - chevie
-                sage: s = W.simple_reflections() # optional - chevie
-                sage: (s[1]*s[2]).has_left_descent(1) # optional - chevie
+                sage: W = CoxeterGroup(["A",3], implementation = "permutation") # optional - gap3
+                sage: s = W.simple_reflections() # optional - gap3
+                sage: (s[1]*s[2]).has_left_descent(1) # optional - gap3
                 True
-                sage: (s[1]*s[2]).has_left_descent(2) # optional - chevie
+                sage: (s[1]*s[2]).has_left_descent(2) # optional - gap3
                 False
             """
             return not self.parent()._is_positive_root[self(i)]
@@ -328,8 +328,8 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(["B",3], implementation = "permutation") # optional - chevie
-                sage: cmp(W.an_element(), W.one())        # optional - chevie
+                sage: W = CoxeterGroup(["B",3], implementation = "permutation") # optional - gap3
+                sage: cmp(W.an_element(), W.one())        # optional - gap3
                 1
             """
             return super(CoxeterGroupAsPermutationGroup.Element, self).__cmp__(other)

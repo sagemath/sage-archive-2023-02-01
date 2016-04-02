@@ -1738,6 +1738,13 @@ end_scene""" % (render_params.antialiasing,
         """
         Draw a 3D plot of this graphics object, which just returns this
         object since this is already a 3D graphics object.
+
+        EXAMPLES::
+
+            sage: S = sphere((0,0,0), 2)
+            sage: S.plot() is S
+            True
+
         """
         return self
 

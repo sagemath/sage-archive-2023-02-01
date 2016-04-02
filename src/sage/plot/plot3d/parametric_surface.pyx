@@ -676,6 +676,13 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         Draw a 3D plot of this graphics object, which just returns this
         object since this is already a 3D graphics object.
+        
+        EXAMPLES::
+
+            sage: S = parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+            sage: S.plot() is S
+            True
+
         """
         return self
 

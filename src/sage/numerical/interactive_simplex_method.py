@@ -594,7 +594,7 @@ class InteractiveLPProblem(SageObject):
       for internal use and affects default variable names only
       
     - ``objective_constant_term`` -- (default: 0) a constant term of the
-      objective added to ``c * x`` when computing optimal value
+      objective added *after* taking into account the sign in front of min/max
 
     EXAMPLES:
 
@@ -770,9 +770,13 @@ class InteractiveLPProblem(SageObject):
         if generate_real_LaTeX:
             lines[-1] += r" \setlength{\arraycolsep}{0.125em}"
         lines.append(r"\begin{array}{l" + "cr" * len(x) + "cl}")
-        head = [r"{} \{}".format("- " if self._is_negative else "",
-                                 self._problem_type)]
-        lines.append(_latex_product(c, x, head=head) +
+        head = latex(self._constant_term) if self._constant_term != 0 else ""
+        if self._is_negative:
+            head += " - "
+        elif head:
+            head += " + "
+        head += "\\" + self._problem_type
+        lines.append(_latex_product(c, x, head=[head]) +
                      (r"\\" if generate_real_LaTeX else r" \mspace{-6mu} \\"))
         for Ai, ri, bi in zip(A.rows(), self._constraint_types, b):
             lines.append(_latex_product(Ai, x, head=[""], tail=[ri, bi]) +
@@ -890,12 +894,12 @@ class InteractiveLPProblem(SageObject):
                 M, S = -Infinity, None
             else:
                 M, S = min((c * vector(R, v), v) for v in F.vertices())
+        if self._is_negative:
+            M = - M
         if S is not None:
             S = vector(R, S)
             S.set_immutable()
             M += self._constant_term
-        if self._is_negative:
-            M = - M
         return S, M
 
     def Abcx(self):
@@ -1081,7 +1085,8 @@ class InteractiveLPProblem(SageObject):
             problem_type = "-" + problem_type
         return InteractiveLPProblem(A, b, c, y,
             constraint_type, variable_type, problem_type,
-            is_primal=not self.is_primal())
+            is_primal=not self.is_primal(),
+            objective_constant_term=self._constant_term)
 
     @cached_method
     def feasible_set(self):
@@ -1329,6 +1334,15 @@ class InteractiveLPProblem(SageObject):
             -1250
             sage: P.optimal_value()
             5000
+            
+        Note that the objective constant term is taken into account *after* the
+        sign in front of the min/max::
+        
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"],
+            ....:       variable_type=">=", problem_type="-max",
+            ....:       objective_constant_term=-1250)
+            sage: P.optimal_value()
+            -7500
         """
         return self._constant_term
 
@@ -1674,6 +1688,7 @@ class InteractiveLPProblem(SageObject):
         kwds["objective_name"] = objective_name
         kwds["problem_type"] = "-max" if is_negative else "max"
         kwds["is_primal"] = self.is_primal()
+        kwds["objective_constant_term"] = self._constant_term
         P = InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
         f = P.c().parent().hom(f, self.c().parent())
         return (P, f) if transformation else P
@@ -1701,9 +1716,10 @@ class InteractiveLPProblem(SageObject):
             sage: P.value(100, 200)
             2000
         """
-        v = self.c() * self._solution(x) + self._constant_term
+        v = self.c() * self._solution(x)
         if self._is_negative:
             v = - v
+        v += self._constant_term
         return v
 
     # Aliases for the standard notation
@@ -1768,6 +1784,9 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     - ``objective_name`` -- a string or a symbolic expression for the
       objective used in dictionaries, default depends on :func:`style`
 
+    - ``objective_constant_term`` -- (default: 0) a constant term of the
+      objective added *after* taking into account the sign in front of min/max
+
     EXAMPLES::
 
         sage: A = ([1, 1], [3, 1])
@@ -1789,7 +1808,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
     def __init__(self, A, b, c, x="x", problem_type="max",
                  slack_variables=None, auxiliary_variable=None,
-                 base_ring=None, is_primal=True, objective_name=None):
+                 base_ring=None, is_primal=True, objective_name=None,
+                 objective_constant_term=0):
         r"""
         See :class:`InteractiveLPProblemStandardForm` for documentation.
 
@@ -1810,7 +1830,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             constraint_type="<=",
             variable_type=">=",
             base_ring=base_ring,
-            is_primal=is_primal)
+            is_primal=is_primal,
+            objective_constant_term=objective_constant_term)
         n, m = self.n(), self.m()
         if slack_variables is None:
             slack_variables = default_variable_name(
@@ -2186,6 +2207,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         r"""
         Return the objective name used in dictionaries for this problem.
         
+        Note that it will include the objective constant term if it is nonzero.
+        
         OUTPUT:
         
         - a symbolic expression
@@ -2209,7 +2232,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P.objective_name()
             custom
         """
-        return self._objective_name
+        return - self._constant_term + self._objective_name
 
     def revised_dictionary(self, *x_B):
         r"""

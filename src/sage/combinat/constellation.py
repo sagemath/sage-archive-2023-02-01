@@ -26,6 +26,15 @@ EXAMPLES::
     sage: C.cardinality()
     426
 
+TESTS::
+
+    sage: S = SymmetricGroup(['a','b','c','d'])
+    sage: C = Constellation([S((('a','b'),),),S((('a','d'),('b','c'))),S(('a','d','b','c'),)])
+    sage: C.is_connected()
+    True
+    sage: C.euler_characteristic()
+    2
+
 REFERENCES:
 
 .. [LaZv04] S. Lando and A. Zvonkine, "Graphs on surfaces and their
@@ -1652,8 +1661,8 @@ def perms_are_connected(g, n):
     if g:
         G.add_vertices(g[0].domain())
     for p in g:
-        G.add_edges(enumerate(p.tuple()))
-    return G.num_verts() == n and G.is_connected()
+        G.add_edges(p.dict().items())
+    return G.is_connected()
 
 
 def perms_canonical_labels_from(x, y, j0, verbose=False):

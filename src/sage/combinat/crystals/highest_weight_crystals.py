@@ -66,7 +66,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
         <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
       * ``'KleshchevPartitions'`` - :class:` Kleshchev multipartitions
         <sage.combinat.crystals.kleshchev.KleshchevCrystal>`
-      * ``'RiggedConfigurations'`` - :class:`rigged configuraitons
+      * ``'RiggedConfigurations'`` - :class:`rigged configurations
         <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
 
     EXAMPLES::

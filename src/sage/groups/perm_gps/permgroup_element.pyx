@@ -59,7 +59,6 @@ import random
 import sage.groups.old as group
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer
@@ -664,12 +663,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             elif self.perm[i] > right.perm[i]:
                 return 1
         return 0
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
 
     def __call__(self, i):
         """

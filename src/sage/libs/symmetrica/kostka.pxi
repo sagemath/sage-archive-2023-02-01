@@ -1,3 +1,4 @@
+include "cysignals/signals.pxi"
 from cpython.object cimport *
 
 cdef extern from 'symmetrica/def.h':

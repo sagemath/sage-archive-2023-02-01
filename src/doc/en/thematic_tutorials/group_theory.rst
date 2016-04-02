@@ -1009,9 +1009,9 @@ groups of order less than 16. ::
     8     D1 = CyclicPermutationGroup(2)
           D2 = CyclicPermutationGroup(2)
           D3 = CyclicPermutationGroup(2)
-          G = direct_product_permgroups([D1,D2,D3])}  Abelian, non-cyclic
+          G = direct_product_permgroups([D1,D2,D3])   Abelian, non-cyclic
     8     DihedralGroup(4)                            Non-abelian
-    8     QuaternionGroup()}                          Quaternions, also DiCyclicGroup(2)
+    8     QuaternionGroup()                           Quaternions, also DiCyclicGroup(2)
     9     CyclicPermutationGroup(9)                   Cyclic
     9     D1 = CyclicPermutationGroup(3)
           D2 = CyclicPermutationGroup(3)

@@ -21,7 +21,7 @@ Quiver Paths
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cdef class QuiverPath(MonoidElement):
@@ -260,9 +260,21 @@ cdef class QuiverPath(MonoidElement):
         """
         return self._path.length != 0
 
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        Generic comparison code, copied from :class:`~sage.structure.element.Element`.
+        Comparison for :class:`QuiverPaths`.
+
+        The following data (listed in order of preferance) is used for
+        comparison:
+
+        - **Negative** length of the paths
+        - initial and terminal vertices of the paths
+        - Edge sequence of the paths, by reverse lexicographical ordering.
+
+        .. NOTE::
+
+            This code is used by :class:`CombinatorialFreeModule` to order
+            the monomials when printing elements of path algebras.
 
         EXAMPLES:
 
@@ -283,25 +295,6 @@ cdef class QuiverPath(MonoidElement):
             False
             sage: D(1) == 1
             False
-
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Comparison for :class:`QuiverPaths`.
-
-        The following data (listed in order of preferance) is used for
-        comparison:
-
-        - **Negative** length of the paths
-        - initial and terminal vertices of the paths
-        - Edge sequence of the paths, by reverse lexicographical ordering.
-
-        .. NOTE::
-
-            This code is used by :class:`CombinatorialFreeModule` to order
-            the monomials when printing elements of path algebras.
 
         TESTS::
 
@@ -575,6 +568,31 @@ cdef class QuiverPath(MonoidElement):
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
+    cpdef tuple complement(self, QuiverPath subpath):
+        """
+        Return a pair ``(a,b)`` of paths s.t. ``self==a*subpath*b``,
+        or ``(None, None)`` if ``subpath`` is not a subpath of this path.
+
+        NOTE:
+
+        ``a`` is chosen of minimal length.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({1:{1:['a','b','c','d']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, a, b, c, d
+            sage: (b*c*a*d*b*a*d*d).complement(a*d)
+            (b*c, b*a*d*d)
+            sage: (b*c*a*d*b).complement(a*c)
+            (None, None)
+            
+        """
+        cdef mp_size_t i = biseq_contains(self._path, subpath._path, 0)
+        if i == -1:
+            return (None, None)
+        return self[:i], self[i+len(subpath):]
+
     cpdef bint has_subpath(self, QuiverPath subpath) except -1:
         """
         Tells whether this path contains a given sub-path.
@@ -609,7 +627,6 @@ cdef class QuiverPath(MonoidElement):
             raise ValueError("The two paths belong to different quivers")
         if subpath._path.length == 0:
             raise ValueError("We only consider sub-paths of positive length")
-        cdef int v
         cdef size_t i
         cdef size_t max_i, bitsize
         if self._path.length < subpath._path.length:
@@ -720,12 +737,12 @@ cdef class QuiverPath(MonoidElement):
         out._parent = Q
         out._start = self._end
         out._end   = self._start
-        sig_on()
+        sig_check()
         biseq_init(out._path, self._path.length, self._path.itembitsize)
         cdef mp_size_t l = self._path.length - 1
         for i in range(self._path.length):
+            sig_check()
             biseq_inititem(out._path, i, biseq_getitem(self._path, l-i))
-        sig_off()
         return out
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):

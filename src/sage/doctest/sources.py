@@ -596,6 +596,7 @@ class FileDocTestSource(DocTestSource):
         return (self.options.force_lib or
                 self.basename.startswith('sage.') or
                 self.basename.startswith('doc.') or
+                self.basename.startswith('sage_setup.docbuild') or
                 self.basename.startswith('sagenb.'))
 
     def create_doctests(self, namespace):
@@ -701,8 +702,9 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
+            There are 7 tests in sage/combinat/diagram_algebras.py that are not being run
             There are 7 tests in sage/combinat/dyck_word.py that are not being run
-            There are 4 tests in sage/combinat/finite_state_machine.py that are not being run
+            There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 6 tests in sage/combinat/interval_posets.py that are not being run
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 15 tests in sage/combinat/permutation.py that are not being run

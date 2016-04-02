@@ -31,14 +31,6 @@ import homset
 include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
-def make_morphism(_class, parent, _dict, _slots):
-    # from element.pyx
-    cdef Morphism mor = _class.__new__(_class)
-    mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
-    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -170,7 +162,10 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Category of endsets of unital magmas and right modules over (euclidean domains and infinite enumerated sets) and left modules over (euclidean domains and infinite enumerated sets)
+            Category of endsets of unital magmas and right modules over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+             and left modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
@@ -340,9 +335,6 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             definition = repr(self)
         return hash((domain, codomain, definition))
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0

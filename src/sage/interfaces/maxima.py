@@ -413,7 +413,9 @@ a robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = maxima(t)
 
-TESTS: This working tests that a subtle bug has been fixed::
+TESTS:
+
+This working tests that a subtle bug has been fixed::
 
     sage: f = maxima.function('x','gamma(x)')
     sage: g = f(1/7)
@@ -511,7 +513,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima == loads(dumps(m))
             True
 
-        We make sure labels are turned off (see trac 6816)::
+        We make sure labels are turned off (see :trac:`6816`)::
 
             sage: 'nolabels : true' in maxima._Expect__init_code
             True
@@ -553,7 +555,6 @@ class Maxima(MaximaAbstract, Expect):
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
-                        maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -606,7 +607,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6772`)::
+        Test that we can use more than 256MB RAM (see :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds

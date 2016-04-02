@@ -159,4 +159,23 @@ class HypergraphGenerators():
 
             yield tuple( tuple( x for x in G.neighbors(v)) for v in range(number_of_vertices, total))
 
+    def CompleteUniform(self, n, k):
+        r"""
+        Return the complete `k`-uniform hypergraph on `n` points.
+
+        INPUT:
+
+        - ``k,n`` -- nonnegative integers with `k\leq n`
+
+        EXAMPLE::
+
+            sage: h = hypergraphs.CompleteUniform(5,2); h
+            Incidence structure with 5 points and 10 blocks
+            sage: len(h.packing())
+            2
+        """
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from itertools import combinations
+        return IncidenceStructure(list(combinations(range(n),k)))
+
 hypergraphs = HypergraphGenerators()

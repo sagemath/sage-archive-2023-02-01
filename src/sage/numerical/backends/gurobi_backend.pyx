@@ -27,7 +27,6 @@ Methods
 ##############################################################################
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 
 from sage.numerical.mip import MIPSolverException
 
@@ -1117,6 +1116,8 @@ cdef class GurobiBackend(GenericBackend):
 
         if name == "timelimit":
             name = "TimeLimit"
+        elif name.lower() == "logfile":
+            name = "LogFile"
 
         try:
             t = parameters_type[name]

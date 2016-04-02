@@ -17,4 +17,7 @@ Base class for ring elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(19167, "the module sage.rings.ring_element is deprecated, import from sage.structure.element instead")
+
 from sage.structure.element import RingElement, is_RingElement

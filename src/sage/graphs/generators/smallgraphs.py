@@ -25,6 +25,48 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Named Graphs
 #######################################################################
 
+def HarborthGraph():
+    r"""
+    Return the Harborth Graph
+
+    The Harborth graph has 104 edges and 52 vertices, and is the smallest known
+    example of a 4-regular matchstick graph. For more information, see the
+    :wikipedia:`Harborth_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HarborthGraph(); g
+        Harborth Graph: Graph on 52 vertices
+        sage: g.is_regular(4)
+        True
+
+    """
+    g = Graph(':s_OGKI?@_?g[QABAo__YEFCp@?iIEbqHWuWLbbh?}[OfcXpGhNHdYPY_SgdYX]'+
+              'pZkfJPuo[lfZHys^mFcDs}`pG{UNNgoHC}DIgrI[qjMhTyDQrQlVydrBYmWkn',
+              loops=False, multiedges=False)
+
+    g.set_pos({ 0: ( 51.5, 400.0),  1: ( 90.6, 308.0),  2: ( 90.6, 492.0),
+                3: (129.8, 216.0),  4: (129.8, 584.0),  5: (150.7, 387.9),
+                6: (150.7, 412.1),  7: (169.0, 124.0),  8: (169.0, 676.0),
+                9: (189.9, 295.9), 10: (189.9, 504.1), 11: (229.1, 203.9),
+               12: (229.1, 596.1), 13: (250.0, 400.0), 14: (251.4, 180.6),
+               15: (251.4, 619.4), 16: (256.1, 300.2), 17: (256.1, 499.8),
+               18: (259.3, 080.9), 19: (259.3, 719.1), 20: (333.8, 237.2),
+               21: (333.8, 562.8), 22: (341.7, 137.5), 23: (341.7, 662.5),
+               24: (350.0, 037.9), 25: (350.0, 336.0), 26: (350.0, 464.0),
+               27: (350.0, 762.1), 28: (358.3, 137.5), 29: (358.3, 662.5),
+               30: (366.2, 237.2), 31: (366.2, 562.8), 32: (440.7, 080.9),
+               33: (440.7, 719.1), 34: (443.9, 300.2), 35: (443.9, 499.8),
+               36: (448.6, 180.6), 37: (448.6, 619.4), 38: (450.0, 400.0),
+               39: (470.9, 203.9), 40: (470.9, 596.1), 41: (510.1, 295.9),
+               42: (510.1, 504.1), 43: (531.0, 124.0), 44: (531.0, 676.0),
+               45: (549.3, 387.9), 46: (549.3, 412.1), 47: (570.2, 216.0),
+               48: (570.2, 584.0), 49: (609.4, 308.0), 50: (609.4, 492.0),
+               51: (648.5, 400.0)})
+    g.name("Harborth Graph")
+    return g
+
+
 def HarriesGraph(embedding=1):
     r"""
     Returns the Harries Graph.
@@ -566,6 +608,31 @@ def Cell120():
 
     return g
 
+def SuzukiGraph():
+    r"""
+    Return the Suzuki Graph
+
+    The Suzuki graph has 1782 vertices, and is strongly regular with parameters
+    `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
+
+    .. NOTE::
+
+        It takes approximately 50 seconds to build this graph. Do not be too
+        impatient.
+
+    EXAMPLE::
+
+        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        Suzuki graph: Graph on 1782 vertices
+        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        (1782, 416, 100, 96)
+    """
+    from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
+    g = Graph()
+    g.add_edges(SuzukiSporadicGroup().orbit((1,2),"OnSets"))
+    g.relabel()
+    g.name("Suzuki graph")
+    return g
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -1346,7 +1413,7 @@ def BrouwerHaemersGraph():
         sage: set(g.spectrum()) == {20,2,-7}
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.matrix.constructor import identity_matrix
@@ -1493,7 +1560,7 @@ def GossetGraph():
     Return the Gosset graph.
 
     The Gosset graph is the skeleton of the
-    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.Gosset_3_21` polytope. It
     has with 56 vertices and degree 27. For more information, see the
     :wikipedia:`Gosset_graph`.
 
@@ -1768,7 +1835,7 @@ def ChvatalGraph():
         2
         4
 
-    TEST:
+    TEST::
 
         sage: import networkx
         sage: G = graphs.ChvatalGraph()
@@ -1861,6 +1928,34 @@ def CoxeterGraph():
 
     g.name("Coxeter Graph")
 
+    return g
+
+def DejterGraph():
+    r"""
+    Return the Dejter graph.
+
+    The Dejter graph is obtained from the binary 7-cube by deleting a copy of
+    the Hamming code of length 7. It is 6-regular, with 112 vertices and 336
+    edges. For more information, see the :wikipedia:`Dejter_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.DejterGraph(); g
+        Dejter Graph: Graph on 112 vertices
+        sage: g.is_regular(k=6)
+        True
+        sage: g.girth()
+        4
+    """
+    from sage.graphs.generators.families import CubeGraph
+    from sage.coding.code_constructions import HammingCode
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+
+    from string import join
+    g = CubeGraph(7)
+    g.delete_vertices([join(map(str,x),"")
+                       for x in HammingCode(3, FiniteField(2))])
+    g.name("Dejter Graph")
     return g
 
 def DesarguesGraph():
@@ -2341,6 +2436,33 @@ def ErreraGraph():
         14: [16]}
     return Graph(edge_dict, name="Errera graph")
 
+def F26AGraph():
+    r"""
+    Return the F26A graph.
+
+    The F26A graph is a symmetric bipartite cubic graph with 26 vertices and 39
+    edges. For more information, see the :wikipedia:`F26A_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.F26AGraph(); g
+        F26A Graph: Graph on 26 vertices
+        sage: g.order(),g.size()
+        (26, 39)
+        sage: g.automorphism_group().cardinality()
+        78
+        sage: g.girth()
+        6
+        sage: g.is_bipartite()
+        True
+        sage: g.characteristic_polynomial().factor()
+        (x - 3) * (x + 3) * (x^4 - 5*x^2 + 3)^6
+    """
+    from sage.graphs.generators.families import LCFGraph
+    g= LCFGraph(26, [7,-7],13)
+    g.name("F26A Graph")
+    return g
+
 def FlowerSnark():
     """
     Returns a Flower Snark.
@@ -2550,7 +2672,7 @@ def FruchtGraph():
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
 
-    TEST:
+    TEST::
 
         sage: import networkx
         sage: G = graphs.FruchtGraph()
@@ -2775,7 +2897,7 @@ def HeawoodGraph():
     Returns a Heawood graph.
 
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic
-    symmetric graph. (See also the Moebius-Kantor graph). It is
+    symmetric graph. (See also the Möbius-Kantor graph). It is
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
@@ -2799,7 +2921,7 @@ def HeawoodGraph():
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
 
-    TEST:
+    TEST::
 
         sage: import networkx
         sage: G = graphs.HeawoodGraph()
@@ -3266,7 +3388,7 @@ def KrackhardtKiteGraph():
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
 
-    TEST:
+    TEST::
 
         sage: import networkx
         sage: G = graphs.KrackhardtKiteGraph()
@@ -3277,6 +3399,94 @@ def KrackhardtKiteGraph():
              4:[6], 5:[6, 7], 6:[7], 7:[8], 8:[9]}
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
     return Graph(edges, pos=pos_dict, name="Krackhardt Kite Graph")
+
+def Klein3RegularGraph():
+    r"""
+    Return the Klein 3-regular graph.
+
+    The cubic Klein graph has 56 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein7RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein3RegularGraph(); g
+        Klein 3-regular Graph: Graph on 56 vertices
+        sage: g.order(), g.size()
+        (56, 84)
+        sage: g.girth()
+        7
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        3
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g3 = Graph(':w`_GKWDBap`CMWFCpWsQUNdBwwuXPHrg`U`RIqypehVLqgHupYcFJyAv^Prk]'+
+               'EcarHwIVHAKh|\\tLVUxT]`ZDTJ{Af[o_AuKs{r_?ef',
+               loops=False, multiedges=False)
+    _circle_embedding(g3,[0, 2, 3, 4, 6, 8, 14, 1, 37, 30, 34, 48, 55, 43, 40,
+                          45, 18, 20, 47, 42, 23, 17, 16, 10, 41, 11, 49, 25,
+                          51, 26, 54, 9, 22, 15, 21, 12, 24, 7, 52, 31, 32, 36,
+                          46, 35, 29, 50, 27, 19, 28, 5, 33, 13, 53, 39, 38, 44])
+    g3.name("Klein 3-regular Graph")
+    return g3
+
+def Klein7RegularGraph():
+    r"""
+    Return the Klein 7-regular graph.
+
+    The 7-valent Klein graph has 24 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein3RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein7RegularGraph(); g
+        Klein 7-regular Graph: Graph on 24 vertices
+        sage: g.order(), g.size()
+        (24, 84)
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        4
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g7 = Graph(':W__@`AaBbC_CDbDcE`F_AG_@DEH_IgHIJbFGIKaFHILeFGHMdFKN_EKOPaCNP'+
+               'Q`HOQRcGLRS`BKMSTdJKLPTU',loops=False,multiedges=False)
+    _circle_embedding(g7,[0, 2, 3, 1, 9, 16, 20, 21, 4, 19, 17, 7, 15,
+                          10, 8, 13, 11, 5, 23, 22, 14, 12, 18, 6])
+    g7.name("Klein 7-regular Graph")
+    return g7
+
+def LocalMcLaughlinGraph():
+    r"""
+    Return the local McLaughlin graph
+
+    The local McLaughlin graph is a strongly regular graph with parameters
+    `(162,56,10,24)`. It can be obtained from
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph` by
+    considering the stabilizer of a point: one of its orbits has cardinality
+    162.
+
+    EXAMPLES::
+
+        sage: g = graphs.LocalMcLaughlinGraph(); g   # long time # optional - gap_packages
+        Local McLaughlin Graph: Graph on 162 vertices
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        (162, 56, 10, 24)
+    """
+    g = McLaughlinGraph()
+    orbits = g.automorphism_group().stabilizer(1).orbits()
+    orbit = [x for x in orbits if len(x) == 162][0]
+    g = g.subgraph(vertices=orbit)
+    g.relabel()
+    g.name("Local McLaughlin Graph")
+    return g
 
 def LjubljanaGraph(embedding=1):
     r"""
@@ -3563,11 +3773,11 @@ def McLaughlinGraph():
 
     blocks = [Set(_) for _ in WittDesign(23).blocks()]
 
-    B = [b for b in blocks if 0 in b]
+    B = [b for b in blocks if 0     in b]
     C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
-        for x in range(23):
+        for x in range(1,23):
             if not x in b:
                 g.add_edge(b, x)
 
@@ -3588,15 +3798,16 @@ def McLaughlinGraph():
             if len(b & c) == 3:
                 g.add_edge(b, c)
 
-    g.relabel()
+    # Here we relabel the elements of g in an architecture-independent way
+    g.relabel({v:i for i,v in enumerate(range(1,23)+sorted(blocks,key=sorted))})
     g.name("McLaughlin")
     return g
 
 def MoebiusKantorGraph():
     """
-    Returns a Moebius-Kantor Graph.
+    Returns a Möbius-Kantor Graph.
 
-    A Moebius-Kantor graph is a cubic symmetric graph. (See also the
+    A Möbius-Kantor graph is a cubic symmetric graph. (See also the
     Heawood graph). It has 16 nodes and 24 edges. It is nonplanar and
     Hamiltonian. It has diameter = 4, girth = 6, and chromatic number =
     2. It is identical to the Generalized Petersen graph, P[8,3].
@@ -3605,7 +3816,7 @@ def MoebiusKantorGraph():
 
     REFERENCES:
 
-    - [1] Weisstein, E. (1999). "Moebius-Kantor Graph - from
+    - [1] Weisstein, E. (1999). "Möbius-Kantor Graph - from
       Wolfram MathWorld". [Online] Available:
       http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007,
       February 17]
@@ -4226,6 +4437,50 @@ def TietzeGraph():
 
     return g
 
+def TruncatedIcosidodecahedralGraph():
+    r"""
+    Return the truncated icosidodecahedron.
+
+    The truncated icosidodecahedron is an Archimedean solid with 30 square
+    faces, 20 regular hexagonal faces, 12 regular decagonal faces, 120 vertices
+    and 180 edges. For more information, see the
+    :wikipedia:`Truncated_icosidodecahedron`.
+
+    EXAMPLE::
+
+        sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
+        Truncated Icosidodecahedron: Graph on 120 vertices
+        sage: g.order(), g.size()
+        (120, 180)
+    """
+    from sage.geometry.polyhedron.library import polytopes
+    G = polytopes.icosidodecahedron(exact=False).edge_truncation().graph()
+    G.name("Truncated Icosidodecahedron")
+    return G
+
+def TruncatedTetrahedralGraph():
+    r"""
+    Return the truncated tetrahedron.
+
+    The truncated tetrahedron is an Archimedean solid with 12 vertices and 18
+    edges. For more information, see the :wikipedia:`Truncated_tetrahedron`.
+
+    EXAMPLE::
+
+        sage: g = graphs.TruncatedTetrahedralGraph(); g
+        Truncated Tetrahedron: Graph on 12 vertices
+        sage: g.order(), g.size()
+        (12, 18)
+        sage: g.is_isomorphic(polytopes.simplex(3).edge_truncation().graph())
+        True
+    """
+    g = Graph(':K`ESwC_EOyDl\\MCi', loops=False, multiedges=False)
+    _circle_embedding(g, range(6), radius=1)
+    _circle_embedding(g, range(6,9), radius=.6, shift=.25)
+    _circle_embedding(g, range(9,12), radius=.2, shift=.25)
+    g.name("Truncated Tetrahedron")
+    return g
+
 def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.
@@ -4498,3 +4753,249 @@ def WienerArayaGraph():
     g.get_pos().pop(0)
     g.relabel()
     return g
+
+def _EllipticLinesProjectivePlaneScheme(k):
+    r"""
+    Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
+
+    The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
+    skew to the conic preserved by it, see Sect. 12.7.B of [BCN89]_ and Sect. 6.D
+    in [BvL84]_. Compute the orbitals of this action and return them.
+
+    This is a helper for :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
+
+    INPUT:
+
+    - ``k`` (integer) -- the exponent of 2 to get the field size
+
+    TESTS::
+
+        sage: from sage.graphs.generators.smallgraphs import _EllipticLinesProjectivePlaneScheme
+        sage: _EllipticLinesProjectivePlaneScheme(2)
+        [
+        [1 0 0 0 0 0]  [0 1 1 1 1 0]  [0 0 0 0 0 1]
+        [0 1 0 0 0 0]  [1 0 1 1 0 1]  [0 0 0 0 1 0]
+        [0 0 1 0 0 0]  [1 1 0 0 1 1]  [0 0 0 1 0 0]
+        [0 0 0 1 0 0]  [1 1 0 0 1 1]  [0 0 1 0 0 0]
+        [0 0 0 0 1 0]  [1 0 1 1 0 1]  [0 1 0 0 0 0]
+        [0 0 0 0 0 1], [0 1 1 1 1 0], [1 0 0 0 0 0]
+        ]
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import matrix
+    from itertools import product
+    q = 2**k
+    g0 = libgap.GeneralOrthogonalGroup(3,q) # invariant form x0^2+x1*x2
+    g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
+    W = libgap.FullRowSpace(libgap.GF(q), 3)
+    l=sum(libgap.Elements(libgap.Basis(W)))
+    gp = libgap.Action(g,libgap.Orbit(g,l,libgap.OnLines),libgap.OnLines)
+    orbitals = gp.Orbits(list(product(gp.Orbit(1),gp.Orbit(1))),libgap.OnTuples)
+    mats = map(lambda o: map(lambda x: (int(x[0])-1,int(x[1])-1), o), orbitals)
+    return map(lambda x: matrix(q*(q-1)/2, lambda i,j: 1 if (i,j) in x else 0), mats)
+
+
+def MathonStronglyRegularGraph(t):
+    r"""
+    return one of Mathon's graphs on 784 vertices
+
+    INPUT:
+
+    - ``t`` (integer) -- the number of the graph, from 0 to 2.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
+        sage: G = MathonStronglyRegularGraph(0)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 243, 82, 72)
+
+    TESTS::
+
+        sage: G = graphs.MathonStronglyRegularGraph(1)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 270, 98, 90)
+        sage: G = graphs.MathonStronglyRegularGraph(2)        # long time
+        sage: G.is_strongly_regular(parameters=True)   # long time
+        (784, 297, 116, 110)
+
+    """
+    from sage.graphs.generators.families import MathonPseudocyclicMergingGraph
+    ES = _EllipticLinesProjectivePlaneScheme(3)
+    return MathonPseudocyclicMergingGraph(ES, t)
+
+def JankoKharaghaniGraph(v):
+    r"""
+    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg
+
+    This functions returns a strongly regular graph for the two sets of
+    parameters shown to be realizable in [JK02]_. The paper also uses a
+    construction from [GM87]_.
+
+    INPUT:
+
+    - ``v`` (integer) -- one of 936 or 1800.
+
+    EXAMPLE::
+
+        sage: g = graphs.JankoKharaghaniGraph(936)   # long time
+        sage: g.is_strongly_regular(parameters=True) # long time
+        (936, 375, 150, 150)
+
+        sage: g = graphs.JankoKharaghaniGraph(1800)  # not tested (30s)
+        sage: g.is_strongly_regular(parameters=True) # not tested (30s)
+        (1800, 1029, 588, 588)
+
+    REFERENCES:
+
+    .. [JK02] Janko, Kharaghani,
+       A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
+       J. Combin. Theory Ser. A 98 (2002), no. 1, 118–126.
+       http://dx.doi.org/10.1006/jcta.2001.3231
+
+    .. [GM87] Gibbons, Mathon,
+       Construction methods for Bhaskar Rao and related designs,
+       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5–30.
+       http://journals.cambridge.org/article_S1446788700033929
+
+    """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    from sage.matrix.constructor import matrix
+
+    # The notations of [JK02] are rather tricky, and so this code attempts to
+    # stick as much as possible to the paper's variable names.
+
+    assert v in [1800,936]
+
+    J = matrix.ones
+    I = matrix.identity
+
+    # Definition of the 36x36 matrix H ([JK02], section 2)
+    A = J(6)
+    B = ("111---","1---11","1--1-1","--111-","-1-11-","-11--1")
+    C = ("-1-1-1","1---11","--11-1","1-1-1-","-1-11-","111---")
+    D = ("--1-11","-11-1-","11-1--","--11-1","11---1","1--11-")
+    E = ("-1--11","1-1--1","-11-1-","---111","1-11--","11-1--")
+    F = ("-1-1-1","11--1-","--111-","1-11--","-11--1","1---11")
+    B,C,D,E,F = [matrix([map({'1':1,'-':-1}.get,r) for r in m])
+                 for m in [B,C,D,E,F]]
+
+    H = [A,B,C,D,E,F]
+    H = [[-x for x in H[6-i:]] + H[:6-i] for i in range(6)]
+    H = matrix.block(H)
+
+    # Definition of the BGW matrix W with the cyclotomic method
+    # ([JK02] Lemma 1, and [GM87] Construction 1)
+    m = 12
+    t = (2 if v == 936 else 4)
+    k = m
+    q = m*t+1
+    K = GF(q,'alpha')
+    a = K.primitive_element()
+    Ci= [[K(0)]] + map(set,[[a**(k*j+i) for j in range(t)] for i in range(m)])
+    Kelem_to_Ci = {v:i for i,s in enumerate(Ci) for v in s} # maps v to [0,...,12]
+
+    W = ([[0]+ [1]*(len(K))] +
+         [[1]+[Kelem_to_Ci[aj-ai] for aj in K] for ai in K])
+
+    # The nonzero elements of W are considered as elements of C_12, generated by
+    # a matrix Omega of order 12
+    n = 18
+    U = matrix.circulant([int(i==1) for i in range(2*n)])
+    N = matrix.diagonal([1 if i else -1 for i in range(2*n)])
+    Omega = (U*N)**6
+    assert Omega**12 == I(36)
+
+    # The value w_{ij} is understood in the paper as matrix generated by Omega
+    # acting on the left of a matrix L, which we now define.
+    M = H-I(6).tensor_product(J(6))
+    L = matrix(list(reversed(I(6).rows()))).tensor_product(I(6))
+
+    # w_ij represents in the paper the matrix w_{ij}*L. We perform this action while
+    # computing what is noted '[ M w_{ij} ]' in the paper.
+    D = [[M*0 if w == 0 else M*(Omega**w)*L for w in R]
+        for R in W]
+    D = matrix.block(D)
+
+    # for v=1800 the construction is slightly different, and we must add to D a
+    # matrix which we now compute.
+    if v == 1800:
+        abs = lambda M: matrix([[1 if x else 0 for x in R] for R in M.rows()])
+
+        M = (J(6)+I(6)).tensor_product(J(6)) # we define M = (J(6)+I(6)) x J(6)
+        D2 = [[M*0 if w == 0 else M*abs((Omega**w)*L) for w in R] # '[ (J(6)+I(6)) x J(6) |w_{ij}| ]'
+              for R in W]
+        D = (D+matrix.block(D2))/2
+
+    return Graph([e for e,v in D.dict().iteritems() if v == 1],
+                 multiedges=False,
+                 name="Janko-Kharaghani")
+
+def JankoKharaghaniTonchevGraph():
+    r"""
+    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_
+
+    Build the graph using the description given in [JKT01]_, taking
+    sets B1 and B163 in the text as adjacencies of vertices 1 and 163,
+    respectively, and taking the edge orbits of the group `G` provided.
+
+    EXAMPLES::
+
+        sage: Gamma=graphs.JankoKharaghaniTonchevGraph()  # long time
+        sage: Gamma.is_strongly_regular(parameters=True)  # long time
+        (324, 153, 72, 72)
+
+    REFERENCES:
+
+    .. [JKT01] Z.Janko, H.Kharaghani, V.D.Tonchev
+       The existence of a Bush-type Hadamard matrix of order 324
+       and two new infinite classes of symmetric designs.
+       Des. Codes Cryptogr. 24(2001), 225-232
+
+    """
+    from itertools import product
+    from sage.misc.misc_c import prod
+    from sage.combinat.permutation import Permutation as P
+    from sage.libs.gap.libgap import libgap
+
+    m1=prod([P((9*x+k,9*x+k+3,9*x+k+6)) for k,x in product(xrange(1,4),xrange(36))])
+    m2=prod([P((3*x+1,3*x+2,3*x+3)) for x in xrange(108)])
+    t=prod(prod(map(P,[(9*x+2,9*x+3),(9*x+4,9*x+7),(9*x+5,9*x+9),(9*x+6,9*x+8)])) for
+        x in xrange(36))
+    n1=prod(prod(map(P,[(1+x,19+x,37+x),(55+x,73+x,91+x),(109+x,127+x,145+x),
+                (163+x,181+x,199+x),(217+x,235+x,253+x),(271+x,289+x,307+x)]))
+                 for x in xrange(18))
+    n2=prod(prod(map(P,[(1+x,55+x,109+x),(19+x,73+x,127+x),(37+x,91+x,145+x),
+                (163+x,217+x,271+x),(181+x,235+x,289+x),(199+x,253+x,307+x)]))
+                 for x in xrange(18))
+    s=prod(prod(map(P,[(19+x,37+x),(55+x,109+x),(73+x,145+x),(91+x,127+x),
+                (181+x,199+x),(217+x,271+x),(235+x,307+x),(253+x,289+x)]))
+                 for x in xrange(18))
+    k=prod(prod(map(P,[(18*x+1,18*x+10),(18*x+2,18*x+11),(18*x+3,18*x+12),
+                (18*x+4,18*x+13),(18*x+5,18*x+14),(18*x+6,18*x+15),(18*x+7,18*x+16),
+                (18*x+8,18*x+17),(18*x+9,18*x+18)]))
+                 for x in xrange(18))
+    G=libgap.Group(map(lambda p: libgap.PermList(p), [m1,m2,t,n1,n2,s,k]))
+    st=libgap.Group(map(lambda p: libgap.PermList(p), [t,s]))
+    B1=(19,22,25,29,30,31,33,34,35,37,40,43,47,48,49,51,52,53,55,56,57,65,
+        66,67,68,70,72,76,77,78,79,80,81,82,86,90,92,93,95,96,98,99,100,105,107,
+        109,110,111,119,120,121,122,124,126,128,129,131,132,134,135,136,141,143,
+        148,149,150,151,152,153,154,158,162,167,168,170,171,172,176,177,179,180,
+        184,186,187,188,190,191,192,193,196,202,204,205,206,208,209,210,211,214,
+        218,219,221,225,226,227,228,229,232,236,237,238,241,244,245,246,249,251,
+        254,255,256,259,262,265,266,268,270,272,273,275,279,280,281,282,283,286,
+        290,291,292,295,298,301,302,304,306,308,309,310,313,316,317,318,321,323)
+    B163=(5,6,8,9,10,14,15,17,18,22,24,25,26,28,29,30,31,34,40,42,43,44,46,
+        47,48,49,52,56,57,59,63,64,65,66,67,70,74,75,76,79,82,83,84,87,89,92,93,
+        94,97,100,103,104,106,108,110,111,113,117,118,119,120,121,124,128,129,
+        130,133,136,139,140,142,144,146,147,148,151,154,155,156,159,161,181,185,
+        189,191,192,194,195,197,198,199,203,207,209,210,212,213,215,216,217,222,
+        224,229,230,231,232,233,234,236,237,238,240,241,242,244,245,246,254,255,
+        256,257,259,261,262,265,268,271,276,278,283,284,285,286,287,288,290,291,
+        292,293,295,297,298,301,304,308,309,310,312,313,314,316,317,318)
+    Gamma=Graph(multiedges=False,name='Janko-Kharaghani-Tonchev')
+    for i,b in ((1,B1),(163,B163)):
+        for j in map(lambda x: x[0], st.OrbitsDomain(b)):
+            Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
+    Gamma.relabel()
+    return Gamma

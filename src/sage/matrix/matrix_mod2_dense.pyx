@@ -100,13 +100,14 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 cimport matrix_dense
 from libc.stdio cimport *
-from sage.structure.element cimport Matrix, Vector
-from sage.structure.element cimport ModuleElement, Element
+from sage.structure.element cimport (Matrix, Vector, parent_c,
+                                     ModuleElement, Element)
+from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
 from sage.misc.functional import log
 from sage.misc.randstate cimport randstate, current_randstate
@@ -268,39 +269,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
-
-    def __richcmp__(Matrix self, right, int op):
-        """
-        Compares ``self`` with ``right``. While equality and
-        inequality are clearly defined, ``<`` and ``>`` are not.  For
-        those first the matrix dimensions of ``self`` and ``right``
-        are compared. If these match then ``<`` means that there is a
-        position smallest (i,j) in ``self`` where ``self[i,j]`` is
-        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
-        (i,j) if ``self`` and ``right`` are exchanged for the
-        comparison.
-
-        INPUT:
-
-        - ``right`` - a matrix
-        - ``op`` - comparison operation
-
-        EXAMPLE::
-
-            sage: A = MatrixSpace(GF(2),3,3).one()
-            sage: B = copy(MatrixSpace(GF(2),3,3).one())
-            sage: B[0,1] = 1
-            sage: A < B
-            True
-
-        TESTS::
-
-            sage: A = matrix(GF(2),2,0)
-            sage: B = matrix(GF(2),2,0)
-            sage: A < B
-            False
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         r"""
@@ -657,6 +625,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: r1 = A*v1
             sage: r0.column(0) == r1
             True
+
+        TESTS:
+
+        Check that :trac:`19378` is fixed::
+
+            sage: m = matrix(GF(2), 11, 0)
+            sage: v = vector(GF(2), 0)
+            sage: m * v
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
         if not isinstance(v, Vector_mod2_dense):
@@ -666,6 +643,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
+        # If the vector is 0-dimensional, the result will be the 0-vector
+        if not self.ncols():
+            return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
@@ -1496,6 +1476,31 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return A
 
     cpdef int _cmp_(self, Element right) except -2:
+        """
+        Compares ``self`` with ``right``. While equality and
+        inequality are clearly defined, ``<`` and ``>`` are not.  For
+        those first the matrix dimensions of ``self`` and ``right``
+        are compared. If these match then ``<`` means that there is a
+        position smallest (i,j) in ``self`` where ``self[i,j]`` is
+        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
+        (i,j) if ``self`` and ``right`` are exchanged for the
+        comparison.
+
+        EXAMPLE::
+
+            sage: A = MatrixSpace(GF(2),3,3).one()
+            sage: B = copy(MatrixSpace(GF(2),3,3).one())
+            sage: B[0,1] = 1
+            sage: A < B
+            True
+
+        TESTS::
+
+            sage: A = matrix(GF(2),2,0)
+            sage: B = matrix(GF(2),2,0)
+            sage: A < B
+            False
+        """
         if self._nrows == 0 or self._ncols == 0:
             return 0
         return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)
@@ -1571,11 +1576,36 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: N = Matrix(GF(2), 0, 1, 0)
             sage: M.augment(N)
             []
+
+        Check that :trac:`19165` is solved::
+
+            sage: m = matrix(GF(2), 2, range(4))
+            sage: m.augment(matrix(GF(2), 2, range(4), sparse=True))
+            [0 1 0 1]
+            [0 1 0 1]
+
+            sage: m.augment(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: right must either be a matrix or a vector. Not
+            <type 'sage.rings.integer.Integer'>
         """
-        if hasattr(right, '_vector_'):
+        cdef Matrix_mod2_dense other
+
+        if isinstance(right, FreeModuleElement):
             right = right.column()
 
-        cdef Matrix_mod2_dense other = right
+        if isinstance(right, Matrix_mod2_dense):
+            other = <Matrix_mod2_dense> right
+        elif isinstance(right, Matrix):
+            from sage.matrix.constructor import matrix
+            other = matrix(self.base_ring(),
+                           right.nrows(),
+                           right.ncols(),
+                           right.list(),
+                           sparse=False)
+        else:
+            raise TypeError("right must either be a matrix or a vector. Not {}".format(type(right)))
 
         if self._nrows != other._nrows:
             raise TypeError("Both numbers of rows must match.")
@@ -2029,7 +2059,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i, j
     cdef Matrix_mod2_dense A
@@ -2079,7 +2109,7 @@ def from_png(filename):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i,j,r,c
     cdef Matrix_mod2_dense A

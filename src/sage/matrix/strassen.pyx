@@ -17,7 +17,7 @@ multiplication algorithms.
 
 from matrix_window cimport MatrixWindow
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):
@@ -662,7 +662,7 @@ class int_range:
             ...
             StopIteration
         """
-        return self._intervals.__iter__()
+        return iter(self._intervals)
 
     def __len__(self):
         r"""

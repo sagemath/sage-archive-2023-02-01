@@ -88,13 +88,14 @@ C. \code{all_children_are_equivalent}:
     indeed the case, it still may return False. This function is originally used
     as a consequence of Lemma 2.25 in [1].
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
 """
 
@@ -110,7 +111,6 @@ REFERENCE:
 
 from libc.string cimport memcmp, memcpy
 include 'data_structures_pyx.pxi' # includes bitsets
-include 'sage/ext/interrupt.pxi'
 
 cdef inline int agcl_cmp(int a, int b):
     if a < b: return -1

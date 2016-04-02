@@ -30,6 +30,10 @@ AUTHORS:
 import os
 import re
 
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlretrieve, urlopen
+
+    
 # regular expressions to parse mercurial patches
 HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")
 HG_USER_REGEX = re.compile(r"^# User (.*)$")
@@ -396,9 +400,8 @@ class MercurialPatchMixin(object):
             if ticket or patchname:
                 raise ValueError('If "url" is specifed then neither "ticket" nor "patchname"'
                                  ' may be specified.')
-            import urllib
             self._UI.show('Downloading "{0}"...', url)
-            ret = urllib.urlretrieve(url)[0]
+            ret = urlretrieve(url)[0]
             self._UI.show('Downloaded "{0}" to "{1}".', url, ret)
             return (ret,)
 
@@ -439,8 +442,7 @@ class MercurialPatchMixin(object):
                 self._UI.debug('There is more than one attachment on ticket #{0}. '
                                'Reading "{1}" to try to find out in which order they must be applied.',
                                ticket, rss)
-                import urllib2
-                rss = urllib2.urlopen(rss).read()
+                rss = urlopen(rss).read()
 
                 # the following block has been copied from the patchbot
                 all_patches = []
@@ -599,7 +601,7 @@ class MercurialPatchMixin(object):
 
         - ``lines`` -- a list (or iterable) of strings
 
-        - ``diff_format`` -- ``'hg'``,``'git'``, or ``None`` (default:
+        - ``diff_format`` -- ``'hg'``, ``'git'``, or ``None`` (default:
           ``None``), the format of the ``diff`` lines in the patch. If
           ``None``, the format will be determined by
           :meth:`_detect_patch_diff_format`.

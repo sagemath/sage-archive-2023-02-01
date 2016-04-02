@@ -238,7 +238,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS:
+        INPUT:
 
         - ``pos`` -- ``bint``.  If ``True``, all integers will be in
           the range `[0,p-1]`, otherwise they will be in the range
@@ -388,8 +388,6 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            1 + 5^2 + O(5^5)
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
-
-        TESTS:
 
         Check that #11586 has been resolved::
 
@@ -552,7 +550,7 @@ def _test_preprocess_list(R, L):
     Given a list of elements convertible to ``ntl_ZZ_p``s, finds the
     appropriate absolute precision and returns a list of either ``ntl_ZZs`` or ``ntl_ZZ_ps``.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension ring
 
@@ -678,7 +676,7 @@ def _find_val_aprec_test(R, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
@@ -720,7 +718,7 @@ cdef find_val_aprec(PowComputer_ext pp, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- a PowComputer_ext for the element that this list is
       being initialized into.
@@ -754,7 +752,7 @@ def _test_get_val_prec(R, a):
     Returns valuation, absolute precision and type of an input
     element.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- A `p`-adic extension ring to provide a ``PowComputer_ext``
 
@@ -825,7 +823,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
     """
     Returns valuation, absolute precision and type of an input element.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- A ``PowComputer_ext``
 

@@ -88,6 +88,7 @@ vector ``[0, 0, 1]``. Hence we can transform the list of permutations above into
 a list of `n` bit vectors of length `n-1`, that is
 
 .. MATH::
+
     \begin{array}{ccc}
       3 & 2 & 1\\
       3 & 2 & 0\\
@@ -225,8 +226,6 @@ class PseudolineArrangement:
             sage: matrix = p.felsner_matrix()
             sage: PseudolineArrangement(matrix) == p
             True
-
-        TESTS:
 
         Wrong input::
 

@@ -8,10 +8,6 @@ NetworkX (NX) is a Python package for the creation, manipulation, and study of t
 
 BSD
 
-== SPKG Maintainers ==
- * Robert Miller
- * Gregory McWhirter
-
 == Upstream Contact ==
 
 See http://networkx.lanl.gov/

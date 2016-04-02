@@ -67,7 +67,7 @@ import os, sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
@@ -76,7 +76,8 @@ if sys.version_info[:2] < (2, 5):
 ###################################################################
 
 # This import also setups the interrupt handler
-from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
+from cysignals.signals import (AlarmInterrupt, SignalError,
+        sig_on_reset as sig_on_count)
 
 from time                import sleep
 
@@ -97,6 +98,7 @@ except ImportError:
 
 from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
@@ -106,6 +108,7 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
@@ -172,12 +175,16 @@ from sage.matroids.all   import *
 
 from sage.game_theory.all import *
 
+from sage.manifolds.all import *
+
+from cysignals.alarm import alarm, cancel_alarm
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
-lazy_import('sagenb.notebook.interact', 'interact')
 lazy_import('sage.interacts', 'all', 'interacts')
+lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy

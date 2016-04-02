@@ -9,13 +9,6 @@ mathematical software.
 
 GPLv3+
 
-== SPKG Maintainers ==
-
- * Keshav Kini
- * Jason Grout
- * William Stein
- * Tim Dumol
-
 == Upstream Contact ==
 
  * Keshav Kini

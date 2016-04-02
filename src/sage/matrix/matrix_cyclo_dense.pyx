@@ -27,20 +27,24 @@ AUTHORS:
    * Craig Citro
 """
 
-######################################################################
-#       Copyright (C) 2008 William Stein
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-######################################################################
+#*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.gmp.randomize cimport *
 
 from constructor import matrix
 from matrix_space import MatrixSpace
@@ -52,7 +56,7 @@ from misc import matrix_integer_dense_rational_reconstruction
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import previous_prime, binomial
+from sage.arith.all import previous_prime, binomial
 from sage.rings.all import RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -381,7 +385,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             return xq
 
         x = self._base_ring(0)
-        ZZ_construct(&coeff)
         mpz_init_set_ui(denom, 1)
 
         # Get the least common multiple of the denominators in
@@ -402,7 +405,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_to_ZZ(&x.__denominator, denom)
         mpz_clear(denom)
         mpz_clear(tmp)
-        ZZ_destruct(&coeff)
 
         return x
 
@@ -658,25 +660,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         C._matrix = M
         return C
 
-    def __richcmp__(Matrix self, right, int op):
-        """
-        Compare a matrix with something else. This immediately calls
-        a base class _richcmp.
-
-        EXAMPLES::
-
-            sage: W.<z> = CyclotomicField(5)
-            sage: A = matrix(W, 2, 2, [1,z,-z,1+z/2])
-
-        These implicitly call richcmp::
-
-            sage: A == 5
-            False
-            sage: A < 100
-            True
-        """
-        return self._richcmp(right, op)
-
     cdef long _hash(self) except -1:
         """
         Return hash of this matrix.
@@ -698,8 +681,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         Yes, this works::
 
-            sage: hash(A)
-            -25
+            sage: hash(A)  # random
+            3107179158321342168
         """
         return self._matrix._hash()
 
@@ -717,8 +700,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             ...
             TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
-            sage: A.__hash__()
-            -18
+            sage: A.__hash__()  # random
+            2347601038649299176
         """
         if self._is_immutable:
             return self._hash()
@@ -731,11 +714,22 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         identical parents.
 
         INPUT:
-            self, right -- matrices with same parent
-        OUTPUT:
-            int; either -1, 0, or 1
 
-        EXAMPLES:
+        - ``self``, ``right`` -- matrices with same parent
+
+        OUTPUT: either -1, 0, or 1
+
+        EXAMPLES::
+
+            sage: W.<z> = CyclotomicField(5)
+            sage: A = matrix(W, 2, 2, [1,z,-z,1+z/2])
+
+        These implicitly call richcmp::
+
+            sage: A == 5
+            False
+            sage: A < 100
+            True
 
         This function is called implicitly when comparisons with matrices
         are done or the cmp function is used.::
@@ -805,7 +799,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [           z   -1/2*z - 1]
         """
         cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(), None, None, None)
-        A._matrix = self._matrix.__neg__()
+        A._matrix = -self._matrix
         return A
 
 

@@ -13,7 +13,7 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/stdsage.pxi'
 
 ###############################################################
@@ -764,8 +764,8 @@ cdef class P1List:
         return sage.modular.modsym.p1list._make_p1list, (self.__N, )
 
     def __getitem__(self, n):
-        """
-        Standard indexing/slicing function for the class P1List.
+        r"""
+        Standard indexing/slicing function for the class ``P1List``.
 
         EXAMPLES::
 

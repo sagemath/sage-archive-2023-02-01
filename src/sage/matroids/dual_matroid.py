@@ -489,7 +489,7 @@ class DualMatroid(Matroid):
             sage: M3 != M4
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # COPYING, LOADING, SAVING
 

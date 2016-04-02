@@ -4,7 +4,9 @@ L-series for elliptic curves
 
 AUTHORS:
 
-- Jeroen Demeyer (2013-10-17): compute L series with arbitrary precision
+- Simon Spicer (2014-08-15) - Added LFunctionZeroSum class interface method
+
+- Jeroen Demeyer (2013-10-17) - Compute L series with arbitrary precision
   instead of floats.
 
 - William Stein et al. (2005 and later)
@@ -77,8 +79,6 @@ class Lseries_ell(SageObject):
             sage: L.taylor_series(series_prec=3)
             -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
             -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
-            sage: L.taylor_series(series_prec=3)[2:]
-            0.000000000000000 + 0.000000000000000*z + 0.759316500288427*z^2 + O(z^3)
         """
         D = self.dokchitser(prec)
         return D.taylor_series(a, series_prec, var)
@@ -877,3 +877,30 @@ class Lseries_ell(SageObject):
                 return self.__lratio
             k += sqrtN
             misc.verbose("Increasing precision to %s terms."%k)
+
+    def zero_sums(self, N=None):
+        r"""
+        Return an LFunctionZeroSum class object for efficient computation
+        of sums over the zeros of self. This can be used to bound analytic
+        rank from above without having to compute with the $L$-series
+        directly.
+
+        INPUT:
+
+        - ``N`` -- (default: None) If not None, the conductor of the
+          elliptic curve attached to self. This is passable so that zero
+          sum computations can be done on curves for which the conductor
+          has been precomputed.
+
+        OUTPUT:
+
+        A LFunctionZeroSum_EllipticCurve instance.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve("5077a")
+            sage: E.lseries().zero_sums()
+            Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+        """
+        from sage.lfunctions.zero_sums import LFunctionZeroSum
+        return LFunctionZeroSum(self.__E, N=N)

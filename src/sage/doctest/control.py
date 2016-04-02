@@ -24,7 +24,8 @@ import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
-from sage.ext.interrupt import AlarmInterrupt, init_interrupts
+from sage.misc.temporary_file import tmp_dir
+from cysignals.signals import AlarmInterrupt, init_cysignals
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -546,7 +547,6 @@ class DocTestController(SageObject):
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
@@ -960,8 +960,10 @@ class DocTestController(SageObject):
         if testing:
             return
 
-        # Setup Sage signal handler
-        init_interrupts()
+        # Setup signal handlers.
+        # Save crash logs in temporary directory.
+        os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
+        init_cysignals()
 
         import signal, subprocess
         p = subprocess.Popen(cmd, shell=True)
@@ -1042,7 +1044,7 @@ def run_doctests(module, options=None):
     """
     Runs the doctests in a given file.
 
-    INPUTS:
+    INPUT:
 
     - ``module`` -- a Sage module, a string, or a list of such.
 

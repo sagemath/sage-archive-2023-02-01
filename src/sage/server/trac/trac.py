@@ -39,12 +39,7 @@ def trac_create_instance(directory = 'sage_trac', easy_setup = False):
     from sage.misc.sage_ostools import have_program
 
     if not have_program('trac-admin'):
-        print "You must install the optional trac package."
-        print "Try something like install_package('trac-0.11.5'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return
+        raise RuntimeError("trac is not installed")
 
     if easy_setup:
         cmd = 'trac-admin "%s" initenv "Sage" "sqlite:db/trac.db" "" ""' % directory
@@ -103,6 +98,9 @@ def trac(directory = 'sage_trac', port = 10000, address = 'localhost',
     - ``options`` - a string (default: ''); command-line options to pass
       directly to tracd
     """
+    from sage.misc.superseded import deprecation
+    deprecation(16759, "This Sage Trac Server interface is deprecated, you can just run the Trac server outside of Sage")
+
     if not os.path.exists(directory):
         trac_create_instance(directory, easy_setup = easy_setup)
 

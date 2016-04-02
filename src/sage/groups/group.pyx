@@ -230,21 +230,6 @@ cdef class Group(Parent):
         from sage.misc.all import prod
         return prod(self.gens())
 
-    def random_element(self, bound=None):
-        """
-        Return a random element of this group.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.random_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def quotient(self, H):
         """
         Return the quotient of this group by the normal subgroup

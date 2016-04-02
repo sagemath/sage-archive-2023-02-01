@@ -79,11 +79,11 @@ Check that Cython source code appears in tracebacks::
     .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (.../cythonized/sage/rings/integer_ring.c:...)()
         ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         ...         if mpz_sgn(right.value) == 0:
-        ...             raise ZeroDivisionError('Rational division by zero')
+        ...             raise ZeroDivisionError('rational division by zero')
         ...         mpz_set(mpq_numref(x.value), left.value)
         ...         mpz_set(mpq_denref(x.value), right.value)
     <BLANKLINE>
-    ZeroDivisionError: Rational division by zero
+    ZeroDivisionError: rational division by zero
     sage: shell.quit()
 """
 
@@ -104,8 +104,8 @@ import re
 import sys
 from sage.repl.preparse import preparse
 
-from IPython import Config
-from IPython.utils.traitlets import Bool, Type
+from traitlets.config.loader import Config
+from traitlets import Bool, Type
 
 from sage.env import SAGE_LOCAL
 
@@ -372,7 +372,7 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
             ---------------------------------------------------------------------------
             ZeroDivisionError                         Traceback (most recent call last)
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
             sage: rc is None
             True
             sage: shell.quit()
@@ -690,10 +690,6 @@ def get_test_shell():
             app.shell._restart()
         except AttributeError:
             pass
-    # overwrite the default (console + graphics) formatter with the plain text one
-    import sage.repl.display.formatter as formatter
-    app.shell.display_formatter.formatters['text/plain'] = (
-        formatter.SagePlainTextFormatter(config=app.shell.config))
     # No quit noise
     app.shell.verbose_quit = False
     return app.shell
@@ -755,7 +751,7 @@ class SageTerminalApp(TerminalIPythonApp):
             sage: from sage.misc.temporary_file import tmp_dir
             sage: from sage.repl.interpreter import SageTerminalApp
             sage: d = tmp_dir()
-            sage: from IPython.utils.path import get_ipython_dir
+            sage: from IPython.paths import get_ipython_dir
             sage: IPYTHONDIR = get_ipython_dir()
             sage: os.environ['IPYTHONDIR'] = d
             sage: SageTerminalApp().load_config_file()

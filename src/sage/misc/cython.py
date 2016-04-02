@@ -159,7 +159,7 @@ def pyx_preparse(s):
     r"""
     Preparse a pyx file:
 
-    * include ``cdefs.pxi``, ``interrupt.pxi``, ``stdsage.pxi``
+    * include ``cdefs.pxi``, ``signals.pxi`` from ``cysignals``, ``stdsage.pxi``
     * parse ``clang`` pragma (c or c++)
     * parse ``clib`` pragma (additional libraries to link in)
     * parse ``cinclude`` (additional include directories)
@@ -189,7 +189,7 @@ def pyx_preparse(s):
 
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
-        ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
+        ('\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
         ['mpfr',
         'gmp',
         'gmpxx',
@@ -205,7 +205,8 @@ def pyx_preparse(s):
         '.../include/python...',
         '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/ext'],
+        '.../sage/ext',
+        '.../cysignals'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -230,7 +231,8 @@ def pyx_preparse(s):
         '.../include/python...',
         '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/ext']
+        '.../sage/ext',
+        '.../cysignals']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
@@ -259,9 +261,15 @@ def pyx_preparse(s):
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
     s = """\ninclude "cdefs.pxi"\n""" + s
-    s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
+    s = """\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
+
+    # Add cysignals directory to includes
+    for path in sys.path:
+        cysignals_path = os.path.join(path, "cysignals")
+        if os.path.isdir(cysignals_path):
+            inc.append(cysignals_path)
 
     return s, libs, inc, lang, additional_source_files, args
 
@@ -283,12 +291,12 @@ sequence_number = {}
 def cython(filename, verbose=False, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
-    """
+    r"""
     Compile a Cython file. This converts a Cython file to a C (or C++ file),
     and then compiles that. The .c file and the .so file are
     created in a temporary directory.
 
-    INPUTS:
+    INPUT:
 
     - ``filename`` - the name of the file to be compiled. Should end with
       'pyx'.
@@ -341,6 +349,11 @@ def cython(filename, verbose=False, compile_message=False,
         sage: x
         x^2
 
+    Check that compiling c++ code works::
+
+        sage: cython("#clang C++\n"+
+        ....:        "from libcpp.vector cimport vector\n"
+        ....:        "cdef vector[int] * v = new vector[int](4)\n")
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -454,7 +467,6 @@ setup(ext_modules = ext_modules,
       include_dirs = %s)
     """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
-
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
     options = ['-p']
@@ -463,7 +475,12 @@ setup(ext_modules = ext_modules,
     if sage_namespace:
         options.append('--pre-import sage.all')
 
-    cmd = "cd '%s' && cython %s %s '%s.pyx' 1>log 2>err " % (build_dir, ' '.join(options), cython_include, name)
+    cmd = "cd '{DIR}' && cython {OPT} {INC} {LANG} '{NAME}.pyx' 1>log 2>err ".format(
+        DIR=build_dir,
+        OPT=' '.join(options),
+        INC=cython_include,
+        LANG='--cplus' if language=='c++' else '',
+        NAME=name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
@@ -480,9 +497,6 @@ setup(ext_modules = ext_modules,
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
-
-    if language=='c++':
-        os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
     if verbose:

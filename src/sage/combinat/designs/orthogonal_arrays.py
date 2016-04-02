@@ -846,8 +846,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             k = orthogonal_array(None,n,existence=True)-1
             if existence:
                 return k
-        OA = orthogonal_array(k+1,n,check=check)
-        OA.sort()
+        OA = sorted(orthogonal_array(k+1,n,check=check))
         return [B[1:] for B in OA]
 
     # If k is set to None we find the largest value available
@@ -1263,8 +1262,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         if existence:
             return orthogonal_array(k+1,n,existence=True)
 
-        OA = orthogonal_array(k+1,n)
-        OA.sort() # The future classes are now well-ordered
+        OA = sorted(orthogonal_array(k+1,n))
         OA = [B[1:] for B in OA]
 
         # We now relabel the points so that the last n blocks are the [i,i,...]
@@ -1657,7 +1655,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        Some new MOLS of order 2np for p a prime power,
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
     from itertools import izip,combinations
     from designs_pyx import is_difference_matrix
@@ -1672,7 +1670,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 
-    # dictionnary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
     r = {i:w**i for i in xrange(2**c-1)}
     r[None] = F.zero()
@@ -1857,7 +1855,7 @@ def OA_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
@@ -1907,7 +1905,7 @@ def QDM_from_Vmt(m,t,V):
 
         sage: _ = designs.orthogonal_arrays.build(6,46) # indirect doctest
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     q = m*t+1
     Fq = FiniteField(q, 'x')
     w = Fq.multiplicative_generator()

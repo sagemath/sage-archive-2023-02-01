@@ -3,7 +3,7 @@ Hyperelliptic Curve Point Finding, via ratpoints.
 """
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef int process(long x, long z, mpz_t y, void *info0, int *quit):

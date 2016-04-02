@@ -28,7 +28,7 @@ include 'sage/modules/vector_integer_sparse_c.pxi'
 include 'sage/modules/vector_rational_sparse_h.pxi'
 include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
@@ -56,7 +56,6 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -159,8 +158,6 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         mpq_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 

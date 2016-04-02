@@ -61,7 +61,6 @@ import power_series_ring_element
 import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
-import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 
@@ -180,7 +179,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: 1/f
             Traceback (most recent call last):
             ...
-            ArithmeticError: division not defined
+            ValueError: constant term 2 is not a unit
 
         ALGORITHM: A Laurent series is a unit if and only if its "unit
         part" is a unit.
@@ -386,7 +385,12 @@ cdef class LaurentSeries(AlgebraElement):
             0
             sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3 + O(t^5); f
             -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3 + O(t^5)
+
+        Slicing is deprecated::
+
             sage: f[-10:2]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -5*t^-10 + 1/3 + t + O(t^5)
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3 + O(t^5)
@@ -395,14 +399,12 @@ cdef class LaurentSeries(AlgebraElement):
             start, stop, step = i.start, i.stop, i.step
             if start is None:
                 start = 0
-            if step is None:
-                step = 1
             if stop > self.__u.degree() or stop is None:
                 stop = self.__u.degree()
-            f = self.__u[start-self.__n:stop-self.__n:step]
+            f = self.__u[start-self.__n:stop-self.__n:step]  # deprecation(18940)
             return LaurentSeries(self._parent, f, self.__n)
-        else:
-            return self.__u[i-self.__n]
+
+        return self.__u[i - self.__n]
 
     def __iter__(self):
         """
@@ -642,8 +644,11 @@ cdef class LaurentSeries(AlgebraElement):
         """
         if prec == infinity or prec >= self.prec():
             return self
+        P = self._parent
+        if not self:
+            return LaurentSeries(P, P.power_series_ring()(0, prec=0), prec)
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self._parent, u, self.__n)
+        return LaurentSeries(P, u, self.__n)
 
     def degree(self):
         """
@@ -659,13 +664,14 @@ cdef class LaurentSeries(AlgebraElement):
             sage: g = -10/x^5 + x^2 - x^4 + O(x^8)
             sage: g.degree()
             4
+            sage: (x^-2 + O(x^0)).degree()
+            -2
         """
         return self.__u.degree() + self.__n
 
-
     def __neg__(self):
         """
-        ::
+        EXAMPLES::
 
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: -(1+t^5)
@@ -823,10 +829,9 @@ cdef class LaurentSeries(AlgebraElement):
             # todo: this could also make something in the formal fraction field.
             raise ArithmeticError, "division not defined"
 
-
-    def common_prec(self, f):
+    def common_prec(self, other):
         r"""
-        Returns minimum precision of `f` and self.
+        Return the minimum precision of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -853,7 +858,7 @@ cdef class LaurentSeries(AlgebraElement):
         ::
 
             sage: f = t + t^2
-            sage: f = t^2
+            sage: g = t^2
             sage: f.common_prec(g)
             +Infinity
 
@@ -863,15 +868,64 @@ cdef class LaurentSeries(AlgebraElement):
             sage: g = t^(-5) + O(t^(-1))
             sage: f.common_prec(g)
             -2
-        """
-        if self.prec() is infinity:
-            return f.prec()
-        elif f.prec() is infinity:
-            return self.prec()
-        return min(self.prec(), f.prec())
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
+        ::
+
+            sage: f = O(t^2)
+            sage: g = O(t^5)
+            sage: f.common_prec(g)
+            2
+        """
+        return min(self.prec(), other.prec())
+
+    def common_valuation(self, other):
+        """
+        Return the minimum valuation of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+
+        ::
+
+            sage: f = t^(-1) + t + t^2 + O(t^3)
+            sage: g = t + t^3 + t^4 + O(t^4)
+            sage: f.common_valuation(g)
+            -1
+            sage: g.common_valuation(f)
+            -1
+
+        ::
+
+            sage: f = t + t^2 + O(t^3)
+            sage: g = t^(-3) + t^2
+            sage: f.common_valuation(g)
+            -3
+            sage: g.common_valuation(f)
+            -3
+
+        ::
+
+            sage: f = t + t^2
+            sage: g = t^2
+            sage: f.common_valuation(g)
+            1
+
+        ::
+
+            sage: f = t^(-3) + O(t^(-2))
+            sage: g = t^(-5) + O(t^(-1))
+            sage: f.common_valuation(g)
+            -5
+
+        ::
+
+            sage: f = O(t^2)
+            sage: g = O(t^5)
+            sage: f.common_valuation(g)
+            +Infinity
+        """
+        return min(self.valuation(), other.valuation())
 
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""
@@ -880,7 +934,9 @@ cdef class LaurentSeries(AlgebraElement):
         We say two approximate laurent series are equal, if they agree for
         all coefficients up to the *minimum* of the precisions of each.
         Comparison is done in dictionary order from lowest degree to
-        highest degree coefficients (this is different than polynomials).
+        highest degree coefficients. This is different than polynomials,
+        but consistent with the idea that the variable of a Laurent
+        series is considered to be "very small".
 
         See power_series_ring_element.__cmp__() for more
         information.
@@ -914,39 +970,31 @@ cdef class LaurentSeries(AlgebraElement):
             False
             sage: f > g
             True
+
+        Check that :trac:`19664` is fixed::
+
+            sage: R.<x> = LaurentSeriesRing(RR)
+            sage: x^(10^9) > 0
+            True
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
 
+        val = self.common_valuation(right)
+        if val is infinity:
+            return 0  # Both arguments are zero
+
+        cdef long deg = max(self.degree(), right.degree())
         prec = self.common_prec(right)
-        if not prec:
-            return 0
-        zero = self.base_ring()(0)
+        if deg >= prec:
+            deg = prec - 1
 
-        if not self and not right:
-            if self.__n < right.__n:
-                return cmp(self.__u[0], zero)
-            elif self.__n > right.__n:
-                return cmp(zero, right.__u[0])
-
-        # zero pad coefficients on the left, to line them up for comparison
-        cdef long n = min(self.__n, right.__n)
-        x = [zero] * (self.__n - n) + self.__u.list()
-        y = [zero] * (right.__n - n) + right.__u.list()
-
-        # zero pad on right to make the lists the same length
-        # (this is necessary since the power series list() function just
-        # returns the coefficients of the underlying polynomial, which may
-        # have zeroes in the high coefficients)
-        if len(x) < len(y):
-            x.extend([zero] * (len(y) - len(x)))
-        elif len(y) < len(x):
-            y.extend([zero] * (len(x) - len(y)))
-
-        if not (prec is infinity):
-            x = x[:(prec-n)]
-            y = y[:(prec-n)]
-
-        return cmp(x,y)
+        cdef long i
+        cdef int c
+        for i in range(val, deg+1):
+            c = cmp(self[i], right[i])
+            if c:
+                return c
+        return 0
 
     def valuation_zero_part(self):
         """
@@ -1232,10 +1280,22 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        TESTS:
+
+        Check whether a polynomial over a Laurent series ring is contained in the
+        polynomial ring over the power series ring (see :trac:`19459`):
+
+            sage: L.<t> = LaurentSeriesRing(GF(2))
+            sage: R.<x,y> = PolynomialRing(L)
+            sage: O = L.power_series_ring()
+            sage: S.<x,y> = PolynomialRing(O)
+            sage: t**(-1)*x*y in S
+            False
         """
         if self.__n < 0:
-            raise ArithmeticError, "self is a not a power series"
+            raise TypeError("self is not a power series")
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u
@@ -1252,7 +1312,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: (1-t).inverse()
             1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
         """
-        return self.__invert__()
+        return ~self
 
     def __call__(self, *x, **kwds):
         """

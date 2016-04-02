@@ -306,48 +306,35 @@ see :trac:`11645`::
     ''
 """
 
-
-
-#We could also do these calculations without using the singular
-#interface (behind the scenes the interface is used by Sage):
-#    sage: x, y = PolynomialRing(RationalField(), 2, names=['x','y']).gens()
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9)
-#    sage: C.genus()
-#    0
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9 + x)
-#    sage: C.genus()
-#    40
-
 #*****************************************************************************
 #       Copyright (C) 2005 David Joyner and William Stein
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import os
 import re
 import sys
 import pexpect
+from time import sleep
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence
-
 from sage.structure.element import RingElement
 
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
+
+from six import reraise as raise_
 
 class SingularError(RuntimeError):
     """
@@ -356,7 +343,7 @@ class SingularError(RuntimeError):
     pass
 
 
-class Singular(Expect):
+class Singular(ExtraTabCompletion, Expect):
     r"""
     Interface to the Singular interpreter.
 
@@ -376,7 +363,7 @@ class Singular(Expect):
 
     - David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -390,8 +377,9 @@ class Singular(Expect):
                         terminal_echo=False,
                         name = 'singular',
                         prompt = prompt,
-                        command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
-                        maxread = maxread,
+                        # no tty, fine grained cputime()
+                        # and do not display CTRL-C prompt
+                        command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -498,6 +486,43 @@ class Singular(Expect):
             'quit'
         """
         return 'quit'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to Singular. If needed, additional
+        semi-colons are sent until we get back at the prompt.
+
+        TESTS:
+
+        The following works without restarting Singular::
+
+            sage: a = singular(1)
+            sage: _ = singular._expect.sendline('1+')  # unfinished input
+            sage: try:
+            ....:     alarm(0.5)
+            ....:     singular._expect_expr('>')  # interrupt this
+            ....: except KeyboardInterrupt:
+            ....:     pass
+            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
+
+        We can still access a::
+
+            sage: 2*a
+            2
+        """
+        # Work around for Singular bug
+        # http://www.singular.uni-kl.de:8002/trac/ticket/727
+        sleep(0.1)
+
+        E = self._expect
+        E.sendline(chr(3))
+        for i in range(5):
+            try:
+                E.expect_upto(self._prompt, timeout=1.0)
+                return
+            except Exception:
+                pass
+            E.sendline(";")
 
     def _read_in_file_command(self, filename):
         r"""
@@ -761,20 +786,33 @@ class Singular(Expect):
 
         return SingularElement(self, type, x, False)
 
-    def has_coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if ``S`` admits a coercion map into the
+        Singular interface.
+
+        EXAMPLES::
+
+            sage: singular._coerce_map_from_(ZZ)
+            True
+            sage: singular.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Singular
+            sage: singular.coerce_map_from(float)
+        """
         # we want to implement this without coercing, since singular has state.
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
             try:
                 self._coerce_(S.an_element())
+                return True
             except TypeError:
-                return False
-            return True
+                pass
         elif S is int or S is long:
             return True
-        raise NotImplementedError
-
+        return None
 
     def cputime(self, t=None):
         r"""
@@ -1101,13 +1139,13 @@ class Singular(Expect):
         else:
             return None
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
          Return a list of all Singular commands.
 
          EXAMPLES::
 
-             sage: singular.trait_names()
+             sage: singular._tab_completion()
              ['exteriorPower',
               ...
               'stdfglm']
@@ -1206,7 +1244,9 @@ class Singular(Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-class SingularElement(ExpectElement):
+    
+class SingularElement(ExtraTabCompletion, ExpectElement):
+    
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1224,7 +1264,7 @@ class SingularElement(ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1272,7 +1312,7 @@ class SingularElement(ExpectElement):
                 s = self.parent().get_using_file(self._name)
         except AttributeError:
             s = self.parent().get(self._name)
-        if s.__contains__(self._name):
+        if self._name in s:
             if hasattr(self, '__custom_name'):
                 s =  s.replace(self._name, self.__dict__['__custom_name'])
             elif self.type() == 'matrix':
@@ -1985,7 +2025,7 @@ class SingularElement(ExpectElement):
             return str(self)
         return [X.sage_structured_str_list() for X in self]
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Returns the possible tab-completions for self. In this case, we
         just return all the tab completions for the Singular object.
@@ -1993,12 +2033,12 @@ class SingularElement(ExpectElement):
         EXAMPLES::
 
             sage: R = singular.ring(0,'(x,y)','dp')
-            sage: R.trait_names()
+            sage: R._tab_completion()
             ['exteriorPower',
              ...
              'stdfglm']
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def type(self):
         """
@@ -2288,6 +2328,9 @@ def singular_console():
              by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
         FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%singular magics instead.')
     os.system('Singular')
 
 

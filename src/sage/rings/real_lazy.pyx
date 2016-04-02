@@ -1,4 +1,6 @@
 """
+Lazy real and complex numbers
+
 These classes are very lazy, in the sense that it doesn't really do anything
 but simply sits between exact rings of characteristic 0 and the real numbers.
 The values are actually computed when they are cast into a field of fixed
@@ -666,6 +668,26 @@ cdef class LazyFieldElement(FieldElement):
             True
             sage: RLF(3) == RLF(4)
             False
+            sage: RLF(3) < RLF(5/3)
+            False
+
+        TESTS::
+
+            sage: from sage.rings.real_lazy import LazyBinop
+            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.div)
+            False
+            sage: from sage.rings.real_lazy import LazyWrapper
+            sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
+            False
+            sage: from sage.rings.real_lazy import LazyUnop
+            sage: RLF(3) < LazyUnop(RLF, 2, sqrt)
+            False
+            sage: from sage.rings.real_lazy import LazyNamedUnop
+            sage: RLF(3) < LazyNamedUnop(RLF, 0, 'sin')
+            False
+            sage: from sage.rings.real_lazy import LazyConstant
+            sage: RLF(3) < LazyConstant(RLF, 'e')
+            False
         """
         left = self
         try:
@@ -676,17 +698,6 @@ cdef class LazyFieldElement(FieldElement):
             pass
         left, right = self.approx(), other.approx()
         return cmp(left, right)
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: RLF(3) < RLF(5/3)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -855,8 +866,8 @@ cdef class LazyFieldElement(FieldElement):
 
         TESTS::
 
-        sage: "log" in RLF(sqrt(8)).__dir__()
-        True
+            sage: "log" in RLF(sqrt(8)).__dir__()
+            True
 
         """
         return FieldElement.__dir__(self) + named_unops
@@ -990,18 +1001,6 @@ cdef class LazyWrapper(LazyFieldElement):
             True
         """
         return not not self._value
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyWrapper
-            sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -1174,18 +1173,6 @@ cdef class LazyBinop(LazyFieldElement):
             # We only do a call here because it is a python call.
             return self._op(left, right)
 
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyBinop
-            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.div)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -1195,7 +1182,8 @@ cdef class LazyBinop(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
             sage: hash(a)
-            2
+            -1607638785           # 32-bit
+            -7461864723258187521  # 64-bit
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 
@@ -1278,18 +1266,6 @@ cdef class LazyUnop(LazyFieldElement):
             return ~arg
         return self._op(self._arg.eval(R))
 
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyUnop
-            sage: RLF(3) < LazyUnop(RLF, 2, sqrt)
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     def __hash__(self):
         """
         Return the hash value of ``self``.
@@ -1318,7 +1294,8 @@ cdef class LazyUnop(LazyFieldElement):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyUnop
             sage: a = LazyUnop(RLF, 7, sqrt)
             sage: float(loads(dumps(a))) == float(a)
@@ -1408,18 +1385,6 @@ cdef class LazyNamedUnop(LazyUnop):
             # this is less info though, but mostly just want to print it
             interval_field = self._parent.interval_field()
             return self.eval(interval_field._middle_field())
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyNamedUnop
-            sage: RLF(3) < LazyNamedUnop(RLF, 0, 'sin')
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -1546,18 +1511,6 @@ cdef class LazyConstant(LazyFieldElement):
         """
         self._extra_args = args
         return self
-
-    def __richcmp__(left, right, int op):
-        """
-        Perform a rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_lazy import LazyConstant
-            sage: RLF(3) < LazyConstant(RLF, 'e')
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     def __hash__(self):
         """

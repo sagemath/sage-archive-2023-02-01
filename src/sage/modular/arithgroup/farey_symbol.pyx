@@ -1,3 +1,4 @@
+# distutils: language = c++
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 
@@ -8,27 +9,21 @@ AUTHORS:
 based on the *KFarey* package by Chris Kurth. Implemented as C++ module
 for speed.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 
-include "farey.pxd"
-
-import sage.rings.arith
+from .farey cimport *
 from sage.rings.all import CC, RR
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -47,6 +42,7 @@ from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
+from itertools import groupby
 
 cdef class Farey:
     r"""
@@ -245,7 +241,15 @@ cdef class Farey:
             if newval is not None:
                 ans.append(newval)
                 continue
+            newval = gens_dict.get(SL2Z([-a, -b, -c, -d]))
+            if newval is not None:
+                ans.append(newval)
+                continue
             newval = gens_dict.get(SL2Z([d, -b, -c, a]))
+            if newval is not None:
+                ans.append(-newval)
+                continue
+            newval = gens_dict.get(SL2Z([-d, b, c, -a]))
             if newval is not None:
                 ans.append(-newval)
                 continue
@@ -287,7 +291,7 @@ cdef class Farey:
             ans.update({(g * E):i+1 for i,g in enumerate(self.generators())})
         return ans
 
-    def word_problem(self, M, output = 'standard'):
+    def word_problem(self, M, output = 'standard', check = True):
         r"""
         Solve the word problem (up to sign) using this Farey symbol.
 
@@ -296,6 +300,7 @@ cdef class Farey:
         - ``M`` -- An element `M` of `{\rm SL}_2(\ZZ)`.
         - ``output`` -- (default: ``'standard'``) Should be one of ``'standard'``,
           ``'syllables'``, ``'gens'``.
+        - ``check`` -- (default: ``True``) Whether to check for correct input and output.
 
         OUTPUT:
 
@@ -352,6 +357,7 @@ cdef class Farey:
 
         Check that problem with forgotten generator is fixed::
 
+            sage: from sage.misc.misc_c import prod
             sage: G = Gamma0(10)
             sage: F = G.farey_symbol()
             sage: g = G([-701,-137,4600,899])
@@ -359,9 +365,17 @@ cdef class Farey:
             sage: g == g1 or g * G([-1,0,0,-1]) == g1
             True
 
+        Check that it works for GammaH as well (:trac:`19660`)::
+
+            sage: G = GammaH(147, [8])
+            sage: G.farey_symbol().word_problem(G([1,1,0,1]))
+            (1,)
+
         """
         if output not in ['standard', 'syllables', 'gens']:
             raise ValueError('Unrecognized output format')
+        if check:
+            assert M in self.group,"Matrix ( %s ) is not in group ( %s )"%(M,self.group)
         cdef Integer a = M.d()
         cdef Integer b = -M.b()
         cdef Integer c = -M.c()
@@ -384,13 +398,18 @@ cdef class Farey:
                 assert newval is not None
             tietze.append(newval)
         tietze.reverse()
+        gens = self.generators()
+        if check:
+            tmp = SL2Z([1,0,0,1])
+            for i in range(len(tietze)):
+                t = tietze[i]
+                tmp = tmp * gens[t-1] if t > 0 else tmp * gens[-t-1]**-1
+            assert tmp.matrix() == M.matrix(),'%s %s %s'%(tietze, tmp.matrix(),M.matrix())
         if output == 'standard':
             return tuple(tietze)
-        from itertools import groupby
         if output == 'syllables':
             return tuple((a-1,len(list(g))) if a > 0 else (-a-1,-len(list(g))) for a,g in groupby(tietze))
         else: # output == 'gens'
-            gens = self.generators()
             return tuple((gens[a-1],len(list(g))) if a > 0 else (gens[-a-1],-len(list(g))) for a,g in groupby(tietze))
 
     def __contains__(self, M):
@@ -460,7 +479,7 @@ cdef class Farey:
         if hasattr(self.group, "_repr_"):
             return "FareySymbol(%s)" % self.group._repr_()
         elif hasattr(self.group, "__repr__"):
-            return "FareySymbol(%s)" % self.group.__repr__()
+            return "FareySymbol(%r)" % self.group
         else:
             return "FareySymbol(?)"
 

@@ -1,5 +1,5 @@
 """
-Finite residue fields.
+Finite residue fields
 
 We can take the residue field of maximal ideals in the ring of integers
 of number fields. We can also take the residue field of irreducible
@@ -152,7 +152,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.rings.all import ZZ, QQ, Integers
-from sage.rings.finite_rings.constructor import zech_log_bound, FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
@@ -1739,7 +1739,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
 
     def _element_constructor_(self, x):
         """
-        INPUT::
+        INPUT:
 
             - ``x`` -- Something to cast into ``self``.
 

@@ -195,36 +195,25 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 
 """
 
-################################################################################
-#       Sage: Open Source Mathematical Software
-#
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 
 # imports
-from sage.misc.all     import prod, verbose
-from sage.rings.all    import (Integer, ZZ, QQ, prime_divisors,
-                               kronecker, PolynomialRing, GF, next_prime,
-                               lcm, gcd)
-
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.misc.all import prod, verbose
+from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
 
-from sage.rings.arith import gcd, factor, kronecker_symbol
+from sage.arith.all import gcd, factor, prime_divisors, kronecker, next_prime, lcm
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
@@ -306,7 +295,7 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
         raise ValueError("M must be coprime to N")
     if weight < 2:
         raise ValueError("weight must be at least 2")
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, CommutativeRing):
         raise TypeError("base_ring must be a commutative ring")
     key = (N, M, weight, base_ring)
     if use_cache:
@@ -910,6 +899,7 @@ class BrandtModule_class(AmbientHeckeModule):
             - ``sparse`` -- bool (default: False); whether matrix should be sparse
 
         EXAMPLES::
+
             sage: B = BrandtModule(37)
             sage: t = B._compute_hecke_matrix_directly(2); t
             [1 1 1]
@@ -1225,6 +1215,7 @@ class BrandtModule_class(AmbientHeckeModule):
         Return Brandt series coefficient vectors out to precision *at least* prec.
 
         EXAMPLES::
+
             sage: B = BrandtModule(37, use_cache=False)
             sage: B._brandt_series_vectors(5)
             [[(1/2, 1, 1, 2, 1), (1/2, 0, 1, 1, 3), (1/2, 0, 1, 1, 3)],
@@ -1456,7 +1447,7 @@ def quaternion_order_with_given_level(A, level):
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()
             #x = O.random_element((-p/2).floor(), (p/2).ceil())
-            if kronecker_symbol(D, p) == 1: break
+            if kronecker(D, p) == 1: break
         X = PolynomialRing(GF(p), 'x').gen()
         a = ZZ((X**2 - ZZ(x.reduced_trace()) * X + ZZ(x.reduced_norm())).roots()[0][0])
         I = basis_for_left_ideal(O,  [p**r, (x-a)**r] )

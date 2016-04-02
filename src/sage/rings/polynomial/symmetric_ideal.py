@@ -281,7 +281,7 @@ class SymmetricIdeal( Ideal_generic ):
         oGen = list(other.gens())
         SymL = oGen
         for i in range(sN):
-            oGen = [X.__pow__(P) for X in oGen]
+            oGen = [X ** P for X in oGen]
             SymL = SymL + oGen
         # Now, SymL contains all necessary permutations of the second factor
         OUT = []
@@ -957,18 +957,14 @@ class SymmetricIdeal( Ideal_generic ):
                 if report is not None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR
-            if hasattr(DenseIdeal,'groebner_basis'):
-                if report is not None:
-                    print "Classical Groebner basis"
-                    if algorithm!='':
-                        print "(using %s)"%algorithm
-                newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
-                if report is not None:
-                    print "->",len(newOUT.gens()),'generators'
-            else:
-                if report is not None:
-                    print "Univariate polynomial ideal"
-                newOUT = DenseIdeal.gens()*PARENT
+
+            if report is not None:
+                print "Classical Groebner basis"
+                if algorithm!='':
+                    print "(using %s)"%algorithm
+            newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
+            if report is not None:
+                print "->",len(newOUT.gens()),'generators'
             # Symmetrise out to the next index:
             N += 1
             newOUT = newOUT.symmetrisation(N=N,tailreduce=tailreduce,report=report,use_full_group=use_full_group)

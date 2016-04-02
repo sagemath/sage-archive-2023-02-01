@@ -217,7 +217,7 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
             sage: RC = crystals.infinity.RiggedConfigurations(['B',4])
             sage: T = crystals.infinity.Tableaux(['B',4])
             sage: Psi = T.crystal_morphism({T.module_generators[0]: RC.module_generators[0]})
-            sage: TS = T.subcrystal(max_depth=4)
+            sage: TS = [x.value for x in T.subcrystal(max_depth=4)]
             sage: all(Psi(b) == RC(b) for b in TS) # long time # indirect doctest
             True
         """
@@ -254,7 +254,7 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
             sage: RC = crystals.infinity.RiggedConfigurations(['B',4])
             sage: T = crystals.infinity.Tableaux(['B',4])
             sage: Psi = RC.crystal_morphism({RC.module_generators[0]: T.module_generators[0]})
-            sage: RCS = RC.subcrystal(max_depth=4)
+            sage: RCS = [x.value for x in RC.subcrystal(max_depth=4)]
             sage: all(Psi(nu) == T(nu) for nu in RCS) # long time # indirect doctest
             True
         """
@@ -292,7 +292,7 @@ class MLTToRCBijectionTypeD(KRTToRCBijectionTypeD):
             sage: RC = crystals.infinity.RiggedConfigurations(['D',4])
             sage: T = crystals.infinity.Tableaux(['D',4])
             sage: Psi = T.crystal_morphism({T.module_generators[0]: RC.module_generators[0]})
-            sage: TS = T.subcrystal(max_depth=4)
+            sage: TS = [x.value for x in T.subcrystal(max_depth=4)]
             sage: all(Psi(b) == RC(b) for b in TS) # long time # indirect doctest
             True
         """
@@ -331,7 +331,7 @@ class RCToMLTBijectionTypeD(RCToKRTBijectionTypeD):
             sage: RC = crystals.infinity.RiggedConfigurations(['D',4])
             sage: T = crystals.infinity.Tableaux(['D',4])
             sage: Psi = RC.crystal_morphism({RC.module_generators[0]: T.module_generators[0]})
-            sage: RCS = RC.subcrystal(max_depth=4)
+            sage: RCS = [x.value for x in RC.subcrystal(max_depth=4)]
             sage: all(Psi(nu) == T(nu) for nu in RCS) # long time # indirect doctest
             True
         """

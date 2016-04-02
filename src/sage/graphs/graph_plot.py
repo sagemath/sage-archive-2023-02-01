@@ -52,6 +52,7 @@ Here is how to define the default size of a graph drawing to be ``[6,6]``. The
 first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
 option, while the third does not (a value for ``figsize`` is explicitly given)::
 
+    sage: import sage.graphs.graph_plot
     sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
     sage: graphs.PetersenGraph().show() # long time
     sage: graphs.ChvatalGraph().show()  # long time
@@ -356,17 +357,6 @@ class GraphPlot(SageObject):
                 vertex_colors = {}
                 for i in range(l):
                     vertex_colors[R[i]] = partition[i]
-            elif len(self._graph._boundary) != 0:
-                vertex_colors = {}
-                bdy_verts = []
-                int_verts = []
-                for v in self._graph.vertex_iterator():
-                    if v in self._graph._boundary:
-                        bdy_verts.append(v)
-                    else:
-                        int_verts.append(v)
-                vertex_colors['#fec7b8'] = int_verts
-                vertex_colors['#b3e8ff'] = bdy_verts
             elif not vertex_colors:
                 vertex_colors='#fec7b8'
         else:

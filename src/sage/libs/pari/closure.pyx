@@ -33,8 +33,8 @@ from cpython.tuple cimport *
 from cpython.object cimport PyObject_Call
 from cpython.ref cimport Py_INCREF
 
-include "sage/ext/interrupt.pxi"
-include "sage/libs/pari/decl.pxi"
+include "cysignals/signals.pxi"
+from .paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from pari_instance cimport pari_instance

@@ -83,7 +83,6 @@ from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.rings.all           import Integer, CIF
-from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
@@ -92,7 +91,6 @@ from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
 
-from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.qqbar            import QQbar
 from sage.rings.quotient_ring    import QuotientRing_generic
@@ -249,9 +247,9 @@ class SchemeMorphism(Element):
                     try:
                         x = D(x)
                     except (TypeError, NotImplementedError):
-                        raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
                 elif self.domain()!=x.codomain():
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
         else:
             x = converter(x)
         if not args and not kwds:
@@ -382,9 +380,9 @@ class SchemeMorphism(Element):
               Defn: Structure map) codomain
         """
         if not isinstance(right, SchemeMorphism):
-            raise TypeError, "right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self)
+            raise TypeError("right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self))
         if right.codomain() != self.domain():
-            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
+            raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(self, right))
         if isinstance(self, SchemeMorphism_id):
             return right
         if isinstance(right, SchemeMorphism_id):
@@ -416,7 +414,7 @@ class SchemeMorphism(Element):
               Defn: Identity map
         """
         if not self.is_endomorphism():
-            raise TypeError, "self must be an endomorphism."
+            raise TypeError("self must be an endomorphism.")
         if n==0:
             return self.domain().identity_morphism()
         return generic_power(self, n)
@@ -1050,12 +1048,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f(P([4,4,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over Integer
-            Ring defined by:
-              x^2 - y^2, but a `pushforward` method is not properly implemented
+            (16 : 16 : 1)
         """
         # Checks were done in __call__
         P = [f(x._coords) for f in self.defining_polynomials()]
@@ -1134,16 +1127,16 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
-            sage: f(P([4,4,1]))
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P2.<u,v,w,t> = ProjectiveSpace(ZZ, 3)
+            sage: X = P.subscheme(x^2-y^2);
+            sage: H = Hom(X, X)
+            sage: f = H([x^2, y^2, z^2]);
+            sage: f(P2([4,4,1,1]))
             Traceback (most recent call last):
             ...
-            TypeError: (4 : 4 : 1) fails to convert into the map's domain
-            Closed subscheme of Projective Space of dimension 2 over
-            Integer Ring defined by:
+            TypeError: (4 : 4 : 1 : 1) fails to convert into the map's domain Closed subscheme of
+            Projective Space of dimension 2 over Integer Ring defined by:
               x^2 - y^2, but a `pushforward` method is not properly implemented
         """
         if args:
@@ -1339,7 +1332,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
-            Check that :trac:'16834' is fixed::
+        Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR,3)
             sage: h = Hom(A,A)

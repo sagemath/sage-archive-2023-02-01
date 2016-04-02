@@ -368,6 +368,8 @@ import re
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement, AsciiArtString)
+from sage.interfaces.tab_completion import ExtraTabCompletion
+
 
 def clean_output(s):
     if s is None:
@@ -396,16 +398,16 @@ def _un_camel(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
-class Mathematica(Expect):
+
+class Mathematica(ExtraTabCompletion, Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
                         command = "math-readline",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -614,7 +616,7 @@ remote connection to a server running Mathematica -- for hints, type
     def console(self, readline=True):
         mathematica_console(readline=readline)
 
-    def trait_names(self):
+    def _tab_completion(self):
         a = self.eval('Names["*"]')
         return a.replace('$','').replace('\n \n>','').replace(',','').replace('}','').replace('{','').split()
 
@@ -974,6 +976,9 @@ def reduce_load(X):
 
 
 def mathematica_console(readline=True):
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%mathematica magics instead.')
     if not readline:
         os.system('math')
         return

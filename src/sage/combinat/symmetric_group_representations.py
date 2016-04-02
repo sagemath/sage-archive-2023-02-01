@@ -285,6 +285,17 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if cache_matrices is False:
             self.representation_matrix = self._representation_matrix_uncached
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: spc1 = SymmetricGroupRepresentation([3], cache_matrices=True)
+            sage: hash(spc1)
+            -1137003014   # 32-bit
+            3430541866490 # 64-bit
+        """
+        return hash(self._ring) ^ hash(self._partition)
+
     def __eq__(self, other):
         r"""
         Test for equality.
@@ -320,22 +331,6 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if not isinstance(other, type(other)):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
-#        # both self and other must have caching enabled
-#        if 'representation_matrix' in self.__dict__:
-#            if 'representation_matrix' not in other.__dict__:
-#                return False
-#            else:
-#                for key in self.__dict__:
-#                    if key != 'representation_matrix':
-#                        if self.__dict__[key] != other.__dict__[key]:
-#                            return False
-#                else:
-#                    return True
-#        else:
-#            if 'representation_matrix' in other.__dict__:
-#                return False
-#            else:
-#                return self.__dict__.__eq__(other.__dict__)
 
     def __call__(self, permutation):
         r"""

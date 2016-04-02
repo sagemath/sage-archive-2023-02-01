@@ -270,7 +270,7 @@ Methods
 """
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
@@ -762,7 +762,7 @@ def vertex_separation_exp(G, verbose = False):
 
     sage_free(neighborhoods)
     sig_off()
-    
+
     return k, list( g.int_to_vertices[i] for i in order )
 
 ##############################################################################

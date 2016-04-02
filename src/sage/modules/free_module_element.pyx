@@ -1022,6 +1022,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return hash of this vector.  Only mutable vectors are hashable.
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1382,6 +1383,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         is mutable).
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1542,7 +1544,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if isinstance(ord, AnInfinity):
                return ord
             v.append(ord)
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         return lcm(v)
 
     def iteritems(self):
@@ -1684,17 +1686,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
             sage: w > v
             False
-        """
-        cdef Py_ssize_t i
-        cdef int c
-        for i in range(left._degree):
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
         TESTS::
 
             sage: F.<y> = PolynomialRing(QQ, 'y')
@@ -1705,7 +1697,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
         """
-        return (<Element>left)._richcmp(right, op)
+        cdef Py_ssize_t i
+        cdef int c
+        for i in range(left._degree):
+            c = cmp(left[i], right[i])
+            if c: return c
+        return 0
 
     def __getitem__(self, i):
         """
@@ -1923,6 +1920,17 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def lift(self):
         """
+        Lift ``self`` to the cover ring.
+
+        OUTPUT:
+
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        on `R`, or just `R` itself if the
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        method is not defined.
+
         EXAMPLES::
 
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
@@ -1931,8 +1939,48 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (5, 2, 6, 1)
             sage: parent(V.lift())
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        If the base ring does not have a cover method, return a copy of the vector::
+
+            sage: W = vector(QQ, [1, 2, 3])
+            sage: W1 = W.lift()
+            sage: W is W1
+            False
+            sage: parent(W1)
+            Vector space of dimension 3 over Rational Field
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        try:
+            return self.change_ring(self.base_ring().cover_ring())
+        except AttributeError:
+            from copy import copy
+            return copy(self)
+
+    def lift_centered(self):
+        """
+        Lift to a congruent, centered vector.
+
+        INPUT:
+
+        - ``self`` A vector with coefficients in `Integers(n)`.
+
+        OUTPUT:
+
+        - The unique integer vector `v` such that foreach `i`,
+          `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift_centered()
+            (-2, 2, -1, 1)
+            sage: parent(V.lift_centered())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        R = self.base_ring().cover_ring()
+        l = [foo.lift_centered() for foo in self]
+        P = self.parent().change_ring(R)
+        return P(l)
 
     def __pos__(self):
         """
@@ -2080,23 +2128,33 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14])
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
 
-        In some cases when copy=False, we get back a dangerous reference::
+        In some cases, when ``copy=False``, we get back a dangerous
+        reference::
 
             sage: v = vector({0:5, 2:3/7}, sparse=True)
             sage: v.dict(copy=False)
@@ -2112,6 +2170,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if c:
                 e[i] = c
         return e
+
+    monomial_coefficients = dict
 
     #############################
     # Plotting
@@ -2541,7 +2601,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.cross_product(v)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
+            TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
 
         REFERENCES:
 
@@ -2571,7 +2631,92 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+
+    def cross_product_matrix(self):
+        r"""
+        Return the matrix which describes a cross product
+        between ``self`` and some other vector.
+
+        This operation is sometimes written using the `hat operator`_.
+        It is only defined for vectors of length 3 or 7.
+        For a vector `v` the cross product matrix `\hat{v}`
+        is a matrix which satisfies `\hat{v} \cdot w = v \times w`
+        and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
+        The basis vectors are assumed to be orthonormal.
+
+        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+
+        OUTPUT:
+
+        The cross product matrix of this vector.
+
+        EXAMPLES::
+
+            sage: v = vector([1, 2, 3])
+            sage: vh = v.cross_product_matrix()
+            sage: vh
+            [ 0 -3  2]
+            [ 3  0 -1]
+            [-2  1  0]
+            sage: w = random_vector(3, x=1, y=100)
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+
+        TESTS::
+
+            sage: F = GF(previous_prime(2^32))
+            sage: v = random_vector(F, 3)
+            sage: w = random_vector(F, 3)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: v = random_vector(F, 7)
+            sage: w = random_vector(F, 7)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: random_vector(F, 5).cross_product_matrix()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cross product only defined for vectors of length three or seven, not 5
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        rank = self.parent().rank()
+        R = self.base_ring()
+        zero = R.zero()
+        if rank == 3:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[2],  s[1]],
+                [ s[2],  zero, -s[0]],
+                [-s[1],  s[0],  zero]])
+        elif rank == 7:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[3], -s[6],  s[1], -s[5],  s[4],  s[2]],
+                [ s[3],  zero, -s[4], -s[0],  s[2], -s[6],  s[5]],
+                [ s[6],  s[4],  zero, -s[5], -s[1],  s[3], -s[0]],
+                [-s[1],  s[0],  s[5],  zero, -s[6], -s[2],  s[4]],
+                [ s[5], -s[2],  s[1],  s[6],  zero, -s[0], -s[3]],
+                [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
+                [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
+        else:
+            raise TypeError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """
@@ -3797,6 +3942,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         sage: v = (QQ['x']^3).0
         sage: loads(dumps(v)) == v
         True
+
+    ::
+
+        sage: v = vector([1,2/3,pi])
+        sage: v == v
+        True
+
+    ::
+
+        sage: v = vector(RR, [1,2/3,pi])
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
     """
     cdef _new_c(self, object v):
         """
@@ -4024,29 +4182,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._mul_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi])
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector(RR, [1,2/3,pi])
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
     def __reduce__(self):
         """
         EXAMPLES::
@@ -4233,7 +4368,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     A generic sparse free module element is a dictionary with keys ints
     i and entries in the base ring.
 
-    EXAMPLES:
+    TESTS::
+
+        sage: v = vector([1,2/3,pi], sparse=True)
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
 
     Pickling works::
 
@@ -4503,8 +4643,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w = vector(R, [], sparse=True)
             sage: parent(v._dot_product_coerce_(w))
             Univariate Polynomial Ring in x over Real Double Field
+
+        TESTS:
+
+        Check that :trac:`19377` is fixed::
+
+            sage: w = vector(ZZ, (1,2,3), sparse=False)
+            sage: v = vector(ZZ, (1,2,3), sparse=True)
+            sage: v._dot_product_coerce_(w)
+            14
         """
-        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict e
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except TypeError:
+            e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
             z *= right.base_ring().zero()
@@ -4565,30 +4718,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         b = [(-x,y) for x, y in b]
 
         return cmp(a, b)
-
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
 
     def iteritems(self):
         """
@@ -4768,30 +4897,41 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
         """
         if copy:
             return dict(self._entries)
         else:
             return self._entries
 
+    monomial_coefficients = dict
+
     def list(self, copy=True):
         """
-        Return list of elements of self.
+        Return list of elements of ``self``.
 
         INPUT:
 

@@ -1,17 +1,18 @@
 """
 Partition backtrack functions for binary codes
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_binary
 
 REFERENCE:
 
-    [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
-        Vol. 30 (1981), pp. 45-87.
+- [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
+  Vol. 30 (1981), pp. 45-87.
 
-    [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
-        Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
-        533-583.
+- [2] Leon, Jeffrey. Permutation Group Algorithms Based on Partitions, I:
+  Theory and Algorithms. J. Symbolic Computation, Vol. 12 (1991), pp.
+  533-583.
 
 """
 
@@ -1051,7 +1052,7 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
     from sage.misc.prandom import random, randint
     from sage.combinat.permutation import Permutations
     from sage.matrix.constructor import random_matrix, matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     cdef int h, i, j, n, k, num_tests = 0, num_codes = 0
     cdef LinearBinaryCodeStruct B, C
     cdef NonlinearBinaryCodeStruct B_n, C_n

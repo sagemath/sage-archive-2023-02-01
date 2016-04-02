@@ -18,13 +18,11 @@ AUTHORS:
 
 from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, ZZ, QQ, infinity
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.rings.arith import bernoulli, sigma
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_groups import HeckeTriangleGroup
-from constructor import FormsRing, FormsSpace, rational_type
+from constructor import FormsRing, FormsSpace
 from series_constructor import MFSeriesConstructor
 
 
@@ -132,9 +130,9 @@ class FormsRing_abstract(Parent):
         from sage.misc.latex import latex
         return "\\mathcal{{ {} }}_{{n={}}}({})".format(self._analytic_type.latex_space_name(), self._group.n(), latex(self._base_ring))
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, el):
         r"""
-        Return ``x`` coerced/converted into this forms ring.
+        Return ``el`` coerced/converted into this forms ring.
 
         EXAMPLES::
 
@@ -152,14 +150,36 @@ class FormsRing_abstract(Parent):
             False
             sage: MR(el).parent() == MR
             True
+
+            sage: el = MR.Delta().full_reduce()
+            sage: MRinf = ModularFormsRing(n=infinity)
+            sage: MRinf(el)
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3)/4096
+            sage: el.parent()
+            CuspForms(n=3, k=12, ep=1) over Integer Ring
+            sage: MRinf(el).parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         from graded_ring_element import FormsRingElement
-        if isinstance(x, FormsRingElement):
-            x = self._rat_field(x._rat)
+        if isinstance(el, FormsRingElement):
+            if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
+                el_f = el._reduce_d()._rat
+                (x,y,z,d) = self.pol_ring().gens()
+
+                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                new_num = num_sub.numerator()*denom_sub.denominator()
+                new_denom = denom_sub.numerator()*num_sub.denominator()
+
+                el = self._rat_field(new_num) / self._rat_field(new_denom)
+            elif self.group() == el.group():
+                el = self._rat_field(el._rat)
+            else:
+                raise ValueError("{} has group {} != {}".format(el, el.group(), self.group()))
         else:
-            x = self._rat_field(x)
-        return self.element_class(self, x)
+            el = self._rat_field(el)
+        return self.element_class(self, el)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -171,6 +191,8 @@ class FormsRing_abstract(Parent):
             sage: MR1 = QuasiWeakModularFormsRing(base_ring=CC)
             sage: MR2 = ModularFormsRing()
             sage: MR3 = CuspFormsRing()
+            sage: MR4 = ModularFormsRing(n=infinity)
+            sage: MR5 = ModularFormsRing(n=4)
             sage: MR3.has_coerce_map_from(MR2)
             False
             sage: MR1.has_coerce_map_from(MR2)
@@ -181,6 +203,10 @@ class FormsRing_abstract(Parent):
             False
             sage: MR1.has_coerce_map_from(ZZ)
             True
+            sage: MR4.has_coerce_map_from(MR2)
+            True
+            sage: MR4.has_coerce_map_from(MR5)
+            False
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF2 = ModularForms(k=6, ep=-1)
@@ -189,14 +215,19 @@ class FormsRing_abstract(Parent):
             True
             sage: MR2.has_coerce_map_from(MF3)
             True
+            sage: MR4.has_coerce_map_from(MF2)
+            True
         """
 
         from space import FormsSpace_abstract
+        from functors import _common_subgroup
         if (    isinstance(S, FormsRing_abstract)\
-            and self._group         == S._group\
+            and self._group         == _common_subgroup(self._group, S._group)\
             and self._analytic_type >= S._analytic_type\
             and self.base_ring().has_coerce_map_from(S.base_ring()) ):
                 return True
+        elif isinstance(S, FormsRing_abstract):
+            return False
         elif isinstance(S, FormsSpace_abstract):
             raise RuntimeError( "This case should not occur." )
             # return self._coerce_map_from_(S.graded_ring())
@@ -747,11 +778,11 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
         """
 
         # We only use two operators for now which do not involve 'd', so for performance

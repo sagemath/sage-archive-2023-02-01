@@ -154,7 +154,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/deps might also need
+# required for upgrading.  Note that build/make/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #
@@ -252,13 +252,14 @@ export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
-export SAGE_DOC="$SAGE_SRC/doc"
+export SAGE_DOC_SRC="$SAGE_SRC/doc"
+export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
 if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
 fi 
-export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -279,13 +280,14 @@ if [ "$UNAME" = "Darwin" ]; then
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-    MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-    if [ $MACOSX_DEPLOYMENT_TARGET = '10.10' ]; then
-        # Workaround for the libtool version detection bug
-        # See http://trac.sagemath.org/ticket/17204
+    if [ $MACOSX_VERSION -ge 14 ]; then
+        # various packages have still have issues with
+        # two digit OS X versions
         MACOSX_DEPLOYMENT_TARGET=10.9
+    else
+        MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
-    export MACOSX_DEPLOYMENT_TARGET
+    export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
 fi
 
 # Compile-time path for libraries.  This is the equivalent of
@@ -377,38 +379,17 @@ if [ -d "$SAGE_LOCAL/lib/python" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
     PYTHONHOME="$SAGE_LOCAL"
+    # Set PYTHONNOUSERSITE to avoid picking up non-Sage versions of
+    # Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/14243
+    # and http://trac.sagemath.org/ticket/18955.
+    PYTHONNOUSERSITE=yes
     export PYTHONPATH
     export PYTHONHOME
+    export PYTHONNOUSERSITE
 fi
 
-if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
-    SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
-    SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
-fi
-
-# Add some directories to $LD_LIBRARY_PATH:
-# * lib/openmpi is needed for openmpi.
-# * lib/R/lib is needed for R in case the Sage install is moved.
-# * lib32 and lib64 are needed for GCC, see #12405.
-for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
-    libdir="$SAGE_LOCAL/$d"
-    # Add only existing directories
-    if [ -d "$libdir" ]; then
-        [ -z "$LD_LIBRARY_PATH" ] || LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
-        LD_LIBRARY_PATH="${libdir}$LD_LIBRARY_PATH"
-    fi
-done
-export LD_LIBRARY_PATH
-
-# The following is needed for OS X (especially for the
-# Singular install).
-if [ "$UNAME" = "Darwin" ]; then
-    if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
-        SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
-        SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
-    fi
-    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
-fi
+LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+export LDFLAGS
 
 # Use a matplotlib config directory specific to Sage and specific to
 # the version number of matplotlib, by setting the environment
@@ -658,6 +639,12 @@ if [ -z "$SAGE_DOC_MATHJAX" ]; then
         SAGE_DOC_MATHJAX="True"
     fi
     export SAGE_DOC_MATHJAX
+fi
+
+# Set the cysignals crash logs directory
+if [ -z "$CYSIGNALS_CRASH_LOGS" ]; then
+    export CYSIGNALS_CRASH_LOGS="$DOT_SAGE/crash_logs"
+    export CYSIGNALS_CRASH_DAYS=7  # keep logs for 7 days
 fi
 
 # You can set environment variables in $SAGE_RC_FILE

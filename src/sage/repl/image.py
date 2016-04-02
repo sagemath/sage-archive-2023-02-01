@@ -14,8 +14,9 @@ EXAMPLES::
     sage: from sage.repl.image import Image
     sage: img = Image('RGB', (256, 256), 'white')
     sage: pixels = img.pixels()
-    sage: for x, y in CartesianProduct(range(img.width()), range(img.height())):
-    ....:     pixels[x, y] = (x, y, 100)
+    sage: for x in range(img.width()):
+    ....:     for y in range(img.height()):
+    ....:         pixels[x, y] = (x, y, 100)
     sage: img
     256x256px 24-bit RGB image
     sage: type(img)

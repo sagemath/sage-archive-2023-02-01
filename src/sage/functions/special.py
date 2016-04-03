@@ -90,31 +90,6 @@ implemented here.
 
 
 
--  When solving for separable solutions of Laplace's equation in
-   spherical coordinates, the radial equation has the form:
-
-   .. math::
-
-         x^2 \frac{d^2 y}{dx^2} + 2x \frac{dy}{dx} + [x^2 - n(n+1)]y = 0.
-
-
-   The spherical Bessel functions `j_n` and `y_n`,
-   are two linearly independent solutions to this equation. They are
-   related to the ordinary Bessel functions `J_n` and
-   `Y_n` by:
-
-   .. math::
-
-         j_n(x) = \sqrt{\frac{\pi}{2x}} J_{n+1/2}(x),
-
-
-
-   .. math::
-
-         y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x)     = (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
-
-
-
 -  For `x>0`, the confluent hypergeometric function
    `y = U(a,b,x)` is defined to be the solution to Kummer's
    differential equation
@@ -233,7 +208,6 @@ def meval(x):
 
     TEST::
 
-        sage: from sage.functions.special import spherical_bessel_J
         sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10
         0.2986374970757335
     """
@@ -402,7 +376,7 @@ def maxima_function(name):
 
     EXAMPLES::
 
-        sage: spherical_hankel2(2,i)
+        sage: spherical_hankel2(2,i).simplify()
         -e
     """
     # The superclass of MaximaFunction, BuiltinFunction, assumes that there
@@ -415,7 +389,7 @@ def maxima_function(name):
 
             TESTS::
 
-                sage: spherical_hankel2(2,x)
+                sage: spherical_hankel2(2,x).simplify()
                 (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
             """
             MaximaFunction.__init__(self, name)
@@ -467,82 +441,6 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
         raise ValueError("unknown algorithm '%s'" % algorithm)
-
-def spherical_bessel_J(n, var, algorithm="maxima"):
-    r"""
-    Returns the spherical Bessel function of the first kind for
-    integers n >= 1.
-
-    Reference: AS 10.1.8 page 437 and AS 10.1.15 page 439.
-
-    EXAMPLES::
-
-        sage: spherical_bessel_J(2,x)
-        ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)/x
-        sage: spherical_bessel_J(1, 5.2, algorithm='scipy')
-        -0.12277149950007...
-        sage: spherical_bessel_J(1, 3, algorithm='scipy')
-        0.345677499762355...
-    """
-    if algorithm == "scipy":
-        from scipy.special.specfun import sphj
-        return CDF(sphj(int(n), float(var))[1][-1])
-    elif algorithm == 'maxima':
-        _init()
-        return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
-    else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
-
-def spherical_bessel_Y(n,var, algorithm="maxima"):
-    r"""
-    Returns the spherical Bessel function of the second kind for
-    integers n -1.
-
-    Reference: AS 10.1.9 page 437 and AS 10.1.15 page 439.
-
-    EXAMPLES::
-
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: spherical_bessel_Y(2,x)
-        -((3/x^2 - 1)*cos(x) + 3*sin(x)/x)/x
-    """
-    if algorithm == "scipy":
-        import scipy.special
-        return CDF(scipy.special.sph_yn(int(n),float(var)))
-    elif algorithm == 'maxima':
-        _init()
-        return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
-    else:
-        raise ValueError("unknown algorithm '%s'"%algorithm)
-
-def spherical_hankel1(n, var):
-    r"""
-    Returns the spherical Hankel function of the first kind for
-    integers `n > -1`, written as a string. Reference: AS
-    10.1.36 page 439.
-
-    EXAMPLES::
-
-        sage: spherical_hankel1(2, x)
-        (I*x^2 - 3*x - 3*I)*e^(I*x)/x^3
-    """
-    return maxima_function("spherical_hankel1")(ZZ(n), var)
-
-def spherical_hankel2(n,x):
-    r"""
-    Returns the spherical Hankel function of the second kind for
-    integers `n > -1`, written as a string. Reference: AS 10.1.17 page
-    439.
-
-    EXAMPLES::
-
-        sage: spherical_hankel2(2, x)
-        (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
-
-    Here I = sqrt(-1).
-    """
-    return maxima_function("spherical_hankel2")(ZZ(n), x)
-
 
 class SphericalHarmonic(BuiltinFunction):
     r"""

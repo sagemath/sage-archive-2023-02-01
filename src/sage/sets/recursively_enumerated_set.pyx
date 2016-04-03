@@ -1055,13 +1055,13 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             [(0, 2), (1, 1), (2, 0)]
             [(0, 3), (1, 2), (2, 1), (3, 0)]
 
-        TESTS::
+        TESTS:
 
         Make sure that :trac:`20225` is fixed::
 
-            sage: sage: child = lambda k:[2*k,2*k+1] if k<8 else []
-            sage: sage: root = [0]
-            sage: sage: R = RecursivelyEnumeratedSet(root, child, structure='graded')
+            sage: child = lambda k:[2*k,2*k+1] if k<8 else []
+            sage: root = [0]
+            sage: R = RecursivelyEnumeratedSet(root, child, structure='graded')
             sage: it = R.graded_component_iterator()
             sage: for _ in range(7): next(it)
             {0}

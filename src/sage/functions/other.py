@@ -427,7 +427,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, maximum_bits=20000, hold=False):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -464,7 +464,7 @@ class Function_ceil(BuiltinFunction):
             except TypeError:
                 # If we cannot compute a numerical enclosure, leave the
                 # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
+                return BuiltinFunction.__call__(self, SR(x), hold)
             try:
                 return x_interval.unique_ceil()
             except ValueError:
@@ -590,7 +590,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, maximum_bits=20000, hold=False):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -627,7 +627,7 @@ class Function_floor(BuiltinFunction):
             except TypeError:
                 # If we cannot compute a numerical enclosure, leave the
                 # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
+                return BuiltinFunction.__call__(self, SR(x), hold)
             try:
                 return x_interval.unique_floor()
             except ValueError:

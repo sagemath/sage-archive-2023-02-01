@@ -136,6 +136,8 @@ class SBox(SageObject):
         self._F = GF(2)
         self._big_endian = kwargs.get("big_endian",True)
 
+        self.differential_uniformity = self.maximal_difference_probability_absolute
+
     def _repr_(self):
         """
         EXAMPLE::
@@ -428,6 +430,9 @@ class SBox(SageObject):
         highest probability in absolute terms, i.e. how often it
         occurs in total.
 
+        Equivalently, this is equal to the differential uniformity
+        of this S-Box.
+
         EXAMPLE::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
@@ -495,11 +500,6 @@ class SBox(SageObject):
             True
             True
         """
-        try:
-            return self._linear_approximation_matrix
-        except AttributeError:
-            pass
-
         m = self.m
         n = self.n
 
@@ -517,7 +517,6 @@ class SBox(SageObject):
         A = -A.transpose()/2
         A.set_immutable()
 
-        self._linear_approximation_matrix = A
         return A
 
     def maximal_linear_bias_absolute(self):
@@ -1026,24 +1025,6 @@ class SBox(SageObject):
             ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
         return ret
 
-    def differential_uniformity(self):
-        r"""
-        Return the differential uniformity of this S-Box.
-
-        An `m \times n` S-Box `S` is said to have differential uniformity
-        `\delta` if for every nonzero `\alpha \in \GF{2}^m` and every
-        `\beta \in \GF{2}^n` the equation
-        `S(x) \oplus S(x \oplus \alpha) = \beta` has at most `\delta`
-        solutions.
-
-        EXAMPLES::
-
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
-            sage: S.differential_uniformity()
-            4
-        """
-        return self.maximal_difference_probability_absolute()
-
     def nonlinearity(self):
         """
         Return the nonlinearity of this S-Box.
@@ -1178,18 +1159,12 @@ class SBox(SageObject):
             [ 8  0  0 -8  0  0  0  0]
             [ 8  0  0  0 -8  0  0  0]
         """
-        try:
-            return self._autocorrelation_matrix
-        except AttributeError:
-            pass
-
         from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 
         n = self.n
         A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
         A.set_immutable()
 
-        self._autocorrelation_matrix = A
         return A
 
     def linear_structures(self):

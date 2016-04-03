@@ -1399,14 +1399,6 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
             P = self.parent()._P
             return P(self).scalar_jack(P(x),2)
 
-#############
-#   Cache   #
-#############
-#from sage.misc.cache import Cache
-#cache_p = Cache(JackPolynomials_p)
-#cache_j = Cache(JackPolynomials_j)
-#cache_q = Cache(JackPolynomials_q)
-#cache_z = Cache(SymmetricFunctionAlgebra_zonal)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

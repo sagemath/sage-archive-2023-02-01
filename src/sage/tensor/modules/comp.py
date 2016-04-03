@@ -263,7 +263,7 @@ class Components(SageObject):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents. The symmetries
+    such as connection coefficients or structure coefficients. The symmetries
     over some indices are dealt by subclasses of the class :class:`Components`.
 
     INPUT:
@@ -2508,7 +2508,7 @@ class CompWithSym(Components):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents.
+    such as connection coefficients or structure coefficients.
 
     Subclasses of :class:`CompWithSym` are
 

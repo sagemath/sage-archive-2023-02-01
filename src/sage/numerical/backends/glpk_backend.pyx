@@ -21,7 +21,9 @@ AUTHORS:
 #*****************************************************************************
 
 
+from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
+from sage.libs.glpk.error import GLPKError
 from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
@@ -494,7 +496,7 @@ cdef class GLPKBackend(GenericBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK")
@@ -508,6 +510,18 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
             'foo'
+
+        TESTS:
+
+        This used to crash Sage, but was fixed in :trac:`19525`::
+
+            sage: p = MixedIntegerLinearProgram(solver="glpk")
+            sage: q = MixedIntegerLinearProgram(solver="glpk")
+            sage: q.add_constraint(p.new_variable()[0] <= 1)
+            Traceback (most recent call last):
+            ...
+            GLPKError: glp_set_mat_row: i = 1; len = 1; invalid row length
+            Error detected in file glpapi01.c at line ...
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
@@ -515,17 +529,22 @@ cdef class GLPKBackend(GenericBackend):
         glp_add_rows(self.lp, 1)
         cdef int n = glp_get_num_rows(self.lp)
 
+        cdef MemoryAllocator mem = MemoryAllocator()
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int *> sig_malloc((len(coefficients)+1) * sizeof(int))
-        row_values = <double *> sig_malloc((len(coefficients)+1) * sizeof(double))
+        row_i = <int*>mem.allocarray(len(coefficients)+1, sizeof(int))
+        row_values = <double*>mem.allocarray(len(coefficients)+1, sizeof(double))
 
-        for i,(c,v) in enumerate(coefficients):
-            row_i[i+1] = c+1
-            row_values[i+1] = v
+        cdef Py_ssize_t i = 1
+        for c,v in coefficients:
+            row_i[i] = c+1
+            row_values[i] = v
+            i += 1
 
+        sig_on()
         glp_set_mat_row(self.lp, n, len(coefficients), row_i, row_values)
+        sig_off()
 
         if upper_bound is not None and lower_bound is None:
             glp_set_row_bnds(self.lp, n, GLP_UP, upper_bound, upper_bound)
@@ -539,9 +558,6 @@ cdef class GLPKBackend(GenericBackend):
 
         if name is not None:
             glp_set_row_name(self.lp, n, name)
-
-        sig_free(row_i)
-        sig_free(row_values)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
@@ -618,8 +634,9 @@ cdef class GLPKBackend(GenericBackend):
             (2.0, 2.0)
         """
         cdef int n = glp_get_num_cols(self.lp)
-        cdef int * c_indices = <int*> sig_malloc((n+1)*sizeof(int))
-        cdef double * c_values = <double*> sig_malloc((n+1)*sizeof(double))
+        cdef MemoryAllocator mem = MemoryAllocator()
+        cdef int * c_indices = <int*>mem.allocarray(n+1, sizeof(int))
+        cdef double * c_values = <double*>mem.allocarray(n+1, sizeof(double))
         cdef list indices = []
         cdef list values = []
         cdef int i,j
@@ -628,9 +645,6 @@ cdef class GLPKBackend(GenericBackend):
         for 0 < j <= i:
             indices.append(c_indices[j]-1)
             values.append(c_values[j])
-
-        sig_free(c_indices)
-        sig_free(c_values)
 
         return (indices, values)
 
@@ -833,12 +847,12 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            RuntimeError: GLPK : Signal sent, try preprocessing option
+            GLPKError: Assertion failed: ...
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Problem has no feasible solution'
+            MIPSolverException: GLPK: Problem has no feasible solution
 
         If we switch to "simplex_only", the integrality constraints are ignored,
         and we get an optimal solution to the continuous relaxation.
@@ -927,23 +941,23 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Problem has unbounded solution'
+            MIPSolverException: GLPK: Problem has unbounded solution
             sage: lp.set_objective(lp[1])
             sage: lp.solver_parameter("primal_v_dual", "GLP_DUAL")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Problem has unbounded solution'
+            MIPSolverException: GLPK: Problem has unbounded solution
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : The LP (relaxation) problem has no dual feasible solution'
+            MIPSolverException: GLPK: The LP (relaxation) problem has no dual feasible solution
             sage: lp.solver_parameter("simplex_or_intopt", "intopt_only")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : The LP (relaxation) problem has no dual feasible solution'
+            MIPSolverException: GLPK: The LP (relaxation) problem has no dual feasible solution
             sage: lp.set_max(lp[1],5)
             sage: lp.solve()
             5.0
@@ -984,13 +998,13 @@ cdef class GLPKBackend(GenericBackend):
             else:
                 solve_status = glp_simplex(self.lp, self.smcp)
             solution_status = glp_get_status(self.lp)
- 
+
         if ((self.simplex_or_intopt == glp_intopt_only)
             or (self.simplex_or_intopt == glp_simplex_then_intopt) and (solution_status != GLP_UNDEF) and (solution_status != GLP_NOFEAS)):
-            sig_str('GLPK : Signal sent, try preprocessing option')
+            sig_on()
             solve_status = glp_intopt(self.lp, self.iocp)
-            sig_off()
             solution_status = glp_mip_status(self.lp)
+            sig_off()
 
         if solution_status == GLP_OPT:
             pass
@@ -999,9 +1013,9 @@ cdef class GLPKBackend(GenericBackend):
             # no exception when time limit or iteration limit or  mip gap tolerances or objective limits reached.
             pass
         elif solution_status == GLP_UNDEF:
-            raise MIPSolverException("GLPK : "+solve_status_msg.get(solve_status, "unknown error during call to GLPK : "+str(solve_status)))
+            raise MIPSolverException("GLPK: "+solve_status_msg.get(solve_status, "unknown error during call to GLPK : "+str(solve_status)))
         else:
-            raise MIPSolverException("GLPK : "+solution_status_msg.get(solution_status, "unknown error during call to GLPK : "+str(solution_status)))
+            raise MIPSolverException("GLPK: "+solution_status_msg.get(solution_status, "unknown error during call to GLPK : "+str(solution_status)))
         return 0
 
     cpdef get_objective_value(self):
@@ -2559,26 +2573,20 @@ cdef class GLPKBackend(GenericBackend):
         if k < 0 or k >= n + glp_get_num_rows(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
-        cdef int    * c_indices = <int*>    sig_malloc((n+1)*sizeof(int))
-        cdef double * c_values  = <double*> sig_malloc((n+1)*sizeof(double))
-        if c_indices == NULL or c_values == NULL:
-            sig_free(c_indices)
-            sig_free(c_values)
-            raise MemoryError
+        cdef MemoryAllocator mem = MemoryAllocator()
+        cdef int    * c_indices = <int*>mem.allocarray(n+1, sizeof(int))
+        cdef double * c_values  = <double*>mem.allocarray(n+1, sizeof(double))
 
         try:
-            sig_on()            # To catch SIGABRT
+            sig_on()            # to catch GLPKError
             i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
             sig_off()
-        except RuntimeError:    # corresponds to SIGABRT
+        except GLPKError:
             raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be basic')
-        else:
-            indices = [c_indices[j+1] - 1 for j in range(i)]
-            values  = [c_values[j+1]      for j in range(i)]
-            return (indices, values)
-        finally:
-            sig_free(c_indices)
-            sig_free(c_values)
+
+        indices = [c_indices[j+1] - 1 for j in range(i)]
+        values  = [c_values[j+1]      for j in range(i)]
+        return (indices, values)
 
     cpdef eval_tab_col(self, int k):
         r"""
@@ -2657,26 +2665,20 @@ cdef class GLPKBackend(GenericBackend):
         if k < 0 or k >= m + glp_get_num_cols(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
-        cdef int    * c_indices = <int*>    sig_malloc((m+1)*sizeof(int))
-        cdef double * c_values  = <double*> sig_malloc((m+1)*sizeof(double))
-        if c_indices == NULL or c_values == NULL:
-            sig_free(c_indices)
-            sig_free(c_values)
-            raise MemoryError
+        cdef MemoryAllocator mem = MemoryAllocator()
+        cdef int    * c_indices = <int*>mem.allocarray(m+1, sizeof(int))
+        cdef double * c_values  = <double*>mem.allocarray(m+1, sizeof(double))
 
         try:
-            sig_on()            # To catch SIGABRT
+            sig_on()            # To catch GLPKError
             i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
             sig_off()
-        except RuntimeError:    # corresponds to SIGABRT
+        except GLPKError:
             raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be non-basic')
-        else:
-            indices = [c_indices[j+1] - 1 for j in range(i)]
-            values  = [c_values[j+1]      for j in range(i)]
-            return (indices, values)
-        finally:
-            sig_free(c_indices)
-            sig_free(c_values)
+
+        indices = [c_indices[j+1] - 1 for j in range(i)]
+        values  = [c_values[j+1]      for j in range(i)]
+        return (indices, values)
 
     def __dealloc__(self):
         """

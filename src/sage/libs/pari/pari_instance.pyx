@@ -1570,6 +1570,33 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return self.new_gen(genus2red(t0.g, NULL))
 
+    def List(self, x=None):
+        """
+        Create an empty list or convert `x` to a list.
+
+        EXAMPLES::
+
+            sage: pari.List(range(5))
+            List([0, 1, 2, 3, 4])
+            sage: L = pari.List()
+            sage: L
+            List([])
+            sage: L.listput(42, 1)
+            42
+            sage: L
+            List([42])
+            sage: L.listinsert(24, 1)
+            24
+            sage: L
+            List([24, 42])
+        """
+        if x is None:
+            sig_on()
+            return self.new_gen(listcreate())
+        cdef gen t0 = objtogen(x)
+        sig_on()
+        return self.new_gen(gtolist(t0.g))
+
 
 cdef inline void INT_to_mpz(mpz_ptr value, GEN g):
     """

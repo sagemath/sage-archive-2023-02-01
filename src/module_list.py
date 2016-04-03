@@ -587,6 +587,9 @@ ext_modules = [
     Extension('sage.libs.fplll.fplll',
               sources = ['sage/libs/fplll/fplll.pyx']),
 
+    Extension("sage.libs.glpk.error",
+             ["sage/libs/glpk/error.pyx"]),
+
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 

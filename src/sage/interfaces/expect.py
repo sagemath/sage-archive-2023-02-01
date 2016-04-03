@@ -1051,8 +1051,8 @@ If this all works, you can then make calls like:
             '...abc;\r\n[1] '
 
         We test interrupting ``_expect_expr`` using the GP interface,
-        see #6661.  Unfortunately, this test doesn't work reliably using
-        Singular, see #9163 and the follow-up #10476.
+        see :trac:`6661`.  Unfortunately, this test doesn't work reliably using
+        Singular, see :trac:`9163` and the follow-up :trac:`10476`.
         The ``gp.eval('0')`` in this test makes sure that ``gp`` is
         running, so a timeout of 1 second should be sufficient. ::
 
@@ -1423,13 +1423,13 @@ class StdOutContext:
         return self.interface
 
     def __exit__(self, typ, value, tb):
-        """
+        r"""
         EXAMPLE::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):
             ....:     gap('1+1')
-            $sage...
+            \$sage...
         """
         if self.silent:
             return

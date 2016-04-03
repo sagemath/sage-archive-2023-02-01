@@ -166,7 +166,6 @@ Common Pitfalls
     ``load_package`` method)::
 
         sage: gap3.RequirePackage('"chevie"')             #optional - gap3
-        W...  to  the  CHEVIE  package, ...
 
 Examples
 --------
@@ -562,13 +561,13 @@ class Gap3(Gap_generic):
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
-                - If you do not have GAP3 installed, then you must download ...
+                - If you do not have GAP3 installed, then you must either...
             sage: print gap3._install_hints()
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
-                - If you do not have GAP3 installed, then you must download ...
+                - If you do not have GAP3 installed, then you must either...
         """
         return r"""
     Your attempt to start GAP3 failed, either because you do not have

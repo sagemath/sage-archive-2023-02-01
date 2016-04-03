@@ -855,24 +855,24 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) specifies the maximal depth
+        - ``max_depth`` -- (default: ``None``) specifies the maximal depth
           for which outgoing edges of elements are computed; if ``None``, the
-          value of ``self._max_depth`` is used.
-        - ``loops`` -- (Default: ``True``) option for the digraph
-        - ``multiedges`` -- (Default: ``True``) option of the digraph
+          value of ``self._max_depth`` is used
+        - ``loops`` -- (default: ``True``) option for the digraph
+        - ``multiedges`` -- (default: ``True``) option of the digraph
 
         OUTPUT:
 
-            A directed graph.
+        A directed graph
 
-        .. NOTE::
+        .. WARNING::
 
             If the set is infinite, this will loop forever unless ``max_depth``
             is finite.
 
         EXAMPLES::
 
-            sage: child = lambda i: [(i+3) % 10, (i+8)%10]
+            sage: child = lambda i: [(i+3) % 10, (i+8) % 10]
             sage: R = RecursivelyEnumeratedSet([0], child)
             sage: R.to_digraph()
             Looped multi-digraph on 10 vertices

@@ -396,6 +396,19 @@ cdef class InteractiveLPBackend:
             sage: p.set_objective(x + y + 7)
             sage: p.solve()
             47/5
+
+        TESTS:
+
+        Constants also work the right way for min::
+
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', maximization=False)
+            sage: x,y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(-x - y - 7)
+            sage: p.solve()
+            -47/5
+
         """
         A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
         c = coeff

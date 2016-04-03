@@ -296,6 +296,16 @@ cdef class InteractiveLPBackend:
             raise NotImplementedError()
 
     def _AbcxCVPR(self):
+        """
+        Retrieve all problem data from the LP.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p._AbcxCVPR()
+            ([], (), (), (), (), (), 'max', Algebraic Real Field)
+        """
         A, b, c, x = self.lp.Abcx()
         constraint_types = self.lp.constraint_types()
         variable_types = self.lp.variable_types()

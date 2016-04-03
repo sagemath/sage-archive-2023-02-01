@@ -1160,9 +1160,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         according to the implementation, which currently is 0 for pollack-stevens,
         and 1 otherwise.
 
-        -  ``use_eclib`` - (default: False); if True the computation is
-           done with John Cremona's implementation of modular
-           symbols in ``eclib``
+        -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
         -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio',
            'period', or 'none';
@@ -1179,6 +1177,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            the initial computation of the modular symbol is
            much faster if ``use_eclib=False``, though evaluation of
            it after computing it won't be any faster.
+
+        -  ``implementation`` - (default: 'eclib'); either 'eclib', 'sage' or
+           'pollack-stevens'. If 'eclib', use John Cremona's implementation to
+           calculate the modular symbol. If 'sage', use Sage's own implementation.
+           If 'pollack-stevens', compute the modular symbol as an element of the dual
+           space, as done by Pollack--Stevens.
 
         .. SEEALSO::
 
@@ -1217,37 +1221,37 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E=EllipticCurve('11a2')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
             1
 
         ::
 
             sage: E=EllipticCurve('11a3')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
             1/25
 
         ::

@@ -841,9 +841,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             set_padicbase = False
         try:
             verbose("finding alpha: rooting %s in %s" % (poly, new_base_ring), level = 2)
+            poly = poly.change_ring(new_base_ring)
             (v0, e0), (v1, e1) = poly.roots()
-            v0 = new_base_ring(v0)
-            v1 = new_base_ring(v1)
         except (TypeError, ValueError):
             raise ValueError("new base ring must contain a root of x^2 - ap * x + p^(k+1)")
         if v0.valuation(p) > 0:
@@ -1171,13 +1170,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 verbose('Finding alpha with M = %s' % M, level = 2)
                 alpha = self.Tq_eigenvalue(p, M=M + 1, check=check)
             newM, eisenloss, q, aq = self._find_extraprec(p, M + 1, alpha, check)
-            Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
+            Phi = self._lift_to_OMS(p, newM, new_base_ring, algorithm)
             Phi = _iterate_Up(Phi, p, newM, alpha,
                                            eisenloss, q, aq, check)
             Phi = Phi.reduce_precision(M)
             return Phi._normalize(include_zeroth_moment = True)
         else:
-            return self._lift_to_OMS(p, M, new_base_ring, check, algorithm)
+            return self._lift_to_OMS(p, M, new_base_ring, algorithm)
 
     def _lift_to_OMS(self, p, M, new_base_ring, algorithm = 'greenberg'):
         r"""
@@ -1404,7 +1403,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         self = self.p_stabilize(p=p, alpha=alpha, ap=ap, M=newM,
                                 new_base_ring=new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
-        Phi = self._lift_to_OMS(p, newM, new_base_ring, check, algorithm)
+        Phi = self._lift_to_OMS(p, newM, new_base_ring, algorithm)
         Phi = _iterate_Up(Phi, p=p, M=newM, ap=alpha,
                           eisenloss=eisenloss, q=q, aq=aq, check=check)
         Phi = Phi.reduce_precision(M)

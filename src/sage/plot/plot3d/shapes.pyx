@@ -18,8 +18,26 @@ EXAMPLES::
     sage: S.show()
     sage: S.scale(1,1,2).show()
 
+.. PLOT::
+
+    from sage.plot.plot3d.shapes import *
+    S = Sphere(.5, color='yellow')
+    S += Cone(.5, .5, color='red').translate(0,0,.3)
+    S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+    S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+    S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+    sphinx_plot(S)
+
+::
+
     sage: from sage.plot.plot3d.shapes import *
     sage: Torus(.7, .2, color=(0,.3,0)).show()
+
+.. PLOT::
+
+    from sage.plot.plot3d.shapes import *
+    sphinx_plot(Torus(.7, .2, color=(0,.3,0)))
+
 """
 
 
@@ -106,13 +124,28 @@ class Box(IndexFaceSet):
     
         sage: show(Box([1,1,1]), color='black')
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        sphinx_plot(Box([1,1,1], color='black'))
+
     A red rectangular box::
 
         sage: show(Box([2,3,4], color="red"))
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        sphinx_plot(Box([2,3,4], color="red"))
+
     A stack of boxes::
     
         sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        #sphinx_plot(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
 
     A sinusoidal stack of multicolored boxes::
     
@@ -157,6 +190,11 @@ class Box(IndexFaceSet):
         """
         return "<Box size='%s %s %s'/>" % tuple(self.size)
 
+    def plot(self):
+        """
+            Being Box a 3D graphics Returns self
+        """
+        return self
 
 def ColorCube(size, colors, opacity=1, **kwds):
     """
@@ -868,6 +906,8 @@ cdef class Torus(ParametricSurface):
         res.y = (self.R+self.r*sin(v))*cos(u)
         res.z = self.r*cos(v)
 
+    def plot(self):
+        return self
 
 class Text(PrimitiveObject):
     """

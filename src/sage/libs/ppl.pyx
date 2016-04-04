@@ -318,7 +318,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef enum PPL_Degenerate_Element:
         UNIVERSE, EMPTY
 
-    cdef enum PPL_Optimization_Mode:
+    cdef enum PPL_Optimization_Mode "Parma_Polyhedra_Library::Optimization_Mode":
         MINIMIZATION, MAXIMIZATION
 
     cdef enum MIP_Problem_Status:
@@ -672,7 +672,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
 
     def __cinit__(self, PPL_dimension_type dim = 0, *args):
         """
-        The Cython constructor.
+        Constructor
 
         TESTS::
 
@@ -681,26 +681,55 @@ cdef class MIP_Problem(_mutable_or_immutable):
             A MIP_Problem
             Maximize: 0
             Subject to constraints
-        """
-        if len(args) == 0:
-            self.thisptr = new PPL_MIP_Problem(dim)
-        elif len(args) == 2:
-            cs = <Constraint_System>args[0]
-            obj = <Linear_Expression>args[1]
-            self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
-        elif len(args) == 3:
-            cs = <Constraint_System>args[0]
-            obj = <Linear_Expression>args[1]
 
-            mode = str(args[2])
-            if mode == 'maximization':
-                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
-            elif mode == 'minimization':
-                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MINIMIZATION)
-            else:
-                raise ValueError('Unknown value: mode='+str(mode)+'.')
+        Check that :trac:`19903` is fixed::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert(x + y <= 2)
+            sage: _ = MIP_Problem(2, cs, 0)
+            sage: _ = MIP_Problem(2, cs, x)
+            sage: _ = MIP_Problem(2, None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert NoneType to sage.libs.ppl.Constraint_System
+            sage: _ = MIP_Problem(2, cs, 'hey')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'hey' to an integer
+            sage: _ = MIP_Problem(2, cs, x, 'middle')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown mode 'middle'
+        """
+        cdef Constraint_System cs
+        cdef Linear_Expression obj
+        cdef PPL_Optimization_Mode mode
+
+        if not args:
+            self.thisptr = new PPL_MIP_Problem(dim)
+
+        elif 2 <= len(args) <= 3:
+            cs = <Constraint_System?>args[0]
+            try:
+                obj = <Linear_Expression?> args[1]
+            except TypeError:
+                obj = Linear_Expression(args[1])
+
+            mode = MAXIMIZATION
+            if len(args) == 3:
+                if args[2] == 'maximization':
+                    mode = MAXIMIZATION
+                elif args[2] == 'minimization':
+                    mode = MINIMIZATION
+                else:
+                    raise ValueError('unknown mode {!r}'.format(args[2]))
+            self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], mode)
+
         else:
-            raise ValueError('Cannot initialize with '+str(args)+'.')
+            raise ValueError('cannot initialize from {!r}'.format(args))
 
     def __dealloc__(self):
         """

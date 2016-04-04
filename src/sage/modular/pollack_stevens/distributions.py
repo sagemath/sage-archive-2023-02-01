@@ -544,7 +544,7 @@ class Distributions_abstract(Module):
             [(1 + O(7^4), O(7^3), O(7^2), O(7)),
              (O(7^4), 1 + O(7^3), O(7^2), O(7)),
              (O(7^4), O(7^3), 1 + O(7^2), O(7)),
-             (O(7^4), O(7^3), O(7^2), 1 + O(7))]            
+             (O(7^4), O(7^3), O(7^2), 1 + O(7))]
             sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()

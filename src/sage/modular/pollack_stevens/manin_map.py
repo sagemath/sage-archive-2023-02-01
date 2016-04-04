@@ -270,7 +270,7 @@ class ManinMap(object):
         """
         L = self._manin.relations(B)
         # could raise KeyError if B is not a generator
-        t = self._codomain(0)        
+        t = self._codomain(0)
         for c, A, g in L:
             g1 = self._dict[self._manin.reps(g)] * A
             t += g1 * c

@@ -813,7 +813,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
     - ``sign`` -- the sign (default: 0). If nonzero, returns either
     the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
     symbol. The default of 0 returns the sum of the plus and minus symbols.
-    
+
     OUTPUT:
 
     The Pollack-Stevens modular symbol associated to ``E``

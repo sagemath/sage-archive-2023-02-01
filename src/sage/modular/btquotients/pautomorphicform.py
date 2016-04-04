@@ -96,14 +96,6 @@ def eval_dist_at_powseries(phi, f):
         sage: phi = D(range(1,11))
         sage: eval_dist_at_powseries(phi,f)
         1 + 2*7 + 3*7^2 + 4*7^3 + 5*7^4 + 6*7^5 + 2*7^7 + 3*7^8 + 4*7^9 + O(7^10)
-
-    Even though it only makes sense to evaluate a distribution on
-    a Tate series, this function will output a (possibly
-    nonsensical) value for any power series::
-
-        sage: g = (1-X)^(-1)
-        sage: eval_dist_at_powseries(phi,g)
-        6 + 6*7 + O(7^10)
     """
     nmoments = phi.parent().precision_cap()
     K = f.parent().base_ring()
@@ -289,6 +281,19 @@ class HarmonicCocycleElement(HeckeModuleElement):
         """
         return 'Harmonic cocycle with values in %s' % (self.parent()._U)
 
+    def monomial_coefficients(self):
+        r"""
+        Void method to comply with pickling.
+
+        EXAMPLES::
+
+        sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+        sage: M.monomial_coefficients()
+        {}
+
+        """
+        return {}
+
     def print_values(self):
         r"""
         Prints the values of the cocycle on all of the edges.
@@ -463,7 +468,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
             1 + 5 + 2*5^3 + 4*5^4 + 2*5^5 + 3*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
         """
         R1 = LaurentSeriesRing(f.base_ring(), 'r1')
-        R1.set_default_prec(self.parent()._k - 1)
+        # R1.set_default_prec(self.parent()._k - 1)
 
         if E is None:
             E = self.parent()._X._BT.get_balls(center, level)
@@ -709,6 +714,19 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         AmbientHeckeModule.__init__(self, self._R, self.__rank,
                                     self._X.prime() * self._X.Nplus() * self._X.Nminus(), weight=self._k)
         self._populate_coercion_lists_()
+
+    def monomial_coefficients(self):
+        r"""
+        Void method to comply with pickling.
+
+        EXAMPLES::
+
+        sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+        sage: M.monomial_coefficients()
+        {}
+
+        """
+        return {}
 
     def base_extend(self, base_ring):
         r"""
@@ -970,8 +988,6 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: H(0)
             Harmonic cocycle with values in Sym^0 Q_3^2
         """
-        # Code how to coerce x into the space
-        # Admissible values of x?
         if type(x) is sage.modules.free_module_element.FreeModuleElement_generic_dense:
             vmat = MatrixSpace(self._R, 1, self.dimension())(x)
             tmp = (vmat * self.ambient_module().basis_matrix()).row(0)
@@ -1058,9 +1074,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(7,2)
             sage: q = X.get_stabilizers()[0][1][0]
             sage: H = HarmonicCocycles(X,2,prec = 5)
-            sage: H.embed_quaternion(q)
-            [4 + 5*7 + 3*7^2 + 5*7^3 + 2*7^4 + O(7^5)     1 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^5)]
-            [        7 + 3*7^2 + 7^3 + 4*7^4 + O(7^5)     2 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^5)]
+            sage: Hmat = H.embed_quaternion(q)
+            sage: Hmat.matrix().trace() == X._conv(q).reduced_trace() and Hmat.matrix().determinant() == 1
+            True
         """
         if exact is None:
             exact = self._R.is_exact()
@@ -1104,7 +1120,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         nV = len(self._V)
         nE = len(self._E)
         stab_conds = []
-        S = self._X.get_edge_stabs()
+        S = self._X.get_edge_stabilizers()
         p = self._X._p
         d = self._k - 1
         for e in self._E:
@@ -1817,7 +1833,7 @@ class pAutomorphicFormElement(ModuleElement):
         value = 0
         ii = 0
         if method == 'riemann_sum':
-            R1.set_default_prec(self.parent()._U.weight() + 1)
+            # R1.set_default_prec(self.parent()._U.weight() + 1)
             for e in E:
                 ii += 1
                 #print ii,"/",len(E)
@@ -1826,7 +1842,7 @@ class pAutomorphicFormElement(ModuleElement):
                 new = eval_dist_at_powseries(self.evaluate(e), exp.truncate(self.parent()._U.weight() + 1))
                 value += new
         elif method == 'moments':
-            R1.set_default_prec(self.parent()._U.base_ring().precision_cap())
+            # R1.set_default_prec(self.parent()._U.base_ring().precision_cap())
             n = self.parent()._U.weight()
             for e in E:
                 ii += 1
@@ -2077,7 +2093,7 @@ class pAutomorphicFormElement(ModuleElement):
         ii = 0
         value_exp = K(1)
         if method == 'riemann_sum':
-            R1.set_default_prec(self.parent()._U.weight() + 1)
+            # R1.set_default_prec(self.parent()._U.weight() + 1)
             for e in E:
                 ii += 1
                 b = e[0, 1]
@@ -2091,7 +2107,7 @@ class pAutomorphicFormElement(ModuleElement):
                     value_exp *= K.teichmuller(y) ** Integer(c_e.moment(0).rational_reconstruction())
 
         elif method == 'moments':
-            R1.set_default_prec(self.parent()._U.base_ring().precision_cap())
+            # R1.set_default_prec(self.parent()._U.base_ring().precision_cap())
             for e in E:
                 ii += 1
                 f = (x - t1) / (x - t2)

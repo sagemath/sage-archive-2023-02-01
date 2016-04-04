@@ -20,7 +20,7 @@ import collections
 from sage.misc.misc_c import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import gcd, xgcd, kronecker_symbol
+from sage.arith.all import gcd, xgcd, kronecker_symbol, fundamental_discriminant
 from sage.rings.padics.all import Qp, Zp
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.algebras.quatalg.all import QuaternionAlgebra
@@ -34,8 +34,7 @@ from sage.rings.number_field.all import NumberField
 from sage.modular.arithgroup.all import Gamma0
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.modular.dirichlet import DirichletGroup
-from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-from sage.rings.arith import fundamental_discriminant
+from sage.modular.arithgroup.congroup_gammaH import GammaH_constructor
 from sage.misc.misc import verbose
 
 
@@ -1451,11 +1450,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         self._BT = BruhatTitsTree(p)
 
-        # This value for self._prec was chosen to agree with a hardcoded
-        # value in _compute_quotient (the line:
-        # self.get_embedding_matrix(prec = 3))
-        # It was previously -1 and caused the program to default to
-        # exact splittings (hence magma) in many situations
         self._prec = -1
 
         self._cached_vertices = {}
@@ -1484,6 +1478,21 @@ class BTQuotient(SageObject, UniqueRepresentation):
                     self._Mat_22([0, 0, self._p, 0]),
                     self._Mat_22([0, 0, 0, 1])]
 
+    def _cache_key(self):
+        r"""
+        Returns a hash of self, for using in caching.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(5,13)
+            sage: X._cache_key()
+            7479731716828976543
+            sage: Y = BTQuotient(5,13,use_magma = True) # optional - magma
+            sage: Y._cache_key() == X._cache_key() # optional - magma
+            False
+        """
+
+        return hash((self._p, self._Nminus, self._Nplus, self._character, self._use_magma))
     def _repr_(self):
         r"""
         Returns the representation of self as a string.
@@ -1630,13 +1639,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(3,13)
-            sage: X.get_nontorsion_generators()
-            [
-            [ 2]  [-5]  [ 4]
-            [-5]  [ 3]  [ 1]
-            [ 1]  [ 1]  [-3]
-            [ 0], [ 2], [-2]
-            ]
+            sage: len(X.get_nontorsion_generators())
+            3
         """
         try:
             return list(self._nontorsion_generators)
@@ -1662,13 +1666,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(3,2)
-            sage: X.get_generators()
-            [
-            [-1]  [ 3]
-            [ 1]  [-2]
-            [ 1]  [-2]
-            [ 1], [ 1]
-            ]
+            sage: len(X.get_generators())
+            2
         """
         ans = self.get_nontorsion_generators()
         for s in self.get_vertex_stabs():
@@ -1894,7 +1893,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(7, 2 * 3 * 5 * 11 * 13)
             sage: print X.dimension_harmonic_cocycles(2)
             481
-            sage: print X.dimension_harmonic_cocycles(2)
+            sage: print X.dimension_harmonic_cocycles(4)
             1440
         """
         k = ZZ(k)
@@ -1919,6 +1918,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if k == 0:
             return 0
 
+        verbose('Computing dimension for (k,level,nplus,char) = (%s, %s, %s, %s)'%(k, lev, Nplus, character), level = 2)
+
         if lev == 1:
             return Gamma0(Nplus).dimension_cusp_forms(k=k)
 
@@ -1926,7 +1927,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if any([l[1] != 1 for l in f]):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
-        GH = lambda N,ker: Gamma0(N) if character is None else GammaH_class(N,ker)
+        GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
 
         divs = lev.divisors()
 
@@ -1938,8 +1939,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 elif r == 1:
                     p *= -2
             return ZZ(p)
-
-        #return GammaH_class(lev * Nplus, kernel).dimension_cusp_forms(k=k) - sum([len(ZZ(lev / d).divisors()) * self.dimension_harmonic_cocycles(k, d, Nplus, character) for d in divs[:-1]]) # THIS WAS DEFINITELY WRONG
         return sum([mumu(lev // d) * GH(d * Nplus, kernel).dimension_cusp_forms(k) for d in lev.divisors()])
 
     def Nplus(self):
@@ -2062,6 +2061,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(7,23)
             sage: X.plot()
+            Graphics object consisting of 17 graphics primitives
         """
         S = self.get_graph()
         vertex_colors = {}
@@ -2094,6 +2094,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(7,23)
             sage: X.plot_fundom()
+            Graphics object consisting of 88 graphics primitives
         """
         S = self.get_fundom_graph()
         vertex_colors = {}
@@ -2499,7 +2500,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         A = self.get_embedding_matrix(prec=prec)
         return lambda g: Matrix(self._R, 2, 2, (A * g).list())
 
-    def get_edge_stabs(self):
+    def get_edge_stabilizers(self):
         r"""
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
@@ -2520,45 +2521,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X=BTQuotient(3,2)
-            sage: s = X.get_edge_stabs()
+            sage: s = X.get_edge_stabilizers()
             sage: len(s) == X.get_num_ordered_edges()/2
             True
-            sage: s[0]
-            [[[ 2]
-            [-1]
-            [-1]
-            [-1], 0, False], [[ 1]
-            [-1]
-            [-1]
-            [-1], 0, True], [[1]
-            [0]
-            [0]
-            [0], 0, True]]
-
-        The second element of `s` should stabilize the first edge of
-        X, which corresponds to the identity matrix::
-
-            sage: X.embed_quaternion(s[0][1][0])
-            [2 + 2*3 + 3^2 + O(3^3) 1 + 2*3 + 3^2 + O(3^3)]
-            [    2*3 + 3^2 + O(3^3)       2 + 3^2 + O(3^3)]
-            sage: newe = X.embed_quaternion(s[0][1][0])
-            sage: newe.set_immutable()
-            sage: X._find_equivalent_edge(newe)
-            (([ 2]
-            [-1]
-            [-1]
-            [-1], 0), Edge of BT-tree for p = 3)
-
-        The first entry above encodes an element that maps the edge
-        corresponding to newe to something in the fundamental domain
-        of X. Note that this quaternion is in fact in the
-        stabilizer. We check the representative matrix of the edge and
-        ensure that it's the identity, which is the edge we started
-        with::
-
-            sage: X._find_equivalent_edge(newe)[1].rep
-            [1 0]
-            [0 1]
+            sage: len(s[0])
+            3
         """
         try:
             return self._edge_stabs
@@ -2571,7 +2538,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
-        the quotient graph. This is similar to get_edge_stabs, except
+        the quotient graph. This is similar to get_edge_stabilizers, except
         that here we also store the stabilizers of the opposites.
 
         OUTPUT:
@@ -2596,7 +2563,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X._BT.edge(gamma*v) == v
             True
         """
-        S = self.get_edge_stabs()
+        S = self.get_edge_stabilizers()
         return S + S
 
     def get_vertex_stabs(self):
@@ -2952,10 +2919,18 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(3,7)
             sage: X._get_Up_data()
-            [[[1/3   0]
-            [  0   1], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]], [[-1/3  1/3]
-            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]], [[-2/3  1/3]
-            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]]]
+            [[
+            [1/3   0]
+            [  0   1], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
+            ],
+            [
+            [-1/3  1/3]
+            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
+            ],
+            [
+            [-2/3  1/3]
+            [   1    0], [DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction, DoubleCosetReduction]
+            ]]
         """
         E = self.get_edge_list()
         vec_a = self._BT.subdivide([1], 1)
@@ -3110,11 +3085,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
-            sage: X._find_equivalent_vertex(M)
-            (([ 0]
-            [-2]
-            [ 0]
-            [ 1], 0), Vertex of BT-tree for p = 3)
+            sage: X._find_equivalent_vertex(M)[-1] in X.get_vertex_list()
+            True
         """
         try:
             return self._cached_vertices[v0]
@@ -3159,11 +3131,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
-            sage: X._find_equivalent_edge(M)
-            (([ 0]
-            [-2]
-            [ 0]
-            [ 1], 0), Edge of BT-tree for p = 3)
+            sage: X._find_equivalent_edge(M)[-1] in X.get_edge_list()
+            True
         """
         try:
             return self._cached_edges[e0]
@@ -3290,11 +3259,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(3,7)
-            sage: X._stabilizer(Matrix(ZZ,2,2,[3,8,2,9]))
-            [[([ 2]
-            [ 0]
-            [-1]
-            [ 0], 0), 0, False]]
+            sage: X._stabilizer(Matrix(ZZ,2,2,[3,8,2,9]))[0][2]
+            False
         """
         p = self._p
         m = e.determinant().valuation(p)
@@ -3410,30 +3376,20 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
           If the objects are equivalent, returns an element of
           the arithemtic group Gamma that takes v1 to v2. Otherwise
-          returns false.
+          returns False.
 
         EXAMPLES::
 
             sage: X = BTQuotient(7,5)
             sage: M1 = Matrix(ZZ,2,2,[88,3,1,1])
             sage: M1.set_immutable()
-            sage: X._are_equivalent(M1,M1)
-            (
-            [-2]
-            [ 0]
-            [ 1]
-            [ 1], 0
-            )
+            sage: X._are_equivalent(M1,M1) == False
+            False
             sage: M2 = Matrix(ZZ,2,2,[1,2,8,1]); M2.set_immutable()
             sage: print X._are_equivalent(M1,M2, as_edges=True)
             None
-            sage: X._are_equivalent(M1,M2)
-            (
-            [-2]
-            [ 0]
-            [ 1]
-            [ 1], 0
-            )
+            sage: X._are_equivalent(M1,M2) == False
+            False
 
         REFERENCES:
 
@@ -3769,10 +3725,12 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: f = X.harmonic_cocycle_from_elliptic_curve(E,10)
             sage: T29 = f.parent().hecke_operator(29)
             sage: T29(f) == E.ap(29) * f
+            True
             sage: E = EllipticCurve('51a1')
+            sage: X = BTQuotient(3,17)
             sage: f = X.harmonic_cocycle_from_elliptic_curve(E,20)
-            sage: T31=f.parent().hecke_operator(31)
-            sage: T31(f)==E.ap(31)*
+            sage: T31 = f.parent().hecke_operator(31)
+            sage: T31(f) == E.ap(31) * f
             True
         """
         from pautomorphicform import HarmonicCocycles

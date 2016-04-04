@@ -31,9 +31,9 @@ generadores:
     sage: print latex(G)
     \langle (3,4), (1,2,3)(4,5) \rangle
 
-También podemos obtener la tabla de caracteres en formato LaTex (usa 
+También podemos obtener la tabla de caracteres en formato LaTeX (usa 
 ``show(G.character_table())`` para ver directamente el resultado de compilar el 
-código LaTex):
+código LaTeX):
 
 ::
 

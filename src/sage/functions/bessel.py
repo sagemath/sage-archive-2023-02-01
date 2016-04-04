@@ -181,8 +181,10 @@ REFERENCES:
 
 .. [AS-Bessel] F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_355.htm
+.. [AS-Spherical] H. A. Antosiewicz: 10. Bessel Functions of Fractional Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
+    http://people.math.sfu.ca/~cbm/aands/page_435.htm
 .. [AS-Struve] M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
-   http://people.math.sfu.ca/~cbm/aands/page_495.htm
+    http://people.math.sfu.ca/~cbm/aands/page_495.htm
 .. [DLMF-Bessel] F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/10
 .. [DLMF-Struve] R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
@@ -1357,6 +1359,10 @@ class Function_Hankel1(BuiltinFunction):
         0.309062682819597 - 0.512591541605233*I
         sage: hankel1(3, 3.)
         0.309062722255252 - 0.538541616105032*I
+
+    REFERENCES:
+
+    - [AS-Bessel]_ see 9.1.6
     """
     def __init__(self):
         r"""
@@ -1439,6 +1445,10 @@ class Function_Hankel2(BuiltinFunction):
         0.309062682819597 + 0.512591541605234*I
         sage: hankel2(3, 3.)
         0.309062722255252 + 0.538541616105032*I
+
+    REFERENCES:
+
+    - [AS-Bessel]_ see 9.1.6
     """
     def __init__(self):
         r"""
@@ -1525,6 +1535,14 @@ class SphericalBesselJ(BuiltinFunction):
         1/6*pi
         sage: latex(spherical_bessel_J(4, x))
         j_{4}\left(x\right)
+
+    REFERENCES:
+
+    - [AS-Spherical]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         r"""
@@ -1614,6 +1632,14 @@ class SphericalBesselY(BuiltinFunction):
         -1/6*pi
         sage: latex(spherical_bessel_Y(0, x))
         y_{0}\left(x\right)
+
+    REFERENCES:
+
+    - [AS-Spherical]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         r"""
@@ -1703,6 +1729,14 @@ class SphericalHankel1(BuiltinFunction):
         Ei(I*x) - 6*gamma(-1, -I*x) - 15*gamma(-2, -I*x) - 15*gamma(-3, -I*x)
         sage: latex(spherical_hankel1(3, x))
         h_{3}^{(1)}\left(x\right)
+
+    REFERENCES:
+
+    - [AS-Spherical]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         r"""
@@ -1791,6 +1825,14 @@ class SphericalHankel2(BuiltinFunction):
         Ei(-I*x) - 6*gamma(-1, I*x) - 15*gamma(-2, I*x) - 15*gamma(-3, I*x)
         sage: latex(spherical_hankel2(3, x))
         h_{3}^{(2)}\left(x\right)
+
+    REFERENCES:
+
+    - [AS-Spherical]_
+
+    - [DLMF-Bessel]_
+
+    - [WP-Bessel]_
     """
     def __init__(self):
         r"""

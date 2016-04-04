@@ -200,6 +200,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     ctypedef size_t PPL_dimension_type  "Parma_Polyhedra_Library::dimension_type"
     ctypedef mpz_class PPL_Coefficient  "Parma_Polyhedra_Library::Coefficient"
     cdef cppclass PPL_Variable          "Parma_Polyhedra_Library::Variable"
+    cdef cppclass PPL_Variables_Set     "Parma_Polyhedra_Library::Variables_Set"
     cdef cppclass PPL_Linear_Expression "Parma_Polyhedra_Library::Linear_Expression"
     cdef cppclass PPL_Generator         "Parma_Polyhedra_Library::Generator"
     cdef cppclass PPL_Generator_System  "Parma_Polyhedra_Library::Generator_System"
@@ -217,6 +218,16 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         PPL_dimension_type id()
         bint OK()
         PPL_dimension_type space_dimension()
+
+    cdef cppclass PPL_Variables_Set:
+        PPL_Variables_Set()
+        PPL_Variables_Set(PPL_Variable v)
+        PPL_Variables_Set(PPL_Variable v, PPL_Variable w)
+        PPL_dimension_type space_dimension()
+        void insert(PPL_Variable v)
+        size_t size()
+        void ascii_dump()
+        bint OK()
 
     cdef cppclass PPL_Linear_Expression:
         PPL_Linear_Expression()
@@ -460,6 +471,7 @@ cdef extern from "ppl_shim.hh":
 ### Forward declarations ###########################
 cdef class _mutable_or_immutable(SageObject)
 cdef class Variable(object)
+cdef class Variables_Set(object)
 cdef class Linear_Expression(object)
 cdef class Generator(object)
 cdef class Generator_System(_mutable_or_immutable)
@@ -3745,6 +3757,155 @@ cdef class Variable(object):
         """
         return _make_Constraint_from_richcmp(self, other, op)
 
+
+####################################################
+### Variables_Set ##################################
+####################################################
+
+cdef class Variables_Set(object):
+    r"""
+    Wrapper for PPL's ``Variables_Set`` class.
+
+    A set of variables' indexes.
+
+    EXAMPLES:
+
+    Build the empty set of variable indexes::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: Variables_Set()
+            Variables_Set of cardinality 0
+
+    Build the singleton set of indexes containing the index of the variable::
+
+            sage: v123 = Variable(123)
+            sage: Variables_Set(v123)
+            Variables_Set of cardinality 1
+
+    Build the set of variables' indexes in the range from one variable to
+    another variable::
+
+            sage: v127 = Variable(127)
+            sage: Variables_Set(v123,v127)
+            Variables_Set of cardinality 5
+    """
+
+    cdef PPL_Variables_Set *thisptr
+
+    def __cinit__(self, *args):
+        """
+        The Cython constructor.
+
+        See :class:`Variables_Set` for documentation.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: Variables_Set()
+            Variables_Set of cardinality 0
+        """
+        if len(args)==0:
+            self.thisptr = new PPL_Variables_Set()
+        elif len(args)==1:
+            v = <Variable?>args[0]
+            self.thisptr = new PPL_Variables_Set(v.thisptr[0])
+        elif len(args)==2:
+            v = <Variable?>args[0]
+            w = <Variable?>args[1]
+            self.thisptr = new PPL_Variables_Set(v.thisptr[0], w.thisptr[0])
+
+    def __dealloc__(self):
+        """
+        The Cython destructor
+        """
+        del self.thisptr
+
+    def OK(self):
+        """
+        Checks if all the invariants are satisfied.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: v123 = Variable(123)
+            sage: S = Variables_Set(v123)
+            sage: S.OK()
+            True
+        """
+        return self.thisptr.OK()
+
+    def space_dimension(self):
+        r"""
+        Returns the dimension of the smallest vector space enclosing all the variables whose indexes are in the set.
+
+        OUPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: v123 = Variable(123)
+            sage: S = Variables_Set(v123)
+            sage: S.space_dimension()
+            124
+        """
+        return self.thisptr.space_dimension()
+
+    def insert(self, Variable v):
+        r"""
+        Inserts the index of variable `v` into the set.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: S = Variables_Set()
+            sage: v123 = Variable(123)
+            sage: S.insert(v123)
+            sage: S.space_dimension()
+            124
+        """
+        self.thisptr.insert(v.thisptr[0])
+
+    def ascii_dump(self):
+        r"""
+        Write an ASCII dump to stderr.
+
+        EXAMPLES::
+
+            sage: sage_cmd  = 'from sage.libs.ppl import Variable, Variables_Set\n'
+            sage: sage_cmd += 'v123 = Variable(123)\n'
+            sage: sage_cmd += 'S = Variables_Set(v123)\n'
+            sage: sage_cmd += 'S.ascii_dump()\n'
+            sage: from sage.tests.cmdline import test_executable
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
+            sage: print err  # long time
+            <BLANKLINE>
+            variables( 1 )
+            123
+        """
+        self.thisptr.ascii_dump()
+
+    def __repr__(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: S = Variables_Set()
+            sage: S.__repr__()
+            'Variables_Set of cardinality 0'
+        """
+        return 'Variables_Set of cardinality {}'.format(self.thisptr.size())
 
 ####################################################
 ### Linear_Expression ##############################

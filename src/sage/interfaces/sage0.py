@@ -316,7 +316,7 @@ class Sage(ExtraTabCompletion, Expect):
         Clear the variable named var.
 
         Note that the exact format of the NameError for a cleared variable
-        is slightly platform dependent, see trac #10539.
+        is slightly platform dependent, see :trac:`10539`.
 
         EXAMPLES::
 
@@ -346,7 +346,7 @@ class Sage(ExtraTabCompletion, Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | SageMath Version ..., Release Date: ...                            |
+            | SageMath version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -358,7 +358,7 @@ class Sage(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'SageMath Version ..., Release Date: ...'
+            'SageMath version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -525,7 +525,7 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | SageMath Version ..., Release Date: ...                            |
+        | SageMath version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

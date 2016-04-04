@@ -276,7 +276,7 @@ def ModularSymbols(group  = 1,
     ::
 
         sage: G = DirichletGroup(13,GF(4,'a')); G
-        Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
+        Group of Dirichlet characters modulo 13 with values in Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
         Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a + 1
         sage: M = ModularSymbols(e,4); M

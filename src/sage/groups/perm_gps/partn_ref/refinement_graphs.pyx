@@ -132,36 +132,36 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
         return {}
 
     part = PS_from_list(partition)
-    ordering = <int *> sage_malloc(n * sizeof(int))
-    output = <int *> sage_malloc(n * sizeof(int))
+    ordering = <int *> sig_malloc(n * sizeof(int))
+    output = <int *> sig_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL or output is NULL:
         PS_dealloc(part)
-        sage_free(ordering)
-        sage_free(output)
+        sig_free(ordering)
+        sig_free(output)
         raise MemoryError
     for i from 0 <= i < n:
         ordering[i] = to2[ordering2[i]]
 
-    GS1.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
-    GS2.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+    GS1.scratch = <int *> sig_malloc((3*n+1) * sizeof(int))
+    GS2.scratch = <int *> sig_malloc((3*n+1) * sizeof(int))
     if GS1.scratch is NULL or GS2.scratch is NULL:
-        sage_free(GS1.scratch)
-        sage_free(GS2.scratch)
+        sig_free(GS1.scratch)
+        sig_free(GS2.scratch)
         PS_dealloc(part)
-        sage_free(ordering)
+        sig_free(ordering)
         raise MemoryError
 
     cdef bint isomorphic = double_coset(<void *>GS1, <void *>GS2, part, ordering, n, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, NULL, NULL, output)
 
     PS_dealloc(part)
-    sage_free(ordering)
-    sage_free(GS1.scratch)
-    sage_free(GS2.scratch)
+    sig_free(ordering)
+    sig_free(GS1.scratch)
+    sig_free(GS2.scratch)
     if isomorphic:
         output_py = dict([[frm1[i], frm2[output[i]]] for i from 0 <= i < n])
     else:
         output_py = False
-    sage_free(output)
+    sig_free(output)
     return output_py
 
 def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
@@ -426,16 +426,16 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         else:
             return tuple(return_tuple)
 
-    GS.scratch = <int *> sage_malloc( (3*G.num_verts + 1) * sizeof(int) )
+    GS.scratch = <int *> sig_malloc( (3*G.num_verts + 1) * sizeof(int) )
     part = PS_from_list(partition)
     if GS.scratch is NULL or part is NULL:
         PS_dealloc(part)
-        sage_free(GS.scratch)
+        sig_free(GS.scratch)
         raise MemoryError
 
     lab_new = lab or certify
     output = get_aut_gp_and_can_lab(<void *>GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab, NULL, NULL, NULL)
-    sage_free( GS.scratch )
+    sig_free( GS.scratch )
     # prepare output
     list_of_gens = []
     for i from 0 <= i < output.num_gens:
@@ -944,7 +944,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
 
     cdef GraphStruct GS = GraphStruct()
     GS.G = G
-    GS.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+    GS.scratch = <int *> sig_malloc((3*n+1) * sizeof(int))
     if GS.scratch is NULL:
         PS_dealloc(nu)
         raise MemoryError
@@ -953,10 +953,10 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
 
     # set up cells to refine by
     cdef int num_cells = len(partition)
-    cdef int *alpha = <int *>sage_malloc(n * sizeof(int))
+    cdef int *alpha = <int *>sig_malloc(n * sizeof(int))
     if alpha is NULL:
         PS_dealloc(nu)
-        sage_free(GS.scratch)
+        sig_free(GS.scratch)
         raise MemoryError
     j = 0
     for i from 0 <= i < num_cells:
@@ -975,8 +975,8 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
             cell = []
 
     PS_dealloc(nu)
-    sage_free(GS.scratch)
-    sage_free(alpha)
+    sig_free(GS.scratch)
+    sig_free(alpha)
 
     return eq_part
 
@@ -999,7 +999,7 @@ def get_orbits(list gens, int n):
         return [[i] for i from 0 <= i < n]
 
     cdef OrbitPartition *OP = OP_new(n)
-    cdef int *perm_ints = <int *> sage_malloc(n * sizeof(int))
+    cdef int *perm_ints = <int *> sig_malloc(n * sizeof(int))
     if perm_ints is NULL:
         OP_dealloc(OP)
         raise MemoryError
@@ -1018,7 +1018,7 @@ def get_orbits(list gens, int n):
             orbit_dict[j] = [i]
 
     OP_dealloc(OP)
-    sage_free(perm_ints)
+    sig_free(perm_ints)
 
     return orbit_dict.values()
 
@@ -1074,15 +1074,15 @@ cdef void *allocate_degd(int degree):
     r"""
     Allocate the data part of the iterator over edges to add to the graph.
     """
-    cdef dg_edge_gen_data *degd = <dg_edge_gen_data *> sage_malloc(sizeof(dg_edge_gen_data))
+    cdef dg_edge_gen_data *degd = <dg_edge_gen_data *> sig_malloc(sizeof(dg_edge_gen_data))
     cdef iterator *edge_iterator = allocate_subset_gen(degree, 2)
     if degd is NULL or edge_iterator is NULL:
-        sage_free(degd)
+        sig_free(degd)
         free_subset_gen(edge_iterator)
         return NULL
     edge_iterator = setup_set_gen(edge_iterator, degree, 2)
     if edge_iterator is NULL:
-        sage_free(degd)
+        sig_free(degd)
         return NULL
     degd.edge_iterator = edge_iterator
     return degd
@@ -1093,7 +1093,7 @@ cdef void deallocate_degd(void *data):
     """
     cdef dg_edge_gen_data *degd = <dg_edge_gen_data *> data
     free_subset_gen(degd.edge_iterator)
-    sage_free(degd)
+    sig_free(degd)
 
 cdef int gen_children_dg_edge(void *S, aut_gp_and_can_lab *group, iterator *it):
     r"""
@@ -1153,7 +1153,7 @@ cdef void *allocate_dg_edge(int n, bint loops):
     try:
         GS = GraphStruct()
         G  = DenseGraph(n)
-        scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
+        scratch = <int *> sig_malloc((3*n+1) * sizeof(int))
         if scratch is NULL:
             raise MemoryError
     except MemoryError:
@@ -1172,7 +1172,7 @@ cdef void free_dg_edge(void *child):
     Deallocates an object for this augmentation scheme.
     """
     cdef GraphStruct GS = <GraphStruct> child
-    sage_free(GS.scratch)
+    sig_free(GS.scratch)
     Py_DECREF(GS.G)
     Py_DECREF(GS)
 
@@ -1210,10 +1210,10 @@ cdef iterator *allocate_dg_edge_gen(int degree, int depth, bint loops):
     r"""
     Allocates the iterator for generating graphs.
     """
-    cdef iterator *dg_edge_gen = <iterator *> sage_malloc(sizeof(iterator))
+    cdef iterator *dg_edge_gen = <iterator *> sig_malloc(sizeof(iterator))
     cdef canonical_generator_data *cgd = allocate_cgd(depth, degree)
     if dg_edge_gen is NULL or cgd is NULL:
-        sage_free(dg_edge_gen)
+        sig_free(dg_edge_gen)
         deallocate_cgd(cgd)
         return NULL
     cdef int i, j
@@ -1229,7 +1229,7 @@ cdef iterator *allocate_dg_edge_gen(int degree, int depth, bint loops):
                 deallocate_degd(cgd.iterator_stack[j].data)
                 free_dg_edge(cgd.object_stack[j])
                 free_dg_edge(cgd.parent_stack[j])
-            sage_free(dg_edge_gen)
+            sig_free(dg_edge_gen)
             deallocate_cgd(cgd)
             return NULL
     dg_edge_gen.data = <void *> cgd
@@ -1242,7 +1242,7 @@ cdef void free_dg_edge_gen(iterator *dg_edge_gen):
     """
     cdef canonical_generator_data *cgd = <canonical_generator_data *> dg_edge_gen.data
     deallocate_cgd(cgd)
-    sage_free(dg_edge_gen)
+    sig_free(dg_edge_gen)
 
 
 def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = None, bint construct = False,
@@ -1421,7 +1421,7 @@ cdef void *allocate_dg_vert(int n, int depth):
         G  = DenseGraph(0, extra_vertices=depth)
         bitset_set_first_n(G.active_vertices, n)
         G.num_verts = n
-        scratch = <int *> sage_malloc((3*depth+1) * sizeof(int))
+        scratch = <int *> sig_malloc((3*depth+1) * sizeof(int))
         if scratch is NULL:
             raise MemoryError
     except MemoryError:
@@ -1440,7 +1440,7 @@ cdef void free_dg_vert(void *child):
     Deallocates an object for this augmentation scheme.
     """
     cdef GraphStruct GS = <GraphStruct> child
-    sage_free(GS.scratch)
+    sig_free(GS.scratch)
     Py_DECREF(GS.G)
     Py_DECREF(GS)
 
@@ -1470,11 +1470,11 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
     r"""
     Allocates the iterator for generating graphs.
     """
-    cdef iterator *dg_vert_gen = <iterator *> sage_malloc(sizeof(iterator))
+    cdef iterator *dg_vert_gen = <iterator *> sig_malloc(sizeof(iterator))
     cdef canonical_generator_data *cgd = allocate_cgd(depth, degree)
     cdef canonical_generator_data *cgd2
     if dg_vert_gen is NULL or cgd is NULL:
-        sage_free(dg_vert_gen)
+        sig_free(dg_vert_gen)
         deallocate_cgd(cgd)
         return NULL
     cdef int i, j
@@ -1486,7 +1486,7 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
             for j from 0 <= j <= i:
                 free_dg_vert(cgd.object_stack[j])
                 free_dg_vert(cgd.parent_stack[j])
-            sage_free(dg_vert_gen)
+            sig_free(dg_vert_gen)
             deallocate_cgd(cgd)
             return NULL
     for i from 0 <= i < depth-1:
@@ -1500,7 +1500,7 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
             for j from 0 <= j < i:
                 cgd2 = <canonical_generator_data *> cgd.iterator_stack[j].data
                 deallocate_cgd(cgd2)
-            sage_free(dg_vert_gen)
+            sig_free(dg_vert_gen)
             deallocate_cgd(cgd)
             return NULL
     dg_vert_gen.data = <void *> cgd
@@ -1513,7 +1513,7 @@ cdef void free_dg_vert_gen(iterator *dg_vert_gen):
     """
     cdef canonical_generator_data *cgd = <canonical_generator_data *> dg_vert_gen.data
     deallocate_cgd(cgd)
-    sage_free(dg_vert_gen)
+    sig_free(dg_vert_gen)
 
 cdef void free_cgd_2(void *data):
     r"""

@@ -1222,7 +1222,7 @@ cdef class PathAlgebraElement(RingElement):
             # memory occupied by out first.
             outnxt = out.nxt
             poly_free(out.poly)
-            sage_free(out)
+            sig_free(out)
             return self._new_(outnxt)
         return self._new_(out)
 
@@ -1253,7 +1253,7 @@ cdef class PathAlgebraElement(RingElement):
             # memory occupied by out first.
             outnxt = out.nxt
             poly_free(out.poly)
-            sage_free(out)
+            sig_free(out)
             return self._new_(outnxt)
         return self._new_(out)
 
@@ -1390,8 +1390,8 @@ cdef class PathAlgebraElement(RingElement):
         while out_orig != NULL and out_orig.poly.lead == NULL:
             tmp = out_orig.nxt
             sig_check()
-            sage_free(out_orig.poly)
-            sage_free(out_orig)
+            sig_free(out_orig.poly)
+            sig_free(out_orig)
             out_orig = tmp
         if out_orig == NULL:
             return self._new_(NULL)
@@ -1400,8 +1400,8 @@ cdef class PathAlgebraElement(RingElement):
             if tmp.nxt.poly.lead == NULL:
                 sig_check()
                 nxt = tmp.nxt.nxt
-                sage_free(tmp.nxt.poly)
-                sage_free(tmp.nxt)
+                sig_free(tmp.nxt.poly)
+                sig_free(tmp.nxt)
                 tmp.nxt = nxt
             else:
                 tmp = tmp.nxt

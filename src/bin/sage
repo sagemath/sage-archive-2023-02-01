@@ -363,7 +363,9 @@ sage_setup() {
     fi
 
     # Display the startup banner
-    if [ "$SAGE_BANNER" != "no" ]; then
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
         cat "$SAGE_LOCAL/bin/sage-banner"
     fi
 
@@ -406,7 +408,7 @@ fi
 
 if [ "$1" = '-q' ]; then
     shift
-    export SAGE_BANNER="no"
+    export SAGE_BANNER=no
 fi
 
 if [ $# -eq 0 ]; then
@@ -429,7 +431,7 @@ fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
 	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo "SageMath Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+	echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
 	exit 0
 fi
 
@@ -771,8 +773,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
         echo >&2 "init.sage does not exist ... creating"
         touch "$DOT_SAGE"/init.sage
     fi
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
@@ -788,24 +789,21 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
         build_sage
     fi
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 
 if [ "$1" = '-c' ]; then
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     unset TERM  # See Trac #12263
     exec sage-eval "$@"
 fi
@@ -996,8 +994,7 @@ if [ $# -ge 1 ]; then
     if [ "$T" = "spkg" ]; then
         install "$@"
     fi
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     unset TERM  # See Trac #12263
     exec sage-run "$@"
 fi

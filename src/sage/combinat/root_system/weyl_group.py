@@ -711,11 +711,10 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: TestSuite(s1).run()
         """
         MatrixGroupElement_gap.__init__(self, parent, g, check=check)
-        self.__matrix = self.matrix()
         self._parent = parent
 
     def __hash__(self):
-        return hash(self.__matrix)
+        return hash(self.matrix())
 
     def domain(self):
         """
@@ -803,7 +802,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return self.__class__ == other.__class__ and \
                self._parent   == other._parent   and \
-               self.__matrix  == other.__matrix
+               self.matrix()  == other.matrix()
 
     def _cmp_(self, other):
         """
@@ -850,7 +849,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         if v not in self.domain():
             raise ValueError("{} is not in the domain".format(v))
-        return self.domain().from_vector(self.__matrix*v.to_vector())
+        return self.domain().from_vector(self.matrix()*v.to_vector())
 
 
     ##########################################################################
@@ -859,12 +858,14 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def has_descent(self, i, positive=False, side = "right"):
         """
-        Tests if self has a descent at position `i`, that is if self is
+        Test if ``self`` has a descent at position ``i``.
+
+        An element `w` has a descent in position `i` if `w` is
         on the strict negative side of the `i^{th}` simple reflection
         hyperplane.
 
-        If positive is True, tests if it is on the strict positive
-        side instead.
+        If ``positive`` is ``True``, tests if it is on the strict
+        positive side instead.
 
         EXAMPLES::
 
@@ -921,32 +922,53 @@ class WeylGroupElement(MatrixGroupElement_gap):
             self = ~self
 
         if use_rho:
-            s = self.action(L.rho()   ).scalar(L.alphacheck()[i]) >= 0
+            s = self.action(L.rho()).scalar(L.alphacheck()[i]) >= 0
         else:
             s = self.action(L.alpha()[i]).is_positive_root()
 
         return s is positive
 
-    def has_left_descent(self,i):
+    def has_left_descent(self, i):
         """
-        Tests if self has a left descent at position `i`.
+        Test if ``self`` has a left descent at position ``i``.
 
         EXAMPLES::
 
             sage: W = WeylGroup(['A',3])
             sage: s = W.simple_reflections()
-            sage: [W.one().has_descent(i) for i in W.domain().index_set()]
+            sage: [W.one().has_left_descent(i) for i in W.domain().index_set()]
             [False, False, False]
-            sage: [s[1].has_descent(i) for i in W.domain().index_set()]
+            sage: [s[1].has_left_descent(i) for i in W.domain().index_set()]
             [True, False, False]
-            sage: [s[2].has_descent(i) for i in W.domain().index_set()]
+            sage: [s[2].has_left_descent(i) for i in W.domain().index_set()]
             [False, True, False]
-            sage: [s[3].has_descent(i) for i in W.domain().index_set()]
+            sage: [s[3].has_left_descent(i) for i in W.domain().index_set()]
             [False, False, True]
-            sage: [s[3].has_descent(i, True) for i in W.domain().index_set()]
-            [True, True, False]
+            sage: [(s[3]*s[2]).has_left_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
         """
         return self.has_descent(i, side = "left")
+
+    def has_right_descent(self, i):
+        """
+        Test if ``self`` has a right descent at position ``i``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: [W.one().has_right_descent(i) for i in W.domain().index_set()]
+            [False, False, False]
+            sage: [s[1].has_right_descent(i) for i in W.domain().index_set()]
+            [True, False, False]
+            sage: [s[2].has_right_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+            sage: [s[3].has_right_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+            sage: [(s[3]*s[2]).has_right_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+        """
+        return self.has_descent(i, side="right")
 
     def apply_simple_reflection(self, i, side = "right"):
         s = self.parent().simple_reflections()

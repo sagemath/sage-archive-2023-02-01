@@ -105,9 +105,9 @@ cdef class MultiModularBasis_base:
         mpz_init(self.half_product)
 
     cdef _realloc_to_new_count(self, new_count):
-        self.moduli = <mod_int*>sage_realloc(self.moduli, sizeof(mod_int)*new_count)
-        self.partial_products = <mpz_t*>sage_realloc(self.partial_products, sizeof(mpz_t)*new_count)
-        self.C = <mod_int*>sage_realloc(self.C, sizeof(mod_int)*new_count)
+        self.moduli = <mod_int*>sig_realloc(self.moduli, sizeof(mod_int)*new_count)
+        self.partial_products = <mpz_t*>sig_realloc(self.partial_products, sizeof(mpz_t)*new_count)
+        self.C = <mod_int*>sig_realloc(self.C, sizeof(mod_int)*new_count)
         if self.moduli == NULL or self.partial_products == NULL or self.C == NULL:
             raise MemoryError, "out of memory allocating multi-modular prime list"
 
@@ -123,11 +123,11 @@ cdef class MultiModularBasis_base:
             MultiModularBasis with moduli [4561, 17351, 28499]
             sage: del mm
         """
-        sage_free(self.moduli)
+        sig_free(self.moduli)
         for i from 0 <= i < self.n:
            mpz_clear(self.partial_products[i])
-        sage_free(self.partial_products)
-        sage_free(self.C)
+        sig_free(self.partial_products)
+        sig_free(self.C)
         mpz_clear(self.product)
         mpz_clear(self.half_product)
 
@@ -350,7 +350,7 @@ cdef class MultiModularBasis_base:
 
         TESTS:
 
-        Verify that Trac #11358 is fixed::
+        Verify that :trac:`11358` is fixed::
 
             sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0)
             sage: m._extend_moduli_to_height(prod(prime_range(50)))
@@ -361,7 +361,7 @@ cdef class MultiModularBasis_base:
             ...
             RuntimeError: there are not enough primes in the interval [2, 100] to complete this multimodular computation
 
-        Another check (which fails horribly before #11358 is fixed)::
+        Another check (which fails horribly before :trac:`11358` is fixed)::
 
             sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0); m._extend_moduli_to_height(10**10000)
             sage: len(set(m)) == len(m)
@@ -693,7 +693,7 @@ cdef class MultiModularBasis_base:
         if n > self.n:
             raise IndexError, "beyond bound for multi-modular prime list"
         cdef mod_int* bs
-        bs = <mod_int*>sage_malloc(sizeof(mod_int)*n)
+        bs = <mod_int*>sig_malloc(sizeof(mod_int)*n)
         if bs == NULL:
             raise MemoryError, "out of memory allocating multi-modular prime list"
         for i from 0 <= i < n:
@@ -701,7 +701,7 @@ cdef class MultiModularBasis_base:
         cdef Integer z
         z = PY_NEW(Integer)
         self.mpz_crt_tail(z.value, bs, 0, n)
-        sage_free(bs)
+        sig_free(bs)
         return z
 
     def precomputation_list(self):

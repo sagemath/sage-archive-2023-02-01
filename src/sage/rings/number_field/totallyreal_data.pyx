@@ -25,7 +25,7 @@ AUTHORS:
 
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.arith.all import binomial, gcd
 from sage.rings.rational_field import RationalField
@@ -499,13 +499,13 @@ cdef class tr_data:
         self.gamma = hermite_constant(n-1)
 
         # Declare the coefficients of the polynomials (and max such).
-        self.a = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.a = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.a == NULL: raise MemoryError
-        self.amax = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.amax = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.amax == NULL: raise MemoryError
         # df is memory set aside for the derivative, as
         # used in Newton iteration above.
-        self.df = <int*>sage_malloc(sizeof(int)*(n+1))
+        self.df = <int*>sig_malloc(sizeof(int)*(n+1))
         if self.df == NULL: raise MemoryError
 
         for i from 0 <= i < n+1:
@@ -515,10 +515,10 @@ cdef class tr_data:
 
         # beta is an array of arrays (of length n) which list the
         # roots of the derivatives.
-        self.beta = <double*>sage_malloc(sizeof(double)*n*(n+1))
+        self.beta = <double*>sig_malloc(sizeof(double)*n*(n+1))
         if self.beta == NULL: raise MemoryError
         # gnk is the collection of (normalized) derivatives.
-        self.gnk = <int*>sage_malloc(sizeof(int)*(n+1)*n)
+        self.gnk = <int*>sig_malloc(sizeof(int)*(n+1)*n)
         if self.gnk == NULL: raise MemoryError
 
         for i from 0 <= i < (n+1)*n:
@@ -583,11 +583,11 @@ cdef class tr_data:
         r"""
         Destructor.
         """
-        sage_free(self.df)
-        sage_free(self.a)
-        sage_free(self.amax)
-        sage_free(self.beta)
-        sage_free(self.gnk)
+        sig_free(self.df)
+        sig_free(self.a)
+        sig_free(self.amax)
+        sig_free(self.beta)
+        sig_free(self.gnk)
 
     def increment(self, verbose=False, haltk=0, phc=False):
         r"""
@@ -629,7 +629,7 @@ cdef class tr_data:
         cdef int *f_out
         cdef int i
 
-        f_out = <int *>sage_malloc(sizeof(int) * (self.n + 1))
+        f_out = <int *>sig_malloc(sizeof(int) * (self.n + 1))
         if f_out == NULL:
             raise MemoryError, "unable to allocate coefficient list"
         for i from 0 <= i < self.n:
@@ -641,7 +641,7 @@ cdef class tr_data:
         g = [0] * (1 + self.n)
         for i from 0 <= i <= self.n:
             g[i] = f_out[i]
-        sage_free(f_out)
+        sig_free(f_out)
 
         return g
 

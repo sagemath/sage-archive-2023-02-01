@@ -96,7 +96,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         self._degree = degree
         self._parent = parent
         self._is_mutable = 1
-        self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * degree)
+        self._entries = <mpz_t *> sig_malloc(sizeof(mpz_t) * degree)
         if self._entries == NULL:
             raise MemoryError
 
@@ -127,7 +127,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         if self._entries:
             for i from 0 <= i < self._degree:
                 mpz_clear(self._entries[i])
-            sage_free(self._entries)
+            sig_free(self._entries)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

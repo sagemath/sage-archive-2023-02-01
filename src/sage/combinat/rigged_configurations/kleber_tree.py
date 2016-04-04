@@ -324,7 +324,6 @@ class KleberTreeNode(Element):
             return Integer(1)
 
         mult = Integer(1)
-        CM = self.parent()._classical_ct.cartan_matrix()
         I = self.parent()._classical_ct.index_set()
         for a,m in self.up_root:
             p = self.weight[a]

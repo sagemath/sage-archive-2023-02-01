@@ -442,9 +442,11 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        [[0-3]].*|4.[[0-8]].*)
+            # Install our own GCC if the system-provided one is older than GCC-4.9.
+            # GCC-4.8.x breaks because of http://trac.sagemath.org/ticket/14460
+            # which is GCC bug http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
+            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is too old]);;
     esac
 
     # The following tests check that the version of the compilers

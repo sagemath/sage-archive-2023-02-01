@@ -2294,7 +2294,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         C1 and C2 are equal, but not identical. We currently want them
         to have non identical face lattices, even if the faces
-        themselves are equal (see #10998)::
+        themselves are equal (see :trac:`10998`)::
 
             sage: C1.face_lattice() is C2.face_lattice()
             False
@@ -5240,7 +5240,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
       cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
       don't care.
 
-    * ``solid`` (defalt: random) -- Whether or not to make the returned
+    * ``solid`` (default: random) -- Whether or not to make the returned
       cone solid. Specify ``True`` for a solid cone, ``False`` for a
       non-solid cone, or ``None`` if you don't care.
 

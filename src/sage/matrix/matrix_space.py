@@ -1127,7 +1127,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: Er = MS2.identity_matrix()
             Traceback (most recent call last):
             ...
-            TypeError: self must be a space of square matrices
+            TypeError: identity matrix must be square
 
         TESTS::
 
@@ -1137,7 +1137,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         if self.__nrows != self.__ncols:
-            raise TypeError("self must be a space of square matrices")
+            raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
         for i in xrange(self.__nrows):
             A[i,i] = 1
@@ -1331,7 +1331,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         TESTS:
 
-        The following corner cases were problematic while working on #10628::
+        The following corner cases were problematic while working on
+        :trac:`10628`::
 
             sage: MS = MatrixSpace(ZZ,2,1)
             sage: MS([[1],[2]])
@@ -1343,7 +1344,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ 1.00000000000000]
             [0.000000000000000]
 
-        Trac ticket #10628 allowed to provide the data be lists of matrices, but
+        :trac:`10628` allowed to provide the data as lists of matrices, but
         :trac:`13012` prohibited it::
 
             sage: MS = MatrixSpace(ZZ,4,2)
@@ -1445,7 +1446,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                                       copy=False, coerce=coerce)
                         else:
                             return MC(self, new_x, copy=False, coerce=coerce)
-                    except TypeError:
+                    except (TypeError, ValueError):
                         pass
             if len(x) != m * n:
                 raise TypeError("cannot construct an element of {} from {}!"
@@ -1703,7 +1704,10 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     If ``checkrank`` is ``False`` then the rank is not checked. This is used
     the check matrix over ring where echelon form is not implemented.
 
-    TODO: must be adapted to category check framework when ready (see trac \#5274).
+    .. TODO::
+
+        This must be adapted to category check framework when ready
+        (see :trac:`5274`).
 
     TESTS::
 

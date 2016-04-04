@@ -149,7 +149,7 @@ sagelib: \
 		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
-		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
+		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
 
 

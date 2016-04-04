@@ -1168,9 +1168,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         You can attempt to reduce the presentation of the output group::
 
             sage: D = C2.semidirect_product(C8, hom); D
-            Finitely presented group < a, b, c, d |
-             a^2, b^-1*a^-1*b*a*d^-1*c^-1, c^-1*a^-1*c*a*d^-1, d^-1*a^-1*d*a,
-             b^2*c^-1, c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^2*d^-1, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b | a^2, b^8, a^-1*b*a*b >
             sage: D = C2.semidirect_product(C8, hom, reduced=True); D
             Finitely presented group < a, b | a^2, (a*b)^2, b^8 >
 
@@ -1178,10 +1176,9 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C4 = groups.presentation.Cyclic(4)
             sage: hom = (C3.gens(), [(C4.gens(), C4.gens())])
             sage: C3.semidirect_product(C4, hom)
-            Finitely presented group < a, b, c |
-             a^3, b^-1*a^-1*b*a, c^-1*a^-1*c*a, b^2*c^-1, c^-1*b^-1*c*b, c^2 >
+            Finitely presented group < a, b | a^3, b^4, a^-1*b*a*b^-1 >
             sage: D = C3.semidirect_product(C4, hom, reduced=True); D
-            Finitely presented group < a, b | a^3, b^4, b^-1*a^-1*b*a >
+            Finitely presented group < a, b | a^3, b^4, a^-1*b*a*b^-1 >
             sage: D.as_permutation_group().is_cyclic()
             True
 
@@ -1193,9 +1190,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C12 = groups.presentation.Cyclic(12)
             sage: hom = (C5.gens(), [(C12.gens(), C12.gens())])
             sage: sp = C5.semidirect_product(C12, hom, check=False); sp
-            Finitely presented group < a, b, c, d |
-             a^5, b^-1*a^-1*b*a, c^-1*a^-1*c*a, d^-1*a^-1*d*a, b^2*d^-1,
-             c^-1*b^-1*c*b, d^-1*b^-1*d*b, c^3, d^-1*c^-1*d*c, d^2 >
+            Finitely presented group < a, b | a^5, b^12, a^-1*b*a*b^-1 >
             sage: sp.as_permutation_group().is_cyclic(), sp.order()
             (True, 60)
 

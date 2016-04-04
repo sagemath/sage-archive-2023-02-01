@@ -2139,7 +2139,7 @@ static PyObject* py_tuple_from_numvector(const std::vector<numeric>& vec)
         return list;
 }
 
-const numeric numeric::hypergeometric_2F1(const std::vector<numeric>& a, const std::vector<numeric>& b, PyObject *parent) const {
+const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const std::vector<numeric>& b, PyObject *parent) const {
         PyObject *lista = py_tuple_from_numvector(a);
         PyObject *listb = py_tuple_from_numvector(b);
         PyObject *z = to_pyobject();
@@ -2176,16 +2176,16 @@ const numeric numeric::hypergeometric_2F1(const std::vector<numeric>& a, const s
                 Py_DECREF(itema);
         Py_DECREF(hypfunc);
         if (!pyresult) {
-                throw(std::runtime_error("numeric::hypergeometric_2F1(): python function hypergeometric::_evalf_ raised exception"));
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::_evalf_ raised exception"));
         }
         if ( pyresult == Py_None ) {
-                throw(std::runtime_error("numeric::hypergeometric_2F1(): python function hypergeometric::_evalf_ returned None"));
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::_evalf_ returned None"));
         }
         // convert output Expression to an ex
         ex eval_result = py_funcs.pyExpression_to_ex(pyresult);
         Py_DECREF(pyresult);
         if (PyErr_Occurred()) {
-                throw(std::runtime_error("numeric::hypergeometric_2F1(): python function (Expression_to_ex) raised exception"));
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function (Expression_to_ex) raised exception"));
         }
         return ex_to<numeric>(eval_result);
 }
@@ -2616,8 +2616,8 @@ const numeric bernoulli(const numeric &n) {
         return n.bernoulli();
 }
 
-const numeric hypergeometric_2F1(const std::vector<numeric>& a, const std::vector<numeric>& b, const numeric &z, PyObject* parent) {
-        return z.hypergeometric_2F1(a, b, parent);
+const numeric hypergeometric_pFq(const std::vector<numeric>& a, const std::vector<numeric>& b, const numeric &z, PyObject* parent) {
+        return z.hypergeometric_pFq(a, b, parent);
 }
 
 /** Fibonacci number.  The nth Fibonacci number F(n) is defined by the

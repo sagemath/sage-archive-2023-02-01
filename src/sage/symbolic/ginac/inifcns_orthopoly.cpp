@@ -31,7 +31,7 @@ static ex hermite_evalf(const ex& n, const ex& x, PyObject* parent)
         std::vector<numeric> numveca, numvecb;
         numveca.push_back(numn / *_num_2_p);
         numveca.push_back(*_num1_2_p + (numn / *_num_2_p));
-        return hypergeometric_2F1(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
+        return hypergeometric_pFq(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
 }
 
 static ex hermite_eval(const ex& n, const ex& x)

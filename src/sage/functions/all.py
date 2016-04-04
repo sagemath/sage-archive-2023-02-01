@@ -28,7 +28,7 @@ from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
 from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                                   Bessel, struve_H, struve_L,
+                                   Bessel, struve_H, struve_L, hankel1, hankel2,
                                    spherical_bessel_J, spherical_bessel_Y,
                                    spherical_hankel1, spherical_hankel2)
 

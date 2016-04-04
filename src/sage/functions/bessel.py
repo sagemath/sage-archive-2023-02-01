@@ -13,8 +13,8 @@ The main objects which are exported from this module are:
  * :meth:`bessel_K(n, x) <Function_Bessel_K>` -- The Bessel K function
  * :meth:`Bessel(...) <Bessel>`   -- A factory function for producing Bessel functions of
    various kinds and orders
- * :meth:`Hankel1(nu, z) <Hankel1>`  -- The Hankel function of the first kind
- * :meth:`Hankel2(nu, z) <Hankel2>`  -- The Hankel function of the second kind
+ * :meth:`hankel1(nu, z) <Function_Hankel1>`  -- The Hankel function of the first kind
+ * :meth:`hankel2(nu, z) <Function_Hankel2>`  -- The Hankel function of the second kind
  * :meth:`struve_H(nu, z) <Function_Struve_H>`  -- The Struve function
  * :meth:`struve_L(nu, z) <Function_Struve_L>`  -- The modified Struve function
  * :meth:`spherical_bessel_J(n, z) <SphericalBesselJ>` -- The Spherical Bessel J function
@@ -215,6 +215,7 @@ from sage.misc.latex import latex
 from sage.rings.all import RR, Integer
 from sage.structure.element import parent, get_coercion_model
 from sage.symbolic.constants import pi
+from sage.symbolic.ring import SR
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 
@@ -1334,7 +1335,7 @@ class Function_Struve_L(BuiltinFunction):
 struve_L = Function_Struve_L()
 
 
-class Hankel1(BuiltinFunction):
+class Function_Hankel1(BuiltinFunction):
     r"""
     The Hankel function of the first kind
 
@@ -1413,10 +1414,10 @@ class Hankel1(BuiltinFunction):
         else:
             raise NotImplementedError('derivative with respect to order')
 
-hankel1 = Hankel1()
+hankel1 = Function_Hankel1()
 
 
-class Hankel2(BuiltinFunction):
+class Function_Hankel2(BuiltinFunction):
     r"""
     The Hankel function of the second kind
 
@@ -1495,7 +1496,7 @@ class Hankel2(BuiltinFunction):
         else:
             raise NotImplementedError('derivative with respect to order')
 
-hankel2 = Hankel2()
+hankel2 = Function_Hankel2()
 
 
 class SphericalBesselJ(BuiltinFunction):
@@ -1514,12 +1515,14 @@ class SphericalBesselJ(BuiltinFunction):
         spherical_bessel_J(3, x)
         sage: spherical_bessel_J(3 + 0.2 * I, 3)
         0.150770999183897 - 0.0260662466510632*I
-        sage: spherical_bessel_J(3., x).series(x == 2, 10).subs(x=3).n()
+        sage: spherical_bessel_J(3, x).series(x == 2, 10).subs(x=3).n()
         0.152051648665037
-        sage: spherical_bessel_J(3., 3)
+        sage: spherical_bessel_J(3, 3.)
         0.152051662030533
         sage: spherical_bessel_J(4, x).simplify()
         -((45/x^2 - 105/x^4 - 1)*sin(x) + 5*(21/x^2 - 2)*cos(x)/x)/x
+        sage: integrate(spherical_bessel_J(1,x)^2,(x,0,oo))
+        1/6*pi
         sage: latex(spherical_bessel_J(4, x))
         j_{4}\left(x\right)
     """
@@ -1574,6 +1577,8 @@ class SphericalBesselJ(BuiltinFunction):
             sage: spherical_bessel_J(x, y).diff(y)
             -(x + 1)*spherical_bessel_J(x, y)/y + spherical_bessel_J(x - 1, y)
         """
+        if SR(n).is_numeric() and not SR(n).is_integer():
+            raise NotImplementedError('derivative of spherical function with noninteger index')
         if diff_param == 1:
             return (spherical_bessel_J(n - 1, z) -
                     ((n + 1) / z) * spherical_bessel_J(n, z))
@@ -1605,6 +1610,8 @@ class SphericalBesselY(BuiltinFunction):
         -0.270205813266440 - 0.615994702714957*I
         sage: integrate(spherical_bessel_Y(0, x), x)
         -1/2*Ei(I*x) - 1/2*Ei(-I*x)
+        sage: integrate(spherical_bessel_Y(1,x)^2,(x,0,oo))
+        -1/6*pi
         sage: latex(spherical_bessel_Y(0, x))
         y_{0}\left(x\right)
     """
@@ -1660,6 +1667,8 @@ class SphericalBesselY(BuiltinFunction):
             -1/2*spherical_bessel_Y(x, y)/y -...
             1/2*spherical_bessel_Y(x + 1, y) + 1/2*spherical_bessel_Y(x - 1, y)
         """
+        if SR(n).is_numeric() and not SR(n).is_integer():
+            raise NotImplementedError('derivative of spherical function with noninteger index')
         if diff_param == 1:
             return (-spherical_bessel_Y(n, z) / (2 * z) +
                     (spherical_bessel_Y(n - 1, z) -
@@ -1746,6 +1755,8 @@ class SphericalHankel1(BuiltinFunction):
             -1/2*spherical_hankel1(x, y)/y -...
             1/2*spherical_hankel1(x + 1, y) + 1/2*spherical_hankel1(x - 1, y)
         """
+        if SR(n).is_numeric() and not SR(n).is_integer():
+            raise NotImplementedError('derivative of spherical function with noninteger index')
         if diff_param == 1:
             return (-spherical_hankel1(n, z) / (2 * z) +
                     (spherical_hankel1(n - 1, z) -
@@ -1831,7 +1842,17 @@ class SphericalHankel2(BuiltinFunction):
             sage: spherical_hankel2(x, y).diff(y)
             -1/2*spherical_hankel2(x, y)/y -...
             1/2*spherical_hankel2(x + 1, y) + 1/2*spherical_hankel2(x - 1, y)
+            sage: spherical_hankel2(x, y).diff(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative with respect to order
+            sage: spherical_hankel2(3/2, y).diff(y)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative of spherical function with noninteger index
         """
+        if SR(n).is_numeric() and not SR(n).is_integer():
+            raise NotImplementedError('derivative of spherical function with noninteger index')
         if diff_param == 1:
             return (-spherical_hankel2(n, z) / (2 * z) +
                     (spherical_hankel2(n - 1, z) -

@@ -502,7 +502,7 @@ cdef class PariInstance(PariInstance_auto):
         global factor_proven
         factor_proven = 1
 
-        # Initialize some global variables
+        # Initialize some constants
         sig_on()
         self.PARI_ZERO = self.new_gen_noclear(gen_0)
         self.PARI_ONE = self.new_gen_noclear(gen_1)

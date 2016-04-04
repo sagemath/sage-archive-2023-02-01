@@ -426,6 +426,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         void add_space_dimensions_and_embed(PPL_dimension_type m) except +ValueError
         void add_constraint(PPL_Constraint &c) except +ValueError
         void add_constraints(PPL_Constraint_System &cs) except +ValueError
+        void add_to_integer_space_dimensions(PPL_Variables_Set &i_vars) except +ValueError
         void set_objective_function(PPL_Linear_Expression &obj) except +ValueError
         void set_optimization_mode(PPL_Optimization_Mode mode)
         PPL_Optimization_Mode optimization_mode()
@@ -978,6 +979,34 @@ cdef class MIP_Problem(_mutable_or_immutable):
         sig_on()
         try:
             self.thisptr.add_constraints(cs.thisptr[0])
+        finally:
+            sig_off()
+
+    def add_to_integer_space_dimensions(self, Variables_Set i_vars):
+        """
+        Sets the variables whose indexes are in set `i_vars` to be integer space dimensions.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2)
+            sage: m.set_objective_function(x + y)
+            sage: m.add_constraints(cs)
+            sage: i_vars = Variables_Set(x, y)
+            sage: m.add_to_integer_space_dimensions(i_vars)
+            sage: m.optimal_value()
+            3
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        sig_on()
+        try:
+            self.thisptr.add_to_integer_space_dimensions(i_vars.thisptr[0])
         finally:
             sig_off()
 

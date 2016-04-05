@@ -961,9 +961,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             raise ValueError("The word to decode has to be in the ambient space of the code")
         n, k = C.length(), C.dimension()
         if n == k:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
         if r in C:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
         col_mults = C.column_multipliers()
 
         r_list = copy(r)
@@ -1334,7 +1334,7 @@ class GRSGaoDecoder(Decoder):
         n = C.length()
 
         if n == C.dimension() or r in C:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
 
         points = [(alphas[i], r[i]/col_mults[i]) for i in
                 range(0, n)]

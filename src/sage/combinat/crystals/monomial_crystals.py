@@ -464,7 +464,7 @@ class NakajimaYMonomial(Element):
         for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
-            c = self.parent()._c[i-shift,j_index]
+            c = self.parent()._c[j_index,i-shift]
             if cm[j_index,i-shift] != 0:
                 Aik[(j, ke+c)] = cm[j_index,i-shift]
         # Multiply by Aik
@@ -509,7 +509,7 @@ class NakajimaYMonomial(Element):
         for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
-            c = self.parent()._c[i-shift,j_index]
+            c = self.parent()._c[j_index,i-shift]
             if cm[j_index,i-shift] != 0:
                 Aik[(j, kf+c)] = -cm[j_index,i-shift]
         # Multiply by Aik
@@ -613,7 +613,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
             for j_index,j in enumerate(self.parent().index_set()):
                 if k[0] == j:
                     continue
-                c = self.parent()._c[k[0]-shift,j_index]
+                c = self.parent()._c[j_index,k[0]-shift]
                 if cm[j_index,k[0]-shift] != 0:
                     Y[(j,k[1]+c)] = Y.get((j,k[1]+c), 0) + v*cm[j_index,k[0]-shift]
         for k in Y.keys():
@@ -841,10 +841,10 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.crystals.monomial_crystals import InfinityCrystalOfNakajimaMonomials
             sage: InfinityCrystalOfNakajimaMonomials._normalize_c(None, 4)
+            [0 1 1 1]
+            [0 0 1 1]
+            [0 0 0 1]
             [0 0 0 0]
-            [1 0 0 0]
-            [1 1 0 0]
-            [1 1 1 0]
             sage: c = matrix([[0,1,1],[0,0,0],[0,1,0]]); c
             [0 1 1]
             [0 0 0]
@@ -859,13 +859,15 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             False
         """
         if c is None:
-            # Default is i > j <=> c_{ij} = 1 (0 otherwise)
-            c = [[1 if i > j else 0 for j in range(n)] for i in range(n)]
+            # Default is i < j <=> c_{ij} = 1 (0 otherwise)
+            c = [[1 if i < j else 0 for j in range(n)] for i in range(n)]
         MS = MatrixSpace(ZZ, n, n)
         c = MS(c)
         c.set_immutable()
         if any(c[i,i] != 0 for i in range(n)):
             raise ValueError("the c matrix must have 0's on the diagonal")
+        if any(c[i,j] + c[j,i] != 1 for i in range(n) for j in range(i)):
+            raise ValueError("transpose entries do not sum to 1")
         return c
 
     @staticmethod
@@ -950,9 +952,9 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: La = RootSystem(['B',3]).weight_lattice().fundamental_weights()
             sage: M = crystals.NakajimaMonomials(La[1]+La[2])
             sage: M.c()
+            [0 1 1]
+            [0 0 1]
             [0 0 0]
-            [1 0 0]
-            [1 1 0]
 
             sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
             sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
@@ -1124,7 +1126,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GM.is_isomorphic(GB,edge_labels=True)
         True
 
-        sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
+        sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]])
         sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
         sage: list(M.subcrystal(max_depth=3))

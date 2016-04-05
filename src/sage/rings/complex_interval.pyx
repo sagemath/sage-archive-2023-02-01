@@ -1125,6 +1125,17 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             0.0588235294117647 - 0.200000000000000*I,
             0.153846153846154 - 0.300000000000000*I)
 
+        TESTS:
+
+        Check that the code is valid in all regions of the complex plane::
+
+            sage: rats = [15423/906, 337/59976, 145151/145112]
+            sage: for a in rats:
+            ....:     for b in rats:
+            ....:         x = CIF(a, b)
+            ....:         assert (x * (~x) - 1).contains_zero()
+            ....:         x = -CIF(a,b)
+            ....:         assert (x * (~x) - 1).contains_zero()
 
         REFERENCES:
 

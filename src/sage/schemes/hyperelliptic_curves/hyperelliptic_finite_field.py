@@ -13,6 +13,8 @@ AUTHORS:
 
 - Jean-Pierre Flori, Jan Tuitman (2013)
 
+- Kiran Kedlaya (2016)
+
 EXAMPLES::
 
     sage: K.<a> = GF(9, 'a')
@@ -30,6 +32,7 @@ EXAMPLES::
 #  Copyright (C) 2011 Daniel Krenn
 #  Copyright (C) 2013 Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>,
 #  Jan Tuitman <jan.tuitman@wis.kuleuven.be>
+#  Copyright (C) 2016 Kiran Kedlaya <kedlaya@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -51,7 +54,7 @@ from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.misc.functional import rank
-
+from sage.libs.all import pari
 
 class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic):
     def _frobenius_coefficient_bound_charpoly(self):
@@ -417,6 +420,58 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         return ZZ['x'](f)
 
+    def frobenius_polynomial_pari(self):
+        r"""
+        Compute the charpoly of frobenius, as an element of `\ZZ[x]`,
+        by calling the PARI function hyperellcharpoly.
+
+        EXAMPLES::
+
+            sage: R.<t> = PolynomialRing(GF(37))
+            sage: H = HyperellipticCurve(t^5 + t + 2)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + x^3 - 52*x^2 + 37*x + 1369
+
+        A quadratic twist::
+
+            sage: H = HyperellipticCurve(2*t^5 + 2*t + 4)
+            sage: H.frobenius_polynomial_pari()
+            x^4 - x^3 - 52*x^2 - 37*x + 1369
+
+        Slightly larger example::
+
+            sage: K = GF(2003)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^7 + 487*t^5 + 9*t + 1)
+            sage: H.frobenius_polynomial_pari()
+            x^6 - 14*x^5 + 1512*x^4 - 66290*x^3 + 3028536*x^2 - 56168126*x + 8036054027
+
+        Curves defined over a non-prime field are supported as well::
+
+            sage: K.<a> = GF(7^2)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^5 + a*t + 1)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + 4*x^3 + 84*x^2 + 196*x + 2401
+
+            sage: K.<z> = GF(23**3)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^3 + z*t + 4)
+            sage: H.frobenius_polynomial_pari()
+            x^2 - 15*x + 12167
+
+        Over prime fields of odd characteristic, `h` may be non-zero::
+
+            sage: K = GF(101)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^5 + 27*t + 3, t)
+            sage: H.frobenius_polynomial_pari()
+            x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
+
+        """
+        f, h = self.hyperelliptic_polynomials()
+        return ZZ['x'](pari([f, h]).hyperellcharpoly())
+
     @cached_method
     def frobenius_polynomial(self):
         r"""
@@ -443,14 +498,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^6 - 14*x^5 + 1512*x^4 - 66290*x^3 + 3028536*x^2 - 56168126*x + 8036054027
 
-        Curves defined over a non-prime field are supported as well,
-        but a naive algorithm is used; especially when  `g = 1`,
-        fast point counting on elliptic curves should be used::
+        Curves defined over a non-prime field of odd characteristic,
+        or an odd prime field which is too small compared to the genus,
+        are supported via PARI::
 
             sage: K.<z> = GF(23**3)
             sage: R.<t> = PolynomialRing(K)
             sage: H = HyperellipticCurve(t^3 + z*t + 4)
-            sage: H.frobenius_polynomial() # long time, 4s on a Corei7
+            sage: H.frobenius_polynomial()
             x^2 - 15*x + 12167
 
             sage: K.<z> = GF(3**3)
@@ -459,14 +514,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^4 - 3*x^3 + 10*x^2 - 81*x + 729
 
-        Over prime fields of odd characteristic, when `h` is non-zero,
-        this naive algorithm is currently used as well, whereas we should
-        rather use another defining equation::
+        Over prime fields of odd characteristic, `h` may be non-zero::
 
             sage: K = GF(101)
             sage: R.<t> = PolynomialRing(K)
             sage: H = HyperellipticCurve(t^5 + 27*t + 3, t)
-            sage: H.frobenius_polynomial() # long time, 3s on a Corei7
+            sage: H.frobenius_polynomial()
             x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
 
         In even characteristic, the naive algorithm could cover all cases
@@ -487,8 +540,10 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
 
-        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h == 0:
+        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h==0:
             return self.frobenius_polynomial_matrix()
+        elif q%2 == 1:
+            return self.frobenius_polynomial_pari()
         else:
             return self.frobenius_polynomial_cardinalities()
 

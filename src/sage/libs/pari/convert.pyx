@@ -1,6 +1,22 @@
 # cython: cdivision = True
 """
 Convert PARI objects to/from Python integers
+
+PARI integers are stored as an array of limbs of type ``pari_ulong``
+(which are 32-bit or 64-bit integers). Depending on the kernel
+(GMP or native), this array is stored little-endian or big-endian.
+This is encapsulated in macros like ``int_W()``:
+see section 4.5.1 of the
+`PARI library manual <http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.7.0/libpari.pdf>`_.
+
+Python integers of type ``int`` are just C longs. Python integers of
+type ``long`` are stored as a little-endian array of type ``digit``
+with 15 or 30 bits used per digit. The internal format of a ``long`` is
+not documented, but there is some information in
+`longintrepr.h <https://github.com/python-git/python/blob/master/Include/longintrepr.h>`_.
+
+Because of this difference in bit lengths, converting integers involves
+some bit shuffling.
 """
 
 #*****************************************************************************

@@ -522,6 +522,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^4 + 2*x^3 - 58*x^2 + 202*x + 10201
 
+        Over prime fields of odd characteristic, `f` may have even degree::
+            sage: H = HyperellipticCurve(t^6 + 27*t + 3)
+            sage: H.frobenius_polynomial()
+            x^4 + 25*x^3 + 322*x^2 + 2525*x + 10201
+
         In even characteristic, the naive algorithm could cover all cases
         because we can easily check for squareness in quotient rings of
         polynomial rings over finite fields but these rings unfortunately
@@ -540,7 +545,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
 
-        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h==0:
+        if e == 1 and q >= (2*g+1)*(2*self._frobenius_coefficient_bound_charpoly()-1) and h==0 and f.degree() %2 == 1:
             return self.frobenius_polynomial_matrix()
         elif q%2 == 1:
             return self.frobenius_polynomial_pari()

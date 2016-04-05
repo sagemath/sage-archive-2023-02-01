@@ -260,10 +260,10 @@ def coset_rep(list perm=[0,1,2,3,4,5], list gens=[[1,2,3,4,5,0]]):
     cdef Integer I = Integer(0)
     cdef PartitionStack *part
     part = PS_new(n, 1)
-    cdef int *c_perm = <int *> sage_malloc(n * sizeof(int))
+    cdef int *c_perm = <int *> sig_malloc(n * sizeof(int))
     cdef StabilizerChain *group = SC_new(n, 1)
     if part is NULL or c_perm is NULL or group is NULL:
-        sage_free(c_perm)
+        sig_free(c_perm)
         PS_dealloc(part)
         SC_dealloc(group)
         raise MemoryError
@@ -281,7 +281,7 @@ def coset_rep(list perm=[0,1,2,3,4,5], list gens=[[1,2,3,4,5,0]]):
     PS_dealloc(part)
     SC_dealloc(group)
     deallocate_agcl_output(output)
-    sage_free(c_perm)
+    sig_free(c_perm)
     return label
 
 cdef aut_gp_and_can_lab *allocate_agcl_output(int n):
@@ -290,12 +290,12 @@ cdef aut_gp_and_can_lab *allocate_agcl_output(int n):
     be input to the get_aut_gp_and_can_lab function, and the output will be
     stored to it.
     """
-    cdef aut_gp_and_can_lab *output = <aut_gp_and_can_lab *> sage_malloc(sizeof(aut_gp_and_can_lab))
+    cdef aut_gp_and_can_lab *output = <aut_gp_and_can_lab *> sig_malloc(sizeof(aut_gp_and_can_lab))
     if output is NULL:
         return NULL
     output.group = SC_new(n)
-    output.relabeling = <int *> sage_malloc(n*sizeof(int))
-    output.generators = <int *> sage_malloc(2*n*n*sizeof(int))
+    output.relabeling = <int *> sig_malloc(n*sizeof(int))
+    output.generators = <int *> sig_malloc(2*n*n*sizeof(int))
     output.size_of_generator_array = 2*n*n
     if output.group      is NULL or \
        output.relabeling is NULL or \
@@ -310,9 +310,9 @@ cdef void deallocate_agcl_output(aut_gp_and_can_lab *output):
     """
     if output is not NULL:
         SC_dealloc(output.group)
-        sage_free(output.relabeling)
-        sage_free(output.generators)
-    sage_free(output)
+        sig_free(output.relabeling)
+        sig_free(output.generators)
+    sig_free(output)
 
 cdef agcl_work_space *allocate_agcl_work_space(int n):
     r"""
@@ -323,19 +323,19 @@ cdef agcl_work_space *allocate_agcl_work_space(int n):
     cdef int *int_array
 
     cdef agcl_work_space *work_space
-    work_space = <agcl_work_space *> sage_malloc(sizeof(agcl_work_space))
+    work_space = <agcl_work_space *> sig_malloc(sizeof(agcl_work_space))
     if work_space is NULL:
         return NULL
 
     work_space.degree = n
-    int_array = <int *> sage_malloc((n*n + # for perm_stack
+    int_array = <int *> sig_malloc((n*n + # for perm_stack
                                      n   + # for label_indicators
                                      7*n   # for int_array
                                     )*sizeof(int))
     work_space.group1 = SC_new(n)
     work_space.group2 = SC_new(n)
     work_space.label_ps = PS_new(n,0)
-    work_space.bitset_array = <bitset_t *> sage_malloc((n + 2*len_of_fp_and_mcr + 1)*sizeof(bitset_t))
+    work_space.bitset_array = <bitset_t *> sig_malloc((n + 2*len_of_fp_and_mcr + 1)*sizeof(bitset_t))
     work_space.orbits_of_subgroup = OP_new(n)
     work_space.orbits_of_permutation = OP_new(n)
     work_space.first_ps = PS_new(n,0)
@@ -376,15 +376,15 @@ cdef void deallocate_agcl_work_space(agcl_work_space *work_space):
     if work_space.bitset_array is not NULL:
         for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
             bitset_free(work_space.bitset_array[i])
-    sage_free(work_space.perm_stack)
+    sig_free(work_space.perm_stack)
     SC_dealloc(work_space.group1)
     SC_dealloc(work_space.group2)
     PS_dealloc(work_space.label_ps)
-    sage_free(work_space.bitset_array)
+    sig_free(work_space.bitset_array)
     OP_dealloc(work_space.orbits_of_subgroup)
     OP_dealloc(work_space.orbits_of_permutation)
     PS_dealloc(work_space.first_ps)
-    sage_free(work_space)
+    sig_free(work_space)
 
 cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
     PartitionStack *partition, int n,
@@ -836,7 +836,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                 if n*output.num_gens == output.size_of_generator_array:
                     # must double its size
                     output.size_of_generator_array *= 2
-                    output.generators = <int *> sage_realloc( output.generators, output.size_of_generator_array * sizeof(int) )
+                    output.generators = <int *> sig_realloc( output.generators, output.size_of_generator_array * sizeof(int) )
                     if output.generators is NULL:
                         mem_err = True
                         continue # main loop

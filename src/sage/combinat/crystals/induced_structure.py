@@ -206,7 +206,7 @@ class InducedCrystal(UniqueRepresentation, Parent):
             sage: I([[1,1,0,0],[1,0,0],[0,1],[1]])
             Traceback (most recent call last):
             ...
-            ValueError: unable to convert [[1, 1, 0, 0], [1, 0, 0], [0, 1], [1]]
+            TypeError: unable to convert [[1, 1, 0, 0], [1, 0, 0], [0, 1], [1]] to Crystal of Gelfand-Tsetlin patterns of width 4 and max value 1 induced by <function phi at 0x...>
         """
         if x in self._set:
             return self.element_class(self, self._set(x))
@@ -214,7 +214,7 @@ class InducedCrystal(UniqueRepresentation, Parent):
         try:
             return self.element_class(self, self._inverse(x))
         except (TypeError, ValueError, AttributeError):
-            raise ValueError("unable to convert {}".format(x))
+            raise TypeError("unable to convert {!r} to {}".format(x, self))
 
     def __contains__(self, x):
         """
@@ -511,7 +511,7 @@ class InducedFromCrystal(UniqueRepresentation, Parent):
         try:
             return self.element_class(self, self._phi(self._inverse(x)))
         except (TypeError, ValueError, AttributeError):
-            raise ValueError("unable to convert {}".format(x))
+            raise TypeError("unable to convert {!r} to {}".format(x, self))
 
     def __contains__(self, x):
         """

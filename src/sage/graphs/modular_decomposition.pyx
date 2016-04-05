@@ -2,7 +2,7 @@ r"""
 Modular decomposition
 """
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from libc.string cimport memset
 
@@ -120,7 +120,7 @@ cpdef modular_decomposition(g):
         label_id[label] = id
 
     G.n = g.order()
-    G.G = <c_adj **> sage_malloc(G.n*sizeof(c_adj *))
+    G.G = <c_adj **> sig_malloc(G.n*sizeof(c_adj *))
 
     memset( G.G, 0, G.n*sizeof(c_adj *))
 
@@ -130,12 +130,12 @@ cpdef modular_decomposition(g):
         i = label_id[u]
         j = label_id[v]
 
-        a=<c_adj *> sage_malloc(sizeof(c_adj))
+        a=<c_adj *> sig_malloc(sizeof(c_adj))
         a.s = j
         a.suiv = G.G[i]
         G.G[i] = a
 
-        a=<c_adj *> sage_malloc(sizeof(c_adj))
+        a=<c_adj *> sig_malloc(sizeof(c_adj))
         a.s = i
         a.suiv = G.G[j]
         G.G[j] = a

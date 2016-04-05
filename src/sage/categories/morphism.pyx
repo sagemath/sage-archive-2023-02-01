@@ -28,7 +28,6 @@ import operator
 
 import homset
 
-include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
 

@@ -1199,8 +1199,10 @@ v            EXAMPLES::
 
         def length(self):
             r"""
-            Returns the length of self, that is the minimal length of
-            a product of simple reflections giving self.
+            Return the length of ``self``.
+
+            This is the minimal length of
+            a product of simple reflections giving ``self``.
 
             EXAMPLES::
 
@@ -1232,20 +1234,29 @@ v            EXAMPLES::
 
         def absolute_length(self):
             """
-            Return the absolute length of ``self``
+            Return the absolute length of ``self``.
 
             The absolute length is the length of the shortest expression
             of the element as a product of reflections.
 
+            For permutations in the symmetric groups, the absolute
+            length is the size minus the number of its disjoint
+            cycles.
+
             .. SEEALSO::
 
-                :meth:`absolute_le`.
+                :meth:`absolute_le`
 
             EXAMPLES::
 
                 sage: W = WeylGroup(["A", 3])
                 sage: s = W.simple_reflections()
                 sage: (s[1]*s[2]*s[3]).absolute_length()
+                3
+
+                sage: W = SymmetricGroup(4)
+                sage: s = W.simple_reflections()
+                sage: (s[3]*s[2]*s[1]).absolute_length()
                 3
             """
             M = self.canonical_matrix()
@@ -1264,7 +1275,9 @@ v            EXAMPLES::
             This partial order can be used to define noncrossing partitions
             associated with this Coxeter group.
 
-            .. SEEALSO:: :meth:`absolute_length`
+            .. SEEALSO::
+
+                :meth:`absolute_length`
 
             EXAMPLES::
 
@@ -1284,6 +1297,32 @@ v            EXAMPLES::
             if self.absolute_length() >= other.absolute_length():
                 return False
             return self.absolute_length() + (self.inverse() * other).absolute_length() == other.absolute_length()
+
+        def absolute_covers(self):
+            r"""
+            Return the list of covers of ``self`` in absolute order.
+
+            .. SEEALSO::
+
+                :meth:`absolute_length`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: w0 = s[1]
+                sage: w1 = s[1]*s[2]*s[3]
+                sage: w0.absolute_covers()
+                [
+                [0 0 0 1]  [0 0 1 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]
+                [1 0 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]  [1 0 0 0]
+                [0 0 1 0]  [0 1 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]
+                [0 1 0 0], [0 0 0 1], [0 0 0 1], [1 0 0 0], [0 0 1 0]
+                ]
+            """
+            W = self.parent()
+            return [self * t for t in W.reflections()
+                    if self.absolute_length() < (self * t).absolute_length()]
 
         def canonical_matrix(self):
             r"""

@@ -6,59 +6,52 @@
 # and its subdirectories!
 #
 # HOW TO MAKE THE TARBALL:
-# 1) copy upstream the tarball from gitlab; it will be named by the commit
-# hash, e.g. ecl-a014bd2c23a9ba863ecdd28c1c48d67de04d3620.tar.gz
-# Untar ECL tarball; the root dir will be named ecl.git/
-# 2) ./spkg-src
+# 1) sage --sh build/pkgs/ecl/spkg-src
 #
 # needs autotools and sage in your PATH.
 #
 # AUTHOR: Jeroen Demeyer (November 2011)
 #         Dima Pasechnik (July 2015)
 
-# Sanity check: must be run from current directory
-if ! [ -f spkg-src ]; then
-    echo >&2 "This script must be run from its own source directory!"
+if [ -z "$SAGE_ROOT" ] ; then
+    echo >&2 "Error - SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
 # Exit on failure
 set -e
 
-# now we automate the task:
-ECLVERSION=`cat package-version.txt`
-ECLTARBALL=ecl-"$ECLVERSION".tar
+cd build/pkgs/ecl
 
-mv ecl.git ecl-"$ECLVERSION"
-cd ecl-"$ECLVERSION"
+ECLVERSION=`cat package-version.txt |sed 's/[.]p.*//'`
+ECLTARBALL="$SAGE_DISTFILES/ecl-$ECLVERSION.tar.bz2"
 
-# the patches are applied here, as it has to be done before
+# Remove old cruft
+rm -rf ecl-*
+
+# Download and extract upstream tarball
+sage-download-file https://common-lisp.net/project/ecl/files/release/$ECLVERSION/ecl-$ECLVERSION.tgz |tar xz
+cd ecl-$ECLVERSION
+
+# Some patches are applied here, if they need to be applied before
 # running autoconf.
-cd src
 echo "applying patches in ecl-$ECLVERSION/src"
 # For some of the patches, Cygwin also has upstream fixes that are
-# closely related, keep track.  See Trac 11119, for example.
-for patch in ../../patches/*.patch; do
-    patch --verbose -p2 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
+# closely related, keep track.  See Trac #11119, for example.
+for patch in ../patches/src/*.patch; do
+    patch -p1 <"$patch"
 done
 
-
-cd ..
 # Remove unneeded files to save space
-rm -rf msvc/
+rm -r msvc src/gc-unstable src/gmp/ src/libffi
+
+# Run autotools
 cd src
-rm -rf gc-unstable/ gmp/ libffi/
-libtoolize  # to generate configure script
+libtoolize
 autoreconf -ivf
 
-cd ../../
-rm -f "$ECLTARBALL".* "$ECLTARBALL"
-tar cf "$ECLTARBALL" ecl-"$ECLVERSION"/
-bzip2 "$ECLTARBALL"
-mv -f "$ECLTARBALL".bz2 ../../../upstream/
-sage -sh sage-fix-pkg-checksums
-rm -rf ecl-"$ECLVERSION"/
+cd ../..
+tar c ecl-$ECLVERSION | bzip2 -c >"$ECLTARBALL"
+sage-fix-pkg-checksums "$ECLTARBALL"
+rm -rf ecl-*

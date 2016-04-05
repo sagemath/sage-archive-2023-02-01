@@ -716,7 +716,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: gap.eval('quit;')
             ''
             sage: a = gap(3)
-            ** Gap crashed or quit executing '$sage...:=3;;' **
+            ** Gap crashed or quit executing '\$sage...:=3;;' **
             Restarting Gap and trying again
             sage: a
             3
@@ -858,7 +858,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print gap.version()
-            4.7...
+            4.8...
         """
         return self.eval('VERSION')[1:-1]
 
@@ -1162,25 +1162,29 @@ class Gap(Gap_generic):
         return reduce_load_GAP, tuple([])
 
     def _next_var_name(self):
-        """
+        r"""
         Returns the next unused variable name.
+
+        Note that names starting with dollar signs are valid GAP
+        identifiers, but need to be escaped with a backslash starting
+        with GAP-4.8.
 
         EXAMPLES::
 
             sage: g = Gap()
             sage: g._next_var_name()
-            '$sage1'
+            '\\$sage1'
             sage: g(2)^2
             4
             sage: g._next_var_name()
-            '$sage...'
+            '\\$sage...'
         """
         if len(self._available_vars) != 0:
             v = self._available_vars[0]
             del self._available_vars[0]
             return v
         self.__seq += 1
-        return '$sage%s'%self.__seq
+        return r'\$sage%s'%self.__seq
 
     def _start(self):
         """
@@ -1324,7 +1328,7 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval('$SAGE.tempfile := "%s";'%tmp_to_use)
+        self.eval(r'\$SAGE.tempfile := "%s";'%tmp_to_use)
         line = Expect.eval(self, "? %s"%s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
@@ -1384,7 +1388,7 @@ class Gap(Gap_generic):
             sage: gap._pre_interact()
             sage: gap._post_interact()
         """
-        self._eval_line("$SAGE.StartInteract();")
+        self._eval_line(r'\$SAGE.StartInteract();')
 
     def _post_interact(self):
         """
@@ -1393,7 +1397,7 @@ class Gap(Gap_generic):
             sage: gap._pre_interact()
             sage: gap._post_interact()
         """
-        self._eval_line("$SAGE.StopInteract();")
+        self._eval_line(r'\$SAGE.StopInteract();')
 
     def _eval_line_using_file(self, line):
         i = line.find(':=')
@@ -1641,7 +1645,7 @@ class GapElement(GapElement_generic):
         """
         from sage.misc.misc import uniq
         P = self.parent()
-        v = P.eval('$SAGE.OperationsAdmittingFirstArgument(%s)'%self.name())
+        v = P.eval(r'\$SAGE.OperationsAdmittingFirstArgument(%s)'%self.name())
         v = v.replace('Tester(','').replace('Setter(','').replace(')','').replace('\n', '')
         v = v.split(',')
         v = [ oper.split('"')[1] for oper in v ]

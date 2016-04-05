@@ -764,7 +764,7 @@ class CoxeterMatrix(CoxeterType):
             sage: matrix(CM)
             [ 1 -3]
             [-3  1]
-            sage: matrix(CM,RR)
+            sage: matrix(RR, CM)
             [ 1.00000000000000 -3.00000000000000]
             [-3.00000000000000  1.00000000000000]
         """

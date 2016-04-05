@@ -90,7 +90,7 @@ AUTHORS:
 
 from sage.ext.fast_callable import fast_callable, Wrapper
 
-include "stdsage.pxi"
+include "cysignals/memory.pxi"
 
 cimport cython
 from cpython.ref cimport Py_INCREF
@@ -290,7 +290,7 @@ def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
     self.nops = len(op_list)
     self.nargs = nargs
     self.max_height = max_height
-    self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * self.nops)
+    self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * self.nops)
     self.allocate_stack()
     cfunc_addresses = reverse_map(cfunc_names)
     op_enums = reverse_map(op_names)
@@ -492,7 +492,7 @@ cdef class FastDoubleFunc:
             self.nargs = param+1
             self.nops = 1
             self.max_height = 1
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op))
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op))
             self.ops[0].type = LOAD_ARG
             self.ops[0].params.n = param
 
@@ -500,7 +500,7 @@ cdef class FastDoubleFunc:
             self.nargs = 0
             self.nops = 1
             self.max_height = 1
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op))
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op))
             self.ops[0].type = PUSH_CONST
             self.ops[0].params.c = param
 
@@ -520,7 +520,7 @@ cdef class FastDoubleFunc:
                     self.py_funcs += arg.py_funcs
                 self.nargs = max(self.nargs, arg.nargs)
                 self.max_height = max(self.max_height, arg.max_height+i)
-            self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * self.nops)
+            self.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * self.nops)
             if self.ops == NULL:
                 raise MemoryError
             i = 0
@@ -536,20 +536,20 @@ cdef class FastDoubleFunc:
         self.allocate_stack()
 
     cdef int allocate_stack(FastDoubleFunc self) except -1:
-        self.argv = <double*>sage_malloc(sizeof(double) * self.nargs)
+        self.argv = <double*>sig_malloc(sizeof(double) * self.nargs)
         if self.argv == NULL:
             raise MemoryError
-        self.stack = <double*>sage_malloc(sizeof(double) * self.max_height)
+        self.stack = <double*>sig_malloc(sizeof(double) * self.max_height)
         if self.stack == NULL:
             raise MemoryError
 
     def __dealloc__(self):
         if self.ops:
-            sage_free(self.ops)
+            sig_free(self.ops)
         if self.stack:
-            sage_free(self.stack)
+            sig_free(self.stack)
         if self.argv:
-            sage_free(self.argv)
+            sig_free(self.argv)
 
     def __reduce__(self):
         """
@@ -1227,7 +1227,7 @@ cdef class FastDoubleFunc:
         feval.max_height = self.max_height
         if type == DUP:
             feval.max_height += 1
-        feval.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * feval.nops)
+        feval.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * feval.nops)
         memcpy(feval.ops, self.ops, sizeof(fast_double_op) * self.nops)
         feval.ops[feval.nops - 1].type = type
         feval.py_funcs = self.py_funcs
@@ -1287,7 +1287,7 @@ cdef FastDoubleFunc binop(_left, _right, char type):
     feval.nargs = max(left.nargs, right.nargs)
     feval.nops = left.nops + right.nops + 1
     feval.max_height = max(left.max_height, right.max_height+1)
-    feval.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * feval.nops)
+    feval.ops = <fast_double_op *>sig_malloc(sizeof(fast_double_op) * feval.nops)
     memcpy(feval.ops, left.ops, sizeof(fast_double_op) * left.nops)
     memcpy(feval.ops + left.nops, right.ops, sizeof(fast_double_op) * right.nops)
     feval.ops[feval.nops - 1].type = type

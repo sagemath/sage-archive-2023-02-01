@@ -32,7 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
+include "cysignals/memory.pxi"
 
 cdef extern from *:
     void memset(void *, int, Py_ssize_t)
@@ -364,7 +364,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     face.vertices[j] = point_map[face.vertices[j]]
             self.realloc(ix, self.fcount, self.icount)
             self.vcount = ix
-        sage_free(point_map)
+        sig_free(point_map)
 
     def _seperate_creases(self, threshold):
         """
@@ -402,7 +402,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         try:
             point_faces = <face_c **>check_allocarray(total, sizeof(face_c*))
         except MemoryError:
-            sage_free(point_counts)
+            sig_free(point_counts)
             raise
         sig_on()
         memset(point_counts, 0, sizeof(int) * self.vcount)
@@ -441,8 +441,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 try:
                     self.vs = <point_c *>check_reallocarray(self.vs, ix, sizeof(point_c))
                 except MemoryError:
-                    sage_free(point_counts)
-                    sage_free(point_faces)
+                    sig_free(point_counts)
+                    sig_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
                     sig_off()
                     raise
@@ -469,17 +469,17 @@ cdef class IndexFaceSet(PrimitiveObject):
             start = self.vcount
             self.vcount = ix
 
-        sage_free(point_counts)
-        sage_free(point_faces)
+        sig_free(point_counts)
+        sig_free(point_faces)
         sig_off()
 
     def _mem_stats(self):
         return self.vcount, self.fcount, self.icount
 
     def __dealloc__(self):
-        sage_free(self.vs)
-        sage_free(self._faces)
-        sage_free(self.face_indices)
+        sig_free(self.vs)
+        sig_free(self._faces)
+        sig_free(self.face_indices)
 
     def is_enclosed(self):
         """
@@ -761,7 +761,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     ix += face.n
             face_set._clean_point_list()
             all[part] = face_set
-        sage_free(partition)
+        sig_free(partition)
         return all
 
     def tachyon_repr(self, render_params):

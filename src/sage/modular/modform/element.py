@@ -900,7 +900,7 @@ class ModularForm_abstract(ModuleElement):
             sage: phi = K.embeddings(RR)[0]
             sage: L = F.symsquare_lseries(embedding=phi)
             sage: L(5)
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
             -3.57698266793901e19
 
         TESTS::
@@ -1004,7 +1004,7 @@ class ModularForm_abstract(ModuleElement):
         EXAMPLE::
 
             sage: CuspForms(1, 16).0.petersson_norm()
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
             2.16906134759063e-6
 
         The Petersson norm depends on a choice of embedding::
@@ -1576,7 +1576,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         TESTS:
 
-        This shows that the issue at trac ticket #7548 is fixed::
+        This shows that the issue at :trac:`7548` is fixed::
 
             sage: M = CuspForms(Gamma0(5*3^2), 2)
             sage: f = M.basis()[0]
@@ -1692,7 +1692,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
             sage: eps.parent()
-            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            Group of Dirichlet characters modulo 3 with values in Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
             Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1

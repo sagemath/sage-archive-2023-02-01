@@ -2,20 +2,24 @@ r"""
 Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
 This module provides LP upper bounds for the parameters of codes.
-Exact LP solver, PPL, is used by defaut, ensuring that no rounding/overflow
-problems occur.
+The exact LP solver PPL is used by default, ensuring that no
+rounding/overflow problems occur.
 
 AUTHORS:
 
 - Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
 """
+
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 def Krawtchouk(n,q,l,x,check=True):
     """
     Compute ``K^{n,q}_l(x)``, the Krawtchouk polynomial.
@@ -195,7 +199,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     Such an input is invalid::
 
        sage: delsarte_bound_hamming_space(11,3,-4)
-       Solver exception:  'PPL : There is no feasible solution' ()
+       Solver exception: PPL : There is no feasible solution
        False
 
     REFERENCES:
@@ -211,7 +215,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     try:
         bd=p.solve()
     except MIPSolverException as exc:
-        print "Solver exception: ", exc, exc.args
+        print "Solver exception:", exc
         if return_data:
             return A,p,False
         return False
@@ -282,7 +286,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    Such a d_star is not possible::
 
        sage: delsarte_bound_additive_hamming_space(11,3,4,d_star=9)
-       Solver exception:  'PPL : There is no feasible solution' ()
+       Solver exception: PPL : There is no feasible solution
        False
 
    """
@@ -312,7 +316,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       try:
         bd=p.solve()
       except MIPSolverException as exc:
-        print "Solver exception: ", exc, exc.args
+        print "Solver exception:", exc
         if return_data:
            return A,p,False
         return False

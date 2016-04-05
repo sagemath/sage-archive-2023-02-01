@@ -534,6 +534,34 @@ cdef class EmptyLetter(Element):
         """
         return hash(self.value)
 
+    cpdef _richcmp_(left, Element right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['C', 3])
+            sage: C('E') == C(2)
+            False
+            sage: C('E') < C(2)
+            False
+            sage: C('E') <= C(2)
+            False
+            sage: C('E') != C(2)
+            True
+            sage: C('E') == C('E')
+            True
+            sage: C('E') != C('E')
+            False
+            sage: C('E') >= C('E')
+            True
+            sage: C('E') < C('E')
+            False
+        """
+        if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
+           return op == Py_EQ or op == Py_LE or op == Py_GE
+        return op == Py_NE
+
     def weight(self):
         """
         Return the weight of ``self``.

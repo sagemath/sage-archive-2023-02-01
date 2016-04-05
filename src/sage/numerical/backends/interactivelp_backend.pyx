@@ -54,9 +54,12 @@ cdef class InteractiveLPBackend:
             sage: poly = polytopes.dodecahedron(base_ring=AA)
             sage: lp = poly.to_linear_program(solver='InteractiveLP')
             sage: b = lp.get_backend()
+            sage: for k in range(3): b.variable_lower_bound(k, 0)
             sage: b.set_objective([1, 1, 1])
             sage: lp.solve()
             2.291796067500631?
+            sage: [b.get_variable_value(k) for k in range(3)]
+            [0.763932022500211?, 0.763932022500211?, 0.763932022500211?]
         """
 
         if base_ring is None:

@@ -1308,7 +1308,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
         sage: p.base_ring()
         Number Field in sqrt5 with defining polynomial x^2 - 5
-        sage: p = get_solver('InteractiveLP', base_ring=QQ)
+        sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
         <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
         sage: p.base_ring()
         Rational Field

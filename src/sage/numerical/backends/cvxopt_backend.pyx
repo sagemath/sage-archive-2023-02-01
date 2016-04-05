@@ -21,6 +21,23 @@ from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
 
 cdef class CVXOPTBackend(GenericBackend):
+    """
+    MIP Backend that uses the CVXOPT solver.
+
+    There is no support for integer variables.
+
+    EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
+
+    TESTS:
+
+    :trac:`20332`::
+
+        sage: p
+        Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+    """
+
     cdef list objective_function #c_matrix
     cdef list G_matrix
     cdef str prob_name

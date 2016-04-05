@@ -176,8 +176,21 @@ cdef class GLPKBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b'])
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8
+            (-2.0, None)
+            sage: p.is_variable_integer(5)
+            True
+            sage: p.col_name(5)
+            'a'
+            sage: p.objective_coefficient(5)
+            42.0
         """
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         if  vtype == 0:
@@ -206,7 +219,7 @@ cdef class GLPKBackend(GenericBackend):
                 self.objective_coefficient(n_var - i - 1, obj)
 
             if names is not None:
-                glp_set_col_name(self.lp, n_var, names[number - i - 1])
+                glp_set_col_name(self.lp, n_var - i, names[number - i - 1])
 
         return n_var - 1
 

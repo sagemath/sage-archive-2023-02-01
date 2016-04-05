@@ -781,8 +781,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(2,-3)._div_(CIF(1,-2))
             1.600000000000000? + 0.200000000000000?*I
             sage: a = CIF((1, 2), (3, 4))
-            sage: b = CIF(-1, (2, 3))    
-            sage: c = a/b      
+            sage: b = CIF(-1, (2, 3))
+            sage: c = a/b
             sage: c.endpoints()
             (0.500000000000000 - 1.60000000000000*I,
             1.50000000000000 - 0.600000000000000*I,
@@ -1139,10 +1139,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         REFERENCES:
 
-        .. [RL] J. Rokne, P. Lancaster. Complex interval arithmetic. 
+        .. [RL] J. Rokne, P. Lancaster. Complex interval arithmetic.
            Communications of the ACM 14. 1971.
-        """        
-        
+        """
+
         cdef ComplexIntervalFieldElement x
         x = self._new()
 
@@ -1151,33 +1151,33 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfr_init2(b, self._prec)
         mpfr_init2(c, self._prec)
         mpfr_init2(d, self._prec)
-        
+
         cdef mpfr_t rmin, rmax, imin, imax
         mpfr_init2(rmin, self._prec)
         mpfr_init2(rmax, self._prec)
         mpfr_init2(imin, self._prec)
         mpfr_init2(imax, self._prec)
-        
+
         cdef mpfr_t r
         mpfr_init2(r, self._prec)
-        
+
         mpfi_get_left(a, self.__re)
         mpfi_get_right(b, self.__re)
         mpfi_get_left(c, self.__im)
         mpfi_get_right(d, self.__im)
-        
+
         cdef mpfr_t a2, b2, d2, c2
         mpfr_init2(a2, self._prec)
         mpfr_init2(b2, self._prec)
         mpfr_init2(c2, self._prec)
         mpfr_init2(d2, self._prec)
-        
+
         cdef mpfr_t div1, div2, aux, aux2
         mpfr_init2(div1, self._prec)
         mpfr_init2(div2, self._prec)
         mpfr_init2(aux, self._prec)
         mpfr_init2(aux2, self._prec)
-        
+
         if mpfr_sgn(a) >= 0 and mpfr_sgn(c)>=0:  #input interval lies in first quadrant
             # left endpoint
             mpfr_mul(a2, a, a, MPFR_RNDU)
@@ -1197,7 +1197,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             mpfr_div(aux2, d, div2, MPFR_RNDU)
             mpfr_sub(aux2, aux, aux2, MPFR_RNDU)
             mpfr_max(imax, aux2, imax, MPFR_RNDU)
-            # lower endpoint, it is the lowest point of the circle or one of 
+            # lower endpoint, it is the lowest point of the circle or one of
             if mpfr_cmp(d, a) >=0 and mpfr_cmp(c, a) <= 0:
                 mpfr_add(imin, a, a, MPFR_RNDD)
                 mpfr_set_si(aux, -1, MPFR_RNDD)
@@ -1230,7 +1230,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_mul(b2, b, b, MPFR_RNDD)
                 mpfr_mul(c2, c, c, MPFR_RNDD)
                 mpfr_add(div1, b2, c2, MPFR_RNDD)
-                mpfr_div(rmax, b, div1, MPFR_RNDU)                
+                mpfr_div(rmax, b, div1, MPFR_RNDU)
         elif mpfr_sgn(c) > 0  and mpfr_sgn(b) > 0: #between first and second quadrant
             # left endpoint
             mpfr_abs(aux, a, MPFR_RNDU)
@@ -1283,11 +1283,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         elif mpfr_sgn(a) >=0: #fourth or between fourth and first
             I = self.parent().gen(0)
             return I*(I*self).__invert__()
-            
-                
+
+
         mpfi_set_fr(x.__re, rmin)
         mpfi_put_fr(x.__re, rmax)
-        
+
         mpfi_set_fr(x.__im, imin)
         mpfi_put_fr(x.__im, imax)
 

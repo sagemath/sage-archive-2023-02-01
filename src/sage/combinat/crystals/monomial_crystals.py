@@ -750,6 +750,8 @@ class NakajimaAMonomial(NakajimaYMonomial):
 
 class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
     r"""
+    Crystal `B(\infty)` in terms of (modified) Nakajima monomials.
+
     Let `Y_{i,k}`, for `i \in I` and `k \in \ZZ`, be a commuting set of
     variables, and let `\boldsymbol{1}` be a new variable which commutes with
     each `Y_{i,k}`.  (Here, `I` represents the index set of a Cartan datum.)  One
@@ -775,14 +777,15 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         \end{aligned}
 
     where `\{h_i : i \in I\}` and `\{\Lambda_i : i \in I \}` are the simple
-    coroots and fundamental weights, respectively.  With a chosen set of integers
-    `C = (c_{ij})_{i\neq j}` such that `c_{ij}+c{ji} =1`, one defines
+    coroots and fundamental weights, respectively.  With a chosen set of
+    non-negative integers `C = (c_{ij})_{i\neq j}` such that
+    `c_{ij} + c{ji} = 1`, one defines
 
     .. MATH::
 
         A_{i,k} = Y_{i,k} Y_{i,k+1} \prod_{j\neq i} Y_{j,k+c_{ji}}^{a_{ji}},
 
-    where `(a_{ij})` is a Cartan matrix.  Then
+    where `(a_{ij})_{i,j \in I}` is a Cartan matrix.  Then
 
     .. MATH::
 
@@ -801,7 +804,13 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
 
     - ``cartan_type`` -- a Cartan type
 
-    - ``use_Y`` -- choice of monomials in terms of `A` or `Y`
+    - ``use_Y`` -- (default: ``True``) choice of monomials in terms
+      of `A` or `Y`
+
+    - ``c`` -- (optional) the matrix `(c_{ij})_{i,j \in I}` such that
+      `c_{ii} = 0` for all `i \in I`, `c_{ij} \in ZZ_{>0}` for all
+      `i,j \in I`, and `c_{ij} + c_{ji} = 1` for all `i \neq j`; the
+      default is `c_{ij} = 0` if `i < j` and `0` otherwise
 
     EXAMPLES::
 
@@ -857,6 +866,24 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             [0 1 0]
             sage: C.is_mutable()
             False
+
+        TESTS::
+
+            sage: c = matrix([[0,1],[0,1]])
+            sage: C = InfinityCrystalOfNakajimaMonomials._normalize_c(c, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the c matrix must have 0's on the diagonal
+            sage: c = matrix([[0,2],[-1,0]])
+            sage: C = InfinityCrystalOfNakajimaMonomials._normalize_c(c, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the c matrix must have non-negative entries
+            sage: c = matrix([[0,1],[1,0]])
+            sage: C = InfinityCrystalOfNakajimaMonomials._normalize_c(c, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: transpose entries do not sum to 1
         """
         if c is None:
             # Default is i < j <=> c_{ij} = 1 (0 otherwise)
@@ -868,6 +895,8 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             raise ValueError("the c matrix must have 0's on the diagonal")
         if any(c[i,j] + c[j,i] != 1 for i in range(n) for j in range(i)):
             raise ValueError("transpose entries do not sum to 1")
+        if any(c[i,j] < 0 or c[j,i] < 0 for i in range(n) for j in range(i)):
+            raise ValueError("the c matrix must have non-negative entries")
         return c
 
     @staticmethod

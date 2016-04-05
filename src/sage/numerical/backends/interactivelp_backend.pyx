@@ -776,46 +776,6 @@ cdef class InteractiveLPBackend:
         else:
             self.prob_name = str(name)
 
-    ## cpdef write_lp(self, char * name):
-    ##     """
-    ##     Write the problem to a ``.lp`` file
-
-    ##     INPUT:
-
-    ##     - ``filename`` (string)
-
-    ##     EXAMPLE::
-
-    ##         sage: from sage.numerical.backends.generic_backend import get_solver
-    ##         sage: p = get_solver(solver = "InteractiveLP")
-    ##         sage: p.add_variables(2)
-    ##         2
-    ##         sage: p.add_linear_constraint([(0, 1], (1, 2)], None, 3)
-    ##         sage: p.set_objective([2, 5])
-    ##         sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-    ##     """
-    ##     raise NotImplementedError()
-
-    ## cpdef write_mps(self, char * name, int modern):
-    ##     """
-    ##     Write the problem to a ``.mps`` file
-
-    ##     INPUT:
-
-    ##     - ``filename`` (string)
-
-    ##     EXAMPLE::
-
-    ##         sage: from sage.numerical.backends.generic_backend import get_solver
-    ##         sage: p = get_solver(solver = "InteractiveLP")
-    ##         sage: p.add_variables(2)
-    ##         2
-    ##         sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)
-    ##         sage: p.set_objective([2, 5])
-    ##         sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-    ##     """
-    ##     raise NotImplementedError()
-
     cpdef row(self, int i):
         """
         Return a row
@@ -1003,10 +963,6 @@ cdef class InteractiveLPBackend:
             'Empty constraint 1'
 
         """
-        ## slack_variables = default_variable_name("primal slack")
-        ## if slack_variables == default_variable_name("primal decision"):
-        ##     index = index + self.ncols()
-        ## return "{}{:d}".format(slack_variables, index + 1)
         return self.row_names[index]
 
     cpdef col_name(self, int index):
@@ -1118,32 +1074,6 @@ cdef class InteractiveLPBackend:
                 self.lp = InteractiveLPProblem(A, b, c, x,
                                                constraint_types, variable_types,
                                                problem_type, ring)
-
-    ## cpdef solver_parameter(self, name, value = None):
-    ##     """
-    ##     Return or define a solver parameter
-
-    ##     INPUT:
-
-    ##     - ``name`` (string) -- the parameter
-
-    ##     - ``value`` -- the parameter's value if it is to be defined,
-    ##       or ``None`` (default) to obtain its current value.
-
-    ##     .. NOTE::
-
-    ##        The list of available parameters is available at
-    ##        :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`.
-
-    ##     EXAMPLE::
-
-    ##         sage: from sage.numerical.backends.generic_backend import get_solver
-    ##         sage: p = get_solver(solver = "InteractiveLP")
-    ##         sage: p.solver_parameter("timelimit")
-    ##         sage: p.solver_parameter("timelimit", 60)
-    ##         sage: p.solver_parameter("timelimit")
-    ##     """
-    ##     raise NotImplementedError()
 
     cpdef bint is_variable_basic(self, int index):
         """

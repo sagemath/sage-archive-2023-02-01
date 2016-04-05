@@ -508,31 +508,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
         return DiGraph(G)
 
-    def weight_lattice_realization(self):
-        r"""
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
-            sage: B.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 2, 1]
-
-            sage: C = crystals.AlcovePaths("B3",[1,0,0])
-            sage: C.weight_lattice_realization()
-            Ambient space of the Root system of type ['B', 3]
-
-            sage: A = crystals.AlcovePaths(['A',2,1], [1,0], highest_weight_crystal=False)
-            sage: A.weight_lattice_realization()
-            Weight lattice of the Root system of type ['A', 2, 1]
-        """
-        F = self.cartan_type().root_system()
-        if self.cartan_type().is_affine():
-            return F.weight_lattice(extended=self._highest_weight_crystal)
-        if self.cartan_type().is_finite() and F.ambient_space() is not None:
-            return F.ambient_space()
-        return F.weight_lattice()
-
 class CrystalOfAlcovePathsElement(ElementWrapper):
     """
     Crystal of alcove paths element.

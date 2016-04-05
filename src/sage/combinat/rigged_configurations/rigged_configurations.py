@@ -31,8 +31,7 @@ from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
 from sage.rings.all import QQ
-from sage.categories.finite_crystals import FiniteCrystals
-from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
@@ -406,6 +405,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         # Standardize B input into a tuple of tuples
         B = tuple(tuple(factor) for factor in B)
+        if not B:
+            raise ValueError("must contain at least one factor")
 
         if cartan_type.type() == 'BC': # Type `A_{2n}^{(2)}`
             return RCTypeA2Even(cartan_type, B)
@@ -443,7 +444,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         self._rc_index = cl.index_set()
         # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = cl.cartan_matrix()
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
 
     def _repr_(self):
         """
@@ -667,6 +668,19 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                     values[-1].extend(block)
         return values
 
+    def classically_highest_weight_vectors(self):
+        """
+        Return the classically highest weight elements of ``self``.
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
+            sage: ascii_art(RC.classically_highest_weight_vectors())
+            (                    )
+            ( (/)  (/)  (/)  (/) )
+        """
+        return self.module_generators
+
     def _element_constructor_(self, *lst, **options):
         """
         Construct a ``RiggedConfigurationElement``.
@@ -828,31 +842,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         """
         from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
         return TensorProductOfKirillovReshetikhinTableaux(self._cartan_type, self.dims)
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
-            sage: RC.cardinality()
-            100
-            sage: len(RC.list())
-            100
-
-            sage: RC = RiggedConfigurations(['E', 7, 1], [[1,1]])
-            sage: RC.cardinality()
-            134
-            sage: len(RC.list())
-            134
-
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
-            sage: RC.cardinality()
-            5130
-        """
-        CWLR = self.cartan_type().classical().root_system().ambient_space()
-        return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)
 
     @cached_method
     def tensor_product_of_kirillov_reshetikhin_crystals(self):

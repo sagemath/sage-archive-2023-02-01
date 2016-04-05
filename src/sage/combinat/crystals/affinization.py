@@ -105,18 +105,6 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
         """
         return "Affinization of {}".format(self._B)
 
-    def weight_lattice_realization(self):
-        """
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
-            sage: A.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 2, 1]
-        """
-        return self.cartan_type().root_system().weight_lattice(extended=True)
-
     # TODO: This should become unnecessary once we have a proper category for KR crystals
     def digraph(self, subset=None, index_set=None):
         """

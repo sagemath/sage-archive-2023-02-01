@@ -233,13 +233,17 @@ class Crystals(Category_singleton):
 
         def weight_lattice_realization(self):
             """
-            Returns the weight lattice realization used to express weights.
+            Return the weight lattice realization used to express weights
+            in ``self``.
 
             This default implementation uses the ambient space of the
             root system for (non relabelled) finite types and the
             weight lattice otherwise. This is a legacy from when
             ambient spaces were partially implemented, and may be
             changed in the future.
+
+            For affine types, this returns the extended weight lattice
+            by default.
 
             EXAMPLES::
 
@@ -249,10 +253,43 @@ class Crystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
                 sage: K.weight_lattice_realization()
                 Weight lattice of the Root system of type ['A', 2, 1]
+
+            TESTS:
+
+            Check that crystals have the correct weight lattice realization::
+
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
+                sage: A.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 2, 1]
+
+                sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
+                sage: B.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 2, 1]
+
+                sage: C = crystals.AlcovePaths("B3",[1,0,0])
+                sage: C.weight_lattice_realization()
+                Ambient space of the Root system of type ['B', 3]
+
+                sage: M = crystals.infinity.NakajimaMonomials(['A',3,2])
+                sage: M.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['B', 2, 1]^*
+                sage: M = crystals.infinity.NakajimaMonomials(['A',2])
+                sage: M.weight_lattice_realization()
+                Ambient space of the Root system of type ['A', 2]
+                sage: A = CartanMatrix([[2,-3],[-3,2]])
+                sage: M = crystals.infinity.NakajimaMonomials(A)
+                sage: M.weight_lattice_realization()
+                Weight lattice of the Root system of type Dynkin diagram of rank 2
+
+                sage: Y = crystals.infinity.GeneralizedYoungWalls(3)
+                sage: Y.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 3, 1]
             """
             F = self.cartan_type().root_system()
             if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
+            if self.cartan_type().is_affine():
+                return F.weight_lattice(extended=True)
             return F.weight_lattice()
 
         def cartan_type(self):
@@ -734,7 +771,7 @@ class Crystals(Category_singleton):
 
         def digraph(self, subset=None, index_set=None):
             """
-            Returns the DiGraph associated to ``self``.
+            Return the :class:`DiGraph` associated to ``self``.
 
             INPUT:
 
@@ -809,12 +846,7 @@ class Crystals(Category_singleton):
             .. TODO:: Add more tests.
             """
             from sage.graphs.all import DiGraph
-            from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
-            if self in HighestWeightCrystals:
-                f = lambda u_v_label: ({})
-            else:
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
 
             # Parse optional arguments
             if subset is None:
@@ -832,9 +864,8 @@ class Crystals(Category_singleton):
             G = DiGraph(d)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
-                                    edge_labels = True,
-                                    color_by_label = self.cartan_type()._index_set_coloring,
-                                    edge_options = f)
+                                    edge_labels=True,
+                                    color_by_label=self.cartan_type()._index_set_coloring)
             return G
 
         def latex_file(self, filename):

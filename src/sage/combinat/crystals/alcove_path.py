@@ -27,6 +27,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
 from sage.graphs.all import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
@@ -324,11 +325,11 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
 
 
         if cartan_type.is_finite() and highest_weight_crystal:
-            Parent.__init__(self, category=ClassicalCrystals() )
+            Parent.__init__(self, category=ClassicalCrystals())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
         elif cartan_type.is_finite() and not highest_weight_crystal:
-            Parent.__init__(self, category=FiniteCrystals() )
+            Parent.__init__(self, category=AffineDerivedSubalgebraCrystals().Finite())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = True
             self._cartan_type = cartan_type.affine()

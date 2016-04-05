@@ -1078,17 +1078,68 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             Traceback (most recent call last):
             ...
             ValueError: target points not independent
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in source, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in target, need 4 points
+
+        ::
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not in self
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not in self
+
         """
         r = self.base_ring()
         n = self.dimension_relative()
         P = ProjectiveSpace(r, n**2+2*n,'p')
+        # makes sure there aren't to few or two many points
+        if len(points_source)!= n + 2:
+            raise ValueError ("incorrect number of points in source, need %d points"%(n+2))
+        if len(points_target)!= n + 2:
+            raise ValueError ("incorrect number of points in target, need %d points"%(n+2))
+        if any([x.codomain()!=self for x in points_source]):
+            raise ValueError ("source points not in self")
+        if any([x.codomain()!=self for x in points_target]):
+            raise ValueError ("target points not in self")
         # putting points as the rows of the matrix
         Ms = matrix(r, [list(s) for s in points_source])
         if any([m == 0 for m in Ms.minors(n+1)]):
             raise ValueError("source points not independent")
         Mt = matrix(r, [list(t) for t in points_target])
         if any([l == 0 for l in Mt.minors(n+1)]):
-                raise ValueError("target points not independent")
+            raise ValueError("target points not independent")
         A = matrix(P.coordinate_ring(), n+1, n+1, P.gens())
         #transpose to get image points and then get the list of image points with columns
         funct = (A*Ms.transpose()).columns()
@@ -1097,9 +1148,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             eq = eq+ [funct[k][i]*points_target[k][j] - funct[k][j]*points_target[k][i]\
                 for i in range(0,n+1) for j in range(i+1, n+1)]
         v = P.subscheme(eq)
-        w = v.rational_points(bound=n)
-        if len(w) == 0:
-            raise ValueError (" no conjugation found, over the %s" %r)
+        w = v.rational_points()
         return matrix(r, n+1, n+1, list(w[0]))
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):

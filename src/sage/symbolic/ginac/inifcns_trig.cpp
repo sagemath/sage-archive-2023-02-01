@@ -173,7 +173,8 @@ static ex sin_eval(const ex & x)
                         return _ex0;
 
                 // Reflection at Pi/2
-                else if (has_pi(x) && not is_exactly_a<add>(x)) {
+                
+                else if (is_exactly_a<numeric>(ExOverPi)) {
                         if (is_exactly_a<numeric>(coef_pi)) {
                                 const numeric c = ex_to<numeric>(coef_pi);
                                 if (c.is_rational()) {
@@ -389,7 +390,7 @@ static ex cos_eval(const ex & x)
                         return pow(_ex_1, ExOverPi);
                 
                 // Reflection at Pi/2
-                else if (has_pi(x) && not is_exactly_a<add>(x)) {
+                else if (is_exactly_a<numeric>(ExOverPi)) {
                         if (is_exactly_a<numeric>(coef_pi)) {
                                 const numeric c = ex_to<numeric>(coef_pi);
                                 if (c.is_rational()) {
@@ -609,9 +610,10 @@ static ex tan_eval(const ex & x)
                         if (z.is_equal(*_num22_p))  // tan(11*Pi/24) -> sqrt(6) + sqrt(2*sqrt(6) + 5) + 2
                                 return sign*(_ex2+sqrt(_ex6)+sqrt(_ex2)+sqrt(_ex3));
                 }
-                
+ 
                 // Reflection at Pi/2
-                else if (has_pi(x) && not is_exactly_a<add>(x)) {
+                const ex ExOverPi = x_red/Pi;
+                if (is_exactly_a<numeric>(ExOverPi)) {
                         if (is_exactly_a<numeric>(coef_pi)) {
                                 const numeric c = ex_to<numeric>(coef_pi);
                                 if (c.is_rational()) {
@@ -792,7 +794,8 @@ static ex cot_eval(const ex & x)
                         return UnsignedInfinity;
         }
         // Reflection at Pi/2
-        if(has_pi(x) && not is_exactly_a<add>(x)) {
+        const ex ExOverPi = x/Pi;
+        if(is_exactly_a<numeric>(ExOverPi)) {
 		ex coef_pi = x.coeff(Pi).expand();
 		if (is_exactly_a<numeric>(coef_pi)) {
 			const numeric c = ex_to<numeric>(coef_pi);
@@ -930,7 +933,8 @@ static ex sec_eval(const ex & x)
                         return UnsignedInfinity;
         }
         // Reflection at Pi/2
-	if(has_pi(x) && not is_exactly_a<add>(x)) {
+        const ex ExOverPi = x/Pi;
+	if(is_exactly_a<numeric>(ExOverPi)) {
 		ex coef_pi = x.coeff(Pi).expand();
 		if (is_exactly_a<numeric>(coef_pi)) {
 		        const numeric c = ex_to<numeric>(coef_pi);
@@ -1064,7 +1068,8 @@ static ex csc_eval(const ex & x)
                         return UnsignedInfinity;
         }
         // Reflection at Pi/2
-        if(has_pi(x) && not is_exactly_a<add>(x)) {
+        const ex ExOverPi = x/Pi;
+        if(is_exactly_a<numeric>(ExOverPi)) {
                 ex coef_pi = x.coeff(Pi).expand();
                 if (is_exactly_a<numeric>(coef_pi)) {
                         const numeric c = ex_to<numeric>(coef_pi);

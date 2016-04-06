@@ -64,7 +64,7 @@ from sage.structure.parent import Parent
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.prandom as prandom
 from sage.rings.integer import Integer
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet

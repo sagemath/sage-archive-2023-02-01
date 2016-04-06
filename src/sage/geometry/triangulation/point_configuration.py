@@ -1094,15 +1094,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         self._polyhedron = Polyhedron(vertices=pts);
         return self._polyhedron
 
-
+    @cached_method
     def restricted_automorphism_group(self):
         r"""
         Return the restricted automorphism group.
 
         First, let the linear automorphism group be the subgroup of
-        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
+        the affine group `AGL(d,\RR) = GL(d,\RR) \ltimes \RR^d`
         preserving the `d`-dimensional point configuration. The
-        Euclidean group acts in the usual way `\vec{x}\mapsto
+        affine group acts in the usual way `\vec{x}\mapsto
         A\vec{x}+b` on the ambient space.
 
         The restricted automorphism group is the subgroup of the
@@ -1142,9 +1142,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: DihedralGroup(1).is_isomorphic(_)
             True
         """
-        if '_restricted_automorphism_group' in self.__dict__:
-            return self._restricted_automorphism_group
-
         v_list = [ vector(p.projective()) for p in self ]
         Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
 
@@ -1161,10 +1158,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 v_j = v_list[j]
                 G.add_edge(i+1,j+1, v_i * Qinv * v_j)
 
-        group = G.automorphism_group(edge_labels=True)
-        self._restricted_automorphism_group = group
-        return group
-
+        return G.automorphism_group(edge_labels=True)
 
     def face_codimension(self, point):
         r"""

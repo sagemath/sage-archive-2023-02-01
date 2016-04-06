@@ -30,21 +30,29 @@ AUTHORS:
 
 import operator
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
+from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
+from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
+from sage.structure.sage_object cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
+from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
-import sage.rings.arith
 
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
+
+cimport number_field_base
 import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -122,8 +130,8 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         sage: loads(dumps(a+1)) == a + 1 # indirect doctest
         True
 
-    This also gets called for unpickling order elements; we check that #6462 is
-    fixed::
+    This also gets called for unpickling order elements; we check that
+    :trac:`6462` is fixed::
 
         sage: L = NumberField(x^3 - x - 1,'a'); OL = L.maximal_order(); w = OL.0
         sage: loads(dumps(w)) == w # indirect doctest
@@ -137,12 +145,11 @@ def _inverse_mod_generic(elt, I):
     function called from each of the OrderElement_xxx classes, since
     otherwise we'd have to have the same code three times over (there
     is no OrderElement_generic class - no multiple inheritance). See
-    trac 4190.
+    :trac:`4190`.
 
     EXAMPLES::
 
-        sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-        sage: w = OE.ring_generators()[0]
+        sage: OE.<w> = EquationOrder(x^3 - x + 2)
         sage: from sage.rings.number_field.number_field_element import _inverse_mod_generic
         sage: _inverse_mod_generic(w, 13*OE)
         6*w^2 - 6
@@ -156,7 +163,8 @@ def _inverse_mod_generic(elt, I):
     if I == 0:
         raise ValueError, "inverse is not defined modulo the zero ideal"
     n = R.absolute_degree()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in R.gens()]))
+    B = R.basis()
+    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
@@ -164,7 +172,7 @@ def _inverse_mod_generic(elt, I):
     y = R(0)
     for j in xrange(n):
         if v[j] != 0:
-            y += v[j] * sum([b[j,i+n] * R.gen(i) for i in xrange(n)])
+            y += v[j] * sum([b[j,i+n] * B[i] for i in xrange(n)])
     return I.small_residue(y)
 
 __pynac_pow = False
@@ -261,6 +269,26 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
+            True
+
+        If a real embedding is specified, then the element comparison works as expected::
+
+            sage: K.<g> = NumberField(x^3+2,embedding=1)
+            sage: RR(g)
+            -1.25992104989487
+            sage: -2 < g < -1
+            True
+            sage: g^2+1 < g + 1
+            False
+
+        TESTS:
+
+        Test round-trip conversion to PARI and back::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 1/2*x + 1/3)
+            sage: b = K.random_element()
+            sage: K(pari(b)) == b
             True
         """
         FieldElement.__init__(self, parent)
@@ -692,18 +720,97 @@ cdef class NumberFieldElement(FieldElement):
             raise IndexError, "index must be between 0 and degree minus 1."
         return self.polynomial()[n]
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef _richcmp_(left, sage.structure.element.Element right, int op):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8)
             sage: a  + 1 > a # indirect doctest
             True
             sage: a + 1 < a # indirect doctest
             False
+
+        Comparison of embedded number fields::
+
+            sage: x = polygen(ZZ)
+            sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2).nth_root(3))
+            sage: 6064/4813 < cbrt2 < 90325/71691
+            True
+
+            sage: c20 = 3085094589/2448641198
+            sage: c21 = 4433870912/3519165675
+            sage: c20 < cbrt2 < c21
+            True
+            sage: c20 >= cbrt2 or cbrt2 <= c20 or c21 <= cbrt2 or cbrt2 >= c21
+            False
+
+            sage: c40 = 927318063212049190871/736012834525960091591
+            sage: c41 = 112707779922292658185265/89456224206823838627034
+            sage: c40 < cbrt2 < c41
+            True
+            sage: c40 >= cbrt2 or cbrt2 <= c40 or c41 <= cbrt2 or cbrt2 >= c41
+            False
         """
         cdef NumberFieldElement _right = right
-        return (left.__numerator != _right.__numerator) or (left.__denominator != _right.__denominator)
+        cdef int res
+
+        # fast equality check
+        res = left.__numerator == _right.__numerator and left.__denominator == _right.__denominator
+        if res:
+            if op == Py_EQ or op == Py_GE or op == Py_LE:
+                return True
+            if op == Py_NE or op == Py_GT or op == Py_LT:
+                return False
+        elif op == Py_EQ:
+            return False
+        elif op == Py_NE:
+            return True
+
+        # comparisons <, <=, > or >=
+        # this should work for number field element and order element
+        cdef number_field_base.NumberField P
+        try:
+            P = <number_field_base.NumberField?> left._parent
+        except TypeError:
+            P = left._parent.number_field()
+        cdef size_t i = 0                # level of the approximation
+        cdef RealIntervalFieldElement v  # approximation of the nf generator
+        cdef mpfi_t la, ra               # left and right approximations
+        cdef mpz_t ld, rd                # left and right denominators
+        if P._embedded_real:
+            mpz_init(ld)
+            mpz_init(rd)
+            ZZ_to_mpz(ld, &left.__denominator)
+            ZZ_to_mpz(rd, &_right.__denominator)
+
+            v = <RealIntervalFieldElement> P._get_embedding_approx(0)
+            mpfi_init2(la, mpfi_get_prec(v.value))
+            mpfi_init2(ra, mpfi_get_prec(v.value))
+            ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+            mpfi_div_z(la, la, ld)
+            ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+            mpfi_div_z(ra, ra, rd)
+            while mpfr_greaterequal_p(&la.right, &ra.left) \
+                  and mpfr_greaterequal_p(&ra.right, &la.left):
+                i += 1
+                v = <RealIntervalFieldElement> P._get_embedding_approx(i)
+                mpfi_set_prec(la, mpfi_get_prec(v.value))
+                mpfi_set_prec(ra, mpfi_get_prec(v.value))
+                ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+                mpfi_div_z(la, la, ld)
+                ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+                mpfi_div_z(ra, ra, rd)
+            if op == Py_LT or op == Py_LE:
+                res = mpfr_less_p(&la.right, &ra.left)
+            elif op == Py_GT or op == Py_GE:
+                res = mpfr_greater_p(&la.left, &ra.right)
+            mpfi_clear(la)
+            mpfi_clear(ra)
+            mpz_clear(ld)
+            mpz_clear(rd)
+            return bool(res)
+        else:
+            return rich_to_bool(op, 1)
 
     def _random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
@@ -799,6 +906,7 @@ cdef class NumberFieldElement(FieldElement):
         return 0  # No error
 
 
+    # TODO: this is wrong if there is a real embedding specified
     def __abs__(self):
         r"""
         Return the numerical absolute value of this number field element
@@ -820,6 +928,118 @@ cdef class NumberFieldElement(FieldElement):
             1.2599210498948731647672106072782283506
         """
         return self.abs(prec=53, i=None)
+
+    def floor(self):
+        r"""
+        Return the floor of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
+            sage: b.floor()
+            4
+
+        This function always succeeds even if a tremendous precision is needed::
+
+            sage: c = b - 4772404052447/1154303505127 + 2
+            sage: c.floor()
+            1
+            sage: RIF(c).unique_floor()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique floor
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: K(2/3).floor()
+            0
+            sage: a.floor()
+            Traceback (most recent call last):
+            ...
+            TypeError: floor not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) == 0:
+            return self._rational_().floor()
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("floor not uniquely defined since no real embedding is specified")
+
+        from sage.rings.real_mpfi import RealIntervalField
+        i = 0
+        a = RealIntervalField(53)(self)
+        low = a.lower().floor()
+        upp = a.upper().floor()
+        while low != upp:
+            i += 1
+            a = RealIntervalField(53<<i)(self)
+            low = a.lower().floor()
+            upp = a.upper().floor()
+        return low
+
+    def ceil(self):
+        r"""
+        Return the ceiling of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
+            sage: b.ceil()
+            5
+
+        This function always succeeds even if a tremendous precision is needed::
+
+            sage: c = b - 5065701199253/1225243417356 + 2
+            sage: c.ceil()
+            3
+            sage: RIF(c).unique_ceil()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique ceil
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: K(2/3).ceil()
+            1
+            sage: a.ceil()
+            Traceback (most recent call last):
+            ...
+            TypeError: ceil not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) == 0:
+            return self._rational_().ceil()
+
+        if not (<number_field_base.NumberField> self._parent)._embedded_real:
+            raise TypeError("ceil not uniquely defined since no real embedding is specified")
+
+        from sage.rings.real_mpfi import RealIntervalField
+        i = 0
+        a = RealIntervalField(53)(self)
+        low = a.lower().ceil()
+        upp = a.upper().ceil()
+        while low != upp:
+            i += 1
+            a = RealIntervalField(53<<i)(self)
+            low = a.lower().ceil()
+            upp = a.upper().ceil()
+        return low
 
     def abs(self, prec=53, i=None):
         r"""
@@ -1512,7 +1732,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS:
 
         Check that the output is correct even for numbers that are
-        very close to zero (ticket #9596)::
+        very close to zero (:trac:`9596`)::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: a = 30122754096401; b = 21300003689580
@@ -1926,23 +2146,6 @@ cdef class NumberFieldElement(FieldElement):
         sig_off()
         return x
 
-    def __floordiv__(self, other):
-        """
-        Return the quotient of self and other. Since these are field
-        elements the floor division is exactly the same as usual division.
-
-        EXAMPLES::
-
-            sage: m.<b> = NumberField(x^4 + x^2 + 2/3)
-            sage: c = (1+b) // (1-b); c
-            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
-            sage: (1+b) / (1-b) == c
-            True
-            sage: c * (1-b)
-            b + 1
-        """
-        return self / other
-
     def __nonzero__(self):
         """
         Return True if this number field element is nonzero.
@@ -2132,11 +2335,48 @@ cdef class NumberFieldElement(FieldElement):
             -1/2
         """
         if ZZX_deg(self.__numerator) >= 1:
-            raise TypeError, "Unable to coerce %s to a rational"%self
+            raise TypeError("Unable to coerce %s to a rational"%self)
         cdef Integer num
         num = PY_NEW(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
+
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3, embedding=CC(0,1))
+            sage: QQbar(alpha)
+            -1.032202770009288? + 1.168103873894207?*I
+            sage: AA(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce algebraic number with non-zero imaginary
+            part to algebraic real
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3)
+            sage: QQbar(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert number
+            field element to algebraic number
+
+        TESTS::
+
+            sage: C.<z> = CyclotomicField(7)
+            sage: a = 2*z^2 + 5*z^4
+            sage: E = C.algebraic_closure()
+            sage: E(a)
+            -4.949886207424724? - 0.2195628712241434?*I
+        """
+        emb = self._parent.coerce_embedding()
+        if emb is None:
+            raise ValueError("need a real or complex embedding to convert "
+                             "number field element to algebraic number")
+        emb = number_field.refine_embedding(emb, infinity)
+        return parent(emb(self))
 
     def _symbolic_(self, SR):
         """
@@ -3055,7 +3295,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "P must be prime"
         if self == 0:
             return infinity
-        return Integer_sage(self.number_field().pari_nf().elementval(self._pari_(), P.pari_prime()))
+        return Integer_sage(self.number_field().pari_nf().nfeltval(self, P.pari_prime()))
 
     ord = valuation
 
@@ -3068,7 +3308,7 @@ cdef class NumberFieldElement(FieldElement):
 
         -  ``P`` - a prime ideal of the parent of self
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
@@ -3238,7 +3478,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3265,7 +3505,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3806,7 +4046,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES:
 
@@ -4153,7 +4393,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES::
 
@@ -4314,9 +4554,10 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent! This fixes trac #4190.
+        parent! This fixes :trac:`4190`.
 
         EXAMPLES::
 
@@ -4351,8 +4592,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
 
         EXAMPLES::
 
-            sage: OE = NumberField(x^3 - x + 2, 'w').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^3 - x + 2)
             sage: w.inverse_mod(13*OE)
             6*w^2 - 6
             sage: w * (w.inverse_mod(13)) - 1 in 13*OE
@@ -4370,7 +4610,9 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     def __invert__(self):
         r"""
         Implement inversion, checking that the return value has the right
-        parent. See trac #4190.
+        parent.
+
+        See :trac:`4190`.
 
         EXAMPLE::
 
@@ -4440,9 +4682,10 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent. This fixes trac #4190.
+        parent. This fixes trac :trac:`4190`.
 
         EXAMPLES::
 
@@ -4450,7 +4693,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: (17/b).parent() is K2 # indirect doctest
             True
@@ -4466,7 +4709,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     def __invert__(self):
         r"""
         Implement division, checking that the result has the right parent.
-        See trac #4190.
+
+        See :trac:`4190`.
 
         EXAMPLES::
 
@@ -4474,7 +4718,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: R.<y> = K1[]
             sage: K2 = K1.extension(y^2 - a, 'b')
             sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.gens()[1]; b
+            sage: b = OK2.basis()[1]; b
             b
             sage: b.parent() is OK2
             True

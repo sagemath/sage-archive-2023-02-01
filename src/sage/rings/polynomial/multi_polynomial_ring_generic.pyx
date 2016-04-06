@@ -2,9 +2,9 @@ r"""
 Base class for multivariate polynomial rings
 """
 
-from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
+from sage.structure.parent cimport Parent
 from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
@@ -18,7 +18,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 from sage.misc.misc_c import prod
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
@@ -45,7 +45,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         TESTS:
 
-        Check that containment works correctly (ticket #10355)::
+        Check that containment works correctly (:trac:`10355`)::
 
             sage: A1.<a> = PolynomialRing(QQ)
             sage: A2.<a,b> = PolynomialRing(QQ)
@@ -332,7 +332,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return D
 
     def __richcmp__(left, right, int op):
-        return (<ParentWithGens>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):
@@ -607,7 +607,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             3
 
         """
-        from sage.rings.arith import binomial
         C = [1]  #d = 0
         for dbar in xrange(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
@@ -672,7 +671,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
-        from sage.rings.arith import binomial
         #Select random degree
         d = ZZ.random_element(0,degree+1)
         total = binomial(n+d-1, d)
@@ -825,7 +823,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
 
         from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         #total is 0. Just return
         if total == 0:

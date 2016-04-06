@@ -29,7 +29,7 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
-from sage.rings.arith import gcd, inverse_mod, kronecker_symbol
+from sage.arith.all import gcd, inverse_mod, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.matrix.matrix import Matrix, is_Matrix

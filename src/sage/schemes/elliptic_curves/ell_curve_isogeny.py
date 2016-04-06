@@ -845,12 +845,12 @@ class EllipticCurveIsogeny(Morphism):
         sage: isogs[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field
         sage: isogs[0].rational_maps()
-        ((x^2 - t^2)/x, (x^3*y + t^2*x*y)/x^3)
+        ((x^2 - t^2)/x, (x^2*y + t^2*y)/x^2)
         sage: duals = [phi.dual() for phi in isogs]
         sage: duals[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field
         sage: duals[0].rational_maps()
-        ((1/4*x^2 + t^2)/x, (1/8*x^3*y + (-1/2*t^2)*x*y)/x^3)
+        ((1/4*x^2 + t^2)/x, (1/8*x^2*y + (-1/2*t^2)*y)/x^2)
         sage: duals[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field
     """
@@ -2564,7 +2564,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi._EllipticCurveIsogeny__compute_omega_general(E, psi, psi_pr, fi, fi_pr)
             x^3*y + (alpha^2 + 1)*x^2*y + (alpha^2 + alpha + 1)*x^2 + (alpha^2 + 1)*x*y + (alpha^2 + alpha)*x + (alpha)*y + (alpha)
 
-        A bug fixed in ticket #7907::
+        A bug fixed in :trac:`7907`::
 
             sage: F = GF(128,'a')
             sage: a = F.gen()
@@ -2602,7 +2602,7 @@ class EllipticCurveIsogeny(Morphism):
         # thesis are wrong, the correct formulas
         # are coded below
 
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         for j  in xrange(0,n-1):
             psi_prpr = psi_prpr + \
@@ -3358,7 +3358,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
-        Test (for trac ticket 7096)::
+        Test (for :trac:`7096`)::
 
             sage: E = EllipticCurve('11a1')
             sage: phi = E.isogeny(E(5,5))

@@ -3621,16 +3621,17 @@ class FiniteWord_class(Word_class):
 
     def is_lyndon(self):
         r"""
-        Returns True if self is a Lyndon word, and False otherwise.
+        Return ``True`` if ``self`` is a Lyndon word, and ``False``
+        otherwise.
 
         A *Lyndon word* is a non-empty word that is lexicographically
-        smaller than all of its proper suffixes for the given order
-        on its alphabet. That is, `w` is a Lyndon word if `w` is non-empty
+        smaller than each of its proper suffixes (for the given order
+        on its alphabet). That is, `w` is a Lyndon word if `w` is non-empty
         and for each factorization `w = uv` (with `u`, `v` both non-empty),
         we have `w < v`.
 
         Equivalently, `w` is a Lyndon word iff `w` is a non-empty word that is
-        lexicographically smaller than all of its proper conjugates for the
+        lexicographically smaller than each of its proper conjugates for the
         given order on its alphabet.
 
         See for instance [1].
@@ -3640,7 +3641,7 @@ class FiniteWord_class(Word_class):
             sage: Word('123132133').is_lyndon()
             True
             sage: Word().is_lyndon()
-            True
+            False
             sage: Word('122112').is_lyndon()
             False
 
@@ -3651,9 +3652,9 @@ class FiniteWord_class(Word_class):
         Lyndon words, and compare with the ``LyndonWords`` generator::
 
             sage: for n in range(1,10):
-            ...       lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
-            ...       lw2 = LyndonWords(3,n)
-            ...       if set(lw1) != set(lw2): print False
+            ....:     lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
+            ....:     lw2 = LyndonWords(3,n)
+            ....:     if set(lw1) != set(lw2): print False
 
         Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
         words, and compare with the :class:`LyndonWords` generator after
@@ -3672,7 +3673,7 @@ class FiniteWord_class(Word_class):
 
         """
         if self.is_empty():
-            return True
+            return False
         cmp = self.parent().cmp_letters
         n = self.length()
         i, j = 0, 1
@@ -3694,7 +3695,7 @@ class FiniteWord_class(Word_class):
 
     def lyndon_factorization(self):
         r"""
-        Returns the Lyndon factorization of self.
+        Return the Lyndon factorization of ``self``.
 
         The *Lyndon factorization* of a finite word `w` is the unique
         factorization of `w` as a non-increasing product of Lyndon words,
@@ -3703,7 +3704,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            list -- the list of factors obtained
+        the list `[l_1, \ldots, l_n]` of factors obtained
 
         EXAMPLES::
 
@@ -4620,10 +4621,7 @@ class FiniteWord_class(Word_class):
             sage: f['3'] == 1
             True
         """
-        d = {}
-        for a in self:
-            d[a] = d.get(a,0) + 1
-        return d
+        return evaluation_dict(self)
 
     def evaluation_sparse(self):
         r"""
@@ -4914,20 +4912,8 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, cmp=self.parent().cmp_letters)
 
     def _s(self, i):
         r"""
@@ -5731,7 +5717,7 @@ class FiniteWord_class(Word_class):
         The finite word ``self`` must be defined on a two-letter alphabet.
 
         A binary word is said to be *tangent* if it can appear in
-        infintely many cutting sequences of a smooth curve, where each
+        infinitely many cutting sequences of a smooth curve, where each
         cutting sequence is observed on a progressively smaller grid.
 
         This class of words strictly contains the class of 1-balanced
@@ -6414,15 +6400,15 @@ class FiniteWord_class(Word_class):
 
     def standard_factorization(self):
         r"""
-        Returns the standard factorization of ``self``.
+        Return the standard factorization of ``self``.
 
-        The *standard factorization* of a word `w` of length greater than 1 is
-        the unique factorization: `w = uv` where `v` is the longest proper
+        The *standard factorization* of a word `w` of length greater than
+        `1` is the factorization `w = uv` where `v` is the longest proper
         suffix of `w` that is a Lyndon word.
 
         Note that if `w` is a Lyndon word of length greater than 1 with
-        standard factorization `w = uv`, then `u` and `v` are also Lyndon words
-        and `u < v`.
+        standard factorization `w = uv`, then `u` and `v` are also Lyndon
+        words and `u < v`.
 
         See for instance [1], [2] and [3].
 
@@ -6432,7 +6418,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            tuple -- tuple of two factors
+        2-tuple `(u, v)`
 
         EXAMPLES::
 
@@ -6481,10 +6467,11 @@ class FiniteWord_class(Word_class):
             Encyclopedia of Mathematics and its Applications, Cambridge
             University Press, U.K., 2002.
         """
-        if self.length() < 2:
+        selflen = self.length()
+        if selflen < 2:
             raise ValueError("Standard factorization not defined on"
                              " words of length less than 2")
-        for l in xrange(1, self.length()):
+        for l in xrange(1, selflen):
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
@@ -6492,7 +6479,7 @@ class FiniteWord_class(Word_class):
     def apply_permutation_to_positions(self, permutation):
         r"""
         Return the word obtained by permuting the positions of the letters
-        in self.
+        in ``self`` according to the permutation ``permutation``.
 
         EXAMPLES::
 
@@ -6520,8 +6507,9 @@ class FiniteWord_class(Word_class):
 
     def apply_permutation_to_letters(self, permutation):
         r"""
-        Return the word obtained by applying permutation to
-        the letters of the alphabet of self.
+        Return the word obtained by applying the permutation
+        ``permutation`` of the alphabet of ``self`` to each letter of
+        ``self``.
 
         EXAMPLES::
 
@@ -6963,4 +6951,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

@@ -1,7 +1,6 @@
 """
 Dense Matrices over a general ring
 """
-include "sage/ext/interrupt.pxi"
 cimport cython
 from cpython.list cimport *
 from cpython.number cimport *

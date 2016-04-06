@@ -196,6 +196,28 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def hochschild_complex(self, M):
+            """
+            Return the Hochschild complex of ``self`` with coefficients
+            in ``M``.
+
+            .. SEEALSO::
+
+                :class:`~sage.homology.hochschild_complex.HochschildComplex`
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: A = algebras.DifferentialWeyl(R)
+                sage: H = A.hochschild_complex(A)
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: T = SGA.trivial_representation()
+                sage: H = SGA.hochschild_complex(T)
+            """
+            from sage.homology.hochschild_complex import HochschildComplex
+            return HochschildComplex(self, M)
+
     class ElementMethods:
 
         def __invert__(self):
@@ -242,7 +264,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian
+        The category of algebras with basis, constructed as Cartesian
         products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
@@ -252,7 +274,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):
             """
-            A cartesian product of algebras with basis is endowed with
+            A Cartesian product of algebras with basis is endowed with
             a natural algebra with basis structure.
 
             EXAMPLES::
@@ -270,9 +292,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_from_cartesian_product_of_one_basis(self):
                 """
-                Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
+                Returns the one of this Cartesian product of algebras, as per ``Monoids.ParentMethods.one``
 
-                It is constructed as the cartesian product of the ones of the
+                It is constructed as the Cartesian product of the ones of the
                 summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
 
                 This implementation does not require multiplication by

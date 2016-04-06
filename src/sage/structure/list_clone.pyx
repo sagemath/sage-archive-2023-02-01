@@ -143,7 +143,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_reallocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *
@@ -172,7 +172,7 @@ cdef class ClonableElement(Element):
 
     - ``obj.__copy__()`` -- returns a fresh copy of obj
     - ``obj.check()`` -- returns nothing, raise an exception if ``obj``
-      doesn't satisfies the data structure invariants
+      doesn't satisfy the data structure invariants
 
     and ensure to call ``obj._require_mutable()`` at the beginning of any
     modifying method.
@@ -1315,7 +1315,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __dealloc__(self):
         if self._list is not NULL:
-            sage_free(self._list)
+            sig_free(self._list)
             self._len = -1
             self._list = NULL
 

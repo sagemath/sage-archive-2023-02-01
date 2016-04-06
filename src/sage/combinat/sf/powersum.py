@@ -19,7 +19,7 @@ Power sum symmetric functions
 #*****************************************************************************
 import sfa, multiplicative, classical
 from sage.combinat.partition import Partition
-from sage.rings.arith import divisors
+from sage.arith.all import divisors
 
 class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):

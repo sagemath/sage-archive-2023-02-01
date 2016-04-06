@@ -263,7 +263,7 @@ class Components(SageObject):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents. The symmetries
+    such as connection coefficients or structure coefficients. The symmetries
     over some indices are dealt by subclasses of the class :class:`Components`.
 
     INPUT:
@@ -1614,8 +1614,7 @@ class Components(SageObject):
             result._comp[ind] = other * val
         return result
 
-
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Division (by a scalar).
 
@@ -1641,6 +1640,8 @@ class Components(SageObject):
         for ind, val in self._comp.iteritems():
             result._comp[ind] = val / other
         return result
+
+    __div__ = __truediv__
 
     def trace(self, pos1, pos2):
         r"""
@@ -2507,7 +2508,7 @@ class CompWithSym(Components):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents.
+    such as connection coefficients or structure coefficients.
 
     Subclasses of :class:`CompWithSym` are
 

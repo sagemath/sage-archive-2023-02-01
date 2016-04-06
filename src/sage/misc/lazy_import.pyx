@@ -303,8 +303,15 @@ cdef class LazyImport(object):
             sage: my_isprime = LazyImport('sage.all', 'is_prime')
             sage: my_isprime._sage_doc_() is is_prime.__doc__
             True
+
+        TESTS:
+
+        Check that :trac:`19475` is fixed::
+
+            sage: 'A subset of the real line' in RealSet._sage_doc_()
+            True
         """
-        return sageinspect._sage_getdoc_unformatted(self._get_object())
+        return sageinspect.sage_getdoc_original(self._get_object())
 
     def _sage_src_(self):
         """

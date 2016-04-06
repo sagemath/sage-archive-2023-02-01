@@ -13,7 +13,7 @@ Then, if you want to switch the value momentarily you can write::
 
     sage: with libgap.global_context('FooBar', 'test'):
     ....:     print libgap.get_global('FooBar')
-    "test"
+    test
 
 Afterward, the global variable reverts to the previous value::
 
@@ -27,7 +27,7 @@ The value is reset even if exceptions occur::
     ....:     raise ValueError(libgap.get_global('FooBar'))
     Traceback (most recent call last):
     ...
-    ValueError: "test"
+    ValueError: test
     sage: print libgap.get_global('FooBar')
     123
 """

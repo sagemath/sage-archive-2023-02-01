@@ -519,7 +519,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             This method returns the Dynkin diagram automorphism for
             the decomposition `f = d w` (see
-            :meth:`reduced_word_of_alcove_morphism`), as a dictionnary
+            :meth:`reduced_word_of_alcove_morphism`), as a dictionary
             mapping elements of the index set to itself.
 
             EXAMPLES::

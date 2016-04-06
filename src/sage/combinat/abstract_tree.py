@@ -1963,7 +1963,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())

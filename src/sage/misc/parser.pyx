@@ -11,26 +11,18 @@ AUTHOR:
 """
 
 #*****************************************************************************
-#     Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "string.h":
-    char *strchr(char *str, int ch)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *v, Py_ssize_t len)
-    int PyList_Append(object list, object item) except -1
+from libc.string cimport strchr
+from cpython.string cimport PyString_FromStringAndSize
+from cpython.list cimport PyList_Append
 
 import math
 

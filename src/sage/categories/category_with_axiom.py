@@ -812,7 +812,7 @@ axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_construction.CovariantConstructionCategory.extra_super_categories`).
-For example, the fact that a cartesian product of associative magmas
+For example, the fact that a Cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
 

@@ -26,8 +26,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
 
@@ -497,8 +496,8 @@ cdef class GurobiBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int *> sage_malloc((len(coefficients)) * sizeof(int))
-        row_values = <double *> sage_malloc((len(coefficients)) * sizeof(double))
+        row_i = <int *> sig_malloc((len(coefficients)) * sizeof(int))
+        row_values = <double *> sig_malloc((len(coefficients)) * sizeof(double))
 
 
         for i,(c,v) in enumerate(coefficients):
@@ -527,8 +526,8 @@ cdef class GurobiBackend(GenericBackend):
 
         check(self.env,error)
 
-        sage_free(row_i)
-        sage_free(row_values)
+        sig_free(row_i)
+        sig_free(row_values)
 
     cpdef row(self, int index):
         r"""
@@ -564,8 +563,8 @@ cdef class GurobiBackend(GenericBackend):
         error =  GRBgetconstrs(self.model, length, NULL, NULL, NULL, index, 1 )
         check(self.env,error)
 
-        cdef int * p_indices = <int *> sage_malloc(length[0] * sizeof(int))
-        cdef double * p_values = <double *> sage_malloc(length[0] * sizeof(double))
+        cdef int * p_indices = <int *> sig_malloc(length[0] * sizeof(int))
+        cdef double * p_values = <double *> sig_malloc(length[0] * sizeof(double))
 
         error =  GRBgetconstrs(self.model, length, <int *> fake, p_indices, p_values, index, 1 )
         check(self.env,error)
@@ -578,8 +577,8 @@ cdef class GurobiBackend(GenericBackend):
             indices.append(p_indices[i])
             values.append(p_values[i])
 
-        sage_free(p_indices)
-        sage_free(p_values)
+        sig_free(p_indices)
+        sig_free(p_values)
 
         return indices, values
 
@@ -687,7 +686,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.solve()                                                       # optional - Gurobi
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'Gurobi: The problem is infeasible'
+            MIPSolverException: Gurobi: The problem is infeasible
         """
         cdef int error
         global mip_status

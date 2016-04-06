@@ -1,5 +1,5 @@
 r"""
-Index of Codes
+Index of codes
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
@@ -22,7 +22,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCode, LinearCodeFromCheckMatrix,
+                                LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
@@ -31,6 +31,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
 from grs import GeneralizedReedSolomonCode
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from hamming_code import HammingCode
 
 import decoders_catalog as decoders
 import encoders_catalog as encoders

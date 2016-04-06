@@ -132,13 +132,6 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
 
         - ``E`` - An elliptic curve defined over a number field (including `\Q`)
 
-        - ``algorithm`` - (string, default None): If not None, must be one
-                     of 'PARI', 'doud', 'lutz_nagell'.  For curves
-                     defined over `\QQ`, PARI is then used with the
-                     appropriate flag passed to PARI's ``elltors()``
-                     function; this parameter is ignored for curves
-                     whose base field is not `\QQ`.
-
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.ell_torsion import EllipticCurveTorsionSubgroup
@@ -158,15 +151,15 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
             sage: T == loads(dumps(T))  # known bug, see http://trac.sagemath.org/sage_trac/ticket/11599#comment:7
             True
         """
+        if algorithm is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(20219, "the keyword 'algorithm' is deprecated and no longer used")
+
         self.__E = E
         self.__K = E.base_field()
 
-        pari_torsion_algorithms = ["pari","doud","lutz_nagell"]
-
-        if self.__K is RationalField() and algorithm in pari_torsion_algorithms:
-            flag = pari_torsion_algorithms.index(algorithm)
-
-            G = self.__E.pari_curve().elltors(flag)
+        if self.__K is RationalField():
+            G = self.__E.pari_curve().elltors()
             order = G[0].python()
             structure = G[1].python()
             gens = G[2].python()

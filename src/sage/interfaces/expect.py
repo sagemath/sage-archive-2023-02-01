@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Common Interface Functionality through Pexpect
 
@@ -24,20 +25,17 @@ AUTHORS:
   after a crash, when a command is executed in _eval_line. Allow
   synchronisation of the GAP interface.
 
+- François Bissey, Bill Page, Jeroen Demeyer (2015-12-09): Upgrade to
+  pexpect 4.0.1 + patches, see :trac:`10295`.
 """
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -51,15 +49,11 @@ import cleaner
 import six
 from random import randrange
 
-########################################################
-# Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
-# For reasons I don't understand, pexpect2.1 is much
-# worse than pexpect 2.0 for everything Sage does.
-########################################################
 import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
-from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
+from sage.interfaces.interface import (Interface, InterfaceElement,
+        InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
 
 from sage.structure.element import RingElement
 
@@ -128,7 +122,7 @@ class Expect(Interface):
     """
     def __init__(self, name, prompt, command=None, server=None,
                  server_tmpdir=None,
-                 ulimit = None, maxread=100000,
+                 ulimit = None, maxread=None,
                  script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
@@ -160,7 +154,6 @@ class Expect(Interface):
         else:
             self._server = None
         self.__do_cleaner = do_cleaner
-        self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__command = command
         self._prompt = prompt
@@ -444,8 +437,6 @@ If this all works, you can then make calls like:
         if self._do_cleaner():
             cleaner.cleaner(self._expect.pid, cmd)
 
-        self._expect.maxread = self.__maxread
-        self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
         except (pexpect.TIMEOUT, pexpect.EOF):
@@ -1057,11 +1048,11 @@ If this all works, you can then make calls like:
         ::
 
             sage: r._expect.before
-            'abc;\r\n[1] '
+            '...abc;\r\n[1] '
 
         We test interrupting ``_expect_expr`` using the GP interface,
-        see #6661.  Unfortunately, this test doesn't work reliably using
-        Singular, see #9163 and the follow-up #10476.
+        see :trac:`6661`.  Unfortunately, this test doesn't work reliably using
+        Singular, see :trac:`9163` and the follow-up :trac:`10476`.
         The ``gp.eval('0')`` in this test makes sure that ``gp`` is
         running, so a timeout of 1 second should be sufficient. ::
 
@@ -1432,13 +1423,13 @@ class StdOutContext:
         return self.interface
 
     def __exit__(self, typ, value, tb):
-        """
+        r"""
         EXAMPLE::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):
             ....:     gap('1+1')
-            $sage...
+            \$sage...
         """
         if self.silent:
             return

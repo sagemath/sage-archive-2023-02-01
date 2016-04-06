@@ -13,13 +13,14 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/pkgs/*/*
+build/make/Makefile: configure build/make/deps build/pkgs/*/*
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log

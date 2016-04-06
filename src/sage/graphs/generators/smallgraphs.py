@@ -613,7 +613,7 @@ def SuzukiGraph():
     Return the Suzuki Graph
 
     The Suzuki graph has 1782 vertices, and is strongly regular with parameters
-    `(1782,416,100,96)`.
+    `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
 
     .. NOTE::
 
@@ -1413,7 +1413,7 @@ def BrouwerHaemersGraph():
         sage: set(g.spectrum()) == {20,2,-7}
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.matrix.constructor import identity_matrix
@@ -1948,13 +1948,13 @@ def DejterGraph():
         4
     """
     from sage.graphs.generators.families import CubeGraph
-    from sage.coding.code_constructions import HammingCode
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.coding.hamming_code import HammingCode
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     from string import join
     g = CubeGraph(7)
     g.delete_vertices([join(map(str,x),"")
-                       for x in HammingCode(3, FiniteField(2))])
+                       for x in HammingCode(FiniteField(2), 3)])
     g.name("Dejter Graph")
     return g
 
@@ -2897,7 +2897,7 @@ def HeawoodGraph():
     Returns a Heawood graph.
 
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic
-    symmetric graph. (See also the Moebius-Kantor graph). It is
+    symmetric graph. (See also the Möbius-Kantor graph). It is
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
@@ -3805,9 +3805,9 @@ def McLaughlinGraph():
 
 def MoebiusKantorGraph():
     """
-    Returns a Moebius-Kantor Graph.
+    Returns a Möbius-Kantor Graph.
 
-    A Moebius-Kantor graph is a cubic symmetric graph. (See also the
+    A Möbius-Kantor graph is a cubic symmetric graph. (See also the
     Heawood graph). It has 16 nodes and 24 edges. It is nonplanar and
     Hamiltonian. It has diameter = 4, girth = 6, and chromatic number =
     2. It is identical to the Generalized Petersen graph, P[8,3].
@@ -3816,7 +3816,7 @@ def MoebiusKantorGraph():
 
     REFERENCES:
 
-    - [1] Weisstein, E. (1999). "Moebius-Kantor Graph - from
+    - [1] Weisstein, E. (1999). "Möbius-Kantor Graph - from
       Wolfram MathWorld". [Online] Available:
       http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007,
       February 17]
@@ -4823,3 +4823,179 @@ def MathonStronglyRegularGraph(t):
     from sage.graphs.generators.families import MathonPseudocyclicMergingGraph
     ES = _EllipticLinesProjectivePlaneScheme(3)
     return MathonPseudocyclicMergingGraph(ES, t)
+
+def JankoKharaghaniGraph(v):
+    r"""
+    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg
+
+    This functions returns a strongly regular graph for the two sets of
+    parameters shown to be realizable in [JK02]_. The paper also uses a
+    construction from [GM87]_.
+
+    INPUT:
+
+    - ``v`` (integer) -- one of 936 or 1800.
+
+    EXAMPLE::
+
+        sage: g = graphs.JankoKharaghaniGraph(936)   # long time
+        sage: g.is_strongly_regular(parameters=True) # long time
+        (936, 375, 150, 150)
+
+        sage: g = graphs.JankoKharaghaniGraph(1800)  # not tested (30s)
+        sage: g.is_strongly_regular(parameters=True) # not tested (30s)
+        (1800, 1029, 588, 588)
+
+    REFERENCES:
+
+    .. [JK02] Janko, Kharaghani,
+       A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
+       J. Combin. Theory Ser. A 98 (2002), no. 1, 118–126.
+       http://dx.doi.org/10.1006/jcta.2001.3231
+
+    .. [GM87] Gibbons, Mathon,
+       Construction methods for Bhaskar Rao and related designs,
+       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5–30.
+       http://journals.cambridge.org/article_S1446788700033929
+
+    """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    from sage.matrix.constructor import matrix
+
+    # The notations of [JK02] are rather tricky, and so this code attempts to
+    # stick as much as possible to the paper's variable names.
+
+    assert v in [1800,936]
+
+    J = matrix.ones
+    I = matrix.identity
+
+    # Definition of the 36x36 matrix H ([JK02], section 2)
+    A = J(6)
+    B = ("111---","1---11","1--1-1","--111-","-1-11-","-11--1")
+    C = ("-1-1-1","1---11","--11-1","1-1-1-","-1-11-","111---")
+    D = ("--1-11","-11-1-","11-1--","--11-1","11---1","1--11-")
+    E = ("-1--11","1-1--1","-11-1-","---111","1-11--","11-1--")
+    F = ("-1-1-1","11--1-","--111-","1-11--","-11--1","1---11")
+    B,C,D,E,F = [matrix([map({'1':1,'-':-1}.get,r) for r in m])
+                 for m in [B,C,D,E,F]]
+
+    H = [A,B,C,D,E,F]
+    H = [[-x for x in H[6-i:]] + H[:6-i] for i in range(6)]
+    H = matrix.block(H)
+
+    # Definition of the BGW matrix W with the cyclotomic method
+    # ([JK02] Lemma 1, and [GM87] Construction 1)
+    m = 12
+    t = (2 if v == 936 else 4)
+    k = m
+    q = m*t+1
+    K = GF(q,'alpha')
+    a = K.primitive_element()
+    Ci= [[K(0)]] + map(set,[[a**(k*j+i) for j in range(t)] for i in range(m)])
+    Kelem_to_Ci = {v:i for i,s in enumerate(Ci) for v in s} # maps v to [0,...,12]
+
+    W = ([[0]+ [1]*(len(K))] +
+         [[1]+[Kelem_to_Ci[aj-ai] for aj in K] for ai in K])
+
+    # The nonzero elements of W are considered as elements of C_12, generated by
+    # a matrix Omega of order 12
+    n = 18
+    U = matrix.circulant([int(i==1) for i in range(2*n)])
+    N = matrix.diagonal([1 if i else -1 for i in range(2*n)])
+    Omega = (U*N)**6
+    assert Omega**12 == I(36)
+
+    # The value w_{ij} is understood in the paper as matrix generated by Omega
+    # acting on the left of a matrix L, which we now define.
+    M = H-I(6).tensor_product(J(6))
+    L = matrix(list(reversed(I(6).rows()))).tensor_product(I(6))
+
+    # w_ij represents in the paper the matrix w_{ij}*L. We perform this action while
+    # computing what is noted '[ M w_{ij} ]' in the paper.
+    D = [[M*0 if w == 0 else M*(Omega**w)*L for w in R]
+        for R in W]
+    D = matrix.block(D)
+
+    # for v=1800 the construction is slightly different, and we must add to D a
+    # matrix which we now compute.
+    if v == 1800:
+        abs = lambda M: matrix([[1 if x else 0 for x in R] for R in M.rows()])
+
+        M = (J(6)+I(6)).tensor_product(J(6)) # we define M = (J(6)+I(6)) x J(6)
+        D2 = [[M*0 if w == 0 else M*abs((Omega**w)*L) for w in R] # '[ (J(6)+I(6)) x J(6) |w_{ij}| ]'
+              for R in W]
+        D = (D+matrix.block(D2))/2
+
+    return Graph([e for e,v in D.dict().iteritems() if v == 1],
+                 multiedges=False,
+                 name="Janko-Kharaghani")
+
+def JankoKharaghaniTonchevGraph():
+    r"""
+    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_
+
+    Build the graph using the description given in [JKT01]_, taking
+    sets B1 and B163 in the text as adjacencies of vertices 1 and 163,
+    respectively, and taking the edge orbits of the group `G` provided.
+
+    EXAMPLES::
+
+        sage: Gamma=graphs.JankoKharaghaniTonchevGraph()  # long time
+        sage: Gamma.is_strongly_regular(parameters=True)  # long time
+        (324, 153, 72, 72)
+
+    REFERENCES:
+
+    .. [JKT01] Z.Janko, H.Kharaghani, V.D.Tonchev
+       The existence of a Bush-type Hadamard matrix of order 324
+       and two new infinite classes of symmetric designs.
+       Des. Codes Cryptogr. 24(2001), 225-232
+
+    """
+    from itertools import product
+    from sage.misc.misc_c import prod
+    from sage.combinat.permutation import Permutation as P
+    from sage.libs.gap.libgap import libgap
+
+    m1=prod([P((9*x+k,9*x+k+3,9*x+k+6)) for k,x in product(xrange(1,4),xrange(36))])
+    m2=prod([P((3*x+1,3*x+2,3*x+3)) for x in xrange(108)])
+    t=prod(prod(map(P,[(9*x+2,9*x+3),(9*x+4,9*x+7),(9*x+5,9*x+9),(9*x+6,9*x+8)])) for
+        x in xrange(36))
+    n1=prod(prod(map(P,[(1+x,19+x,37+x),(55+x,73+x,91+x),(109+x,127+x,145+x),
+                (163+x,181+x,199+x),(217+x,235+x,253+x),(271+x,289+x,307+x)]))
+                 for x in xrange(18))
+    n2=prod(prod(map(P,[(1+x,55+x,109+x),(19+x,73+x,127+x),(37+x,91+x,145+x),
+                (163+x,217+x,271+x),(181+x,235+x,289+x),(199+x,253+x,307+x)]))
+                 for x in xrange(18))
+    s=prod(prod(map(P,[(19+x,37+x),(55+x,109+x),(73+x,145+x),(91+x,127+x),
+                (181+x,199+x),(217+x,271+x),(235+x,307+x),(253+x,289+x)]))
+                 for x in xrange(18))
+    k=prod(prod(map(P,[(18*x+1,18*x+10),(18*x+2,18*x+11),(18*x+3,18*x+12),
+                (18*x+4,18*x+13),(18*x+5,18*x+14),(18*x+6,18*x+15),(18*x+7,18*x+16),
+                (18*x+8,18*x+17),(18*x+9,18*x+18)]))
+                 for x in xrange(18))
+    G=libgap.Group(map(lambda p: libgap.PermList(p), [m1,m2,t,n1,n2,s,k]))
+    st=libgap.Group(map(lambda p: libgap.PermList(p), [t,s]))
+    B1=(19,22,25,29,30,31,33,34,35,37,40,43,47,48,49,51,52,53,55,56,57,65,
+        66,67,68,70,72,76,77,78,79,80,81,82,86,90,92,93,95,96,98,99,100,105,107,
+        109,110,111,119,120,121,122,124,126,128,129,131,132,134,135,136,141,143,
+        148,149,150,151,152,153,154,158,162,167,168,170,171,172,176,177,179,180,
+        184,186,187,188,190,191,192,193,196,202,204,205,206,208,209,210,211,214,
+        218,219,221,225,226,227,228,229,232,236,237,238,241,244,245,246,249,251,
+        254,255,256,259,262,265,266,268,270,272,273,275,279,280,281,282,283,286,
+        290,291,292,295,298,301,302,304,306,308,309,310,313,316,317,318,321,323)
+    B163=(5,6,8,9,10,14,15,17,18,22,24,25,26,28,29,30,31,34,40,42,43,44,46,
+        47,48,49,52,56,57,59,63,64,65,66,67,70,74,75,76,79,82,83,84,87,89,92,93,
+        94,97,100,103,104,106,108,110,111,113,117,118,119,120,121,124,128,129,
+        130,133,136,139,140,142,144,146,147,148,151,154,155,156,159,161,181,185,
+        189,191,192,194,195,197,198,199,203,207,209,210,212,213,215,216,217,222,
+        224,229,230,231,232,233,234,236,237,238,240,241,242,244,245,246,254,255,
+        256,257,259,261,262,265,268,271,276,278,283,284,285,286,287,288,290,291,
+        292,293,295,297,298,301,304,308,309,310,312,313,314,316,317,318)
+    Gamma=Graph(multiedges=False,name='Janko-Kharaghani-Tonchev')
+    for i,b in ((1,B1),(163,B163)):
+        for j in map(lambda x: x[0], st.OrbitsDomain(b)):
+            Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
+    Gamma.relabel()
+    return Gamma

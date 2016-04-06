@@ -290,12 +290,12 @@ class SteinWatkinsAllData:
             sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100007]
         """
-        iter = iter(self)
+        it = iter(self)
         C = []
         N = 0
         while True:
             try:
-                E = next(iter)
+                E = next(it)
             except StopIteration:
                 if C != []:
                     yield C

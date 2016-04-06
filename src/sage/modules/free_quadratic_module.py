@@ -58,30 +58,20 @@ AUTHORS:
 """
 
 #*****************************************************************************
+#       Copyright (C) 2008 David Kohel <kohel@iml.univ-mrs.fr>
 #
-#          Copyright (C) 2008 David Kohel <kohel@iml.univ-mrs.fr>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#                        http://www.gnu.org/licenses/
-#
-#         All rights granted to distribute under the GPL, version 2,
-#           or (at your option) any later version of the license.
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# Python imports
 import weakref
 
-# Sage imports
-
-
 import sage.matrix.matrix_space
-
 import sage.misc.latex as latex
-
 import sage.rings.ring as ring
-import sage.rings.integral_domain as integral_domain
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 import free_module
@@ -180,7 +170,7 @@ def FreeQuadraticModule(
         M = FreeQuadraticModule_ambient_pid(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+    elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
         M = FreeQuadraticModule_ambient_domain(
             base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
     else:

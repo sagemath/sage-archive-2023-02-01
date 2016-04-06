@@ -782,7 +782,7 @@ class Triangulation(Element):
         from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
         from sage.misc.misc import uniq
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         pc = self.point_configuration()
         cs = Constraint_System()
         for facet in self.interior_facets():

@@ -20,7 +20,7 @@ As always, elements are immutable once constructed.
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import GCD, LCM
+from sage.arith.all import GCD, LCM
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
@@ -33,7 +33,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
     The group element is defined by a tuple whose ``i``-th entry is an
     integer in the range from 0 (inclusively) to ``G.gen(i).order()``
     (exclusively) if the `i`-th generator is of finite order, and an
-    arbitrary integer if the `i`-th generator is of infinte order.
+    arbitrary integer if the `i`-th generator is of infinite order.
 
     INPUT:
 

@@ -958,7 +958,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         from sage.combinat.partition import OrderedPartitions
         from sage.combinat.combinat import tuples
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
 
         if not D is None:
             max_block_length = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()

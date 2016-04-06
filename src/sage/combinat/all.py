@@ -182,6 +182,12 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+# sine-Gordon Y-systems
+lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
+
 # Fully Packed Loop
 lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 
+# Subword complex and cluster complex
+lazy_import('sage.combinat.subword_complex', 'SubwordComplex')
+lazy_import("sage.combinat.cluster_complex", "ClusterComplex")

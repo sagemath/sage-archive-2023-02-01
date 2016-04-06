@@ -431,7 +431,7 @@ REFERENCES:
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import column_matrix
 from sage.structure.element import Matrix
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
@@ -1442,8 +1442,8 @@ class RijndaelGF(SageObject):
 
     def compose(self, f, g, algorithm='encrypt', f_attr=None, g_attr=None):
         r"""
-        Returns a ``Round_Component_Poly_Constr`` object corresponding to
-        `g \circ f` or the polnyomial output of this object's ``__call__``
+        Return a ``Round_Component_Poly_Constr`` object corresponding to
+        `g \circ f` or the polynomial output of this object's ``__call__``
         method.
 
         INPUT:

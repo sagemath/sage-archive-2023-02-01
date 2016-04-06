@@ -18,25 +18,22 @@ REFERENCES:
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.structure.unique_representation import UniqueRepresentation
 import sage.categories.all
-from sage.rings.all import Integer, gcd, lcm, QQ
+from sage.rings.all import Integer, QQ
+from sage.arith.all import gcd, lcm
 from sage.rings.fraction_field import is_FractionField
 from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
@@ -1402,14 +1399,6 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
             P = self.parent()._P
             return P(self).scalar_jack(P(x),2)
 
-#############
-#   Cache   #
-#############
-#from sage.misc.cache import Cache
-#cache_p = Cache(JackPolynomials_p)
-#cache_j = Cache(JackPolynomials_j)
-#cache_q = Cache(JackPolynomials_q)
-#cache_z = Cache(SymmetricFunctionAlgebra_zonal)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

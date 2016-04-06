@@ -13,11 +13,14 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
@@ -159,7 +162,7 @@ cdef class ntl_ZZ_pX(object):
         self.c.restore_c()
         #cdef char* s = ZZ_pX_repr(&self.x)
         #t = str(s)
-        #sage_free(s)
+        #sig_free(s)
         return ZZ_pX_to_PyString(&self.x)
         #return t
 
@@ -370,7 +373,7 @@ cdef class ntl_ZZ_pX(object):
         sig_off()
         return r
 
-    def __div__(ntl_ZZ_pX self, ntl_ZZ_pX other):
+    def __truediv__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -402,6 +405,9 @@ cdef class ntl_ZZ_pX(object):
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
@@ -910,7 +916,7 @@ cdef class ntl_ZZ_pX(object):
         These computations use pseudo-random numbers, so we set the
         seed for reproducible testing. ::
 
-            sage: set_random_seed(0)
+            sage: set_random_seed(12)
             sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
             [([4 1], 5)]
             sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()
@@ -945,8 +951,8 @@ cdef class ntl_ZZ_pX(object):
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return F
 
     def linear_roots(self):
@@ -991,7 +997,7 @@ cdef class ntl_ZZ_pX(object):
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
+        sig_free(v)
         return F
 
     def reverse(self, hi=None):
@@ -1311,7 +1317,7 @@ cdef class ntl_ZZ_pX(object):
 
         c = ~self.leading_coefficient()
         m = self.degree()
-        if (m*(m-1)/2) % 2:
+        if (m*(m-1) // 2) % 2:
             c = -c
         return c*self.resultant(self.derivative())
 

@@ -22,12 +22,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -316,7 +318,7 @@ cdef class ntl_zz_pX(object):
         sig_off()
         return y
 
-    def __div__(ntl_zz_pX self, other):
+    def __truediv__(ntl_zz_pX self, other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -353,6 +355,9 @@ cdef class ntl_zz_pX(object):
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_zz_pX self, other):
         """

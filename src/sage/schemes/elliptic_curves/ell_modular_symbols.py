@@ -53,10 +53,10 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
-from sage.libs.cremona.newforms import ECModularSymbol
+from sage.libs.eclib.newforms import ECModularSymbol
 from sage.databases.cremona import parse_cremona_label
 
-from sage.rings.arith import next_prime, kronecker_symbol, prime_divisors, valuation
+from sage.arith.all import next_prime, kronecker_symbol, prime_divisors, valuation
 from sage.rings.infinity import unsigned_infinity as infinity
 from sage.rings.integer import Integer
 from sage.modular.cusps import Cusps

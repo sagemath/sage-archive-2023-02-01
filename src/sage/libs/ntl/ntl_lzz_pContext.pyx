@@ -14,7 +14,6 @@
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 

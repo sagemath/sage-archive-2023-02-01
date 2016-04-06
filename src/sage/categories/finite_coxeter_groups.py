@@ -68,7 +68,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W.some_elements()
             [(1,), (2,), (), (1, 2)]
             sage: list(W)
-            [(), (1,), (1, 2), (1, 2, 1), (2,), (2, 1)]
+            [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
         some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
         __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
@@ -91,16 +91,18 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             return self.long_element()
 
-        def long_element(self, index_set = None):
+        def long_element(self, index_set=None, as_word=False):
             r"""
+            Return the longest element of ``self``, or of the
+            parabolic subgroup corresponding to the given ``index_set``.
 
             INPUT:
 
-            - ``index_set`` - a subset (as a list or iterable) of the
+            - ``index_set`` -- a subset (as a list or iterable) of the
               nodes of the Dynkin diagram; (default: all of them)
 
-            Returns the longest element of ``self``, or of the
-            parabolic subgroup corresponding to the given ``index_set``.
+            - ``as_word`` -- boolean (default ``False``). If ``True``, then
+              return instead a reduced decomposition of the longest element.
 
             Should this method be called maximal_element? longest_element?
 
@@ -120,15 +122,27 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: D7.long_element()
                 (1, 2, 1, 2, 1, 2, 1)
 
+            One can require instead a reduced word for w0::
+
+                sage: A3 = CoxeterGroup(['A', 3])
+                sage: A3.long_element(as_word=True)
+                [1, 2, 1, 3, 2, 1]
             """
             if index_set is None:
                 index_set = self.index_set()
             w = self.one()
+            if as_word:
+                word = []
             while True:
-                i = w.first_descent(index_set = index_set, positive = True)
+                i = w.first_descent(index_set=index_set, positive=True)
                 if i is None:
-                    return w
+                    if as_word:
+                        return word
+                    else:
+                        return w
                 else:
+                    if as_word:
+                        word.append(i)
                     w = w.apply_simple_reflection(i)
 
         @cached_method

@@ -18,10 +18,11 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: docfilename = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
+    sage: from sage.env import SAGE_DOC
+    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
-    ...       if "#sage.symbolic.expression.Expression.N" in line:
-    ...           print line
+    ....:     if "#sage.symbolic.expression.Expression.N" in line:
+    ....:         print line
     <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
@@ -39,7 +40,7 @@ import pydoc
 from sage.misc.viewer import browser
 from sage.misc.temporary_file import tmp_dir
 import sage.version
-from sage.env import SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 # The detex function does two kinds of substitutions: math, which
 # should only be done on the command line -- in the notebook, these
@@ -157,7 +158,6 @@ def _rmcmd(s, cmd, left='', right=''):
 ##             + right + s[m.end():]
 ##     return s
 
-import re
 itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
 itemreplace = r"* \1 \2"
 
@@ -431,7 +431,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``http://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC/common/conf.py.
+    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -458,8 +458,8 @@ def process_extlinks(s, embedded=False):
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
-    from conf import pythonversion, extlinks
+    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
+    from conf import extlinks
     sys.path = oldpath
     for key in extlinks:
         while True:
@@ -533,10 +533,10 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[201:273]
+        sage: identity_matrix(2).rook_vector.__doc__[202:274]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[201:273])
+        sage: format(identity_matrix(2).rook_vector.__doc__[202:274])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -800,19 +800,14 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = os.path.join(SAGE_DOC, 'output')
-        doc_path = SAGE_DOC
+        base_path = SAGE_DOC
+        doc_path = SAGE_DOC_SRC
 
-        # We need to import stuff from SAGE_DOC/common
-        # To do this, we temporarily change sys.path
-        oldpath = sys.path
-        sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
-        import build_options as builder
+        from sage_setup.docbuild.build_options import LANGUAGES, OMIT
         # List of languages
-        lang = builder.LANGUAGES
-        # Documents in SAGE_DOC/LANG/ to omit
-        omit = builder.OMIT
-        sys.path = oldpath
+        lang = LANGUAGES
+        # Documents in SAGE_DOC_SRC/LANG/ to omit
+        omit = OMIT
 
         # List of documents, minus the omitted ones
         documents = []
@@ -824,9 +819,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         # Check to see if any documents are missing.  This just
         # checks to see if the appropriate output directory exists,
         # not that it contains a complete build of the docs.
-        missing = [os.path.join(doc_path, 'output', 'html', doc)
+        missing = [os.path.join(SAGE_DOC, 'html', doc)
                    for doc in documents if not
-                   os.path.exists(os.path.join(doc_path, 'output', 'html', doc))]
+                   os.path.exists(os.path.join(SAGE_DOC, 'html', doc))]
         num_missing = len(missing)
         if num_missing > 0:
             print("""Warning, the following Sage documentation hasn't been built,
@@ -1106,8 +1101,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 
-    The file paths in the output are relative to
-    ``$SAGE_DOC/output``.
+    The file paths in the output are relative to ``$SAGE_DOC``.
 
     INPUT: same as for :func:`search_src`.
 
@@ -1314,7 +1308,7 @@ class _sage_doc:
             'http://localhost:8000/doc/live/'
         """
         self._base_url = "http://localhost:8000/doc/live/"
-        self._base_path = os.path.join(SAGE_DOC, "output/html/en/")
+        self._base_path = os.path.join(SAGE_DOC, "html", "en")
 
     def __call__(self, obj, output='html', view=True):
         r"""
@@ -1381,7 +1375,7 @@ class _sage_doc:
                 path = os.path.join(tmp_dir(), "temp.html")
                 filed = open(path, 'w')
 
-                static_path = os.path.join(SAGE_DOC, 'output/html/en/_static')
+                static_path = os.path.join(SAGE_DOC, "html", "en", "_static")
                 if os.path.exists(static_path):
                     title = obj_name + ' - Sage ' + sage.version.version + ' Documentation'
                     template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -1468,7 +1462,7 @@ class _sage_doc:
             sage: browse_sage_doc._open("reference", testing=True)[0]
             'http://localhost:8000/doc/live/reference/index.html'
             sage: browse_sage_doc._open("tutorial", testing=True)[1]
-            '...doc/output/html/en/tutorial/index.html'
+            '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")

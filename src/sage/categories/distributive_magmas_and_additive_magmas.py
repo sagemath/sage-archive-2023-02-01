@@ -83,7 +83,7 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of magmas distributing
+            Implement the fact that a Cartesian product of magmas distributing
             over additive magmas is a magma distributing over an
             additive magma.
 

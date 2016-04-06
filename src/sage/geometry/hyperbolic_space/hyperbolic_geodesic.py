@@ -63,7 +63,7 @@ from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
-            'mobius_transform')
+            'moebius_transform')
 
 
 class HyperbolicGeodesic(SageObject):
@@ -549,9 +549,9 @@ class HyperbolicGeodesic(SageObject):
         The above tests go through the Upper Half Plane.  It remains to
         test that the matrices in the models do what we intend. ::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import moebius_transform
             sage: R = H.PD().get_geodesic(-1,1).reflection_involution()
-            sage: bool(mobius_transform(R.matrix(), 0) == 0)
+            sage: bool(moebius_transform(R.matrix(), 0) == 0)
             True
         """
         return self._cached_geodesic.reflection_involution().to_model(self._model)
@@ -1048,7 +1048,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             end_p = start
         else:
             end_p = end
-        return self._model.get_point(mobius_transform(M, end_p))
+        return self._model.get_point(moebius_transform(M, end_p))
 
     def angle(self, other):  # UHP
         r"""
@@ -1117,7 +1117,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             # with endpoints [0,oo]
             T = HyperbolicGeodesicUHP._crossratio_matrix(p1, p1 + 1, p2)
         # b1 and b2 are the endpoints of the image of other
-        b1, b2 = [mobius_transform(T, k) for k in [q1, q2]]
+        b1, b2 = [moebius_transform(T, k) for k in [q1, q2]]
         # If other is now a straight line...
         if (b1 == infinity or b2 == infinity):
             # then since they intersect, they are equal
@@ -1184,15 +1184,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import HyperbolicGeodesicUHP
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import moebius_transform
             sage: UHP = HyperbolicPlane().UHP()
             sage: (p1, p2, p3) = [UHP.random_point().coordinates() for k in range(3)]
             sage: A = HyperbolicGeodesicUHP._crossratio_matrix(p1, p2, p3)
-            sage: bool(abs(mobius_transform(A, p1)) < 10**-9)
+            sage: bool(abs(moebius_transform(A, p1)) < 10**-9)
             True
-            sage: bool(abs(mobius_transform(A, p2) - 1) < 10**-9)
+            sage: bool(abs(moebius_transform(A, p2) - 1) < 10**-9)
             True
-            sage: bool(mobius_transform(A, p3) == infinity)
+            sage: bool(moebius_transform(A, p3) == infinity)
             True
             sage: (x,y,z) = var('x,y,z');  HyperbolicGeodesicUHP._crossratio_matrix(x,y,z)
             [     y - z -x*(y - z)]

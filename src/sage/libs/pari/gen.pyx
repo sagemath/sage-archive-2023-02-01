@@ -1342,6 +1342,8 @@ cdef class gen(gen_auto):
             2147483647
             sage: int(pari(-2^31))
             -2147483648
+            sage: int(pari(-2^63))
+            -9223372036854775808
             sage: int(pari("Pol(10)"))
             10
             sage: int(pari("Mod(2, 7)"))

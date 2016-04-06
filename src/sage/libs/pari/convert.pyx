@@ -31,6 +31,7 @@ some bit shuffling.
 
 include "cysignals/signals.pxi"
 from cpython.int cimport PyInt_AS_LONG
+from libc.limits cimport LONG_MIN, LONG_MAX
 from .paridecl cimport *
 from .pari_instance cimport pari_instance as P
 
@@ -141,11 +142,20 @@ cpdef gen_to_integer(gen x):
     if not signe(g):
         return 0
 
-    # Try converting to a C long first
-    cdef long r = itos_or_0(g)
-    if r:
-        return r
+    # Try converting to a C long first. Note that we cannot use itos()
+    # from PARI since that does not deal with LONG_MIN correctly.
+    cdef ulong u
+    if lgefint(g) == 3:  # abs(x) fits in a ulong
+        u = g[2]         # u = abs(x)
+        # Check that <long>(u) or <long>(-u) does not overflow
+        if signe(g) >= 0:
+            if u <= <ulong>LONG_MAX:
+                return <long>(u)
+        else:
+            if u <= -<ulong>LONG_MIN:
+                return <long>(-u)
 
+    # Result does not fit in a C long
     return PyLong_FromGEN(g)
 
 

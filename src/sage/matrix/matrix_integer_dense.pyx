@@ -46,6 +46,7 @@ TESTS::
 #       Copyright (C) 2006,2007 William Stein
 #       Copyright (C) 2014 Marc Masdeu
 #       Copyright (C) 2014 Jeroen Demeyer
+#       Copyright (C) 2015,2016 Vincent Delecroix
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -755,7 +756,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __nonzero__(self):
         r"""
-        Tests whether self is the zero matrix.
+        Tests whether self is not the zero matrix.
 
         EXAMPLES::
 
@@ -780,6 +781,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
+
+    def is_one(self):
+        r"""
+        Tests whether self is the identity matrix.
+
+        EXAMPLES::
+
+            sage: matrix(2, [1,0,0,1]).is_one()
+            True
+            sage: matrix(2, [1,1,0,1]).is_one()
+            False
+            sage: matrix(2, 3, [1,0,0,0,1,0]).is_one()
+            False
+        """
+        return self.is_square() and fmpz_mat_is_one(self._matrix) == 1
 
     def _multiply_linbox(self, Matrix_integer_dense right):
         """

@@ -324,28 +324,6 @@ class ClusterAlgebraSeed(SageObject):
         # DR: Now I get the same computation time for / and //, 49.7s while simultaneously rebuiling sage
         return (pos+neg)/alg.F_polynomial(old_g_vector)
 
-    # TODO: I propose to rename this function mutate and change mutate into
-    # _mutate. Then we change the top of this function to check that  sequence
-    # is iterable (otherwise we make a list of only one leement) and keep the
-    # rest as is. This introduces a small overhead on each call of mutate from
-    # the user but exposes only one function (similar to what happens now in
-    # ClusterSeed. Moreover this would be better suited to implement things like
-    # mutate at sinks and urban renewal. For speed purposes we can always call
-    # _mutate internally where needed.
-    def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
-        seq = iter(sequence)
-
-        if inplace:
-            seed = self
-        else:
-            seed = self.mutate(next(seq), inplace=False, mutating_F=mutating_F)
-
-        for k in seq:
-            seed.mutate(k, inplace=True, mutating_F=mutating_F)
-
-        if not inplace:
-            return seed
-
     def path_from_initial_seed(self):
         return copy(self._path)
 
@@ -583,7 +561,7 @@ class ClusterAlgebra(Parent):
 
     def contains_seed(self, seed):
         computed_sd = self.initial_seed
-        computed_sd.mutation_sequence(seed._path, mutating_F=False)
+        computed_sd.mutate(seed._path, mutating_F=False)
         return computed_sd == seed
 
     def reset_current_seed(self):

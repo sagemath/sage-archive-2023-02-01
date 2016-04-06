@@ -19,6 +19,44 @@ from copy import copy
 from sage.functions.other import binomial
 from sage.modules.free_module_element import vector
 from sage.functions.generalized import sign
+from functools import wraps
+
+def mutation_parse(mutate):
+    r"""
+    Parse input for mutation functions; it should provide:
+        - inplace
+        - mutate along sequence
+        - mutate at cluster variariable
+        - mutate at all sinks/sources 
+        - urban renewals? (I do not care much abouth this)
+        - other?
+    """
+    mutate.__doc__ += r"""
+            
+            - inplace: bool (default True) whether to mutate in place or to return a new object
+            - direction: can be
+                - an integer
+                - an iterable of integers
+            """
+    @wraps(mutate)
+    def mutate_wrapper(self, direction, inplace=True, *args, **kwargs):
+        if inplace:
+            to_mutate = self
+        else:
+            to_mutate = copy(self)
+        
+        try:
+            seq = iter(direction)
+        except TypeError:
+            seq = iter((direction,))
+
+        for k in seq:
+            mutate(to_mutate, k, *args, **kwargs)
+        
+        if not inplace:
+            return to_mutate 
+    
+    return mutate_wrapper
 
 ################################################################################
 # Elements of a cluster algebra
@@ -180,57 +218,57 @@ class ClusterAlgebraSeed(SageObject):
     def cluster_variables(self):
         return (self.parent().cluster_variable(g) for g in self.g_vectors())
 
-    def mutate(self, k, inplace=True, mutating_F=True):
-        if inplace:
-            seed = self
-        else:
-            seed = copy(self)
-
-        n = seed.parent().rk
+    @mutation_parse
+    def mutate(self, k, mutating_F=True):
+        r"""
+        mutate seed
+        bla bla ba
+        """
+        n = self.parent().rk
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
         # store mutation path
-        if seed._path != [] and seed._path[-1] == k:
-            seed._path.pop()
+        if self._path != [] and self._path[-1] == k:
+            self._path.pop()
         else:
-            seed._path.append(k)
+            self._path.append(k)
 
         # find sign of k-th c-vector
         # Will this be used enough that it should be a built-in function?
-        if any(x > 0 for x in seed._C.column(k)):
+        if any(x > 0 for x in self._C.column(k)):
             eps = +1
         else:
             eps = -1
 
         # store the g-vector to be mutated in case we are mutating F-polynomials also
-        old_g_vector = seed.g_vector(k)
+        old_g_vector = self.g_vector(k)
 
         # G-matrix
         J = identity_matrix(n)
         for j in xrange(n):
-            J[j,k] += max(0, -eps*seed._B[j,k])
+            J[j,k] += max(0, -eps*self._B[j,k])
         J[k,k] = -1
-        seed._G = seed._G*J
+        self._G = self._G*J
 
         # g-vector path list
-        g_vector = seed.g_vector(k)
-        if g_vector not in seed.parent().g_vectors_so_far():
-            seed.parent()._path_dict[g_vector] = copy(seed._path)
+        g_vector = self.g_vector(k)
+        if g_vector not in self.parent().g_vectors_so_far():
+            self.parent()._path_dict[g_vector] = copy(self._path)
             # F-polynomials
             if mutating_F:
-                seed.parent()._F_poly_dict[g_vector] = seed._mutated_F(k, old_g_vector)
+                self.parent()._F_poly_dict[g_vector] = self._mutated_F(k, old_g_vector)
 
         # C-matrix
         J = identity_matrix(n)
         for j in xrange(n):
-            J[k,j] += max(0, eps*seed._B[k,j])
+            J[k,j] += max(0, eps*self._B[k,j])
         J[k,k] = -1
-        seed._C = seed._C*J
+        self._C = self._C*J
 
         # B-matrix
-        seed._B.mutate(k)
+        self._B.mutate(k)
 
         # exchange relation
         if self.parent()._store_exchange_relations:
@@ -241,10 +279,6 @@ class ClusterAlgebraSeed(SageObject):
                 Mp = [ (g,p) for (g,p) in variables if p > 0 ]
                 Mm = [ (g,-p) for (g,p) in variables if p < 0 ]
                 self.parent()._exchange_relations[ex_pair] = ( (Mp,coefficient.numerator()), (Mm,coefficient.denominator()) )
-
-        # wrap up
-        if not inplace:
-            return seed
 
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
@@ -456,8 +490,8 @@ class ClusterAlgebra(Parent):
 
         # Data to compute cluster variables using separation of additions
         # BUG WORKAROUND: if your sage installation does not have trac:`19538` merged uncomment the following line and comment the next
-        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
-        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        #self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # Have we principal coefficients?
@@ -506,6 +540,7 @@ class ClusterAlgebra(Parent):
         other._B0 = copy(self._B0)
         other._n = self._n
         # We probably need to put n=2 initializations here also
+        # TODO: we may want to use __init__ to make the initialization somewhat easier (say to enable special cases) This might require a better written __init__
         return other
 
     def __eq__(self, other):
@@ -713,30 +748,28 @@ class ClusterAlgebra(Parent):
         self._sd_iter = self.seeds(mutating_F=mutating_F)
         self._explored_depth = 0
 
-    def mutate_initial(self, k, inplace=True, mutating_F=True):
-        if inplace:
-            algebra = self
-        else:
-            algebra = copy(self)
-
-        n = algebra.rk
+    @mutation_parse
+    def mutate_initial(self, k):
+        r"""
+        """
+        n = self.rk
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction %s, please try a value between 0 and %s.'%(str(k),str(n-1)))
 
-        #modify algebra._path_dict using Nakanishi-Zelevinsky (4.1) and algebra._F_poly_dict using CA-IV (6.21)
+        #modify self._path_dict using Nakanishi-Zelevinsky (4.1) and self._F_poly_dict using CA-IV (6.21)
         new_path_dict = dict()
         new_F_dict = dict()
         new_path_dict[tuple(identity_matrix(n).column(k))] = []
         new_F_dict[tuple(identity_matrix(n).column(k))] = self._U(1)
 
         poly_ring = PolynomialRing(ZZ,'u')
-        h_subs_tuple = tuple([poly_ring.gen(0)**(-1) if j==k else poly_ring.gen(0)**max(-algebra._B0[k][j],0) for j in xrange(n)])
-        F_subs_tuple = tuple([algebra._U.gen(k)**(-1) if j==k else algebra._U.gen(j)*algebra._U.gen(k)**max(-algebra._B0[k][j],0)*(1+algebra._U.gen(k))**(algebra._B0[k][j]) for j in xrange(n)])
+        h_subs_tuple = tuple([poly_ring.gen(0)**(-1) if j==k else poly_ring.gen(0)**max(-self._B0[k][j],0) for j in xrange(n)])
+        F_subs_tuple = tuple([self._U.gen(k)**(-1) if j==k else self._U.gen(j)*self._U.gen(k)**max(-self._B0[k][j],0)*(1+self._U.gen(k))**(self._B0[k][j]) for j in xrange(n)])
 
-        for g_vect in algebra._path_dict:
+        for g_vect in self._path_dict:
             #compute new path
-            path = algebra._path_dict[g_vect]
+            path = self._path_dict[g_vect]
             if g_vect == tuple(identity_matrix(n).column(k)):
                 new_path = [k]
             elif path != []:
@@ -750,23 +783,20 @@ class ClusterAlgebra(Parent):
             #compute new g-vector
             new_g_vect = vector(g_vect) - 2*g_vect[k]*identity_matrix(n).column(k)
             for i in xrange(n):
-                new_g_vect += max(sign(g_vect[k])*algebra._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
+                new_g_vect += max(sign(g_vect[k])*self._B0[i,k],0)*g_vect[k]*identity_matrix(n).column(i)
             new_path_dict[tuple(new_g_vect)] = new_path
 
             #compute new F-polynomial
             h = 0
-            trop = tropical_evaluation(algebra._F_poly_dict[g_vect](h_subs_tuple))
+            trop = tropical_evaluation(self._F_poly_dict[g_vect](h_subs_tuple))
             if trop != 1:
                 h = trop.denominator().exponents()[0]-trop.numerator().exponents()[0]
-            new_F_dict[tuple(new_g_vect)] = algebra._F_poly_dict[g_vect](F_subs_tuple)*algebra._U.gen(k)**h*(algebra._U.gen(k)+1)**g_vect[k]
+            new_F_dict[tuple(new_g_vect)] = self._F_poly_dict[g_vect](F_subs_tuple)*self._U.gen(k)**h*(self._U.gen(k)+1)**g_vect[k]
 
-        algebra._path_dict = new_path_dict
-        algebra._F_poly_dict = new_F_dict
+        self._path_dict = new_path_dict
+        self._F_poly_dict = new_F_dict
 
-        algebra._B0.mutate(k)
-
-        if not inplace:
-            return algebra
+        self._B0.mutate(k)
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:

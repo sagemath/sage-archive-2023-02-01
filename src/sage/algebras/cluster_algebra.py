@@ -27,12 +27,12 @@ def mutation_parse(mutate):
         - inplace
         - mutate along sequence
         - mutate at cluster variariable
-        - mutate at all sinks/sources 
+        - mutate at all sinks/sources
         - urban renewals? (I do not care much abouth this)
         - other?
     """
     mutate.__doc__ += r"""
-            
+
             - inplace: bool (default True) whether to mutate in place or to return a new object
             - direction: can be
                 - an integer
@@ -44,7 +44,7 @@ def mutation_parse(mutate):
             to_mutate = self
         else:
             to_mutate = copy(self)
-        
+
         try:
             seq = iter(direction)
         except TypeError:
@@ -52,10 +52,10 @@ def mutation_parse(mutate):
 
         for k in seq:
             mutate(to_mutate, k, *args, **kwargs)
-        
+
         if not inplace:
-            return to_mutate 
-    
+            return to_mutate
+
     return mutate_wrapper
 
 ################################################################################
@@ -485,7 +485,7 @@ class ClusterAlgebra(Parent):
 
         # Internal data to store exchange relations
         # This is a dictionary indexed by a frozen set of two g-vectors (the g-vectors of the exchanged variables)
-        # Exchange relations are, for the moment, a frozen set of precisely two entries (one for each term in the exchange relation's RHS). 
+        # Exchange relations are, for the moment, a frozen set of precisely two entries (one for each term in the exchange relation's RHS).
         # Each of them contains two things
         # 1) a list of pairs (g-vector, exponent) one for each cluster variable appearing in the term
         # 2) the coefficient part of the term

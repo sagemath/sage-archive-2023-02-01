@@ -41,8 +41,8 @@ The corresponding MINIMOG is::
              +-----+-----+-----+-----+
 
 which is specified by the global variable "minimog_shuffle".
-See the docstrings for find_hexad and blackjack_move for
-further details and examples.
+
+See the docstrings for :meth:`Minimog.find_hexad` and :meth:`Minimog.blackjack_move` for further details and examples.
 
 AUTHOR:
 
@@ -74,21 +74,18 @@ Some details are also online at:  http://www.permutationpuzzles.org/hexad/
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.infinity import Infinity
+from sage.rings.infinity import infinity
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.rational_field import RationalField
-QQ = RationalField()
-infinity = Infinity
-from sage.rings.finite_rings.finite_field_constructor import FiniteField
-GF = FiniteField
+from sage.matrix.constructor import matrix
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.calculus.calculus import SR
-#SR = SymbolicRing()
+from sage.structure.sage_object import SageObject
 
 
 def view_list(L):
     """
     This provides a printout of the lines, crosses and squares of the MINIMOG,
-    as in Curtis' paper.
+    as in Curtis' paper [Cur84]_.
 
     EXAMPLES::
 
@@ -110,18 +107,13 @@ def view_list(L):
         [1 1 0]
         [1 1 0]
     """
-    MS = MatrixSpace(QQ,3,3)
-    box = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
-    A = MS([[0 for i in range(3)] for i in range(3)])
-    for x in box:
-        if x in L:
-            A[x] = 1
-    return A
+    return matrix(GF(2), 3, 3, lambda x, y: 1 if (x,y) in L else 0)
+
 
 
 def picture_set(A, L):
     """
-    This is needed in the find_hexad function below.
+    This is needed in the :meth:`Minimog.find_hexad` function below.
 
     EXAMPLES::
 
@@ -135,7 +127,7 @@ def picture_set(A, L):
     return set([A[x] for x in L])
 
 
-class Minimog():
+class Minimog(SageObject):
     """
     This implements the Conway/Curtis minimog idea for describing the Steiner
     triple system S(5,6,12).
@@ -150,7 +142,6 @@ class Minimog():
         [        0         3 +Infinity         2]
         [        5         9         8        10]
         [        4         1         6         7]
-
     """
     def __init__(self, type="shuffle"):
         self.type = type
@@ -174,7 +165,7 @@ class Minimog():
         self.picture21 = MS33([[A[(2,2)],A[(1,3)],A[(0,1)]],[A[(0,3)],A[(2,3)],A[(2,0)]],[A[(1,0)],A[(1,1)],A[(1,2)]]])
         #######     self.picture21 is the "picture at 0"
 
-        self.line = [set([]) for i in range(12)]
+        self.line = list(range(12))
         self.line[0] = set([(0,0),(0,1),(0,2)])
         self.line[1] = set([(1,0),(1,1),(1,2)])
         self.line[2] = set([(2,0),(2,1),(2,2)])
@@ -188,7 +179,7 @@ class Minimog():
         self.line[10] = set([(0,0),(1,2),(2,1)])
         self.line[11] = set([(1,0),(0,1),(2,2)])
 
-        self.cross = [set([]) for i in range(18)]
+        self.cross = list(range(18))
         self.cross[0] = set([(0,0),(0,1),(0,2),(1,0),(2,0)])
         self.cross[1] = set([(0,0),(0,1),(0,2),(1,2),(2,2)])
         self.cross[2] = set([(0,0),(1,0),(2,0),(2,1),(2,2)])
@@ -212,25 +203,25 @@ class Minimog():
         for i in range(18):
             self.square[i] = self.box - self.cross[i]
 
-        MS34_GF3 = MatrixSpace(GF(3),3,4)
-        self.col1 = MS34_GF3([[1,0,0,0],[1,0,0,0],[1,0,0,0]])
-        self.col2 = MS34_GF3([[0,1,0,0],[0,1,0,0],[0,1,0,0]])
-        self.col3 = MS34_GF3([[0,0,1,0],[0,0,1,0],[0,0,1,0]])
-        self.col4 = MS34_GF3([[0,0,0,1],[0,0,0,1],[0,0,0,1]])
+        MS34_GF3 = MatrixSpace(GF(2), 3, 4)
+        cols = {}
+        cols[1] = MS34_GF3([[1,0,0,0],[1,0,0,0],[1,0,0,0]])
+        cols[2] = MS34_GF3([[0,1,0,0],[0,1,0,0],[0,1,0,0]])
+        cols[3] = MS34_GF3([[0,0,1,0],[0,0,1,0],[0,0,1,0]])
+        cols[4] = MS34_GF3([[0,0,0,1],[0,0,0,1],[0,0,0,1]])
+        self.col = cols
 
-        self.tet1 = MS34_GF3([[1,1,1,1],[0,0,0,0],[0,0,0,0]])
-        self.tet2 = MS34_GF3([[1,0,0,0],[0,1,1,1],[0,0,0,0]])
-        self.tet3 = MS34_GF3([[1,0,0,0],[0,0,0,0],[0,1,1,1]])
-        self.tet4 = MS34_GF3([[0,1,0,0],[1,0,1,0],[0,0,0,1]])
-        self.tet5 = MS34_GF3([[0,0,0,1],[1,1,0,0],[0,0,1,0]])
-        self.tet6 = MS34_GF3([[0,0,1,0],[1,0,0,1],[0,1,0,0]])
-        self.tet7 = MS34_GF3([[0,1,0,0],[0,0,0,1],[1,0,1,0]])
-        self.tet8 = MS34_GF3([[0,0,1,0],[0,1,0,0],[1,0,0,1]])
-        self.tet9 = MS34_GF3([[0,0,0,1],[0,0,1,0],[1,1,0,0]])
-        self.col = [self.col1, self.col2, self.col3, self.col4]
-        self.tet = [self.tet1, self.tet2, self.tet3, self.tet4,
-                    self.tet5, self.tet6, self.tet7, self.tet8, self.tet9]
-        # return picture00,picture02,picture21,line,cross,square,col,tet
+        tets = {}
+        tets[1] = MS34_GF3([[1,1,1,1],[0,0,0,0],[0,0,0,0]])
+        tets[2] = MS34_GF3([[1,0,0,0],[0,1,1,1],[0,0,0,0]])
+        tets[3] = MS34_GF3([[1,0,0,0],[0,0,0,0],[0,1,1,1]])
+        tets[4] = MS34_GF3([[0,1,0,0],[1,0,1,0],[0,0,0,1]])
+        tets[5] = MS34_GF3([[0,0,0,1],[1,1,0,0],[0,0,1,0]])
+        tets[6] = MS34_GF3([[0,0,1,0],[1,0,0,1],[0,1,0,0]])
+        tets[7] = MS34_GF3([[0,1,0,0],[0,0,0,1],[1,0,1,0]])
+        tets[8] = MS34_GF3([[0,0,1,0],[0,1,0,0],[1,0,0,1]])
+        tets[9] = MS34_GF3([[0,0,0,1],[0,0,1,0],[1,1,0,0]])
+        self.tet = tets
 
     def __repr__(self):
         return "Minimog of type %s" % self.type

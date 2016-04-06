@@ -7372,6 +7372,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`is_cyclotomic_product`
+            :meth:`cyclotomic_part`
 
         INPUT:
 
@@ -7474,9 +7475,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
            for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
            pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
-        if self.base_ring().characteristic() != 0:
+        S = self.base_ring()
+        if S.characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
-        if self.base_ring() != ZZ:
+        if S != ZZ:
             try:
                 f = self.change_ring(ZZ)
             except TypeError:
@@ -7541,6 +7543,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`is_cyclotomic`
+            :meth:`cyclotomic_part`
 
         EXAMPLES::
 
@@ -7597,14 +7600,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.cyclotomic_part()
             x^8 + 2*x^4 + 1
 
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            x^8 + 2*x^4 + 1
+
+            sage: P.<x> = PolynomialRing(RR)
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for inexact base rings
+
             sage: x = polygen(Zmod(5))
             sage: (x-1).cyclotomic_part()
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented in non-zero characteristic
         """
-        if self.base_ring().characteristic() != 0:
+        S = self.base_ring()
+        if S.characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
+        if not S.is_exact():
+            raise NotImplementedError("not implement for inexact base rings")
         R = self.parent()
         x = R.gen()
         # Extract Phi_n when n is odd.

@@ -148,10 +148,23 @@ cdef class GenericBackend:
             sage: p.add_variables(2)
             1
             sage: p.add_linear_constraint([[0, 17], [1, 89]], None, 42)
-            sage: p._test_add_linear_constraint_vector()
+            sage: p._test_add_variables()
         """
         tester = self._tester(**options)
-        # Tests here
+        p = self
+        # Test from CVXOPT interface:
+        ncols_added = 5
+        ncols_before = p.ncols()
+        add_variables_result = p.add_variables(ncols_added)
+        ncols_after = p.ncols()
+        tester.assertEqual(ncols_after, ncols_before+ncols_added, "Added the wrong number of columns")
+        # Test from CVXOPT interface, continued
+        ncols_before = p.ncols()
+        add_variables_result = p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
+        ncols_after = p.ncols()
+        tester.assertEqual(p.col_bounds(ncols_before), (-2.0, None)) # FIXME: tol 1e-8
+        tester.assertEqual(p.col_name(ncols_before), 'a')
+        tester.assertEqual(p.objective_coefficient(ncols_before), 42.0) # FIXME: tol 1e-8
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """

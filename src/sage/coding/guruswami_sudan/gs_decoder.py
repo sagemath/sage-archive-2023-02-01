@@ -30,7 +30,7 @@ from sage.coding.grs import GeneralizedReedSolomonCode
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from sage.coding.decoder import Decoder
-from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg, construct_Q_lee_osullivan
+from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg, gs_interpolation_lee_osullivan
 from sage.coding.guruswami_sudan.rootfinding import rootfind_roth_ruckenstein
 from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
@@ -568,9 +568,9 @@ class GRSGuruswamiSudanDecoder(Decoder):
         if hasattr(interpolation_alg, '__call__'):
             self._interpolation_alg = interpolation_alg
         elif interpolation_alg == None or interpolation_alg == "LeeOSullivan":
-            self._interpolation_alg = construct_Q_lee_osullivan
+            self._interpolation_alg = gs_interpolation_lee_osullivan
         elif interpolation_alg == "LinearAlgebra":
-            self._interpolation_alg = construct_Q_linalg
+            self._interpolation_alg = gs_interpolation_linalg
         else:
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):

@@ -345,16 +345,21 @@ def lee_osullivan_module(points, tau, parameters, wy):
     modbasis = [pad(yb.coefficients(sparse=False)) for yb in ybasis]
     return matrix(PF, modbasis)
 
-def construct_Q_lee_osullivan(points, tau, parameters, wy):
+def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
     r"""
-    Returns an interpolation polynomial Q(x,y) for the given input.
+    Returns an interpolation polynomial Q(x,y) for the given input using the
+    module-based algorithm of Lee and O'Sullivan.
 
-    This interpolation method uses Lee-O'Sullivan's method.
+    This algorithm constructs an explicit `(\ell+1) \times (\ell+1)` polynomial
+    matrix whose rows span the `\GF q[x]` module of all interpolation
+    polynomials. It then runs a row reduction algorithm to find a low-shifted
+    degree vector in this row space, corresponding to a low weighted-degree
+    interpolation polynomial.
 
     INPUT:
 
-    - ``points`` -- a list of tuples ``(xi, yi)`` such that
-      ``Q(xi,yi) = 0`` with multiplicity ``s``.
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
+      ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
 
     - ``tau`` -- an integer, the number of errors one wants to decode.
 
@@ -362,24 +367,25 @@ def construct_Q_lee_osullivan(points, tau, parameters, wy):
         - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
 
-    - ``wy`` -- an integer.
+    - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
+      ``(1,wy)`` weighted degree.
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.interpolation import construct_Q_lee_osullivan
+        sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_lee_osullivan
         sage: F = GF(11)
         sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
                 , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: construct_Q_lee_osullivan(points, tau, params, wy)
+        sage: gs_interpolation_lee_osullivan(points, tau, params, wy)
         x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
     """
     from utils import apply_shifts, remove_shifts, leading_term
     s, l = parameters[0], parameters[1]
     F = points[0][0].parent()
-    M = lee_osullivan_module(points, tau, (s,l), wy)
+    M = lee_osullivan_module(points, (s,l), wy)
     shifts = [i * wy for i in range(0,l+1)]
     apply_shifts(M, shifts)
     Mnew = M.row_reduced_form(transformation=False, old_call=False)

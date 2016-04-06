@@ -284,7 +284,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
 
 ####################### Lee-O'Sullivan's method ###############################
 
-def lee_osullivan_module(points, tau, parameters, wy):
+def lee_osullivan_module(points, parameters, wy):
     r"""
     Returns the analytically straight-forward basis for the `\GF q[x]` module
     containing all interpolation polynomials, as according to Lee and
@@ -308,8 +308,6 @@ def lee_osullivan_module(points, tau, parameters, wy):
     - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
       ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
 
-    - ``tau`` -- an integer, the number of errors one wants to decode.
-
     - ``parameters`` -- (default: ``None``) a pair of integers, where:
         - the first integer is the multiplicity parameter `s` of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
@@ -323,10 +321,9 @@ def lee_osullivan_module(points, tau, parameters, wy):
         sage: F = GF(11)
         sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
                 , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
-        sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: lee_osullivan_module(points, tau, params, wy)
+        sage: lee_osullivan_module(points, params, wy)
         [x^8 + 5*x^7 + 3*x^6 + 9*x^5 + 4*x^4 + 2*x^3 + 9*x   0]
         [ 10*x^7 + 4*x^6 + 9*x^4 + 7*x^3 + 2*x^2 + 9*x + 9   1]
     """

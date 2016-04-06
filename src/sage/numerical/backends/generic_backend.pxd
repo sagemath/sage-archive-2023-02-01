@@ -7,6 +7,8 @@
 
 from sage.structure.sage_object cimport SageObject
 
+# We inherit from SageObject to make some testing infrastructure available.
+
 cdef class GenericBackend (SageObject):
     cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, name=*) except -1
     cpdef int add_variables(self, int, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, names=*) except -1

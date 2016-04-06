@@ -103,8 +103,10 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
 
             - ``side``: "left", "right", or "twosided"
 
-            FIXME: find a better name for this method
-            FIXME: should we return a set? a family?
+            .. TODO:: Design choice:
+
+               - find a better name for this method
+               - should we return a set? a family?
 
             EXAMPLES::
 

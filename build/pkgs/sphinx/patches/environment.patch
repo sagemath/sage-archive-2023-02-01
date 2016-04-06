@@ -1,3 +1,5 @@
+Prevent Sphinx from rebuilding documentation that is already built
+
 --- Sphinx-1.2.2/sphinx/environment.py.orig	2014-03-02 20:38:09.000000000 +1300
 +++ Sphinx-1.2.2/sphinx/environment.py	2014-10-19 23:31:15.000000000 +1300
 @@ -540,10 +540,13 @@

@@ -331,7 +331,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def __init__(self, solver=None, maximization=True,
                  constraint_generation=False, check_redundant=False,
-                 names=tuple()):
+                 names=tuple(), base_ring=None):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -431,7 +431,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self._first_variable_names = list(names)
         from sage.numerical.backends.generic_backend import get_solver
         self._backend = get_solver(solver=solver,
-                                   constraint_generation=constraint_generation)
+                                   constraint_generation=constraint_generation,
+                                   base_ring=base_ring)
         if not maximization:
             self._backend.set_sense(-1)
 
@@ -597,6 +598,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
+            sage: p.base_ring()
+            Algebraic Real Field
+            sage: d = polytopes.dodecahedron()
+            sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
+            sage: p.base_ring()
+            Number Field in sqrt5 with defining polynomial x^2 - 5
         """
         return self._backend.base_ring()
 

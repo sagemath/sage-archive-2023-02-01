@@ -26,7 +26,11 @@ from copy import copy
 cdef class CoinBackend(GenericBackend):
 
     """
-    TESTS::
+    MIP Backend that uses the COIN solver (CBC).
+
+    TESTS:
+
+    General backend testsuite::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                       # optional - cbc

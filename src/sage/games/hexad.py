@@ -1,13 +1,15 @@
 r"""
 Hexads in S(5,6,12)
 
-This module completes a 5-element subset of a 12-set X
+This module completes a 5-element subset of a 12-set `X`
 into a hexad in a Steiner system S(5,6,12) using Curtis and
 Conway's "kitten method".  The labeling is either the
 "modulo 11" labeling or the "shuffle" labeling.
 
 The  main functions implemented in this file are
-blackjack_move and find_hexad. Enter "blackjack_move?"
+:meth:`Minimog.blackjack_move` and :meth:`Minimog.find_hexad`.
+
+Enter "blackjack_move?"
 for help to play blackjack (i.e., the rules of the game), or
 "find_hexad?" for help finding hexads of S(5,6,12) in the
 shuffle labeling.
@@ -40,9 +42,10 @@ The corresponding MINIMOG is::
              |  4  |  1  |  8  | 11  |
              +-----+-----+-----+-----+
 
-which is specified by the global variable "minimog_shuffle".
+which is specified by the global variable ``"minimog_shuffle"``.
 
-See the docstrings for :meth:`Minimog.find_hexad` and :meth:`Minimog.blackjack_move` for further details and examples.
+See the docstrings for :meth:`Minimog.find_hexad` and
+:meth:`Minimog.blackjack_move` for further details and examples.
 
 AUTHOR:
 
@@ -79,7 +82,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.calculus.calculus import SR
-from sage.structure.sage_object import SageObject
 
 
 def view_list(L):
@@ -127,7 +129,7 @@ def picture_set(A, L):
     return set([A[x] for x in L])
 
 
-class Minimog(SageObject):
+class Minimog(object):
     """
     This implements the Conway/Curtis minimog idea for describing the Steiner
     triple system S(5,6,12).
@@ -153,7 +155,7 @@ class Minimog(SageObject):
         elif type == "modulo11":
             self.minimog = minimog_modulo11
         else:
-            raise ValueError("That Minimog type is not implemented.")
+            raise ValueError("that Minimog type is not implemented")
         # This initializes the variables in the game.
         MS34 = MatrixSpace(SR,3,4)
         A = self.minimog
@@ -294,29 +296,28 @@ class Minimog(SageObject):
 
         """
         MINIMOG = self.minimog
-        Kitten1 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[0][2]),' ',' ',' ',' ',' ']
-        Kitten2 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
-        Kitten3 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[2][2]),' ',' ',' ',' ',' ']
-        Kitten4 = [' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ',' ',' ',' ']
-        Kitten5 = [' ',' ',' ',' ',' ',' ',str(MINIMOG[1][0]),' ',' ',str(MINIMOG[2][3]),' ',' ',str(MINIMOG[0][1]),' ',' ',' ']
-        Kitten6 = [' ',' ',' ',' ',' ',str(MINIMOG[2][2]),' ',' ',str(MINIMOG[1][1]),' ',' ',str(MINIMOG[2][0]),' ',' ',str(MINIMOG[2][2]),' ',' ']
-        Kitten7 = [' ',' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ',' ',str(MINIMOG[1][2]),' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ']
-        Kitten8 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
-        Kitten9 = [str(MINIMOG[0][0]),' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[2][1])]
-        Kitten = [Kitten1, Kitten2, Kitten3, Kitten4, Kitten5, Kitten6, Kitten7, Kitten8, Kitten9]
-        kitten = "\n".join("".join(u) for u in Kitten)
-        print kitten
+        Kitten = ['         {}'.format(MINIMOG[0][2])]
+        Kitten += ['           ']
+        Kitten += ['         {}'.format(MINIMOG[2][2])]
+        Kitten += ['       ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),'    ']
+        Kitten += ['      ',str(MINIMOG[1][0]),'  ',str(MINIMOG[2][3]),'  ',str(MINIMOG[0][1]),'   ']
+        Kitten += ['     ',str(MINIMOG[2][2]),'  ',str(MINIMOG[1][1]),'  ',str(MINIMOG[2][0]),'  ',str(MINIMOG[2][2]),'  ']
+        Kitten += ['   ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),'  ',str(MINIMOG[1][2]),'  ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),' ']
+        Kitten += ['           ']
+        Kitten += [str(MINIMOG[0][0]),'                   ',str(MINIMOG[2][1])]
+        print "\n".join("".join(u) for u in Kitten)
 
     def find_hexad0(self, pts):
         """
         INPUT:
 
-        - pts -- a set of 2 distinct elements of MINIMOG, but not including the
-          "points at infinity"
+        - ``pts`` -- a set of 2 distinct elements of MINIMOG, but not
+          including the "points at infinity"
 
         OUTPUT:
 
-        - hexad containing pts and of type 0 (the 3 points "at infinity" union a line)
+        hexad containing ``pts`` and of type 0 (the 3 points "at
+        infinity" union a line)
 
         NOTE:
 
@@ -352,12 +353,12 @@ class Minimog(SageObject):
         """
         INPUT:
 
-        pts -- a set pts of 5 distinct elements of MINIMOG
+        ``pts`` -- a set pts of 5 distinct elements of MINIMOG
 
         OUTPUT:
 
-        hexad containing pts and of type 1 (union of 2 parallel lines -- *no*
-        points "at infinity")
+        hexad containing ``pts`` and of type 1 (union of 2 parallel
+        lines -- *no* points "at infinity")
 
         NOTE: 3 points "at infinity" = {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
@@ -393,8 +394,8 @@ class Minimog(SageObject):
         """
         INPUT:
 
-        - pts -- a list S of 4 elements of MINIMOG, not including any "points
-          at infinity"
+        - ``pts`` -- a list S of 4 elements of MINIMOG, not including
+          any "points at infinity"
         - x0  -- in {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
         OUTPUT:
@@ -409,11 +410,11 @@ class Minimog(SageObject):
             ([], [])
 
         The above output indicates that there is no hexad of type 2
-        containing {2,3,4,5}. However, there is one containing {2,3,4,8}::
+        containing `\{2,3,4,5\}`. However, there is one containing
+        `\{2,3,4,8\}`::
 
             sage: M.find_hexad2([2,3,4,8],0)
             ([0, 2, 3, 4, 8, 9], ['cross 12', 'picture 0'])
-
         """
         MINIMOG = self.minimog
         L = set(pts)

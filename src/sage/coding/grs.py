@@ -14,6 +14,10 @@ This file contains the following elements:
     - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
     - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
+    - :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using Berlekamp-Welch algorithm
+    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
+    - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
+    - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
 """
 
 #*****************************************************************************
@@ -1090,6 +1094,15 @@ class GRSBerlekampWelchDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
+
+        The bug detailed in trac #20340 has been fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: c = C.random_element()
+            sage: D = C.decoder("BerlekampWelch")
+            sage: D.decode_to_code(c) == c
+            True
+
         """
         return self._decode_to_code_and_message(r)[0]
 

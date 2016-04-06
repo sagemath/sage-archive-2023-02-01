@@ -138,20 +138,16 @@ def solve_degree2_to_integer_range(a,b,c):
 
 def apply_shifts(M, shifts):
     r"""
-    Applies column shifts inplace to the matrix `M`.
+    Applies column shifts inplace to the polynomial matrix `M`.
 
-    If ``shifts`` are all integers, then `M` is multiplied on the `n`th
-    column with `x^{shifts[n]}`.
-
-    If shifts are fractions, then `M` is appropriately column permuted and
-    multiplied with the `x^t` where `t = int(shifts[n])`. Afterwards, the
-    permutation is returned if needed for reference.
+    This is equivalent to multiplying the `n`th column of `M` with
+    `x^{shifts[n]}`.
 
     INPUT:
 
-    - ``M`` -- a matrix
+    - ``M`` -- a polynomial matrix
 
-    - ``shifts`` -- a list
+    - ``shifts`` -- a list of non-negative integer shifts
 
     EXAMPLES::
 
@@ -168,26 +164,23 @@ def apply_shifts(M, shifts):
         [  5*x^3 + 2*x^2 + 4*x         4*x^4 + 2*x^3   5*x^5 + x^4 + 2*x^3]
     """
     x = M.base_ring().gen()
-    if all(w.is_integer() for w in shifts):
-        for j in range(M.ncols()):
-            M.set_col_to_multiple_of_col(j,j, x**shifts[j])
-    else:
-        perm = fractional_weight_permutation(shifts)
-        for j in range(M.ncols()):
-            M.set_col_to_multiple_of_col(j,j, x**floor(shifts[j]))
-        M.permute_columns(perm)
-        return perm
+    for j in range(M.ncols()):
+        M.set_col_to_multiple_of_col(j,j, x**shifts[j])
 
 def remove_shifts(M, shifts):
     r"""
-    Removes the shifts inplace to the matrix ``M``
-    as they were introduced by :func:`apply_shifts`.
+    Removes the shifts inplace to the matrix `M` as they were introduced by
+    :func:`apply_shifts`.
+
+    If `M` was not earlier called with :func:`apply_shifts` using the same
+    shifts, then the least significant coefficients of the entries of `M`,
+    corresponding to how much we are shifting down, will be lost.
 
     INPUT:
 
-    - ``M`` -- a matrix
+    - ``M`` -- a polynomial matrix
 
-    - ``shifts`` -- a list
+    - ``shifts`` -- a list of non-negative integer shifts
 
     EXAMPLES::
 
@@ -204,60 +197,24 @@ def remove_shifts(M, shifts):
         [  x^2 + 3*x + 3 5*x^2 + 5*x + 1 6*x^2 + 5*x + 4]
         [5*x^2 + 2*x + 4     4*x^2 + 2*x   5*x^2 + x + 2]
     """
-    if all(w.is_integer() for w in shifts):
-        for i in range(M.nrows()):
-            for j in range(M.ncols()):
-                M[i,j] = M[i,j].shift(-shifts[j])
-    else:
-        perm = fractional_weight_permutation(shifts)
-        pinv = perm.inverse()
-        M.permute_columns(pinv)
-        remove_shifts(M, [floor(wj) for wj in shifts])
-
-def fractional_weight_permutation(shifts):
-    r"""
-    Returns the permutation which can be used for embedding the semantics of
-    fractional shifts into the module minimisation.
-    A permutation is returned of the integers from 1 to ``len(numerators)``.
-
-    INPUT:
-
-    - ``shifts`` -- a list of fractions
-
-    EXAMPLES::
-
-        sage: from sage.coding.guruswami_sudan.utils import fractional_weight_permutation
-        sage: shifts = [1/4, 1/2, 3/4]
-        sage: fractional_weight_permutation(shifts)
-        [1, 2, 3]
-    """
-    from sage.coding.guruswami_sudan.interpolation import _flatten_once
-    n = len(shifts)
-    denominator = lcm(list(f.denominator() for f in shifts))
-    numerators = [f.numerator() * denominator/f.denominator() for f in shifts]
-    residues = [num % denominator for num in numerators]
-    res_map = dict()
-    for i in range(n):
-        if residues[i] in res_map:
-            res_map[residues[i]].append(i+1)
-        else:
-            res_map[residues[i]] = [i+1]
-    res_uniq = sorted(res_map.keys())
-    return Permutation(list(_flatten_once([ res_map[res] for res in res_uniq])))
+    for i in range(M.nrows()):
+        for j in range(M.ncols()):
+            M[i,j] = M[i,j].shift(-shifts[j])
 
 def _leading_position(v, shifts=None):
     r"""
     Returns the position of the highest-degree term of ``v``.
 
-    This methods can manage weighted degree, by providing ``weight`` to it.
+    This methods can manage shifted degree, by providing ``shift`` to it.
 
-    In case of several positions having the same, highest degree, the highest position is given.
+    In case of several positions having the same, highest degree, the right-most
+    position is given.
 
     INPUT:
 
     - ``v`` -- a vector of polynomials
 
-    - ``shifts`` -- (default: ``None``) a vector of integers or fractions, the shifts of ``v``.
+    - ``shifts`` -- (default: ``None``) a list of integer shifts to consider ``v`` under.
       If ``None``, all shifts are considered as ``0``.
 
     EXAMPLES::
@@ -287,16 +244,16 @@ def leading_term(v, shifts=None):
     r"""
     Returns the term of ``v`` with the highest degree.
 
-    This methods can manage weighted degree, by providing ``weight`` to it.
+    This methods can manage shifted degree, by providing ``shift`` to it.
 
     In case of several positions having the same, highest degree, the term with
-    the highest position is returned.
+    the right-most position is returned.
 
     INPUT:
 
     - ``v`` -- a vector of polynomials
 
-    - ``shifts`` -- (default: ``None``) a vector of integers or fractions, the shifts of ``v``.
+    - ``shifts`` -- (default: ``None``) a list of integer shifts to consider ``v`` under.
       If ``None``, all shifts are considered as ``0``.
 
     EXAMPLES::

@@ -296,18 +296,29 @@ cdef class Farey:
             sage: G._get_minus_one()
             [14]
             sage: g = G.generators()[13]
-            sage: g.is_one()
-            False
-            sage: (g^2).is_one()
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma(1).farey_symbol()
+            sage: G._get_minus_one()
+            [1, 1]
+            sage: g = G.generators()[0]**2
+            sage: (-g.matrix()).is_one()
+            True
+            sage: G = Gamma0(3).farey_symbol()
+            sage: G._get_minus_one()
+            [2, 2, 2]
+            sage: g = G.generators()[1]**3
+            sage: (-g.matrix()).is_one()
             True
         """
         for i,g in enumerate(self.generators()):
-            if (g**4).is_one():
-                if (g**2).is_one():
-                    return [i+1]
-                else:
-                    return 2 * [i+1]
-            elif (g**6).is_one():
+            m = g.matrix()
+            if (-m).is_one():
+                return [i+1]
+            t = m.trace()
+            if t == 0: # order = 4
+                return 2 * [i+1]
+            elif t == 1: # order = 6
                 return 3 * [i+1]
         return []
 

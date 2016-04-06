@@ -132,7 +132,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     from sage.numerical.mip import MixedIntegerLinearProgram
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-    A = p.new_variable(integer=isinteger, nonnegative=not isinteger) # A>=0 is assumed
+    A = p.new_variable(integer=isinteger, nonnegative=True)
     p.set_objective(sum([A[r] for r in xrange(n+1)]))
     p.add_constraint(A[0]==1)
     for i in xrange(1,d):
@@ -149,10 +149,9 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
         p.add_constraint(sum([A[r] for r in xrange(n+1)]), max=maxc)
     return A, p
 
-def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
+def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """
-    Find the classical Delsarte bound [1]_ on codes in Hamming space
-    ``H_q^n`` of minimal distance ``d``
+    Find the Delsarte bound [1]_ on codes in Hamming space ``H_q^n`` of minimal distance ``d``
 
 
     INPUT:
@@ -164,13 +163,15 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     - ``q`` -- the size of the alphabet
 
     - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is
-        a weights vector,  and ``LP`` the Delsarte bound LP; both of them are Sage LP
+        a weights vector,  and ``LP`` the Delsarte upper bound LP; both of them are Sage LP
         data.  ``W`` need not be a weight distribution of a code.
 
     - ``solver`` -- the LP/ILP solver to be used. Defaults to ``PPL``. It is arbitrary
         precision, thus there will be no rounding errors. With other solvers
         (see :class:`MixedIntegerLinearProgram` for the list), you are on your own!
 
+    - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
+        that an LP solver. Can be very slow if set to ``True``.
 
     EXAMPLES:
 
@@ -196,6 +197,18 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
        sage: delsarte_bound_hamming_space(11,3,4)
        327680/3
 
+    An improvement of a known upper bound (150) from http://www.win.tue.nl/~aeb/codes/binary-1.html ::
+
+       sage: a,p,x= delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
+       148
+       sage: [j for i,j in p.get_values(a).iteritems()]                                      # long time
+       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 0, 2, 0, 36, 0, 14, 0, 0, 0, 0, 0, 0, 0]
+
+    Note that a usual LP, without integer variables, won't do the trick ::
+
+       sage: delsarte_bound_hamming_space(23,10,2).n(20)
+       151.86
+
     Such an input is invalid::
 
        sage: delsarte_bound_hamming_space(11,3,-4)
@@ -211,7 +224,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
 
     """
     from sage.numerical.mip import MIPSolverException
-    A, p = _delsarte_LP_building(n, d, 0, q, False,  solver)
+    A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)
     try:
         bd=p.solve()
     except MIPSolverException as exc:
@@ -228,6 +241,8 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
 def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
                      return_data=False, solver="PPL", isinteger=False):
    """
+   Find a modified Delsarte bound on additive codes in Hamming space ``H_q^n`` of minimal distance ``d``
+
    Find the Delsarte LP bound on ``F_{q_base}``-dimension of additive codes in
    Hamming space ``H_q^n`` of minimal distance ``d`` with minimal distance of the dual
    code at least ``d_star``.  If ``q_base`` is set to
@@ -246,7 +261,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    - ``d_star`` -- the (lower bound on) minimal distance of the dual code;
      only makes sense for additive codes.
 
-   - ``q_base`` -- if ``0``, the code is assumed to be nonlinear. Otherwise,
+   - ``q_base`` -- if ``0``, the code is assumed to be linear. Otherwise,
      ``q=q_base^m`` and the code is linear over ``F_{q_base}``.
 
    - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is

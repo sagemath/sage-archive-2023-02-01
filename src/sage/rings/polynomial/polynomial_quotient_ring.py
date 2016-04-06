@@ -290,6 +290,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
          'lift',
          'powers',
          'quo_rem',
+         'radical',
+         'squarefree_part',
          'xgcd']
 
     As one can see, the elements are now inheriting additional

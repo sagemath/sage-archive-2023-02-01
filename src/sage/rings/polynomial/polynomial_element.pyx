@@ -6661,7 +6661,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.roots(ring=CC, multiplicities=False)
 
     def number_of_roots_in_interval(self, a=None, b=None):
-        """
+        r"""
         Return the number of roots of this polynomial in the interval 
         [a,b], counted without multiplicity. The endpoints a, b default to
         -Infinity, Infinity (which are also valid input values).
@@ -6724,8 +6724,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pol2 = pol.gcd(pol.map_coefficients(lambda z: z.conjugate()))
             return(pari(pol2).polsturm([a1,b1]))
 
-    def all_roots_in_interval(self, *args):
+    def number_of_real_roots(self):
+        r"""
+        Return the number of real roots of this polynomial, counted
+        without multiplicity. 
+        
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_real_roots()
+            3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.number_of_real_roots()
+            3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.number_of_real_roots()
+            1
         """
+        return self.number_of_roots_in_interval()
+
+    def all_roots_in_interval(self, a=None, b=None):
+        r"""
         Return True if the roots of this polynomial are all real and 
         contained in the given interval.
     
@@ -6747,10 +6769,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         pol = self // self.gcd(self.derivative())
-        return(pol.number_of_roots_in_interval(*args) == pol.degree())
+        return(pol.number_of_roots_in_interval(a,b) == pol.degree())
 
     def is_real_rooted(self):
-        """
+        r"""
         Return True if the roots of this polynomial are all real.
     
         EXAMPLES::

@@ -145,12 +145,20 @@ class Box(IndexFaceSet):
     .. PLOT::
 
         from sage.plot.plot3d.shapes import Box
-        #sphinx_plot(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
+        P = sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in range(0,4)])
+        sphinx_plot(P)
 
     A sinusoidal stack of multicolored boxes::
     
         sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
         sage: show(B, figsize=6)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        B = sum([Box([2,4,1/4], color=(i/4.0,i/5.0,1)).translate((sin(i),0,5-i)) for i in range(0,21)])
+        sphinx_plot(B)
+
     """
     def __init__(self, *size, **kwds):
         """
@@ -193,6 +201,12 @@ class Box(IndexFaceSet):
     def plot(self):
         """
             Being Box a 3D graphics Returns self
+            EXAMPLES::
+
+                sage: B = Box([1,1,1])
+                sage: B.plot() is B
+                True
+
         """
         return self
 
@@ -218,6 +232,15 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: from sage.plot.plot3d.shapes import ColorCube
         sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sage: c.show()
+
+    .. PLOT::
+    
+        from sage.plot.plot3d.shapes import ColorCube
+        c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
+        sphinx_plot(c)
+    
+    ::
+    
         sage: list(c.texture_set())[0].opacity
         0.5
 

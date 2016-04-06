@@ -136,105 +136,105 @@ def solve_degree2_to_integer_range(a,b,c):
     else:
         return (mini,maxi)
 
-def apply_weights(M, weights):
+def apply_shifts(M, shifts):
     r"""
-    Applies column weights inplace to the matrix `M`.
+    Applies column shifts inplace to the matrix `M`.
 
-    If ``weights`` are all integers, then `M` is multiplied on the `n`th
-    column with `x^{weights[n]}`.
+    If ``shifts`` are all integers, then `M` is multiplied on the `n`th
+    column with `x^{shifts[n]}`.
 
-    If weights are fractions, then `M` is appropriately column permuted and
-    multiplied with the `x^t` where `t = int(weights[n])`. Afterwards, the
+    If shifts are fractions, then `M` is appropriately column permuted and
+    multiplied with the `x^t` where `t = int(shifts[n])`. Afterwards, the
     permutation is returned if needed for reference.
 
     INPUT:
 
     - ``M`` -- a matrix
 
-    - ``weights`` -- a list
+    - ``shifts`` -- a list
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.utils import apply_weights
+        sage: from sage.coding.guruswami_sudan.utils import apply_shifts
         sage: F.<x> = GF(7)[]
         sage: M = matrix(F, [[2*x^2 + x, 5*x^2 + 2*x + 1, 4*x^2 + x],\
                              [x^2 + 3*x + 3, 5*x^2 + 5*x + 1, 6*x^2 + 5*x + 4],\
                              [5*x^2 + 2*x + 4, 4*x^2 + 2*x, 5*x^2 + x + 2]])
-        sage: weights = [1, 2, 3]
-        sage: apply_weights(M, weights)
+        sage: shifts = [1, 2, 3]
+        sage: apply_shifts(M, shifts)
         sage: M
         [          2*x^3 + x^2   5*x^4 + 2*x^3 + x^2           4*x^5 + x^4]
         [    x^3 + 3*x^2 + 3*x   5*x^4 + 5*x^3 + x^2 6*x^5 + 5*x^4 + 4*x^3]
         [  5*x^3 + 2*x^2 + 4*x         4*x^4 + 2*x^3   5*x^5 + x^4 + 2*x^3]
     """
     x = M.base_ring().gen()
-    if all(w.is_integer() for w in weights):
+    if all(w.is_integer() for w in shifts):
         for j in range(M.ncols()):
-            M.set_col_to_multiple_of_col(j,j, x**weights[j])
+            M.set_col_to_multiple_of_col(j,j, x**shifts[j])
     else:
-        perm = fractional_weight_permutation(weights)
+        perm = fractional_weight_permutation(shifts)
         for j in range(M.ncols()):
-            M.set_col_to_multiple_of_col(j,j, x**floor(weights[j]))
+            M.set_col_to_multiple_of_col(j,j, x**floor(shifts[j]))
         M.permute_columns(perm)
         return perm
 
-def remove_weights(M, weights):
+def remove_shifts(M, shifts):
     r"""
-    Removes the weights inplace to the matrix ``M``
-    as they were introduced by :func:`apply_weights`.
+    Removes the shifts inplace to the matrix ``M``
+    as they were introduced by :func:`apply_shifts`.
 
     INPUT:
 
     - ``M`` -- a matrix
 
-    - ``weights`` -- a list
+    - ``shifts`` -- a list
 
     EXAMPLES::
 
-        sage: from sage.coding.guruswami_sudan.utils import remove_weights
+        sage: from sage.coding.guruswami_sudan.utils import remove_shifts
         sage: F.<x> = GF(7)[]
         sage: M = matrix(F, [[2*x^3 + x^2, 5*x^4 + 2*x^3 + x^2, 4*x^5 + x^4],\
                             [x^3 + 3*x^2 + 3*x, 5*x^4 + 5*x^3 + x^2, 6*x^5 + 5*x^4 + 4*x^3],\
                             [5*x^3 + 2*x^2 + 4*x, 4*x^4 + 2*x^3, 5*x^5 + x^4 + 2*x^3]])
 
-        sage: weights = [1, 2, 3]
-        sage: remove_weights(M, weights)
+        sage: shifts = [1, 2, 3]
+        sage: remove_shifts(M, shifts)
         sage: M
         [      2*x^2 + x 5*x^2 + 2*x + 1       4*x^2 + x]
         [  x^2 + 3*x + 3 5*x^2 + 5*x + 1 6*x^2 + 5*x + 4]
         [5*x^2 + 2*x + 4     4*x^2 + 2*x   5*x^2 + x + 2]
     """
-    if all(w.is_integer() for w in weights):
+    if all(w.is_integer() for w in shifts):
         for i in range(M.nrows()):
             for j in range(M.ncols()):
-                M[i,j] = M[i,j].shift(-weights[j])
+                M[i,j] = M[i,j].shift(-shifts[j])
     else:
-        perm = fractional_weight_permutation(weights)
+        perm = fractional_weight_permutation(shifts)
         pinv = perm.inverse()
         M.permute_columns(pinv)
-        remove_weights(M, [floor(wj) for wj in weights])
+        remove_shifts(M, [floor(wj) for wj in shifts])
 
-def fractional_weight_permutation(weights):
+def fractional_weight_permutation(shifts):
     r"""
     Returns the permutation which can be used for embedding the semantics of
-    fractional weights into the module minimisation.
+    fractional shifts into the module minimisation.
     A permutation is returned of the integers from 1 to ``len(numerators)``.
 
     INPUT:
 
-    - ``weights`` -- a list of fractions
+    - ``shifts`` -- a list of fractions
 
     EXAMPLES::
 
         sage: from sage.coding.guruswami_sudan.utils import fractional_weight_permutation
-        sage: weights = [1/4, 1/2, 3/4]
-        sage: fractional_weight_permutation(weights)
+        sage: shifts = [1/4, 1/2, 3/4]
+        sage: fractional_weight_permutation(shifts)
         [1, 2, 3]
     """
     from sage.coding.guruswami_sudan.interpolation import _flatten_once
-    n = len(weights)
-    denominator = lcm(list(f.denominator() for f in weights))
-    numerators = [f.numerator() * denominator/f.denominator() for f in weights]
+    n = len(shifts)
+    denominator = lcm(list(f.denominator() for f in shifts))
+    numerators = [f.numerator() * denominator/f.denominator() for f in shifts]
     residues = [num % denominator for num in numerators]
     res_map = dict()
     for i in range(n):
@@ -245,7 +245,7 @@ def fractional_weight_permutation(weights):
     res_uniq = sorted(res_map.keys())
     return Permutation(list(_flatten_once([ res_map[res] for res in res_uniq])))
 
-def _leading_position(v, weights=None):
+def _leading_position(v, shifts=None):
     r"""
     Returns the position of the highest-degree term of ``v``.
 
@@ -257,8 +257,8 @@ def _leading_position(v, weights=None):
 
     - ``v`` -- a vector of polynomials
 
-    - ``weights`` -- (default: ``None``) a vector of integers or fractions, the weights of ``v``.
-      If ``None``, all weights are considered as ``0``.
+    - ``shifts`` -- (default: ``None``) a vector of integers or fractions, the shifts of ``v``.
+      If ``None``, all shifts are considered as ``0``.
 
     EXAMPLES::
 
@@ -268,13 +268,13 @@ def _leading_position(v, weights=None):
     sage: _leading_position(v)
     4
     """
-    if not weights:
-        weights=[0]*len(v)
+    if not shifts:
+        shifts=[0]*len(v)
     best=-1
     bestp=-1
     for p in range(0,len(v)):
         if not v[p].is_zero():
-            vpdeg = v[p].degree() + weights[p]
+            vpdeg = v[p].degree() + shifts[p]
             if vpdeg >= best:
                 best=vpdeg
                 bestp = p
@@ -283,7 +283,7 @@ def _leading_position(v, weights=None):
     else:
         return bestp
 
-def leading_term(v, weights=None):
+def leading_term(v, shifts=None):
     r"""
     Returns the term of ``v`` with the highest degree.
 
@@ -296,8 +296,8 @@ def leading_term(v, weights=None):
 
     - ``v`` -- a vector of polynomials
 
-    - ``weights`` -- (default: ``None``) a vector of integers or fractions, the weights of ``v``.
-      If ``None``, all weights are considered as ``0``.
+    - ``shifts`` -- (default: ``None``) a vector of integers or fractions, the shifts of ``v``.
+      If ``None``, all shifts are considered as ``0``.
 
     EXAMPLES::
 
@@ -307,4 +307,4 @@ def leading_term(v, weights=None):
         sage: leading_term(v)
         3*x^2 + 5*x
     """
-    return v[_leading_position(v, weights=weights)]
+    return v[_leading_position(v, shifts=shifts)]

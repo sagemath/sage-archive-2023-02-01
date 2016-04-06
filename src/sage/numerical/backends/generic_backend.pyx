@@ -361,15 +361,14 @@ cdef class GenericBackend:
 
         EXAMPLE::
 
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
             sage: upper = vector([5, 5])
             sage: lower = vector([0, 0])
-            sage: from sage.numerical.backends.generic_backend import GenericBackend
-            sage: solver = GenericBackend()
-            sage: solver.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: add_linear_constraint
+            sage: p.add_variables(2)  # optional - Nonexistent_LP_solver
+            1
+            sage: p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')  # optional - Nonexistent_LP_solver
         """
         for d in range(degree):
             coefficients_d = []

@@ -661,7 +661,6 @@ cdef class PPLBackend(GenericBackend):
             sage: p.get_variable_value(1)
             3/2
         """
-        self.init_mip()
         ans = self.mip.optimal_value()
         return ans / self.obj_denominator + self.obj_constant_term
 
@@ -690,7 +689,6 @@ cdef class PPLBackend(GenericBackend):
             sage: p.get_variable_value(1)
             3/2
         """
-        self.init_mip()
         g = self.mip.optimizing_point()
         return g.coefficient(Variable(variable)) / g.divisor()
 

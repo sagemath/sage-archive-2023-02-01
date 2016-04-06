@@ -286,8 +286,22 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
 
 def lee_osullivan_module(points, tau, parameters, wy):
     r"""
-    Returns the analytically straight-forward basis for the module containing
-    all interpolation polynomials, as according to Lee and O'Sullivan.
+    Returns the analytically straight-forward basis for the `\GF q[x]` module
+    containing all interpolation polynomials, as according to Lee and
+    O'Sullivan.
+
+    The module is constructed in the following way: Let `R(x)` be the Lagrange
+    interpolation polynomial through the sought interpolation points `(x_i,
+    y_i)`, i.e.~`R(x_i) = y_i`. Let `G(x) = \prod_{i=1}^n (x-x_i)`. Then the
+    `i`'th row of the basis matrix of the module is the coefficient-vector of
+    the following polynomial in `\GF q[x][y]`:
+
+        P_i(x,y) = G(x)^{[i-s]} (y - R(x))^{i - [i-s]} y^{[i-s]} ,
+
+    where `[a]` for real `a` is `a` when `a > 0` and 0 otherwise. It is easily
+    seen that `P_i(x,y)` is an interpolation polynomial, i.e.~it is zero with
+    multiplicity at least `s` on each of the points `(x_i, y_i)`.
+
 
     INPUT:
 
@@ -297,7 +311,7 @@ def lee_osullivan_module(points, tau, parameters, wy):
     - ``tau`` -- an integer, the number of errors one wants to decode.
 
     - ``parameters`` -- (default: ``None``) a pair of integers, where:
-        - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - the first integer is the multiplicity parameter `s` of Guruswami-Sudan algorithm and
         - the second integer is the list size parameter.
 
     - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low

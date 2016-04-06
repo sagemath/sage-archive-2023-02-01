@@ -22,7 +22,7 @@ AUTHORS:
 
 def Krawtchouk(n,q,l,x,check=True):
     """
-    Compute ``K^{n,q}_l(x)``, the Krawtchouk polynomial.
+    Compute ``K^{n,q}_l(x)``, the Krawtchouk (a.k.a. Kravchuk) polynomial.
 
     See :wikipedia:`Kravchuk_polynomials`; It is defined by the generating function
     `(1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l` and is equal to
@@ -57,6 +57,8 @@ def Krawtchouk(n,q,l,x,check=True):
         -1
         sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False)
         -5
+        sage: Kravchuk(24,2,5,4)
+        2224
 
     other unusual inputs ::
 
@@ -89,6 +91,8 @@ def Krawtchouk(n,q,l,x,check=True):
         kraw += jth_term
     return kraw
 
+Kravchuk = Krawtchouk
+
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
     LP builder - common for the two functions; not exported.
@@ -106,26 +110,11 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
           constraint_2: 0 <= x_2 <= 0
           constraint_3: -7 x_0 - 5 x_1 - 3 x_2 - x_3 + x_4 + 3 x_5 + 5 x_6 + 7 x_7 <= 0
           constraint_4: -7 x_0 - 5 x_1 - 3 x_2 - x_3 + x_4 + 3 x_5 + 5 x_6 + 7 x_7 <= 0
-          constraint_5: -21 x_0 - 9 x_1 - x_2 + 3 x_3 + 3 x_4 - x_5 - 9 x_6 - 21 x_7 <= 0
-          constraint_6: -21 x_0 - 9 x_1 - x_2 + 3 x_3 + 3 x_4 - x_5 - 9 x_6 - 21 x_7 <= 0
-          constraint_7: -35 x_0 - 5 x_1 + 5 x_2 + 3 x_3 - 3 x_4 - 5 x_5 + 5 x_6 + 35 x_7 <= 0
-          constraint_8: -35 x_0 - 5 x_1 + 5 x_2 + 3 x_3 - 3 x_4 - 5 x_5 + 5 x_6 + 35 x_7 <= 0
-          constraint_9: -35 x_0 + 5 x_1 + 5 x_2 - 3 x_3 - 3 x_4 + 5 x_5 + 5 x_6 - 35 x_7 <= 0
-          constraint_10: -35 x_0 + 5 x_1 + 5 x_2 - 3 x_3 - 3 x_4 + 5 x_5 + 5 x_6 - 35 x_7 <= 0
-          constraint_11: -21 x_0 + 9 x_1 - x_2 - 3 x_3 + 3 x_4 + x_5 - 9 x_6 + 21 x_7 <= 0
-          constraint_12: -21 x_0 + 9 x_1 - x_2 - 3 x_3 + 3 x_4 + x_5 - 9 x_6 + 21 x_7 <= 0
-          constraint_13: -7 x_0 + 5 x_1 - 3 x_2 + x_3 + x_4 - 3 x_5 + 5 x_6 - 7 x_7 <= 0
-          constraint_14: -7 x_0 + 5 x_1 - 3 x_2 + x_3 + x_4 - 3 x_5 + 5 x_6 - 7 x_7 <= 0
-          constraint_15: - x_0 + x_1 - x_2 + x_3 - x_4 + x_5 - x_6 + x_7 <= 0
+          ...
           constraint_16: - x_0 + x_1 - x_2 + x_3 - x_4 + x_5 - x_6 + x_7 <= 0
         Variables:
           x_0 is a continuous variable (min=0, max=+oo)
-          x_1 is a continuous variable (min=0, max=+oo)
-          x_2 is a continuous variable (min=0, max=+oo)
-          x_3 is a continuous variable (min=0, max=+oo)
-          x_4 is a continuous variable (min=0, max=+oo)
-          x_5 is a continuous variable (min=0, max=+oo)
-          x_6 is a continuous variable (min=0, max=+oo)
+          ...
           x_7 is a continuous variable (min=0, max=+oo)
 
     """
@@ -304,6 +293,15 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
        Solver exception: PPL : There is no feasible solution
        False
 
+   TESTS::
+
+       sage: a,p,x=delsarte_bound_additive_hamming_space(19,15,7,return_data=True,isinteger=True)
+       sage: [j for i,j in p.get_values(a).iteritems()]
+       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 307, 0, 0, 1, 34]
+       sage: delsarte_bound_additive_hamming_space(19,15,7,solver='glpk')
+       3
+       sage: delsarte_bound_additive_hamming_space(19,15,7,isinteger=True,solver='glpk')
+       3
    """
    from sage.numerical.mip import MIPSolverException
    if q_base == 0:

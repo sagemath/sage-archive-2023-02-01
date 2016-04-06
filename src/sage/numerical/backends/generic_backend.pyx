@@ -1405,22 +1405,22 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         sage: p.base_ring()
         Real Double Field
         sage: p = get_solver(base_ring=QQ); p
-        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        <...sage.numerical.backends.ppl_backend.PPLBackend...>
         sage: p = get_solver(base_ring=ZZ); p
-        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        <...sage.numerical.backends.ppl_backend.PPLBackend...>
         sage: p.base_ring()
         Rational Field
         sage: p = get_solver(base_ring=AA); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Algebraic Real Field
         sage: d = polytopes.dodecahedron()
         sage: p = get_solver(base_ring=d.base_ring()); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Number Field in sqrt5 with defining polynomial x^2 - 5
         sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Rational Field
     """

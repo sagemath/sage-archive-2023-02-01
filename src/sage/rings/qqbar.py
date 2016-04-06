@@ -527,22 +527,6 @@ CIF = ComplexIntervalField()
 
 is_SymbolicExpressionRing = None
 
-def _late_import():
-    r"""
-    Import the name "is_SymbolicExpressionRing" (which would cause an infinite
-    loop if imported at startup time).
-
-    EXAMPLE::
-
-        sage: sage.rings.qqbar._late_import()
-        sage: sage.rings.qqbar.is_SymbolicExpressionRing == sage.symbolic.ring.is_SymbolicExpressionRing
-        True
-    """
-    global is_SymbolicExpressionRing
-    if is_SymbolicExpressionRing is None:
-        import sage.symbolic.ring
-        is_SymbolicExpressionRing = sage.symbolic.ring.is_SymbolicExpressionRing
-
 class AlgebraicField_common(sage.rings.ring.Field):
     r"""
     Common base class for the classes :class:`~AlgebraicRealField` and
@@ -796,11 +780,8 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             sage: AA.has_coerce_map_from(SR)
             False
         """
-        if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
-            return True
-        if from_par == AA:
-            return True
-        return False
+        return (from_par is ZZ or from_par is QQ
+                or from_par is AA)
 
     def completion(self, p, prec, extras = {}):
         r"""
@@ -1194,11 +1175,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar.has_coerce_map_from(SR)
             False
         """
-        if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
-            return True
-        if from_par == AA or from_par == QQbar:
-            return True
-        return False
+        return (from_par is ZZ or from_par is QQ
+                or from_par is AA or from_par is QQbar)
 
     def completion(self, p, prec, extras = {}):
         r"""

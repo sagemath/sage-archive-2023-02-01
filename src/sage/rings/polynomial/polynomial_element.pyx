@@ -7622,7 +7622,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if S.characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
         if not S.is_exact():
-            raise NotImplementedError("not implement for inexact base rings")
+            raise NotImplementedError("not implemented for inexact base rings")
         R = self.parent()
         x = R.gen()
         # Extract Phi_n when n is odd.

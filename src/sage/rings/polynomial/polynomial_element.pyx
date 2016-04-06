@@ -7359,7 +7359,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""
-        Test if ``self`` is a cyclotomic polynomial.
+        Test if this polynomial is a cyclotomic polynomial.
 
         A *cyclotomic polynomial* is a monic, irreducible polynomial such that
         all roots are roots of unity.
@@ -7535,7 +7535,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic_product(self):
         r"""
-        Test whether ``self`` is a product of cyclotomic polynomials.
+        Test whether this polynomial is a product of cyclotomic polynomials.
 
         This method simply calls the function ``poliscycloprod`` from the Pari
         library.
@@ -7579,8 +7579,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def cyclotomic_part(self):
         """
-        Return the product of the irreducible factors of ``self'' which are
-        cyclotomic polynomials.
+        Return the product of the irreducible factors of this polynomial
+        which are cyclotomic polynomials.
 
         .. SEEALSO::
 

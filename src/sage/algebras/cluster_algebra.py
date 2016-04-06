@@ -21,6 +21,28 @@ from sage.modules.free_module_element import vector
 from sage.functions.generalized import sign
 from functools import wraps
 
+################################################################################
+# Helper functions
+################################################################################
+def tropical_evaluation(f):
+    try:
+        # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
+        f = f.parent().fraction_field()(f)
+        num_exponents = f.numerator().exponents()
+        if type(num_exponents[0]) != int:
+            num_exponent = map(min, zip(*num_exponents))
+        else:
+            num_exponent = [min(num_exponents)]
+        den_exponents = f.denominator().exponents()
+        if type(den_exponents[0]) != int:
+            den_exponent = map(min, zip(*den_exponents))
+        else:
+            den_exponent = [min(den_exponents)]
+        variables = f.parent().gens()
+        return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
+    except: # This should only happen when f is a constant
+        return 1
+
 def mutation_parse(mutate):
     r"""
     Parse input for mutation functions; it should provide:
@@ -867,24 +889,3 @@ def greedy_coefficient(self,d_vector,p,q):
 def theta_basis_element(self, g_vector):
     pass
 
-################################################################################
-# helper functions
-################################################################################
-def tropical_evaluation(f):
-    try:
-        # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
-        f = f.parent().fraction_field()(f)
-        num_exponents = f.numerator().exponents()
-        if type(num_exponents[0]) != int:
-            num_exponent = map(min, zip(*num_exponents))
-        else:
-            num_exponent = [min(num_exponents)]
-        den_exponents = f.denominator().exponents()
-        if type(den_exponents[0]) != int:
-            den_exponent = map(min, zip(*den_exponents))
-        else:
-            den_exponent = [min(den_exponents)]
-        variables = f.parent().gens()
-        return prod(map(lambda x,p: x**p, variables,num_exponent))*prod(map(lambda x,p: x**(-p), variables,den_exponent))
-    except: # This should only happen when f is a constant
-        return 1

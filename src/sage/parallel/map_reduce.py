@@ -682,7 +682,7 @@ class ActiveTaskCounterDarwin(object):
             self._active_tasks.value = 0
 
 
-class ActiveTaskCounter(object):
+class ActiveTaskCounterPosix(object):
     r"""
     Handling the number of Active Tasks
 
@@ -713,7 +713,7 @@ class ActiveTaskCounter(object):
         r"""
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
         """
@@ -723,7 +723,7 @@ class ActiveTaskCounter(object):
         """
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
             sage: ATC(4)
             ActiveTaskCounter(value=4)
         """
@@ -739,7 +739,7 @@ class ActiveTaskCounter(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_start()
@@ -774,7 +774,7 @@ class ActiveTaskCounter(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_done()
@@ -801,7 +801,7 @@ class ActiveTaskCounter(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.abort()
@@ -813,7 +813,7 @@ class ActiveTaskCounter(object):
 
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
-                     else ActiveTaskCounter)
+                     else ActiveTaskCounterPosix)
 # ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
 
 

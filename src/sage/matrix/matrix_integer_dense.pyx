@@ -795,7 +795,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(2, 3, [1,0,0,0,1,0]).is_one()
             False
         """
-        return self.is_square() and fmpz_mat_is_one(self._matrix) == 1
+        return self.is_square() and fmpz_mat_is_one(self._matrix)
 
     def _multiply_linbox(self, Matrix_integer_dense right):
         """

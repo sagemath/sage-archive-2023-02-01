@@ -3780,7 +3780,7 @@ class Polyhedron_base(Element):
             sage: ray.contains(['hello', 'kitty'])   # no common ring for coordinates
             False
 
-        The empty polyhedron needs extra care, see trac #10238::
+        The empty polyhedron needs extra care, see :trac:`10238`::
 
             sage: empty = Polyhedron(); empty
             The empty polyhedron in ZZ^0
@@ -3846,7 +3846,7 @@ class Polyhedron_base(Element):
             sage: P.interior_contains( [0,0] )
             False
 
-        The empty polyhedron needs extra care, see trac #10238::
+        The empty polyhedron needs extra care, see :trac:`10238`::
 
             sage: empty = Polyhedron(); empty
             The empty polyhedron in ZZ^0
@@ -3896,7 +3896,7 @@ class Polyhedron_base(Element):
             sage: P.relative_interior_contains( (1,0) )
             False
 
-        The empty polyhedron needs extra care, see trac #10238::
+        The empty polyhedron needs extra care, see :trac:`10238`::
 
             sage: empty = Polyhedron(); empty
             The empty polyhedron in ZZ^0
@@ -4681,7 +4681,7 @@ class Polyhedron_base(Element):
             gens.append(l.vector())
 
         # Pick subset of coordinates to coordinatize the affine span
-        pivots = matrix(gens, base_ring=self.base_ring()).pivots()
+        pivots = matrix(gens).pivots()
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 

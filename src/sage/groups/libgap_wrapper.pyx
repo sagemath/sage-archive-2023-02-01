@@ -238,10 +238,15 @@ class ParentLibGAP(SageObject):
             [ f1^-1*f4^-1*f1*f4, f1^-1*f5^-1*f1*f5, f1^-1*f6^-1*f1*f6, f2^-1*f4^-1*f2*f4,
               f2^-1*f5^-1*f2*f5, f2^-1*f6^-1*f2*f6, f3^-1*f4^-1*f3*f4, f3^-1*f5^-1*f3*f5,
               f3^-1*f6^-1*f3*f6 ]
+
+        We can also convert directly to libgap::
+
+            sage: libgap(GL(2, ZZ))
+            GL(2,Integers)
         """
         return self._libgap
 
-    _gap_ = gap
+    _libgap_ = _gap_ = gap
 
     @cached_method
     def _gap_gens(self):

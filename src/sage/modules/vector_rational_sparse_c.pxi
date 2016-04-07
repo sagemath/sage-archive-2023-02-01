@@ -9,7 +9,7 @@
 
 
 include 'vector_rational_sparse_h.pxi'
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from sage.libs.gmp.mpq cimport *
 
 
@@ -29,16 +29,16 @@ cdef int allocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
     It does *not* clear the entries of v, if there are any.
     """
     cdef Py_ssize_t i
-    v.entries = <mpq_t *> sage_malloc(num_nonzero*sizeof(mpq_t))
+    v.entries = <mpq_t *> sig_malloc(num_nonzero*sizeof(mpq_t))
     if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < num_nonzero:
         mpq_init(v.entries[i])
-    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+    v.positions = <Py_ssize_t*>sig_malloc(num_nonzero*sizeof(Py_ssize_t))
     if v.positions == NULL:
         for i from 0 <= i < num_nonzero:
             mpq_clear(v.entries[i])
-        sage_free(v.entries)
+        sig_free(v.entries)
         v.entries = NULL
         raise MemoryError, "Error allocating memory"
     return 0
@@ -62,8 +62,8 @@ cdef void mpq_vector_clear(mpq_vector* v):
     # These were allocated from the Python heap.
     # If mpq_vector_init was not called, then this
     # will (of course!) cause a core dump.
-    sage_free(v.entries)
-    sage_free(v.positions)
+    sig_free(v.entries)
+    sig_free(v.positions)
 
 cdef Py_ssize_t mpq_binary_search0(mpq_t* v, Py_ssize_t n, mpq_t x):
     """
@@ -207,8 +207,8 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
                 mpq_set(v.entries[i-1], e[i])
                 mpq_clear(e[i])
                 v.positions[i-1] = pos[i]
-            sage_free(e)
-            sage_free(pos)
+            sig_free(e)
+            sig_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -237,8 +237,8 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
             mpq_set(v.entries[i], e[i-1])
             mpq_clear(e[i-1])
             v.positions[i] = pos[i-1]
-        sage_free(e)
-        sage_free(pos)
+        sig_free(e)
+        sig_free(pos)
 
 
 
@@ -372,13 +372,13 @@ cdef int mpq_vector_scalar_multiply(mpq_vector* v, mpq_vector* w, mpq_t scalar) 
         return mpq_vector_scale(v, scalar)
     else:
         mpq_vector_clear(v)
-        v.entries = <mpq_t*> sage_malloc(w.num_nonzero * sizeof(mpq_t))
+        v.entries = <mpq_t*> sig_malloc(w.num_nonzero * sizeof(mpq_t))
         if v.entries == NULL:
             v.positions = NULL
             raise MemoryError, "error allocating rational sparse vector mpq's"
-        v.positions = <Py_ssize_t*> sage_malloc(w.num_nonzero * sizeof(Py_ssize_t))
+        v.positions = <Py_ssize_t*> sig_malloc(w.num_nonzero * sizeof(Py_ssize_t))
         if v.positions == NULL:
-            sage_free(v.entries)
+            sig_free(v.entries)
             v.entries = NULL
             raise MemoryError, "error allocating rational sparse vector positions"
         v.num_nonzero = w.num_nonzero

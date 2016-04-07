@@ -19,7 +19,7 @@ AUTHORS:
 
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-from sage.ext.memory cimport check_allocarray, sage_malloc, sage_free
+include "cysignals/memory.pxi"
 include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
@@ -146,7 +146,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     try:
         elist = <int*>check_allocarray(2 * len(G.edges()) + 2, sizeof(int))
     except MemoryError:
-        sage_free(pos)
+        sig_free(pos)
         raise
 
     cdef int cur_edge = 0
@@ -172,8 +172,8 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         try:
             cen = <double *>check_allocarray(dim, sizeof(double))
         except MemoryError:
-            sage_free(elist)
-            sage_free(pos)
+            sig_free(elist)
+            sig_free(pos)
             raise
         for x from 0 <= x < dim: cen[x] = 0
         for i from 0 <= i < n:
@@ -191,15 +191,15 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         for i from 0 <= i < n:
             for x from 0 <= x < dim:
                 pos[i*dim + x] /= r
-        sage_free(cen)
+        sig_free(cen)
 
     # put the data back into a position dictionary
     vpos = {}
     for i from 0 <= i < n:
         vpos[vlist[i]] = [pos[i*dim+x] for x from 0 <= x < dim]
 
-    sage_free(pos)
-    sage_free(elist)
+    sig_free(pos)
+    sig_free(elist)
 
     return vpos
 
@@ -309,7 +309,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
     sig_off()
 
-    sage_free(disp)
+    sig_free(disp)
 
 def int_to_binary_string(n):
     """
@@ -333,7 +333,7 @@ def int_to_binary_string(n):
     mpz_set_ui(i,n)
     cdef char* s=mpz_get_str(NULL, 2, i)
     t=str(s)
-    sage_free(s)
+    sig_free(s)
     mpz_clear(i)
     return t
 
@@ -688,17 +688,17 @@ cdef class SubgraphSearch:
 
         # A vertex is said to be busy if it is already part of the partial copy
         # of H in G.
-        self.busy       = <int *>  sage_malloc(self.ng * sizeof(int))
-        self.tmp_array  = <int *>  sage_malloc(self.ng * sizeof(int))
-        self.stack      = <int *>  sage_malloc(self.nh * sizeof(int))
-        self.vertices   = <int *>  sage_malloc(self.nh * sizeof(int))
-        self.line_h_out = <int **> sage_malloc(self.nh * sizeof(int *))
-        self.line_h_in  = <int **> sage_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+        self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
+        self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
+        self.stack      = <int *>  sig_malloc(self.nh * sizeof(int))
+        self.vertices   = <int *>  sig_malloc(self.nh * sizeof(int))
+        self.line_h_out = <int **> sig_malloc(self.nh * sizeof(int *))
+        self.line_h_in  = <int **> sig_malloc(self.nh * sizeof(int *)) if self.directed else NULL
 
         if self.line_h_out is not NULL:
-            self.line_h_out[0] = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+            self.line_h_out[0] = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
         if self.line_h_in is not NULL:
-            self.line_h_in[0]  = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+            self.line_h_in[0]  = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
 
         if (self.tmp_array     == NULL or
             self.busy          == NULL or
@@ -836,16 +836,16 @@ cdef class SubgraphSearch:
         Freeing the allocated memory.
         """
         if self.line_h_in  is not NULL:
-            sage_free(self.line_h_in[0])
+            sig_free(self.line_h_in[0])
         if self.line_h_out is not NULL:
-            sage_free(self.line_h_out[0])
+            sig_free(self.line_h_out[0])
 
         # Free the memory
-        sage_free(self.busy)
-        sage_free(self.stack)
-        sage_free(self.vertices)
-        sage_free(self.line_h_out)
-        sage_free(self.line_h_in)
+        sig_free(self.busy)
+        sig_free(self.stack)
+        sig_free(self.vertices)
+        sig_free(self.line_h_out)
+        sig_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""
@@ -930,8 +930,8 @@ def _test_vectors_equal_inferior():
         assert vectors_inferior(n, u, v)
         assert vectors_inferior(n, v, u)
     except AssertionError:
-        sage_free(u)
-        sage_free(v)
+        sig_free(u)
+        sig_free(v)
         raise AssertionError("Vectors u and v should be equal.")
     # Different vectors: u != v because we have u_j > v_j for some j. Thus,
     # u_i = v_i for 0 <= i < j and u_j > v_j. For j < k < n - 2, we could have:
@@ -960,8 +960,8 @@ def _test_vectors_equal_inferior():
         assert v[n - 1] > u[n - 1]
         assert not vectors_inferior(n, u, v)
     except AssertionError:
-        sage_free(u)
-        sage_free(v)
+        sig_free(u)
+        sig_free(v)
         raise AssertionError("".join([
                     "Vectors u and v should not be equal. ",
                     "u should not be inferior to v, and vice versa."]))
@@ -991,8 +991,8 @@ def _test_vectors_equal_inferior():
         assert u[j] < v[j]
         assert not vectors_inferior(n, u, v)
     except AssertionError:
-        sage_free(u)
-        sage_free(v)
+        sig_free(u)
+        sig_free(v)
         raise AssertionError("".join([
                     "Vectors u and v should not be equal. ",
                     "u should not be inferior to v, and vice versa."]))
@@ -1005,8 +1005,8 @@ def _test_vectors_equal_inferior():
         assert not vectors_equal(n, u, v)
         assert not vectors_equal(n, v, u)
     except AssertionError:
-        sage_free(u)
-        sage_free(v)
+        sig_free(u)
+        sig_free(v)
         raise AssertionError("Vectors u and v should not be equal.")
     # u is inferior to v, but v is not inferior to u
     for 0 <= i < n:
@@ -1023,8 +1023,8 @@ def _test_vectors_equal_inferior():
         raise AssertionError(
             "u should be inferior to v, but v is not inferior to u.")
     finally:
-        sage_free(u)
-        sage_free(v)
+        sig_free(u)
+        sig_free(v)
 
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
@@ -1282,10 +1282,10 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         if bigcount*reset_bound > max_iter:
             verts=G.vertices()
             output=[ verts[ longest_path[i] ] for i from 0<= i < longest ]
-            sage_free( member )
-            sage_free( path )
-            sage_free( longest_path )
-            sage_free( temp_path )
+            sig_free( member )
+            sig_free( path )
+            sig_free( longest_path )
+            sig_free( temp_path )
             return (False, output)
     # #
     # # Output test
@@ -1315,10 +1315,10 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         raise RuntimeError( 'Vertex %d appears twice in the cycle.'%(u) )
     verts=G.vertices()
     output=[ verts[path[i]] for i from 0<= i < length ]
-    sage_free( member )
-    sage_free( path )
-    sage_free( longest_path )
-    sage_free( temp_path )
+    sig_free( member )
+    sig_free( path )
+    sig_free( longest_path )
+    sig_free( temp_path )
 
     return (True,output)
 

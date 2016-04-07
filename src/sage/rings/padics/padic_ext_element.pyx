@@ -436,7 +436,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+            NotImplementedError: reduction modulo p^n with n>1.
 
         Eisenstein case::
 
@@ -472,7 +472,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(16)
             Traceback (most recent call last):
             ...
-            PrecisionError: not enough precision known in order to compute residue.
+            PrecisionError: insufficient precision to reduce modulo p^16.
 
         """
         if absprec < 0:

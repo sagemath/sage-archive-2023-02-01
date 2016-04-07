@@ -1035,7 +1035,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         product of generators times some coefficient, which need
         not be 1.
 
-        Use is_monomial to require that the coefficent be 1.
+        Use :meth:`is_monomial` to require that the coefficient be 1.
 
         EXAMPLES::
 

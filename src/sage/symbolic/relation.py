@@ -76,7 +76,7 @@ Multiply two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
@@ -87,11 +87,11 @@ Divide two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) == (5*x + 1)/sin(2*pi + x)
     sage: m = x != 5*x + 1
-    sage: n = sin(x) != sin(x+2*pi)
+    sage: n = sin(x) != sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) != (5*x + 1)/sin(2*pi + x)
 

@@ -1,11 +1,22 @@
---- mpfr-3.1.4/src/mpfr-impl.h	2016-03-06 12:33:04.000000000 +0100
-+++ mpfr-3.1.4/src/mpfr-impl.h	2016-03-06 17:25:16.341090700 +0100
-@@ -257,6 +257,8 @@ typedef struct __gmpfr_cache_s *mpfr_cac
- # if defined(_WIN32)
- #  error "Both __unix__ and _WIN32 are defined"
- # endif
-+#endif
-+#if (defined(__unix__) && !defined(__CYGWIN__))
- # if __GMP_LIBGMP_DLL
- #  error "__unix__ is defined and __GMP_LIBGMP_DLL is true"
- # endif
+--- trunk/src/mpfr-impl.h	2016/04/08 15:55:03	10257
++++ trunk/src/mpfr-impl.h	2016/04/08 23:17:07	10260
+@@ -208,19 +208,6 @@
+ # define MPFR_WIN_THREAD_SAFE_DLL 1
+ #endif
+ 
+-/* Detect some possible inconsistencies under Unix. */
+-#if defined(__unix__)
+-# if defined(_WIN32)
+-#  error "Both __unix__ and _WIN32 are defined"
+-# endif
+-# if __GMP_LIBGMP_DLL
+-#  error "__unix__ is defined and __GMP_LIBGMP_DLL is true"
+-# endif
+-# if defined(MPFR_WIN_THREAD_SAFE_DLL)
+-#  error "Both __unix__ and MPFR_WIN_THREAD_SAFE_DLL are defined"
+-# endif
+-#endif
+-
+ #if defined(__MPFR_WITHIN_MPFR) || !defined(MPFR_WIN_THREAD_SAFE_DLL)
+ extern MPFR_THREAD_ATTR mpfr_flags_t __gmpfr_flags;
+ extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emin;

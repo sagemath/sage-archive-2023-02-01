@@ -1,3 +1,30 @@
+r"""
+Cluster algebras
+
+Implementation of cluster algebras as an algebra using mainly structural theorems from CA IV
+We should write a nice paragraph here.
+
+AUTHORS:
+
+- Dylan Rupel (2015-06-15): initial version
+
+- Salvatore Stella (2015-06-15): initial version
+
+EXAMPLES::
+
+<Lots and lots of examples>
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2013 YOUR NAME  Dylan Rupel and Salvaroe Stella
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 # TODO: check that we import all we need and possibly move some import used
 # rarely close to where needed
 from types import MethodType
@@ -21,9 +48,9 @@ from sage.modules.free_module_element import vector
 from sage.functions.generalized import sign
 from functools import wraps
 
-################################################################################
+##############################################################################
 # Helper functions
-################################################################################
+##############################################################################
 def tropical_evaluation(f):
     try:
         # This is an hack to use the same code on polynomials, laurent polynomials and rational expressions
@@ -80,9 +107,9 @@ def mutation_parse(mutate):
 
     return mutate_wrapper
 
-################################################################################
+##############################################################################
 # Elements of a cluster algebra
-################################################################################
+##############################################################################
 
 class ClusterAlgebraElement(ElementWrapper):
 
@@ -160,9 +187,9 @@ def homogeneous_components(self):
     return components
 
 
-################################################################################
+##############################################################################
 # Seeds
-################################################################################
+##############################################################################
 
 class ClusterAlgebraSeed(SageObject):
 
@@ -381,9 +408,9 @@ class ClusterAlgebraSeed(SageObject):
         #ev = self.parent().ambient_field()(ev)
         return self.parent().retract(tropical_evaluation(ev))
 
-################################################################################
+##############################################################################
 # Cluster algebras
-################################################################################
+##############################################################################
 
 class ClusterAlgebra(Parent):
     r"""
@@ -751,6 +778,10 @@ class ClusterAlgebra(Parent):
     @mutation_parse
     def mutate_initial(self, k):
         r"""
+        Mutate ``self`` in direction `k` at the initial cluster.
+
+        INPUT:
+        - ``k`` -- integer in between 0 and ``self.rk``
         """
         n = self.rk
 

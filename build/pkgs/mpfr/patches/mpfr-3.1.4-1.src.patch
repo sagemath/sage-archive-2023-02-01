@@ -1,0 +1,11 @@
+--- mpfr-3.1.4/src/mpfr-impl.h	2016-03-06 12:33:04.000000000 +0100
++++ mpfr-3.1.4/src/mpfr-impl.h	2016-03-06 17:25:16.341090700 +0100
+@@ -257,6 +257,8 @@ typedef struct __gmpfr_cache_s *mpfr_cac
+ # if defined(_WIN32)
+ #  error "Both __unix__ and _WIN32 are defined"
+ # endif
++#endif
++#if (defined(__unix__) && !defined(__CYGWIN__))
+ # if __GMP_LIBGMP_DLL
+ #  error "__unix__ is defined and __GMP_LIBGMP_DLL is true"
+ # endif

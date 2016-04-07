@@ -1157,8 +1157,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         INPUT:
 
         -  ``sign`` - None (default), 0, +1 or -1. If None, choose the default
-        according to the implementation, which currently is 0 for pollack-stevens,
-        and 1 otherwise.
+           according to the implementation, which currently is 0 for pollack-stevens,
+           and 1 otherwise.
 
         -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 

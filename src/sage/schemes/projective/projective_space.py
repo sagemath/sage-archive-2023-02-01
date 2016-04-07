@@ -1024,9 +1024,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def point_transformation_matrix(self, points_source, points_target):
         r"""
-        Conjugates one projective space to another to determine equivalence by
-        finding element of PGL that conjugates one space to another.
 
+        Returns an element of PGL that transforms one set of points to anther.
+
+        Given a projective space and a set of source points and a set of target points in the same projective space,
+        finds the element of PGL that translates the source points to the target points.
 
         Warning :: will not work over precision fields
 
@@ -1100,6 +1102,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             ValueError: incorrect number of points in target, need 4 points
 
         ::
+
             sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
             sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
             sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
@@ -1119,7 +1122,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             Traceback (most recent call last):
             ...
             ValueError: target points not in self
-
         """
         r = self.base_ring()
         n = self.dimension_relative()

@@ -689,6 +689,25 @@ class ActiveTaskCounter(object):
     A class for handling the number of active task in distributed computation
     process. This is the standard implementation on POSIX compliant OSes. We
     essentially wrap a semaphore.
+
+    .. note::
+
+        A legitimate question is whether there is a need in keeping the two
+        implementations. I ran the following experiment on my machine::
+
+            S = RecursivelyEnumeratedSet( [[]],
+                    lambda l: ([l[:i] + [len(l)] + l[i:] for i in range(len(l)+1)]
+                      if len(l) < NNN else []),
+                structure='forest', enumeration='depth')
+            %time sp = S.map_reduce(lambda z: x**len(z)); sp
+
+        For NNN = 10, averaging a dozen of runs, I got:
+
+        - Posix complient implementation : 17.04 s
+        - Darwin's implementation        : 18.26 s
+
+        So there is a non negligible overhead. It will probably be worth if we
+        tries to Cythonize the code. So I'm keeping both implementation.
     """
     def __init__(self, task_number):
         r"""

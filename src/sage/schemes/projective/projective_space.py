@@ -1027,7 +1027,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         Returns a unique element of PGL that transforms one set of points to another.
 
-        Given a projective space of degree n and a set of n+2 source points and a set of n+2target
+        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
         points in the same projective space, such that no n+1 points of each set are linearly independent
         finds the unique element of PGL that translates the source points to the target points.
 

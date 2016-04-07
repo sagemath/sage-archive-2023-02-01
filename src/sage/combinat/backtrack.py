@@ -711,7 +711,7 @@ class SearchForest(Parent):
 
         .. note::
 
-            the effect of the default values is to compute the the cardinality
+            the effect of the default values is to compute the cardinality
             of ``self``.
 
         EXAMPLES::

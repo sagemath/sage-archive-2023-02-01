@@ -41,7 +41,7 @@ How is this different from usual MapReduce ?
 
 This implementation is specific to
 :class:`RecursivelyEnumeratedSet of forest type<sage.combinat.backtrack.SearchForest>`,
-and uses its properties to do its job. Non only mapping
+and uses its properties to do its job. Not only mapping
 and reducing is done on different processors but also **generating the elements
 of** `S`.
 
@@ -80,9 +80,8 @@ function as well as a Reduce function. Here are some examples :
 
 
   Note that the function mapped and reduced here are equivalent to the default
-  values of the :meth:`sage.combinat.backtrack.SearchForest.map_reduce`
-  method so that to compute the
-  number of element you only need to call::
+  values of the :meth:`sage.combinat.backtrack.SearchForest.map_reduce` method
+  so that to compute the number of element you only need to call::
 
       sage: S.map_reduce()
       131071
@@ -138,7 +137,7 @@ function as well as a Reduce function. Here are some examples :
       True
 
 * **Post Processing**: We now demonstrate the use of ``post_process``. We
-  generate the permutation as precedingly by we only perform the map/reduce
+  generate the permutation as previously, but we only perform the map/reduce
   computation on those of even ``len``. Of course we get the even part of the
   previous generating series::
 
@@ -608,9 +607,11 @@ class ActiveTaskCounterDarwin(object):
         r"""
         Increment the task counter by one.
 
-        OUTPUT: Calling :meth:`task_start` on a zero or negative counter
-        returns 0, otherwise increment the counter and returns its value after
-        the incrementation.
+        OUTPUT:
+
+        Calling :meth:`task_start` on a zero or negative counter returns 0,
+        otherwise increment the counter and returns its value after the
+        incrementation.
 
         EXAMPLES::
 
@@ -643,8 +644,10 @@ class ActiveTaskCounterDarwin(object):
         r"""
         Decrement the task counter by one.
 
-        OUTPUT: Calling :meth:`task_done` decrement the counter and returns
-        its value after the decrementation.
+        OUTPUT:
+
+        Calling :meth:`task_done` decrement the counter and returns its value
+        after the decrementation.
 
         EXAMPLES::
 
@@ -733,9 +736,11 @@ class ActiveTaskCounterPosix(object):
         r"""
         Increment the task counter by one.
 
-        OUTPUT: Calling :meth:`task_start` on a zero or negative counter
-        returns 0, otherwise increment the counter and returns its value after
-        the incrementation.
+        OUTPUT:
+
+        Calling :meth:`task_start` on a zero or negative counter returns 0,
+        otherwise increment the counter and returns its value after the
+        incrementation.
 
         EXAMPLES::
 
@@ -769,8 +774,10 @@ class ActiveTaskCounterPosix(object):
         r"""
         Decrement the task counter by one.
 
-        OUTPUT: Calling :meth:`task_done` decrement the counter and returns
-        its value after the decrementation.
+        OUTPUT:
+
+        Calling :meth:`task_done` decrement the counter and returns its value
+        after the decrementation.
 
         EXAMPLES::
 
@@ -912,7 +919,9 @@ class RESetMapReduce(object):
         r"""
         Return the roots of ``self``
 
-        OUTPUT: an iterable of nodes
+        OUTPUT:
+
+        an iterable of nodes
 
         .. note:: This should be overloaded in applications.
 
@@ -929,9 +938,13 @@ class RESetMapReduce(object):
         r"""
         Return the function mapped by ``self``
 
-        INPUT: ``o`` -- a node
+        INPUT:
 
-        OUTPUT: By default ``1``.
+        - ``o`` -- a node
+
+        OUTPUT:
+
+        By default ``1``.
 
         .. note:: This should be overloaded in applications.
 
@@ -951,9 +964,13 @@ class RESetMapReduce(object):
         r"""
         Return the reducer function for ``self``
 
-        INPUT: ``a``, ``b`` -- two value to be reduced
+        INPUT:
 
-        OUTPUT: by default the sum of ``a`` and ``b``.
+        - ``a``, ``b`` -- two value to be reduced
+
+        OUTPUT:
+
+        by default the sum of ``a`` and ``b``.
 
         .. note:: This should be overloaded in applications.
 
@@ -1085,8 +1102,8 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        - the reduction of the results of all the workers, that is the result
-          of the map/reduce computation.
+        the reduction of the results of all the workers, that is the result of
+        the map/reduce computation.
 
         EXAMPLES::
 
@@ -1290,7 +1307,9 @@ class RESetMapReduce(object):
         r"""
         Returns a random workers
 
-        OUTPUT: A worker for ``self`` chosed at random
+        OUTPUT:
+
+        A worker for ``self`` chosed at random
 
         EXAMPLES::
 
@@ -1329,8 +1348,8 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        - the result of the map/reduce computation or an exception
-          :exc:`AbortError` if the computation was interrupted or timeout.
+        the result of the map/reduce computation or an exception
+        :exc:`AbortError` if the computation was interrupted or timeout.
 
         EXAMPLES::
 
@@ -1550,7 +1569,9 @@ class RESetMapReduceWorker(Process):
         r"""
         Steal some node from another worker
 
-        OUTPUT: a node stolen from another worker choosed at random
+        OUTPUT:
+
+        a node stolen from another worker choosed at random
 
         EXAMPLES::
 
@@ -1710,9 +1731,13 @@ class RESetMapReduceWorker(Process):
 
         Performs the map/reduce computation on the subtrees rooted at ``node``.
 
-        INPUT: ``node`` -- the root of the subtree explored.
+        INPUT:
 
-        OUTPUT: nothing, the result are stored in ``self._res``
+        - ``node`` -- the root of the subtree explored.
+
+        OUTPUT:
+
+        nothing, the result are stored in ``self._res``
 
         This is where the actual work is performed.
 
@@ -1815,7 +1840,7 @@ class RESetMPExample(RESetMapReduce):
 
         OUTPUT:
 
-        - the lists of ``len(l)`` inserted at all possible positions into ``l``
+        the lists of ``len(l)`` inserted at all possible positions into ``l``
 
         EXAMPLE::
 
@@ -1834,7 +1859,9 @@ class RESetMPExample(RESetMapReduce):
 
         - ``l`` -- a list containing a permutation
 
-        OUTPUT: ``x^len(l)``.
+        OUTPUT:
+
+        ``x^len(l)``.
 
         EXAMPLE::
 
@@ -1850,7 +1877,7 @@ class RESetParallelIterator(RESetMapReduce):
     A parallel iterator for recursively enumerated sets
 
     This demonstrate how to use :class:`RESetMapReduce` to get an iterator on
-    a recursively enumerated sets for which the computation are done in
+    a recursively enumerated sets for which the computations are done in
     parallel.
 
     EXAMPLE::

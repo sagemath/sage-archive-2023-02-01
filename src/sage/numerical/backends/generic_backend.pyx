@@ -1301,6 +1301,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method).
 
+        ``solver`` can also be a callable, in which case it is called,
+        and its result is returned.
+
     - ``base_ring`` -- If not ``None``, request a solver that works over this
         (ordered) field.  If ``base_ring`` is not a field, its fraction field
         is used.
@@ -1348,6 +1351,13 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
         sage: p.base_ring()
         Rational Field
+
+    Passing a callable as the 'solver':
+
+        sage: from sage.numerical.backends.glpk_backend import GLPKBackend
+        sage: p = get_solver(GLPKBackend); p
+        <...sage.numerical.backends.glpk_backend.GLPKBackend...>
+
     """
     if solver is None:
 
@@ -1367,6 +1377,12 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         # work
         if solver == "Coin" and constraint_generation:
             solver = "Glpk"
+
+    elif callable(solver):
+        kwds = {}
+        if base_ring is not None:
+            kwds['base_ring']=base_ring
+        return solver(**kwds)
 
     else:
         solver = solver.capitalize()

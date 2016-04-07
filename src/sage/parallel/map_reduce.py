@@ -713,7 +713,7 @@ class ActiveTaskCounterPosix(object):
         r"""
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
         """
@@ -723,7 +723,7 @@ class ActiveTaskCounterPosix(object):
         """
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: ATC(4)
             ActiveTaskCounter(value=4)
         """
@@ -739,7 +739,7 @@ class ActiveTaskCounterPosix(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_start()
@@ -774,7 +774,7 @@ class ActiveTaskCounterPosix(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_done()
@@ -801,7 +801,7 @@ class ActiveTaskCounterPosix(object):
 
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounterPosix as ATC
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.abort()
@@ -814,6 +814,7 @@ class ActiveTaskCounterPosix(object):
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
                      else ActiveTaskCounterPosix)
+
 # ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
 
 

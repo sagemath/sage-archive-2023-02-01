@@ -249,7 +249,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
     EXAMPLES:
 
     The following parameters arise from Guruswami-Sudan decoding of an [6,2,5]
-    GRS code over F(11) with multiplicity 2 and list size 4.
+    GRS code over F(11) with multiplicity 2 and list size 4::
 
         sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
         sage: F = GF(11)
@@ -260,7 +260,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
         sage: Q = gs_interpolation_linalg(points, tau, params, wy); Q
         4*x^5 - 4*x^4*y - 2*x^2*y^3 - x*y^4 + 3*x^4 - 4*x^2*y^2 + 5*y^4 - x^3 + x^2*y + 5*x*y^2 - 5*y^3 + 3*x*y - 2*y^2 + x - 4*y + 1
 
-    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point:
+    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point::
 
         sage: all( Q(x=a, y=b).is_zero() for (a,b) in points )
         True
@@ -292,14 +292,14 @@ def lee_osullivan_module(points, parameters, wy):
 
     The module is constructed in the following way: Let `R(x)` be the Lagrange
     interpolation polynomial through the sought interpolation points `(x_i,
-    y_i)`, i.e.~`R(x_i) = y_i`. Let `G(x) = \prod_{i=1}^n (x-x_i)`. Then the
+    y_i)`, i.e. `R(x_i) = y_i`. Let `G(x) = \prod_{i=1}^n (x-x_i)`. Then the
     `i`'th row of the basis matrix of the module is the coefficient-vector of
     the following polynomial in `\GF q[x][y]`:
 
-        P_i(x,y) = G(x)^{[i-s]} (y - R(x))^{i - [i-s]} y^{[i-s]} ,
+        `P_i(x,y) = G(x)^{[i-s]} (y - R(x))^{i - [i-s]} y^{[i-s]}` ,
 
     where `[a]` for real `a` is `a` when `a > 0` and 0 otherwise. It is easily
-    seen that `P_i(x,y)` is an interpolation polynomial, i.e.~it is zero with
+    seen that `P_i(x,y)` is an interpolation polynomial, i.e. it is zero with
     multiplicity at least `s` on each of the points `(x_i, y_i)`.
 
 

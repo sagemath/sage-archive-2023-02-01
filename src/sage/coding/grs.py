@@ -483,6 +483,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
+####################### encoders ###############################
+
 
 ####################### encoders ###############################
 

@@ -233,7 +233,7 @@ cdef class Farey:
             [ -3   1]
             [-40  13]
         """
-        gens_dict = self._get_dict_of_generators()
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
         ans = []
         for pm in self.pairing_matrices():
             a, b, c, d = pm.matrix().list()
@@ -254,28 +254,6 @@ cdef class Farey:
                 ans.append((-newval,-1))
                 continue
             raise RuntimeError("This should have not happened")
-        return ans
-
-    @cached_method
-    def _get_dict_of_generators(self):
-        r"""
-        Obtain a dict indexed by the generators.
-
-        OUTPUT:
-
-        A dict of key-value pairs (g,i+1)
-        where the i-th generator is g.
-
-        EXAMPLES::
-
-            sage: G = Gamma1(30)
-            sage: F = G.farey_symbol()
-            sage: dict_gens = F._get_dict_of_generators()
-            sage: g = F.generators()[5]
-            sage: dict_gens[g] # Note that the answer is 1-based.
-            6
-        """
-        ans = {g:i+1 for i,g in enumerate(self.generators())}
         return ans
 
     @cached_method
@@ -444,7 +422,7 @@ cdef class Farey:
         if sgn == -1:
             beta, mbeta = mbeta, beta
 
-        gens_dict = self._get_dict_of_generators()
+        gens_dict = {g:i+1 for i,g in enumerate(self.generators())}
         extra_tietze = []
         if beta.is_one():
             found = True

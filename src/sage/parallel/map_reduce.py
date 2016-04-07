@@ -339,21 +339,21 @@ instance of :class:`RESetMapReduce`) by a bunch of **worker** objects
 (instances of :class:`RESetMapReduceWorker`).
 
 Each running map reduce instance work on a :class:`RecursivelyEnumeratedSet of
-forest type<sage.combinat.backtrack.SearchForest>` called here `C` and is coordinated by a
-:class:`RESetMapReduce` object called the *master*. The master is in charge of
-lauching the work, gathering the results and cleaning up at the end of the
-computation. It doesn't perform any computation associated to the generation
-of the element `C` nor the computation of the mapped function. It however
-occasionally perform a reduce, but most reducing is by default done by the
-workers. Also thanks to the work-stealing algorithm, the master is only
-involved in detecting the termination of the computation but all the load
-balancing is done at the level of the worker.
+forest type<sage.combinat.backtrack.SearchForest>` called here `C` and is
+coordinated by a :class:`RESetMapReduce` object called the **master**. The
+master is in charge of lauching the work, gathering the results and cleaning
+up at the end of the computation. It doesn't perform any computation
+associated to the generation of the element `C` nor the computation of the
+mapped function. It however occasionally perform a reduce, but most reducing
+is by default done by the workers. Also thanks to the work-stealing algorithm,
+the master is only involved in detecting the termination of the computation
+but all the load balancing is done at the level of the worker.
 
 Workers are instance of :class:`RESetMapReduceWorker`. They are responsible of
 doing the actual computations: elements generation, mapping and reducing. They
 are also responsible of the load balancing thanks to work-stealing.
 
-Here is a description of the attribute of the *master* relevant to the
+Here is a description of the attribute of the **master** relevant to the
 map-reduce protocol:
 
 - ``master._results`` -- a :class:`~multiprocessing.queues.SimpleQueue` where
@@ -442,18 +442,32 @@ From the point of view of ``V`` and ``T``, here is what happens:
 The end of the computation
 --------------------------
 
+To detect when a computation is finished, we keep a synchronized integer which
+count the number of active task. This is essentially a semaphore but semaphore
+are broken on Darwin's OSes so we ship two implementations depending on the os
+(see :class:`ActiveTaskCounter` and :class:`ActiveTaskCounterDarwin` and note
+below).
+
 When a worker finishes working on a task, it calls
-:meth:`master._signal_task_done`. This decrease the counter of the semaphore
+:meth:`master._signal_task_done`. This decrease the task counter
 ``master._active_tasks``. When it reaches 0, it means that there are no more
 nodes: the work is done. The worker executes :meth:`master._shutdown` which
 sends ``AbortError`` on all :meth:`worker._request` and
-:meth:`worker._write_task` Queues. Each worker or thief thread receiving such a
-message raise the corresponding exception, stoping therefore its work. A lock
-called ``master._done`` ensures that shutdown is only done once.
+:meth:`worker._write_task` Queues. Each worker or thief thread receiving such
+a message raise the corresponding exception, stoping therefore its work. A
+lock called ``master._done`` ensures that shutdown is only done once.
 
 Finally, it is also possible to interrupt the computation before its ends
 calling :meth:`master.abort()`. This is done by putting
 ``master._active_tasks`` to 0 and calling :meth:`master._shutdown`.
+
+.. warning:: The MacOSX Semaphore bug
+
+    Darwin's OSes do not correctly implement POSIX's semaphore semantic.
+    Indeed, on this system, acquire may fail and return False not only because
+    the semaphore is equal to zero but also **because someone else is trying to
+    acquire** at the same time. This renders the usage of Semaphore impossible
+    on MacOSX so that on this system we use a synchronized integer.
 
 
 .. _examples:
@@ -564,25 +578,17 @@ class ActiveTaskCounterDarwin(object):
     r"""
     Handling the number of Active Tasks
 
-    A class for handling the number of active task in distributed
-    computation process. The goal is mostly to circumvent the non POSIX
-    compliant implementation of Semaphore under Darwin's OSes.
-
-    .. note:: The MacOSX Semaphore bug
-
-       This raises a big problem on MacOSX since they do not correctly
-       implement POSIX's semaphore semantic. Indeed, on this system, acquire
-       may fail and return False not only because the semaphore is equal to
-       zero but also BECAUSE SOMEONE ELSE IS TRYING TO ACQUIRE at the same
-       time. This renders the usage of Semaphore impossible on MacOSX so that
-       on this system we use a synchronized integer.
+    A class for handling the number of active task in distributed computation
+    process. This is essentially a semaphore, but Darwin's OSes do not
+    correctly implement POSIX's semaphore semantic. So we use a shared integer
+    with a lock.
     """
     def __init__(self, task_number):
         r"""
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter
-            sage: t = ActiveTaskCounter(4)
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
+            sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
         """
         self._active_tasks = Value(ctypes.c_int, task_number)
@@ -592,18 +598,24 @@ class ActiveTaskCounterDarwin(object):
         """
         TESTS::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter
-            sage: ActiveTaskCounter(4)
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
+            sage: ATC(4)
             ActiveTaskCounter(value=4)
         """
         return "ActiveTaskCounter(value=%s)"%(self._active_tasks.value)
 
     def task_start(self):
         r"""
+        Increment the task counter by one.
+
+        OUTPUT: Calling :meth:`task_start` on a zero or negative counter
+        returns 0, otherwise increment the counter and returns its value after
+        the incrementation.
+
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter
-            sage: c = ActiveTaskCounter(4); c
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
+            sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_start()
             5
@@ -612,7 +624,7 @@ class ActiveTaskCounterDarwin(object):
 
         Calling :meth:`task_start` on a zero counter does nothing::
 
-            sage: c = ActiveTaskCounter(0)
+            sage: c = ATC(0)
             sage: c.task_start()
             0
             sage: c
@@ -622,24 +634,29 @@ class ActiveTaskCounterDarwin(object):
         with self._lock:
             # The following test is not necessary but is allows active thieves to
             # stop before receiving the poison pill.
-            if self._active_tasks.value == 0:
+            if self._active_tasks.value <= 0:
                 return 0
             self._active_tasks.value += 1
             return self._active_tasks.value
 
     def task_done(self):
         r"""
+        Decrement the task counter by one.
+
+        OUTPUT: Calling :meth:`task_done` decrement the counter and returns
+        its value after the decrementation.
+
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter
-            sage: c = ActiveTaskCounter(4); c
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
+            sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.task_done()
             3
             sage: c
             ActiveTaskCounter(value=3)
 
-            sage: c = ActiveTaskCounter(0)
+            sage: c = ATC(0)
             sage: c.task_done()
             -1
         """
@@ -650,10 +667,12 @@ class ActiveTaskCounterDarwin(object):
 
     def abort(self):
         r"""
+        Set the task counter to 0.
+
         EXAMPLES::
 
-            sage: from sage.parallel.map_reduce import ActiveTaskCounter
-            sage: c = ActiveTaskCounter(4); c
+            sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
+            sage: c = ATC(4); c
             ActiveTaskCounter(value=4)
             sage: c.abort()
             sage: c
@@ -663,24 +682,60 @@ class ActiveTaskCounterDarwin(object):
             self._active_tasks.value = 0
 
 
-class ActiveTaskCounterOther(object):
+class ActiveTaskCounter(object):
     r"""
     Handling the number of Active Tasks
 
-    A class for handling the number of active task in distributed
-    computation process. The goal is mostly to circumvent the non POSIX
-    compliant implementation of Semaphore under Darwin's OSes.
-
+    A class for handling the number of active task in distributed computation
+    process. This is the standard implementation on POSIX compliant OSes. We
+    essentially wrap a semaphore.
     """
     def __init__(self, task_number):
         r"""
+        TESTS::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: t = ATC(4)
+            sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
         """
         self._active_tasks = Semaphore(task_number)
 
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: ATC(4)
+            ActiveTaskCounter(value=4)
+        """
         return "ActiveTaskCounter(value=%s)"%(self._active_tasks.get_value())
 
     def task_start(self):
+        r"""
+        Increment the task counter by one.
+
+        OUTPUT: Calling :meth:`task_start` on a zero or negative counter
+        returns 0, otherwise increment the counter and returns its value after
+        the incrementation.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: c = ATC(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.task_start()
+            5
+            sage: c
+            ActiveTaskCounter(value=5)
+
+        Calling :meth:`task_start` on a zero counter does nothing::
+
+            sage: c = ATC(0)
+            sage: c.task_start()
+            0
+            sage: c
+            ActiveTaskCounter(value=0)
+        """
         logger.debug("_signal_task_start called")
         # The following test is not necessary but is allows active thieves to
         # stop before receiving the poison pill.
@@ -693,6 +748,24 @@ class ActiveTaskCounterOther(object):
 
     def task_done(self):
         r"""
+        Decrement the task counter by one.
+
+        OUTPUT: Calling :meth:`task_done` decrement the counter and returns
+        its value after the decrementation.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: c = ATC(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.task_done()
+            3
+            sage: c
+            ActiveTaskCounter(value=3)
+
+            sage: c = ATC(0)
+            sage: c.task_done()
+            -1
         """
         logger.debug("_signal_task_done called")
         # We tests if the semaphore counting the number of active tasks is
@@ -705,14 +778,39 @@ class ActiveTaskCounterOther(object):
 
     def abort(self):
         r"""
+        Set the task counter to 0.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
+            sage: c = ATC(4); c
+            ActiveTaskCounter(value=4)
+            sage: c.abort()
+            sage: c
+            ActiveTaskCounter(value=0)
         """
         while self._active_tasks.acquire(False):
             pass
 
+## Timings:
+#
+# Timings are made with:
+#
+# S = RecursivelyEnumeratedSet( [[]],
+#   lambda l: ([l[:i] + [len(l)] + l[i:] for i in range(len(l)+1)]
+#               if len(l) < NNN else []),
+#   structure='forest', enumeration='depth')
+# sage: %time sp = S.map_reduce(lambda z: x**len(z)); sp
+#
+# For NNN = 10
+#
+# Posix complient implementation : 17.04 s
+# Darwin's implementation        : 18.26 s
+
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
-                     else ActiveTaskCounterOther)
-ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
+                     else ActiveTaskCounter)
+# ActiveTaskCounter = ActiveTaskCounterDarwin # to debug DARWIN's implem
 
 
 

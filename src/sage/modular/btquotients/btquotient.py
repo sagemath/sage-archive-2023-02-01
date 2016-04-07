@@ -3026,11 +3026,12 @@ class BTQuotient(SageObject, UniqueRepresentation):
         alpha = Matrix(QQ, 4, 1, alpha1)
         alphamat = self.embed_quaternion(alpha)
         letters = self.get_nontorsion_generators() + filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(1))
-        I = enumerate_words([self._conv(x) for x in letters])
         n_iters = 0
-        while len(T) < l + 1:
+        for wd in enumerate_words([self._conv(x) for x in letters]):
+            if len(T) == l + 1:
+                break
+            v = prod(wd)
             n_iters += 1
-            v = prod(I.next())
             v0 = v * alpha0
             vinv = self.get_quaternion_algebra()(v0 ** (-1))
             new = True

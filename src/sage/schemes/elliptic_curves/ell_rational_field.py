@@ -1255,7 +1255,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1/25
 
         ::
-        
+
             sage: E = EllipticCurve('113a1')
             sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
             sage: symb

@@ -811,21 +811,6 @@ class ActiveTaskCounter(object):
         while self._active_tasks.acquire(False):
             pass
 
-## Timings:
-#
-# Timings are made with:
-#
-# S = RecursivelyEnumeratedSet( [[]],
-#   lambda l: ([l[:i] + [len(l)] + l[i:] for i in range(len(l)+1)]
-#               if len(l) < NNN else []),
-#   structure='forest', enumeration='depth')
-# sage: %time sp = S.map_reduce(lambda z: x**len(z)); sp
-#
-# For NNN = 10
-#
-# Posix complient implementation : 17.04 s
-# Darwin's implementation        : 18.26 s
-
 
 ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
                      else ActiveTaskCounter)

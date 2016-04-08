@@ -16,7 +16,7 @@ cdef class PariInstance_auto(ParentWithBase):
 @cython.final
 cdef class PariInstance(PariInstance_auto):
     cdef long _real_precision
-    cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
+    cdef readonly gen PARI_ZERO, PARI_ONE, PARI_TWO
     cpdef gen zero(self)
     cpdef gen one(self)
     cdef inline gen new_gen(self, GEN x)

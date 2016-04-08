@@ -72,6 +72,10 @@ static ex sin_eval(const ex & x)
         if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
                 return _ex0;
 
+	// sin() is odd
+	if (x.info(info_flags::negative))
+		return -sin(-x);
+
         ex x_red;
         if (has_pi(x)) {
 
@@ -231,10 +235,6 @@ static ex sin_eval(const ex & x)
         if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return sin(ex_to<numeric>(x_red));
 
-	// sin() is odd
-	if (x_red.info(info_flags::negative))
-		return -sin(-x_red);
-	
 	return sin(x_red).hold();
 }
 
@@ -290,6 +290,10 @@ static ex cos_eval(const ex & x)
 	if (x.info(info_flags::infinity)) {
 		throw (std::runtime_error("cos_eval(): cos(infinity) encountered"));
 	}
+
+	// cos() is even
+	if (x.info(info_flags::negative))
+		return cos(-x);
 
         if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
                 return _ex1;
@@ -448,10 +452,6 @@ static ex cos_eval(const ex & x)
 	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
 		return cos(ex_to<numeric>(x_red));
 	
-	// cos() is even
-	if (x_red.info(info_flags::negative))
-		return cos(-x_red);
-	
 	return cos(x_red).hold();
 }
 
@@ -510,6 +510,10 @@ static ex tan_eval(const ex & x)
 
         if (is_exactly_a<numeric>(x) and ex_to<numeric>(x).is_zero())
                 return _ex0;
+
+	// tan() is odd
+	if (x.info(info_flags::negative))
+		return -tan(-x);
 
         ex x_red;
         if (has_pi(x)) {
@@ -671,10 +675,6 @@ static ex tan_eval(const ex & x)
 	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational)) {
 		return tan(ex_to<numeric>(x_red));
 	}
-	
-	// tan() is odd
-	if (x_red.info(info_flags::negative))
-		return -tan(-x_red);
 	
 	return tan(x_red).hold();
 }
@@ -920,6 +920,10 @@ static ex sec_eval(const ex & x)
 
 	}
 
+	// sec() is even
+	if (x.info(info_flags::negative))
+		return sec(-x);
+
 	// sec(float) -> float
 	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
 		return cos(ex_to<numeric>(x)).inverse();
@@ -942,7 +946,7 @@ static ex sec_eval(const ex & x)
 		                const numeric num = c.numer();
 		                const numeric den = c.denom();
 			        const numeric rm = num.mod(den);
-				                
+
 		                if (rm.mul(2) > den) {
                                         return _ex_1*sec(den.sub(rm)*Pi/den).hold();
                                 }

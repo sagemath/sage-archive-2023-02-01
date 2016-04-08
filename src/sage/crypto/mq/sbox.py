@@ -2,6 +2,7 @@ r"""
 S-Boxes and Their Algebraic Representations
 """
 
+from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector import IntegerVectors
 from sage.matrix.constructor import Matrix
 from sage.misc.misc_c import prod as mul
@@ -13,6 +14,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
+from sage.crypto.boolean_function import BooleanFunction
 
 class SBox(SageObject):
     r"""
@@ -24,7 +26,7 @@ class SBox(SageObject):
     cryptanalysis [Heys02]_.
 
     This module implements an S-box class which allows an algebraic
-    treatment.
+    treatment and determine various cryptographic properties.
 
     EXAMPLE:
 
@@ -133,6 +135,8 @@ class SBox(SageObject):
         self.n = ZZ(max(S)).nbits()
         self._F = GF(2)
         self._big_endian = kwargs.get("big_endian",True)
+
+        self.differential_uniformity = self.maximal_difference_probability_absolute
 
     def _repr_(self):
         """
@@ -426,6 +430,9 @@ class SBox(SageObject):
         highest probability in absolute terms, i.e. how often it
         occurs in total.
 
+        Equivalently, this is equal to the differential uniformity
+        of this S-Box.
+
         EXAMPLE::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
@@ -454,6 +461,7 @@ class SBox(SageObject):
         """
         return self.maximal_difference_probability_absolute()/(2.0**self.n)
 
+    @cached_method
     def linear_approximation_matrix(self):
         """
         Return linear approximation matrix ``A`` for this S-box.
@@ -492,30 +500,23 @@ class SBox(SageObject):
             True
             True
         """
-        try:
-            return self._linear_approximation_matrix
-        except AttributeError:
-            pass
-
         m = self.m
         n = self.n
 
         nrows = 1<<m
         ncols = 1<<n
 
-        from sage.crypto.boolean_function import BooleanFunction
-
         B = BooleanFunction(self.m)
         L = []
         for j in xrange(ncols):
             for i in xrange(nrows):
-                B[i] = (self(i)&j).popcount()
+                B[i] = ZZ(self(i)&j).popcount()
             L.append(B.walsh_hadamard_transform())
 
         A = Matrix(ZZ, ncols, nrows, L)
         A = -A.transpose()/2
+        A.set_immutable()
 
-        self._linear_approximation_matrix = A
         return A
 
     def maximal_linear_bias_absolute(self):
@@ -984,3 +985,354 @@ class SBox(SageObject):
             return header + values + " 0\n"
         else:
             raise ValueError("Format '%s' not supported."%(format,))
+
+    def component_function(self, b):
+        r"""
+        Return a Boolean function corresponding to the component function
+        `b \cdot S(x)`.
+
+        If `S` is an `m \times n` S-Box, then `b \in \GF{2}^n` and
+        `\cdot` denotes dot product of two vectors.
+
+        INPUT:
+
+        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
+          length ``self.n``
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([7,6,0,4,2,5,1,3])
+            sage: f3 = S.component_function(3)
+            sage: f3.algebraic_normal_form()
+            x0*x1 + x0*x2 + x0 + x2
+
+            sage: f5 = S.component_function([1, 0, 1])
+            sage: f5.algebraic_normal_form()
+            x0*x2 + x0 + x1*x2
+        """
+        m = self.m
+        n = self.n
+        ret = BooleanFunction(m)
+
+        if isinstance(b, (int, long, Integer)):
+            b = vector(GF(2), self.to_bits(b, n))
+        elif len(b) == n:
+            b = vector(GF(2), b)
+        else:
+            raise TypeError("cannot compute component function using parameter %s"%(b,))
+
+        for x in xrange(1<<m):
+            ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
+        return ret
+
+    def nonlinearity(self):
+        """
+        Return the nonlinearity of this S-Box.
+
+        The nonlinearity of an S-Box is defined as the minimum nonlinearity
+        of all its component functions.
+
+        EXAMPLES::
+
+            sage: S = mq.SR(1,4,4,8).sbox()
+            sage: S.nonlinearity()
+            112
+        """
+        m = self.m
+        return (1 << (m-1)) - self.maximal_linear_bias_absolute()
+
+    def is_apn(self):
+        r"""
+        Return ``True`` if this S-Box is an almost perfect nonlinear (APN)
+        function.
+
+        An `m \times m` S-Box `S` is called almost perfect nonlinear if for
+        every nonzero `\alpha \in \GF{2}^m` and every
+        `\beta \in \GF{2}^m`, the equation
+        `S(x) \oplus S(x \oplus \alpha) = \beta` has 0 or 2 solutions.
+        Equivalently, the differential uniformity of `S` is equal to 2.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S.is_apn()
+            True
+            sage: S.differential_uniformity()
+            2
+        """
+        if self.m != self.n:
+            raise TypeError("APN function is only defined for self.m == self.n")
+        return self.differential_uniformity() == 2
+
+    def differential_branch_number(self):
+        r"""
+        Return differential branch number of this S-Box.
+
+        The differential branch number of an S-Box `S` is defined as
+
+        .. MATH::
+
+            \min_{v, w \neq v} \{ \mathrm{wt}(v \oplus w) + \mathrm{wt}(S(v) \oplus S(w)) \}
+
+        where `\mathrm{wt}(x)` denotes the Hamming weight of vector `x`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S.differential_branch_number()
+            3
+        """
+        m = self.m
+        n = self.n
+        ret = (1<<m) + (1<<n)
+
+        for a in xrange(1<<m):
+            for b in xrange(1<<n):
+                if (a != b):
+                    x = a ^ b
+                    y = self(a) ^ self(b)
+                    w = ZZ(x).popcount() + ZZ(y).popcount()
+                    if w < ret:
+                        ret = w
+        return ret
+
+    def linear_branch_number(self):
+        r"""
+        Return linear branch number of this S-Box.
+
+        The linear branch number of an S-Box `S` is defined as
+
+        .. MATH::
+
+            \min_{\substack{\alpha \neq 0, \beta \\ \mathrm{LAM}(\alpha, \beta) \neq 0}}
+                \{ \mathrm{wt}(\alpha) + \mathrm{wt}(\beta) \}
+
+        where `\mathrm{LAM}(\alpha, \beta)` is the entry at row `\alpha` and
+        column `\beta` of linear approximation matrix correspond to this
+        S-Box. The `\mathrm{wt}(x)` denotes the Hamming weight of `x`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S.linear_branch_number()
+            2
+        """
+        m = self.m
+        n = self.n
+        ret = (1<<m) + (1<<n)
+        lat = self.linear_approximation_matrix()
+
+        for a in xrange(1, 1<<m):
+            for b in xrange(1<<n):
+                if lat[a,b] != 0:
+                    w = ZZ(a).popcount() + ZZ(b).popcount()
+                    if w < ret:
+                        ret = w
+        return ret
+
+    @cached_method
+    def autocorrelation_matrix(self):
+        r"""
+        Return autocorrelation matrix correspond to this S-Box.
+
+        for an `m \times n` S-Box `S`, its autocorrelation matrix entry at
+        row `a \in \GF{2}^m` and column `b \in \GF{2}^n`
+        (considering their integer representation) is defined as:
+
+        .. MATH::
+
+            \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
+
+        Equivalently, the columns `b` of autocorrelation matrix correspond to
+        the autocorrelation spectrum of component function `b \cdot S(x)`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S.autocorrelation_matrix()
+            [ 8  8  8  8  8  8  8  8]
+            [ 8  0  0  0  0  0  0 -8]
+            [ 8  0 -8  0  0  0  0  0]
+            [ 8  0  0  0  0 -8  0  0]
+            [ 8 -8  0  0  0  0  0  0]
+            [ 8  0  0  0  0  0 -8  0]
+            [ 8  0  0 -8  0  0  0  0]
+            [ 8  0  0  0 -8  0  0  0]
+        """
+        from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+
+        n = self.n
+        A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
+        A.set_immutable()
+
+        return A
+
+    def linear_structures(self):
+        r"""
+        Return a list of 3-valued tuple `(b, \alpha, c)` such that `\alpha` is
+        a `c`-linear structure of the component function `b \cdot S(x)`.
+
+        A Boolean function `f : \GF{2}^m \mapsto \GF{2}` is said
+        to have a `c`-linear structure if there exists a nonzero `\alpha` such
+        that `f(x) \oplus f(x \oplus \alpha)` is a constant function `c`.
+
+        An `m \times n` S-Box `S` has a linear structure if there exists a
+        component function `b \cdot S(x)` that has a linear structure.
+
+        The three valued tuple `(b, \alpha, c)` shows that `\alpha` is a
+        `c`-linear structure of the component function `b \cdot S(x)`. This
+        implies that for all output differences `\beta` of the S-Box
+        correspond to input difference `\alpha`, we have `b \cdot \beta = c`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S.linear_structures()
+            [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
+        """
+        n = self.n
+        m = self.m
+        act = self.autocorrelation_matrix()
+        ret = []
+
+        for j in xrange(1, 1<<n):
+            for i in xrange(1, 1<<m):
+                if (abs(act[i,j]) == (1<<m)):
+                    c = ((1 - (act[i][j] >> self.m)) >> 1)
+                    ret.append((j, i, c))
+        return ret
+
+    def max_degree(self):
+        """
+        Return the maximal algebraic degree of all its component functions.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S.max_degree()
+            3
+        """
+        n = self.n
+        ret = 0
+
+        for i in xrange(n):
+            deg_Si = self.component_function(1<<i).algebraic_normal_form().degree()
+            if deg_Si > ret:
+                ret = deg_Si
+        return ret
+
+    def min_degree(self):
+        """
+        Return the minimal algebraic degree of all its component functions.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S.min_degree()
+            2
+        """
+        n = self.n
+        ret = self.m
+
+        for b in xrange(1, 1<<n):
+            deg_bS = self.component_function(b).algebraic_normal_form().degree()
+            if deg_bS < ret:
+                ret = deg_bS
+        return ret
+
+    def is_balanced(self):
+        """
+        Return ``True`` if this S-Box is balanced.
+
+        An S-Box is balanced if all its component functions are balanced.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S.is_balanced()
+            True
+        """
+        n = self.n
+
+        for b in xrange(1, 1<<n):
+            bS = self.component_function(b)
+            if not bS.is_balanced():
+                return False
+        return True
+
+    def is_almost_bent(self):
+        r"""
+        Return ``True`` if this S-Box is an almost bent (AB) function.
+
+        An `m \times m` S-Box `S`, for `m` odd, is called almost bent if its
+        nonlinearity is equal to `2^{m-1} - 2^{(m-1)/2}`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S.is_almost_bent()
+            True
+        """
+        if self.m != self.n:
+            raise TypeError("almost bent function only exists for self.m == self.n")
+
+        m = self.m
+
+        if m & 1 == 0:
+            raise TypeError("almost bent function only defined for an odd size S-Box")
+
+        return (self.nonlinearity() == (1<<(m-1)) - (1<<((m-1)>>1)))
+
+    def fixed_points(self):
+        """
+        Return a list of all fixed points of this S-Box.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S.fixed_points()
+            [0, 1]
+        """
+        m = self.m
+        return [i for i in xrange(1<<m) if i == self(i)]
+
+    def inverse(self):
+        """
+        Return the inverse of this S-Box.
+
+        Note that the S-Box must be invertible, otherwise it will raise
+        a ``TypeError``.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0, 1, 3, 6, 7, 4, 5, 2])
+            sage: Sinv = S.inverse()
+            sage: [Sinv(S(i)) for i in xrange(8)]
+            [0, 1, 2, 3, 4, 5, 6, 7]
+        """
+        if not self.is_permutation():
+            raise TypeError("S-Box must be a permutation")
+
+        m = self.m
+        L = [self(i) for i in xrange(1<<m)]
+        return SBox([L.index(i) for i in xrange(1<<m)], big_endian=self._big_endian)
+
+    def is_monomial_function(self):
+        """
+        Return ``True`` if this S-Box is a monomial/power function.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S.is_monomial_function()
+            False
+            sage: S.interpolation_polynomial()
+            (a + 1)*x^6 + (a^2 + a + 1)*x^5 + (a^2 + 1)*x^3
+
+            sage: S = mq.SBox(0,1,5,6,7,2,3,4)
+            sage: S.is_monomial_function()
+            True
+            sage: S.interpolation_polynomial()
+            x^6
+        """
+        return self.interpolation_polynomial().is_monomial()

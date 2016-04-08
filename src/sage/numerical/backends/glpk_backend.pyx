@@ -104,7 +104,7 @@ cdef class GLPKBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: ...
-            sage: p.add_variable(name='x',obj=1.0)
+            sage: p.add_variable(name='x', obj=1.0)
             3
             sage: p.col_name(3)
             'x'
@@ -176,8 +176,21 @@ cdef class GLPKBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b'])
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8
+            (-2.0, None)
+            sage: p.is_variable_integer(5)
+            True
+            sage: p.col_name(5)
+            'a'
+            sage: p.objective_coefficient(5)
+            42.0
         """
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         if  vtype == 0:
@@ -206,7 +219,7 @@ cdef class GLPKBackend(GenericBackend):
                 self.objective_coefficient(n_var - i - 1, obj)
 
             if names is not None:
-                glp_set_col_name(self.lp, n_var, names[number - i - 1])
+                glp_set_col_name(self.lp, n_var - i, names[number - i - 1])
 
         return n_var - 1
 
@@ -1395,33 +1408,62 @@ cdef class GLPKBackend(GenericBackend):
             sage: P.set_max(x, 0)
             sage: P.get_max(x)
             0.0
+
+        Check that :trac:`10232` is fixed::
+
+            sage: p = get_solver(solver="GLPK")
+            sage: p.variable_upper_bound(2)
+            Traceback (most recent call last):
+            ...
+            GLPKError: ...
+            sage: p.variable_upper_bound(3, 5)
+            Traceback (most recent call last):
+            ...
+            GLPKError: ...
+
+            sage: p.add_variable()
+            0
+            sage: p.variable_upper_bound(0, 'hey!')
+            Traceback (most recent call last):
+            ...
+            TypeError: a float is required
         """
         cdef double x
         cdef double min
+        cdef double dvalue
 
         if value is False:
+            sig_on()
             x = glp_get_col_ub(self.lp, index +1)
+            sig_off()
             if x == DBL_MAX:
                 return None
             else:
                 return x
         else:
+            sig_on()
             min = glp_get_col_lb(self.lp, index + 1)
+            sig_off()
 
-            if value is None and min == -DBL_MAX:
-                glp_set_col_bnds(self.lp, index + 1, GLP_FR, 0, 0)
-
-            elif value is None:
-                glp_set_col_bnds(self.lp, index + 1, GLP_LO, min, 0)
-
-            elif min == -DBL_MAX:
-                glp_set_col_bnds(self.lp, index + 1, GLP_UP, 0, value)
-
-            elif min == value:
-                glp_set_col_bnds(self.lp, index + 1, GLP_FX,  value, value)
-
+            if value is None:
+                sig_on()
+                if min == -DBL_MAX:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_FR, 0, 0)
+                else:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_LO, min, 0)
+                sig_off()
             else:
-                glp_set_col_bnds(self.lp, index + 1, GLP_DB, min, value)
+                dvalue = <double?> value
+
+                sig_on()
+                if min == -DBL_MAX:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_UP, 0, dvalue)
+
+                elif min == dvalue:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_FX,  dvalue, dvalue)
+                else:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_DB, min, dvalue)
+                sig_off()
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1457,33 +1499,62 @@ cdef class GLPKBackend(GenericBackend):
             sage: P.set_min(x, 0)
             sage: P.get_min(x)
             0.0
+
+        Check that :trac:`10232` is fixed::
+
+            sage: p = get_solver(solver="GLPK")
+            sage: p.variable_lower_bound(2)
+            Traceback (most recent call last):
+            ...
+            GLPKError: ...
+            sage: p.variable_lower_bound(3, 5)
+            Traceback (most recent call last):
+            ...
+            GLPKError: ...
+
+            sage: p.add_variable()
+            0
+            sage: p.variable_lower_bound(0, 'hey!')
+            Traceback (most recent call last):
+            ...
+            TypeError: a float is required
         """
         cdef double x
         cdef double max
+        cdef double dvalue
 
         if value is False:
+            sig_on()
             x = glp_get_col_lb(self.lp, index +1)
+            sig_off()
             if x == -DBL_MAX:
                 return None
             else:
                 return x
         else:
+            sig_on()
             max = glp_get_col_ub(self.lp, index + 1)
+            sig_off()
 
-            if value is None and max == DBL_MAX:
-                glp_set_col_bnds(self.lp, index + 1, GLP_FR, 0.0, 0.0)
-
-            elif value is None:
-                glp_set_col_bnds(self.lp, index + 1, GLP_UP, 0.0, max)
-
-            elif max == DBL_MAX:
-                glp_set_col_bnds(self.lp, index + 1, GLP_LO, value, 0.0)
-
-            elif max == value:
-                glp_set_col_bnds(self.lp, index + 1, GLP_FX,  value, value)
+            if value is None:
+                sig_on()
+                if max == DBL_MAX:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_FR, 0.0, 0.0)
+                else:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_UP, 0.0, max)
+                sig_off()
 
             else:
-                glp_set_col_bnds(self.lp, index + 1, GLP_DB, value, max)
+                dvalue = <double?> value
+
+                sig_on()
+                if max == DBL_MAX:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_LO, value, 0.0)
+                elif max == value:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_FX,  value, value)
+                else:
+                    glp_set_col_bnds(self.lp, index + 1, GLP_DB, value, max)
+                sig_off()
 
     cpdef write_lp(self, char * filename):
         """

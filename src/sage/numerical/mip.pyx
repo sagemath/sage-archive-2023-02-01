@@ -331,7 +331,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def __init__(self, solver=None, maximization=True,
                  constraint_generation=False, check_redundant=False,
-                 names=tuple()):
+                 names=tuple(), base_ring=None):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -431,7 +431,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self._first_variable_names = list(names)
         from sage.numerical.backends.generic_backend import get_solver
         self._backend = get_solver(solver=solver,
-                                   constraint_generation=constraint_generation)
+                                   constraint_generation=constraint_generation,
+                                   base_ring=base_ring)
         if not maximization:
             self._backend.set_sense(-1)
 
@@ -597,6 +598,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
+            sage: p.base_ring()
+            Algebraic Real Field
+            sage: d = polytopes.dodecahedron()
+            sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
+            sage: p.base_ring()
+            Number Field in sqrt5 with defining polynomial x^2 - 5
         """
         return self._backend.base_ring()
 
@@ -1121,6 +1129,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Variables:
               x_0 is a continuous variable (min=0, max=+oo)
               x_1 is a continuous variable (min=0, max=+oo)
+
+        With a constant term in the objective::
+
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + 42)
+            sage: p.show()
+            Maximization:
+              x_0 + 42
+            Constraints:
+            Variables:
+              x_0 is a continuous variable (min=0, max=+oo)
         """
         cdef int i, j
         cdef GenericBackend b = self._backend
@@ -1148,8 +1168,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" "))+varid_name[i]
                    ),
             first = False
-        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
-        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
+        d = b.objective_constant_term()
+        if d > self._backend.zero(): print "+", d,
+        elif d < self._backend.zero(): print "-", -d,
         print
 
         ##### Constraints
@@ -1370,7 +1391,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         INPUT:
 
         - ``obj`` -- A linear function to be optimized.
-          ( can also be set to ``None`` or ``0`` when just
+          ( can also be set to ``None`` or ``0`` or any number when just
           looking for a feasible solution )
 
         EXAMPLE:
@@ -1397,6 +1418,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
             6.66667
             sage: p.set_objective(None)
             sage: _ = p.solve()
+
+        TESTS:
+
+        Test whether numbers as constant objective functions are accepted::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(42)
+            sage: p.solve() # tol 1e-8
+            42
+
         """
         cdef list values = []
 
@@ -1406,10 +1438,16 @@ cdef class MixedIntegerLinearProgram(SageObject):
         # and do not care about any function being optimal.
         cdef int i
 
-        if obj is not None:
-            f = obj.dict()
-        else:
+        if obj is None:
             f = {-1 : 0}
+        else:
+            # See if it is a constant
+            R = self.base_ring()
+            try:
+                f = {-1: R(obj)}
+            except TypeError:
+                # Should be a linear function
+                f = obj.dict()
         d = f.pop(-1,self._backend.zero())
 
         for i in range(self._backend.ncols()):

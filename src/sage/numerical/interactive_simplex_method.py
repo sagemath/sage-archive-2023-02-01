@@ -947,6 +947,25 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx[0]
 
+    def constraint_types(self):
+        r"""
+        Return a tuple listing the constraint types of all rows.
+
+        OUTPUT:
+
+        - a tuple of strings
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", constraint_type=["<=", "=="])
+            sage: P.constraint_types()
+            ('<=', '==')
+        """
+        return self._constraint_types
+
     def decision_variables(self):
         r"""
         Return decision variables of ``self``, i.e. `x`.
@@ -1116,6 +1135,24 @@ class InteractiveLPProblem(SageObject):
             True
         """
         return self._solve()[1] is not None
+
+    def is_negative(self):
+        r"""
+        Return `True` when the problem is of type ``"-max"`` or ``"-min"``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.is_negative()
+            False
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", problem_type="-min")
+            sage: P.is_negative()
+            True
+        """
+        return self._is_negative
 
     def is_primal(self):
         r"""
@@ -1426,6 +1463,30 @@ class InteractiveLPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
+    def problem_type(self):
+        r"""
+        Return the problem type.
+
+        Needs to be used together with ``is_negative``.
+
+        OUTPUT:
+
+        - a string, one of ``"max"``, ``"min"``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.problem_type()
+            'max'
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=", problem_type="-min")
+            sage: P.problem_type()
+            'min'
+        """
+        return self._problem_type
+
     def standard_form(self, objective_name=None):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
@@ -1498,6 +1559,25 @@ class InteractiveLPProblem(SageObject):
         return InteractiveLPProblemStandardForm(A, b, c, x, problem_type,
             is_primal=is_primal, objective_name=objective_name)
 
+    def variable_types(self):
+        r"""
+        Return a tuple listing the variable types of all decision variables.
+
+        OUTPUT:
+
+        - a tuple of strings
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=[">=", ""])
+            sage: P.variable_types()
+            ('>=', '')
+        """
+        return self._variable_types
+
     # Aliases for the standard notation
     A = constraint_coefficients
     b = constant_terms
@@ -1542,7 +1622,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
       problem type: either ``"max"`` or ``"-max"``
 
     - ``slack_variables`` -- (default: depends on :func:`style`)
-      a vector of slack variables or a sting giving the base name
+      a vector of slack variables or a string giving the base name
 
     - ``auxiliary_variable`` -- (default: same as ``x`` parameter with adjoined
       ``"0"`` if it was given as a string, otherwise ``"x0"``) the auxiliary

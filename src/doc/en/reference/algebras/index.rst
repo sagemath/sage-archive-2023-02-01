@@ -42,6 +42,7 @@ Named associative algebras
    sage/algebras/affine_nil_temperley_lieb
    sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
+   sage/combinat/descent_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras

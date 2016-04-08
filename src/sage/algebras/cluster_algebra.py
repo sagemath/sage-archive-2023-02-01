@@ -227,11 +227,35 @@ class ClusterAlgebraSeed(SageObject):
         else:
             return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
 
-    @property
     def depth(self):
+        r"""
+        Retun the length of a path from the initial seed of :meth:`parent` to ``self``.
+
+        .. WARNING::
+            This is the length of the path returned by :meth:`path_from_initial_seed` which needs not be the shortest possible.
+
+        .. EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: S = A.current_seed()
+            sage: S.depth()
+            0
+            sage: S.mutate([0,1])
+            sage: S.depth()
+            2
+
+        """
         return len(self._path)
 
     def parent(self):
+        r"""
+        Return the parent of ``self``.
+
+        .. EXAMPLES::
+            sage: A = ClusterAlgebra(['B',3])
+            sage: A.current_seed().parent() == A
+            True
+        """
         return self._parent
 
     def b_matrix(self):
@@ -581,7 +605,7 @@ class ClusterAlgebra(Parent):
         return "Cluster Algebra of rank %s"%self.rk
 
     def _an_element_(self):
-        return self.current_seed.cluster_variable(0)
+        return self.current_seed().cluster_variable(0)
 
     @property
     def rk(self):
@@ -591,15 +615,13 @@ class ClusterAlgebra(Parent):
         """
         return self._n
 
-    @property
     def current_seed(self):
         r"""
         The current seed of ``self``.
         """
         return self._seed
 
-    @current_seed.setter
-    def current_seed(self, seed):
+    def set_current_seed(self, seed):
         r"""
         Set ``self._seed`` to ``seed`` if it makes sense.
         """
@@ -682,7 +704,7 @@ class ClusterAlgebra(Parent):
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                self._explored_depth = seed.depth
+                self._explored_depth = seed.depth()
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s up to mutation depth %s after performing %s mutations."%(str(g_vector),str(depth),str(mutation_counter)))
 
@@ -732,7 +754,7 @@ class ClusterAlgebra(Parent):
         If ``mutating_F`` is set to false it does not compute F_polynomials
         """
         if from_current_seed:
-            seed = self.current_seed
+            seed = self.current_seed()
         else:
             seed = self.initial_seed
 
@@ -833,7 +855,7 @@ class ClusterAlgebra(Parent):
         while self._explored_depth <= depth:
             try:
                 seed = next(self._sd_iter)
-                self._explored_depth = seed.depth
+                self._explored_depth = seed.depth()
             except:
                 break
 

@@ -205,6 +205,37 @@ class RealReflectionGroup(ComplexReflectionGroup):
         type_str = type_str[:-3]
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
+    def __iter__(self):
+        n = len(self._index_set)
+        s = self.gens()   # This could be bad
+        def succ(x):
+            u, first = x
+            for i in xrange(first):
+                u1 = s[i]._mul_(u)
+                #if all(not u1.has_left_descent(j) for j in I[:ii]): # and u1.has_left_descent(i):
+                # Below we also copy in the relevant part of has_left_descent()
+                if all(self._is_positive_root[u1(j+1)] for j in xrange(i)): # and u1.has_left_descent(i):
+                    yield u1, i
+            for i in xrange(first+1,n):
+                if u.has_left_descent(i):
+                    continue
+                u1 = s[i]._mul_(u)
+                #if all(not u1.has_left_descent(j) for j in I[:ii]): # and u1.has_left_descent(i):
+                # Below we also copy in the relevant part of has_left_descent()
+                if all(self._is_positive_root[u1(j+1)] for j in xrange(i)): # and u1.has_left_descent(i):
+                    yield u1, i
+            return
+        from sage.combinat.backtrack import SearchForest
+        from sage.categories.groups import Groups
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+        from sage.categories.enumerated_sets import EnumeratedSets
+        default_category = EnumeratedSets()
+        if self in Groups().Finite():
+            default_category = default_category.Finite()
+        return iter(SearchForest(((self.one(),-1),), succ, algorithm='breadth',
+                                 post_process=lambda x: x[0],
+                                 category=default_category))
+
     def _iterator_tracking_words(self):
         r"""
         Return an iterator through the elements of ``self`` together
@@ -252,7 +283,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                     y = x._mul_(I[i])
                     if y not in level_set_old:
                         level_set_old.add(y)
-                        level_set_new.append((y,word+tuple([i])))
+                        level_set_new.append((y, word+(i,)))
             level_set_old = set( elt[0] for elt in level_set_cur )
             level_set_cur = level_set_new
 

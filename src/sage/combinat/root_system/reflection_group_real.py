@@ -206,35 +206,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
     def __iter__(self):
-        n = len(self._index_set)
-        s = self.gens()   # This could be bad
-        def succ(x):
-            u, first = x
-            for i in xrange(first):
-                u1 = s[i]._mul_(u)
-                #if all(not u1.has_left_descent(j) for j in I[:ii]): # and u1.has_left_descent(i):
-                # Below we also copy in the relevant part of has_left_descent()
-                if all(self._is_positive_root[u1(j+1)] for j in xrange(i)): # and u1.has_left_descent(i):
-                    yield u1, i
-            for i in xrange(first+1,n):
-                if u.has_left_descent(i):
-                    continue
-                u1 = s[i]._mul_(u)
-                #if all(not u1.has_left_descent(j) for j in I[:ii]): # and u1.has_left_descent(i):
-                # Below we also copy in the relevant part of has_left_descent()
-                if all(self._is_positive_root[u1(j+1)] for j in xrange(i)): # and u1.has_left_descent(i):
-                    yield u1, i
-            return
-        from sage.combinat.backtrack import SearchForest
-        from sage.categories.groups import Groups
-        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-        from sage.categories.enumerated_sets import EnumeratedSets
-        default_category = EnumeratedSets()
-        if self in Groups().Finite():
-            default_category = default_category.Finite()
-        return iter(SearchForest(((self.one(),-1),), succ, algorithm='breadth',
-                                 post_process=lambda x: x[0],
-                                 category=default_category))
+        from sage.combinat.root_system.reflection_group_c import search_forest_iterator
+        return search_forest_iterator(((self.gens(),len(self._index_set),self._is_positive_root,self.one(),-1),))
 
     def _iterator_tracking_words(self):
         r"""

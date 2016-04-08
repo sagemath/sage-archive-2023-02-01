@@ -23,32 +23,32 @@ Deprecation details:
 
 - ``SearchForest(seeds, succ)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure='forest', enumeration='depth')``. 
+  succ, structure='forest', enumeration='depth')``.
 
 - ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
   :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
-  succ, structure=None, enumeration='naive')``. 
+  succ, structure=None, enumeration='naive')``.
 
 - ``TransitiveIdealGraded(succ, seeds, max_depth)`` keeps the same behavior
   as before :trac:`6637` and is now the same as
   ``RecursivelyEnumeratedSet(seeds, succ, structure=None,
-  enumeration='breadth', max_depth=max_depth)``. 
+  enumeration='breadth', max_depth=max_depth)``.
 
-TODO:
+.. todo::
 
-- For now the code of ``SearchForest`` is still in
-  ``sage/combinat/backtrack.py``.  It should be moved in
-  ``sage/sets/recursively_enumerated_set.pyx`` into a class named
-  ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
+    - For now the code of :class:`SearchForest` is still in
+      ``sage/combinat/backtrack.py``.  It should be moved in
+      ``sage/sets/recursively_enumerated_set.pyx`` into a class named
+      :class:`RecursivelyEnumeratedSet_forest` in a later ticket.
 
-- ``TransitiveIdeal`` and ``TransitiveIdealGraded`` are used in the code of
-  ``categories/finitely_generated_semigroups.py`` (at least).
-  These should be updated to use ``RecursivelyEnumeratedSet`` in a later
-  ticket for speed improvements and ``TransitiveIdeal`` and
-  ``TransitiveIdealGraded`` may be deprecated.
+    - ``TransitiveIdeal`` and ``TransitiveIdealGraded`` are used in the code of
+      ``categories/finitely_generated_semigroups.py`` (at least).
+      These should be updated to use ``RecursivelyEnumeratedSet`` in a later
+      ticket for speed improvements and ``TransitiveIdeal`` and
+      ``TransitiveIdealGraded`` may be deprecated.
 
-- Once the deprecation has been there for enough time: delete
-  ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
+    - Once the deprecation has been there for enough time: delete
+      ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
 
 """
 #*****************************************************************************
@@ -425,6 +425,8 @@ class SearchForest(Parent):
         self._algorithm = algorithm
         Parent.__init__(self, facade = facade, category = EnumeratedSets().or_subcategory(category))
 
+    __len__ = None
+
     def _repr_(self):
         r"""
         TESTS::
@@ -688,6 +690,58 @@ class SearchForest(Parent):
                 return True
             stack.append( iter(self.children(node)) )
         return False
+
+    def map_reduce(self, map_function = None,
+                   reduce_function = None,
+                   reduce_init = None):
+        r"""
+        Apply a Map/Reduce algorithm on ``self``
+
+        INPUT:
+
+        - ``map_function`` -- a function from the element of ``self`` to some
+          set with a reduce operation (e.g.: a monoid). The default value is
+          the constant function ``1``.
+
+        - ``reduce_function`` -- the reduce function (e.g.: the addition of a
+          monoid). The default value is ``+``.
+
+        - ``reduce_init`` -- the initialisation of the reduction (e.g.: the
+          neutral element of the monoid). The default value is ``0``.
+
+        .. note::
+
+            the effect of the default values is to compute the cardinality
+            of ``self``.
+
+        EXAMPLES::
+
+            sage: seeds = [([i],i, i) for i in range(1,10)]
+            sage: succ = (lambda (list, sum, last):
+            ....:         [(list + [i], sum + i, i) for i in range(1,last)])
+            sage: F = RecursivelyEnumeratedSet(seeds, succ,
+            ....:                       structure='forest', enumeration='depth')
+
+            sage: y = var('y')
+            sage: map_function = lambda (li, sum, _): y**sum
+            sage: reduce_function = lambda x,y: x + y
+            sage: F.map_reduce(map_function, reduce_function, 0)
+            y^45 + y^44 + y^43 + 2*y^42 + 2*y^41 + 3*y^40 + 4*y^39 + 5*y^38 + 6*y^37 + 8*y^36 + 9*y^35 + 10*y^34 + 12*y^33 + 13*y^32 + 15*y^31 + 17*y^30 + 18*y^29 + 19*y^28 + 21*y^27 + 21*y^26 + 22*y^25 + 23*y^24 + 23*y^23 + 23*y^22 + 23*y^21 + 22*y^20 + 21*y^19 + 21*y^18 + 19*y^17 + 18*y^16 + 17*y^15 + 15*y^14 + 13*y^13 + 12*y^12 + 10*y^11 + 9*y^10 + 8*y^9 + 6*y^8 + 5*y^7 + 4*y^6 + 3*y^5 + 2*y^4 + 2*y^3 + y^2 + y
+
+        Here is an example with the default values::
+
+            sage: F.map_reduce()
+            511
+
+        .. SEEALSO:: :mod:`sage.parallel.map_reduce`
+        """
+        import sage.parallel.map_reduce
+        return sage.parallel.map_reduce.RESetMapReduce(
+            forest = self,
+            map_function = map_function,
+            reduce_function = reduce_function,
+            reduce_init = reduce_init).run()
+
 
 class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
     r"""

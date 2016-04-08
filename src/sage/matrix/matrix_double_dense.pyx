@@ -664,7 +664,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         an identity matrix can hit the minimum with the right norm.  ::
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
-            sage: A.condition()  # tol 3e-5
+            sage: A.condition()  # tol 6e-5
             16332197709146.014
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
@@ -1788,7 +1788,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-18) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field

@@ -273,6 +273,9 @@ class Magma(ExtraTabCompletion, Expect):
        ``magma_free`` command instead, which uses the free demo web
        interface to Magma.
 
+       If you have ssh access to a remote installation of Magma, you can
+       also set the ``server`` parameter to use it.
+
     EXAMPLES:
 
     You must use nvals = 0 to call a function that doesn't return

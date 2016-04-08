@@ -1721,9 +1721,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. TODO::
 
-        There is a soft-linear time algorithm for logarithm described
-        by Dan Berstein at
-        http://cr.yp.to/lineartime/multapps-20041007.pdf
+            There is a soft-linear time algorithm for logarithm described
+            by Dan Berstein at
+            http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 

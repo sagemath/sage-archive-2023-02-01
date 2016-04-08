@@ -539,6 +539,9 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    ## This test method is written as an instance method that works
+    ## even if variables and constraints have already been added to the backend.
+    ## The test makes changes to the backend.
     def _test_add_linear_constraints(self, **options):
         """
         Run tests on the method :meth:`.add_linear_constraints`.
@@ -594,6 +597,22 @@ cdef class GenericBackend:
             MIPSolverException: ...
         """
         raise NotImplementedError()
+
+    ## Any test methods involving calls to 'solve' are set up as class methods,
+    ## which make a fresh instance of the backend.
+    @classmethod
+    def _test_solve(cls, **options):
+        p = cls()                         # fresh instance of the backend
+        print options
+        tester = p._tester(**options)     # <---- doesn't work ("assert tester._instance is instance" fails); we get a tester passed in **options...
+        # From doctest of GenericBackend.solve
+        tester.assertIsNone(p.add_linear_constraints(5, 0, None))
+        tester.assertIsNone(p.add_col(range(5), range(5)))
+        tester.assertEqual(p.solve(), 77)   # should be 0...
+        tester.assertIsNone(p.objective_coefficient(0,1))
+        from sage.numerical.mip import MIPSolverException
+        with tester.assertRaises(MIPSolverException) as cm:
+            p.solve()
 
     cpdef get_objective_value(self):
         """

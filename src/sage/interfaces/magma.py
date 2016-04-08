@@ -230,7 +230,7 @@ INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 
 
 EXTCODE_DIR = None
-def extcode_dir():
+def extcode_dir(iface = None):
     """
     Return directory that contains all the Magma extcode.  This is put
     in a writable directory owned by the user, since when attached,
@@ -243,10 +243,16 @@ def extcode_dir():
     """
     global EXTCODE_DIR
     if not EXTCODE_DIR:
-        import shutil
-        tmp = sage.misc.temporary_file.tmp_dir()
-        shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
-        EXTCODE_DIR = "%s/data/"%tmp
+        if iface is None or iface._server is None:
+            import shutil
+            tmp = sage.misc.temporary_file.tmp_dir()
+            shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
+            EXTCODE_DIR = "%s/data/"%tmp
+        else:
+            import os
+            tmp = iface._remote_tmpdir()
+            os.system('scp -q -r %s/magma/ %s:%s/data'%(SAGE_EXTCODE,iface._server,tmp))
+            EXTCODE_DIR = "%s/data/"%tmp
     return EXTCODE_DIR
 
 
@@ -282,7 +288,7 @@ class Magma(ExtraTabCompletion, Expect):
     """
     def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
-                 user_config=False, seed=None):
+                 user_config=False, seed=None, command='magma'):
         """
         INPUT:
 
@@ -297,18 +303,13 @@ class Magma(ExtraTabCompletion, Expect):
            configuration files will be read by Magma. If False (the default),
            then Magma is started with the -n option which suppresses user
            configuration files.
-
+        -  ``command`` - (Default: 'magma') The command to execute to start Magma.
 
         EXAMPLES::
 
             sage: Magma(logfile=tmp_filename())
             Magma
         """
-        # If the -b argument is given to Magma, the opening banner and all other
-        # introductory messages are suppressed. The final "total time" message is
-        # also suppressed.
-        #command = 'sage-native-execute magma -b '
-        command = 'sage-native-execute magma'
         if not user_config:
             command += ' -n'
         Expect.__init__(self,
@@ -567,7 +568,7 @@ class Magma(ExtraTabCompletion, Expect):
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
-        self.attach_spec(extcode_dir() + '/spec')
+        self.attach_spec(extcode_dir(self) + '/spec')
         # set random seed
         self.set_seed(self._seed)
 
@@ -1380,7 +1381,8 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.version()       # random, optional - magma
             ((2, 14, 9), 'V2.14-9')
         """
-        return magma_version()
+        t = tuple([int(n) for n in self.eval('GetVersion()').split()])
+        return t, 'V%s.%s-%s'%t
 
     def help(self, s):
         """
@@ -2757,6 +2759,7 @@ def magma_version():
         sage: magma_version()       # random, optional - magma
         ((2, 14, 9), 'V2.14-9')
     """
+    global magma
     t = tuple([int(n) for n in magma.eval('GetVersion()').split()])
     return t, 'V%s.%s-%s'%t
 

@@ -17,7 +17,7 @@ AUTHORS:
 
     - properly provide root systems for real reflection groups
     - element class should be unique to be able to work with large groups without creating elements multiple times.
-    - is_shephard_group
+    - is_shephard_group, is_generalized_coxeter_group
     - exponents & coexponents
     - coinvariant ring
         - fake degrees from Torsten Hoge

@@ -303,6 +303,7 @@ class Magma(ExtraTabCompletion, Expect):
            configuration files will be read by Magma. If False (the default),
            then Magma is started with the -n option which suppresses user
            configuration files.
+
         -  ``command`` - (Default: 'magma') The command to execute to start Magma.
 
         EXAMPLES::

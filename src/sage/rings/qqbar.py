@@ -121,7 +121,7 @@ We can coerce from symbolic expressions::
     sage: AA(I)
     Traceback (most recent call last):
     ...
-    TypeError: Illegal initializer for algebraic number
+    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
     sage: QQbar(I * golden_ratio)
     1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)

@@ -2434,7 +2434,7 @@ def split(poly, prec):
 
     TESTS:
 
-    This checks that ticket #6186 is still fixed:
+    This checks that :trac:`6186` is still fixed::
 
         sage: k = Qp(13)
         sage: x = polygen(k)

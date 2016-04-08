@@ -986,8 +986,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             ret = ret * (self(x * y) - self(y * x))
         return ret
 
-from sage.misc.cache import Cache
-cache = Cache(FreeAlgebra_generic)
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """

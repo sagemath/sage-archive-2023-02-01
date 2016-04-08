@@ -740,10 +740,24 @@ cdef class LinearFunction(ModuleElement):
             sage: f._coeff_formatter(RDF(12.3))
             '12.3*'
 
-            sage: q = MixedIntegerLinearProgram(solver='ppl')
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: f = p(1)
             sage: f._coeff_formatter(13/45)
             '13/45*'
+
+            sage: from sage.rings.number_field.number_field import QuadraticField
+            sage: K.<sqrt5> = QuadraticField(5, 'sqrt5')
+            sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=K)
+            sage: f = p(1)
+            sage: f._coeff_formatter(sqrt5)
+            'sqrt5*'
+
+            sage: from sage.rings.all import AA
+            sage: sqrt5 = AA(5).sqrt()
+            sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=AA)
+            sage: f = p(1)
+            sage: f._coeff_formatter(sqrt5)
+            '2.236067977499790?*'
         """
         R = self.base_ring()
         if coeff == R.one() and not constant_term:
@@ -751,7 +765,7 @@ cdef class LinearFunction(ModuleElement):
         try:
             from sage.rings.all import ZZ
             coeff = ZZ(coeff)    # print as integer if possible
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         if constant_term:
             return str(coeff)

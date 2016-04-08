@@ -227,19 +227,15 @@ List of Poset methods
 Classes and functions
 ---------------------
 """
+
 #*****************************************************************************
-#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
-#                          Franco Saliola <saliola@gmail.com>
+#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
+#       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -3057,7 +3053,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Integer(self._hasse_diagram.order())
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function(self,x,y):
         r"""
         Returns the value of the Möbius function of the poset on the
@@ -3095,7 +3090,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         return self._hasse_diagram.moebius_function(i,j)
     mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function_matrix(self, ring = ZZ, sparse = False):
         r"""
         Returns a matrix whose ``(i,j)`` entry is the value of the Möbius

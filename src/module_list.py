@@ -587,6 +587,9 @@ ext_modules = [
     Extension('sage.libs.fplll.fplll',
               sources = ['sage/libs/fplll/fplll.pyx']),
 
+    Extension("sage.libs.glpk.error",
+             ["sage/libs/glpk/error.pyx"]),
+
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
@@ -1143,6 +1146,9 @@ ext_modules = [
 
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"]),
+
+    Extension("sage.numerical.backends.interactivelp_backend",
+              ["sage/numerical/backends/interactivelp_backend.pyx"]),
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],

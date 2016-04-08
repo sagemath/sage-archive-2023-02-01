@@ -2341,6 +2341,43 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3, embedding=CC(0,1))
+            sage: QQbar(alpha)
+            -1.032202770009288? + 1.168103873894207?*I
+            sage: AA(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce algebraic number with non-zero imaginary
+            part to algebraic real
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3)
+            sage: QQbar(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert number
+            field element to algebraic number
+
+        TESTS::
+
+            sage: C.<z> = CyclotomicField(7)
+            sage: a = 2*z^2 + 5*z^4
+            sage: E = C.algebraic_closure()
+            sage: E(a)
+            -4.949886207424724? - 0.2195628712241434?*I
+        """
+        emb = self._parent.coerce_embedding()
+        if emb is None:
+            raise ValueError("need a real or complex embedding to convert "
+                             "number field element to algebraic number")
+        emb = number_field.refine_embedding(emb, infinity)
+        return parent(emb(self))
+
     def _symbolic_(self, SR):
         """
         If an embedding into CC is specified, then a representation of this
@@ -3258,7 +3295,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "P must be prime"
         if self == 0:
             return infinity
-        return Integer_sage(self.number_field().pari_nf().elementval(self._pari_(), P.pari_prime()))
+        return Integer_sage(self.number_field().pari_nf().nfeltval(self, P.pari_prime()))
 
     ord = valuation
 

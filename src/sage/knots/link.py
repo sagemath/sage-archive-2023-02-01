@@ -1865,7 +1865,7 @@ class Link(object):
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
 
-    def plot(self, gap=0.1, component_gap=0.5, **kwargs):
+    def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):
         r"""
         Plot ``self``.
 
@@ -1873,8 +1873,12 @@ class Link(object):
 
         - ``gap`` -- (default: 0.1) the size of the blank gap left for
           the crossings
+
         - ``component_gap`` -- (default: 0.5) the gap between isolated
           components
+
+        - ``solver`` -- the linear solver to use, see
+          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         The usual keywords for plots can be used here too.
 
@@ -1884,7 +1888,7 @@ class Link(object):
 
             sage: L = Link([[2, 1, 1, 2]])
             sage: L.plot()
-            Graphics object consisting of 4 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1897,7 +1901,7 @@ class Link(object):
 
             sage: L = Link([[2, 1, 4, 5], [3, 5, 6, 7], [4, 1, 9, 6], [9, 2, 3, 7]])
             sage: L.plot()
-            Graphics object consisting of 20 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1911,7 +1915,7 @@ class Link(object):
             ....:           [17,19,8,18],[9,10,11,14],[10,12,13,11],
             ....:           [12,19,15,13],[20,16,14,15],[16,20,17,2]])
             sage: L.plot()
-            Graphics object consisting of 39 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1927,7 +1931,7 @@ class Link(object):
             ....:             -11,-16,4,3,-5,6,-9,7,-15,14,16,-10,8,9,-6,5]],
             ....:           [-1,-1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,-1]])
             sage: L.plot()
-            Graphics object consisting of 58 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1953,7 +1957,7 @@ class Link(object):
 
             sage: L = Link([[2, 1, 4, 5], [5, 6, 7, 3], [6, 4, 1, 9], [9, 2, 3, 7]])
             sage: L.plot()
-            Graphics object consisting of 20 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1967,7 +1971,7 @@ class Link(object):
             ....:           [18,9,19,10], [2,11,3,12], [13,20,14,21], [15,6,16,7],
             ....:           [22,18,1,17], [8,19,9,20], [21,14,22,15]])
             sage: L.plot()
-            Graphics object consisting of 42 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1981,7 +1985,7 @@ class Link(object):
 
             sage: L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
             sage: L.plot()
-            Graphics object consisting of 13 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1993,13 +1997,27 @@ class Link(object):
 
             sage: L = Link([[[-1, 2, -3, 1, -2, 3], [4, -5, 6, -4, 5, -6]], [1, 1, 1, 1, 1, 1]])
             sage: L.plot()
-            Graphics object consisting of 28 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
 
             L = Link([[[-1,2,-3,1,-2,3], [4,-5,6,-4,5,-6]], [1,1,1,1,1,1]])
             sphinx_plot(L.plot())
+
+        TESTS:
+
+        Check that :trac:`20315` is fixed::
+
+            sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
+            sage: L.plot(solver='GLPK')
+            Graphics object consisting of ... graphics primitives
+            sage: L.plot(solver='Coin')    # optional - cbc
+            Graphics object consisting of ... graphics primitives
+            sage: L.plot(solver='CPLEX')   # optional - CPLEX
+            Graphics object consisting of ... graphics primitives
+            sage: L.plot(solver='Gurobi')  # optional - Gurobi
+            Graphics object consisting of ... graphics primitives
         """
         comp = self._isolated_components()
         # Handle isolated components individually
@@ -2043,26 +2061,23 @@ class Link(object):
         regions = regions[:-1]
         edges = list(set(flatten(self.pd_code())))
         edges.sort()
-        MLP = MixedIntegerLinearProgram(maximization = True)
+        MLP = MixedIntegerLinearProgram(maximization=False, solver=solver)
         # v will be the list of variables in the MLP problem. There will be
         # two variables for each edge: number of right bendings and number of
         # left bendings (at the end, since we are minimizing the total, only one
         # of each will be nonzero
-        v = MLP.new_variable(nonnegative=True)
-        for i in range(2*len(edges)):
-            MLP.set_min(v[i], 0)
+        v = MLP.new_variable(nonnegative=True, integer=True)
         # one condition for each region
         for i in range(len(regions)):
             cond = 0
             r = regions[i]
-            es = 4 - len(r)
             for e in r:
                 if e > 0:
                     cond = cond + v[2*edges.index(e)] - v[2*edges.index(e) + 1]
                 else:
                     cond = cond - v[2*edges.index(-e)] + v[2*edges.index(-e) + 1]
-            MLP.add_constraint(cond, min=es, max=es)
-        MLP.set_objective(-sum(v.values()))
+            MLP.add_constraint(cond == 4 - len(r))
+        MLP.set_objective(MLP.sum(v.values()))
         MLP.solve()
         # we store the result in a vector s packing right bends as negative left ones
         s = range(len(edges))
@@ -2142,11 +2157,10 @@ class Link(object):
             nregions.append(r1)
             nregions.append(r2)
             badregions = [nr for nr in nregions if any(x[1] == -1 for x in nr)]
-        MLP = MixedIntegerLinearProgram(maximization = True)
-        variables = {}
+        MLP = MixedIntegerLinearProgram(maximization=False, solver=solver)
+        v = MLP.new_variable(nonnegative=True, integer=True)
         for e in segments:
-            variables[e] = MLP.new_variable(nonnegative=True)
-            MLP.set_min(variables[e][0], 1)
+            MLP.set_min(v[e], 1)
         for r in nregions:
             horp = []
             horm = []
@@ -2155,21 +2169,21 @@ class Link(object):
             direction = 0
             for se in r:
                 if direction % 4 == 0:
-                    horp.append(variables[se[0]][0])
+                    horp.append(v[se[0]])
                 elif direction == 1:
-                    verp.append(variables[se[0]][0])
+                    verp.append(v[se[0]])
                 elif direction == 2:
-                    horm.append(variables[se[0]][0])
+                    horm.append(v[se[0]])
                 elif direction == 3:
-                    verm.append(variables[se[0]][0])
+                    verm.append(v[se[0]])
                 if se[1] == 1:
                     direction += 1
-            MLP.add_constraint(sum(horp)-sum(horm), min=0, max=0)
-            MLP.add_constraint(sum(verp)-sum(verm), min=0, max=0)
-        MLP.set_objective(-sum([x[0] for x in variables.values()]))
+            MLP.add_constraint(MLP.sum(horp) - MLP.sum(horm) == 0)
+            MLP.add_constraint(MLP.sum(verp) - MLP.sum(verm) == 0)
+        MLP.set_objective(MLP.sum(v.values()))
         solved = MLP.solve()
-        lengths = {piece: sum(MLP.get_values(variables[a])[0] for a in pieces[piece])
-                   for piece in pieces}
+        v = MLP.get_values(v)
+        lengths = {piece: sum(v[a] for a in pieces[piece]) for piece in pieces}
         image = line([], **kwargs)
         crossings = {tuple(self.pd_code()[0]): (0,0,0)}
         availables = self.pd_code()[1:]

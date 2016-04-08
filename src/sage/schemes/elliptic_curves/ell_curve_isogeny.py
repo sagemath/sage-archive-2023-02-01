@@ -2564,7 +2564,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi._EllipticCurveIsogeny__compute_omega_general(E, psi, psi_pr, fi, fi_pr)
             x^3*y + (alpha^2 + 1)*x^2*y + (alpha^2 + alpha + 1)*x^2 + (alpha^2 + 1)*x*y + (alpha^2 + alpha)*x + (alpha)*y + (alpha)
 
-        A bug fixed in ticket #7907::
+        A bug fixed in :trac:`7907`::
 
             sage: F = GF(128,'a')
             sage: a = F.gen()
@@ -3358,7 +3358,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
-        Test (for trac ticket 7096)::
+        Test (for :trac:`7096`)::
 
             sage: E = EllipticCurve('11a1')
             sage: phi = E.isogeny(E(5,5))

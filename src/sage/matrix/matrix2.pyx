@@ -8319,11 +8319,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             a = self.get_unsafe(0,0)
         else:
             a = self.base_ring()(a)
-        zero = self.base_ring().zero()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
+        for i in range(self._nrows):
+            for j in range(self._ncols):
                 if i != j:
-                    if self.get_unsafe(i,j) != zero:
+                    if not self.get_unsafe(i,j).is_zero():
                         return False
                 else:
                     if self.get_unsafe(i, i) != a:

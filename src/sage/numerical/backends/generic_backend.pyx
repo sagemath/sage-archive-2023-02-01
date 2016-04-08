@@ -601,17 +601,30 @@ cdef class GenericBackend:
     ## Any test methods involving calls to 'solve' are set up as class methods,
     ## which make a fresh instance of the backend.
     @classmethod
-    def _test_solve(cls, **options):
+    def _test_solve(cls, tester=None, **options):
+        """
+        Trivial test for the solve method.
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_solve()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+        """
         p = cls()                         # fresh instance of the backend
-        print options
-        tester = p._tester(**options)     # <---- doesn't work ("assert tester._instance is instance" fails); we get a tester passed in **options...
-        # From doctest of GenericBackend.solve
+        if tester is None:
+            tester = p._tester(**options)
+        # From doctest of GenericBackend.solve:
         tester.assertIsNone(p.add_linear_constraints(5, 0, None))
         tester.assertIsNone(p.add_col(range(5), range(5)))
-        tester.assertEqual(p.solve(), 77)   # should be 0...
+        tester.assertEqual(p.solve(), 0)
         tester.assertIsNone(p.objective_coefficient(0,1))
         from sage.numerical.mip import MIPSolverException
-        with tester.assertRaises(MIPSolverException) as cm:
+        #with tester.assertRaisesRegexp(MIPSolverException, "unbounded") as cm:  ## --- too specific
+        with tester.assertRaises(MIPSolverException) as cm:   # unbounded
             p.solve()
 
     cpdef get_objective_value(self):

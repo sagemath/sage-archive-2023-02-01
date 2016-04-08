@@ -31,6 +31,16 @@ AUTHORS:
         sage: Y = Matroid(X)
     - linear characters
     - permutation pi on irreducibles
+    - hyperplane orbits (76.13 in Gap Manual)
+    - diagrams in ASCII-art (76.15)
+    - standard (BMR) presentations
+    - character table directly from Chevie
+    - GenericOrder (76.20), TorusOrder (76.21)
+    - copy hardcoded data (degrees, invariants, braid relations...) into sage
+    - transfer code for reduced_word_in_reflections into Gap4 or Sage
+    - list of reduced words for an element
+    - list of reduced words in reflections for an element
+    - Hurwitz action?
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
@@ -1440,7 +1450,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def _compute_reduced_word(self):
             r"""
-            Computes a reduced word and stores it into ``self._redcued_word``.
+            Computes a reduced word and stores it into ``self._reduced_word``.
 
             TESTS::
 

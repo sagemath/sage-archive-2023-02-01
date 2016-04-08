@@ -608,7 +608,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         def _compute_reduced_word(self):
             r"""
-            Computes a reduced word and stores it into ``self._redcued_word``.
+            Computes a reduced word and stores it into ``self._reduced_word``.
 
             TESTS::
 

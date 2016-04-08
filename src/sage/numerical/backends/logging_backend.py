@@ -14,13 +14,28 @@ It records all calls to backend methods.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.numerical.backends.generic_backend import GenericBackend
+from sage.numerical.backends.generic_backend import GenericBackend
 
 def format_function_call(fn_name, *v, **k):
     args = [ repr(a) for a in v ] + [ "%s=%r" % (arg,val) for arg, val in k.items() ]
     return "{}({})".format(fn_name, ", ".join(args))
 
-class LoggingBackend:
+def _make_wrapper(attr):
+    def m(self, *args, **kwdargs):
+        a = getattr(self._backend, attr)
+        if self._printing:
+            print "# {}".format(format_function_call("b." + attr, *args, **kwdargs))
+        if self._doctest:
+            self._doctest.write("        sage: {}\n".format(format_function_call("b." + attr, *args, **kwdargs)))
+        result = a(*args, **kwdargs)
+        if self._printing:
+            print "# result: {}".format(result)
+        if self._doctest:
+            self._doctest.write("        {}".format(result))
+        return result
+    return m
+
+class LoggingBackend (GenericBackend):
 
     """
     EXAMPLES::
@@ -46,32 +61,30 @@ class LoggingBackend:
         self._doctest = doctest
         self._test_method = test_method
 
+    # This getattr is there to create delegating method for all methods
+    # that are not part of the GenericBackend interface
     def __getattr__(self, attr):
         a = getattr(self._backend, attr)
         if callable(a):
-            # a method
-            def m(backend, *args, **kwdargs):
-                if self._printing:
-                    print "# {}".format(format_function_call("b." + attr, *args, **kwdargs))
-                if self._doctest:
-                    self._doctest.write("        sage: {}\n".format(format_function_call("b." + attr, *args, **kwdargs)))
-                result = a(*args, **kwdargs)
-                if self._printing:
-                    print "# result: {}".format(result)
-                if self._doctest:
-                    self._doctest.write("        {}".format(result))
-                return result
+            # make a bound method
             import types
-            mm = types.MethodType(m,self)
+            mm = types.MethodType(_make_wrapper(attr), self)
             # cache it
             setattr(self, attr, mm)
             return mm
         else:
             return a
 
-### does not work because get_solver needs to return a subclass of GenericBackend.
-### but if we make LoggingBackend a subclass of GenericBackend, then __getattr__ does not get run for all those methods.
-### Need to override methods by iterating through the dictionary, I guess...
+# Override all methods that we inherited from GenericBackend
+# by delegating methods
+for attr in dir(LoggingBackend):
+    if not attr.startswith("_"):
+        a = getattr(LoggingBackend, attr)
+        if callable(a):
+            # make an unbound method
+            import types
+            mm = types.MethodType(_make_wrapper(attr), None, LoggingBackend)
+            setattr(LoggingBackend, attr, mm)
 
 def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None):
 

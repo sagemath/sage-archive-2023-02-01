@@ -1,13 +1,15 @@
 r"""
 Hexads in S(5,6,12)
 
-This module completes a 5-element subset of a 12-set X
+This module completes a 5-element subset of a 12-set `X`
 into a hexad in a Steiner system S(5,6,12) using Curtis and
 Conway's "kitten method".  The labeling is either the
 "modulo 11" labeling or the "shuffle" labeling.
 
 The  main functions implemented in this file are
-blackjack_move and find_hexad. Enter "blackjack_move?"
+:meth:`Minimog.blackjack_move` and :meth:`Minimog.find_hexad`.
+
+Enter "blackjack_move?"
 for help to play blackjack (i.e., the rules of the game), or
 "find_hexad?" for help finding hexads of S(5,6,12) in the
 shuffle labeling.
@@ -40,9 +42,10 @@ The corresponding MINIMOG is::
              |  4  |  1  |  8  | 11  |
              +-----+-----+-----+-----+
 
-which is specified by the global variable "minimog_shuffle".
-See the docstrings for find_hexad and blackjack_move for
-further details and examples.
+which is specified by the global variable ``"minimog_shuffle"``.
+
+See the docstrings for :meth:`Minimog.find_hexad` and
+:meth:`Minimog.blackjack_move` for further details and examples.
 
 AUTHOR:
 
@@ -74,21 +77,17 @@ Some details are also online at:  http://www.permutationpuzzles.org/hexad/
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.infinity import Infinity
+from sage.rings.infinity import infinity
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.rational_field import RationalField
-QQ = RationalField()
-infinity = Infinity
-from sage.rings.finite_rings.finite_field_constructor import FiniteField
-GF = FiniteField
+from sage.matrix.constructor import matrix
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.calculus.calculus import SR
-#SR = SymbolicRing()
 
 
 def view_list(L):
     """
     This provides a printout of the lines, crosses and squares of the MINIMOG,
-    as in Curtis' paper.
+    as in Curtis' paper [Cur84]_.
 
     EXAMPLES::
 
@@ -110,18 +109,13 @@ def view_list(L):
         [1 1 0]
         [1 1 0]
     """
-    MS = MatrixSpace(QQ,3,3)
-    box = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
-    A = MS([[0 for i in range(3)] for i in range(3)])
-    for x in box:
-        if x in L:
-            A[x] = 1
-    return A
+    return matrix(GF(2), 3, 3, lambda x, y: 1 if (x,y) in L else 0)
+
 
 
 def picture_set(A, L):
     """
-    This is needed in the find_hexad function below.
+    This is needed in the :meth:`Minimog.find_hexad` function below.
 
     EXAMPLES::
 
@@ -135,7 +129,7 @@ def picture_set(A, L):
     return set([A[x] for x in L])
 
 
-class Minimog():
+class Minimog(object):
     """
     This implements the Conway/Curtis minimog idea for describing the Steiner
     triple system S(5,6,12).
@@ -150,7 +144,6 @@ class Minimog():
         [        0         3 +Infinity         2]
         [        5         9         8        10]
         [        4         1         6         7]
-
     """
     def __init__(self, type="shuffle"):
         self.type = type
@@ -162,7 +155,7 @@ class Minimog():
         elif type == "modulo11":
             self.minimog = minimog_modulo11
         else:
-            raise ValueError("That Minimog type is not implemented.")
+            raise ValueError("that Minimog type is not implemented")
         # This initializes the variables in the game.
         MS34 = MatrixSpace(SR,3,4)
         A = self.minimog
@@ -174,7 +167,7 @@ class Minimog():
         self.picture21 = MS33([[A[(2,2)],A[(1,3)],A[(0,1)]],[A[(0,3)],A[(2,3)],A[(2,0)]],[A[(1,0)],A[(1,1)],A[(1,2)]]])
         #######     self.picture21 is the "picture at 0"
 
-        self.line = [set([]) for i in range(12)]
+        self.line = list(range(12))
         self.line[0] = set([(0,0),(0,1),(0,2)])
         self.line[1] = set([(1,0),(1,1),(1,2)])
         self.line[2] = set([(2,0),(2,1),(2,2)])
@@ -188,7 +181,7 @@ class Minimog():
         self.line[10] = set([(0,0),(1,2),(2,1)])
         self.line[11] = set([(1,0),(0,1),(2,2)])
 
-        self.cross = [set([]) for i in range(18)]
+        self.cross = list(range(18))
         self.cross[0] = set([(0,0),(0,1),(0,2),(1,0),(2,0)])
         self.cross[1] = set([(0,0),(0,1),(0,2),(1,2),(2,2)])
         self.cross[2] = set([(0,0),(1,0),(2,0),(2,1),(2,2)])
@@ -212,25 +205,25 @@ class Minimog():
         for i in range(18):
             self.square[i] = self.box - self.cross[i]
 
-        MS34_GF3 = MatrixSpace(GF(3),3,4)
-        self.col1 = MS34_GF3([[1,0,0,0],[1,0,0,0],[1,0,0,0]])
-        self.col2 = MS34_GF3([[0,1,0,0],[0,1,0,0],[0,1,0,0]])
-        self.col3 = MS34_GF3([[0,0,1,0],[0,0,1,0],[0,0,1,0]])
-        self.col4 = MS34_GF3([[0,0,0,1],[0,0,0,1],[0,0,0,1]])
+        MS34_GF3 = MatrixSpace(GF(2), 3, 4)
+        cols = {}
+        cols[1] = MS34_GF3([[1,0,0,0],[1,0,0,0],[1,0,0,0]])
+        cols[2] = MS34_GF3([[0,1,0,0],[0,1,0,0],[0,1,0,0]])
+        cols[3] = MS34_GF3([[0,0,1,0],[0,0,1,0],[0,0,1,0]])
+        cols[4] = MS34_GF3([[0,0,0,1],[0,0,0,1],[0,0,0,1]])
+        self.col = cols
 
-        self.tet1 = MS34_GF3([[1,1,1,1],[0,0,0,0],[0,0,0,0]])
-        self.tet2 = MS34_GF3([[1,0,0,0],[0,1,1,1],[0,0,0,0]])
-        self.tet3 = MS34_GF3([[1,0,0,0],[0,0,0,0],[0,1,1,1]])
-        self.tet4 = MS34_GF3([[0,1,0,0],[1,0,1,0],[0,0,0,1]])
-        self.tet5 = MS34_GF3([[0,0,0,1],[1,1,0,0],[0,0,1,0]])
-        self.tet6 = MS34_GF3([[0,0,1,0],[1,0,0,1],[0,1,0,0]])
-        self.tet7 = MS34_GF3([[0,1,0,0],[0,0,0,1],[1,0,1,0]])
-        self.tet8 = MS34_GF3([[0,0,1,0],[0,1,0,0],[1,0,0,1]])
-        self.tet9 = MS34_GF3([[0,0,0,1],[0,0,1,0],[1,1,0,0]])
-        self.col = [self.col1, self.col2, self.col3, self.col4]
-        self.tet = [self.tet1, self.tet2, self.tet3, self.tet4,
-                    self.tet5, self.tet6, self.tet7, self.tet8, self.tet9]
-        # return picture00,picture02,picture21,line,cross,square,col,tet
+        tets = {}
+        tets[1] = MS34_GF3([[1,1,1,1],[0,0,0,0],[0,0,0,0]])
+        tets[2] = MS34_GF3([[1,0,0,0],[0,1,1,1],[0,0,0,0]])
+        tets[3] = MS34_GF3([[1,0,0,0],[0,0,0,0],[0,1,1,1]])
+        tets[4] = MS34_GF3([[0,1,0,0],[1,0,1,0],[0,0,0,1]])
+        tets[5] = MS34_GF3([[0,0,0,1],[1,1,0,0],[0,0,1,0]])
+        tets[6] = MS34_GF3([[0,0,1,0],[1,0,0,1],[0,1,0,0]])
+        tets[7] = MS34_GF3([[0,1,0,0],[0,0,0,1],[1,0,1,0]])
+        tets[8] = MS34_GF3([[0,0,1,0],[0,1,0,0],[1,0,0,1]])
+        tets[9] = MS34_GF3([[0,0,0,1],[0,0,1,0],[1,1,0,0]])
+        self.tet = tets
 
     def __repr__(self):
         return "Minimog of type %s" % self.type
@@ -303,29 +296,28 @@ class Minimog():
 
         """
         MINIMOG = self.minimog
-        Kitten1 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[0][2]),' ',' ',' ',' ',' ']
-        Kitten2 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
-        Kitten3 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[2][2]),' ',' ',' ',' ',' ']
-        Kitten4 = [' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ',' ',' ',' ']
-        Kitten5 = [' ',' ',' ',' ',' ',' ',str(MINIMOG[1][0]),' ',' ',str(MINIMOG[2][3]),' ',' ',str(MINIMOG[0][1]),' ',' ',' ']
-        Kitten6 = [' ',' ',' ',' ',' ',str(MINIMOG[2][2]),' ',' ',str(MINIMOG[1][1]),' ',' ',str(MINIMOG[2][0]),' ',' ',str(MINIMOG[2][2]),' ',' ']
-        Kitten7 = [' ',' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ',' ',str(MINIMOG[1][2]),' ',' ',str(MINIMOG[0][3]),' ',' ',str(MINIMOG[1][3]),' ']
-        Kitten8 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
-        Kitten9 = [str(MINIMOG[0][0]),' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[2][1])]
-        Kitten = [Kitten1, Kitten2, Kitten3, Kitten4, Kitten5, Kitten6, Kitten7, Kitten8, Kitten9]
-        kitten = "\n".join("".join(u) for u in Kitten)
-        print kitten
+        Kitten = ['         {}'.format(MINIMOG[0][2])]
+        Kitten += ['           ']
+        Kitten += ['         {}'.format(MINIMOG[2][2])]
+        Kitten += ['       ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),'    ']
+        Kitten += ['      ',str(MINIMOG[1][0]),'  ',str(MINIMOG[2][3]),'  ',str(MINIMOG[0][1]),'   ']
+        Kitten += ['     ',str(MINIMOG[2][2]),'  ',str(MINIMOG[1][1]),'  ',str(MINIMOG[2][0]),'  ',str(MINIMOG[2][2]),'  ']
+        Kitten += ['   ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),'  ',str(MINIMOG[1][2]),'  ',str(MINIMOG[0][3]),'  ',str(MINIMOG[1][3]),' ']
+        Kitten += ['           ']
+        Kitten += [str(MINIMOG[0][0]),'                   ',str(MINIMOG[2][1])]
+        print "\n".join("".join(u) for u in Kitten)
 
     def find_hexad0(self, pts):
         """
         INPUT:
 
-        - pts -- a set of 2 distinct elements of MINIMOG, but not including the
-          "points at infinity"
+        - ``pts`` -- a set of 2 distinct elements of MINIMOG, but not
+          including the "points at infinity"
 
         OUTPUT:
 
-        - hexad containing pts and of type 0 (the 3 points "at infinity" union a line)
+        hexad containing ``pts`` and of type 0 (the 3 points "at
+        infinity" union a line)
 
         NOTE:
 
@@ -361,12 +353,12 @@ class Minimog():
         """
         INPUT:
 
-        pts -- a set pts of 5 distinct elements of MINIMOG
+        ``pts`` -- a set pts of 5 distinct elements of MINIMOG
 
         OUTPUT:
 
-        hexad containing pts and of type 1 (union of 2 parallel lines -- *no*
-        points "at infinity")
+        hexad containing ``pts`` and of type 1 (union of 2 parallel
+        lines -- *no* points "at infinity")
 
         NOTE: 3 points "at infinity" = {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
@@ -402,8 +394,8 @@ class Minimog():
         """
         INPUT:
 
-        - pts -- a list S of 4 elements of MINIMOG, not including any "points
-          at infinity"
+        - ``pts`` -- a list S of 4 elements of MINIMOG, not including
+          any "points at infinity"
         - x0  -- in {MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]}
 
         OUTPUT:
@@ -418,11 +410,11 @@ class Minimog():
             ([], [])
 
         The above output indicates that there is no hexad of type 2
-        containing {2,3,4,5}. However, there is one containing {2,3,4,8}::
+        containing `\{2,3,4,5\}`. However, there is one containing
+        `\{2,3,4,8\}`::
 
             sage: M.find_hexad2([2,3,4,8],0)
             ([0, 2, 3, 4, 8, 9], ['cross 12', 'picture 0'])
-
         """
         MINIMOG = self.minimog
         L = set(pts)

@@ -642,7 +642,7 @@ AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
 
 # Usage: newest_version $pkg
-# Print version number of latest standard package $pkg
+# Print version number of latest package $pkg
 newest_version() {
     PKG=$1
     if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
@@ -664,6 +664,10 @@ newest_version() {
 #
 #     filtered_packages_list all
 #
+# Or, if you want all packages which should appear in the source tarball:
+#
+#     filtered_packages_list sdist
+#
 # The output consists of triples
 # PKG_NAME PKG_VERSION PKG_VAR
 #
@@ -678,8 +682,7 @@ filtered_packages_list() {
         if [ -f "$PKG_TYPE_FILE" ]; then
             PKG_TYPE=`cat $PKG_TYPE_FILE`
         else
-            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
-            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing."
             exit 1
         fi
 
@@ -694,9 +697,26 @@ filtered_packages_list() {
             exit 1
         fi
 
+        PKG_NAME=$(basename $DIR)
+
         # Filter
-        if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
-            PKG_NAME=$(basename $DIR)
+        filter=no
+        if [ "$1" = all ]; then
+            filter=yes
+        elif [ "$1" = "$PKG_TYPE" ]; then
+            filter=yes
+        elif [ "$1" = sdist ]; then
+            # sdist packages are all standard packages, together with
+            # mpir and python2.
+            if [ "$PKG_TYPE" = standard ]; then
+                filter=yes
+            elif [ "$PKG_NAME" = mpir ]; then
+                filter=yes
+            elif [ "$PKG_NAME" = python2 ]; then
+                filter=yes
+            fi
+        fi
+        if [ $filter = yes ]; then
             PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
             PKG_VERSION=$(newest_version $PKG_NAME)
             echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
@@ -782,6 +802,15 @@ filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
 done
 echo >&7
 echo >&7
+
+echo >&7 '# All packages which should be downloaded'
+echo >&7 'SDIST_PACKAGES = \'
+filtered_packages_list sdist | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&7 "    \$(INST)/$PKG_VERSION \\"
+done
+echo >&7
+echo >&7
+
 
 echo >&7 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do

@@ -17,7 +17,6 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import have_same_parent
@@ -41,7 +40,7 @@ class CoxeterGroups(Category_singleton):
         sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
-        [Category of generalized coxeter     groups]
+        [Category of generalized coxeter groups]
 
         sage: W = C.example(); W
         The symmetric group on {0, ..., 3}
@@ -95,6 +94,7 @@ class CoxeterGroups(Category_singleton):
             sage: CoxeterGroups().super_categories()
             [Category of generalized coxeter groups]
         """
+        from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
         return [GeneralizedCoxeterGroups()]
 
     Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')

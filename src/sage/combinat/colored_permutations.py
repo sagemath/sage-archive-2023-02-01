@@ -10,8 +10,6 @@ import itertools
 
 from sage.categories.groups import Groups
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
-from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -331,7 +329,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
     - :wikipedia:`Generalized_symmetric_group`
     - :wikipedia:`Complex_reflection_group`
     """
-    def __init__(self, m, n, category=None):
+    def __init__(self, m, n):
         """
         Initialize ``self``.
 
@@ -350,11 +348,13 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         self._n = n
         self._C = IntegerModRing(self._m)
         self._P = Permutations(self._n)
-        if category is None:
-            if self._m == 1 or self._m == 2:
-                category = FiniteCoxeterGroups().Irreducible()
-            else:
-                category = GeneralizedCoxeterGroups().Finite().Irreducible()
+
+        if self._m == 1 or self._m == 2:
+            from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
+            category = FiniteCoxeterGroups().Irreducible()
+        else:
+            from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+            category = GeneralizedCoxeterGroups().Finite().Irreducible()
         Parent.__init__(self, category=category)
 
     def _repr_(self):
@@ -995,7 +995,7 @@ class SignedPermutations(ColoredPermutations):
             sage: S = SignedPermutations(4)
             sage: TestSuite(S).run()
         """
-        ColoredPermutations.__init__(self, 2, n, FiniteCoxeterGroups().Irreducible())
+        ColoredPermutations.__init__(self, 2, n)
 
     def _repr_(self):
         """

@@ -16,7 +16,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.groups import Groups
-from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 
 class GeneralizedCoxeterGroups(Category_singleton):
     r"""
@@ -74,6 +73,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: Cat.is_subcategory(ComplexReflectionGroups())
                 True
             """
+            from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class Irreducible(CategoryWithAxiom):

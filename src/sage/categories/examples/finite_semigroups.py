@@ -43,14 +43,13 @@ class LeftRegularBand(UniqueRepresentation, Parent):
     repetitions over the alphabet `a`, `b`, `c`, `d`::
 
         sage: S.list()
-        ['a', 'c', 'b', 'bd', 'bda', 'd', 'bdc', 'bc', 'bcd', 'cb',
-         'ca', 'ac', 'cba', 'ba', 'cbd', 'bdca', 'db', 'dc', 'cd',
-         'bdac', 'ab', 'abd', 'da', 'ad', 'cbad', 'acb', 'abc',
-         'abcd', 'acbd', 'cda', 'cdb', 'dac', 'dba', 'dbc', 'dbca',
-         'dcb', 'abdc', 'cdab', 'bcda', 'dab', 'acd', 'dabc', 'cbda',
-         'bca', 'dacb', 'bad', 'adb', 'bac', 'cab', 'adc', 'cdba',
-         'dca', 'cad', 'adbc', 'adcb', 'dbac', 'dcba', 'acdb', 'bacd',
-         'cabd', 'cadb', 'badc', 'bcad', 'dcab']
+        ['a', 'b', 'c', 'd', 'bd', 'ac', 'ab', 'ad', 'bc', 'cb', 'ca', 'db',
+         'dc', 'cd', 'da', 'ba', 'cba', 'cda', 'cbd', 'dba', 'dbc', 'abc',
+         'abd', 'cdb', 'bdc', 'adb', 'adc', 'dab', 'dac', 'dcb', 'dca', 'bda',
+         'acb', 'acd', 'bcd', 'bca', 'bad', 'bac', 'cab', 'cad', 'abcd',
+         'adbc', 'dbac', 'dcab', 'cabd', 'cadb', 'cbda', 'cdba', 'dacb',
+         'badc', 'bdca', 'dbca', 'adcb', 'acbd', 'dcba', 'acdb', 'bdac',
+         'cbad', 'bcda', 'dabc', 'abdc', 'cdab', 'bacd', 'bcad']
 
     It also follows that there are finitely many of them::
 

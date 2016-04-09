@@ -2065,8 +2065,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         chains = NC.chains()
         NCm = set()
         iter = chains.breadth_first_search_iterator()
-        chain = iter.next()
-        chain = iter.next()
+        chain = next(iter)
+        chain = next(iter)
         while len(chain) <= m:
             chain.append( c )
             for i in range(len(chain)-1,0,-1):
@@ -2083,9 +2083,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 if not positive or prod(ncm[:-1]).has_full_support():
                     NCm.add(tuple(ncm))
             try:
-                chain = iter.next()
+                chain = next(iter)
             except StopIteration:
-                chain = range(m+1)
+                chain = range(m + 1)
         return NCm
 
     @cached_method

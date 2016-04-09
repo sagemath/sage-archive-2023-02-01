@@ -25,6 +25,7 @@ from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
+from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
@@ -684,6 +685,8 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             category = category.Finite()
         else:
             category = category.Infinite()
+        if indices in Sets().Finite():
+            category = category.FinitelyGeneratedAsMagma()
         Parent.__init__(self, names=names, category=category)
 
         # ignore the optional 'key' since it only affects CachedRepresentation

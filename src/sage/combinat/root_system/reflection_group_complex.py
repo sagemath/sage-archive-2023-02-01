@@ -19,16 +19,16 @@ AUTHORS:
     - element class should be unique to be able to work with large groups without creating elements multiple times.
     - is_shephard_group, is_generalized_coxeter_group
     - exponents & coexponents
-    - coinvariant ring
+    - coinvariant ring:
         - fake degrees from Torsten Hoge
         - operation of linear characters on all characters
         - harmonic polynomials
     - linear forms for hyperplanes
     - field of definition
-    - intersection lattice and characteristic polynomial
-        sage: X = [ alpha(t) for t in W.distinguished_reflections() ]
-        sage: X = Matrix(CF,X).transpose()
-        sage: Y = Matroid(X)
+    - intersection lattice and characteristic polynomial:
+        X = [ alpha(t) for t in W.distinguished_reflections() ]
+        X = Matrix(CF,X).transpose()
+        Y = Matroid(X)
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
@@ -67,7 +67,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.interfaces.gap3 import gap3
 from sage.combinat.words.word import Word
 from sage.rings.universal_cyclotomic_field import E
-from sage.rings.arith import lcm
+from sage.arith.misc import lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
@@ -172,7 +172,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def _irrcomp_repr_(self,W_type):
         r"""
-        Return the string representation of an irreducible component of ``self``.
+        Return the string representation of an irreducible component
+        of ``self``.
 
         TESTS::
 
@@ -544,10 +545,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup((2,1,2))
+            sage: W.reflecting_hyperplane(2)
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+
+        One can ask for the result as a linear form::
+
+            sage: W.reflecting_hyperplane(2, True)
+            (0, 1)
         """
         if i not in self.hyperplane_index_set():
-            raise ValueError("The given index %s is not an index of a reflecting hyperplane"%i)
+            raise ValueError("The given index %s is not an index of a reflecting hyperplane" % i)
         return self.reflecting_hyperplanes(as_linear_functional=as_linear_functional)[i]
 
     @cached_method
@@ -1133,15 +1143,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             v.set_immutable()
         return roots
 
-    def reflection_to_positive_root(self,r):
-        r"""
-        Return a root that is an eigenvector of self.
-        """
-        Phi = self.roots()
-        for i,beta in enumerate(Phi):
-            if Phi[r(i+1)-1] == E(r.order())*Phi[i]:
-                return Phi[i]
-
     @cached_method
     def braid_relations(self):
         r"""
@@ -1237,47 +1238,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         else:
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
-
-    def invariant_form(self):
-        r"""
-        Returns the form that is invariant under the action of ``self``.
-
-        EXAMPLES::
-
-            sage: tba
-        """
-        Phi = self.roots()
-
-        base_change = self.base_change_matrix()
-        Delta = [ beta*base_change for beta in self.simple_roots() ]
-        basis_is_Delta = base_change.is_one()
-
-        S = self.simple_reflections()
-        n = len(S)
-
-        def act_on_root(w,root):
-            if basis_is_Delta:
-                return Phi[ w(Phi.index(root)+1)-1 ]
-            else:
-                return root*w.as_matrix()
-
-        @cached_function
-        def invariant_value(i,j):
-            if i > j:
-                return invariant_value(j,i).conjugate()
-            val = sum( (act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self )
-            if val in QQ:
-                val = QQ(val)
-            return val
-
-        coeffs = []
-        for i in range(n):
-            coeff = 1-E(S[i].order())
-            if coeff in QQ:
-                coeff = QQ(coeff)
-            coeffs.append(coeff)
-
-        return Matrix([ [ invariant_value(i,j)/self.cardinality() for j in range(n) ] for i in range(n) ])
 
     def set_reflection_representation(self,refl_repr=None):
         r"""

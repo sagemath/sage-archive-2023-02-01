@@ -172,7 +172,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def _irrcomp_repr_(self,W_type):
         r"""
-        Return the string representation of an irreducible component of ``self``.
+        Return the string representation of an irreducible component
+        of ``self``.
 
         TESTS::
 
@@ -1116,15 +1117,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             v.set_immutable()
         return roots
 
-    def reflection_to_positive_root(self,r):
-        r"""
-        Return a root that is an eigenvector of self.
-        """
-        Phi = self.roots()
-        for i,beta in enumerate(Phi):
-            if Phi[r(i+1)-1] == E(r.order())*Phi[i]:
-                return Phi[i]
-
     @cached_method
     def braid_relations(self):
         r"""
@@ -1223,7 +1215,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def invariant_form(self):
         r"""
-        Returns the form that is invariant under the action of ``self``.
+        Return the form that is invariant under the action of ``self``.
 
         EXAMPLES::
 

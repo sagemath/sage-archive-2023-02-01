@@ -205,66 +205,69 @@ class RealReflectionGroup(ComplexReflectionGroup):
         type_str = type_str[:-3]
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
-    def iter_breadth(self):
-        return self.__iter__(algorithm="breadth")
-
-    def iter_depth(self):
-        return self.__iter__(algorithm="depth")
-
-    def __iter__(self, algorithm="depth"):
-        from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, algorithm=algorithm))
-
-    def _iterator_tracking_words(self):
+    def iteration(self, algorithm="breadth", tracking_words=True):
         r"""
-        Return an iterator through the elements of ``self`` together
-        with the words in the simple generators.
+        Return an iterator going through all elements in ``self``.
 
-        The iterator is a breadth first search through the right weak
-        order of ``self``.
+        INPUT:
 
-        .. REMARK::
+        - ``algorithm`` (default:'breadth') - can be 'breadth' or
+          'depth', 'breadth' returns the elements in a linear extension
+          of the weak order, 'depth' is ~1.5 x faster.
+        - ``tracking_words`` (default: True) - whether or not to keep
+          track of the reduced words and store them in ``_reduced_word``.
 
-            In order to save space, the fact that the right weak order
-            is graded is used.
-
-        .. TODO::
-
-            This algorithm could be still much optimized:
-
-            - the right weak order is self-dual under the action of the
-              longest element, so one only needs to search through the
-              first half.
-
-            - the coset decomposition used in chevie is much quicker.
-
+        The fastest iteration is the depth first algorithm without
+        tracking words.
+        
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])
-            sage: for w in W._iterator_tracking_words(): print w
-            ((), ())
-            ((1,4)(2,3)(5,6), (0,))
-            ((1,3)(2,5)(4,6), (1,))
-            ((1,6,2)(3,5,4), (0, 1))
-            ((1,2,6)(3,4,5), (1, 0))
-            ((1,5)(2,4)(3,6), (0, 1, 0))
-        """
-        I = self.gens()
-        index_list = range(len(I))
+            sage: W = ReflectionGroup(["B",2])
 
-        level_set_old   = set()
-        level_set_cur   = [ (self.one(), tuple()) ]
-        while level_set_cur:
-            level_set_new = []
-            for x, word in level_set_cur:
-                yield x, word
-                for i in index_list:
-                    y = x._mul_(I[i])
-                    if y not in level_set_old:
-                        level_set_old.add(y)
-                        level_set_new.append((y, word+(i,)))
-            level_set_old = set( elt[0] for elt in level_set_cur )
-            level_set_cur = level_set_new
+            sage: for w in W.iteration("breadth",True): print w, w._reduced_word
+            () []
+            (1,3)(2,6)(5,7) [1]
+            (1,5)(2,4)(6,8) [0]
+            (1,7,5,3)(2,4,6,8) [0, 1]
+            (1,3,5,7)(2,8,6,4) [1, 0]
+            (2,8)(3,7)(4,6) [1, 0, 1]
+            (1,7)(3,5)(4,8) [0, 1, 0]
+            (1,5)(2,6)(3,7)(4,8) [0, 1, 0, 1]
+
+            sage: for w in W.iteration("depth",False): print w                
+            ()
+            (1,3)(2,6)(5,7)
+            (1,5)(2,4)(6,8)
+            (1,3,5,7)(2,8,6,4)
+            (1,7)(3,5)(4,8)
+            (1,7,5,3)(2,4,6,8)
+            (2,8)(3,7)(4,6)
+            (1,5)(2,6)(3,7)(4,8)
+        """
+        from sage.combinat.root_system.reflection_group_c import Iterator
+        return iter(Iterator(self, algorithm=algorithm, tracking_words=tracking_words))
+
+    def __iter__(self):
+        r"""
+        Return an iterator going through all elements in ``self``.
+
+        For options and faster iteration see :meth:`iteration`.
+        
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(["B",2])
+
+            sage: for w in W.__iter__(): print w, w._reduced_word
+            () []
+            (1,3)(2,6)(5,7) [1]
+            (1,5)(2,4)(6,8) [0]
+            (1,7,5,3)(2,4,6,8) [0, 1]
+            (1,3,5,7)(2,8,6,4) [1, 0]
+            (2,8)(3,7)(4,6) [1, 0, 1]
+            (1,7)(3,5)(4,8) [0, 1, 0]
+            (1,5)(2,6)(3,7)(4,8) [0, 1, 0, 1]
+        """
+        return self.iteration(algorithm="breadth", tracking_words=True)
 
     @cached_method
     def bipartite_index_set(self):
@@ -677,7 +680,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             if not isinstance(positive, bool):
                 raise TypeError("%s is not a boolean"%(bool))
 
-            if i not in self.parent().hyperplane_index_set():
+            if i not in self.parent().index_set():
                 raise ValueError("The given index %s is not in the index set"%i)
 
             negative = not positive

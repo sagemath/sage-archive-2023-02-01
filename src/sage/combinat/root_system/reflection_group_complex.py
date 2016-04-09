@@ -128,8 +128,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         self._hyperplane_index_set = hyperplane_index_set
         self._reflection_index_set = reflection_index_set
 
-        self._elements = None
-        self._store_elements = False
         self._conjugacy_classes = {}
         self._conjugacy_classes_representatives = None
         self._reflection_representation = None
@@ -230,19 +228,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1,2,6)(3,4,5)
             (1,5)(2,4)(3,6)
         """
-        if self._elements is not None and len(self._elements) == self.cardinality():
-            for w in self._elements:
-                yield w
-        else:
-            if self._store_elements:
-                self._elements = []
-            inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
-            for w,word in self._iterator_tracking_words():
-                if w._reduced_word is None:
-                    w._reduced_word = [inv_dict[j] for j in word]
-                if self._store_elements:
-                    self._elements.append(w)
-                yield w
+        inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
+        for w,word in self._iterator_tracking_words():
+            if w._reduced_word is None:
+                w._reduced_word = [inv_dict[j] for j in word]
+            yield w
 
     # This is the default implementation for any group with generators
     # I leave it here in case it is needed at some point.
@@ -312,33 +302,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                         level_set_old.add(y)
                         level_set_new.append((y,word+tuple([i])))
             level_set_cur = level_set_new
-
-    def store_elements(self,store=True):
-        r"""
-        Set a flag whether or not to store the elements of ``self``
-        when iterating through ``self``.
-
-        INPUT:
-
-        - ``store`` -- (optional, default: ``True) Boolean whether or
-          not to store the elements of ``self`` on iteration.
-
-        This can be useful for faster iterations later on.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((1,1,3))
-            sage: for w in W: pass
-            sage: W._elements is None
-            True
-            sage: W._store_elements
-            False
-            sage: W.store_elements()
-            sage: for w in W: pass
-            sage: len(W._elements) == W.cardinality()
-            True
-        """
-        self._store_elements = store
 
     __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
 

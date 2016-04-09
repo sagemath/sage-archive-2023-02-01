@@ -585,7 +585,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Return a finite family containing the reflections of ``self``,
         indexed by :meth:`self.reflection_index_set`.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.reflections()
@@ -612,7 +612,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         r"""
         Return the ``i``-th reflection of ``self``.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.reflection(0)

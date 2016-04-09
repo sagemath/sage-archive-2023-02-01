@@ -32,15 +32,20 @@ AUTHORS:
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
+    - improve invariant_form with a code similar to the one in reflection_group_real.py
+    - add a method reflection_to_root or distinguished_reflection_to_positive_root.
     - diagrams in ASCII-art (76.15)
     - standard (BMR) presentations
     - character table directly from Chevie
     - GenericOrder (76.20), TorusOrder (76.21)
+    - correct fundamental invariants for G34, check the others
     - copy hardcoded data (degrees, invariants, braid relations...) into sage
+    - add other hardcoded data from the tables in chevie (location is SAGEDIR/local/gap3/gap-jm5-2015-02-01/gap3/pkg/chevie/tbl): basic derivations, discriminant, ...
     - transfer code for reduced_word_in_reflections into Gap4 or Sage
     - list of reduced words for an element
     - list of reduced words in reflections for an element
     - Hurwitz action?
+    - is_crystallographic should be hardcoded
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>

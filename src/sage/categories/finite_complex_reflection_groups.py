@@ -75,6 +75,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         from sage.combinat.root_system.reflection_group_real import ReflectionGroup
         return ReflectionGroup((1,1,3), (2,1,2))
 
+    class SubcategoryMethods:
+        WellGenerated = axiom("WellGenerated")
+
     class ParentMethods:
         @abstract_method(optional=True)
         def degrees(self):

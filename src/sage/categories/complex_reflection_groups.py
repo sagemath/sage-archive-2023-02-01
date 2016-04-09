@@ -43,7 +43,8 @@ class ComplexReflectionGroups(Category_singleton):
 
     REFERENCES:
 
-    .. [LT2009] G. I. Lehrer and D. E. Taylor. Unitary reflection groups. Australian Mathematical Society Lecture Series, 2009.
+    .. [LT2009] G. I. Lehrer and D. E. Taylor. *Unitary reflection groups*.
+       Australian Mathematical Society Lecture Series, 2009.
 
     EXAMPLES::
 
@@ -94,7 +95,6 @@ class ComplexReflectionGroups(Category_singleton):
     class SubcategoryMethods:
         Finite = axiom("Finite")
         Irreducible = axiom("Irreducible")
-        WellGenerated = axiom("WellGenerated")
 
     def example(self):
         r"""
@@ -312,13 +312,13 @@ class ComplexReflectionGroups(Category_singleton):
                 b (1,3)(2,5)(4,6)
                 c (1,5)(2,4)(3,6)
 
-                sage: W = ColoredPermutations(3,1)
+                sage: W = ColoredPermutations(3, 1)
                 sage: reflections = W.reflections()
                 sage: for index in sorted(reflections.keys()): print index, reflections[index]
                 0 (1,2,3)
                 1 (1,3,2)
 
-                sage: W = ReflectionGroup((1,1,3),(3,1,2))
+                sage: W = ReflectionGroup((1,1,3), (3,1,2))
                 sage: reflections = W.reflections()
                 sage: for index in sorted(reflections.keys()): print index, reflections[index]
                 0 (1,6)(2,5)(7,8)
@@ -560,7 +560,7 @@ class ComplexReflectionGroups(Category_singleton):
             s = self.parent().simple_reflections()
             return self * s[i]
 
-        def apply_simple_reflection(self, i, side = 'right'):
+        def apply_simple_reflection(self, i, side='right'):
             """
             Return ``self`` * ``s[i]``.
 
@@ -575,27 +575,27 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = CoxeterGroups().example()
+                sage: W = ComplexReflectionGroups().example()
                 sage: w = W.an_element(); w
-                (1, 2, 3, 0)
-                sage: w.apply_simple_reflection(0, side = "left")
-                (0, 2, 3, 1)
-                sage: w.apply_simple_reflection(1, side = "left")
-                (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(2, side = "left")
-                (1, 3, 2, 0)
+                [[1, 0, 0], [3, 1, 2]]
+                sage: w.apply_simple_reflection(1, side="left")
+                [[0, 1, 0], [1, 3, 2]]
+                sage: w.apply_simple_reflection(2, side="left")
+                [[1, 0, 0], [3, 2, 1]]
+                sage: w.apply_simple_reflection(3, side="left")
+                [[1, 0, 1], [3, 1, 2]]
 
-                sage: w.apply_simple_reflection(0, side = "right")
-                (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(1, side = "right")
-                (1, 3, 2, 0)
-                sage: w.apply_simple_reflection(2, side = "right")
-                (1, 2, 0, 3)
+                sage: w.apply_simple_reflection(1, side="right")
+                [[1, 0, 0], [3, 2, 1]]
+                sage: w.apply_simple_reflection(2, side="right")
+                [[1, 0, 0], [2, 1, 3]]
+                sage: w.apply_simple_reflection(3, side="right")
+                [[2, 0, 0], [3, 1, 2]]
 
-            By default, ``side`` is "right"::
+            By default, ``side`` is ``"right"``::
 
-                sage: w.apply_simple_reflection(0)
-                (2, 1, 3, 0)
+                sage: w.apply_simple_reflection(1)
+                [[1, 0, 0], [3, 2, 1]]
             """
             if side == 'right':
                 return self.apply_simple_reflection_right(i)
@@ -612,20 +612,20 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,2)
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: W = ColoredPermutations(1, 2)
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1]
 
-                sage: W = ColoredPermutations(2,2)
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: W = ColoredPermutations(2, 2)
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 2, 2, 2]
 
-                sage: W = ColoredPermutations(3,2)
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: W = ColoredPermutations(3, 2)
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
                 sage: W = ReflectionGroup((2,2,2))
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 2]
             """
 
@@ -635,11 +635,11 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4); W
+                sage: W = ColoredPermutations(1, 4); W
                 1-colored permutations of size 4
-                sage: [ t.is_reflection() for t in W.reflections() ]
+                sage: [t.is_reflection() for t in W.reflections()]
                 [True, True, True, True, True, True]
-                sage: len( [ t for t in W.reflections() if t.is_reflection() ] )
+                sage: len([t for t in W.reflections() if t.is_reflection()])
                 6
 
                 sage: W = ColoredPermutations(2,3); W
@@ -699,7 +699,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3); W
+                sage: W = ColoredPermutations(1, 3); W
                 1-colored permutations of size 3
                 sage: W.one().apply_distinguished_reflection(0)
                 (1,4)(2,3)(5,6)
@@ -850,5 +850,5 @@ class ComplexReflectionGroups(Category_singleton):
                 """
                 return True
 
-    Finite = LazyImport('sage.categories.finite_complex_reflection_groups', 'FiniteComplexReflectionGroups')
+    Finite = LazyImport('sage.categories.finite_complex_reflection_groups', 'FiniteComplexReflectionGroups', as_name='Finite')
 

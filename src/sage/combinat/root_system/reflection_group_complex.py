@@ -32,6 +32,8 @@ AUTHORS:
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
+    - improve invariant_form with a code similar to the one in reflection_group_real.py
+    - add a method reflection_to_root or distinguished_reflection_to_positive_root.
     - diagrams in ASCII-art (76.15)
     - standard (BMR) presentations
     - character table directly from Chevie

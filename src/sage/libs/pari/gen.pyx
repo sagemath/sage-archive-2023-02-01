@@ -1371,19 +1371,15 @@ cdef class gen(gen_auto):
             sage: type(w[0])
             <type 'int'>
         """
-        cdef long n, m
+        cdef long n
         if typ(self.g) != t_VECSMALL:
             raise TypeError("Object (=%s) must be of type t_VECSMALL." % self)
-        V = []
-        m = glength(self.g)
-        for n from 0 <= n < m:
-            V.append(self.g[n+1])
-        return V
+        return [self.g[n+1] for n in range(glength(self.g))]
 
     def python_list(gen self):
         """
         Return a Python list of the PARI gens. This object must be of type
-        t_VEC.
+        t_VEC or t_COL.
 
         INPUT: None
 
@@ -1395,7 +1391,7 @@ cdef class gen(gen_auto):
 
         EXAMPLES::
 
-            sage: v=pari([1,2,3,10,102,10])
+            sage: v = pari([1,2,3,10,102,10])
             sage: w = v.python_list()
             sage: w
             [1, 2, 3, 10, 102, 10]
@@ -1403,17 +1399,16 @@ cdef class gen(gen_auto):
             <type 'sage.libs.pari.gen.gen'>
             sage: pari("[1,2,3]").python_list()
             [1, 2, 3]
+
+            sage: pari("[1,2,3]~").python_list()
+            [1, 2, 3]
         """
-        cdef long n, m
+        cdef long n
         cdef gen t
 
-        if typ(self.g) != t_VEC:
-            raise TypeError("Object (=%s) must be of type t_VEC." % self)
-        m = glength(self.g)
-        V = []
-        for n from 0 <= n < m:
-            V.append(self[n])
-        return V
+        if typ(self.g) != t_VEC and typ(self.g) != t_COL:
+            raise TypeError("Object (=%s) must be of type t_VEC or t_COL." % self)
+        return [self[n] for n in range(glength(self.g))]
 
     def python(self, locals=None):
         """

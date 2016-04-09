@@ -119,9 +119,6 @@ from graded_coalgebras_with_basis    import GradedCoalgebrasWithBasis
 from graded_bialgebras_with_basis    import GradedBialgebrasWithBasis
 from graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
-# ComplexReflectionGroups
-lazy_import('sage.categories.complex_reflection_groups', 'ComplexReflectionGroups')
-
 # Coxeter groups
 from coxeter_groups import CoxeterGroups
 from finite_coxeter_groups import FiniteCoxeterGroups

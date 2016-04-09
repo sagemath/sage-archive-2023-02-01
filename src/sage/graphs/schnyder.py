@@ -727,7 +727,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
         sage: g.set_embedding({'a':['b',2,0,'c'],'b':['c',1,2,'a'],
         ....: 'c':['a',0,1,'b'],0:['a',2,1,'c'],1:['b','c',0,2],2:['a','b',1,0]})
         sage: newg = minimal_schnyder_wood(g)
-        sage: newg.edges()
+        sage: sorted(newg.edges())
         [(0, 2, 'blue'),
          (0, 'a', 'green'),
          (0, 'c', 'red'),
@@ -738,7 +738,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
          (2, 'a', 'green'),
          (2, 'b', 'blue')]
         sage: newg2 = minimal_schnyder_wood(g, minimal=False)
-        sage: newg2.edges()
+        sage: sorted(newg2.edges())
         [(0, 1, 'blue'),
          (0, 'a', 'green'),
          (0, 'c', 'red'),

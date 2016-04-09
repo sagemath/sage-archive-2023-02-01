@@ -27,30 +27,16 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from copy import copy
-from sage.misc.all import prod
-from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
-from sage.categories.category import Category
-from sage.categories.finite_permutation_groups import FinitePermutationGroups
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.combinat.root_system.weyl_group import WeylGroup
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
-from sage.matrix.all import Matrix, identity_matrix
 from sage.matrix.matrix import is_Matrix
-from sage.interfaces.gap3 import GAP3Record, gap3
-from sage.interfaces.gap import gap
-from sage.combinat.words.word import Word
-from sage.rings.arith import gcd, lcm
+from sage.interfaces.gap3 import gap3
 from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
-
-from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField, E
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 def ReflectionGroup(*args,**kwds):
     r"""
@@ -588,10 +574,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [()]
         """
         from sage.combinat.root_system.reflection_group_complex import _gap_return
-        J_inv = [ self._index_set[j]+1 for j in J ]
-        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(self._gap_group._name,self._gap_group._name,J_inv)))
-        exec('L = ' + _gap_return(S))
-        return L
+        from sage.misc.sage_eval import sage_eval
+        J_inv = [self._index_set[j] + 1 for j in J]
+        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (self._gap_group._name, self._gap_group._name, J_inv)))
+        return sage_eval(_gap_return(S), locals={'self': self})
 
     class Element(ComplexReflectionGroup.Element):
 
@@ -747,12 +733,14 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 010 [word: , word: 1, word: 0]
             """
             from sage.combinat.root_system.reflection_group_complex import _gap_return
+            from sage.misc.sage_eval import sage_eval
             W = self.parent()
             T = W.reflections()
-            T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
-            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = ' + _gap_return(S,coerce_obj='W'))
-            return L
+            T_fix = [i + 1 for i in T.keys()
+                     if self.fix_space().is_subspace(T[i].fix_space())]
+            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (W._gap_group._name, W._gap_group._name, T_fix)))
+            return sage_eval(_gap_return(S, coerce_obj='W'),
+                             locals={'self': self})
 
         def left_coset_representatives(self):
             r"""

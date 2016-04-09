@@ -371,7 +371,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         for complx non-real reflection groups these are the
         Shephard-Todd classification type "ST".
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: ReflectionGroup((1,1,3)).series()
             ['A']

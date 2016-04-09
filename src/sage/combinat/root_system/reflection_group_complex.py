@@ -39,15 +39,20 @@ AUTHORS:
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
+    - improve invariant_form with a code similar to the one in reflection_group_real.py
+    - add a method reflection_to_root or distinguished_reflection_to_positive_root.
     - diagrams in ASCII-art (76.15)
     - standard (BMR) presentations
     - character table directly from Chevie
     - GenericOrder (76.20), TorusOrder (76.21)
+    - correct fundamental invariants for G34, check the others
     - copy hardcoded data (degrees, invariants, braid relations...) into sage
+    - add other hardcoded data from the tables in chevie (location is SAGEDIR/local/gap3/gap-jm5-2015-02-01/gap3/pkg/chevie/tbl): basic derivations, discriminant, ...
     - transfer code for reduced_word_in_reflections into Gap4 or Sage
     - list of reduced words for an element
     - list of reduced words in reflections for an element
     - Hurwitz action?
+    - is_crystallographic should be hardcoded
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
@@ -137,8 +142,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         self._hyperplane_index_set = hyperplane_index_set
         self._reflection_index_set = reflection_index_set
 
-        self._elements = None
-        self._store_elements = False
         self._conjugacy_classes = {}
         self._conjugacy_classes_representatives = None
         self._reflection_representation = None
@@ -239,19 +242,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1,2,6)(3,4,5)
             (1,5)(2,4)(3,6)
         """
-        if self._elements is not None and len(self._elements) == self.cardinality():
-            for w in self._elements:
-                yield w
-        else:
-            if self._store_elements:
-                self._elements = []
-            inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
-            for w,word in self._iterator_tracking_words():
-                if w._reduced_word is None:
-                    w._reduced_word = [inv_dict[j] for j in word]
-                if self._store_elements:
-                    self._elements.append(w)
-                yield w
+        for w,word in self._iterator_tracking_words():
+            if w._reduced_word is None:
+                w._reduced_word = word
+            yield w
 
     # This is the default implementation for any group with generators
     # I leave it here in case it is needed at some point.
@@ -281,36 +275,36 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup(4)
             sage: for w in W._iterator_tracking_words(): w
-            ((), ())
-            ((1,3,9)(2,4,7)(5,10,18)(6,11,16)(8,12,19)(13,15,20)(14,17,21)(22,23,24), (0,))
-            ((1,5,13)(2,6,10)(3,7,14)(4,8,15)(9,16,22)(11,12,17)(18,19,23)(20,21,24), (1,))
-            ((1,9,3)(2,7,4)(5,18,10)(6,16,11)(8,19,12)(13,20,15)(14,21,17)(22,24,23), (0, 0))
-            ((1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13), (0, 1))
-            ((1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9), (1, 0))
-            ((1,13,5)(2,10,6)(3,14,7)(4,15,8)(9,22,16)(11,17,12)(18,23,19)(20,24,21), (1, 1))
-            ((1,16,12,15)(2,14,24,18)(3,5,19,17)(4,6,22,20)(7,8,23,9)(10,13,21,11), (0, 0, 1))
-            ((1,2,12,24)(3,6,19,20)(4,17,22,5)(7,11,23,13)(8,21,9,10)(14,16,18,15), (0, 1, 0))
-            ((1,14,12,18)(2,15,24,16)(3,22,19,4)(5,6,17,20)(7,10,23,21)(8,11,9,13), (0, 1, 1))
-            ((1,18,12,14)(2,16,24,15)(3,4,19,22)(5,20,17,6)(7,21,23,10)(8,13,9,11), (1, 0, 0))
-            ((1,15,12,16)(2,18,24,14)(3,17,19,5)(4,20,22,6)(7,9,23,8)(10,11,21,13), (1, 1, 0))
-            ((1,6,23)(2,17,9)(3,10,15)(4,11,18)(5,8,24)(7,12,20)(13,14,22)(16,19,21), (0, 0, 1, 0))
-            ((1,22,21,12,4,10)(2,3,13,24,19,11)(5,23,16,17,7,15)(6,9,14,20,8,18), (0, 0, 1, 1))
-            ((1,4,21)(2,19,13)(3,11,24)(5,7,16)(6,8,14)(9,18,20)(10,12,22)(15,17,23), (0, 1, 0, 0))
-            ((1,17,13,12,5,11)(2,20,10,24,6,21)(3,23,14,19,7,18)(4,9,15,22,8,16), (0, 1, 1, 0))
-            ((1,19,9,12,3,8)(2,22,7,24,4,23)(5,21,18,17,10,14)(6,13,16,20,11,15), (1, 0, 0, 1))
-            ((1,20,23,12,6,7)(2,5,9,24,17,8)(3,21,15,19,10,16)(4,13,18,22,11,14), (1, 1, 0, 0))
-            ((1,11,5,12,13,17)(2,21,6,24,10,20)(3,18,7,19,14,23)(4,16,8,22,15,9), (0, 0, 1, 0, 0))
-            ((1,23,6)(2,9,17)(3,15,10)(4,18,11)(5,24,8)(7,20,12)(13,22,14)(16,21,19), (0, 0, 1, 1, 0))
-            ((1,8,3,12,9,19)(2,23,4,24,7,22)(5,14,10,17,18,21)(6,15,11,20,16,13), (0, 1, 0, 0, 1))
-            ((1,21,4)(2,13,19)(3,24,11)(5,16,7)(6,14,8)(9,20,18)(10,22,12)(15,23,17), (0, 1, 1, 0, 0))
-            ((1,12)(2,24)(3,19)(4,22)(5,17)(6,20)(7,23)(8,9)(10,21)(11,13)(14,18)(15,16), (0, 0, 1, 0, 0, 1))
-            ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), (0, 0, 1, 1, 0, 0))
+            ((), [])
+            ((1,3,9)(2,4,7)(5,10,18)(6,11,16)(8,12,19)(13,15,20)(14,17,21)(22,23,24), [0])
+            ((1,5,13)(2,6,10)(3,7,14)(4,8,15)(9,16,22)(11,12,17)(18,19,23)(20,21,24), [1])
+            ((1,9,3)(2,7,4)(5,18,10)(6,16,11)(8,19,12)(13,20,15)(14,21,17)(22,24,23), [0, 0])
+            ((1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13), [0, 1])
+            ((1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9), [1, 0])
+            ((1,13,5)(2,10,6)(3,14,7)(4,15,8)(9,22,16)(11,17,12)(18,23,19)(20,24,21), [1, 1])
+            ((1,16,12,15)(2,14,24,18)(3,5,19,17)(4,6,22,20)(7,8,23,9)(10,13,21,11), [0, 0, 1])
+            ((1,2,12,24)(3,6,19,20)(4,17,22,5)(7,11,23,13)(8,21,9,10)(14,16,18,15), [0, 1, 0])
+            ((1,14,12,18)(2,15,24,16)(3,22,19,4)(5,6,17,20)(7,10,23,21)(8,11,9,13), [0, 1, 1])
+            ((1,18,12,14)(2,16,24,15)(3,4,19,22)(5,20,17,6)(7,21,23,10)(8,13,9,11), [1, 0, 0])
+            ((1,15,12,16)(2,18,24,14)(3,17,19,5)(4,20,22,6)(7,9,23,8)(10,11,21,13), [1, 1, 0])
+            ((1,6,23)(2,17,9)(3,10,15)(4,11,18)(5,8,24)(7,12,20)(13,14,22)(16,19,21), [0, 0, 1, 0])
+            ((1,22,21,12,4,10)(2,3,13,24,19,11)(5,23,16,17,7,15)(6,9,14,20,8,18), [0, 0, 1, 1])
+            ((1,4,21)(2,19,13)(3,11,24)(5,7,16)(6,8,14)(9,18,20)(10,12,22)(15,17,23), [0, 1, 0, 0])
+            ((1,17,13,12,5,11)(2,20,10,24,6,21)(3,23,14,19,7,18)(4,9,15,22,8,16), [0, 1, 1, 0])
+            ((1,19,9,12,3,8)(2,22,7,24,4,23)(5,21,18,17,10,14)(6,13,16,20,11,15), [1, 0, 0, 1])
+            ((1,20,23,12,6,7)(2,5,9,24,17,8)(3,21,15,19,10,16)(4,13,18,22,11,14), [1, 1, 0, 0])
+            ((1,11,5,12,13,17)(2,21,6,24,10,20)(3,18,7,19,14,23)(4,16,8,22,15,9), [0, 0, 1, 0, 0])
+            ((1,23,6)(2,9,17)(3,15,10)(4,18,11)(5,24,8)(7,20,12)(13,22,14)(16,21,19), [0, 0, 1, 1, 0])
+            ((1,8,3,12,9,19)(2,23,4,24,7,22)(5,14,10,17,18,21)(6,15,11,20,16,13), [0, 1, 0, 0, 1])
+            ((1,21,4)(2,13,19)(3,24,11)(5,16,7)(6,14,8)(9,20,18)(10,22,12)(15,23,17), [0, 1, 1, 0, 0])
+            ((1,12)(2,24)(3,19)(4,22)(5,17)(6,20)(7,23)(8,9)(10,21)(11,13)(14,18)(15,16), [0, 0, 1, 0, 0, 1])
+            ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
         """
         I = self.gens()
         index_list = range(len(I))
 
-        level_set_cur   = [ (self.one(), tuple()) ]
-        level_set_old   = set([ self.one() ] )
+        level_set_cur = [(self.one(), list())]
+        level_set_old = set([ self.one() ])
         while level_set_cur:
             level_set_new = []
             for x, word in level_set_cur:
@@ -319,35 +313,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                     y = x._mul_(I[i])
                     if y not in level_set_old:
                         level_set_old.add(y)
-                        level_set_new.append((y,word+tuple([i])))
+                        level_set_new.append((y,word+[i]))
             level_set_cur = level_set_new
-
-    def store_elements(self, store=True):
-        r"""
-        Set a flag whether or not to store the elements of ``self``
-        when iterating through ``self``.
-
-        INPUT:
-
-        - ``store`` -- (optional, default: ``True``) boolean whether or
-          not to store the elements of ``self`` on iteration
-
-        This can be useful for faster iterations later on.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((1,1,3))
-            sage: for w in W: pass
-            sage: W._elements is None
-            True
-            sage: W._store_elements
-            False
-            sage: W.store_elements()
-            sage: for w in W: pass
-            sage: len(W._elements) == W.cardinality()
-            True
-        """
-        self._store_elements = store
 
     __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
 
@@ -512,7 +479,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Basis matrix:
             [ 1 -1]
 
-            sage: for H in W.reflecting_hyperplanes(as_linear_functionals): H
+            sage: for H in W.reflecting_hyperplanes(as_linear_functionals=True): H
             (1, -1/2)
             (1, -2)
             (1, 1)
@@ -577,7 +544,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         if i not in self.hyperplane_index_set():
             raise ValueError("the given index %s is not an index of a reflecting hyperplane" % i)
-        return self.reflecting_hyperplanes(as_linear_functional=as_linear_functional)[i]
+        return self.reflecting_hyperplanes(as_linear_functionals=as_linear_functional)[i]
 
     @cached_method
     def reflection_index_set(self):
@@ -1485,7 +1452,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if self._reduced_word is None:
                 self._compute_reduced_word()
             if isinstance(self._reduced_word, list):
-                self._reduced_word = Word(self._reduced_word)
+                self._reduced_word = Word( self.parent()._index_set_inverse[i] for i in self._reduced_word)
             return self._reduced_word
 
         def _compute_reduced_word(self):
@@ -1503,9 +1470,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [0]
             """
             W = self.parent()
-            inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
             gens = [ W.simple_reflection(j) for j in W.index_set() ]
-            word = _gap_factorization(self, gens, inv_dict)
+            word = _gap_factorization(self, gens)
             self._reduced_word = word
 
         @cached_in_parent_method
@@ -1523,8 +1489,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup(['A',2],index_set=['a','b'],reflection_index_set=['A','B','C'])
                 sage: [ (w.reduced_word(), w.reduced_word_in_reflections()) for w in W ]
                 [(word: , word: ),
-                 (word: a, word: A),
                  (word: b, word: B),
+                 (word: a, word: A),
                  (word: ab, word: AB),
                  (word: ba, word: AC),
                  (word: aba, word: C)]
@@ -1550,9 +1516,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                             break
                 return Word(word)
             else:
-                inv_dict = dict( (W._reflection_index_set[i],i) for i in W._reflection_index_set.keys() )
                 gens = [ W.reflection(j) for j in W.reflection_index_set() ]
-                return Word(_gap_factorization(self, gens, inv_dict))
+                word = _gap_factorization(self, gens)
+                return Word( self.parent()._reflection_index_set_inverse[i] for i in word)
 
         def length(self):
             r"""
@@ -2377,10 +2343,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                         return True
             return False
 
-def _gap_factorization(w, gens, inv_dict):
+def _gap_factorization(w, gens):
     r"""
-    Return a factorization of ``w`` using the generators ``gens`` under
-    the index dict ``inv_dict``.
+    Return a factorization of ``w`` using the generators ``gens``.
 
     .. WARNING::
 
@@ -2390,9 +2355,8 @@ def _gap_factorization(w, gens, inv_dict):
 
         sage: from sage.combinat.root_system.reflection_group_complex import _gap_factorization
         sage: W = ReflectionGroup((1,1,3))
-        sage: inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
         sage: gens = [ W.simple_reflection(i) for i in W.index_set() ]
-        sage: for w in W: _gap_factorization(w, gens, inv_dict)
+        sage: for w in W: _gap_factorization(w,gens)
         []
         [0]
         [1]
@@ -2403,7 +2367,7 @@ def _gap_factorization(w, gens, inv_dict):
     gap3.execute('W := GroupWithGenerators(%s)'%str(gens))
     gap3.execute(_gap_factorization_code)
     fac = gap3('MinimalWord(W,%s)'%str(w)).sage()
-    return [inv_dict[i-1] for i in fac]
+    return [i-1 for i in fac]
 
 _gap_factorization_code = """
 # MinimalWord(G,w)

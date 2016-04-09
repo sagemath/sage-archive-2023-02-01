@@ -16,6 +16,7 @@ from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.groups import Groups
+from sage.rings.all import ZZ
 
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
@@ -233,7 +234,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.cardinality()
                 192
             """
-            return prod(self.degrees())
+            return ZZ.prod(self.degrees())
 
         def is_well_generated(self):
             r"""
@@ -292,48 +293,83 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
     class ElementMethods:
 
         @abstract_method(optional=True)
-        def as_matrix(self):
+        def to_matrix(self):
             r"""
-            Return the matrix presentation of ``self`` acting on the
+            Return the matrix presentation of ``self`` acting on a
             vector space `V`.
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3)
-                sage: [t.as_matrix() for t in W]
+                sage: W = ReflectionGroup((1,1,3))
+                sage: [t.to_matrix() for t in W]
                 [
                 [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
                 [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
                 ]
 
-                sage: W = ColoredPermutations(3,1)
-                sage: [t.as_matrix() for t in W]
-                [[1], [E(3)], [E(3)^2]]
+                sage: W = ColoredPermutations(1,3)
+                sage: [t.to_matrix() for t in W]
+                [
+                [1 0 0]  [1 0 0]  [0 1 0]  [0 0 1]  [0 1 0]  [0 0 1]
+                [0 1 0]  [0 0 1]  [1 0 0]  [1 0 0]  [0 0 1]  [0 1 0]
+                [0 0 1], [0 1 0], [0 0 1], [0 1 0], [1 0 0], [1 0 0]
+                ]
+
+            A different representation is given by the
+            colored permutations::
+
+                sage: W = ColoredPermutations(3, 1)
+                sage: [t.to_matrix() for t in W]
+                [[1], [zeta3], [-zeta3 - 1]]
             """
+
+        def _matrix_(self):
+            """
+            Return ``self`` as a matrix.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup((1,1,3))
+                sage: [matrix(t) for t in W]
+                [
+                [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
+                [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
+                ]
+            """
+            return self.to_matrix()
 
         def character_value(self):
             r"""
             Return the value at ``self`` of the character of the
-            reflection representation `V`.
+            reflection representation given by :meth:`to_matrix`.
 
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3); W
                 1-colored permutations of size 3
                 sage: [t.character_value() for t in W]
+                [3, 1, 1, 0, 0, 1]
+
+            Note that this could be a different (faithful)
+            representation that given by the corresponding
+            root system::
+
+                sage: W = ReflectionGroup((1,1,3)); W
+                Irreducible complex reflection group of rank 2 and type A2
+                sage: [t.character_value() for t in W]
                 [2, 0, 0, -1, -1, 0]
 
                 sage: W = ColoredPermutations(2,2); W
                 2-colored permutations of size 2
                 sage: [t.character_value() for t in W]
-                [2, 0, 0, 0, 0, 0, 0, -2]
+                [2, 0, 0, -2, 0, 0, 0, 0]
 
                 sage: W = ColoredPermutations(3,1); W
                 3-colored permutations of size 1
                 sage: [t.character_value() for t in W]
-                [1, E(3), E(3)^2]
+                [1, zeta3, -zeta3 - 1]
             """
-            return self.as_matrix().trace()
+            return self.to_matrix().trace()
 
     class Irreducible(CategoryWithAxiom):
 

@@ -550,9 +550,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
         weights = self.fundamental_weights()
         if point is None:
             point = [1]*n
-        v = sum( point[i] * weights[i] for i in range(n) )
+        v = sum(point[i] * wt for i,wt in enumerate(weights))
         from sage.geometry.polyhedron.constructor import Polyhedron
-        return Polyhedron( vertices=[ v*(~w).as_matrix() for w in self] )
+        return Polyhedron(vertices=[v*(~w).to_matrix() for w in self])
 
     @cached_method
     def right_coset_representatives(self,J):

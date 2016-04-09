@@ -105,7 +105,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
+                sage: W = CoxeterGroups().example()
                 sage: W
                 The symmetric group on {0, ..., 3}
                 sage: W.an_element()               # indirect doctest
@@ -236,6 +236,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
     class ElementMethods:
         # TODO: standardize / cleanup
+        # TODO: Combine with similar methods in ComplexReflectionGroups
         def apply_simple_reflections(self, word, side='right'):
             """
             Return the result of the (left/right) multiplication of

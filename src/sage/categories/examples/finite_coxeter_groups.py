@@ -66,7 +66,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(G).run(verbose = True)
+        sage: TestSuite(G).run(verbose=True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
@@ -95,6 +95,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
         running ._test_reduced_word() . . . pass
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_well_generated() . . . pass
 
         sage: c = FiniteCoxeterGroups().example(3).cayley_graph()
         sage: sorted(c.edges())

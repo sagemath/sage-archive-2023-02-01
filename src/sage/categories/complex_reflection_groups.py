@@ -117,13 +117,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4)
+                sage: W = ColoredPermutations(1, 4)
                 sage: W.index_set()
                 (1, 2, 3)
-                sage: W = ReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
+                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])
                 sage: W.index_set()
                 [1, 3, 'asdf']
-                sage: W = ReflectionGroup((1,1,4),index_set={'a':0,'b':1,'c':2})
+                sage: W = ReflectionGroup((1,1,4), index_set={'a':0,'b':1,'c':2})
                 sage: W.index_set()
                 ['a', 'b', 'c']
             """
@@ -136,9 +136,9 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
+                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])
                 sage: for i in W.index_set():
-                ....:     print i, W.simple_reflection(i)
+                ....:     print('%s %s'%(i, W.simple_reflection(i)))
                 1 (1,7)(2,4)(5,6)(8,10)(11,12)
                 3 (1,4)(2,8)(3,5)(7,10)(9,11)
                 asdf (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -153,13 +153,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4)
+                sage: W = ReflectionGroup((1,1,4))
                 sage: W.hyperplane_index_set()
                 [0, 1, 2, 3, 4, 5]
-                sage: W = ReflectionGroup((1,1,4),hyperplane_index_set=[1,3,'asdf',7,9,11])
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=[1,3,'asdf',7,9,11])
                 sage: W.hyperplane_index_set()
                 [1, 3, 'asdf', 7, 9, 11]
-                sage: W = ReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
                 sage: W.hyperplane_index_set()
                 ['a', 'b', 'c', 'd', 'e', 'f']
             """
@@ -174,8 +174,9 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
-                sage: for i in W.hyperplane_index_set(): print i, W.distinguished_reflection(i)
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: for i in W.hyperplane_index_set():
+                ....:     print('%s %s'%(i, W.distinguished_reflection(i)))
                 a (1,7)(2,4)(5,6)(8,10)(11,12)
                 b (1,4)(2,8)(3,5)(7,10)(9,11)
                 c (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -191,13 +192,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4)
+                sage: W = ReflectionGroup((1,1,4))
                 sage: W.reflection_index_set()
                 [0, 1, 2, 3, 4, 5]
-                sage: W = ReflectionGroup((1,1,4),reflection_index_set=[1,3,'asdf',7,9,11])
+                sage: W = ReflectionGroup((1,1,4), reflection_index_set=[1,3,'asdf',7,9,11])
                 sage: W.reflection_index_set()
                 [1, 3, 'asdf', 7, 9, 11]
-                sage: W = ReflectionGroup((1,1,4),reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: W = ReflectionGroup((1,1,4), reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
                 sage: W.reflection_index_set()
                 ['a', 'b', 'c', 'd', 'e', 'f']
             """
@@ -212,9 +213,9 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4)
+                sage: W = ReflectionGroup((1,1,4))
                 sage: for i in W.reflection_index_set():
-                ....:     print i, W.reflection(i)
+                ....:     print('%s %s'%(i, W.reflection(i)))
                 0 (1,7)(2,4)(5,6)(8,10)(11,12)
                 1 (1,4)(2,8)(3,5)(7,10)(9,11)
                 2 (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -235,7 +236,7 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W.simple_reflections()
                 Finite family {1: [[0, 0, 0], [2, 1, 3]], 2: [[0, 0, 0], [1, 3, 2]]}
 
-                sage: W = ReflectionGroup((1,1,3),index_set=['a','b'])
+                sage: W = ReflectionGroup((1,1,3), index_set=['a','b'])
                 sage: W.simple_reflections()
                 Finite family {'a': (1,4)(2,3)(5,6), 'b': (1,3)(2,5)(4,6)}
             """
@@ -256,28 +257,32 @@ class ComplexReflectionGroups(Category_singleton):
 
            EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3)
+                sage: W = ReflectionGroup((1,1,3))
                 sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                sage: for index in sorted(distinguished_reflections.keys()):
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))
                 0 (1,4)(2,3)(5,6)
                 1 (1,3)(2,5)(4,6)
                 2 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
                 sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                sage: for index in sorted(distinguished_reflections.keys()):
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))
                 a (1,4)(2,3)(5,6)
                 b (1,3)(2,5)(4,6)
                 c (1,5)(2,4)(3,6)
 
-                sage: W = ColoredPermutations(3,1)
+                sage: W = ReflectionGroup((3,1,1))
                 sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                sage: for index in sorted(distinguished_reflections.keys()):
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))
                 0 (1,2,3)
 
-                sage: W = ReflectionGroup((1,1,3),(3,1,2))
+                sage: W = ReflectionGroup((1,1,3), (3,1,2))
                 sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                sage: for index in sorted(distinguished_reflections.keys()):
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))
                 0 (1,6)(2,5)(7,8)
                 1 (1,5)(2,7)(6,8)
                 2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
@@ -298,29 +303,33 @@ class ComplexReflectionGroups(Category_singleton):
 
            EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3)
+                sage: W = ReflectionGroup((1,1,3))
                 sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                sage: for index in sorted(reflections.keys()):
+                ....:     print('%s %s'%(index, reflections[index]))
                 0 (1,4)(2,3)(5,6)
                 1 (1,3)(2,5)(4,6)
                 2 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
                 sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                sage: for index in sorted(reflections.keys()):
+                ....:     print('%s %s'%(index, reflections[index]))
                 a (1,4)(2,3)(5,6)
                 b (1,3)(2,5)(4,6)
                 c (1,5)(2,4)(3,6)
 
-                sage: W = ColoredPermutations(3, 1)
+                sage: W = ReflectionGroup((3,1,1))
                 sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                sage: for index in sorted(reflections.keys()):
+                ....:     print('%s %s'%(index, reflections[index]))
                 0 (1,2,3)
                 1 (1,3,2)
 
                 sage: W = ReflectionGroup((1,1,3), (3,1,2))
                 sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                sage: for index in sorted(reflections.keys()):
+                ....:     print('%s %s'%(index, reflections[index]))
                 0 (1,6)(2,5)(7,8)
                 1 (1,5)(2,7)(6,8)
                 2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
@@ -427,14 +436,14 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,4); W
-                1-colored permutations of size 4
+                sage: W = ColoredPermutations(1,4)
                 sage: W.from_word([1,2,1,2,1,2])
                 [[0, 0, 0, 0], [1, 2, 3, 4]]
 
                 sage: W.from_word([1, 2, 3]).reduced_word()
                 [1, 2, 3]
 
+                sage: W = ReflectionGroup((1,1,4))
                 sage: W.from_word([0,1,2], word_type='all').reduced_word()
                 word: 012
 
@@ -461,8 +470,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ColoredPermutations(3,2)
-                sage: for gen in W.group_generators():
-                ....:     print gen
+                sage: for gen in W.group_generators(): gen
                 [[0, 0], [2, 1]]
                 [[0, 1], [1, 2]]
             """
@@ -612,15 +620,15 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1, 2)
+                sage: W = ReflectionGroup((1,1,2))
                 sage: sorted([t.reflection_length() for t in W])
                 [0, 1]
 
-                sage: W = ColoredPermutations(2, 2)
+                sage: W = ReflectionGroup((2,1,2))
                 sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 2, 2, 2]
 
-                sage: W = ColoredPermutations(3, 2)
+                sage: W = ReflectionGroup((3,1,2))
                 sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
@@ -635,18 +643,16 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1, 4); W
-                1-colored permutations of size 4
+                sage: W = ReflectionGroup((1,1,4))
                 sage: [t.is_reflection() for t in W.reflections()]
                 [True, True, True, True, True, True]
                 sage: len([t for t in W.reflections() if t.is_reflection()])
                 6
 
-                sage: W = ColoredPermutations(2,3); W
-                2-colored permutations of size 3
-                sage: [ t.is_reflection() for t in W.reflections() ]
+                sage: W = ReflectionGroup((2,1,3))
+                sage: [t.is_reflection() for t in W.reflections()]
                 [True, True, True, True, True, True, True, True, True]
-                sage: len( [t for t in W.reflections() if t.is_reflection() ] )
+                sage: len([t for t in W.reflections() if t.is_reflection()])
                 9
             """
             return self.reflection_length() == 1
@@ -699,8 +705,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1, 3); W
-                1-colored permutations of size 3
+                sage: W = ReflectionGroup((1,1,3))
                 sage: W.one().apply_distinguished_reflection(0)
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflection(1)
@@ -708,7 +713,7 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W.one().apply_distinguished_reflection(2)
                 (1,5)(2,4)(3,6)
 
-                sage: W = ColoredPermutations(1,3, hyperplane_index_set=['A','B','C']); W
+                sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W
                 Irreducible complex reflection group of rank 2 and type A2
                 sage: W.one().apply_distinguished_reflection('A')
                 (1,4)(2,3)(5,6)
@@ -738,8 +743,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3); W
-                1-colored permutations of size 3
+                sage: W = ReflectionGroup((1,1,3))
                 sage: W.one().apply_distinguished_reflections([0])
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflections([1])
@@ -763,8 +767,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3); W
-                1-colored permutations of size 3
+                sage: W = ReflectionGroup((1,1,3))
                 sage: W.one().apply_reflection(0)
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflection(1)
@@ -772,7 +775,7 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W.one().apply_reflection(2)
                 (1,5)(2,4)(3,6)
 
-                sage: W = ColoredPermutations(1,3, reflection_index_set=['A','B','C']); W
+                sage: W = ReflectionGroup((1,1,3), reflection_index_set=['A','B','C']); W
                 Irreducible complex reflection group of rank 2 and type A2
                 sage: W.one().apply_reflection('A')
                 (1,4)(2,3)(5,6)
@@ -801,8 +804,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3); W
-                1-colored permutations of size 3
+                sage: W = ReflectionGroup((1,1,3))
                 sage: W.one().apply_reflections([0])
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflections([1])

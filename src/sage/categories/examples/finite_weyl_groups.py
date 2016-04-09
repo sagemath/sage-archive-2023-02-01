@@ -68,7 +68,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(S).run(verbose = True)
+        sage: TestSuite(S).run(verbose=True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
@@ -97,6 +97,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         running ._test_reduced_word() . . . pass
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_well_generated() . . . pass
     """
 
     def __init__(self, n = 4):
@@ -183,7 +184,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         TESTS::
 
             sage: W = FiniteWeylGroups().example()
-            sage: prod(W.degrees()) == W.cardinality()
+            sage: prod(W.degrees()) == len(W)
             True
         """
         return tuple(range(2, self.n + 1))

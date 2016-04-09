@@ -1374,7 +1374,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         B = self.basis()
         it = iter(self._indices)
-        return tuple(B[it.next()] for i in range(n))
+        return tuple(B[next(it)] for i in range(n))
 
     def dimension(self):
         """

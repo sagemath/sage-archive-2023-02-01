@@ -19,16 +19,16 @@ AUTHORS:
     - element class should be unique to be able to work with large groups without creating elements multiple times.
     - is_shephard_group, is_generalized_coxeter_group
     - exponents & coexponents
-    - coinvariant ring
+    - coinvariant ring:
         - fake degrees from Torsten Hoge
         - operation of linear characters on all characters
         - harmonic polynomials
     - linear forms for hyperplanes
     - field of definition
-    - intersection lattice and characteristic polynomial
-        sage: X = [ alpha(t) for t in W.distinguished_reflections() ]
-        sage: X = Matrix(CF,X).transpose()
-        sage: Y = Matroid(X)
+    - intersection lattice and characteristic polynomial:
+        X = [ alpha(t) for t in W.distinguished_reflections() ]
+        X = Matrix(CF,X).transpose()
+        Y = Matroid(X)
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
@@ -67,7 +67,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.interfaces.gap3 import gap3
 from sage.combinat.words.word import Word
 from sage.rings.universal_cyclotomic_field import E
-from sage.rings.arith import lcm
+from sage.arith.misc import lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
@@ -528,10 +528,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup((2,1,2))
+            sage: W.reflecting_hyperplane(2)
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+
+        One can ask for the result as a linear form::
+
+            sage: W.reflecting_hyperplane(2, True)
+            (0, 1)
         """
         if i not in self.hyperplane_index_set():
-            raise ValueError("The given index %s is not an index of a reflecting hyperplane"%i)
+            raise ValueError("The given index %s is not an index of a reflecting hyperplane" % i)
         return self.reflecting_hyperplanes(as_linear_functional=as_linear_functional)[i]
 
     @cached_method

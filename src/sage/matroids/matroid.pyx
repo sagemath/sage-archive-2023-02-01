@@ -6440,7 +6440,7 @@ cdef class Matroid(SageObject):
 
             sage: from sage.matroids.advanced import setprint
             sage: M = matroids.named_matroids.Fano()
-            sage: M.max_weight_independent()
+            sage: M.is_max_weight_independent_generic()
             False
 
             sage: def wt(x):
@@ -6477,25 +6477,36 @@ cdef class Matroid(SageObject):
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
-        res = set([])
-        smres= set([])
+        res = []
+        smres= []
         r = 0
-        for e in Y:
-            res.add(e)
-            if self._rank(res) > r:
-                r += 1
-            else:
-                res.discard(e)
-                smres=res
-                if weights is None:
-                    if self._rank(set([e]))>0:
+        if weights is None:
+            for e in Y:
+                res.append(e)
+                if self._rank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    smres.append(e)
+                    if self._rank(smres) >= 1:
                         return False
                     else:
-                        for f in res:
-                            if weights(e)==weights(f):
-                                smres.discard(f)
-                smres.add(e)
-                if self._rank(smres) > len(smres)-1:
+                        del smres[-1]
+            return True
+        for e in Y:
+            res.append(e)
+            if self._rank(res) > r:
+                r += 1
+                if len(res) >= 2:
+                    if weights(e) < weights(res[-2]):
+                        smres=res[:]
+                        del smres[-1]
+            else:
+                if len(res) >= 2:
+                    if weights(e) < weights(res[-2]):
+                        smres=res[:]
+                del res[-1]
+                if self._rank(smres) >= len(smres):
                     return False
         return True
 
@@ -6520,9 +6531,9 @@ cdef class Matroid(SageObject):
 
         The greedy algorithm. If a weight function is given, then sort the elements 
         of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
-        lists its elements. Then greedily select elements if they are independent
-        of all that was selected before. If an element is not independent of the
-        previously selected elements, then we check if it is independent with the
+        lists its elements. Then greedily select elements if they are coindependent
+        of all that was selected before. If an element is not coindependent of the
+        previously selected elements, then we check if it is coindependent with the
         previously selected elements with higher weight.
 
 
@@ -6530,16 +6541,16 @@ cdef class Matroid(SageObject):
 
             sage: from sage.matroids.advanced import setprint
             sage: M = matroids.named_matroids.Fano()
-            sage: M.max_weight_independent()
+            sage: M.is_max_weight_coindependent_generic()
             False
 
             sage: def wt(x):
             ....:   return x
             ....:
             sage: M = matroids.Uniform(2, 8)
-            sage: M.is_max_weight_independent_generic(weights=wt)
+            sage: M.is_max_weight_coindependent_generic(weights=wt)
             True
-            sage: M.is_max_weight_independent_generic()
+            sage: M.is_max_weight_coindependent_generic()
             False
         """
         if X is None:
@@ -6567,25 +6578,36 @@ cdef class Matroid(SageObject):
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
-        res = set([])
-        smres= set([])
+        res = []
+        smres= []
         r = 0
-        for e in Y:
-            res.add(e)
-            if self._corank(res) > r:
-                r += 1
-            else:
-                res.discard(e)
-                smres=res
-                if weights is None:
-                    if self._rank(set([e]))>0:
+        if weights is None:
+            for e in Y:
+                res.append(e)
+                if self._corank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    smres.append(e)
+                    if self._corank(smres) >= 1:
                         return False
                     else:
-                        for f in res:
-                            if weights(e)==weights(f):
-                                smres.discard(f)
-                smres.add(e)
-                if self._corank(smres) > len(smres)-1:
+                        del smres[-1]
+            return True
+        for e in Y:
+            res.append(e)
+            if self._corank(res) > r:
+                r += 1
+                if len(res) >= 2:
+                    if weights(e) < weights(res[-2]):
+                        smres=res[:]
+                        del smres[-1]
+            else:
+                if len(res) >= 2:
+                    if weights(e) < weights(res[-2]):
+                        smres=res[:]
+                del res[-1]
+                if self._corank(smres) >= len(smres):
                     return False
         return True
 

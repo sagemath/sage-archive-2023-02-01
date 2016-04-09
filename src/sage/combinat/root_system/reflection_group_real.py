@@ -206,8 +206,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
     def __iter__(self):
-        from sage.combinat.root_system.reflection_group_c import search_forest_iterator
-        return search_forest_iterator(((self.gens(),len(self._index_set),self._is_positive_root,self.one(),-1),))
+        from sage.combinat.root_system.reflection_group_c import Iterator
+        return iter(Iterator(self))
 
     def _iterator_tracking_words(self):
         r"""

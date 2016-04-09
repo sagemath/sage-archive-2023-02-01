@@ -10,9 +10,10 @@ Shepard Groups
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+from sage.misc.cachefunc import cached_method
+
 
 class ShepardGroups(Category_singleton):
     r"""
@@ -22,7 +23,7 @@ class ShepardGroups(Category_singleton):
 
         sage: from sage.categories.shepard_groups import ShepardGroups
         sage: C = ShepardGroups(); C
-        Category of CW complexes
+        Category of shepard groups
 
     TESTS::
 
@@ -35,7 +36,6 @@ class ShepardGroups(Category_singleton):
 
             sage: from sage.categories.shepard_groups import ShepardGroups
             sage: ShepardGroups().super_categories()
-            [Category of finitely generated groups]
+            [Category of finite well generated generalized coxeter groups]
         """
         return [GeneralizedCoxeterGroups().Finite()]
-

@@ -120,6 +120,7 @@ additional functionality (e.g. linear extensions).
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
+    - :meth:`is_max_weight_independent_generic() <sage.matroids.matroid.Matroid.is_max_weight_independent_generic>`
     - :meth:`intersection() <sage.matroids.matroid.Matroid.intersection>`
     - :meth:`intersection_unweighted() <sage.matroids.matroid.Matroid.intersection_unweighted>`
 
@@ -6407,6 +6408,187 @@ cdef class Matroid(SageObject):
             else:
                 res.discard(e)
         return frozenset(res)
+
+    cpdef is_max_weight_independent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one basis has maximal weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+        INPUT:
+
+        - ``X`` -- (default: ``None``) an iterable with a subset of
+          ``self.groundset()``.
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before. If an element is not independent of the
+        previously selected elements, then we check if it is independent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.max_weight_independent()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_independent_generic()
+            False
+        """
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+        if weights is None:
+            Y = list(X)
+        else:
+            wt = []
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+        res = set([])
+        smres= set([])
+        r = 0
+        for e in Y:
+            res.add(e)
+            if self._rank(res) > r:
+                r += 1
+            else:
+                res.discard(e)
+                smres=res
+                if weights is None:
+                    if self._rank(set([e]))>0:
+                        return False
+                    else:
+                        for f in res:
+                            if weights(e)==weights(f):
+                                smres.discard(f)
+                smres.add(e)
+                if self._rank(smres) > len(smres)-1:
+                    return False
+        return True
+
+    cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one basis has maximal weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+        INPUT:
+
+        - ``X`` -- (default: ``None``) an iterable with a subset of
+          ``self.groundset()``.
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before. If an element is not independent of the
+        previously selected elements, then we check if it is independent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.max_weight_independent()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_independent_generic()
+            False
+        """
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+        if weights is None:
+            Y = list(X)
+        else:
+            wt = []
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+        res = set([])
+        smres= set([])
+        r = 0
+        for e in Y:
+            res.add(e)
+            if self._corank(res) > r:
+                r += 1
+            else:
+                res.discard(e)
+                smres=res
+                if weights is None:
+                    if self._rank(set([e]))>0:
+                        return False
+                    else:
+                        for f in res:
+                            if weights(e)==weights(f):
+                                smres.discard(f)
+                smres.add(e)
+                if self._corank(smres) > len(smres)-1:
+                    return False
+        return True
+
 
     cpdef intersection(self, other, weights=None):
         r"""

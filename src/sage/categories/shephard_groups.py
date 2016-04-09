@@ -1,5 +1,5 @@
 r"""
-Shepard Groups
+Shephard Groups
 """
 #*****************************************************************************
 #  Copyright (C) 2016 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -14,14 +14,14 @@ Shepard Groups
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 
-class ShepardGroups(Category_singleton):
+class ShephardGroups(Category_singleton):
     r"""
-    The category of Shepard groups.
+    The category of Shephard groups.
 
     EXAMPLES::
 
-        sage: from sage.categories.shepard_groups import ShepardGroups
-        sage: C = ShepardGroups(); C
+        sage: from sage.categories.shephard_groups import ShephardGroups
+        sage: C = ShephardGroups(); C
         Category of CW complexes
 
     TESTS::
@@ -33,8 +33,8 @@ class ShepardGroups(Category_singleton):
         """
         EXAMPLES::
 
-            sage: from sage.categories.shepard_groups import ShepardGroups
-            sage: ShepardGroups().super_categories()
+            sage: from sage.categories.shephard_groups import ShephardGroups
+            sage: ShephardGroups().super_categories()
             [Category of finitely generated groups]
         """
         return [GeneralizedCoxeterGroups().Finite()]

@@ -41,7 +41,7 @@ class CoxeterGroups(Category_singleton):
         sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
-        [Category of generalized coxeter     groups]
+        [Category of generalized coxeter groups]
 
         sage: W = C.example(); W
         The symmetric group on {0, ..., 3}

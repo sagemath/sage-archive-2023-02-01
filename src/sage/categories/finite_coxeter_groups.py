@@ -12,8 +12,9 @@ Finite Coxeter Groups
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
-from sage.categories.coxeter_groups import CoxeterGroups
+from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+from sage.categories.coxeter_groups import CoxeterGroups
 
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
@@ -24,9 +25,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: FiniteCoxeterGroups()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of coxeter groups,
-         Category of finite groups,
-         Category of finite finitely generated semigroups]
+        [Category of finite generalized coxeter groups,
+         Category of coxeter groups,
+         Category of finite well generated complex reflection groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -47,9 +48,6 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
     """
-    _base_category_class_and_axiom = (CoxeterGroups, "Finite")
-
-    @cached_method
     def extra_super_categories(self):
         r"""
         EXAMPLES::
@@ -58,9 +56,6 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             [Category of groups]
         """
         return [ComplexReflectionGroups().Finite().WellGenerated()]
-
-    class SubcategoryMethods:
-        Irreducible = axiom("Irreducible")
 
     class ParentMethods:
         """
@@ -75,7 +70,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W = FiniteCoxeterGroups().example(3)
 
             sage: W.some_elements.__module__
-            'sage.categories.coxeter_groups'
+            'sage.categories.generalized_coxeter_groups'
             sage: W.__iter__.__module__
             'sage.categories.coxeter_groups'
 
@@ -84,7 +79,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: list(W)
             [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
-        some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
+        some_elements = GeneralizedCoxeterGroups.ParentMethods.__dict__["some_elements"]
         __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
 
         @lazy_attribute
@@ -627,12 +622,3 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             G.add_edges([v,vp] for v in R for vp in self.coxeter_knuth_neighbor(v))
             return G
 
-    class Irreducible(CategoryWithAxiom):
-        r"""
-        The category of finite irreducible Coxeter groups.
-        """
-        class ParentMethods:
-            pass
-
-        class ElementMethods:
-            pass

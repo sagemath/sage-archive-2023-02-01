@@ -205,9 +205,15 @@ class RealReflectionGroup(ComplexReflectionGroup):
         type_str = type_str[:-3]
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
-    def __iter__(self):
-        from sage.combinat.root_system.reflection_group_c import search_forest_iterator
-        return search_forest_iterator(((self.gens(),len(self._index_set),self._is_positive_root,self.one(),-1),))
+    def iter_breadth(self):
+        return self.__iter__(algorithm="breadth")
+
+    def iter_depth(self):
+        return self.__iter__(algorithm="depth")
+
+    def __iter__(self, algorithm="depth"):
+        from sage.combinat.root_system.reflection_group_c import Iterator
+        return iter(Iterator(self, algorithm=algorithm))
 
     def _iterator_tracking_words(self):
         r"""
@@ -304,14 +310,24 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     def invariant_form(self):
         r"""
-        Returns the form that is invariant under the action of ``self``.
+        Return the form that is invariant under the action of ``self``.
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup(['A',3])
+            sage: W.invariant_form()
+            [   1 -1/2    0]
+            [-1/2    1 -1/2]
+            [   0 -1/2    1]
+
+            sage: W = ReflectionGroup(['B',3])
+            sage: W.invariant_form()
+            [ 1 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
         """
-        C       = self.cartan_matrix()
-        n       = self.rank()
+        C = self.cartan_matrix()
+        n = self.rank()
 
         if self.is_crystallographic():
             ring = QQ
@@ -319,7 +335,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             ring = UniversalCyclotomicField()
 
         from sage.matrix.constructor import zero_matrix
-        form = zero_matrix(ring,n,n)
+        form = zero_matrix(ring, n, n)
 
         for j in range(n):
             for i in range(j):
@@ -696,7 +712,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
             r"""
             Return the inversion set of ``self``.
 
-            This is the set `\{ \beta \in \Phi^+ : ``self``(\beta) \in \Phi^- \}`.
+            For `w` in a real reflection group, the inversion set of `w`
+            is the set `\{ \beta \in \Phi^+ : w(\beta) \in \Phi^-\}`.
 
             EXAMPLES::
 

@@ -22,7 +22,8 @@ class GeneralizedCoxeterGroups(Category_singleton):
     r"""
     The category of generalized Coxeter groups.
 
-    A generalized Coxeter group is a group with a presentation of the following form:
+    A generalized Coxeter group is a group with a presentation of
+    the following form:
 
     .. MATH::
 
@@ -63,8 +64,17 @@ class GeneralizedCoxeterGroups(Category_singleton):
             """
             Implement that a finite generalized Coxeter group is a
             well-generated complex reflection group.
+
+            EXAMPLES::
+
+                sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+                sage: Cat = GeneralizedCoxeterGroups().Finite()
+                sage: Cat.extra_super_categories()
+                [Category of finite well generated complex reflection groups]
+                sage: Cat.is_subcategory(ComplexReflectionGroups())
+                True
             """
-            return [ComplexReflectionGroups().WellGenerated()]
+            return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class Irreducible(CategoryWithAxiom):
         """
@@ -107,7 +117,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
         def some_elements(self):
             """
             Implement :meth:`Sets.ParentMethods.some_elements` by
-            returning some typical element of `self`.
+            returning some typical element of ``self`.
 
             EXAMPLES::
 
@@ -138,7 +148,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - ``i`` - an element from the index set.
+            - ``i`` -- an element from the index set
 
             EXAMPLES::
 
@@ -174,7 +184,6 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 (0, 2, 1, 3)
                 sage: s[2]
                 (0, 1, 3, 2)
-
 
             This default implementation uses :meth:`.index_set` and
             :meth:`.simple_reflection`.
@@ -227,7 +236,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
     class ElementMethods:
         # TODO: standardize / cleanup
-        def apply_simple_reflections(self, word, side = 'right'):
+        def apply_simple_reflections(self, word, side='right'):
             """
             Return the result of the (left/right) multiplication of
             word to ``self``.
@@ -311,14 +320,14 @@ class GeneralizedCoxeterGroups(Category_singleton):
             s = self.parent().simple_reflections()
             return self * s[i]
 
-        def apply_simple_reflection(self, i, side = 'right'):
+        def apply_simple_reflection(self, i, side='right'):
             """
             Return ``self`` multiplied by the simple reflection ``s[i]``.
 
             INPUT:
 
             - ``i`` -- an element of the index set
-            - ``side`` -- "left" or "right" (default: "right")
+            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
 
             This default implementation simply calls
             :meth:`apply_simple_reflection_left` or
@@ -379,7 +388,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: w._mul_(w)._mul_(w)
                 (2, 1, 2, 1)
 
-            This method is called when computing ``self*other``::
+            This method is called when computing ``self * other``::
 
                 sage: w * w
                 (1, 2, 1, 2)
@@ -397,14 +406,14 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['B',7])
-                sage: w=W.an_element()
-                sage: u=w.inverse()
-                sage: u==~w
+                sage: W = WeylGroup(['B',7])
+                sage: w = W.an_element()
+                sage: u = w.inverse()
+                sage: u == ~w
                 True
-                sage: u*w==w*u
+                sage: u * w == w * u
                 True
-                sage: u*w
+                sage: u * w
                 [1 0 0 0 0 0 0]
                 [0 1 0 0 0 0 0]
                 [0 0 1 0 0 0 0]
@@ -428,5 +437,5 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_conjugation_by_simple_reflection(1).reduced_word()
                 [3, 2]
             """
-            return (self.apply_simple_reflection(i)).apply_simple_reflection(i,side='left')
+            return (self.apply_simple_reflection(i)).apply_simple_reflection(i, side='left')
 

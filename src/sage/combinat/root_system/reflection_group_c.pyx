@@ -2,6 +2,9 @@ from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from collections import deque
 
 cdef class Iterator(object):
+    """
+    Iterator class for reflection groups.
+    """
     cdef int n
     cdef list S
     cdef list is_positive_root
@@ -9,6 +12,16 @@ cdef class Iterator(object):
     cdef bint tracking_words
 
     def __init__(self, W, algorithm="depth", tracking_words=True):
+        """
+        Initalize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])
+            sage: I = Iterator(W)
+            sage: TestSuite(I).run(skip="_test_pickling")
+        """
         self.S = W.gens()
         self.n = len(W._index_set)
         self.is_positive_root = W._is_positive_root
@@ -20,7 +33,7 @@ cdef class Iterator(object):
             raise ValueError('The algorithm (="%s") must be either "depth" or "breadth"')
         self.algorithm = algorithm
 
-    cpdef list succ(self, PermutationGroupElement u, int first):
+    cdef list succ(self, PermutationGroupElement u, int first):
         cdef PermutationGroupElement u1, si
         cdef int i, j
         cdef list successors = []
@@ -38,7 +51,7 @@ cdef class Iterator(object):
                     successors.append((u1, i))
         return successors
 
-    cpdef list succ_words(self, PermutationGroupElement u, list word, int first):
+    cdef list succ_words(self, PermutationGroupElement u, list word, int first):
         cdef PermutationGroupElement u1, si
         cdef int i, j
         cdef list successors = []
@@ -62,7 +75,7 @@ cdef class Iterator(object):
                     successors.append((u1, word_new, i))
         return successors
 
-    cpdef bint test(self, PermutationGroupElement u1, int i):
+    cdef bint test(self, PermutationGroupElement u1, int i):
         cdef int j
 
         for j in range(i):
@@ -71,6 +84,15 @@ cdef class Iterator(object):
         return True
 
     def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])
+            sage: I = Iterator(W)
+            sage: len(list(I)) == W.cardinality()
+            True
+        """
         # the breadth search iterator is ~2x slower as it
         # uses a deque with popleft 
         if self.algorithm == "depth":
@@ -85,13 +107,29 @@ cdef class Iterator(object):
                 return self.iter_breadth()
 
     def iter_depth(self):
+        """
+        Iterate over ``self`` using depth-first-search.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])
+            sage: I = Iterator(W)
+            sage: list(I.iter_depth())
+            [(),
+             (1,3)(2,6)(5,7),
+             (1,5)(2,4)(6,8),
+             (1,3,5,7)(2,8,6,4),
+             (1,7)(3,5)(4,8),
+             (1,7,5,3)(2,4,6,8),
+             (2,8)(3,7)(4,6),
+             (1,5)(2,6)(3,7)(4,8)]
+        """
         cdef tuple node
         cdef list cur = [(self.S[0].parent().one(), -1)]
         cdef PermutationGroupElement u
         cdef int first
         cdef list L = []
-
-        #print "doing depth"
 
         while True:
             if not cur:
@@ -105,14 +143,31 @@ cdef class Iterator(object):
             L.append(self.succ(u, first))
 
     def iter_words_depth(self):
+        """
+        Iterate over ``self`` using depth-first-search and setting
+        the reduced word.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])
+            sage: I = Iterator(W)
+            sage: for w in I.iter_words_depth(): w._reduced_word
+            []
+            [1]
+            [0]
+            [1, 0]
+            [0, 1, 0]
+            [0, 1]
+            [1, 0, 1]
+            [0, 1, 0, 1]
+        """
         cdef tuple node
         cdef list cur, word
-        
+
         cdef PermutationGroupElement u
         cdef int first
         cdef list L = []
-
-        #print "doing word depth"
 
         one = self.S[0].parent().one()
         one._reduced_word = []
@@ -130,13 +185,29 @@ cdef class Iterator(object):
             L.append(self.succ_words(u, word, first))
 
     def iter_breadth(self):
+        """
+        Iterate over ``self`` using breadth-first-search.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])
+            sage: I = Iterator(W)
+            sage: list(I.iter_breadth())
+            [(),
+             (1,3)(2,6)(5,7),
+             (1,5)(2,4)(6,8),
+             (1,7,5,3)(2,4,6,8),
+             (1,3,5,7)(2,8,6,4),
+             (2,8)(3,7)(4,6),
+             (1,7)(3,5)(4,8),
+             (1,5)(2,6)(3,7)(4,8)]
+        """
         cdef tuple node
         cdef list cur = [(self.S[0].parent().one(), -1)]
         cdef PermutationGroupElement u
         cdef int first
         L = deque()
-
-        #print "doing breadth"
 
         while True:
             if not cur:
@@ -150,6 +221,25 @@ cdef class Iterator(object):
             L.append(self.succ(u, first))
 
     def iter_words_breadth(self):
+        """
+        Iterate over ``self`` using breadth-first-search and setting
+        the reduced word.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])
+            sage: I = Iterator(W)
+            sage: for w in I.iter_words_breadth(): w._reduced_word
+            []
+            [1]
+            [0]
+            [0, 1]
+            [1, 0]
+            [1, 0, 1]
+            [0, 1, 0]
+            [0, 1, 0, 1]
+        """
         cdef tuple node
         cdef list cur, word
         cdef PermutationGroupElement u
@@ -159,8 +249,6 @@ cdef class Iterator(object):
         one = self.S[0].parent().one()
         one._reduced_word = []
         cur = [(one, list(), -1)]
-
-        #print "doing word breadth"
 
         while True:
             if not cur:
@@ -172,3 +260,4 @@ cdef class Iterator(object):
             u, word, first = cur.pop()
             yield u
             L.append(self.succ_words(u, word, first))
+

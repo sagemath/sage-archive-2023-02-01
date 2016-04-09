@@ -8,18 +8,21 @@ AUTHORS:
 
 .. NOTE::
 
-    - For definitions and classification types of finite complex reflection groups, see :wikipedia:`Complex_reflection_group`.
-    - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+    - For definitions and classification types of finite
+      complex reflection groups, see :wikipedia:`Complex_reflection_group`.
+    - Uses the GAP3 package *chevie* available at
+      `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
-.. WARNING:: works only if the GAP3 package Chevie is available.
+.. WARNING:: Works only if the GAP3 package Chevie is available.
 
 .. TODO::
 
     - Properly provide root systems for real reflection groups
-    - Element class should be unique to be able to work with large groups without creating elements multiple times.
+    - Element class should be unique to be able to work with large groups
+      without creating elements multiple times.
 """
 #*****************************************************************************
-#       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
+#       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,30 +30,18 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from copy import copy
-from sage.misc.all import prod
-from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
-from sage.categories.category import Category
-from sage.categories.finite_permutation_groups import FinitePermutationGroups
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.combinat.root_system.weyl_group import WeylGroup
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
+
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
-from sage.matrix.all import Matrix, identity_matrix
 from sage.matrix.matrix import is_Matrix
-from sage.interfaces.gap3 import GAP3Record, gap3
-from sage.interfaces.gap import gap
-from sage.combinat.words.word import Word
-from sage.rings.arith import gcd, lcm
+from sage.interfaces.gap3 import gap3
 from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
 
-from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField, E
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 def ReflectionGroup(*args,**kwds):
     r"""
@@ -110,7 +101,7 @@ def ReflectionGroup(*args,**kwds):
         Reducible complex reflection group of rank 4 and type G(4,2,2) x ST4
     """
     if not is_chevie_available():
-        raise ImportError("The GAP3 package 'chevie' is needed to work with (complex) reflection groups")
+        raise ImportError("the GAP3 package 'chevie' is needed to work with (complex) reflection groups")
     gap3.load_package("chevie")
 
     W_types     = []
@@ -124,7 +115,7 @@ def ReflectionGroup(*args,**kwds):
 
         # precheck for valid input data
         if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
-            raise ValueError("The input data (%s) is not valid for reflection groups."%X)
+            raise ValueError("the input data (%s) is not valid for reflection groups"%X)
 
         # check for real vs complex
         elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
@@ -147,7 +138,7 @@ def ReflectionGroup(*args,**kwds):
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
             else:
-                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
+                raise ValueError('the keyword %s must be a list, tuple, or dict'%index_set_kwd)
 
     if len(W_types) == 1:
         if is_complex is True:
@@ -164,6 +155,13 @@ def ReflectionGroup(*args,**kwds):
                                reflection_index_set=kwds.get('reflection_index_set', None) )
 
 class RealReflectionGroup(ComplexReflectionGroup):
+    """
+    A real reflection group given as a permutation group.
+
+    .. SEEALSO::
+
+        :func:`ReflectionGroup`
+    """
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
 
@@ -219,12 +217,12 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         The fastest iteration is the depth first algorithm without
         tracking words.
-        
+
         EXAMPLES::
 
             sage: W = ReflectionGroup(["B",2])
 
-            sage: for w in W.iteration("breadth",True): print w, w._reduced_word
+            sage: for w in W.iteration("breadth",True): print("%s %s"%(w, w._reduced_word))
             () []
             (1,3)(2,6)(5,7) [1]
             (1,5)(2,4)(6,8) [0]
@@ -234,7 +232,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,7)(3,5)(4,8) [0, 1, 0]
             (1,5)(2,6)(3,7)(4,8) [0, 1, 0, 1]
 
-            sage: for w in W.iteration("depth",False): print w                
+            sage: for w in W.iteration("depth", False): print w
             ()
             (1,3)(2,6)(5,7)
             (1,5)(2,4)(6,8)
@@ -252,12 +250,12 @@ class RealReflectionGroup(ComplexReflectionGroup):
         Return an iterator going through all elements in ``self``.
 
         For options and faster iteration see :meth:`iteration`.
-        
+
         EXAMPLES::
 
             sage: W = ReflectionGroup(["B",2])
 
-            sage: for w in W.__iter__(): print w, w._reduced_word
+            sage: for w in W: print("%s %s"%(w, w._reduced_word))
             () []
             (1,3)(2,6)(5,7) [1]
             (1,5)(2,4)(6,8) [0]
@@ -287,8 +285,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         index_family = self._index_set
         keys = index_family.keys()
         L,R = self._gap_group.BipartiteDecomposition().sage()
-        L = [ i for i in keys if index_family[i]+1 in L ]
-        R = [ i for i in keys if index_family[i]+1 in R ]
+        L = [i for i in keys if index_family[i] + 1 in L]
+        R = [i for i in keys if index_family[i] + 1 in R]
         return [L,R]
 
     def cartan_type(self):
@@ -307,9 +305,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         if len(self._type) == 1:
             ct = self._type[0]
-            return CartanType([ct['series'],ct['rank']])
+            return CartanType([ct['series'], ct['rank']])
         else:
-            return [ W.cartan_type() for W in self.irreducible_components() ]
+            return [W.cartan_type() for W in self.irreducible_components()]
 
     def invariant_form(self):
         r"""
@@ -374,16 +372,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.positive_roots()
-                [(1, 0, 0, 0, 0),
-                 (0, 1, 0, 0, 0),
-                 (0, 0, 1, 0, 0),
-                 (0, 0, 0, 1, 0),
-                 (0, 0, 0, 0, 1),
-                 (1, 1, 0, 0, 0),
-                 (0, 1, 1, 0, 0),
-                 (0, 0, 0, 1, 1),
-                 (1, 1, 1, 0, 0),
-                 (0, 0, 0, 2, 1)]
+            [(1, 0, 0, 0, 0),
+             (0, 1, 0, 0, 0),
+             (0, 0, 1, 0, 0),
+             (0, 0, 0, 1, 0),
+             (0, 0, 0, 0, 1),
+             (1, 1, 0, 0, 0),
+             (0, 1, 1, 0, 0),
+             (0, 0, 0, 1, 1),
+             (1, 1, 1, 0, 0),
+             (0, 0, 0, 2, 1)]
 
             sage: W = ReflectionGroup(['A',3])
             sage: W.positive_roots()
@@ -399,34 +397,34 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.almost_positive_roots()
-                [(-1, 0, 0, 0, 0),
-                 (0, -1, 0, 0, 0),
-                 (0, 0, -1, 0, 0),
-                 (0, 0, 0, -1, 0),
-                 (0, 0, 0, 0, -1),
-                 (1, 0, 0, 0, 0),
-                 (0, 1, 0, 0, 0),
-                 (0, 0, 1, 0, 0),
-                 (0, 0, 0, 1, 0),
-                 (0, 0, 0, 0, 1),
-                 (1, 1, 0, 0, 0),
-                 (0, 1, 1, 0, 0),
-                 (0, 0, 0, 1, 1),
-                 (1, 1, 1, 0, 0),
-                 (0, 0, 0, 2, 1)]
+            [(-1, 0, 0, 0, 0),
+             (0, -1, 0, 0, 0),
+             (0, 0, -1, 0, 0),
+             (0, 0, 0, -1, 0),
+             (0, 0, 0, 0, -1),
+             (1, 0, 0, 0, 0),
+             (0, 1, 0, 0, 0),
+             (0, 0, 1, 0, 0),
+             (0, 0, 0, 1, 0),
+             (0, 0, 0, 0, 1),
+             (1, 1, 0, 0, 0),
+             (0, 1, 1, 0, 0),
+             (0, 0, 0, 1, 1),
+             (1, 1, 1, 0, 0),
+             (0, 0, 0, 2, 1)]
 
 
             sage: W = ReflectionGroup(['A',3])
             sage: W.almost_positive_roots()
-                [(-1, 0, 0),
-                 (0, -1, 0),
-                 (0, 0, -1),
-                 (1, 0, 0),
-                 (0, 1, 0),
-                 (0, 0, 1),
-                 (1, 1, 0),
-                 (0, 1, 1),
-                 (1, 1, 1)]
+            [(-1, 0, 0),
+             (0, -1, 0),
+             (0, 0, -1),
+             (1, 0, 0),
+             (0, 1, 0),
+             (0, 0, 1),
+             (1, 1, 0),
+             (0, 1, 1),
+             (1, 1, 1)]
         """
         return [ -beta for beta in self.simple_roots() ] + self.positive_roots()
 
@@ -437,7 +435,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])
-            sage: for beta in W.roots(): print W.root_to_reflection(beta)
+            sage: for beta in W.roots(): W.root_to_reflection(beta)
             (1,4)(2,3)(5,6)
             (1,3)(2,5)(4,6)
             (1,5)(2,4)(3,6)
@@ -452,7 +450,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         for r in R:
             if r(i) == j:
                 return r
-        raise ValueError("There is a bug in root_to_reflection!")
+        raise AssertionError("there is a bug in root_to_reflection")
 
     def reflection_to_positive_root(self,r):
         r"""
@@ -467,11 +465,11 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1, 1)
         """
         Phi = self.roots()
-        N = len(Phi)/2
-        for i in range(1,N+1):
-            if r(i) == i+N:
+        N = len(Phi) / 2
+        for i in range(1, N+1):
+            if r(i) == i + N:
                 return Phi[i-1]
-        raise ValueError("There is a bug in reflection_to_positive_root!")
+        raise AssertionError("there is a bug in reflection_to_positive_root")
 
     @cached_method
     def fundamental_weights(self):
@@ -495,7 +493,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         m = self.cartan_matrix().transpose().inverse()
         S = self.simple_roots()
         zero = S[0] - S[0]
-        weights = [ sum( [ m[i,j] * S[j] for j in range(len(S)) ], zero ) for i in range(len(S)) ]
+        weights = [sum([m[i,j] * sj for j,sj in enumerate(S)], zero)
+                   for i in range(len(S))]
         for weight in weights:
             weight.set_immutable()
         return weights
@@ -518,7 +517,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         .. TODO::
 
-            Move this method to the CoxeterGroups category. The issue
+            Move this method to the ``CoxeterGroups`` category. The issue
             with this is that the indexing of a Coxeter group is not
             handled in the category, so that ``self._index_set`` is
             not required to do what is expected here.
@@ -580,7 +579,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ReflectionGroup(["A",3])
-            sage: for J in Subsets([0,1,2]): print W.right_coset_representatives(J)
+            sage: for J in Subsets([0,1,2]): W.right_coset_representatives(J)
             [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11), (1,7)(2,4)(5,6)(8,10)(11,12), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12), (1,8)(2,7)(3,6)(4,10)(9,12), (1,10,9,5)(2,6,8,12)(3,11,7,4), (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,5)(2,4,9)(3,8,10)(6,11,7), (1,3,7,9)(2,11,6,10)(4,8,5,12), (1,9,7,3)(2,10,6,11)(4,12,5,8), (1,11)(3,10)(4,9)(5,7)(6,12), (1,9)(2,8)(3,7)(4,11)(5,10)(6,12)]
             [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,3,7,9)(2,11,6,10)(4,8,5,12)]
             [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,7)(2,4)(5,6)(8,10)(11,12), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,10,9,5)(2,6,8,12)(3,11,7,4), (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,12,5)(2,4,9)(3,8,10)(6,11,7), (1,11)(3,10)(4,9)(5,7)(6,12)]
@@ -606,7 +605,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup(['A',2])
                 sage: for w in W: w._reduced_word = None; w._compute_reduced_word()
-                sage: [ w._reduced_word for w in W ]
+                sage: [w._reduced_word for w in W]
                 [[], [1], [0], [0, 1], [1, 0], [0, 1, 0]]
             """
             self._reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__(self)
@@ -622,7 +621,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup(['A',2])
                 sage: for w in W:
-                ....:   print w.reduced_word(), w.length()
+                ....:   print("%s %s"%(w.reduced_word(), w.length()))
                  0
                 1 1
                 0 1
@@ -634,7 +633,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 return len(self._reduced_word)
             else:
                 N = self.parent().nr_reflections()
-                return sum( 1 for i in range(N) if not self.parent()._is_positive_root[self(i+1)] )
+                return ZZ.sum(ZZ.one() for i in range(N)
+                              if not self.parent()._is_positive_root[self(i+1)])
 
         def has_left_descent(self, i):
             r"""
@@ -664,9 +664,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             INPUT:
 
-            - ``i`` - an index of a simple reflection
-            - ``side`` (default: 'right') - 'left' or 'right'
-            - ``positive`` (default: ``False``) - a boolean
+            - ``i`` -- an index of a simple reflection
+            - ``side`` (default: ``'right'``) -- ``'left'`` or ``'right'``
+            - ``positive`` (default: ``False``) -- a boolean
 
             EXAMPLES::
 
@@ -681,7 +681,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 raise TypeError("%s is not a boolean"%(bool))
 
             if i not in self.parent().index_set():
-                raise ValueError("The given index %s is not in the index set"%i)
+                raise ValueError("the given index %s is not in the index set"%i)
 
             negative = not positive
 
@@ -698,10 +698,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(['A',2],implementation='chevie')
+                sage: W = CoxeterGroup(['A',2], implementation='chevie')
                 sage: for w in W:
-                ....:     print w.reduced_word(), [ w.act_on_root(beta) for beta in W.roots() ]
-                     [(1, 0), (0, 1), (1, 1), (-1, 0), (0, -1), (-1, -1)]
+                ....:     print("%s %s"%(w.reduced_word(), [w.act_on_root(beta) for beta in W.roots()]))
+                 [(1, 0), (0, 1), (1, 1), (-1, 0), (0, -1), (-1, -1)]
                 1 [(1, 1), (0, -1), (1, 0), (-1, -1), (0, 1), (-1, 0)]
                 0 [(-1, 0), (1, 1), (0, 1), (1, 0), (-1, -1), (0, -1)]
                 01 [(0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1), (1, 0)]
@@ -709,19 +709,20 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 010 [(0, -1), (-1, 0), (-1, -1), (0, 1), (1, 0), (1, 1)]
             """
             Phi = self.parent().roots()
-            return Phi[ (~self)(Phi.index(root)+1)-1 ]
+            return Phi[(~self)(Phi.index(root)+1) - 1]
 
         def inversion_set(self):
             r"""
             Return the inversion set of ``self``.
 
-            This is the set `\{ \beta \in \Phi^+ : ``self``(\beta) \in \Phi^- \}`.
+            This is the set `\{\beta \in \Phi^+ : s(\beta) \in \Phi^-\}`,
+            where `s` is ``self``.
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(['A',2],implementation='chevie')
+                sage: W = CoxeterGroup(['A',2], implementation='chevie')
                 sage: for w in W:
-                ....:     print w.reduced_word(), w.inversion_set()
+                ....:     print ("%s %s"%(w.reduced_word(), w.inversion_set()))
                  []
                 1 [(0, 1)]
                 0 [(1, 0)]
@@ -730,7 +731,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 010 [(0, 1), (1, 0), (1, 1)]
             """
             Phi_plus = set(self.parent().positive_roots())
-            return [ root for root in Phi_plus if self.act_on_root(root) not in Phi_plus ]
+            return [root for root in Phi_plus if self.act_on_root(root) not in Phi_plus]
 
         @cached_in_parent_method
         def right_coset_representatives(self):
@@ -740,7 +741,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             EXAMPLES::
 
                 sage: W = ReflectionGroup(['A',2])
-                sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.right_coset_representatives() ]
+                sage: for w in W:
+                ....:     print ("%s %s"%(w.reduced_word(),
+                ....:                     [v.reduced_word() for v in w.right_coset_representatives()]))
                  [word: , word: 1, word: 0, word: 10, word: 01, word: 010]
                 1 [word: , word: 0, word: 01]
                 0 [word: , word: 1, word: 10]
@@ -783,7 +786,7 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
         EXAMPLES::
 
-            sage: for i in [2..7]: print ReflectionGroup(["I",i])
+            sage: for i in [2..7]: ReflectionGroup(["I",i])
             Reducible real reflection group of rank 2 and type A1 x A1
             Irreducible real reflection group of rank 2 and type A2
             Irreducible real reflection group of rank 2 and type B2

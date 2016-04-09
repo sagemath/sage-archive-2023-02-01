@@ -1230,6 +1230,43 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: tba
         """
+        C = self.cartan_matrix()
+        n = self.rank()
+
+        if self.is_crystallographic():
+            ring = QQ
+        else:
+            ring = UniversalCyclotomicField()
+
+        from sage.matrix.constructor import zero_matrix
+        form = zero_matrix(ring, n, n)
+
+        # roots of unity of orders those of the simple reflections
+        exps = [1 - E(s.order()) for s in self.simple_reflections()]
+
+        for j in range(n):
+            for i in range(j):
+                if C[i,j] != 0:
+                    form[j,j] = (form[i,i].conjugate() * C[j,i].conjugate() /
+                                 C[i,j] * exp[j] / exps[i])
+            if form[j,j] == 0:
+                form[j,j] = ring.one()
+        for j in range(n):
+            for i in range(j):
+                form[i, j] = C[i, j] * form[i, i] / exps[j]
+                form[j, i] = C[j, i] * form[j, j] / exps[i]
+
+        form.set_immutable()
+        return form
+
+    def invariant_form_brute_force(self):
+        r"""
+        Return the form that is invariant under the action of ``self``.
+
+        EXAMPLES::
+
+            sage: tba
+        """
         Phi = self.roots()
 
         base_change = self.base_change_matrix()

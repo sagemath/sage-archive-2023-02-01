@@ -52,7 +52,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.all import prod, add
-from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.categories.category import Category
 from sage.categories.permutation_groups import PermutationGroups
 from sage.categories.complex_reflection_groups import ComplexReflectionGroups
@@ -334,7 +334,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         for complx non-real reflection groups these are the
         Shephard-Todd classification type "ST".
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: ReflectionGroup((1,1,3)).series()
             ['A']
@@ -445,7 +445,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         INPUT:
 
-        - ``as_linear_functionals`` (default:False) -- flag whether to
+        - ``as_linear_functionals`` (default:``False``) -- flag whether to
           return the hyperplane or its linear functional in the basis
           dual to the given root basis.
 
@@ -463,7 +463,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Basis matrix:
             [ 1 -1]
 
-            sage: for H in W.reflecting_hyperplanes(as_linear_functinoals): print H
+            sage: for H in W.reflecting_hyperplanes(as_linear_functionals): print H
             (1, -1/2)
             (1, -2)
             (1, 1)
@@ -493,7 +493,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Hs = []
         for r in self.distinguished_reflections():
             mat = (r.as_matrix().transpose() - identity_matrix(self.rank()))
-            if as_linear_functional:
+            if as_linear_functionals:
                 Hs.append( mat.row_space().gen() )
             else:
                 Hs.append( mat.right_kernel() )
@@ -505,6 +505,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         The ``i``-th reflecting hyperplane corresponds to the ``i``
         distinguished reflection.
+
+        INPUT:
+
+        - i -- an index in the index set
+        - ``as_linear_functionals`` (default:``False``) -- flag whether to
+          return the hyperplane or its linear functional in the basis
+          dual to the given root basis.
 
         EXAMPLES::
 
@@ -548,7 +555,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Return a finite family containing the reflections of ``self``,
         indexed by :meth:`self.reflection_index_set`.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.reflections()
@@ -575,7 +582,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         r"""
         Return the ``i``-th reflection of ``self``.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.reflection(0)
@@ -1497,7 +1504,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             INPUT:
 
-            - in_unitary_group -- (default:False) if True, the reflection length is computed in the unitary group which is the dimension of the move space of ``self``.
+            - in_unitary_group -- (default:``False``) if ``True``, the
+              reflection length is computed in the unitary group which
+              is the dimension of the move space of ``self``.
 
             EXAMPLES::
 

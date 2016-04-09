@@ -767,6 +767,11 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
+    def _test_ncols_nonnegative(self, **options):
+        tester = self._tester(**options)
+        p = self
+        tester.assertGreaterEqual(self.ncols(), 0)
+    
     cpdef int nrows(self):
         """
         Return the number of rows/constraints.

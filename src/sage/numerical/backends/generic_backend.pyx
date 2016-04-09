@@ -134,24 +134,23 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    def _test_add_variables(self, **options):
+    @classmethod
+    def _test_add_variables(cls, tester=None, **options):
         """
         Run tests on the method :meth:`.add_linear_constraints`.
 
-        TESTS:
+        TEST::
 
-        Test, with an actual working backend, that the test works even if the problem
-        is not empty at the beginning::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver='GLPK')
-            sage: p.add_variables(2)
-            1
-            sage: p.add_linear_constraint([[0, 17], [1, 89]], None, 42)
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
             sage: p._test_add_variables()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        tester = self._tester(**options)
-        p = self
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
         # Test from CVXOPT interface:
         ncols_added = 5
         ncols_before = p.ncols()
@@ -449,30 +448,30 @@ cdef class GenericBackend:
             upper_bound_d = None if upper_bound is None else upper_bound[d] 
             self.add_linear_constraint(coefficients_d, lower_bound_d, upper_bound_d, name=name)
 
-    def _test_add_linear_constraint_vector(self, **options):
+    @classmethod
+    def _test_add_linear_constraint_vector(cls, tester=None, **options):
         """
         Run tests on the method :meth:`.add_linear_constraints`.
 
-        TESTS:
+        TEST::
 
-        Test, with an actual working backend, that the test works even if the problem
-        is not empty at the beginning::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver='GLPK')
-            sage: p.add_variables(2)
-            1
-            sage: p.add_linear_constraint([[0, 17], [1, 89]], None, 42)
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
             sage: p._test_add_linear_constraint_vector()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        tester = self._tester(**options)
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
         from sage.modules.all import vector
         # Ensure there are at least 2 variables
-        self.add_variables(2)
+        p.add_variables(2)
         coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
         upper = vector([5, 5])
         lower = vector([0, 0])
-        self.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
+        p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
         # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
 
     cpdef add_col(self, list indices, list coeffs):
@@ -539,36 +538,33 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    ## This test method is written as an instance method that works
-    ## even if variables and constraints have already been added to the backend.
-    ## The test makes changes to the backend.
-    def _test_add_linear_constraints(self, **options):
+    @classmethod
+    def _test_add_linear_constraints(cls, tester=None, **options):
         """
         Run tests on the method :meth:`.add_linear_constraints`.
 
-        TESTS:
+        TEST::
 
-        Test, with an actual working backend, that the test works even if the problem
-        is not empty at the beginning::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver='GLPK')
-            sage: p.add_variables(2)
-            1
-            sage: p.add_linear_constraint([[0, 17], [1, 89]], None, 42)
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
             sage: p._test_add_linear_constraints()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        tester = self._tester(**options)
-        nrows_before = self.nrows()
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        nrows_before = p.nrows()
         nrows_added = 5
-        self.add_linear_constraints(nrows_added, None, 2)
-        nrows_after = self.nrows()
+        p.add_linear_constraints(nrows_added, None, 2)
+        nrows_after = p.nrows()
         # Test correct number of rows
         tester.assertEqual(nrows_after, nrows_before+nrows_added, "Added the wrong number of rows")
         # Test contents of the new rows are correct (sparse zero)
         for i in range(nrows_before, nrows_after):
-            tester.assertEqual(self.row(i), ([], []))
-            tester.assertEqual(self.row_bounds(i), (None, 2.0))
+            tester.assertEqual(p.row(i), ([], []))
+            tester.assertEqual(p.row_bounds(i), (None, 2.0))
         # FIXME: Not sure if we should test that no new variables were added.
         # Perhaps some backend may need to introduce explicit slack variables?
 
@@ -612,7 +608,7 @@ cdef class GenericBackend:
             sage: p._test_solve()
             Traceback (most recent call last):
             ...
-            NotImplementedError: ...
+            NotImplementedError
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:

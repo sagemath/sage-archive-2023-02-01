@@ -474,10 +474,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
-    def reflecting_hyperplanes(self, as_linear_functional=False):
+    def reflecting_hyperplanes(self, as_linear_functionals=False):
         r"""
-        Return the list of all reflecting hyperplanes of
-        ``self``.
+        Return the list of all reflecting hyperplanes of ``self``,
+        either as a codimension 1 space, or as its linear functional.
+
+        INPUT:
+
+        - ``as_linear_functionals`` (default:False) -- flag whether to
+          return the hyperplane or its linear functional in the basis
+          dual to the given root basis.
 
         EXAMPLES::
 
@@ -485,37 +491,48 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: for H in W.reflecting_hyperplanes(): print H
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
-            [0 1]
+            [1 2]
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
-            [1 0]
+            [  1 1/2]
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -1]
+
+            sage: for H in W.reflecting_hyperplanes(as_linear_functinoals): print H
+            (1, -1/2)
+            (1, -2)
+            (1, 1)
+
 
             sage: W = ReflectionGroup((2,1,2))
             sage: for H in W.reflecting_hyperplanes(): print H
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
-            [0 1]
+            [1 1]
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [  1 1/2]
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
-            [ 1 -1]
-            Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2]
+            [0 1]
+
+            sage: for H in W.reflecting_hyperplanes(as_linear_functionals=True): print H
+            (1, -1)
+            (1, -2)
+            (0, 1)
+            (1, 0)
         """
         Hs = []
         for r in self.distinguished_reflections():
-            mat = r.as_matrix()
-            mat = mat - identity_matrix(mat.base_ring(),self.rank())
+            mat = (r.as_matrix().transpose() - identity_matrix(self.rank()))
             if as_linear_functional:
-                Hs.append( mat.column_space().gen() )
+                Hs.append( mat.row_space().gen() )
             else:
-                Hs.append( mat.left_kernel() )
+                Hs.append( mat.right_kernel() )
         return Family(self._hyperplane_index_set.keys(), lambda i: Hs[self._hyperplane_index_set[i]] )
 
     def reflecting_hyperplane(self, i, as_linear_functional=False):

@@ -1228,7 +1228,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup((3,1,2))
+            sage: W.invariant_form()
+            ?
         """
         C = self.cartan_matrix()
         n = self.rank()
@@ -1236,6 +1238,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         if self.is_crystallographic():
             ring = QQ
         else:
+            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
             ring = UniversalCyclotomicField()
 
         from sage.matrix.constructor import zero_matrix
@@ -1248,13 +1251,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             for i in range(j):
                 if C[i,j] != 0:
                     form[j,j] = (form[i,i].conjugate() * C[j,i].conjugate() /
-                                 C[i,j] * exp[j] / exps[i])
+                                 C[i,j] * exps[j] / exps[i].conjugate())
             if form[j,j] == 0:
                 form[j,j] = ring.one()
         for j in range(n):
             for i in range(j):
-                form[i, j] = C[i, j] * form[i, i] / exps[j]
-                form[j, i] = C[j, i] * form[j, j] / exps[i]
+                form[i, j] = C[i, j] * form[j, j] / exps[j]
+                form[j, i] = form[i, j].conjugate()
 
         form.set_immutable()
         return form
@@ -1265,7 +1268,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup((3,1,2))
+            sage: W.invariant_form_brute_force()
+            ?
         """
         Phi = self.roots()
 

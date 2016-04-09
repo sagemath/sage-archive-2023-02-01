@@ -595,6 +595,20 @@ class RealReflectionGroup(ComplexReflectionGroup):
         exec('L = ' + _gap_return(S))
         return L
 
+    def simple_root_index(self, i):
+        r"""
+        Return the index of the simple root `\alpha_i`.
+
+        This is the position of `\alpha_i` in the list of simple roots.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: [W.simple_root_index(i) for i in W.index_set()]
+            [0, 1, 2]
+        """
+        return self._index_set[i]
+
     class Element(ComplexReflectionGroup.Element):
 
         def _compute_reduced_word(self):
@@ -777,6 +791,25 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 010 [word: , word: 1, word: 0]
             """
             return [ (~w) for w in self.right_coset_representatives() ]
+
+        def action_on_root_indices(self, wi):
+            """
+            Return the action on the set of roots.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',3])
+                sage: w = W.w0
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]
+                [8, 7, 6, 10, 9, 11, 2, 1, 0, 4, 3, 5]
+
+                sage: W = ReflectionGroup(['A',2],reflection_index_set=['A','B','C'])
+                sage: w = W.w0
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]
+                [4, 3, 5, 1, 0, 2]
+            """
+            W = self.parent()
+            return (~self)(wi + 1) - 1
 
 class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexReflectionGroup):
 

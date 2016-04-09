@@ -10,6 +10,32 @@ expression for `w`.
 A subword complex is a shellable sphere if and only if the Demazure
 product of `Q` equals `w`, otherwise it is a shellable ball.
 
+The code is optimized to be used with ReflectionGroup, it works as well
+with CoxeterGroup, but many methods fail for WeylGroup.
+
+EXAMPLES::
+
+    sage: W = ReflectionGroup(['A',3])
+    sage: Q = W.index_set() + W.w0.coxeter_sorting_word(W.index_set()); Q
+    [0, 1, 2, 0, 1, 2, 0, 1, 0]
+
+    sage: S = SubwordComplex(Q,W.w0)
+    sage: for F in S: print F, F.root_configuration()
+    (0, 1, 2) [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+    (0, 1, 8) [(1, 0, 0), (0, 1, 0), (0, 0, -1)]
+    (0, 2, 6) [(1, 0, 0), (0, 1, 1), (0, -1, 0)]
+    (0, 6, 7) [(1, 0, 0), (0, 0, 1), (0, -1, -1)]
+    (0, 7, 8) [(1, 0, 0), (0, -1, 0), (0, 0, -1)]
+    (1, 2, 3) [(1, 1, 0), (0, 0, 1), (-1, 0, 0)]
+    (1, 3, 8) [(1, 1, 0), (-1, 0, 0), (0, 0, -1)]
+    (2, 3, 4) [(1, 1, 1), (0, 1, 0), (-1, -1, 0)]
+    (2, 4, 6) [(1, 1, 1), (-1, 0, 0), (0, -1, 0)]
+    (3, 4, 5) [(0, 1, 0), (0, 0, 1), (-1, -1, -1)]
+    (3, 5, 8) [(0, 1, 0), (-1, -1, 0), (0, 0, -1)]
+    (4, 5, 6) [(0, 1, 1), (-1, -1, -1), (0, -1, 0)]
+    (5, 6, 7) [(-1, 0, 0), (0, 0, 1), (0, -1, -1)]
+    (5, 7, 8) [(-1, 0, 0), (0, -1, 0), (0, 0, -1)]
+
 AUTHORS:
 
 - Christian Stump: initial version
@@ -776,7 +802,6 @@ class SubwordComplexFacet(Simplex, Element):
         """
         return self.plot().show(*kwds, **args)
 
-
 class SubwordComplex(UniqueRepresentation, SimplicialComplex):
     r"""
     Fix a Coxeter system `(W,S)`. The subword complex
@@ -1489,8 +1514,6 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             cov = [(a, b) for a, b in cov if a in Fs and b in Fs]
         return Poset(((), cov), facade=True)
 
-
-
 def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
     r"""
     Return the (positive or negative) *greedy facet* of the subword
@@ -1556,7 +1579,6 @@ def _greedy_facet(Q, w, side="negative", n=None, pos=0, l=None, elems=[]):
 
     return set(X)
 
-
 def _extended_root_configuration_indices(W, Q, F):
     """
     Return the extended root configuration indices of the facet `F`.
@@ -1591,7 +1613,6 @@ def _extended_root_configuration_indices(W, Q, F):
         if i not in F:
             pi = pi.apply_simple_reflection_right(wi)
     return V_roots
-
 
 def _greedy_flip_algorithm(Q, w):
     """

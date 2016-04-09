@@ -171,6 +171,17 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert y in self
         return self(tuple(x.value[i] for i in y.value))
 
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: FiniteWeylGroups().example().degrees()
+            (2, 3, 4, 5)
+        """
+        return tuple(range(2, self.n + 2))
+
     class Element(ElementWrapper):
 
         def has_right_descent(self, i):

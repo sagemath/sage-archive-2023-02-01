@@ -9,6 +9,7 @@ Indexed Generators
 #*****************************************************************************
 
 from sage.rings.all import Integer
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 
 class IndexedGenerators(object):
     r"""nodetex
@@ -223,11 +224,7 @@ class IndexedGenerators(object):
         # being there altogether.
         if kwds:
             for option in kwds:
-                # TODO: make this into a set and put it in a global variable?
-                if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
-                              'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                              'generator_cmp', 'string_quotes'
-                             ]:
+                if option in self._print_options:
                     self._print_options[option] = kwds[option]
                 else:
                     raise ValueError('{} is not a valid print option.'.format(option))
@@ -445,4 +442,114 @@ class IndexedGenerators(object):
         if prefix == "":
             return left + s + right
         return "%s_{%s}" % (prefix, s)
+
+def split_index_keywords(kwds):
+    """
+    Split the dictionary ``kwds`` into two dictionaries, one containing
+    keywords for :class:`IndexedGenerators`, and the other is everything else.
+
+    OUTPUT:
+
+    The dictionary containing only they keywords
+    for :class:`IndexedGenerators`. This modifies the dictionary ``kwds``.
+
+    .. WARNING::
+
+        This modifies the input dictionary ``kwds``.
+
+    EXAMPLES::
+
+        sage: from sage.structure.indexed_generators import split_index_keywords
+        sage: d = {'string_quotes': False, 'bracket': None, 'base': QQ}
+        sage: split_index_keywords(d)
+        {'bracket': None, 'string_quotes': False}
+        sage: d
+        {'base': Rational Field}
+    """
+    ret = {}
+    for option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
+                   'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
+                   'generator_cmp', 'string_quotes']:
+        try:
+            ret[option] = kwds.pop(option)
+        except KeyError:
+            pass
+    return ret
+
+def parse_indices_names(indices, names, prefix, kwds={}):
+    """
+    Parse the indices, names, and prefix input, along with setting
+    default values for keyword arguments ``kwds``.
+
+    OUTPUT:
+
+    The triple ``(I, N, p)`` where ``I`` is the indexing set, ``N`` is the
+    tuple of variable names, and ``p`` is the prefix. This modifies
+    the dictionary ``kwds``.
+
+    .. NOTE::
+
+        When the indices, names, or prefix have not been given, it
+        should be passed to this function as ``None``.
+
+    .. NOTE::
+
+        For handling default prefixes, if the result will be ``None`` if
+        it is not processed in this function.
+
+    EXAMPLES::
+
+        sage: from sage.structure.indexed_generators import parse_indices_names
+        sage: d = {}
+        sage: parse_indices_names(ZZ, 'x,y,z', None, d)
+        (Integer Ring, 'x,y,z', None)
+        sage: d
+        {}
+        sage: d = {}
+        sage: parse_indices_names(None, 'x,y,z', None, d)
+        ({'x', 'y', 'z'}, ('x', 'y', 'z'), '')
+        sage: d
+        {'bracket': False, 'string_quotes': False}
+        sage: d = {}
+        sage: parse_indices_names(ZZ, None, None, d)
+        (Integer Ring, None, None)
+        sage: d
+        {}
+
+    ::
+
+        sage: d = {'string_quotes':True, 'bracket':'['}
+        sage: parse_indices_names(ZZ, ['x','y','z'], 'x', d)
+        (Integer Ring, ['x', 'y', 'z'], 'x')
+        sage: d
+        {'bracket': '[', 'string_quotes': True}
+        sage: parse_indices_names(None, 'x,y,z', 'A', d)
+        ({'x', 'y', 'z'}, ('x', 'y', 'z'), 'A')
+        sage: d
+        {'bracket': '[', 'string_quotes': True}
+    """
+    if indices is None:
+        if names is None:
+            raise ValueError("either the indices or names must be given")
+        if isinstance(names, str):
+            names = names.split(',')
+        names = tuple(names)
+        indices = names
+
+        if prefix is None:
+            prefix =''
+        if 'string_quotes' not in kwds:
+            kwds['string_quotes'] = False
+        if 'bracket' not in kwds:
+            kwds['bracket'] = False
+
+    if isinstance(indices, dict): # dict of {name: index} -- not likely to be used
+        names = indices.keys()
+        indices = FiniteEnumeratedSet([indices[n] for n in names])
+    elif isinstance(indices, str):
+        indices = FiniteEnumeratedSet(list(indices))
+    elif isinstance(indices, (list, tuple, set, frozenset)):
+        indices = FiniteEnumeratedSet(indices)
+
+    return (indices, names, prefix)
 

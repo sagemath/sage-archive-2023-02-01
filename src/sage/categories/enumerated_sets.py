@@ -703,21 +703,8 @@ class EnumeratedSets(Category_singleton):
 
                 sage: F = FiniteSemigroups().example(('a','b','c'))
                 sage: L = list(F); L
-                ['a',
-                 'b',
-                 'c',
-                 'ac',
-                 'ab',
-                 'ba',
-                 'bc',
-                 'cb',
-                 'ca',
-                 'acb',
-                 'abc',
-                 'bca',
-                 'cba',
-                 'bac',
-                 'cab']
+                ['a', 'b', 'c', 'ac', 'ab', 'ba', 'bc', 'cb', 'ca',
+                 'acb', 'abc', 'bca', 'cba', 'bac', 'cab']
                 sage: L[7].rank()
                 7
             """

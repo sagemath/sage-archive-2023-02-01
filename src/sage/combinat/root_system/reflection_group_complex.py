@@ -60,17 +60,14 @@ from sage.categories.coxeter_groups import CoxeterGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.sets.family import Family
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
 from sage.matrix.all import Matrix, identity_matrix
 from sage.matrix.matrix import is_Matrix
-from sage.interfaces.gap3 import GAP3Record, gap3
-from sage.interfaces.gap import gap
+from sage.interfaces.gap3 import gap3
 from sage.combinat.words.word import Word
-from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField, E
-from sage.rings.arith import gcd, lcm
+from sage.rings.universal_cyclotomic_field import E
+from sage.rings.arith import lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
@@ -241,7 +238,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
             for w,word in self._iterator_tracking_words():
                 if w._reduced_word is None:
-                    w._reduced_word = [inv_dict[i] for i in word]
+                    w._reduced_word = [inv_dict[j] for j in word]
                 if self._store_elements:
                     self._elements.append(w)
                 yield w
@@ -511,7 +508,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Basis matrix:
             [ 1 -2]
         """
-        from sage.matrix.all import identity_matrix
         Hs = []
         for r in self.distinguished_reflections():
             mat = r.as_matrix()
@@ -659,7 +655,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.is_crystallographic()
             False
         """
-        from sage.rings.all import QQ
         return self.is_real() and all( t.as_matrix().base_ring() is QQ for t in self.simple_reflections() )
 
     def _element_class(self):
@@ -1220,7 +1215,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [    E(4)        2 1 - E(4)]
             [      -1 1 + E(4)        2]
         """
-        from sage.rings.universal_cyclotomic_field import E
         if self.is_crystallographic():
             from sage.combinat.root_system.cartan_matrix import CartanMatrix as CartanMat
         else:
@@ -1249,8 +1243,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 return Phi[ w(Phi.index(root)+1)-1 ]
             else:
                 return root*w.as_matrix()
-
-        ring = QQ
 
         @cached_function
         def invariant_value(i,j):
@@ -1441,7 +1433,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             .. SEEALSO:: :meth:`reduced_word_in_reflections`
             """
-            W = self.parent()
             if self._reduced_word is None:
                 self._compute_reduced_word()
             if isinstance(self._reduced_word, list):
@@ -1464,8 +1455,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             W = self.parent()
             inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
-            gens = [ W.simple_reflection(i) for i in W.index_set() ]
-            word = _gap_factorization(self,gens,inv_dict)
+            gens = [ W.simple_reflection(j) for j in W.index_set() ]
+            word = _gap_factorization(self, gens, inv_dict)
             self._reduced_word = word
 
         @cached_in_parent_method
@@ -1511,8 +1502,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 return Word(word)
             else:
                 inv_dict = dict( (W._reflection_index_set[i],i) for i in W._reflection_index_set.keys() )
-                gens = [ W.reflection(i) for i in W.reflection_index_set() ]
-                return Word(_gap_factorization(self,gens,inv_dict))
+                gens = [ W.reflection(j) for j in W.reflection_index_set() ]
+                return Word(_gap_factorization(self, gens, inv_dict))
 
         def length(self):
             r"""
@@ -1968,11 +1959,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         else:
             cs = list(c)
         l = cs[0].reflection_length(in_unitary_group=True)
-        R = self.reflections()
         f = lambda pi: any( pi.reflection_length(in_unitary_group=True) + (c*pi**-1).reflection_length(in_unitary_group=True) == l for c in cs )
         # first computing the conjugacy classes only needed if the interaction with gap3 is slow due to a bug
         #self.conjugacy_classes()
-        return filter(f,self)
+        return filter(f, self)
 
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None):

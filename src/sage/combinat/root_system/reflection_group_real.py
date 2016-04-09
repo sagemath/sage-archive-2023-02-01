@@ -712,7 +712,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
             r"""
             Return the inversion set of ``self``.
 
-            This is the set `\{ \beta \in \Phi^+ : ``self``(\beta) \in \Phi^- \}`.
+            For `w` in a real reflection group, the inversion set of `w`
+            is the set `\{ \beta \in \Phi^+ : w(\beta) \in \Phi^-\}`.
 
             EXAMPLES::
 

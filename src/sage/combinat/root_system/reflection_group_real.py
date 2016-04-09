@@ -304,14 +304,24 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     def invariant_form(self):
         r"""
-        Returns the form that is invariant under the action of ``self``.
+        Return the form that is invariant under the action of ``self``.
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup(['A',3])
+            sage: W.invariant_form()
+            [   1 -1/2    0]
+            [-1/2    1 -1/2]
+            [   0 -1/2    1]
+
+            sage: W = ReflectionGroup(['B',3])
+            sage: W.invariant_form()
+            [ 1 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
         """
-        C       = self.cartan_matrix()
-        n       = self.rank()
+        C = self.cartan_matrix()
+        n = self.rank()
 
         if self.is_crystallographic():
             ring = QQ
@@ -319,7 +329,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             ring = UniversalCyclotomicField()
 
         from sage.matrix.constructor import zero_matrix
-        form = zero_matrix(ring,n,n)
+        form = zero_matrix(ring, n, n)
 
         for j in range(n):
             for i in range(j):

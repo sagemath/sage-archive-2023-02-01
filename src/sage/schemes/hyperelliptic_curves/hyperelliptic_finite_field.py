@@ -1129,6 +1129,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H = HyperellipticCurve(x^5+a*x^2+1, x+a+1)
             sage: H.count_points(6)
             [2, 24, 74, 256, 1082, 4272]
+
+            This example shows that ticket #20391 is resolved:
+            sage: x = polygen(GF(4099))
+            sage: H = HyperellipticCurve(x^6 + x + 1)
+            sage: H.count_points(1)    
+            [4106]
         """
         K = self.base_ring()
         q = K.cardinality()

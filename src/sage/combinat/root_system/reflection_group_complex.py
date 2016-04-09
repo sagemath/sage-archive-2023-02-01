@@ -1222,6 +1222,47 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
+    def invariant_form(self):
+        r"""
+        Return the form that is invariant under the action of ``self``.
+
+        EXAMPLES::
+
+            sage: tba
+        """
+        Phi = self.roots()
+
+        base_change = self.base_change_matrix()
+        Delta = [ beta*base_change for beta in self.simple_roots() ]
+        basis_is_Delta = base_change.is_one()
+
+        S = self.simple_reflections()
+        n = len(S)
+
+        def act_on_root(w,root):
+            if basis_is_Delta:
+                return Phi[ w(Phi.index(root)+1)-1 ]
+            else:
+                return root * w.as_matrix()
+
+        @cached_function
+        def invariant_value(i,j):
+            if i > j:
+                return invariant_value(j,i).conjugate()
+            val = sum( (act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self )
+            if val in QQ:
+                val = QQ(val)
+            return val
+
+        coeffs = []
+        for i in range(n):
+            coeff = 1-E(S[i].order())
+            if coeff in QQ:
+                coeff = QQ(coeff)
+            coeffs.append(coeff)
+
+        return Matrix([ [ invariant_value(i,j)/self.cardinality() for j in range(n) ] for i in range(n) ])
+
     def set_reflection_representation(self,refl_repr=None):
         r"""
         Set the reflection representation of ``self``.

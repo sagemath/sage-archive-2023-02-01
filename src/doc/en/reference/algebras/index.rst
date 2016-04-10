@@ -54,7 +54,6 @@ Named associative algebras
    sage/algebras/quatalg/quaternion_algebra
    sage/algebras/rational_cherednik_algebra
    sage/algebras/schur_algebra
-   sage/algebras/shuffle_algebra
    sage/algebras/steenrod/steenrod_algebra
    sage/algebras/steenrod/steenrod_algebra_bases
    sage/algebras/steenrod/steenrod_algebra_misc

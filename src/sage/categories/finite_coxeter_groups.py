@@ -220,6 +220,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 [2, 3, 4, 5]
                 sage: CoxeterGroup(['B', 4]).degrees()
                 [2, 4, 6, 8]
+                sage: CoxeterGroup(['D', 4]).degrees()
+                [2, 4, 4, 6]
                 sage: CoxeterGroup(['F', 4]).degrees()
                 [2, 6, 8, 12]
                 sage: CoxeterGroup(['E', 8]).degrees()
@@ -230,10 +232,16 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             from sage.rings.qqbar import QQbar
             c = self.prod(self.gens())
             chi = c.matrix().change_ring(QQbar)
-            roots = [u[0] for u in chi.charpoly().roots()]
-            h = max(z.multiplicative_order() for z in roots)
+            roots = [u for u in chi.charpoly().roots()]
+            h = max(z[0].multiplicative_order() for z in roots)
             prim = QQbar.zeta(h)
-            return [e + 1 for e in range(1, h + 1) if prim ** e in roots]
+            degs = []
+            for z, m in roots:
+                for e in range(1, h):
+                    if prim ** e == z:
+                        degs.extend([e + 1] * m)
+                        break
+            return sorted(degs)
         
         @cached_method
         def weak_poset(self, side = "right", facade = False):

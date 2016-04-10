@@ -300,14 +300,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if not sorted(self._index_set.values()) == l_set:
                 raise ValueError("the given index set (= %s) does not have the right size"%self._index_set.values())
         self._index_set_inverse = self._index_set.inverse_family()
-        Nstar_set = range(self.nr_reflecting_hyperplanes())
+        Nstar_set = range(self.number_of_reflecting_hyperplanes())
         if self._hyperplane_index_set is None:
             self._hyperplane_index_set = Family(dict( (i,i) for i in Nstar_set))
         else:
             if not sorted(self._hyperplane_index_set.values()) == Nstar_set:
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = self._hyperplane_index_set.inverse_family()
-        N_set = range(self.nr_reflections())
+        N_set = range(self.number_of_reflections())
         if self._reflection_index_set is None:
             self._reflection_index_set = Family(dict( (i,i) for i in N_set))
         else:
@@ -573,7 +573,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1,2,3)
 
             sage: W = ReflectionGroup((1,1,3),(3,1,2))
-            sage: for i in range(W.nr_reflecting_hyperplanes()): W.distinguished_reflection(i)
+            sage: for i in range(W.number_of_reflecting_hyperplanes()): W.distinguished_reflection(i)
             (1,6)(2,5)(7,8)
             (1,5)(2,7)(6,8)
             (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
@@ -733,7 +733,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                            9: (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)}
         """
         T = self.distinguished_reflections().values()
-        for i in range(self.nr_reflecting_hyperplanes()):
+        for i in range(self.number_of_reflecting_hyperplanes()):
             for j in range(2,T[i].order()):
                 T.append(T[i]**j)
         return Family(self._reflection_index_set.keys(),
@@ -828,18 +828,18 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self.element_class
 
-    def nr_irreducible_components(self):
+    def number_of_irreducible_components(self):
         r"""
         Return the number of irreducible components of ``self``.
 
         EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
-            sage: W.nr_irreducible_components()
+            sage: W.number_of_irreducible_components()
             1
 
             sage: W = ReflectionGroup((1,1,3),(2,1,3))
-            sage: W.nr_irreducible_components()
+            sage: W.number_of_irreducible_components()
             2
         """
         return len(self._type)
@@ -1526,8 +1526,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W:
                 ....:     print('%s %s'%(w.reduced_word(), w.conjugacy_class_representative().reduced_word()))
-                0 0
+                <BLANKLINE>
                 1 0
+                0 0
                 01 01
                 10 01
                 010 0
@@ -1756,14 +1757,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: for w in W:
                 ....:     print(w.reduced_word())
                 ....:     print(w.to_matrix())
+                <BLANKLINE>
                 [1 0]
                 [0 1]
-                0
-                [-1  0]
-                [ 1  1]
                 1
                 [ 1  1]
                 [ 0 -1]
+                0
+                [-1  0]
+                [ 1  1]
                 01
                 [-1 -1]
                 [ 1  0]
@@ -1799,18 +1801,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: for w in W:
                 ....:     print(w.reduced_word())
                 ....:     print(w.fix_space())
+                <BLANKLINE>
                 Vector space of degree 2 and dimension 2 over Rational Field
                 Basis matrix:
                 [1 0]
-                [0 1]
-                0
-                Vector space of degree 2 and dimension 1 over Rational Field
-                Basis matrix:
                 [0 1]
                 1
                 Vector space of degree 2 and dimension 1 over Rational Field
                 Basis matrix:
                 [1 0]
+                0
+                Vector space of degree 2 and dimension 1 over Rational Field
+                Basis matrix:
+                [0 1]
                 01
                 Vector space of degree 2 and dimension 0 over Rational Field
                 Basis matrix:
@@ -1986,7 +1989,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3)); W
-            Irreducible complex reflection group of rank 2 and type A2
+            Irreducible real reflection group of rank 2 and type A2
+            sage: W = ReflectionGroup((3,1,4)); W
+            Irreducible complex reflection group of rank 4 and type G(3,1,4)
         """
         type_str = self._irrcomp_repr_(self._type[0])
         return 'Irreducible complex reflection group of rank %s and type %s'%(self._rank,type_str)
@@ -2286,8 +2291,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 sage: for w in W:
                 ....:     print('%s %s'%(w.reduced_word(), w.is_coxeter_element()))
                  False
-                0 False
                 1 False
+                0 False
                 01 True
                 10 True
                 010 False
@@ -2313,8 +2318,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 sage: for w in W:
                 ....:     print('%s %s'%(w.reduced_word(), w.is_h_regular()))
                  False
-                0 False
                 1 False
+                0 False
                 01 True
                 10 True
                 010 False
@@ -2339,8 +2344,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 sage: for w in W:
                 ....:     print('%s %s'%(w.reduced_word(), w.is_regular(W.coxeter_number())))
                  False
-                0 False
                 1 False
+                0 False
                 01 True
                 10 True
                 010 False
@@ -2349,124 +2354,124 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 sage: for w in W:
                 ....:     print('%s %s'%(w.reduced_word(), w.is_regular(W.coxeter_number())))
                  False
-                0 False
-                1 False
                 2 False
-                01 False
-                02 False
-                10 False
+                1 False
+                0 False
                 12 False
+                02 False
                 21 False
-                010 False
+                01 False
+                10 False
                 012 True
-                021 True
-                101 False
                 102 True
                 121 False
+                021 True
+                101 False
                 210 True
-                0101 False
+                010 False
+                1012 False
                 0102 False
                 0121 False
+                1021 False
+                2101 False
+                0101 False
+                1210 False
                 0210 False
                 1010 False
-                1012 False
-                1021 False
-                1210 False
-                2101 False
-                01010 False
+                21012 False
                 01012 False
-                01021 False
-                01210 False
-                02101 False
                 10102 False
                 10121 True
-                10210 False
+                01021 False
                 12101 True
+                02101 False
+                01210 False
+                10210 False
                 21010 False
-                21012 False
+                01010 False
+                121012 False
+                021012 False
+                210102 False
                 010102 False
                 010121 False
-                010210 False
-                012101 False
-                021010 False
-                021012 False
                 101021 False
-                101210 False
+                012101 False
                 102101 False
+                101210 False
+                010210 False
                 121010 False
-                121012 False
-                210102 False
-                0101021 False
-                0101210 True
-                0102101 False
-                0121010 True
+                021010 False
                 0121012 False
-                0210102 False
-                1010210 False
-                1012101 False
-                1021010 False
                 1021012 False
                 1210102 False
+                0210102 False
                 2101021 False
-                01010210 False
-                01012101 False
-                01021010 False
+                0101021 False
+                1012101 False
+                0102101 False
+                0101210 True
+                1010210 False
+                0121010 True
+                1021010 False
+                10121012 False
                 01021012 False
                 01210102 False
-                02101021 False
-                10102101 False
-                10121010 False
-                10121012 False
                 10210102 False
                 12101021 False
+                02101021 False
+                01012101 False
+                10102101 False
                 21010210 False
-                010102101 True
-                010121010 False
+                01010210 False
+                10121010 False
+                01021010 False
                 010121012 True
-                010210102 False
-                012101021 True
-                021010210 False
-                101021010 True
                 101021012 True
                 101210102 True
+                010210102 False
+                012101021 True
                 102101021 False
-                121010210 True
                 210102101 True
-                0101021010 False
+                010102101 True
+                121010210 True
+                021010210 False
+                010121010 False
+                101021010 True
+                2101021012 False
                 0101021012 False
                 0101210102 False
-                0102101021 False
-                0121010210 False
-                0210102101 False
                 1010210102 False
                 1012101021 False
-                1021010210 False
+                0102101021 False
                 1210102101 False
-                2101021012 False
+                0210102101 False
+                0121010210 False
+                1021010210 False
+                0101021010 False
+                12101021012 True
+                02101021012 True
                 01010210102 True
                 01012101021 True
-                01021010210 False
-                01210102101 True
-                02101021012 True
                 10102101021 False
-                10121010210 True
+                01210102101 True
                 10210102101 False
-                12101021012 True
-                010102101021 False
-                010121010210 False
-                010210102101 False
+                10121010210 True
+                01021010210 False
                 012101021012 False
-                101021010210 False
-                101210102101 False
                 102101021012 False
-                0101021010210 False
-                0101210102101 False
-                0102101021012 True
-                1010210102101 False
+                010102101021 False
+                101210102101 False
+                010210102101 False
+                010121010210 False
+                101021010210 False
                 1012101021012 True
-                01010210102101 False
+                0102101021012 True
+                0101210102101 False
+                1010210102101 False
+                0101021010210 False
                 01012101021012 False
                 10102101021012 False
+                01010210102101 False
                 010102101021012 False
             """
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
@@ -2495,8 +2500,8 @@ def _gap_factorization(w, gens):
         sage: gens = [ W.simple_reflection(i) for i in W.index_set() ]
         sage: for w in W: _gap_factorization(w,gens)
         []
-        [0]
         [1]
+        [0]
         [0, 1]
         [1, 0]
         [0, 1, 0]

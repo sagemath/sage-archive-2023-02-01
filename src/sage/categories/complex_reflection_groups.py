@@ -347,23 +347,23 @@ class ComplexReflectionGroups(Category_singleton):
             from sage.sets.family import Family
             return Family(self.reflection_index_set(), self.reflection)
 
-        def nr_simple_reflections(self):
+        def number_of_simple_reflections(self):
             r"""
             Return the number of simple reflections of ``self``.
 
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3)
-                sage: W.nr_simple_reflections()
+                sage: W.number_of_simple_reflections()
                 2
                 sage: W = ColoredPermutations(2,3)
-                sage: W.nr_simple_reflections()
+                sage: W.number_of_simple_reflections()
                 3
                 sage: W = ColoredPermutations(4,3)
-                sage: W.nr_simple_reflections()
+                sage: W.number_of_simple_reflections()
                 3
                 sage: W = ReflectionGroup((4,2,3))
-                sage: W.nr_simple_reflections()
+                sage: W.number_of_simple_reflections()
                 4
             """
             return len(self.simple_reflections())
@@ -494,11 +494,11 @@ class ComplexReflectionGroups(Category_singleton):
                 True
 
                 sage: W = ReflectionGroup((1,1,3),(2,1,3)); W
-                Reducible complex reflection group of rank 5 and type A2 x B3
+                Reducible real reflection group of rank 5 and type A2 x B3
                 sage: W.is_irreducible()
                 False
             """
-            return self.nr_irreducible_components() == 1
+            return self.number_of_irreducible_components() == 1
 
         def is_reducible(self):
             r"""
@@ -512,7 +512,7 @@ class ComplexReflectionGroups(Category_singleton):
                 False
 
                 sage: W = ReflectionGroup((1,1,3), (2,1,3)); W
-                Reducible complex reflection group of rank 5 and type A2 x B3
+                Reducible real reflection group of rank 5 and type A2 x B3
                 sage: W.is_reducible()
                 True
             """
@@ -721,7 +721,7 @@ class ComplexReflectionGroups(Category_singleton):
                 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W
-                Irreducible complex reflection group of rank 2 and type A2
+                Irreducible real reflection group of rank 2 and type A2
                 sage: W.one().apply_distinguished_reflection('A')
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflection('B')
@@ -783,7 +783,7 @@ class ComplexReflectionGroups(Category_singleton):
                 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3), reflection_index_set=['A','B','C']); W
-                Irreducible complex reflection group of rank 2 and type A2
+                Irreducible real reflection group of rank 2 and type A2
                 sage: W.one().apply_reflection('A')
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflection('B')
@@ -851,7 +851,7 @@ class ComplexReflectionGroups(Category_singleton):
                 Check if ``self`` is well-generated.
                 """
                 tester = self._tester(**options)
-                tester.assertEqual(self.nr_simple_reflections(), self.rank())
+                tester.assertEqual(self.number_of_simple_reflections(), self.rank())
 
             def is_well_generated(self):
                 r"""

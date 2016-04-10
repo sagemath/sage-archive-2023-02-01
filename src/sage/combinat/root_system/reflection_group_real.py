@@ -211,7 +211,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         cls.__init__(self, W_types, index_set               = index_set,
                                     hyperplane_index_set    = hyperplane_index_set,
                                     reflection_index_set    = reflection_index_set)
-        N = self.nr_reflections()
+        N = self.number_of_reflections()
         self._is_positive_root = [None] + [True]*N + [False]*N
 
     def _repr_(self):
@@ -270,7 +270,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,5)(2,6)(3,7)(4,8)
         """
         from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, N=self.nr_reflections(),
+        return iter(Iterator(self, N=self.number_of_reflections(),
                              algorithm=algorithm, tracking_words=tracking_words))
 
     def __iter__(self):
@@ -420,7 +420,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.positive_roots()
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
         """
-        return self.roots()[:self.nr_reflections()]
+        return self.roots()[:self.number_of_reflections()]
 
     def almost_positive_roots(self):
         r"""
@@ -680,7 +680,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             if not self._reduced_word is None:
                 return len(self._reduced_word)
             else:
-                N = self.parent().nr_reflections()
+                N = self.parent().number_of_reflections()
                 return ZZ.sum(ZZ.one() for i in range(N)
                               if not self.parent()._is_positive_root[self(i+1)])
 

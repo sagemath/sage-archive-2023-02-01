@@ -53,7 +53,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
     An example of a finite reflection group::
 
         sage: W = ComplexReflectionGroups().Finite().example(); W
-        Reducible complex reflection group of rank 4 and type A2 x B2
+        Reducible real reflection group of rank 4 and type A2 x B2
 
         sage: W.reflections()
         Finite family {0: (1,8)(2,5)(9,12), 1: (1,5)(2,9)(8,12),
@@ -74,7 +74,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: ComplexReflectionGroups().Finite().example()
-            Reducible complex reflection group of rank 4 and type A2 x B2
+            Reducible real reflection group of rank 4 and type A2 x B2
         """
         from sage.combinat.root_system.reflection_group_real import ReflectionGroup
         return ReflectionGroup((1,1,3), (2,1,2))
@@ -123,7 +123,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 [28, 16, 12, 0]
             """
 
-        def nr_reflecting_hyperplanes(self):
+        def number_of_reflecting_hyperplanes(self):
             r"""
             Return the number of reflecting hyperplanes of ``self``.
 
@@ -136,21 +136,21 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3)
-                sage: W.nr_reflecting_hyperplanes()
+                sage: W.number_of_reflecting_hyperplanes()
                 3
                 sage: W = ColoredPermutations(2,3)
-                sage: W.nr_reflecting_hyperplanes()
+                sage: W.number_of_reflecting_hyperplanes()
                 9
                 sage: W = ColoredPermutations(4,3)
-                sage: W.nr_reflecting_hyperplanes()
+                sage: W.number_of_reflecting_hyperplanes()
                 15
                 sage: W = ReflectionGroup((4,2,3))
-                sage: W.nr_reflecting_hyperplanes()
+                sage: W.number_of_reflecting_hyperplanes()
                 15
             """
             return sum(self.codegrees()) + self.rank()
 
-        def nr_reflections(self):
+        def number_of_reflections(self):
             r"""
             Return the number of reflections of ``self``.
 
@@ -163,16 +163,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3)
-                sage: W.nr_reflections()
+                sage: W.number_of_reflections()
                 3
                 sage: W = ColoredPermutations(2,3)
-                sage: W.nr_reflections()
+                sage: W.number_of_reflections()
                 9
                 sage: W = ColoredPermutations(4,3)
-                sage: W.nr_reflections()
+                sage: W.number_of_reflections()
                 21
                 sage: W = ReflectionGroup((4,2,3))
-                sage: W.nr_reflections()
+                sage: W.number_of_reflections()
                 15
             """
             return sum(self.degrees()) - self.rank()
@@ -200,18 +200,18 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             """
             return len(self.degrees())
 
-        def nr_irreducible_components(self):
+        def number_of_irreducible_components(self):
             r"""
             Return the number of irreducible components of ``self``.
 
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3)
-                sage: W.nr_irreducible_components()
+                sage: W.number_of_irreducible_components()
                 1
 
                 sage: W = ReflectionGroup((1,1,3),(2,1,3))
-                sage: W.nr_irreducible_components()
+                sage: W.number_of_irreducible_components()
                 2
             """
             return len(self.irreducible_components())
@@ -272,7 +272,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.is_well_generated()
                 True
             """
-            return self.nr_simple_reflections() == self.rank()
+            return self.number_of_simple_reflections() == self.rank()
 
         def is_real(self):
             r"""
@@ -291,7 +291,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.is_real()
                 False
             """
-            return self.degrees().count(2) == self.nr_irreducible_components()
+            return self.degrees().count(2) == self.number_of_irreducible_components()
 
     class ElementMethods:
 
@@ -306,8 +306,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W = ReflectionGroup((1,1,3))
                 sage: [t.to_matrix() for t in W]
                 [
-                [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
-                [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
+                [1 0]  [ 1  1]  [-1  0]  [-1 -1]  [ 0  1]  [ 0 -1]
+                [0 1], [ 0 -1], [ 1  1], [ 1  0], [-1 -1], [-1  0]
                 ]
 
                 sage: W = ColoredPermutations(1,3)
@@ -335,8 +335,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W = ReflectionGroup((1,1,3))
                 sage: [matrix(t) for t in W]
                 [
-                [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
-                [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
+                [1 0]  [ 1  1]  [-1  0]  [-1 -1]  [ 0  1]  [ 0 -1]
+                [0 1], [ 0 -1], [ 1  1], [ 1  0], [-1 -1], [-1  0]
                 ]
             """
             return self.to_matrix()
@@ -358,7 +358,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             root system::
 
                 sage: W = ReflectionGroup((1,1,3)); W
-                Irreducible complex reflection group of rank 2 and type A2
+                Irreducible real reflection group of rank 2 and type A2
                 sage: [t.character_value() for t in W]
                 [2, 0, 0, -1, -1, 0]
 
@@ -407,7 +407,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     sage: W.coxeter_number()
                     30
                 """
-                return (self.nr_reflecting_hyperplanes() + self.nr_reflections()) // self.rank()
+                return (self.number_of_reflecting_hyperplanes() + self.number_of_reflections()) // self.rank()
 
     class WellGenerated(CategoryWithAxiom):
         r"""

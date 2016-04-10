@@ -15,15 +15,15 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
-from sage.categories.groups import Groups
 from sage.rings.all import ZZ
+
 
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
     The category of finite complex reflection groups.
 
     This is the base category for finite subgroups of the general
-    linear group over a complex vector space which are generated 
+    linear group over a complex vector space which are generated
     by complex reflections.
 
     EXAMPLES::
@@ -564,7 +564,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                         sage: W.rational_catalan_number(3, polynomial=True)
                         q^6 + q^4 + q^3 + q^2 + 1
                     """
-                    from sage.rings.all import ZZ
                     from sage.arith.all import gcd
                     from sage.combinat.q_analogues import q_int
 

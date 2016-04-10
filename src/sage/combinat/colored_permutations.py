@@ -8,8 +8,6 @@ Colored Permutations
 """
 import itertools
 
-from sage.categories.groups import Groups
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

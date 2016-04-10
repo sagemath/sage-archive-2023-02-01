@@ -47,6 +47,10 @@ def _make_wrapper(attr):
             if self._test_method:
                 if result is None:
                     self._test_method.write("        tester.assertIsNone({})\n".format(funcall))
+                elif type(result) is float:
+                    # TODO: by default assertAlmostEqual does 7 decimal places (not significant digits)
+                    # better perhaps to compute an appropriate 'places' or 'delta' parameter from result.
+                    self._test_method.write("        tester.assertAlmostEqual({}, {})\n".format(funcall, result))
                 else:
                     self._test_method.write("        tester.assertEqual({}, {})\n".format(funcall, result))
         return result
@@ -95,7 +99,7 @@ class LoggingBackend (GenericBackend):
 # Override all methods that we inherited from GenericBackend
 # by delegating methods
 for attr in dir(LoggingBackend):
-    if not attr.startswith("_"):
+    if not attr.startswith("_") and attr not in ("zero", "base_ring"):
         a = getattr(LoggingBackend, attr)
         if callable(a):
             # make an unbound method
@@ -106,7 +110,7 @@ for attr in dir(LoggingBackend):
 test_method_template = \
 r'''
     @classmethod
-    def _test_{name}(cls, tester=None, **options)
+    def _test_{name}(cls, tester=None, **options):
         """
         Run tests on ...
 

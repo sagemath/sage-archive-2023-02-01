@@ -154,7 +154,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return the number of reflections of ``self``.
 
-            It is given by the sum of the degrees of self minus its
+            It is given by the sum of the degrees of ``self`` minus its
             rank.
 
             For real groups, this coincides with the number of
@@ -475,7 +475,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     Return the Coxeter number of a well-generated,
                     irreducible reflection group. This is defined to be
                     the order of a regular element in ``self``, and is
-                    equal to the highest degree of self.
+                    equal to the highest degree of ``self``.
 
                     .. NOTE::
 
@@ -685,7 +685,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                       if ``True``, return instead the positive Fuss-Catalan
                       number.
                     - ``polynomial`` -- optional boolean (default ``False``)
-                      if ``True``, return instead the q-analogue as a
+                      if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
 
                     .. NOTE::

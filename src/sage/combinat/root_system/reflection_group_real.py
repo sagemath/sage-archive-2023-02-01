@@ -832,7 +832,7 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
             sage: for i in [2..7]: ReflectionGroup(["I",i])
             Reducible real reflection group of rank 2 and type A1 x A1
             Irreducible real reflection group of rank 2 and type A2
-            Irreducible real reflection group of rank 2 and type B2
+            Irreducible real reflection group of rank 2 and type C2
             Irreducible real reflection group of rank 2 and type I2(5)
             Irreducible real reflection group of rank 2 and type G2
             Irreducible real reflection group of rank 2 and type I2(7)

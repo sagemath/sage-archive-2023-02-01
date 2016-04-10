@@ -2144,9 +2144,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
           cover relations are checked)
 
         - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
-          relation is given by ``\sigma \leq \tau`` if ``l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)``.
-          If ``True``, the relation is given by ``\sigma \leq \tau`` if
-          ``dim(Fix(\sigma)) + dim(Fix(\sigma^{-1}\tau)) = dim(Fix(\tau))``.
+          relation is given by `\sigma \leq \tau` if
+          `l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)`;
+          if ``True``, the relation is given by `\sigma \leq \tau` if
+          `\dim(\mathrm{Fix}(\sigma)) + \dim(\mathrm{Fix}(\sigma^{-1}\tau))
+          = \dim(\mathrm{Fix}(\tau))`
 
         EXAMPLES::
 
@@ -2162,11 +2164,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             [[], [2]]
         """
         from sage.combinat.posets.all import Poset, LatticePoset
+        if c is None:
+            c = self.a_coxeter_element()
 
-        if in_unitary_group == False:
-            smart_covers = True
-        else:
-            smart_covers = False
+        smart_covers = not in_unitary_group
+
         if self.is_real():
             smart_covers = in_unitary_group = True
 
@@ -2176,7 +2178,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             if c.is_coxeter_element():
                 smart_covers = in_unitary_group = True
         rels = []
-        ref_lens = { w: w.reflection_length(in_unitary_group=in_unitary_group) for w in L }
+        ref_lens = {w: w.reflection_length(in_unitary_group=in_unitary_group)
+                    for w in L}
         if smart_covers:
             for pi in L:
                 for t in R:
@@ -2184,7 +2187,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                     if tau in L and ref_lens[pi] + 1 == ref_lens[tau]:
                         rels.append((pi,tau))
         else:
-            rels = [ (pi,tau) for pi in L for tau in L if ref_lens[pi] + ref_lens[pi.inverse()*tau] == ref_lens[tau] ]
+            rels = [(pi,tau) for pi in L for tau in L
+                    if ref_lens[pi] + ref_lens[pi.inverse()*tau] == ref_lens[tau]]
         P = Poset((L,rels), cover_relations=smart_covers, facade=True)
         if P.is_lattice():
             return LatticePoset(P)
@@ -2250,16 +2254,16 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         chain = next(iter)
         while len(chain) <= m:
             chain.append( c )
-            for i in range(len(chain)-1,0,-1):
+            for i in range(len(chain)-1, 0, -1):
                 chain[i] = chain[i-1]**-1 * chain[i]
-            k = m+1 - len(chain)
+            k = m + 1 - len(chain)
             for positions in Combinations(range(m+1),k):
                 ncm = []
                 for l in range(m+1):
                     if l in positions:
-                        ncm.append( one )
+                        ncm.append(one)
                     else:
-                        l_prime = l - len( [ i for i in positions if i <= l ] )
+                        l_prime = l - len([i for i in positions if i <= l])
                         ncm.append(chain[l_prime])
                 if not positive or prod(ncm[:-1]).has_full_support():
                     NCm.add(tuple(ncm))

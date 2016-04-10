@@ -852,7 +852,7 @@ class ComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: W = ReflectionGroup((3,1,1))
-                    sage: ???
+                    sage: W._test_well_generated()
                 """
                 tester = self._tester(**options)
                 tester.assertEqual(self.number_of_simple_reflections(), self.rank())

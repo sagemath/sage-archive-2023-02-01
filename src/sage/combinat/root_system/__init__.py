@@ -69,7 +69,7 @@ Finite reflection groups
 
 .. SEEALSO::
 
-    The category :class:`ComplexReflectionGroups`
+    The category :class:`~sage.categories.complex_reflection_groups.ComplexReflectionGroups`
 
 Representation theory
 ---------------------

@@ -967,9 +967,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                       lambda w: Ev_list[class_representatives.index(w)])
 
     @cached_method
-    def reflection_eigenvalues(self,w,test_class_repr=True):
+    def reflection_eigenvalues(self, w, test_class_repr=True):
         r"""
         Return the reflection eigenvalue of ``w`` in ``self``.
+
+        INPUT:
+
+        - ``test_class_repr`` -- boolean (default ``True``) whether to compute
+          instead on the conjugacy class representative.
 
         .. SEEALSO:: :meth:`reflection_eigenvalues_family`
 
@@ -1948,12 +1953,12 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         Return all elements in ``self`` in the interval `[1,c]` in the
         absolute order of ``self``.
 
-        This order is defines by
+        This order is defined by
 
         .. MATH::
 
             \omega \leq_R \tau \Leftrightarrow \ell_R(\omega) +
-            \ell_R(\omega^{-1} \tau) = \ell_R(\tau)`,
+            \ell_R(\omega^{-1} \tau) = \ell_R(\tau),
 
         where `\ell_R` denotes the reflection length.
 
@@ -2145,7 +2150,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
 
-            .. SEEALSO:: :meth:`a_coxeter_element`
+            .. SEEALSO:: :meth:`~IrreducibleComplexReflectionGroup.a_coxeter_element`
 
             EXAMPLES::
 

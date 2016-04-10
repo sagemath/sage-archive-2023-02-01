@@ -258,7 +258,7 @@ class ComplexReflectionGroups(Category_singleton):
             `\operatorname{exp}(2 \pi i / n)`, where `n` is the order of
             the reflection subgroup fixing `H`.
 
-           EXAMPLES::
+            EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
                 sage: distinguished_reflections = W.distinguished_reflections()
@@ -304,7 +304,7 @@ class ComplexReflectionGroups(Category_singleton):
             Return a finite family containing the reflections of
             ``self``, indexed by :meth:`reflection_index_set`.
 
-           EXAMPLES::
+            EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
                 sage: reflections = W.reflections()

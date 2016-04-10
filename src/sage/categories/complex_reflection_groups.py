@@ -125,10 +125,10 @@ class ComplexReflectionGroups(Category_singleton):
                 (1, 2, 3)
                 sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])
                 sage: W.index_set()
-                [1, 3, 'asdf']
-                sage: W = ReflectionGroup((1,1,4), index_set={'a':0,'b':1,'c':2})
+                (1, 3, 'asdf')
+                sage: W = ReflectionGroup((1,1,4), index_set=('a','b','c'))
                 sage: W.index_set()
-                ['a', 'b', 'c']
+                ('a', 'b', 'c')
             """
 
         def simple_reflection(self, i):
@@ -158,13 +158,13 @@ class ComplexReflectionGroups(Category_singleton):
 
                 sage: W = ReflectionGroup((1,1,4))
                 sage: W.hyperplane_index_set()
-                [0, 1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5, 6)
                 sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=[1,3,'asdf',7,9,11])
                 sage: W.hyperplane_index_set()
-                [1, 3, 'asdf', 7, 9, 11]
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                (1, 3, 'asdf', 7, 9, 11)
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))
                 sage: W.hyperplane_index_set()
-                ['a', 'b', 'c', 'd', 'e', 'f']
+                ('a', 'b', 'c', 'd', 'e', 'f')
             """
 
         @abstract_method(optional=True)
@@ -177,7 +177,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))
                 sage: for i in W.hyperplane_index_set():
                 ....:     print('%s %s'%(i, W.distinguished_reflection(i)))
                 a (1,7)(2,4)(5,6)(8,10)(11,12)
@@ -197,13 +197,13 @@ class ComplexReflectionGroups(Category_singleton):
 
                 sage: W = ReflectionGroup((1,1,4))
                 sage: W.reflection_index_set()
-                [0, 1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5, 6)
                 sage: W = ReflectionGroup((1,1,4), reflection_index_set=[1,3,'asdf',7,9,11])
                 sage: W.reflection_index_set()
-                [1, 3, 'asdf', 7, 9, 11]
-                sage: W = ReflectionGroup((1,1,4), reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                (1, 3, 'asdf', 7, 9, 11)
+                sage: W = ReflectionGroup((1,1,4), reflection_index_set=('a','b','c','d','e','f'))
                 sage: W.reflection_index_set()
-                ['a', 'b', 'c', 'd', 'e', 'f']
+                ('a', 'b', 'c', 'd', 'e', 'f')
             """
 
         @abstract_method(optional=True)
@@ -219,12 +219,12 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W = ReflectionGroup((1,1,4))
                 sage: for i in W.reflection_index_set():
                 ....:     print('%s %s'%(i, W.reflection(i)))
-                0 (1,7)(2,4)(5,6)(8,10)(11,12)
-                1 (1,4)(2,8)(3,5)(7,10)(9,11)
-                2 (2,5)(3,9)(4,6)(8,11)(10,12)
-                3 (1,8)(2,7)(3,6)(4,10)(9,12)
-                4 (1,6)(2,9)(3,8)(5,11)(7,12)
-                5 (1,11)(3,10)(4,9)(5,7)(6,12)
+                1 (1,7)(2,4)(5,6)(8,10)(11,12)
+                2 (1,4)(2,8)(3,5)(7,10)(9,11)
+                3 (2,5)(3,9)(4,6)(8,11)(10,12)
+                4 (1,8)(2,7)(3,6)(4,10)(9,12)
+                5 (1,6)(2,9)(3,8)(5,11)(7,12)
+                6 (1,11)(3,10)(4,9)(5,7)(6,12)
             """
 
         @cached_method
@@ -264,9 +264,9 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: distinguished_reflections = W.distinguished_reflections()
                 sage: for index in sorted(distinguished_reflections.keys()):
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))
-                0 (1,4)(2,3)(5,6)
-                1 (1,3)(2,5)(4,6)
-                2 (1,5)(2,4)(3,6)
+                1 (1,4)(2,3)(5,6)
+                2 (1,3)(2,5)(4,6)
+                3 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
                 sage: distinguished_reflections = W.distinguished_reflections()
@@ -280,20 +280,20 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: distinguished_reflections = W.distinguished_reflections()
                 sage: for index in sorted(distinguished_reflections.keys()):
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))
-                0 (1,2,3)
+                1 (1,2,3)
 
                 sage: W = ReflectionGroup((1,1,3), (3,1,2))
                 sage: distinguished_reflections = W.distinguished_reflections()
                 sage: for index in sorted(distinguished_reflections.keys()):
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))
-                0 (1,6)(2,5)(7,8)
-                1 (1,5)(2,7)(6,8)
-                2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
-                3 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
-                4 (1,7)(2,6)(5,8)
-                5 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
-                6 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
-                7 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
+                1 (1,6)(2,5)(7,8)
+                2 (1,5)(2,7)(6,8)
+                3 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
+                4 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
+                5 (1,7)(2,6)(5,8)
+                6 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
+                7 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
+                8 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
             """
             from sage.sets.family import Family
             return Family(self.hyperplane_index_set(), self.distinguished_reflection)
@@ -310,9 +310,9 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: reflections = W.reflections()
                 sage: for index in sorted(reflections.keys()):
                 ....:     print('%s %s'%(index, reflections[index]))
-                0 (1,4)(2,3)(5,6)
-                1 (1,3)(2,5)(4,6)
-                2 (1,5)(2,4)(3,6)
+                1 (1,4)(2,3)(5,6)
+                2 (1,3)(2,5)(4,6)
+                3 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
                 sage: reflections = W.reflections()
@@ -326,23 +326,23 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: reflections = W.reflections()
                 sage: for index in sorted(reflections.keys()):
                 ....:     print('%s %s'%(index, reflections[index]))
-                0 (1,2,3)
-                1 (1,3,2)
+                1 (1,2,3)
+                2 (1,3,2)
 
                 sage: W = ReflectionGroup((1,1,3), (3,1,2))
                 sage: reflections = W.reflections()
                 sage: for index in sorted(reflections.keys()):
                 ....:     print('%s %s'%(index, reflections[index]))
-                0 (1,6)(2,5)(7,8)
-                1 (1,5)(2,7)(6,8)
-                2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
-                3 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
-                4 (1,7)(2,6)(5,8)
-                5 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
-                6 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
-                7 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
-                8 (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28)
-                9 (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)
+                1 (1,6)(2,5)(7,8)
+                2 (1,5)(2,7)(6,8)
+                3 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
+                4 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
+                5 (1,7)(2,6)(5,8)
+                6 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
+                7 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
+                8 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
+                9 (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28)
+                10 (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)
             """
             from sage.sets.family import Family
             return Family(self.reflection_index_set(), self.reflection)
@@ -376,7 +376,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup([1,1,3],[3,1,3],4)
+                sage: W = ReflectionGroup([1,1,3], [3,1,3], 4)
                 sage: W.irreducible_components()
                 [Irreducible real reflection group of rank 2 and type A2,
                  Irreducible complex reflection group of rank 3 and type G(3,1,3),
@@ -448,14 +448,14 @@ class ComplexReflectionGroups(Category_singleton):
                 [1, 2, 3]
 
                 sage: W = ReflectionGroup((1,1,4))
-                sage: W.from_word([0,1,2], word_type='all').reduced_word()
-                word: 012
+                sage: W.from_word([1,2,3], word_type='all').reduced_word()
+                [1, 2, 3]
 
-                sage: W.from_word([0,1,2], word_type='all').reduced_word_in_reflections()
-                word: 012
+                sage: W.from_word([1,2,3], word_type='all').reduced_word_in_reflections()
+                [1, 2, 3]
 
-                sage: W.from_word([0,1,2]).reduced_word_in_reflections()
-                word: 012
+                sage: W.from_word([1,2,3]).reduced_word_in_reflections()
+                [1, 2, 3]
             """
             if word_type == 'simple':
                 f = self.one().apply_simple_reflections
@@ -713,11 +713,11 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_distinguished_reflection(0)
-                (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflection(1)
-                (1,3)(2,5)(4,6)
+                (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflection(2)
+                (1,3)(2,5)(4,6)
+                sage: W.one().apply_distinguished_reflection(3)
                 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W
@@ -751,11 +751,11 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_distinguished_reflections([0])
-                (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflections([1])
+                (1,4)(2,3)(5,6)
+                sage: W.one().apply_distinguished_reflections([2])
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_distinguished_reflections([1,0])
+                sage: W.one().apply_distinguished_reflections([2,1])
                 (1,2,6)(3,4,5)
             """
             for i in word:
@@ -775,11 +775,11 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflection(0)
-                (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflection(1)
-                (1,3)(2,5)(4,6)
+                (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflection(2)
+                (1,3)(2,5)(4,6)
+                sage: W.one().apply_reflection(3)
                 (1,5)(2,4)(3,6)
 
                 sage: W = ReflectionGroup((1,1,3), reflection_index_set=['A','B','C']); W
@@ -812,11 +812,11 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflections([0])
-                (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflections([1])
+                (1,4)(2,3)(5,6)
+                sage: W.one().apply_reflections([2])
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([1,0])
+                sage: W.one().apply_reflections([2,1])
                 (1,2,6)(3,4,5)
             """
             for i in word:

@@ -180,9 +180,9 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
             sage: D4 = FiniteCoxeterGroups().example(4)
             sage: D4.index_set()
-            [1, 2]
+            (1, 2)
         """
-        return [1, 2]
+        return (1, 2)
 
     def degrees(self):
         """

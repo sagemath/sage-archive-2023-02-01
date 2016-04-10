@@ -94,7 +94,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: W = FiniteCoxeterGroups().example(); W
                 The 5-th dihedral group of order 10
                 sage: W.index_set()
-                [1, 2]
+                (1, 2)
             """
             # return self.simple_reflections().keys()
 

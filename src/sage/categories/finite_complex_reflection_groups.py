@@ -56,10 +56,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         Reducible real reflection group of rank 4 and type A2 x B2
 
         sage: W.reflections()
-        Finite family {0: (1,8)(2,5)(9,12), 1: (1,5)(2,9)(8,12),
-                       2: (3,10)(4,7)(11,14), 3: (3,6)(4,11)(10,13),
-                       4: (1,9)(2,8)(5,12), 5: (4,14)(6,13)(7,11),
-                       6: (3,13)(6,10)(7,14)}
+        Finite family {1: (1,8)(2,5)(9,12), 2: (1,5)(2,9)(8,12),
+                       3: (3,10)(4,7)(11,14), 4: (3,6)(4,11)(10,13),
+                       5: (1,9)(2,8)(5,12), 6: (4,14)(6,13)(7,11),
+                       7: (3,13)(6,10)(7,14)}
 
     ``W`` is in the category of complex reflection groups::
 
@@ -551,11 +551,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     EXAMPLES::
 
                         sage: W = ColoredPermutations(1,3)
-                        sage: [ W.rational_catalan_number(p) for p in [5,7,8] ]
+                        sage: [W.rational_catalan_number(p) for p in [5,7,8]]
                         [7, 12, 15]
 
                         sage: W = ColoredPermutations(2,2)
-                        sage: [ W.rational_catalan_number(p) for p in [7,9,11] ]
+                        sage: [W.rational_catalan_number(p) for p in [7,9,11]]
                         [10, 15, 21]
 
                     TESTS::
@@ -601,7 +601,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     - ``positive`` -- optional boolean (default ``False``)
                       if ``True``, return instead the positive Fuss-Catalan
-                      number.
+                      number
                     - ``polynomial`` -- optional boolean (default ``False``)
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
@@ -624,27 +624,27 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     EXAMPLES::
 
                         sage: W = ColoredPermutations(1,3)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [5, 12, 22]
 
                         sage: W = ColoredPermutations(1,4)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [14, 55, 140]
 
                         sage: W = ColoredPermutations(1,5)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [42, 273, 969]
 
                         sage: W = ColoredPermutations(2,2)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [6, 15, 28]
 
                         sage: W = ColoredPermutations(2,3)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [20, 84, 220]
 
                         sage: W = ColoredPermutations(2,4)
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                        sage: [W.fuss_catalan_number(i) for i in [1,2,3]]
                         [70, 495, 1820]
 
                     TESTS::
@@ -682,8 +682,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     INPUT:
 
                     - ``positive`` -- optional boolean (default ``False``)
-                      if ``True``, return instead the positive Fuss-Catalan
-                      number.
+                      if ``True``, return instead the positive Catalan
+                      number
                     - ``polynomial`` -- optional boolean (default ``False``)
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
@@ -717,3 +717,4 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     """
                     return self.fuss_catalan_number(1, positive=positive,
                                                     polynomial=polynomial)
+

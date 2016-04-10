@@ -149,10 +149,21 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 [2, 2, 2, 2]
                 sage: SymmetricGroup(5).simple_reflection_orders()
                 [2, 2, 2, 2]
+                sage: C = ColoredPermutations(4, 3)
+                sage: C.simple_reflection_orders()
+                [2, 2, 4]
             """
             one = self.one()
             s = self.simple_reflections()
-            return [s[i].order() for i in self.index_set()]
+            from sage.rings.all import ZZ
+            def mult_order(x):
+                ct = ZZ.one()
+                cur = x
+                while cur != one:
+                    cur *= x
+                    ct += ZZ.one()
+                return ZZ(ct)
+            return [mult_order(s[i]) for i in self.index_set()]
 
         def simple_reflection(self, i):
             """

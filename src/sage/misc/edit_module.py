@@ -85,7 +85,7 @@ def file_and_line(obj):
       sage: edit_module.file_and_line(sage)
       ('...sage/__init__.py', 0)
 
-   The following tests against a bug that was fixed in trac ticket #11298::
+   The following tests against a bug that was fixed in :trac:`11298`::
 
       sage: edit_module.file_and_line(x)
       ('...sage/symbolic/expression.pyx', ...)

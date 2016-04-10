@@ -196,8 +196,21 @@ cdef class GurobiBackend(GenericBackend):
             4
             sage: p.ncols()                                                                # optional - Gurobi
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])      # optional - Gurobi
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - Gurobi
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - Gurobi
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - Gurobi
+            True
+            sage: p.col_name(5)              # optional - Gurobi
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - Gurobi
+            42.0
         """
         cdef int i
         cdef int value
@@ -686,7 +699,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.solve()                                                       # optional - Gurobi
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'Gurobi: The problem is infeasible'
+            MIPSolverException: Gurobi: The problem is infeasible
         """
         cdef int error
         global mip_status

@@ -2948,7 +2948,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def __getitem__(self,x):
         """
-        Same as ``self.monomial_coefficent`` but for exponent vectors.
+        Same as ``self.monomial_coefficient`` but for exponent vectors.
 
         INPUT:
 

@@ -179,10 +179,21 @@ cdef class CoinBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - cbc
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - cbc
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - cbc
             6
-            sage: p.col_name(5)                                                        # optional - cbc
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - cbc
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - cbc
+            True
+            sage: p.col_name(5)              # optional - cbc
             'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - cbc
+            42.0
         """
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
@@ -672,7 +683,7 @@ cdef class CoinBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 

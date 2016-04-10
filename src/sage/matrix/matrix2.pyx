@@ -42,6 +42,8 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.real_mpfr import RealField
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
 from copy import copy
@@ -988,6 +990,159 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
+    def pseudoinverse(self, *, algorithm=None):
+        """
+        Return the Moore-Penrose pseudoinverse of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` (default: guess) -- one of the following:
+
+          - ``"numpy"`` -- Use numpy's ``linalg.pinv()`` which is
+            suitable over real or complex fields.
+
+          - ``"exact"`` -- Use a simple algorithm which is not
+            numerically stable but useful over exact fields. Assume that
+            no conjugation is needed, that the conjugate transpose is
+            just the transpose.
+
+          - ``"exactconj"`` -- Like ``exact`` but use the conjugate
+            transpose.
+
+        OUTPUT: a matrix
+
+        EXAMPLES::
+
+            sage: M = diagonal_matrix(CDF, [0, I, 1+I])
+            sage: M
+            [        0.0         0.0         0.0]
+            [        0.0       1.0*I         0.0]
+            [        0.0         0.0 1.0 + 1.0*I]
+            sage: M.pseudoinverse()  # tol 1e-15
+            [        0.0         0.0         0.0]
+            [        0.0      -1.0*I         0.0]
+            [        0.0         0.0 0.5 - 0.5*I]
+
+        We check the properties of the pseudoinverse over an exact
+        field::
+
+            sage: M = random_matrix(QQ, 6, 3) * random_matrix(QQ, 3, 5)
+            sage: Mx = M.pseudoinverse()
+            sage: M * Mx * M == M
+            True
+            sage: Mx * M * Mx == Mx
+            True
+            sage: (M * Mx).is_symmetric()
+            True
+            sage: (Mx * M).is_symmetric()
+            True
+
+        Beware that the ``exact`` algorithm is not numerically stable,
+        but the default ``numpy`` algorithm is::
+
+            sage: M = matrix(RR, 3, 3, [1,2,3,1/3,2/3,3/3,1/5,2/5,3/5])
+            sage: M.pseudoinverse()  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="numpy")  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="exact")
+            [ 0.125000000000000 0.0625000000000000 0.0312500000000000]
+            [ 0.250000000000000  0.125000000000000 0.0625000000000000]
+            [ 0.000000000000000  0.000000000000000 0.0625000000000000]
+
+        When multiplying the given matrix with the pseudoinverse, the
+        result is symmetric for the ``exact`` algorithm or hermitian
+        for the ``exactconj`` algorithm::
+
+            sage: M = matrix(QQbar, 2, 2, [1, sqrt(-3), -sqrt(-3), 3])
+            sage: M * M.pseudoinverse()
+            [   0.2500000000000000?  0.4330127018922193?*I]
+            [-0.4330127018922193?*I     0.750000000000000?]
+            sage: M * M.pseudoinverse(algorithm="exactconj")
+            [                   1/4  0.4330127018922193?*I]
+            [-0.4330127018922193?*I                    3/4]
+            sage: M * M.pseudoinverse(algorithm="exact")
+            [                -1/2 0.866025403784439?*I]
+            [0.866025403784439?*I                  3/2]
+
+        For an invertible matrix, the pseudoinverse is just the
+        inverse::
+
+            sage: M = matrix([[1,2], [3,4]])
+            sage: ~M
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        Numpy gives a strange answer due to rounding errors::
+
+            sage: M.pseudoinverse(algorithm="numpy")  # random
+            [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
+            [  519646110850445/346430740566963  -300239975158034/600479950316067]
+
+        TESTS::
+
+            sage: M.pseudoinverse(algorithm="exact")
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse(algorithm="whatever")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'whatever', valid values are ('numpy', 'exact', 'exactconj')
+            sage: M.change_ring(RealField(54)).pseudoinverse()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: pseudoinverse for real/complex field is only implemented for <= 53 bits of precision
+        """
+        ring = self.base_ring()
+        if algorithm is None:
+            # Choose algorithm depending on base ring
+            is_complex = ComplexField(2).has_coerce_map_from(ring)
+            if is_complex:
+                if ring.is_exact():
+                    is_real = RealField(2).has_coerce_map_from(ring)
+                    algorithm = "exact" if is_real else "exactconj"
+                else:
+                    if ring.precision() <= 53:
+                        algorithm = "numpy"
+                    else:
+                        raise NotImplementedError("pseudoinverse for real/complex field is only implemented for <= 53 bits of precision")
+            else:
+                algorithm = "exact"
+        else:
+            algos = ("numpy", "exact", "exactconj")
+            if algorithm not in algos:
+                raise ValueError("unknown algorithm {!r}, valid values are {}".format(algorithm, algos))
+
+        if algorithm == "numpy":
+            from numpy.linalg import pinv
+            from sage.matrix.constructor import matrix
+            ans = pinv(self.numpy())
+            return matrix(ring.fraction_field(), ans)
+
+        # We use a simple algorithm taken from
+        # https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Rank_decomposition
+        # Write self as A * B such that A and B both have full rank.
+        B = self.row_space().basis_matrix()
+        A = B.solve_left(self)
+
+        if algorithm.endswith("conj"):
+            At = A.conjugate_transpose()
+            Bt = B.conjugate_transpose()
+        else:
+            At = A.transpose()
+            Bt = B.transpose()
+
+        # Now the pseudoinverse is B^t (A^t A B B^t)^-1 A^t.
+        Q = (At * A) * (B * Bt)
+        return Bt * ~Q * At
+
     def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
@@ -1741,7 +1896,7 @@ cdef class Matrix(matrix1.Matrix):
         # TypeError with the following kind of message:
         #   absolute value is not defined on matrices. If you want the
         #   L^1-norm use m.norm(1) and if you want the matrix obtained by
-        #   applying the absolute value to the coefficents use
+        #   applying the absolute value to the coefficients use
         #   m.apply_map(abs).
         from sage.misc.superseded import deprecation
         deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"

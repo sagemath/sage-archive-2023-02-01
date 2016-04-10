@@ -1371,6 +1371,29 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<i> = QuadraticField(-1)
+            sage: QQbar(1+i)
+            I + 1
+            sage: NF.<sqrt3> = QuadraticField(2)
+            sage: AA(sqrt3)
+            1.414213562373095?
+        """
+        import sage.rings.qqbar as qqbar
+        if (parent is qqbar.QQbar
+                and list(self._parent.polynomial()) == [1, 0, 1]):
+            # AlgebraicNumber.__init__ does a better job than
+            # NumberFieldElement._algebraic_ in this case, but
+            # QQbar._element_constructor_ calls the latter first.
+            return qqbar.AlgebraicNumber(self)
+        else:
+            return NumberFieldElement._algebraic_(self, parent)
+
     cpdef bint is_one(self):
         r"""
         Check whether this number field element is `1`.

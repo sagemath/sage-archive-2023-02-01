@@ -516,18 +516,25 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         r"""
         TESTS::
 
-            sage: RecursivelyEnumeratedSet([1], lambda x: [x+1, x-1], structure=None)
+            sage: f = lambda x: [x-1, x+1]
+            sage: RecursivelyEnumeratedSet([1], f, structure=None)
             A recursively enumerated set (breadth first search)
 
         ::
 
-            sage: RecursivelyEnumeratedSet([1], lambda x: [x+1, x-1], structure='graded')
+            sage: RecursivelyEnumeratedSet([1], f, structure='graded')
             A recursively enumerated set with a graded structure (breadth first search)
 
         ::
 
-            sage: RecursivelyEnumeratedSet([1], lambda x: [x-1, x+1], structure='symmetric')
+            sage: RecursivelyEnumeratedSet([1], f, structure='symmetric')
             A recursively enumerated set with a symmetric structure (breadth first search)
+
+        When ``max_depth`` is set::
+
+            sage: RecursivelyEnumeratedSet([1], f, structure='symmetric', max_depth=4)
+            A recursively enumerated set with a symmetric structure (breadth
+            first search) with max_depth=4
         """
         L = ["A recursively enumerated set"]
         classname = self.__class__.__name__
@@ -537,15 +544,14 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             L.append("with a symmetric structure")
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             L.append("with a forest structure")
-        #elif classname.startswith('RecursivelyEnumeratedSet_generic'):
-        #    pass
-        #else:
-        #    pass
 
         if self._enumeration in ['depth', 'breadth']:
             L.append("({} first search)".format(self._enumeration))
         else:
             L.append("({} search)".format(self._enumeration))
+
+        if not self._max_depth == float('inf'):
+            L.append("with max_depth={}".format(self._max_depth))
         return " ".join(L)
 
     cpdef seeds(self):
@@ -682,7 +688,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         r"""
         Iterate on the elements of ``self`` (breadth first).
 
-        This code remembers every elements generated.
+        This code remembers every element generated.
 
         INPUT:
 
@@ -843,6 +849,63 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             for y in self.successors(x):
                 stack.append(y)
 
+    def to_digraph(self, max_depth=None, loops=True, multiedges=True):
+        r"""
+        Return the directed graph of the recursively enumerated set.
+
+        INPUT:
+
+        - ``max_depth`` -- (default: ``None``) specifies the maximal depth
+          for which outgoing edges of elements are computed; if ``None``, the
+          value of ``self._max_depth`` is used
+        - ``loops`` -- (default: ``True``) option for the digraph
+        - ``multiedges`` -- (default: ``True``) option of the digraph
+
+        OUTPUT:
+
+        A directed graph
+
+        .. WARNING::
+
+            If the set is infinite, this will loop forever unless ``max_depth``
+            is finite.
+
+        EXAMPLES::
+
+            sage: child = lambda i: [(i+3) % 10, (i+8) % 10]
+            sage: R = RecursivelyEnumeratedSet([0], child)
+            sage: R.to_digraph()
+            Looped multi-digraph on 10 vertices
+
+        Digraph of an recursively enumerated set with a symmetric structure of
+        infinite cardinality using ``max_depth`` argument::
+
+            sage: succ = lambda a: [(a[0]-1,a[1]), (a[0],a[1]-1), (a[0]+1,a[1]), (a[0],a[1]+1)]
+            sage: seeds = [(0,0)]
+            sage: C = RecursivelyEnumeratedSet(seeds, succ, structure='symmetric')
+            sage: C.to_digraph(max_depth=4)
+            Looped multi-digraph on 41 vertices
+
+        The ``max_depth`` argument can be given at the creation of the set::
+
+            sage: C = RecursivelyEnumeratedSet(seeds, succ, structure='symmetric', max_depth=3)
+            sage: C.to_digraph()
+            Looped multi-digraph on 25 vertices
+
+        Digraph of an recursively enumerated set with a graded structure::
+
+            sage: f = lambda a: [a+1, a+I]
+            sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
+            sage: C.to_digraph(max_depth=4)
+            Looped multi-digraph on 21 vertices
+        """
+        successors = self.successors
+        it = self.breadth_first_search_iterator(max_depth=max_depth)
+        E = [(u,v) for u in it for v in successors(u)]
+        from sage.graphs.digraph import DiGraph
+        return DiGraph(E, format='list_of_edges', loops=loops,
+                multiedges=multiedges)
+
 cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a symmetric relation.
@@ -987,7 +1050,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
         sage: f = lambda a: [(a[0]+1,a[1]), (a[0],a[1]+1)]
         sage: C = RecursivelyEnumeratedSet([(0,0)], f, structure='graded', max_depth=3)
         sage: C
-        A recursively enumerated set with a graded structure (breadth first search)
+        A recursively enumerated set with a graded structure (breadth first
+        search) with max_depth=3
         sage: sorted(C)
         [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0),
          (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
@@ -1054,10 +1118,27 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             [(0, 1), (1, 0)]
             [(0, 2), (1, 1), (2, 0)]
             [(0, 3), (1, 2), (2, 1), (3, 0)]
+
+        TESTS:
+
+        Make sure that :trac:`20225` is fixed::
+
+            sage: child = lambda k:[2*k,2*k+1] if k<8 else []
+            sage: root = [0]
+            sage: R = RecursivelyEnumeratedSet(root, child, structure='graded')
+            sage: it = R.graded_component_iterator()
+            sage: for _ in range(7): next(it)
+            {0}
+            {1}
+            {2, 3}
+            {4, 5, 6, 7}
+            {8, 9, 10, 11, 12, 13, 14, 15}
+            set()
+            set()
         """
         cdef set B
         B = set(self._seeds)
-        while B:
+        while True:
             yield B
             B = self._get_next_graded_component(B)
 

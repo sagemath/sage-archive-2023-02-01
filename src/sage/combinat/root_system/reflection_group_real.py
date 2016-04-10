@@ -643,7 +643,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: [W.simple_root_index(i) for i in W.index_set()]
             [0, 1, 2]
         """
-        return self._index_set[i]
+        return self._index_set_inverse[i]
 
     class Element(ComplexReflectionGroup.Element):
         # Use the generic reduced word from the Coxeter groups category

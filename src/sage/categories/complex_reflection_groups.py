@@ -52,15 +52,19 @@ class ComplexReflectionGroups(Category_singleton):
         sage: ComplexReflectionGroups()
         Category of complex reflection groups
         sage: ComplexReflectionGroups().super_categories()
-        [Category of groups]
+        [Category of complex reflection or generalized coxeter groups]
         sage: ComplexReflectionGroups().all_super_categories()
         [Category of complex reflection groups,
+         Category of complex reflection or generalized coxeter groups,
          Category of groups,
          Category of monoids,
+         Category of finitely generated semigroups,
          Category of semigroups,
+         Category of finitely generated magmas,
          Category of inverse unital magmas,
          Category of unital magmas,
          Category of magmas,
+         Category of enumerated sets,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]
@@ -90,7 +94,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: ComplexReflectionGroups().super_categories()
-            [Category of groups]
+            [Category of complex reflection or generalized coxeter groups]
         """
         return [ComplexReflectionOrGeneralizedCoxeterGroups()]
 
@@ -163,6 +167,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = CoxeterGroups().example(); W
+                The symmetric group on {0, ..., 3}
                 sage: W.rank()
                 3
             """

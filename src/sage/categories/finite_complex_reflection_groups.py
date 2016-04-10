@@ -32,23 +32,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         sage: ComplexReflectionGroups().Finite()
         Category of finite complex reflection groups
         sage: ComplexReflectionGroups().Finite().super_categories()
-        [Category of finite groups, Category of complex reflection groups]
-        sage: ComplexReflectionGroups().Finite().all_super_categories()
-        [Category of finite complex reflection groups,
+        [Category of complex reflection groups,
          Category of finite groups,
-         Category of finite monoids,
-         Category of complex reflection groups,
-         Category of groups,
-         Category of monoids,
-         Category of finite semigroups,
-         Category of semigroups,
-         Category of inverse unital magmas,
-         Category of unital magmas,
-         Category of magmas,
-         Category of finite sets,
-         Category of sets,
-         Category of sets with partial maps,
-         Category of objects]
+         Category of finite finitely generated semigroups]
 
     An example of a finite reflection group::
 

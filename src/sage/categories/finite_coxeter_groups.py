@@ -69,7 +69,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W = FiniteCoxeterGroups().example(3)
 
             sage: W.some_elements.__module__
-            'sage.categories.generalized_coxeter_groups'
+            'sage.categories.complex_reflection_or_generalized_coxeter_groups'
             sage: W.__iter__.__module__
             'sage.categories.coxeter_groups'
 

@@ -47,7 +47,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
             sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
             sage: GeneralizedCoxeterGroups().super_categories()
-            [Category of finitely generated groups]
+            [Category of complex reflection or generalized coxeter groups]
         """
         return [ComplexReflectionOrGeneralizedCoxeterGroups()]
 

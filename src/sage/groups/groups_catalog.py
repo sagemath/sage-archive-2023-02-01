@@ -60,9 +60,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   - Coxeter, reflection and related groups
 
     - :func:`groups.misc.Braid <sage.groups.braid.BraidGroup>`
-    - :func:`groups.misc.ComplexReflectionGroup <sage.combinat.root_system.reflection_group_complex.ComplexReflectionGroup>`
     - :func:`groups.misc.CoxeterGroup <sage.combinat.root_system.coxeter_group.CoxeterGroup>`
-    - :func:`groups.misc.RealReflectionGroup <sage.combinat.root_system.reflection_group_real.RealReflectionGroup>`
+    - :func:`groups.misc.ReflectionGroup <sage.combinat.root_system.reflection_group_real.ReflectionGroup>`
     - :class:`groups.misc.RightAngledArtin <sage.groups.raag.RightAngledArtinGroup>`
     - :func:`groups.misc.WeylGroup <sage.combinat.root_system.weyl_group.WeylGroup>`
 

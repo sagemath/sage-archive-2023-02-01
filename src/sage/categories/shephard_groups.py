@@ -1,5 +1,5 @@
 r"""
-Shepard Groups
+Shephard Groups
 """
 #*****************************************************************************
 #  Copyright (C) 2016 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -10,19 +10,19 @@ Shepard Groups
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.misc.cachefunc import cached_method
 
-
-class ShepardGroups(Category_singleton):
+class ShephardGroups(Category_singleton):
     r"""
-    The category of Shepard groups.
+    The category of Shephard groups.
 
     EXAMPLES::
 
-        sage: from sage.categories.shepard_groups import ShepardGroups
-        sage: C = ShepardGroups(); C
+        sage: from sage.categories.shephard_groups import ShephardGroups
+        sage: C = ShephardGroups(); C
         Category of shepard groups
 
     TESTS::
@@ -34,8 +34,8 @@ class ShepardGroups(Category_singleton):
         """
         EXAMPLES::
 
-            sage: from sage.categories.shepard_groups import ShepardGroups
-            sage: ShepardGroups().super_categories()
+            sage: from sage.categories.shephard_groups import ShephardGroups
+            sage: ShephardGroups().super_categories()
             [Category of finite well generated generalized coxeter groups]
         """
         return [GeneralizedCoxeterGroups().Finite()]

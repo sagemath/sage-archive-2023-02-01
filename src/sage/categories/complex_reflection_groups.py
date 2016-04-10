@@ -856,6 +856,12 @@ class ComplexReflectionGroups(Category_singleton):
             def is_well_generated(self):
                 r"""
                 Return ``True`` as ``self`` is well-generated.
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((3,1,2))
+                    sage: W.is_well_generated()
+                    True
                 """
                 return True
 

@@ -116,13 +116,13 @@ class GeneralizedCoxeterGroups(Category_singleton):
             return self.prod(self.simple_reflections())
 
         def some_elements(self):
-            """
+            r"""
             Implement :meth:`Sets.ParentMethods.some_elements` by
-            returning some typical element of ``self`.
+            returning some typical element of ``self``.
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['A',3])
+                sage: W = WeylGroup(['A',3])
                 sage: W.some_elements()
                 [
                 [0 1 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [0 0 0 1]
@@ -133,11 +133,22 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: W.order()
                 24
             """
-            return list(self.simple_reflections()) + [ self.one(), self.an_element() ]
+            return list(self.simple_reflections()) + [self.one(), self.an_element()]
 
         def simple_reflection_orders(self):
             """
             Return the orders of the simple reflections.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['B',3])
+                sage: W.simple_reflection_orders()
+                [2, 2, 2]
+                sage: W = CoxeterGroup(['C',4])
+                sage: W.simple_reflection_orders()
+                [2, 2, 2, 2]
+                sage: SymmetricGroup(5).simple_reflection_orders()
+                [2, 2, 2, 2]
             """
             one = self.one()
             s = self.simple_reflections()
@@ -163,8 +174,8 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 (0, 2, 1, 3)
             """
             if not i in self.index_set():
-                raise ValueError("%s is not in the Dynkin node set %s"%(i,self.index_set()))
-            return self.one().apply_simple_reflection(i) # don't care about left/right
+                raise ValueError("%s is not in the Dynkin node set %s" % (i, self.index_set()))
+            return self.one().apply_simple_reflection(i)  # don't care about left/right
 
         @cached_method
         def simple_reflections(self):

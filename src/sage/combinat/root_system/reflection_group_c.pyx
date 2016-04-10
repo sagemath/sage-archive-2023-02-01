@@ -34,11 +34,10 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(["B", 4])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: TestSuite(I).run(skip="_test_pickling")
         """
-        self.S = tuple( W.simple_reflection(W._index_set_inverse[i])
-                        for i in range(len(W._index_set)) )
+        self.S = tuple(W.simple_reflections())
         self.n = len(W._index_set)
         self.N = N
         self.tracking_words = tracking_words
@@ -107,7 +106,7 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(["B", 4])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: len(list(I)) == W.cardinality()
             True
         """
@@ -132,7 +131,7 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(['B', 2])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: list(I.iter_depth())
             [(),
              (1,3)(2,6)(5,7),
@@ -169,7 +168,7 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(['B', 2])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: for w in I.iter_words_depth(): w._reduced_word
             []
             [1]
@@ -210,7 +209,7 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(['B', 2])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: list(I.iter_breadth())
             [(),
              (1,3)(2,6)(5,7),
@@ -247,7 +246,7 @@ cdef class Iterator(object):
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
             sage: W = ReflectionGroup(['B', 2])
-            sage: I = Iterator(W, W.nr_reflections())
+            sage: I = Iterator(W, W.number_of_reflections())
             sage: for w in I.iter_words_breadth(): w._reduced_word
             []
             [1]

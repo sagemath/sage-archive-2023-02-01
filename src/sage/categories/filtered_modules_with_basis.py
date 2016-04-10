@@ -835,11 +835,11 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: G = A.algebra_generators()
                 sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
-                 + U['x'] + 2*U['z'] + 3
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.homogeneous_component(-1)
                 0
                 sage: g.homogeneous_component(0)
-                3
+                1
                 sage: g.homogeneous_component(2)
                 -2*U['x']*U['y']
                 sage: g.homogeneous_component(5)
@@ -901,22 +901,22 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: G = A.algebra_generators()
                 sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
-                 + U['x'] + 2*U['z'] + 3
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(-1)
                 0
                 sage: g.truncate(0)
                 0
                 sage: g.truncate(2)
-                U['x'] + 2*U['z'] + 3
+                2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(3)
-                -2*U['x']*U['y'] + U['x'] + 2*U['z'] + 3
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(5)
-                -2*U['x']*U['y'] + U['x'] + 2*U['z'] + 3
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(7)
-                -2*U['x']*U['y'] + U['x'] + 2*U['z'] + 3
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(8)
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
-                 + U['x'] + 2*U['z'] + 3
+                 + 2*U['x'] + 3*U['y'] + 1
 
             TESTS:
 

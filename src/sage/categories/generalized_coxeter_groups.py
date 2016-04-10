@@ -53,7 +53,25 @@ class GeneralizedCoxeterGroups(Category_singleton):
         return [Groups().FinitelyGenerated()]
 
     class SubcategoryMethods:
-        Irreducible = axiom("Irreducible")
+        def Irreducible(self):
+            r"""
+            Return the full subcategory of irreducible objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+                sage: ComplexReflectionGroups().Irreducible()
+                Category of irreducible complex reflection groups
+                sage: CoxeterGroups().Irreducible()
+                Category of irreducible coxeter groups
+
+            TESTS::
+
+                sage: TestSuite(ComplexReflectionGroups().Irreducible()).run()
+                sage: CoxeterGroups().Irreducible.__module__
+                'sage.categories.generalized_coxeter_groups'
+            """
+            return self._with_axiom('Irreducible')
 
     class Finite(CategoryWithAxiom):
         """
@@ -70,7 +88,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: Cat = GeneralizedCoxeterGroups().Finite()
                 sage: Cat.extra_super_categories()
-                [Category of finite well generated complex reflection groups]
+                [Category of well generated finite complex reflection groups]
                 sage: Cat.is_subcategory(ComplexReflectionGroups())
                 True
             """
@@ -78,9 +96,19 @@ class GeneralizedCoxeterGroups(Category_singleton):
             return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class Irreducible(CategoryWithAxiom):
-        """
-        The category of irreducible generalized Coxeter groups.
-        """
+        class ParentMethods:
+            def irreducible_components(self):
+                r"""
+                Return a list containing all irreducible components of
+                ``self`` as finite reflection groups.
+
+                EXAMPLES::
+
+                    sage: W = ColoredPermutations(4, 3)
+                    sage: W.irreducible_components()
+                    [4-colored permutations of size 3]
+                """
+                return [self]
 
     class ParentMethods:
         @abstract_method

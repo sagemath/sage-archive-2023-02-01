@@ -484,7 +484,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def is_irreducible(self):
             r"""
-            Return True if ``self`` is irreducible.
+            Return ``True`` if ``self`` is irreducible.
 
             EXAMPLES::
 

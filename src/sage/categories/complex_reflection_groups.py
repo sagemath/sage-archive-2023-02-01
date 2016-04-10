@@ -848,6 +848,11 @@ class ComplexReflectionGroups(Category_singleton):
             def _test_well_generated(self, **options):
                 """
                 Check if ``self`` is well-generated.
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((3,1,1))
+                    sage: ???
                 """
                 tester = self._tester(**options)
                 tester.assertEqual(self.number_of_simple_reflections(), self.rank())

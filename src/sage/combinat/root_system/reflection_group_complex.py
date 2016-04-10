@@ -47,8 +47,8 @@ Some special cases also occur, among them are::
     Irreducible real reflection group of rank 3 and type A3
 
 .. WARNING:: Uses the GAP3 package *Chevie* which is available as an
-             experimantal package or to download by hand at
-             `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+             experimental package (installed by ``sage -i gap3``) or to
+             download by hand at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 A guided tour
 -------------
@@ -265,7 +265,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 type_dict["ST"] = ( X.p.sage(), X.q.sage(), X.rank.sage() )
             elif hasattr(X.bond,"sage"):
                 type_dict["bond"] = X.bond.sage()
-            if type_dict["series"] == "B" and X.cartanType.sage() == 1:
+            if type_dict["series"] == "B" and (X.cartanType.sage() == 1 or X.indices.sage() == [2,1]):
                 type_dict["series"] = "C"
             reflection_type.append( type_dict )
 
@@ -2127,16 +2127,12 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         return filter(f, self)
 
     @cached_method
-    def noncrossing_partition_lattice(self, c=None, L=None):
+    def noncrossing_partition_lattice(self, c=None, L=None, in_unitary_group=False):
         r"""
         Return the interval `[1,c]` in the absolute order of
         ``self`` as a finite lattice.
 
         .. SEEALSO:: :meth:`elements_below_coxeter_element`
-
-        .. NOTE::
-
-            ``self`` is assumed to be well-generated.
 
         INPUT:
 
@@ -2146,6 +2142,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         - ``L`` -- (default: ``None``) if a subset ``L`` (must be hashable!)
           of ``self`` is given, it is used as the underlying set (only
           cover relations are checked)
+
+        - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
+          relation is given by ``\sigma \leq \tau`` if ``l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)``.
+          If ``True``, the relation is given by ``\sigma \leq \tau`` if
+          ``dim(Fix(\sigma)) + dim(Fix(\sigma^{-1}\tau)) = dim(Fix(\tau))``.
 
         EXAMPLES::
 
@@ -2161,17 +2162,30 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             [[], [2]]
         """
         from sage.combinat.posets.all import Poset, LatticePoset
+
+        if in_unitary_group == False:
+            smart_covers = True
+        else:
+            smart_covers = False
+        if self.is_real():
+            smart_covers = in_unitary_group = True
+
         R = self.reflections()
         if L is None:
             L = self.elements_below_coxeter_element(c=c)
+            if c.is_coxeter_element():
+                smart_covers = in_unitary_group = True
         rels = []
-        for pi in L:
-            for t in R:
-                tau = pi*t
-                if tau in L and (pi.reflection_length(in_unitary_group=True) + 1
-                                 == tau.reflection_length(in_unitary_group=True)):
-                    rels.append([pi,tau])
-        P = Poset(([],rels), cover_relations=True, facade=True)
+        ref_lens = { w: w.reflection_length(in_unitary_group=in_unitary_group) for w in L }
+        if smart_covers:
+            for pi in L:
+                for t in R:
+                    tau = pi*t
+                    if tau in L and ref_lens[pi] + 1 == ref_lens[tau]:
+                        rels.append((pi,tau))
+        else:
+            rels = [ (pi,tau) for pi in L for tau in L if ref_lens[pi] + ref_lens[pi.inverse()*tau] == ref_lens[tau] ]
+        P = Poset((L,rels), cover_relations=smart_covers, facade=True)
         if P.is_lattice():
             return LatticePoset(P)
         else:
@@ -2256,10 +2270,17 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         return NCm
 
     @cached_method
-    def absolute_poset(self):
+    def absolute_poset(self, in_unitary_group=False):
         r"""
         Return the poset induced by the absolute order of ``self`` as a
         finite lattice.
+
+        INPUT:
+
+        - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
+          relation is given by ``\sigma \leq \tau`` if ``l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)``.
+          If ``True``, the relation is given by ``\sigma \leq \tau`` if
+          ``dim(Fix(\sigma)) + dim(Fix(\sigma^{-1}\tau)) = dim(Fix(\tau))``.
 
         .. SEEALSO:: :meth:`noncrossing_partition_lattice`
 
@@ -2270,6 +2291,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
             sage: sorted(w.reduced_word() for w in P)
             [[], [1], [1, 2], [1, 2, 1], [2], [2, 1]]
+
+            sage: W = ReflectionGroup(4); W
+            Irreducible complex reflection group of rank 2 and type ST4
+            sage: W.absolute_poset()
+            Finite poset containing 24 elements
         """
         return self.noncrossing_partition_lattice(L=self)
 

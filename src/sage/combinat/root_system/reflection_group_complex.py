@@ -2,18 +2,141 @@ r"""
 Finite complex reflection groups
 ----------------------------------
 
-AUTHORS:
+Let `V` be a finite-dimensional complex vector space. A reflection of
+`V` is an operator `r \in \operatorname{GL}(V)` that has finite order
+and fixes pointwise a hyperplane in `V`.
 
-- Christian Stump (initial version 2011--2015)
+For more definitions and classification types of finite complex
+reflection groups, see :wikipedia:`Complex_reflection_group`.
 
-.. NOTE::
+The point of entry to work with reflection groups is :func:`~sage.combinat.root_system.reflection_group_real.ReflectionGroup`
+which can be used with finite Cartan-Killing types::
 
-    - For definitions and classification types of finite complex
-      reflection groups, see :wikipedia:`Complex_reflection_group`.
-    - Uses the GAP3 package *chevie* available at
-      `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+    sage: ReflectionGroup(['A',2])
+    Irreducible real reflection group of rank 2 and type A2
+    sage: ReflectionGroup(['F',4])
+    Irreducible real reflection group of rank 4 and type F4
+    sage: ReflectionGroup(['H',3])
+    Irreducible real reflection group of rank 3 and type H3
 
-.. WARNING:: Works only if the GAP3 package Chevie is available.
+or with Shephard-Todd types::
+
+    sage: ReflectionGroup((1,1,3))
+    Irreducible real reflection group of rank 2 and type A2
+    sage: ReflectionGroup((2,1,3))
+    Irreducible real reflection group of rank 3 and type B3
+    sage: ReflectionGroup((3,1,3))
+    Irreducible complex reflection group of rank 3 and type G(3,1,3)
+    sage: ReflectionGroup((4,2,3))
+    Irreducible complex reflection group of rank 3 and type G(4,2,3)
+    sage: ReflectionGroup(4)
+    Irreducible complex reflection group of rank 2 and type ST4
+    sage: ReflectionGroup(31)
+    Irreducible complex reflection group of rank 4 and type ST31
+
+Also reducible types are allowed using concatenation::
+
+    sage: ReflectionGroup(['A',3],(4,2,3))
+    Reducible complex reflection group of rank 6 and type A3 x G(4,2,3)
+
+Some special cases also occur, among them are::
+
+    sage: W = ReflectionGroup((2,2,2)); W
+    Reducible real reflection group of rank 2 and type A1 x A1
+    sage: W = ReflectionGroup((2,2,3)); W
+    Irreducible real reflection group of rank 3 and type A3
+
+.. WARNING:: Uses the GAP3 package *Chevie* which is available as an
+             experimantal package or to download by hand at
+             `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+
+A guided tour
+-------------
+
+We start with the example type `B_2`::
+
+    sage: W = ReflectionGroup(['B',2]); W
+    Irreducible real reflection group of rank 2 and type B2
+
+Most importantly, observe that the group elements are usually represented
+by permutations of the roots::
+
+    sage: for w in W: print w
+    ()
+    (1,3)(2,6)(5,7)
+    (1,5)(2,4)(6,8)
+    (1,7,5,3)(2,4,6,8)
+    (1,3,5,7)(2,8,6,4)
+    (2,8)(3,7)(4,6)
+    (1,7)(3,5)(4,8)
+    (1,5)(2,6)(3,7)(4,8)
+
+This has the drawback that one can hardly see anything. Usually, one
+would look at elements with either of the following methods::
+
+    sage: for w in W: print w.reduced_word()
+    <BLANKLINE>
+    1
+    0
+    01
+    10
+    101
+    010
+    0101
+
+    sage: for w in W: print w.reduced_word_in_reflections()
+    <BLANKLINE>
+    1
+    0
+    01
+    03
+    2
+    3
+    02
+
+    sage: for w in W: print w.reduced_word(); print w.to_matrix(); print
+    <BLANKLINE>
+    [1 0]
+    [0 1]
+    <BLANKLINE>
+    1
+    [ 1  1]
+    [ 0 -1]
+    <BLANKLINE>
+    0
+    [-1  0]
+    [ 2  1]
+    <BLANKLINE>
+    01
+    [-1 -1]
+    [ 2  1]
+    <BLANKLINE>
+    10
+    [ 1  1]
+    [-2 -1]
+    <BLANKLINE>
+    101
+    [ 1  0]
+    [-2 -1]
+    <BLANKLINE>
+    010
+    [-1 -1]
+    [ 0  1]
+    <BLANKLINE>
+    0101
+    [-1  0]
+    [ 0 -1]
+    <BLANKLINE>
+
+The standard references for actions of complex reflection groups have
+the matrices acting on the left, so::
+
+    sage: W.simple_reflection(0).to_matrix()
+    [-1  0]
+    [ 2  1]
+
+sends the simple root `\alpha_0` to its negative, while sending `\alpha_1`
+to `2\alpha_0+\alpha_1`.
 
 .. TODO::
 
@@ -53,6 +176,10 @@ AUTHORS:
     - list of reduced words in reflections for an element
     - Hurwitz action?
     - is_crystallographic should be hardcoded
+
+AUTHORS:
+
+- Christian Stump (initial version 2011--2015)
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>

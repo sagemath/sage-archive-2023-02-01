@@ -29,6 +29,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
+
 cdef class GenericBackend:
 
     cpdef base_ring(self):
@@ -1057,6 +1059,36 @@ cdef class GenericBackend:
             'I am a variable'
         """
         raise NotImplementedError()
+
+    def _test_copy(self, **options):
+        """
+        Test whether the backend can be copied
+        and at least the problem data of the copy is equal to that of the original.
+        Does not test whether solutions or solver parameters are copied.
+        """
+        tester = self._tester(**options)
+        cp = copy(self)
+        tester.assertEqual(self.ncols(), cp.ncols())
+        tester.assertEqual(self.nrows(), cp.nrows())
+        tester.assertEqual(self.objective_constant_term(), cp.objective_constant_term())
+        tester.assertEqual(self.problem_name(), cp.problem_name())
+        tester.assertEqual(self.is_maximization(), cp.is_maximization())
+        for i in range(self.ncols()):
+            tester.assertEqual(self.objective_coefficient(i) == cp.objective_coefficient(i))
+            tester.assertEqual(self.is_variable_binary(i) == cp.is_variable_binary(i))
+            tester.assertEqual(self.is_variable_integer(i) == cp.is_variable_integer(i))
+            tester.assertEqual(self.is_variable_continuous(i) == cp.is_variable_continuous(i))
+            tester.assertEqual(self.col_bounds(i) == cp.col_bounds(i))
+            # don't test variable_lower_bound, variable_upper_bound because we already test col_bounds.
+            # TODO: Add a test elsewhere to ensure that variable_lower_bound, variable_upper_bound
+            # are consistent with col_bounds.
+            tester.assertEqual(self.col_name(i) == cp.col_name(i))
+        for i in range(self.nrows()):
+            tester.assertEqual(self.row_bounds(i) == cp.row_bounds(i))
+            tester.assertEqual(self.row(i) == cp.row(i))
+            tester.assertEqual(self.row_name(i) == cp.row_name(i))
+
+    # TODO: Add a test class method that calls _test_copy on some populated MIP.
 
     cpdef variable_upper_bound(self, int index, value = False):
         """

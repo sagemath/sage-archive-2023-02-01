@@ -48,6 +48,7 @@ class ComplexReflectionGroups(Category_singleton):
 
     EXAMPLES::
 
+        sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         sage: ComplexReflectionGroups()
         Category of complex reflection groups
         sage: ComplexReflectionGroups().super_categories()
@@ -87,6 +88,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         EXAMPLES::
 
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: ComplexReflectionGroups().super_categories()
             [Category of groups]
         """
@@ -102,6 +104,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         EXAMPLES::
 
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: ComplexReflectionGroups().example()
             5-colored permutations of size 3
         """
@@ -386,6 +389,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().example()
                 sage: W
                 5-colored permutations of size 3
@@ -531,6 +535,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().example()
                 sage: w = W.an_element(); w
                 [[1, 0, 0], [3, 1, 2]]
@@ -555,6 +560,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().example()
                 sage: w = W.an_element(); w
                 [[1, 0, 0], [3, 1, 2]]
@@ -583,6 +589,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().example()
                 sage: w = W.an_element(); w
                 [[1, 0, 0], [3, 1, 2]]

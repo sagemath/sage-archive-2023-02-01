@@ -27,6 +27,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
     EXAMPLES::
 
+        sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         sage: ComplexReflectionGroups().Finite()
         Category of finite complex reflection groups
         sage: ComplexReflectionGroups().Finite().super_categories()
@@ -70,6 +71,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
         EXAMPLES::
 
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: ComplexReflectionGroups().Finite().example()
             Reducible complex reflection group of rank 4 and type A2 x B2
         """
@@ -380,6 +382,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: ComplexReflectionGroups().Finite().Irreducible().example()
                 Irreducible complex reflection group of rank 3 and type G(4,2,3)
             """
@@ -418,6 +421,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         An example of a finite well-generated complex reflection
         group::
 
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: W = ComplexReflectionGroups().Finite().WellGenerated().example(); W
             Reducible complex reflection group of rank 4 and type A2 x G(3,1,2)
 
@@ -438,6 +442,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             EXAMPLES::
 
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: ComplexReflectionGroups().Finite().WellGenerated().example()
                 Reducible complex reflection group of rank 4 and type A2 x G(3,1,2)
             """
@@ -456,6 +461,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 EXAMPLES::
 
+                    sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                     sage: ComplexReflectionGroups().Finite().WellGenerated().Irreducible().example()
                     4-colored permutations of size 3
                 """

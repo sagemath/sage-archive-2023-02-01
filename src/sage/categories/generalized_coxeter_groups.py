@@ -67,6 +67,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: Cat = GeneralizedCoxeterGroups().Finite()
                 sage: Cat.extra_super_categories()
                 [Category of finite well generated complex reflection groups]

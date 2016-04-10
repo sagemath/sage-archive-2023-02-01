@@ -24,9 +24,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: FiniteCoxeterGroups()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of finite generalized coxeter groups,
-         Category of coxeter groups,
-         Category of finite well generated complex reflection groups]
+        [Category of finite well generated generalized coxeter groups,
+         Category of coxeter groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -51,8 +50,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         r"""
         EXAMPLES::
 
-            sage: ComplexReflectionGroups().super_categories()
-            [Category of groups]
+            sage: FiniteCoxeterGroups().super_categories()
+            [Category of finite well generated generalized coxeter groups,
+             Category of coxeter groups]
         """
         from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         return [ComplexReflectionGroups().Finite().WellGenerated()]

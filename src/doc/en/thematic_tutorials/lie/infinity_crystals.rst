@@ -246,14 +246,14 @@ We can also model `B(\infty)` using the monomials `A_{i,k}` instead:
 
 .. link::
 
-    sage: Minf.global_options(monomial='A')
+    sage: Minf.set_monomials('A')
     sage: m
     A(0,0)^-1 A(0,3)^-1 A(1,0)^-1 A(1,2)^-1 A(2,0)^-1 A(2,1)^-1 A(3,0)^-1
     sage: m.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
     sage: m.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
-    sage: Minf.global_options.reset()
+    sage: Minf.set_monomials('Y')
 
 Building the crystal graph output for these monomial crystals is the same
 as the constructions above::

@@ -710,7 +710,6 @@ class FileDocTestSource(DocTestSource):
             There are 15 tests in sage/combinat/permutation.py that are not being run
             There are 14 tests in sage/combinat/skew_partition.py that are not being run
             There are 18 tests in sage/combinat/tableau.py that are not being run
-            There are 1 tests in sage/combinat/crystals/monomial_crystals.py that are not being run
             There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
             There are 11 tests in sage/combinat/rigged_configurations/rigged_configurations.py that are not being run
             There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run

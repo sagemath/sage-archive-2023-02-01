@@ -22,16 +22,33 @@ def format_function_call(fn_name, *v, **k):
 
 def _make_wrapper(attr):
     def m(self, *args, **kwdargs):
+        funcall = format_function_call("p." + attr, *args, **kwdargs)
         a = getattr(self._backend, attr)
         if self._printing:
-            print "# {}".format(format_function_call("b." + attr, *args, **kwdargs))
+            print "# {}".format(funcall)
         if self._doctest:
-            self._doctest.write("        sage: {}\n".format(format_function_call("b." + attr, *args, **kwdargs)))
-        result = a(*args, **kwdargs)
-        if self._printing:
-            print "# result: {}".format(result)
-        if self._doctest:
-            self._doctest.write("        {}".format(result))
+            self._doctest.write("        sage: {}\n".format(funcall))
+        try:
+            result = a(*args, **kwdargs)
+        except Exception as e:
+            if self._printing:
+                print "# exception: {}".format(e)
+            if self._doctest:
+                self._doctest.write("        {}\n".format(e)) # TODO: print "Traceback" etc.
+            if self._test_method:
+                self._test_method.write(("        with tester.assertRaises({}) as cm:\n"+
+                                         "            {}\n").format(type(e).__name__, funcall))
+            raise
+        else:
+            if self._printing:
+                print "# result: {}".format(result)
+            if self._doctest:
+                self._doctest.write("        {}\n".format(result))
+            if self._test_method:
+                if result is None:
+                    self._test_method.write("        tester.assertIsNone({})\n".format(funcall))
+                else:
+                    self._test_method.write("        tester.assertEqual({}, {})\n".format(funcall, result))
         return result
     return m
 
@@ -46,15 +63,15 @@ class LoggingBackend (GenericBackend):
         sage: b = get_solver(solver = "GLPK")
         sage: lb = LoggingBackend(backend=b)
         sage: lb.add_variable(obj=42, name='Helloooooo')
-        # b.add_variable(obj=42, name='Helloooooo')
+        # p.add_variable(obj=42, name='Helloooooo')
         # result: 0
         0
         sage: lb.add_variable(obj=1789)
-        # b.add_variable(obj=1789)
+        # p.add_variable(obj=1789)
         # result: 1
         1
     """
-    
+
     def __init__(self, backend, printing=True, doctest=None, test_method=None):
         self._backend = backend
         self._printing = printing
@@ -86,7 +103,29 @@ for attr in dir(LoggingBackend):
             mm = types.MethodType(_make_wrapper(attr), None, LoggingBackend)
             setattr(LoggingBackend, attr, mm)
 
-def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None):
+test_method_template = \
+r'''
+    @classmethod
+    def _test_{name}(cls, tester=None, **options)
+        """
+        Run tests on ...
+
+        TEST::
+
+            SAGE: from sage.numerical.backends.generic_backend import GenericBackend
+            SAGE: p = GenericBackend()
+            SAGE: p._test_{name}()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+'''.replace("SAGE:", "sage:") # so that the above test does not get picked up by the doctester
+
+def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None, method_name='CHANGE'):
 
     """
     The result of this can be passed as an argument to `get_solver`.
@@ -100,17 +139,47 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: lb = get_solver(solver = LoggingBackendFactory(solver='GLPK'))
         sage: lb.add_variable(obj=42, name='Helloooooo')
-        # b.add_variable(obj=42, name='Helloooooo')
+        # p.add_variable(obj=42, name='Helloooooo')
         # result: 0
         0
         sage: lb.add_variable(obj=1789)
-        # b.add_variable(obj=1789)
+        # p.add_variable(obj=1789)
         # result: 1
         1
 
     Write doctests to file::
 
-    """
+        sage: fname = tmp_filename()
+        sage: logging_solver = LoggingBackendFactory(solver='GLPK', printing=False, doctest_file=fname)
+        sage: lb = get_solver(solver = logging_solver)
+        sage: lb.add_variable(obj=42, name='Helloooooo')
+        0
+        sage: lb.add_variable(obj=1789)
+        1
+        sage: with open(fname) as f:
+        ....:     for line in f.readlines(): print '|{}'.format(line),
+        |        sage: p.add_variable(obj=42, name='Helloooooo')
+        |        0
+        |        sage: p.add_variable(obj=1789)
+        |        1
+
+    Write test method to file::
+
+        sage: fname = tmp_filename()
+        sage: logging_solver = LoggingBackendFactory(solver='GLPK', printing=False, test_method_file=fname, method_name='something')
+        sage: lb = get_solver(solver = logging_solver)
+        sage: lb.add_variable(obj=42, name='Helloooooo')
+        0
+        sage: lb.add_variable(obj=1789)
+        1
+        sage: lb.solve()
+        Traceback (most recent call last):
+        ...
+        MIPSolverException...
+        sage: with open(fname) as f:
+        ....:     for line in f.readlines(): print '|{}'.format(line),
+
+   """
 
     if doctest_file is not None:
         doctest = open(doctest_file, "w", 1) #line-buffered
@@ -122,6 +191,8 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         test_method = None
 
     def logging_solver(**kwds):
+        if test_method is not None:
+            test_method.write(test_method_template.format(name=method_name))
         from sage.numerical.backends.generic_backend import get_solver
         return LoggingBackend(backend=get_solver(solver),
                               printing=printing, doctest=doctest, test_method=test_method)

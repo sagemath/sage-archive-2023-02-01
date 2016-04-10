@@ -11,7 +11,7 @@ Finite Coxeter Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 
@@ -77,7 +77,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: list(W)
             [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
-        some_elements = GeneralizedCoxeterGroups.ParentMethods.__dict__["some_elements"]
+        #some_elements = GeneralizedCoxeterGroups.ParentMethods.__dict__["some_elements"]
         __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
 
         @lazy_attribute

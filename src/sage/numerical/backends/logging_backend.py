@@ -182,6 +182,29 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         MIPSolverException...
         sage: with open(fname) as f:
         ....:     for line in f.readlines(): print '|{}'.format(line),
+        |
+        |    @classmethod
+        |    def _test_something(cls, tester=None, **options):
+        |        """
+        |        Run tests on ...
+        |
+        |        TEST::
+        |
+        |            sage: from sage.numerical.backends.generic_backend import GenericBackend
+        |            sage: p = GenericBackend()
+        |            sage: p._test_something()
+        |            Traceback (most recent call last):
+        |            ...
+        |            NotImplementedError
+        |
+        |        """
+        |        p = cls()                         # fresh instance of the backend
+        |        if tester is None:
+        |            tester = p._tester(**options)
+        |        tester.assertEqual(p.add_variable(obj=42, name='Helloooooo'), 0)
+        |        tester.assertEqual(p.add_variable(obj=1789), 1)
+        |        with tester.assertRaises(MIPSolverException) as cm:
+        |            p.solve()
 
    """
 

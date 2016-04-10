@@ -40,7 +40,7 @@ from sage.combinat.root_system.reflection_group_complex import ComplexReflection
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
-
+from sage.misc.sage_eval import sage_eval
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 def ReflectionGroup(*args,**kwds):
@@ -114,26 +114,53 @@ def ReflectionGroup(*args,**kwds):
             X = arg
 
         # precheck for valid input data
-        if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
+        if not ( is_Matrix(X) or isinstance(X, CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
             raise ValueError("the input data (%s) is not valid for reflection groups"%X)
 
-        # check for real vs complex
-        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
-            is_complex = True
-
-        # transforming two reducible types
-        if X == (2,2,2):
-            W_types.extend([(1,1,2),(1,1,2)])
-        elif X == ('I',2):
+        # transforming two reducible types and an irreducible type
+        if X == (2,2,2) or X == ('I',2):
             W_types.extend([('A',1),('A',1)])
+        elif X == (2,2,3):
+            W_types.extend([('A',3)])
         else:
             W_types.append(X)
+
+    # converting the real types given as complex types
+    # and then checking for real vs complex
+    for i,W_type in enumerate(W_types):
+        if W_type in ZZ:
+            if W_type == 23:
+                W_types[i] = ('H',3)
+            elif W_type == 28:
+                W_types[i] = ('F',4)
+            elif W_type == 30:
+                W_types[i] = ('H',4)
+            elif W_type == 35:
+                W_types[i] = ('E',6)
+            elif W_type == 36:
+                W_types[i] = ('E',7)
+            elif W_type == 37:
+                W_types[i] = ('E',8)
+        if isinstance(W_type,tuple) and len(W_type) == 3:
+            if W_type[0] == W_type[1] == 1:
+                W_types[i] = ('A',W_type[2]-1)
+            elif W_type[0] == 2 and W_type[1] == 1:
+                W_types[i] = ('B',W_type[2])
+            elif W_type[0] == W_type[1] == 2:
+                W_types[i] = ('D',W_type[2])
+            elif W_type[0] == W_type[1] and W_type[2] == 2:
+                W_types[i] = ('I',W_type[0])
+
+        W_type = W_types[i]
+        # check for real vs complex
+        if W_type in ZZ or ( isinstance(W_type,tuple) and len(W_type) == 3 ):
+            is_complex = True
 
     for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
         index_set = kwds.get(index_set_kwd, None)
         if index_set is not None:
             from sage.sets.family import Family
-            if type(index_set) in [list,tuple]:
+            if type(index_set) in [list, tuple]:
                 kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
@@ -184,7 +211,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         cls.__init__(self, W_types, index_set               = index_set,
                                     hyperplane_index_set    = hyperplane_index_set,
                                     reflection_index_set    = reflection_index_set)
-        N = self.nr_reflections()
+        N = self.number_of_reflections()
         self._is_positive_root = [None] + [True]*N + [False]*N
 
     def _repr_(self):
@@ -212,7 +239,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         - ``algorithm`` (default:'breadth') - can be 'breadth' or
           'depth', 'breadth' returns the elements in a linear extension
           of the weak order, 'depth' is ~1.5 x faster.
-        - ``tracking_words`` (default: True) - whether or not to keep
+        - ``tracking_words`` (default: ``True``) - whether or not to keep
           track of the reduced words and store them in ``_reduced_word``.
 
         The fastest iteration is the depth first algorithm without
@@ -243,7 +270,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,5)(2,6)(3,7)(4,8)
         """
         from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, algorithm=algorithm, tracking_words=tracking_words))
+        return iter(Iterator(self, N=self.number_of_reflections(),
+                             algorithm=algorithm, tracking_words=tracking_words))
 
     def __iter__(self):
         r"""
@@ -284,10 +312,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         index_family = self._index_set
         keys = index_family.keys()
-        L,R = self._gap_group.BipartiteDecomposition().sage()
+        L, R = self._gap_group.BipartiteDecomposition().sage()
         L = [i for i in keys if index_family[i] + 1 in L]
         R = [i for i in keys if index_family[i] + 1 in R]
-        return [L,R]
+        return [L, R]
 
     def cartan_type(self):
         r"""
@@ -313,6 +341,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         r"""
         Return the form that is invariant under the action of ``self``.
 
+        This is unique only up to a global scalar factor.
+
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',3])
@@ -322,10 +352,13 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [   0 -1/2    1]
 
             sage: W = ReflectionGroup(['B',3])
-            sage: W.invariant_form()
+            sage: F = W.invariant_form(); F
             [ 1 -1  0]
             [-1  2 -1]
             [ 0 -1  2]
+            sage: w = W.an_element().to_matrix()
+            sage: w * F * w.transpose().conjugate() == F
+            True
         """
         C = self.cartan_matrix()
         n = self.rank()
@@ -366,7 +399,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     def positive_roots(self):
         r"""
-        Return the simple root with index ``i``.
+        Return the positive roots of ``self``.
 
         EXAMPLES::
 
@@ -387,7 +420,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.positive_roots()
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
         """
-        return self.roots()[:self.nr_reflections()]
+        return self.roots()[:self.number_of_reflections()]
 
     def almost_positive_roots(self):
         r"""
@@ -426,9 +459,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
              (0, 1, 1),
              (1, 1, 1)]
         """
-        return [ -beta for beta in self.simple_roots() ] + self.positive_roots()
+        return [-beta for beta in self.simple_roots()] + self.positive_roots()
 
-    def root_to_reflection(self,root):
+    def root_to_reflection(self, root):
         r"""
         Return the reflection along the given ``root``.
 
@@ -452,7 +485,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 return r
         raise AssertionError("there is a bug in root_to_reflection")
 
-    def reflection_to_positive_root(self,r):
+    def reflection_to_positive_root(self, r):
         r"""
         Return the positive root orthogonal to the given reflection.
 
@@ -544,13 +577,22 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 m[I_inv[i],I_inv[j]] = (S[i]*S[j]).order()
         return m
 
-    def permutahedron(self,point=None):
+    def permutahedron(self, point=None):
         r"""
         Return the permutahedron of ``self``.
 
         This is the convex hull of the point ``point`` in the weight
         basis under the action of ``self`` on the underlying vector
         space `V`.
+
+        INPUT:
+
+        - ``point`` -- optional, a point given by its coordinates in
+          the weight basis (default is (1,1,1,..))
+
+        .. NOTE::
+
+            The result is expressed in the root basis coordinates.
 
         EXAMPLES::
 
@@ -560,13 +602,20 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3])
             sage: W.permutahedron()
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 24 vertices
+
+        TESTS::
+
+            sage: W.permutahedron([3,5,8])
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 24 vertices
         """
         n = self.rank()
         weights = self.fundamental_weights()
         if point is None:
-            point = [1]*n
-        v = sum(point[i] * wt for i,wt in enumerate(weights))
+            point = [1] * n
+        v = sum(point[i] * wt for i, wt in enumerate(weights))
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(vertices=[v*(~w).to_matrix() for w in self])
 
@@ -590,10 +639,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [()]
         """
         from sage.combinat.root_system.reflection_group_complex import _gap_return
-        J_inv = [ self._index_set[j]+1 for j in J ]
-        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(self._gap_group._name,self._gap_group._name,J_inv)))
-        exec('L = ' + _gap_return(S))
-        return L
+        J_inv = [ self._index_set[j] + 1 for j in J ]
+        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (self._gap_group._name, self._gap_group._name, J_inv)))
+        return sage_eval(_gap_return(S), locals={'self': self})
 
     def simple_root_index(self, i):
         r"""
@@ -646,7 +694,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             if not self._reduced_word is None:
                 return len(self._reduced_word)
             else:
-                N = self.parent().nr_reflections()
+                N = self.parent().number_of_reflections()
                 return ZZ.sum(ZZ.one() for i in range(N)
                               if not self.parent()._is_positive_root[self(i+1)])
 
@@ -768,10 +816,11 @@ class RealReflectionGroup(ComplexReflectionGroup):
             from sage.combinat.root_system.reflection_group_complex import _gap_return
             W = self.parent()
             T = W.reflections()
-            T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
-            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = ' + _gap_return(S,coerce_obj='W'))
-            return L
+            T_fix = [i + 1 for i in T.keys()
+                     if self.fix_space().is_subspace(T[i].fix_space())]
+            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (W._gap_group._name, W._gap_group._name, T_fix)))
+            return sage_eval(_gap_return(S, coerce_obj='W'),
+                             locals={'self': self, 'W': W})
 
         def left_coset_representatives(self):
             r"""

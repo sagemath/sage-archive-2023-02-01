@@ -16,7 +16,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.groups import Groups
-from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 
 class GeneralizedCoxeterGroups(Category_singleton):
     r"""
@@ -68,12 +67,14 @@ class GeneralizedCoxeterGroups(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: Cat = GeneralizedCoxeterGroups().Finite()
                 sage: Cat.extra_super_categories()
                 [Category of finite well generated complex reflection groups]
                 sage: Cat.is_subcategory(ComplexReflectionGroups())
                 True
             """
+            from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class Irreducible(CategoryWithAxiom):
@@ -115,13 +116,13 @@ class GeneralizedCoxeterGroups(Category_singleton):
             return self.prod(self.simple_reflections())
 
         def some_elements(self):
-            """
+            r"""
             Implement :meth:`Sets.ParentMethods.some_elements` by
-            returning some typical element of ``self`.
+            returning some typical element of ``self``.
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['A',3])
+                sage: W = WeylGroup(['A',3])
                 sage: W.some_elements()
                 [
                 [0 1 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [0 0 0 1]
@@ -132,15 +133,37 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 sage: W.order()
                 24
             """
-            return list(self.simple_reflections()) + [ self.one(), self.an_element() ]
+            return list(self.simple_reflections()) + [self.one(), self.an_element()]
 
         def simple_reflection_orders(self):
             """
             Return the orders of the simple reflections.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['B',3])
+                sage: W.simple_reflection_orders()
+                [2, 2, 2]
+                sage: W = CoxeterGroup(['C',4])
+                sage: W.simple_reflection_orders()
+                [2, 2, 2, 2]
+                sage: SymmetricGroup(5).simple_reflection_orders()
+                [2, 2, 2, 2]
+                sage: C = ColoredPermutations(4, 3)
+                sage: C.simple_reflection_orders()
+                [2, 2, 4]
             """
             one = self.one()
             s = self.simple_reflections()
-            return [s[i].order() for i in self.index_set()]
+            from sage.rings.all import ZZ
+            def mult_order(x):
+                ct = ZZ.one()
+                cur = x
+                while cur != one:
+                    cur *= x
+                    ct += ZZ.one()
+                return ZZ(ct)
+            return [mult_order(s[i]) for i in self.index_set()]
 
         def simple_reflection(self, i):
             """
@@ -162,8 +185,8 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 (0, 2, 1, 3)
             """
             if not i in self.index_set():
-                raise ValueError("%s is not in the Dynkin node set %s"%(i,self.index_set()))
-            return self.one().apply_simple_reflection(i) # don't care about left/right
+                raise ValueError("%s is not in the Dynkin node set %s" % (i, self.index_set()))
+            return self.one().apply_simple_reflection(i)  # don't care about left/right
 
         @cached_method
         def simple_reflections(self):

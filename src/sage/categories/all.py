@@ -121,7 +121,7 @@ from graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
 # Coxeter groups
 from coxeter_groups import CoxeterGroups
-from finite_coxeter_groups import FiniteCoxeterGroups
+lazy_import('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
 from weyl_groups import WeylGroups
 from finite_weyl_groups import FiniteWeylGroups
 from affine_weyl_groups import AffineWeylGroups

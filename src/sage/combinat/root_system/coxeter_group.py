@@ -10,9 +10,6 @@ Coxeter Groups
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_function, cached_method
-from sage.categories.category import Category
-from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
-from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.structure.unique_representation import UniqueRepresentation
@@ -218,8 +215,10 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
         N = self._gap_group.__getattr__("N").sage()
         generators = [str(x) for x in self._gap_group.generators]
         self._is_positive_root = [None] + [ True ] * N + [False]*N
-        PermutationGroup_generic.__init__(self, gens = generators,
-                                          category = Category.join([FinitePermutationGroups(), FiniteCoxeterGroups()]))
+        from sage.categories.finite_permutation_groups import FinitePermutationGroups
+        from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
+        PermutationGroup_generic.__init__(self, gens=generators,
+                                          category=(FinitePermutationGroups(), FiniteCoxeterGroups()))
 
     def _element_class(self):
         """

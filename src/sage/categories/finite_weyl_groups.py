@@ -56,6 +56,7 @@ class FiniteWeylGroups(CategoryWithAxiom):
         running ._test_reduced_word() . . . pass
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_well_generated() . . . pass
     """
 
     class ParentMethods:

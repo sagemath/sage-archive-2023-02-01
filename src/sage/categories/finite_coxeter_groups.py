@@ -13,7 +13,6 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
-from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 
 class FiniteCoxeterGroups(CategoryWithAxiom):
@@ -25,9 +24,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: FiniteCoxeterGroups()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of finite generalized coxeter groups,
-         Category of coxeter groups,
-         Category of finite well generated complex reflection groups]
+        [Category of finite well generated generalized coxeter groups,
+         Category of coxeter groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -52,9 +50,11 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         r"""
         EXAMPLES::
 
-            sage: ComplexReflectionGroups().super_categories()
-            [Category of groups]
+            sage: FiniteCoxeterGroups().super_categories()
+            [Category of finite well generated generalized coxeter groups,
+             Category of coxeter groups]
         """
+        from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class ParentMethods:

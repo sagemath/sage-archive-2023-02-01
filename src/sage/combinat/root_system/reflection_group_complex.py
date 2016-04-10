@@ -264,7 +264,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 type_dict["ST"] = ( X.p.sage(), X.q.sage(), X.rank.sage() )
             elif hasattr(X.bond,"sage"):
                 type_dict["bond"] = X.bond.sage()
-            if type_dict["series"] == "B" and X.cartanType.sage() == 1:
+            if type_dict["series"] == "B" and (X.cartanType.sage() == 1 or X.indices.sage() == [2,1]):
                 type_dict["series"] = "C"
             reflection_type.append( type_dict )
 

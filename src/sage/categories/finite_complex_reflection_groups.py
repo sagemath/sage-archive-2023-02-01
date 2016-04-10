@@ -478,6 +478,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             def _test_well_generated(self, **options):
                 """
                 Check if ``self`` is well-generated.
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((3,1,2))
+                    sage: W._test_well_generated()
                 """
                 tester = self._tester(**options)
                 tester.assertEqual(self.number_of_simple_reflections(), self.rank())

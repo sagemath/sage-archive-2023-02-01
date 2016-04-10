@@ -369,8 +369,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W = ReflectionGroup((1,1,3))
             sage: for w in W: w
             ()
-            (1,4)(2,3)(5,6)
             (1,3)(2,5)(4,6)
+            (1,4)(2,3)(5,6)
             (1,6,2)(3,5,4)
             (1,2,6)(3,4,5)
             (1,5)(2,4)(3,6)
@@ -433,7 +433,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             ((1,12)(2,24)(3,19)(4,22)(5,17)(6,20)(7,23)(8,9)(10,21)(11,13)(14,18)(15,16), [0, 0, 1, 0, 0, 1])
             ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
         """
-        I = self.gens()
+        I = tuple( self.simple_reflection(self._index_set_inverse[i])
+                        for i in range(len(self._index_set)) )
         index_list = range(len(I))
 
         level_set_cur = [(self.one(), list())]
@@ -788,17 +789,17 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3)); W
-            Irreducible complex reflection group of rank 2 and type A2
+            Irreducible real reflection group of rank 2 and type A2
             sage: W.is_crystallographic()
             True
 
             sage: W = ReflectionGroup((2,1,3)); W
-            Irreducible complex reflection group of rank 3 and type B3
+            Irreducible real reflection group of rank 3 and type B3
             sage: W.is_crystallographic()
             True
 
             sage: W = ReflectionGroup(23); W
-            Irreducible complex reflection group of rank 3 and type H3
+            Irreducible real reflection group of rank 3 and type H3
             sage: W.is_crystallographic()
             False
 
@@ -1111,8 +1112,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: for w in W:
             ....:     print('%s %s'%(w.reduced_word(), W.reflection_eigenvalues(w)))
              [0, 0]
-            0 [1/2, 0]
             1 [1/2, 0]
+            0 [1/2, 0]
             01 [1/3, 2/3]
             10 [1/3, 2/3]
             010 [1/2, 0]
@@ -1419,11 +1420,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [1 0]
             [0 1]
             -----
-            [-1  0]
-            [ 1  1]
-            -----
             [ 1  1]
             [ 0 -1]
+            -----
+            [-1  0]
+            [ 1  1]
             -----
             [-1 -1]
             [ 1  0]
@@ -1441,13 +1442,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [0 1 0]
             [0 0 1]
             -----
-            [0 1 0]
             [1 0 0]
             [0 0 1]
+            [0 1 0]
             -----
+            [0 1 0]
             [1 0 0]
             [0 0 1]
-            [0 1 0]
             -----
             [0 0 1]
             [1 0 0]
@@ -1483,8 +1484,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: w.apply_simple_reflection_right(0)
                 (1,4)(2,3)(5,6)
-                ()
                 (1,2,6)(3,4,5)
+                ()
                 (1,5)(2,4)(3,6)
                 (1,3)(2,5)(4,6)
                 (1,6,2)(3,5,4)
@@ -1504,8 +1505,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: w.apply_simple_reflection_left(0)
                 (1,4)(2,3)(5,6)
-                ()
                 (1,6,2)(3,5,4)
+                ()
                 (1,3)(2,5)(4,6)
                 (1,5)(2,4)(3,6)
                 (1,2,6)(3,4,5)

@@ -19,12 +19,13 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
-from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.indexed_generators import IndexedGenerators, parse_indices_names
 from sage.structure.sage_object import op_EQ, op_NE, py_rich_to_bool
 from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
+from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
@@ -627,7 +628,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
     """
     @staticmethod
-    def __classcall__(cls, indices, prefix="F", **kwds):
+    def __classcall__(cls, indices, prefix=None, names=None, **kwds):
         """
         TESTS::
 
@@ -645,16 +646,11 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: Groups.Commutative.free()
             Traceback (most recent call last):
             ...
-            ValueError: no index set specified
+            ValueError: either the indices or names must be given
         """
-        if isinstance(indices, str):
-            indices = FiniteEnumeratedSet(list(indices))
-        elif isinstance(indices, (list, tuple)):
-            indices = FiniteEnumeratedSet(indices)
-        elif indices is None:
-            if kwds.get('names', None) is None:
-                raise ValueError("no index set specified")
-            indices = FiniteEnumeratedSet(kwds['names'])
+        indices, names, prefix = parse_indices_names(indices, names, prefix, kwds)
+        if prefix is None:
+            prefix = "F"
 
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
@@ -664,7 +660,8 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         latex_bracket = kwds.get('latex_bracket', None)
         if isinstance(latex_bracket, list):
             kwds['latex_bracket'] = tuple(latex_bracket)
-        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix, **kwds)
+
+        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix, names=names, **kwds)
 
     def __init__(self, indices, prefix, category=None, names=None, **kwds):
         """
@@ -688,6 +685,8 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             category = category.Finite()
         else:
             category = category.Infinite()
+        if indices in Sets().Finite():
+            category = category.FinitelyGeneratedAsMagma()
         Parent.__init__(self, names=names, category=category)
 
         # ignore the optional 'key' since it only affects CachedRepresentation
@@ -700,9 +699,9 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: F.<x,y,z> = FreeMonoid(index_set=ZZ)
-            sage: [x, y, z]
-            [F[0], F[1], F[-1]]
+            sage: F = FreeMonoid(index_set=ZZ)
+            sage: F._first_ngens(3)
+            (F[0], F[1], F[-1])
         """
         it = iter(self._indices)
         return tuple(self.gen(next(it)) for i in range(n))

@@ -757,7 +757,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             return ret + "%s%d"%(self._parent._prefix, redword[-1])
 
     def _latex_(self):
-        """
+        r"""
         Return the latex representation of ``self``.
 
         EXAMPLES::

@@ -1371,7 +1371,17 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: C = CombinatorialFreeModule(QQ, ZZ)
             sage: C._first_ngens(3)
             (B[0], B[1], B[-1])
+
+            sage: R.<x,y> = FreeAlgebra(QQ, 2)
+            sage: x,y
+            (x, y)
         """
+        try:
+            # Try gens first for compatibility with classes that
+            #   rely on this (e.g., FreeAlgebra)
+            return tuple(self.gens())[:n]
+        except (AttributeError, ValueError, TypeError):
+            pass
         B = self.basis()
         it = iter(self._indices)
         return tuple(B[next(it)] for i in range(n))

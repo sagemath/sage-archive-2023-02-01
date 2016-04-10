@@ -114,7 +114,7 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
             sage: A.degree_on_basis((x^4).leading_support())
             4
             sage: a = A.an_element(); a
-            U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2*U['z'] + 3
+            U['x']^2*U['y']^2*U['z']^3 + 2*U['x'] + 3*U['y'] + 1
             sage: A.degree_on_basis(a.leading_support())
             1
             sage: s = sorted(a.support(), key=str)[2]; s

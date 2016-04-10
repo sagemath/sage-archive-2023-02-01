@@ -117,17 +117,45 @@ def ReflectionGroup(*args,**kwds):
         if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
             raise ValueError("the input data (%s) is not valid for reflection groups"%X)
 
-        # check for real vs complex
-        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
-            is_complex = True
-
-        # transforming two reducible types
-        if X == (2,2,2):
-            W_types.extend([(1,1,2),(1,1,2)])
-        elif X == ('I',2):
+        # transforming two reducible types and an irreducible type
+        if X == (2,2,2) or X == ('I',2):
             W_types.extend([('A',1),('A',1)])
+        elif X == (2,2,3):
+            W_types.extend([('A',3)])
         else:
             W_types.append(X)
+
+
+    # converting the real types given as complex types
+    # and then checking for real vs complex
+    for i,W_type in enumerate(W_types):
+        if W_type in ZZ:
+            if W_type == 23:
+                W_types[i] = ('H',3)
+            elif W_type == 28:
+                W_types[i] = ('F',4)
+            elif W_type == 30:
+                W_types[i] = ('H',4)
+            elif W_type == 35:
+                W_types[i] = ('E',6)
+            elif W_type == 36:
+                W_types[i] = ('E',7)
+            elif W_type == 37:
+                W_types[i] = ('E',8)
+        if isinstance(W_type,tuple) and len(W_type) == 3:
+            if W_type[0] == W_type[1] == 1:
+                W_types[i] = ('A',W_type[2]-1)
+            elif W_type[0] == 2 and W_type[1] == 1:
+                W_types[i] = ('B',W_type[2])
+            elif W_type[0] == W_type[1] == 2:
+                W_types[i] = ('D',W_type[2])
+            elif W_type[0] == W_type[1] and W_type[2] == 2:
+                W_types[i] = ('I',W_type[0])
+
+        W_type = W_types[i]
+        # check for real vs complex
+        if W_type in ZZ or ( isinstance(W_type,tuple) and len(W_type) == 3 ):
+            is_complex = True
 
     for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
         index_set = kwds.get(index_set_kwd, None)

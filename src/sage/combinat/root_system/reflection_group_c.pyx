@@ -1,3 +1,18 @@
+r"""
+This contains a few time-critial auxillary cython functions for
+finite complex or real reflection groups.
+"""
+#*****************************************************************************
+#       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
+#                     2016 Travis Scrimshaw
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from collections import deque
 

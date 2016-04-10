@@ -15,6 +15,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 
+
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
     The category of finite Coxeter groups.
@@ -209,6 +210,39 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
             return Poset((self, covers), cover_relations = True, facade=facade)
 
+        def degrees(self):
+            """
+            Return the degrees of the Coxeter group.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                [2, 3, 4, 5]
+                sage: CoxeterGroup(['B', 4]).degrees()
+                [2, 4, 6, 8]
+                sage: CoxeterGroup(['D', 4]).degrees()
+                [2, 4, 4, 6]
+                sage: CoxeterGroup(['F', 4]).degrees()
+                [2, 6, 8, 12]
+                sage: CoxeterGroup(['E', 8]).degrees()
+                [2, 8, 12, 14, 18, 20, 24, 30]
+                sage: CoxeterGroup(['H', 3]).degrees()
+                [2, 6, 10]
+            """
+            from sage.rings.qqbar import QQbar
+            c = self.prod(self.gens())
+            chi = c.matrix().change_ring(QQbar)
+            roots = [u for u in chi.charpoly().roots()]
+            h = max(z[0].multiplicative_order() for z in roots)
+            prim = QQbar.zeta(h)
+            degs = []
+            for z, m in roots:
+                for e in range(1, h):
+                    if prim ** e == z:
+                        degs.extend([e + 1] * m)
+                        break
+            return sorted(degs)
+        
         @cached_method
         def weak_poset(self, side = "right", facade = False):
             """

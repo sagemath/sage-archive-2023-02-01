@@ -292,7 +292,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         category = Category.join([category,PermutationGroups()]).Finite()
 
-        PermutationGroup_generic.__init__(self, gens = generators, canonicalize=False, category = category)
+        PermutationGroup_generic.__init__(self, gens=generators,
+                                          canonicalize=False,
+                                          category=category)
 
         l_set = range(1, len(self.gens())+1)
         if self._index_set is None:
@@ -1562,7 +1564,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             gens = W.simple_reflections()
             count = 0
             orbit = [self]
-            orbit_set = set(orbit);
+            orbit_set = set(orbit)
             while count < len(orbit):
                 w = orbit[count]
                 count += 1
@@ -2479,4 +2481,3 @@ def _gap_return(S, coerce_obj='self'):
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S
-

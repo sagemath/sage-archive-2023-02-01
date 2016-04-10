@@ -105,8 +105,8 @@ def ReflectionGroup(*args,**kwds):
         raise ImportError("the GAP3 package 'chevie' is needed to work with (complex) reflection groups")
     gap3.load_package("chevie")
 
-    W_types     = []
-    is_complex  = False
+    W_types = []
+    is_complex = False
     for arg in args:
         # preparsing
         if isinstance(arg, list):
@@ -177,9 +177,11 @@ def ReflectionGroup(*args,**kwds):
             cls = ComplexReflectionGroup
         else:
             cls = RealReflectionGroup
-    return cls(tuple(W_types), index_set=kwds.get('index_set', None),
-                               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
-                               reflection_index_set=kwds.get('reflection_index_set', None) )
+    return cls(tuple(W_types),
+               index_set=kwds.get('index_set', None),
+               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
+               reflection_index_set=kwds.get('reflection_index_set', None))
+
 
 class RealReflectionGroup(ComplexReflectionGroup):
     """
@@ -840,4 +842,3 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
     class Element(RealReflectionGroup.Element,IrreducibleComplexReflectionGroup.Element):
         pass
-

@@ -156,6 +156,7 @@ class GeneralizedCoxeterGroups(Category_singleton):
             one = self.one()
             s = self.simple_reflections()
             from sage.rings.all import ZZ
+
             def mult_order(x):
                 ct = ZZ.one()
                 cur = x
@@ -462,4 +463,3 @@ class GeneralizedCoxeterGroups(Category_singleton):
                 [3, 2]
             """
             return (self.apply_simple_reflection(i)).apply_simple_reflection(i, side='left')
-

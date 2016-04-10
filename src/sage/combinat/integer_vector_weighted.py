@@ -23,6 +23,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from __builtin__ import list as builtinlist
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -155,9 +156,9 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: [3,-1,0] in WeightedIntegerVectors([2,1,1])
             False
         """
-        return isinstance(x, (builtinlist, Permutation)) and \
-            len(x) == len(self._weights)   and \
-            all(isinstance(i, (int, Integer)) and i>=0 for i in x)
+        return (isinstance(x, (builtinlist, Permutation))
+                and len(x) == len(self._weights)
+                and all(isinstance(i, (int, Integer)) and i >= 0 for i in x))
 
     def subset(self, size = None):
         """
@@ -282,11 +283,18 @@ def iterator_fast(n, l):
     """
     Iterate over all ``l`` weighted integer vectors with total weight ``n``.
 
+    INPUT:
+
+    - ``n`` -- an integer
+    - ``l`` -- the weights in weakly increasing order
+
     EXAMPLES::
 
         sage: from sage.combinat.integer_vector_weighted import iterator_fast
         sage: list(iterator_fast(3, [1,1,2]))
         [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
+        sage: list(iterator_fast(2, [2]))
+        [[1]]
     """
     if n < 0:
         return
@@ -297,7 +305,7 @@ def iterator_fast(n, l):
         return
     if len(l) == 1:
         if n % l[-1] == 0:
-            yield [n]
+            yield [n / l[-1]]
         return
 
     k = -1
@@ -307,7 +315,7 @@ def iterator_fast(n, l):
         cur[0] -= 1
         rem += l[k]
         if rem == 0:
-            yield [Integer(0)] * (len(l) - len(cur)) + cur
+            yield [ZZ.zero()] * (len(l) - len(cur)) + cur
         elif cur[0] < 0 or rem < 0:
             rem += cur.pop(0) * l[k]
             k += 1

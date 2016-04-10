@@ -243,7 +243,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,5)(2,6)(3,7)(4,8)
         """
         from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, algorithm=algorithm, tracking_words=tracking_words))
+        return iter(Iterator(self, N=self.nr_reflections(),
+                             algorithm=algorithm, tracking_words=tracking_words))
 
     def __iter__(self):
         r"""

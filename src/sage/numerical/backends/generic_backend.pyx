@@ -1460,6 +1460,41 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def _test_solve_trac_18572(cls, tester=None, **options)
+        """
+        Run tests on ...
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_solve_trac_18572()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        tester.assertIsNone(p.set_sense(-1))
+        tester.assertEqual(p.add_variable(0, None, False, True, False, 0.0, None), 0)
+        tester.assertIsNone(p.set_variable_type(0, -1))
+        tester.assertEqual(p.add_variable(0, None, False, True, False, 0.0, None), 1)
+        tester.assertIsNone(p.set_variable_type(1, -1))
+        tester.assertEqual(p.add_variable(None, None, False, True, False, 0.0, None), 2)
+        tester.assertIsNone(p.set_variable_type(2, -1))
+        tester.assertIsNone(p.add_linear_constraint([(0, 2.0), (1, 1.0), (2, -1.0)], None, 0.0, None))
+        tester.assertIsNone(p.add_linear_constraint([(0, 1.0), (1, 3.0), (2, -1.0)], None, 0.0, None))
+        tester.assertIsNone(p.add_linear_constraint([(0, 1.0), (1, 1.0)], 1.0, 1.0, None))
+        tester.assertEqual(p.ncols(), 3)
+        tester.assertIsNone(p.set_objective([0.0, 0.0, 1.0], 0.0))
+        tester.assertEqual(p.solve(), 0)
+        tester.assertAlmostEqual(p.get_objective_value(), 1.66666666667)
+        tester.assertAlmostEqual(p.get_variable_value(0), 0.666666666667)
+        tester.assertAlmostEqual(p.get_variable_value(1), 0.333333333333)
+
 default_solver = None
 
 def default_mip_solver(solver = None):

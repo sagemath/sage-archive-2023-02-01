@@ -287,7 +287,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ)
             sage: J = JordanAlgebra(F)
             sage: J.an_element()
-            x
+            2*y + 2*y^2 + 3*y^2*z
         """
         return self.element_class(self, self._A.an_element())
 

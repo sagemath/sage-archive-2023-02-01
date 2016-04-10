@@ -21,19 +21,18 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
     EXAMPLES::
 
-        sage: FiniteCoxeterGroups()
+        sage: CoxeterGroups.Finite()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of finite well generated generalized coxeter groups,
-         Category of coxeter groups]
+        [Category of finite generalized coxeter groups, Category of coxeter groups]
 
-        sage: G = FiniteCoxeterGroups().example()
+        sage: G = CoxeterGroups().Finite().example()
         sage: G.cayley_graph(side = "right").plot()
         Graphics object consisting of 40 graphics primitives
 
     Here are some further examples::
 
-        sage: FiniteWeylGroups().example()
+        sage: WeylGroups().Finite().example()
         The symmetric group on {0, ..., 3}
 
         sage: WeylGroup(["B", 3])
@@ -50,9 +49,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         r"""
         EXAMPLES::
 
-            sage: FiniteCoxeterGroups().super_categories()
-            [Category of finite well generated generalized coxeter groups,
-             Category of coxeter groups]
+            sage: CoxeterGroups().Finite().super_categories()
+            [Category of finite generalized coxeter groups, Category of coxeter groups]
         """
         from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         return [ComplexReflectionGroups().Finite().WellGenerated()]

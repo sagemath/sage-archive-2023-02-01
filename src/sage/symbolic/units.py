@@ -1034,7 +1034,7 @@ def str_to_unit(name):
 
 class Units:
     """
-    A collection of units of a some type.
+    A collection of units of some type.
 
         EXAMPLES::
 
@@ -1113,6 +1113,25 @@ class Units:
             ['acre', 'are', 'barn', 'hectare', 'rood', 'section', 'square_chain', 'square_meter', 'township']
         """
         return sorted([x for x in self.__data.keys() if '/' not in x])
+
+    def __dir__(self):
+        """
+        Return the list of names of the attributes of ``self``.
+
+        This complements the usual content of ``dir``, with the names
+        of the units (or unit collections) of ``self``.
+
+        This enables tab completion on ``units`` and its
+        subcollections.
+
+        EXAMPLES::
+
+            sage: dir(units)
+            ['_Units__data', '_Units__name', '_Units__units', 'acceleration', ..., 'volume']
+            sage: dir(units.force)
+            ['_Units__data', '_Units__name', '_Units__units', 'dyne', ..., 'ton_force']
+        """
+        return self.__dict__.keys() + self.__data.keys()
 
     def __getattr__(self, name):
         """

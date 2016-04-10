@@ -367,13 +367,6 @@ cdef PariInstance pari_instance, P
 pari_instance = PariInstance()
 P = pari_instance   # shorthand notation
 
-# PariInstance.__init__ must not create gen objects because their parent is not constructed yet
-sig_on()
-pari_instance.PARI_ZERO = pari_instance.new_gen_noclear(gen_0)
-pari_instance.PARI_ONE  = pari_instance.new_gen_noclear(gen_1)
-pari_instance.PARI_TWO  = pari_instance.new_gen_noclear(gen_2)
-sig_off()
-
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
 
@@ -508,6 +501,13 @@ cdef class PariInstance(PariInstance_auto):
         # also many functions indirectly using factoring.
         global factor_proven
         factor_proven = 1
+
+        # Initialize some constants
+        sig_on()
+        self.PARI_ZERO = self.new_gen_noclear(gen_0)
+        self.PARI_ONE = self.new_gen_noclear(gen_1)
+        self.PARI_TWO = self.new_gen_noclear(gen_2)
+        sig_off()
 
     def debugstack(self):
         r"""
@@ -1569,6 +1569,33 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen t0 = objtogen(P)
         sig_on()
         return self.new_gen(genus2red(t0.g, NULL))
+
+    def List(self, x=None):
+        """
+        Create an empty list or convert `x` to a list.
+
+        EXAMPLES::
+
+            sage: pari.List(range(5))
+            List([0, 1, 2, 3, 4])
+            sage: L = pari.List()
+            sage: L
+            List([])
+            sage: L.listput(42, 1)
+            42
+            sage: L
+            List([42])
+            sage: L.listinsert(24, 1)
+            24
+            sage: L
+            List([24, 42])
+        """
+        if x is None:
+            sig_on()
+            return self.new_gen(listcreate())
+        cdef gen t0 = objtogen(x)
+        sig_on()
+        return self.new_gen(gtolist(t0.g))
 
 
 cdef inline void INT_to_mpz(mpz_ptr value, GEN g):

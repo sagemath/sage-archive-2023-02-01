@@ -75,6 +75,10 @@ m4ri_library_dirs = list(m4ri_pc['library_dirs'])
 m4ri_include_dirs = list(m4ri_pc['include_dirs'])
 
 m4ri_extra_compile_args = pkgconfig.cflags('m4ri').split()
+try:
+    m4ri_extra_compile_args.remove("-pedantic")
+except ValueError:
+    pass
 
 #########################################################
 ### Singular
@@ -582,6 +586,9 @@ ext_modules = [
 
     Extension('sage.libs.fplll.fplll',
               sources = ['sage/libs/fplll/fplll.pyx']),
+
+    Extension("sage.libs.glpk.error",
+             ["sage/libs/glpk/error.pyx"]),
 
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
@@ -1140,6 +1147,9 @@ ext_modules = [
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"]),
 
+    Extension("sage.numerical.backends.interactivelp_backend",
+              ["sage/numerical/backends/interactivelp_backend.pyx"]),
+
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
               libraries = ["stdc++", "gurobi"],
@@ -1409,7 +1419,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_element_quadratic',

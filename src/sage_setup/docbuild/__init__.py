@@ -1620,7 +1620,7 @@ def main():
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty
     # directories it leaves behind. See Trac #20010.
-    delete_empty_directories(SAGE_DOC)
+    delete_empty_directories(SAGE_DOC_SRC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

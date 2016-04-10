@@ -540,7 +540,7 @@ def RandomTree(n):
 
     ALGORITHM:
 
-    The algoritm works by generating an `(n-2)`-long
+    The algorithm works by generating an `(n-2)`-long
     random sequence of numbers chosen independently and uniformly
     from `\{0,1,\ldots,n-1\}` and then applies an inverse
     Prufer transformation.

@@ -1331,7 +1331,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         TESTS:
 
-        The following corner cases were problematic while working on #10628::
+        The following corner cases were problematic while working on
+        :trac:`10628`::
 
             sage: MS = MatrixSpace(ZZ,2,1)
             sage: MS([[1],[2]])
@@ -1343,7 +1344,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ 1.00000000000000]
             [0.000000000000000]
 
-        Trac ticket #10628 allowed to provide the data be lists of matrices, but
+        :trac:`10628` allowed to provide the data as lists of matrices, but
         :trac:`13012` prohibited it::
 
             sage: MS = MatrixSpace(ZZ,4,2)
@@ -1703,7 +1704,10 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     If ``checkrank`` is ``False`` then the rank is not checked. This is used
     the check matrix over ring where echelon form is not implemented.
 
-    TODO: must be adapted to category check framework when ready (see trac \#5274).
+    .. TODO::
+
+        This must be adapted to category check framework when ready
+        (see :trac:`5274`).
 
     TESTS::
 
@@ -1789,11 +1793,16 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
 from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.structure.sage_object import register_unpickle_override
+def _MatrixSpace_ZZ_2x2():
+    from sage.rings.integer_ring import ZZ
+    return MatrixSpace(ZZ,2)
 register_unpickle_override('sage.matrix.matrix_modn_dense',
     'Matrix_modn_dense', Matrix_modn_dense_double)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'Matrix_integer_2x2', Matrix_integer_dense)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'MatrixSpace_ZZ_2x2_class', MatrixSpace)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'MatrixSpace_ZZ_2x2', _MatrixSpace_ZZ_2x2)
 register_unpickle_override('sage.matrix.matrix_mod2e_dense',
     'unpickle_matrix_mod2e_dense_v0', matrix_gf2e_dense.unpickle_matrix_gf2e_dense_v0)

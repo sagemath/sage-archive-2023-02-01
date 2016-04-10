@@ -3952,7 +3952,14 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: real_roots(p, retval='interval')
         [(1.000000000000000?, 1), (1.414213562373095?, 2), (2.000000000000000?, 3)]
 
-    Check that :trac:`10803` is fixed ::
+    TESTS:
+
+    Check that :trac:`20269` is fixed::
+
+        sage: real_roots(polygen(AA))[0][0][0].parent()
+        Rational Field
+
+    Check that :trac:`10803` is fixed::
 
         sage: f = 2503841067*x^13 - 15465014877*x^12 + 37514382885*x^11 - 44333754994*x^10 + 24138665092*x^9 - 2059014842*x^8 - 3197810701*x^7 + 803983752*x^6 + 123767204*x^5 - 26596986*x^4 - 2327140*x^3 + 75923*x^2 + 7174*x + 102
         sage: len(real_roots(f,seed=1))
@@ -4000,7 +4007,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         if strategy=='warp':
             if factor.constant_coefficient() == 0:
                 x = factor.parent().gen()
-                extra_roots.append(((0, 0), x, exp, None, None))
+                extra_roots.append(((QQ.zero(), QQ.zero()), x, exp, None, None))
                 factor = factor // x
             if ar_input:
                 oc = ocean(ctx, bernstein_polynomial_factory_ar(factor, False), warp_map(False))

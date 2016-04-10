@@ -343,7 +343,7 @@ class QuotientFields(Category_singleton):
                 sage: f.factor()
                 (x - 3)^-1 * x * (x^2 + 1)
 
-            Here is an example to show that ticket #7868 has been resolved::
+            Here is an example to show that :trac:`7868` has been resolved::
 
                 sage: R.<x,y> = GF(2)[]
                 sage: f = x*y/(x+y)
@@ -463,7 +463,7 @@ class QuotientFields(Category_singleton):
                 sage: whole + sum(parts) == q
                 True
 
-            And also over finite fields (see trac #6052, #9945)::
+            And also over finite fields (see :trac:`6052`, :trac:`9945`)::
 
                 sage: R.<x> = GF(2)[]
                 sage: q = (x+1)/(x^3+x+1)

@@ -312,8 +312,7 @@ sage: list(DirichletGroup(5, QQ))
 [Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1]
 sage: G = DirichletGroup(200)
 sage: G
-Group of Dirichlet characters of modulus 200 over
-Cyclotomic Field of order 20 and degree 8
+Group of Dirichlet characters modulo 200 with values in Cyclotomic Field of order 20 and degree 8
 sage: G.exponent()
 20
 sage: G.gens()
@@ -338,18 +337,17 @@ sage: kronecker(177,200)
 sage: G = DirichletGroup(20)
 sage: G.galois_orbits()
 [
-[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4],
 [Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4],
+[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1]
 ]
 sage: G = DirichletGroup(11, QQ); G
-Group of Dirichlet characters of modulus 11 over
-Rational Field
+Group of Dirichlet characters modulo 11 with values in Rational Field
 sage: list(G)
 [Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1,
 Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -1]
@@ -369,8 +367,7 @@ sage: CyclotomicField(4)
 Cyclotomic Field of order 4 and degree 2
 sage: G = DirichletGroup(15, R)
 sage: G
-Group of Dirichlet characters of modulus 15 over
-Cyclotomic Field of order 4 and degree 2
+Group of Dirichlet characters modulo 15 with values in Cyclotomic Field of order 4 and degree 2
 sage: list(G)
 [Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
 Dirichlet character modulo 15 of conductor 3 mapping 11 |--> -1, 7 |--> 1,
@@ -391,8 +388,7 @@ sage: [e(n) for n in range(15)]
 [0, 1, zeta4, 0, -1, 0, 0, zeta4, -zeta4,
     0, 0, 1, 0, -zeta4, -1]
 sage: G = DirichletGroup(15, GF(5)); G
-Group of Dirichlet characters of modulus 15
-      over Finite Field of size 5
+Group of Dirichlet characters modulo 15 with values in Finite Field of size 5
 sage: list(G)
 [Dirichlet character modulo 15 of conductor 1 mapping 11 |--> 1, 7 |--> 1,
 Dirichlet character modulo 15 of conductor 3 mapping 11 |--> 4, 7 |--> 1,
@@ -515,16 +511,14 @@ Symbols space of dimension 3 for Gamma_0(6) of weight
 2 with sign 0 over Rational Field
 sage: G = DirichletGroup(13)
 sage: G
-Group of Dirichlet characters of modulus 13 over
-Cyclotomic Field of order 12 and degree 4
+Group of Dirichlet characters modulo 13 with values in Cyclotomic Field of order 12 and degree 4
 sage: dimension_modular_forms(Gamma1(13),2)
 13
 sage: [dimension_modular_forms(e,2) for e in G]
 [1, 0, 3, 0, 2, 0, 2, 0, 2, 0, 3, 0]
 sage: G = DirichletGroup(100)
 sage: G
-Group of Dirichlet characters of modulus 100 over
-Cyclotomic Field of order 20 and degree 8
+Group of Dirichlet characters modulo 100 with values in Cyclotomic Field of order 20 and degree 8
 sage: dimension_modular_forms(Gamma1(100),2)
 370
 sage: v = [dimension_modular_forms(e,2) for e in G]; v

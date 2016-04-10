@@ -210,7 +210,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
 
         We test that a method inherited from PermutationGroup_generic returns
-        the right type of element (see trac #133)::
+        the right type of element (see :trac:`133`)::
 
             sage: phi = G.random_element()
             sage: type(phi)

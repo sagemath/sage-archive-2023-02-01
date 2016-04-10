@@ -40,7 +40,7 @@ from sage.combinat.root_system.reflection_group_complex import ComplexReflection
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
-
+from sage.misc.sage_eval import sage_eval
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 def ReflectionGroup(*args,**kwds):
@@ -366,7 +366,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     def positive_roots(self):
         r"""
-        Return the simple root with index ``i``.
+        Return the positive roots of ``self``.
 
         EXAMPLES::
 
@@ -426,9 +426,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
              (0, 1, 1),
              (1, 1, 1)]
         """
-        return [ -beta for beta in self.simple_roots() ] + self.positive_roots()
+        return [-beta for beta in self.simple_roots()] + self.positive_roots()
 
-    def root_to_reflection(self,root):
+    def root_to_reflection(self, root):
         r"""
         Return the reflection along the given ``root``.
 
@@ -452,7 +452,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 return r
         raise AssertionError("there is a bug in root_to_reflection")
 
-    def reflection_to_positive_root(self,r):
+    def reflection_to_positive_root(self, r):
         r"""
         Return the positive root orthogonal to the given reflection.
 
@@ -544,13 +544,22 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 m[I_inv[i],I_inv[j]] = (S[i]*S[j]).order()
         return m
 
-    def permutahedron(self,point=None):
+    def permutahedron(self, point=None):
         r"""
         Return the permutahedron of ``self``.
 
         This is the convex hull of the point ``point`` in the weight
         basis under the action of ``self`` on the underlying vector
         space `V`.
+
+        INPUT:
+
+        - ``point`` -- optional, a point given by its coordinates in
+          the weight basis (default is (1,1,1,..))
+
+        .. NOTE::
+
+            The result is expressed in the root basis coordinates.
 
         EXAMPLES::
 
@@ -560,13 +569,20 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3])
             sage: W.permutahedron()
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 24 vertices
+
+        TESTS::
+
+            sage: W.permutahedron([3,5,8])
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+            of 24 vertices
         """
         n = self.rank()
         weights = self.fundamental_weights()
         if point is None:
-            point = [1]*n
-        v = sum(point[i] * wt for i,wt in enumerate(weights))
+            point = [1] * n
+        v = sum(point[i] * wt for i, wt in enumerate(weights))
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(vertices=[v*(~w).to_matrix() for w in self])
 
@@ -590,10 +606,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [()]
         """
         from sage.combinat.root_system.reflection_group_complex import _gap_return
-        J_inv = [ self._index_set[j]+1 for j in J ]
-        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(self._gap_group._name,self._gap_group._name,J_inv)))
-        exec('L = ' + _gap_return(S))
-        return L
+        J_inv = [ self._index_set[j] + 1 for j in J ]
+        S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (self._gap_group._name, self._gap_group._name, J_inv)))
+        return sage_eval(_gap_return(S), locals={'self': self})
 
     class Element(ComplexReflectionGroup.Element):
 
@@ -754,10 +769,11 @@ class RealReflectionGroup(ComplexReflectionGroup):
             from sage.combinat.root_system.reflection_group_complex import _gap_return
             W = self.parent()
             T = W.reflections()
-            T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
-            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = ' + _gap_return(S,coerce_obj='W'))
-            return L
+            T_fix = [i + 1 for i in T.keys()
+                     if self.fix_space().is_subspace(T[i].fix_space())]
+            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (W._gap_group._name, W._gap_group._name, T_fix)))
+            return sage_eval(_gap_return(S, coerce_obj='W'),
+                             locals={'self': self, 'W': W})
 
         def left_coset_representatives(self):
             r"""

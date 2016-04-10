@@ -537,6 +537,12 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     `h` is the Coxeter number. See [STW2016]_
                     for this formula.
 
+                    INPUT:
+
+                    - ``polynomial`` -- optional boolean (default ``False``)
+                      if ``True``, return instead the `q`-analogue as a
+                      polynomial in `q`
+
                     REFERENCES:
 
                     .. [STW2016] C. Stump, H. Thomas, N. Williams.
@@ -551,6 +557,12 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                         sage: W = ColoredPermutations(2,2)
                         sage: [ W.rational_catalan_number(p) for p in [7,9,11] ]
                         [10, 15, 21]
+
+                    TESTS::
+
+                        sage: W = ColoredPermutations(1,4)
+                        sage: W.rational_catalan_number(3, polynomial=True)
+                        q^6 + q^4 + q^3 + q^2 + 1
                     """
                     from sage.rings.all import ZZ
                     from sage.arith.all import gcd
@@ -558,26 +570,25 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     h = self.coxeter_number()
                     if not gcd(h,p) == 1:
-                        raise ValueError("parameter p = %s is not coprime to the Coxeter number %s"%(p,h))
+                        raise ValueError("parameter p = %s is not coprime to the Coxeter number %s" % (p, h))
 
                     if polynomial:
                         f = q_int
                     else:
                         f = lambda n: n
 
-                    num = prod(f(p + (p*(deg-1))%h) for deg in self.degrees())
-                    den = prod(f(deg              ) for deg in self.degrees())
-                    ret = num / den
-                    if ret in ZZ:
-                        ret = ZZ(ret)
-                    return ret
+                    num = prod(f(p + (p * (deg - 1)) % h)
+                               for deg in self.degrees())
+                    den = prod(f(deg) for deg in self.degrees())
+                    return num // den
 
-                def fuss_catalan_number(self, m, positive=False, polynomial=False):
+                def fuss_catalan_number(self, m, positive=False,
+                                        polynomial=False):
                     r"""
                     Return the ``m``-th Fuss-Catalan number
                     associated to ``self``.
 
-                    It is defined by
+                    This is defined by
 
                     .. MATH::
 
@@ -585,6 +596,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     where `d_1, \ldots, d_n` are the degrees and
                     `h` is the Coxeter number.
+
+                    INPUT:
+
+                    - ``positive`` -- optional boolean (default ``False``)
+                      if ``True``, return instead the positive Fuss-Catalan
+                      number.
+                    - ``polynomial`` -- optional boolean (default ``False``)
+                      if ``True``, return instead the `q`-analogue as a
+                      polynomial in `q`
+
                     See [Arm2006]_ for further information.
 
                     .. NOTE::
@@ -625,16 +646,26 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                         sage: W = ColoredPermutations(2,4)
                         sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
                         [70, 495, 1820]
+
+                    TESTS::
+
+                        sage: W = ColoredPermutations(2,4)
+                        sage: W.fuss_catalan_number(2,positive=True)
+                        330
+                        sage: W = ColoredPermutations(2,2)
+                        sage: W.fuss_catalan_number(2,polynomial=True)
+                        q^16 + q^14 + 2*q^12 + 2*q^10 + 3*q^8 + 2*q^6 +
+                        2*q^4 + q^2 + 1
                     """
                     h = self.coxeter_number()
                     if positive:
-                        p = m*h-1
+                        p = m * h - 1
                     else:
-                        p = m*h+1
+                        p = m * h + 1
 
                     return self.rational_catalan_number(p, polynomial=polynomial)
 
-                def catalan_number(self,positive=False,polynomial=False):
+                def catalan_number(self, positive=False, polynomial=False):
                     r"""
                     Return the Catalan number associated to ``self``.
 
@@ -647,6 +678,15 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     where `d_1, \ldots, d_n` are the degrees and where
                     `h` is the Coxeter number.
                     See [Arm2006]_ for further information.
+
+                    INPUT:
+
+                    - ``positive`` -- optional boolean (default ``False``)
+                      if ``True``, return instead the positive Fuss-Catalan
+                      number.
+                    - ``polynomial`` -- optional boolean (default ``False``)
+                      if ``True``, return instead the q-analogue as a
+                      polynomial in `q`
 
                     .. NOTE::
 
@@ -665,7 +705,15 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                         sage: [ReflectionGroup((2,2,n)).catalan_number() for n in [3,4,5]]
                         [14, 50, 182]
+
+                    TESTS::
+
+                        sage: W = ColoredPermutations(3,6)
+                        sage: W.catalan_number(positive=True)
+                        462
+                        sage: W = ColoredPermutations(2,2)
+                        sage: W.catalan_number(polynomial=True)
+                        q^8 + q^6 + 2*q^4 + q^2 + 1
                     """
                     return self.fuss_catalan_number(1, positive=positive,
                                                     polynomial=polynomial)
-

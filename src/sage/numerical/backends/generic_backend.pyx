@@ -1060,14 +1060,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    def _test_copy(self, **options):
-        """
-        Test whether the backend can be copied
-        and at least the problem data of the copy is equal to that of the original.
-        Does not test whether solutions or solver parameters are copied.
-        """
-        tester = self._tester(**options)
-        cp = copy(self)
+    def _do_test_problem_data(self, tester, cp):
         tester.assertEqual(self.ncols(), cp.ncols())
         tester.assertEqual(self.nrows(), cp.nrows())
         tester.assertEqual(self.objective_constant_term(), cp.objective_constant_term())
@@ -1087,6 +1080,26 @@ cdef class GenericBackend:
             tester.assertEqual(self.row_bounds(i) == cp.row_bounds(i))
             tester.assertEqual(self.row(i) == cp.row(i))
             tester.assertEqual(self.row_name(i) == cp.row_name(i))
+    
+    def _test_copy(self, **options):
+        """
+        Test whether the backend can be copied
+        and at least the problem data of the copy is equal to that of the original.
+        Does not test whether solutions or solver parameters are copied.
+        """
+        tester = self._tester(**options)
+        cp = copy(self)
+        self._do_test_problem_data(tester, cp)
+
+    def _test_copy_does_not_share_data(self, **options):
+        """
+        Test whether copy makes an independent copy of the backend.
+        """
+        tester = self._tester(**options)
+        cp = copy(self)
+        cpcp = copy(cp)
+        del cp
+        self._do_test_problem_data(tester, cpcp)
 
     # TODO: Add a test class method that calls _test_copy on some populated MIP.
 

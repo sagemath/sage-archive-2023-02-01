@@ -114,11 +114,11 @@ def ReflectionGroup(*args,**kwds):
             X = arg
 
         # precheck for valid input data
-        if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
+        if not ( is_Matrix(X) or isinstance(X, CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
             raise ValueError("the input data (%s) is not valid for reflection groups"%X)
 
         # check for real vs complex
-        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
+        elif X in ZZ or ( isinstance(X, tuple) and len(X) == 3 ):
             is_complex = True
 
         # transforming two reducible types
@@ -133,7 +133,7 @@ def ReflectionGroup(*args,**kwds):
         index_set = kwds.get(index_set_kwd, None)
         if index_set is not None:
             from sage.sets.family import Family
-            if type(index_set) in [list,tuple]:
+            if type(index_set) in [list, tuple]:
                 kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
@@ -212,7 +212,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         - ``algorithm`` (default:'breadth') - can be 'breadth' or
           'depth', 'breadth' returns the elements in a linear extension
           of the weak order, 'depth' is ~1.5 x faster.
-        - ``tracking_words`` (default: True) - whether or not to keep
+        - ``tracking_words`` (default: ``True``) - whether or not to keep
           track of the reduced words and store them in ``_reduced_word``.
 
         The fastest iteration is the depth first algorithm without
@@ -284,10 +284,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         index_family = self._index_set
         keys = index_family.keys()
-        L,R = self._gap_group.BipartiteDecomposition().sage()
+        L, R = self._gap_group.BipartiteDecomposition().sage()
         L = [i for i in keys if index_family[i] + 1 in L]
         R = [i for i in keys if index_family[i] + 1 in R]
-        return [L,R]
+        return [L, R]
 
     def cartan_type(self):
         r"""
@@ -313,6 +313,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         r"""
         Return the form that is invariant under the action of ``self``.
 
+        This is unique only up to a global scalar factor.
+
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',3])
@@ -322,10 +324,13 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [   0 -1/2    1]
 
             sage: W = ReflectionGroup(['B',3])
-            sage: W.invariant_form()
+            sage: F = W.invariant_form(); F
             [ 1 -1  0]
             [-1  2 -1]
             [ 0 -1  2]
+            sage: w = W.an_element().to_matrix()
+            sage: w * F * w.transpose().conjugate() == F
+            True
         """
         C = self.cartan_matrix()
         n = self.rank()

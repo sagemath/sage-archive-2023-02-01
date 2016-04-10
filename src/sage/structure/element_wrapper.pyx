@@ -396,11 +396,9 @@ cdef class ElementWrapper(Element):
             sage: cmp(l11, 1) in [-1,1]          # class differ
             True
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.parent() != other.parent():
-            return cmp(self.parent(), other.parent())
-        return cmp(self.value, other.value)
+        return cmp(self.__class__, other.__class__) or \
+               cmp(self.parent(), other.parent()) or \
+               cmp(self.value, other.value)
 
     def __copy__(self):
         """

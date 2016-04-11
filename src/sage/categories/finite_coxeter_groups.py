@@ -240,6 +240,29 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 if z:
                     degs.extend([z * h + 1] * m)
             return sorted(degs)
+
+        def codegrees(self):
+            """
+            Return the codegrees of the Coxeter group.
+
+            These are just the degrees minus 2.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).codegrees()
+                [0, 1, 2, 3]
+                sage: CoxeterGroup(['B', 4]).codegrees()
+                [0, 2, 4, 6]
+                sage: CoxeterGroup(['D', 4]).codegrees()
+                [0, 2, 2, 4]
+                sage: CoxeterGroup(['F', 4]).codegrees()
+                [0, 4, 6, 10]
+                sage: CoxeterGroup(['E', 8]).codegrees()
+                [0, 6, 10, 12, 16, 18, 22, 28]
+                sage: CoxeterGroup(['H', 3]).codegrees()
+                [0, 4, 8]
+            """
+            return [d - 2 for d in self.degrees()]
         
         @cached_method
         def weak_poset(self, side = "right", facade = False):

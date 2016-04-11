@@ -218,24 +218,24 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: CoxeterGroup(['A', 4]).degrees()
-                [2, 3, 4, 5]
+                (2, 3, 4, 5)
                 sage: CoxeterGroup(['B', 4]).degrees()
-                [2, 4, 6, 8]
+                (2, 4, 6, 8)
                 sage: CoxeterGroup(['D', 4]).degrees()
-                [2, 4, 4, 6]
+                (2, 4, 4, 6)
                 sage: CoxeterGroup(['F', 4]).degrees()
-                [2, 6, 8, 12]
+                (2, 6, 8, 12)
                 sage: CoxeterGroup(['E', 8]).degrees()
-                [2, 8, 12, 14, 18, 20, 24, 30]
+                (2, 8, 12, 14, 18, 20, 24, 30)
                 sage: CoxeterGroup(['H', 3]).degrees()
-                [2, 6, 10]
+                (2, 6, 10)
 
             TESTS::
 
                 sage: CoxeterGroup(['A', 4]).degrees()
-                [2, 3, 4, 5]
+                (2, 3, 4, 5)
                 sage: SymmetricGroup(3).degrees()
-                [2, 3]
+                (2, 3)
             """
             from sage.rings.qqbar import QQbar
             from sage.rings.integer_ring import ZZ
@@ -248,7 +248,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             for z, m in args:
                 if z:
                     degs.extend([ZZ(z * h + 1)] * m)
-            return sorted(degs)
+            return tuple(sorted(degs))
         
         def codegrees(self):
             """
@@ -259,22 +259,22 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: CoxeterGroup(['A', 4]).codegrees()
-                [0, 1, 2, 3]
+                (0, 1, 2, 3)
                 sage: CoxeterGroup(['B', 4]).codegrees()
-                [0, 2, 4, 6]
+                (0, 2, 4, 6)
                 sage: CoxeterGroup(['D', 4]).codegrees()
-                [0, 2, 2, 4]
+                (0, 2, 2, 4)
                 sage: CoxeterGroup(['F', 4]).codegrees()
-                [0, 4, 6, 10]
+                (0, 4, 6, 10)
                 sage: CoxeterGroup(['E', 8]).codegrees()
-                [0, 6, 10, 12, 16, 18, 22, 28]
+                (0, 6, 10, 12, 16, 18, 22, 28)
                 sage: CoxeterGroup(['H', 3]).codegrees()
-                [0, 4, 8]
+                (0, 4, 8)
             """
-            return [d - 2 for d in self.degrees()]
-        
+            return tuple([d - 2 for d in self.degrees()])
+
         @cached_method
-        def weak_poset(self, side = "right", facade = False):
+        def weak_poset(self, side="right", facade=False):
             """
             INPUT:
 

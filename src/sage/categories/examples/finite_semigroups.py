@@ -42,14 +42,14 @@ class LeftRegularBand(UniqueRepresentation, Parent):
     It follows that the elements of `S` are strings without
     repetitions over the alphabet `a`, `b`, `c`, `d`::
 
-        sage: S.list()
-        ['a', 'b', 'c', 'd', 'bd', 'ac', 'ab', 'ad', 'bc', 'cb', 'ca', 'db',
-         'dc', 'cd', 'da', 'ba', 'cba', 'cda', 'cbd', 'dba', 'dbc', 'abc',
-         'abd', 'cdb', 'bdc', 'adb', 'adc', 'dab', 'dac', 'dcb', 'dca', 'bda',
-         'acb', 'acd', 'bcd', 'bca', 'bad', 'bac', 'cab', 'cad', 'abcd',
-         'adbc', 'dbac', 'dcab', 'cabd', 'cadb', 'cbda', 'cdba', 'dacb',
-         'badc', 'bdca', 'dbca', 'adcb', 'acbd', 'dcba', 'acdb', 'bdac',
-         'cbad', 'bcda', 'dabc', 'abdc', 'cdab', 'bacd', 'bcad']
+        sage: sorted(S.list())
+        ['a', 'ab', 'abc', 'abcd', 'abd', 'abdc', 'ac', 'acb', 'acbd', 'acd',
+         'acdb', 'ad', 'adb', 'adbc', 'adc', 'adcb', 'b', 'ba', 'bac',
+         'bacd', 'bad', 'badc', 'bc', 'bca', 'bcad', 'bcd', 'bcda', 'bd',
+         'bda', 'bdac', 'bdc', 'bdca', 'c', 'ca', 'cab', 'cabd', 'cad',
+         'cadb', 'cb', 'cba', 'cbad', 'cbd', 'cbda', 'cd', 'cda', 'cdab',
+         'cdb', 'cdba', 'd', 'da', 'dab', 'dabc', 'dac', 'dacb', 'db',
+         'dba', 'dbac', 'dbc', 'dbca', 'dc', 'dca', 'dcab', 'dcb', 'dcba']
 
     It also follows that there are finitely many of them::
 

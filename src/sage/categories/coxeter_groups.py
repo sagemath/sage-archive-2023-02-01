@@ -242,6 +242,36 @@ class CoxeterGroups(Category_singleton):
             return SearchForest((self.one(),), succ, algorithm='breadth',
                                 category = default_category.or_subcategory(category))
 
+        def coxeter_element(self):
+            """
+            Return a Coxeter element.
+
+            The result is the product of the simple reflections, in some order.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+                sage: CoxeterGroup(['B', 4]).coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+                sage: CoxeterGroup(['D', 4]).coxeter_element().reduced_word()
+                [1, 2, 4, 3]
+                sage: CoxeterGroup(['F', 4]).coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+                sage: CoxeterGroup(['E', 8]).coxeter_element().reduced_word()
+                [1, 3, 2, 4, 5, 6, 7, 8]
+                sage: CoxeterGroup(['H', 3]).coxeter_element().reduced_word()
+                [1, 2, 3]
+
+            TESTS::
+
+                sage: WeylGroup(['A', 4]).coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+                sage: SymmetricGroup(3).coxeter_element()
+                (1,3,2)
+            """
+            return self.prod(self.simple_reflections())
+            
         def grassmannian_elements(self, side="right"):
             """
             Return the left or right grassmanian elements of ``self``

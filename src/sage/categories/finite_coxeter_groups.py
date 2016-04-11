@@ -228,9 +228,16 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 [2, 8, 12, 14, 18, 20, 24, 30]
                 sage: CoxeterGroup(['H', 3]).degrees()
                 [2, 6, 10]
+
+            TESTS::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                [2, 3, 4, 5]
+                sage: SymmetricGroup(3).degrees()
+                [2, 3]
             """
             from sage.rings.qqbar import QQbar
-            c = self.prod(self.gens())
+            c = self.coxeter_element()
             roots = c.matrix().change_ring(QQbar).charpoly().roots()
             args = [(z.rational_argument(), m) for z, m in roots]
             args = [(z if z >=0 else 1 + z, m) for z, m in args]
@@ -240,7 +247,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 if z:
                     degs.extend([z * h + 1] * m)
             return sorted(degs)
-
+        
         def codegrees(self):
             """
             Return the codegrees of the Coxeter group.

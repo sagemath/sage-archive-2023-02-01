@@ -536,8 +536,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: q.number_of_constraints()
             1
         """
+        def copying_solver(**kwdargs):
+            return (<GenericBackend> self._backend).copy()
+
         cdef MixedIntegerLinearProgram p = \
-            MixedIntegerLinearProgram(solver="GLPK")
+            MixedIntegerLinearProgram(solver=copying_solver)
         try:
             p._variables = copy(self._variables)
         except AttributeError:
@@ -554,7 +557,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         except AttributeError:
             pass
 
-        p._backend = (<GenericBackend> self._backend).copy()
         return p
 
     def __getitem__(self, v):

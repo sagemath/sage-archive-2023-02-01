@@ -1921,7 +1921,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         return filter(f, self)
 
     # TODO: lift to ComplexReflectionGroups.Finite
-    #       have a cached and an uncached version
+    #       this method can be defined for well-generated, finite,
+    #       irreducible complex reflection group. The current
+    #       implementation uses this particular connection to chevie.
+    # TODO: have a cached and an uncached version
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None, in_unitary_group=False):
         r"""
@@ -1992,6 +1995,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             return P
 
     # TODO: lift to ComplexReflectionGroups.Finite
+    #       this method can be defined for well-generated, finite,
+    #       irreducible complex reflection group. The current
+    #       implementation uses this particular connection to chevie.
     def generalized_noncrossing_partitions(self, m, c=None, positive=False):
         r"""
         Return the set of all chains of length ``m`` in the noncrossing
@@ -2071,7 +2077,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         return NCm
 
     # TODO: lift to ComplexReflectionGroups.Finite
-    #       have a cached and an uncached version
+    #       this method can be defined for well-generated, finite,
+    #       irreducible complex reflection group. The current
+    #       implementation uses this particular connection to chevie.
+    # TODO: have a cached and an uncached version
     def absolute_poset(self, in_unitary_group=False):
         r"""
         Return the poset induced by the absolute order of ``self`` as a
@@ -2103,8 +2112,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     class Element(ComplexReflectionGroup.Element):
 
-        # TODO:
-        # - lift to ComplexReflectionGroups.Finite
+        # TODO: lift to ComplexReflectionGroups.Finite
+        #       this method can be defined for well-generated, finite,
+        #       irreducible complex reflection group. The current
+        #       implementation uses this particular connection to chevie.
         #@cached_in_parent_method
         def is_coxeter_element(self, which_primitive=1, is_class_representative=False):
             r"""

@@ -302,7 +302,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if len(self._index_set) != len(l_set):
                 raise ValueError("the given index set (= %s) does not have the right size"%self._index_set.values())
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._index_set)}
-        Nstar_set = range(1,self.number_of_reflecting_hyperplanes()+1)
+        Nstar_set = range(1,self.number_of_reflection_hyperplanes()+1)
         if self._hyperplane_index_set is None:
             self._hyperplane_index_set = tuple(Nstar_set)
         else:
@@ -523,7 +523,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1,2,3)
 
             sage: W = ReflectionGroup((1,1,3),(3,1,2))
-            sage: for i in range(W.number_of_reflecting_hyperplanes()):
+            sage: for i in range(W.number_of_reflection_hyperplanes()):
             ....:     W.distinguished_reflection(i+1)
             (1,6)(2,5)(7,8)
             (1,5)(2,7)(6,8)
@@ -537,7 +537,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
-    def reflecting_hyperplanes(self, as_linear_functionals=False):
+    def reflection_hyperplanes(self, as_linear_functionals=False):
         r"""
         Return the list of all reflecting hyperplanes of ``self``,
         either as a codimension 1 space, or as its linear functional.
@@ -551,7 +551,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
-            sage: for H in W.reflecting_hyperplanes(): H
+            sage: for H in W.reflection_hyperplanes(): H
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 2]
@@ -562,14 +562,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Basis matrix:
             [ 1 -1]
 
-            sage: for H in W.reflecting_hyperplanes(as_linear_functionals=True): H
+            sage: for H in W.reflection_hyperplanes(as_linear_functionals=True): H
             (1, -1/2)
             (1, -2)
             (1, 1)
 
 
             sage: W = ReflectionGroup((2,1,2))
-            sage: for H in W.reflecting_hyperplanes(): H
+            sage: for H in W.reflection_hyperplanes(): H
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 1]
@@ -583,7 +583,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Basis matrix:
             [0 1]
 
-            sage: for H in W.reflecting_hyperplanes(as_linear_functionals=True): H
+            sage: for H in W.reflection_hyperplanes(as_linear_functionals=True): H
             (1, -1)
             (1, -2)
             (0, 1)
@@ -599,7 +599,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return Family(self._hyperplane_index_set,
                       lambda i: Hs[self._hyperplane_index_set_inverse[i]])
 
-    def reflecting_hyperplane(self, i, as_linear_functional=False):
+    def reflection_hyperplane(self, i, as_linear_functional=False):
         r"""
         Return the ``i``-th reflecting hyperplane of ``self``.
 
@@ -616,17 +616,17 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         EXAMPLES::
 
             sage: W = ReflectionGroup((2,1,2))
-            sage: W.reflecting_hyperplane(3)
+            sage: W.reflection_hyperplane(3)
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
 
         One can ask for the result as a linear form::
 
-            sage: W.reflecting_hyperplane(3, True)
+            sage: W.reflection_hyperplane(3, True)
             (0, 1)
         """
-        return self.reflecting_hyperplanes(as_linear_functionals=as_linear_functional)[i]
+        return self.reflection_hyperplanes(as_linear_functionals=as_linear_functional)[i]
 
     @cached_method
     def reflection_index_set(self):
@@ -680,7 +680,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                            10: (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)}
         """
         T = self.distinguished_reflections().values()
-        for i in range(self.number_of_reflecting_hyperplanes()):
+        for i in range(self.number_of_reflection_hyperplanes()):
             for j in range(2, T[i].order()):
                 T.append(T[i]**j)
         return Family(self._reflection_index_set,
@@ -2238,7 +2238,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 if h == ev.denom():
                     M = self.to_matrix() - E(ev.denom(),ev.numer()) * I
                     V = M.right_kernel()
-                    if all(not V.is_subspace(H) for H in self.parent().reflecting_hyperplanes()):
+                    if all(not V.is_subspace(H) for H in self.parent().reflection_hyperplanes()):
                         return True
             return False
 

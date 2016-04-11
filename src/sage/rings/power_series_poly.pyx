@@ -9,8 +9,6 @@ from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
 from sage.libs.all import PariError
-from power_series_ring_element import is_PowerSeries
-import rational_field
 from sage.misc.superseded import deprecated_function_alias
 
 cdef class PowerSeries_poly(PowerSeries):

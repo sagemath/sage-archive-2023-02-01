@@ -108,7 +108,8 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
+from warnings import warn
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -1059,11 +1060,9 @@ cdef class PowerSeries(AlgebraElement):
         """
         try:
             q, r = self.quo_rem(denom)
-            from warnings import warn
             warn("the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient")
             return q
         except (AttributeError, NotImplementedError):
-            from sage.misc.superseded import deprecation
             deprecation(20062, "the operator // is deprecated for power series over non-fields, use / instead")
             return self._div_(denom)
 

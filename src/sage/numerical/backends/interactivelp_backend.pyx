@@ -381,6 +381,32 @@ cdef class InteractiveLPBackend:
                                            constraint_types, variable_types,
                                            problem_type, ring, objective_constant_term=d)
 
+    cpdef objective_constant_term(self, d=None):
+        """
+        Set or get the constant term in the objective function
+
+        INPUT:
+
+        - ``d`` (double) -- its coefficient.  If `None` (default), return the current value.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p.objective_constant_term()
+            0
+            sage: p.objective_constant_term(42)
+            sage: p.objective_constant_term()
+            42
+        """
+        if d is None:
+            return self.lp.objective_constant_term()
+        else:
+            A, b, c, x, constraint_types, variable_types, problem_type, ring, _ = self._AbcxCVPRd()
+            self.lp = InteractiveLPProblem(A, b, c, x,
+                                           constraint_types, variable_types,
+                                           problem_type, ring, objective_constant_term=d)
+
     cpdef set_objective(self, list coeff, d = 0):
         """
         Set the objective function.

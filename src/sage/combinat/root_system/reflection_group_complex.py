@@ -1046,7 +1046,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         INPUT:
 
         - ``is_class_representative`` -- boolean (default ``True``) whether to
-          compute instead on the conjugacy class representative
+          compute instead on the conjugacy class representative.
 
         .. SEEALSO:: :meth:`reflection_eigenvalues_family`
 
@@ -1417,7 +1417,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         _reduced_word = None
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def conjugacy_class_representative(self):
             r"""
             Return a representative of the conjugacy class of ``self``.
@@ -1507,7 +1507,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             gens = [W.simple_reflection(j) for j in W._index_set]
             return _gap_factorization(self, gens)
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def reduced_word_in_reflections(self):
             r"""
             Return a word in the reflections to obtain ``self``.
@@ -1518,40 +1518,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: [w.reduced_word_in_reflections() for w in W]
                 [[], ['A'], ['B'], ['C'], ['D']]
 
-                sage: W = ReflectionGroup(['A',2], index_set=['a','b'], reflection_index_set=['A','B','C'])
-                sage: [(w.reduced_word(), w.reduced_word_in_reflections()) for w in W]
-                [([], []),
-                 (['b'], ['B']),
-                 (['a'], ['A']),
-                 (['a', 'b'], ['A', 'B']),
-                 (['b', 'a'], ['A', 'C']),
-                 (['a', 'b', 'a'], ['C'])]
-
             .. SEEALSO:: :meth:`reduced_word`
             """
             if self.is_one():
                 return []
 
-            # TODO: Move to the real implementation
             W = self.parent()
-            if W.is_real():
-                r = self.reflection_length()
-                R = W.reflections()
-                I = W.reflection_index_set()
-                word = []
-                while r > 0:
-                    for i in I:
-                        w = R[i]._mul_(self)
-                        if w.reflection_length() < r:
-                            word += [i]
-                            r -= 1
-                            self = w
-                            break
-                return word
-            else:
-                gens = [W.reflection(j) for j in W._reflection_index_set]
-                word = _gap_factorization(self, gens)
-                return [self.parent()._reflection_index_set[i] for i in word]
+            gens = [W.reflection(j) for j in W._reflection_index_set]
+            word = _gap_factorization(self, gens)
+            return [self.parent()._reflection_index_set[i] for i in word]
 
         def length(self):
             r"""
@@ -1592,7 +1567,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             return len(self.reduced_word())
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def reflection_length(self, in_unitary_group=False):
             r"""
             Return the reflection length of ``self``.
@@ -1637,7 +1612,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 assert w in self.parent().conjugacy_classes_representatives()
                 return w.reflection_length(in_unitary_group=in_unitary_group)
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def to_matrix(self):
             r"""
             Return ``self`` as a matrix acting on the underlying vector
@@ -1679,7 +1654,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
                 return prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def fix_space(self):
             r"""
             Return the fix space of ``self``.
@@ -1729,13 +1704,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             I = identity_matrix(QQ, self.parent().rank())
             return (self.to_matrix() - I).right_kernel()
 
-        # TODO:
-        # - document is_class_representative
-        # - Remove the cache and instead put a cache on class_representative?
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def reflection_eigenvalues(self, is_class_representative=False):
             r"""
             Return the reflection eigenvalues of ``self``.
+
+            INPUT:
+
+            - ``is_class_representative`` -- (default:False) whether to
+              first replace ``self`` by the representative of its
+              conjugacy class.
 
             EXAMPLES::
 
@@ -1768,7 +1746,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             return self.parent().reflection_eigenvalues(self, is_class_representative=is_class_representative)
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def galois_conjugates(self):
             r"""
             Return all Galois conjugates of ``self``.
@@ -2126,12 +2104,21 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     class Element(ComplexReflectionGroup.Element):
 
         # TODO:
-        # - document and test the parameters
         # - lift to ComplexReflectionGroups.Finite
         #@cached_in_parent_method
         def is_coxeter_element(self, which_primitive=1, is_class_representative=False):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
+
+            INPUT:
+
+            - ``which_primitive`` -- (default:``1``) for which power of
+              the first primitive ``h``-th root of unity to look as a
+              reflection eigenvalue for a regular element.
+
+            - ``is_class_representative`` -- boolean (default ``True``) whether to
+              compute instead on the conjugacy class representative
+
 
             .. SEEALSO:: :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
 
@@ -2189,6 +2176,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
             This is, if ``self`` has an eigenvector with eigenvalue
             ``h`` and which does not lie in any reflecting hyperplane.
+
+            - ``is_class_representative`` -- boolean (default ``True``) whether to
+              compute instead on the conjugacy class representative.
 
             EXAMPLES::
 

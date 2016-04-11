@@ -1379,7 +1379,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
     elif solver == "Ppl":
         from sage.numerical.backends.ppl_backend import PPLBackend
-        return PPLBackend()
+        return PPLBackend(base_ring=base_ring)
 
     elif solver == "Interactivelp":
         from sage.numerical.backends.interactivelp_backend import InteractiveLPBackend

@@ -1781,14 +1781,16 @@ class InteractiveLPProblem(SageObject):
         objective_name = SR(kwds.get("objective_name", default_variable_name(
             "primal objective" if self.is_primal() else "dual objective")))
         is_negative = self._is_negative
+        constant_term = self._constant_term
         if self._problem_type == "min":
             is_negative = not is_negative
             c = - c
+            constant_term = - constant_term
             objective_name = - objective_name
         kwds["objective_name"] = objective_name
         kwds["problem_type"] = "-max" if is_negative else "max"
         kwds["is_primal"] = self.is_primal()
-        kwds["objective_constant_term"] = self._constant_term
+        kwds["objective_constant_term"] = constant_term
         P = InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
         f = P.c().parent().hom(f, self.c().parent())
         return (P, f) if transformation else P

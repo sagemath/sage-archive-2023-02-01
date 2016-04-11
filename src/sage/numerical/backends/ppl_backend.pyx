@@ -41,14 +41,28 @@ cdef class PPLBackend(GenericBackend):
     # Common denominator for objective function in self.mip (not for the constant term)
     cdef Integer obj_denominator
 
-    def __cinit__(self, maximization = True):
+    def __cinit__(self, maximization = True, base_ring = None):
         """
         Constructor
 
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver = "PPL")
+
+        TESTS:
+
+        Raise an error if a ``base_ring`` is requested that is not supported::
+
+            sage: p = MixedIntegerLinearProgram(solver = "PPL", base_ring=AA)
+            Traceback (most recent call last):
+            ...
+            TypeError: The PPL backend only supports rational data.
         """
+
+        if base_ring is not None:
+            from sage.rings.all import QQ
+            if base_ring is not QQ:
+                raise TypeError('The PPL backend only supports rational data.')
 
         self.Matrix = []
         self.row_lower_bound = []

@@ -1032,19 +1032,24 @@ class Polyhedron_base(Element):
         """
         return len(self.lines())
 
-    def to_linear_program(self, solver=None, return_variable=False):
+    def to_linear_program(self, solver=None, return_variable=False, base_ring=None):
         r"""
-        Return the polyhedron as a :class:`MixedIntegerLinearProgram`.
+        Return a linear optimization problem over the polyhedron in the form of
+        a :class:`MixedIntegerLinearProgram`.
 
         INPUT:
 
-        - ``solver`` -- select a solver (data structure). See the documentation
+        - ``solver`` -- select a solver (MIP backend). See the documentation
           of for :class:`MixedIntegerLinearProgram`. Set to ``None`` by default.
 
         - ``return_variable`` -- (default: ``False``) If ``True``, return a tuple
           ``(p, x)``, where ``p`` is the :class:`MixedIntegerLinearProgram` object
           and ``x`` is the vector-valued MIP variable in this problem, indexed
           from 0.  If ``False``, only return ``p``.
+
+        - ``base_ring`` -- select a field over which the linear program should be
+          set up.  Use ``RDF`` to request a fast inexact (floating point) solver
+          even if ``self`` is exact.
 
         Note that the :class:`MixedIntegerLinearProgram` object will have the
         null function as an objective to be maximized.
@@ -1055,7 +1060,9 @@ class Polyhedron_base(Element):
             polyhedron associated with a :class:`MixedIntegerLinearProgram`
             object.
 
-        EXAMPLE::
+        EXAMPLES:
+
+        Exact rational linear program::
 
             sage: p = polytopes.cube()
             sage: p.to_linear_program()
@@ -1063,9 +1070,46 @@ class Polyhedron_base(Element):
             sage: lp, x = p.to_linear_program(return_variable=True)
             sage: lp.set_objective(2*x[0] + 1*x[1] + 39*x[2])
             sage: lp.solve()
-            42.0
+            42
             sage: lp.get_values(x[0], x[1], x[2])
-            [1.0, 1.0, 1.0]
+            [1, 1, 1]
+
+        Floating-point linear program::
+
+            sage: lp, x = p.to_linear_program(return_variable=True, base_ring=RDF)
+            sage: lp.set_objective(2*x[0] + 1*x[1] + 39*x[2])
+            sage: lp.solve()
+            42.0
+
+        Irrational algebraic linear program over an embedded number field::
+
+            sage: p=polytopes.icosahedron()
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0] + x[1] + x[2])
+            sage: lp.solve()
+            1/4*sqrt5 + 3/4
+
+        Same example with floating point::
+
+            sage: lp, x = p.to_linear_program(return_variable=True, base_ring=RDF)
+            sage: lp.set_objective(x[0] + x[1] + x[2])
+            sage: lp.solve() # tol 1e-5
+            1.3090169943749475
+
+        Same example with a specific floating point solver::
+
+            sage: lp, x = p.to_linear_program(return_variable=True, solver='GLPK')
+            sage: lp.set_objective(x[0] + x[1] + x[2])
+            sage: lp.solve() # tol 1e-8
+            1.3090169943749475
+
+        Irrational algebraic linear program over `AA`::
+
+            sage: p=polytopes.icosahedron(base_ring=AA)
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0] + x[1] + x[2])
+            sage: lp.solve()
+            1.309016994374948?
 
         TESTS::
 
@@ -1077,17 +1121,13 @@ class Polyhedron_base(Element):
             sage: p.to_linear_program(solver='PPL')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot use PPL on exact irrational data.
+            TypeError: The PPL backend only supports rational data.
         """
-        from sage.rings.rational_field import QQ
-        R = self.base_ring()
-        if (solver is not None and
-            solver.lower() == 'ppl' and
-            R.is_exact() and (not R == QQ)):
-            raise NotImplementedError('Cannot use PPL on exact irrational data.')
-
+        if base_ring is None:
+            base_ring = self.base_ring()
+        base_ring = base_ring.fraction_field()
         from sage.numerical.mip import MixedIntegerLinearProgram
-        p = MixedIntegerLinearProgram(solver=solver)
+        p = MixedIntegerLinearProgram(solver=solver, base_ring=base_ring)
         x = p.new_variable(real=True, nonnegative=False)
 
         for ineqn in self.inequalities_list():

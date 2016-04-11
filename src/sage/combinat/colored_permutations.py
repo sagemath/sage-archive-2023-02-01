@@ -342,8 +342,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         """
         if m <= 0:
             raise ValueError("m must be a positive integer")
-        self._m = m
-        self._n = n
+        self._m = ZZ(m)
+        self._n = ZZ(n)
         self._C = IntegerModRing(self._m)
         self._P = Permutations(self._n)
 
@@ -647,10 +647,10 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
             sage: C = ColoredPermutations(4, 3)
             sage: C.degrees()
-            [4, 8, 12]
+            (4, 8, 12)
             sage: S = ColoredPermutations(1, 3)
             sage: S.degrees()
-            [2, 3]
+            (2, 3)
 
         We now check that the product of the degrees is equal to the
         cardinality of ``self``::
@@ -660,9 +660,9 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: prod(S.degrees()) == S.cardinality()
             True
         """
-        if self._m == 1:  # Special case for the usual symmetric group
-            return range(2, self._n + 1)
-        return [self._m * i for i in range(1, self._n + 1)]
+        # For the usual symmetric group (self._m=1) we need to start at 2
+        start = 2 if self._m == 1 else 1
+        return tuple(self._m * i for i in range(start, self._n + 1))
 
     def codegrees(self):
         r"""
@@ -688,10 +688,10 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
             sage: C = ColoredPermutations(4, 3)
             sage: C.codegrees()
-            [8, 4, 0]
+            (8, 4, 0)
             sage: S = ColoredPermutations(1, 3)
             sage: S.codegrees()
-            [1, 0]
+            (1, 0)
 
         TESTS:
 
@@ -705,9 +705,9 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: f == g
             True
         """
-        if self._m == 1:  # Special case for the usual symmetric group
-            return list(reversed(range(self._n - 1)))
-        return [self._m * i for i in reversed(range(self._n))]
+        # Special case for the usual symmetric group
+        last = self._n-1 if self._m == 1 else self._n
+        return tuple(self._m * i for i in reversed(range(last)))
 
     def number_of_reflection_hyperplanes(self):
         """

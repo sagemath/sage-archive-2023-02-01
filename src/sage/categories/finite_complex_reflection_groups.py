@@ -214,11 +214,15 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             """
             return sum(self.degrees()) - self.rank()
 
+        # TODO: is this valid, or only in the well generated case?
         def rank(self):
             r"""
             Return the rank of ``self``.
 
-            This is the dimension of the underlying vector space.
+            The rank of ``self`` is the dimension of the smallest
+            faithfull reflection representation of ``self``.
+
+            .. SEEALSO:: :meth:`ComplexReflectionGroups.rank`
 
             EXAMPLES::
 
@@ -236,22 +240,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 3
             """
             return len(self.degrees())
-
-        def number_of_irreducible_components(self):
-            r"""
-            Return the number of irreducible components of ``self``.
-
-            EXAMPLES::
-
-                sage: W = ColoredPermutations(1,3)
-                sage: W.number_of_irreducible_components()
-                1
-
-                sage: W = ReflectionGroup((1,1,3),(2,1,3))
-                sage: W.number_of_irreducible_components()
-                2
-            """
-            return len(self.irreducible_components())
 
         def cardinality(self):
             r"""
@@ -315,8 +303,13 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return ``True`` if ``self`` is real.
 
-            For irreducible reflection groups, this holds if and
-            only if `2` is a degree of ``self``.
+            # TODO: check this:
+
+            An irreducible complex reflection group is real if and
+            only if `2` is a degree of ``self`` with multiplicity one.
+            Hence, in general we just need to compare the number of
+            occurences of `2` as degree of ``self`` and the number of
+            irreducible components.
 
             EXAMPLES::
 
@@ -391,8 +384,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 [3, 1, 1, 0, 0, 1]
 
             Note that this could be a different (faithful)
-            representation that given by the corresponding
-            root system::
+            representation than that given by the corresponding root
+            system::
 
                 sage: W = ReflectionGroup((1,1,3)); W
                 Irreducible real reflection group of rank 2 and type A2

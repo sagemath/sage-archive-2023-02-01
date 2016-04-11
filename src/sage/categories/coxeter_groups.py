@@ -13,12 +13,12 @@ Coxeter Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
@@ -66,7 +66,11 @@ class CoxeterGroups(Category_singleton):
 
     .. TODO:: add a demo of usual computations on Coxeter groups.
 
-    .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+    .. SEEALSO::
+
+        - :mod:`sage.combinat.root_system`
+        - :class:`WeylGroups`
+        - :mod:`GeneralizedCoxeterGroups`
 
     .. WARNING::
 
@@ -80,6 +84,9 @@ class CoxeterGroups(Category_singleton):
 
             sage: CoxeterGroups().is_full_subcategory(Groups())
             False
+            sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+            sage: CoxeterGroups().is_full_subcategory(GeneralizedCoxeterGroups())
+            True
 
     TESTS::
 
@@ -94,8 +101,23 @@ class CoxeterGroups(Category_singleton):
             sage: CoxeterGroups().super_categories()
             [Category of generalized coxeter groups]
         """
-        from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
         return [GeneralizedCoxeterGroups()]
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, all the structure Coxeter groups have in addition to
+        groups (simple reflections, ...) is already defined in the
+        super category.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: CoxeterGroups().additional_structure()
+        """
+        return None
 
     Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
     Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')

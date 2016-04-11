@@ -98,6 +98,23 @@ class ComplexReflectionGroups(Category_singleton):
         """
         return [ComplexReflectionOrGeneralizedCoxeterGroups()]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, all the structure complex reflection groups have in
+        addition to groups (simple reflections, ...) is already
+        defined in the super category.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+            sage: ComplexReflectionGroups().additional_structure()
+        """
+        return None
+
     def example(self):
         r"""
         Return an example of a complex reflection group.
@@ -112,49 +129,6 @@ class ComplexReflectionGroups(Category_singleton):
         return ColoredPermutations(5, 3)
 
     class ParentMethods:
-
-        @abstract_method(optional=True)
-        def hyperplane_index_set(self):
-            r"""
-            Return the index set of the reflection hyperplanes of
-            ``self``.
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,4))
-                sage: W.hyperplane_index_set()
-                (1, 2, 3, 4, 5, 6)
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=[1,3,'asdf',7,9,11])
-                sage: W.hyperplane_index_set()
-                (1, 3, 'asdf', 7, 9, 11)
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))
-                sage: W.hyperplane_index_set()
-                ('a', 'b', 'c', 'd', 'e', 'f')
-            """
-
-        # TODO TODO This only makes sense in the finite case; even then, one
-        # probably wants not to 
-        def some_elements_disabled(self):
-            r"""
-            Return a list of typical elements of ``self``.
-
-            Implements :meth:`Sets.ParentMethods.some_elements` by
-            returning some typical element of ``self``.
-
-            EXAMPLES::
-
-                sage: W = ColoredPermutations(1,4)
-                sage: W.some_elements()
-                [[[0, 0, 0, 0], [2, 1, 3, 4]],
-                 [[0, 0, 0, 0], [1, 3, 2, 4]],
-                 [[0, 0, 0, 0], [1, 2, 4, 3]],
-                 [[0, 0, 0, 0], [1, 2, 3, 4]],
-                 [[0, 0, 0, 0], [4, 1, 2, 3]]]
-                sage: W.order()
-                24
-            """
-            prod_ref = self.prod(self.reflection(i) for i in self.index_set())
-            return list(self.simple_reflections()) + [self.one(), self.an_element(), prod_ref]
 
         @cached_method
         def rank(self):

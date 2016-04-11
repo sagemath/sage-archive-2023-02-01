@@ -51,6 +51,24 @@ class GeneralizedCoxeterGroups(Category_singleton):
         """
         return [ComplexReflectionOrGeneralizedCoxeterGroups()]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, all the structure generalized Coxeter groups have in
+        addition to groups (simple reflections, ...) is already
+        defined in the super category.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+            sage: GeneralizedCoxeterGroups().additional_structure()
+        """
+        return None
+
+
     class Finite(CategoryWithAxiom):
         """
         The category of finite generalized Coxeter groups.
@@ -64,10 +82,11 @@ class GeneralizedCoxeterGroups(Category_singleton):
 
                 sage: from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+
                 sage: Cat = GeneralizedCoxeterGroups().Finite()
                 sage: Cat.extra_super_categories()
                 [Category of well generated finite complex reflection groups]
-                sage: Cat.is_subcategory(ComplexReflectionGroups())
+                sage: Cat.is_subcategory(ComplexReflectionGroups().Finite().WellGenerated())
                 True
             """
             from sage.categories.complex_reflection_groups import ComplexReflectionGroups

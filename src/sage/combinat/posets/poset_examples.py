@@ -240,9 +240,9 @@ class Posets(object):
         INPUT:
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor.
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -275,12 +275,12 @@ class Posets(object):
 
         INPUT:
 
-        - ``n`` - number of vertices, an integer at least 3.
+        - ``n`` -- number of vertices, an integer at least 3
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor.
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -308,11 +308,11 @@ class Posets(object):
 
         INPUT:
 
-        - ``n``, an integer
+        - ``n`` -- an integer
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor.
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -644,7 +644,7 @@ class Posets(object):
         - ``facade`` (boolean) -- whether to make the returned poset a
           facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor.
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         OUTPUT:
 

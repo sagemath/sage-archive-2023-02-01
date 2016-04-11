@@ -169,11 +169,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 sage: W = ColoredPermutations(1,4)
                 sage: W.codegrees()
-                [2, 1, 0]
+                (2, 1, 0)
 
                 sage: W = ColoredPermutations(3,3)
                 sage: W.codegrees()
-                [6, 3, 0]
+                (6, 3, 0)
 
                 sage: W = ReflectionGroup(31)
                 sage: W.codegrees()
@@ -226,8 +226,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                            "the degrees should be larger than 2")
             tester.assert_(len(degrees) == self.rank(),
                            "the number of degrees should coincide with the rank")
-            tester.assertEqual(sum(d-1 for d in degrees), self.number_of_reflection_hyperplanes(),
-                               "the sum of the degrees should be consistent with the number of reflection hyperplanes")
+            tester.assertEqual(sum(d-1 for d in degrees), self.number_of_reflections(),
+                               "the sum of the degrees should be consistent with the number of reflections")
 
         def _test_codegrees(self, **options):
             """
@@ -322,8 +322,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: [SymmetricGroup(i).number_of_reflections()
-                ....:  for i in range(8)]
+                sage: [SymmetricGroup(i).number_of_reflections() for i in range(int(8))]
                 [0, 0, 1, 3, 6, 10, 15, 21]
 
                 sage: W = ColoredPermutations(1,3)
@@ -339,7 +338,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflections()
                 15
             """
-            return sum(self.degrees()) - self.rank()
+            from sage.rings.all import ZZ
+            return ZZ.sum(self.degrees()) - self.rank()
 
         def rank(self):
             r"""

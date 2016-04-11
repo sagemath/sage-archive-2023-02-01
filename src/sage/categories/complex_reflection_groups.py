@@ -22,7 +22,7 @@ class ComplexReflectionGroups(Category_singleton):
     r"""
     The category of complex reflection groups.
 
-    Let `V` be a complex vector space. A *complex reflections* is an
+    Let `V` be a complex vector space. A *complex reflection* is an
     element of `\operatorname{GL}(V)` fixing an hyperplane pointwise
     and acting by multiplication by a root of unity on a complementary
     line.
@@ -151,7 +151,7 @@ class ComplexReflectionGroups(Category_singleton):
         def apply_distinguished_reflection(self, i, side='right'):
             r"""
             Return the result of the (left/right) multiplication of
-            the ``i``-th distingiushed reflection to ``self``.
+            the ``i``-th distinguished reflection to ``self``.
 
             INPUT:
 
@@ -193,8 +193,8 @@ class ComplexReflectionGroups(Category_singleton):
 
             INPUT:
 
-             - ``word`` -- iterable of distinguished reflections indices
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
+            - ``word`` -- iterable of distinguished reflections indices
+            - ``side`` -- (default: ``'right'``) multiplying from left/right
 
             EXAMPLES::
 
@@ -217,8 +217,8 @@ class ComplexReflectionGroups(Category_singleton):
 
             INPUT:
 
-             - ``i`` -- an index of a reflection
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
+            - ``i`` -- an index of a reflection
+            - ``side`` -- (default: ``'right'``) multiplying from left/right
 
             EXAMPLES::
 
@@ -254,8 +254,8 @@ class ComplexReflectionGroups(Category_singleton):
 
             INPUT:
 
-             - ``word`` -- iterable of reflections indices
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
+            - ``word`` -- iterable of reflections indices
+            - ``side`` -- (default: ``'right'``) multiplying from left/right
 
             EXAMPLES::
 

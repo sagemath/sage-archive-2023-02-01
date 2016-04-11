@@ -139,7 +139,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         @abstract_method(optional=True)
         def degrees(self):
             r"""
-            Return the degrees of ``self`` in increasing order.
+            Return the degrees of ``self``.
+
+            OUTPUT:: a tuple of Sage integers, sorted increasingly
 
             EXAMPLES::
 
@@ -159,7 +161,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
         @abstract_method(optional=True)
         def codegrees(self):
             r"""
-            Return the codegrees of ``self`` in decreasing order.
+            Return the codegrees of ``self``.
+
+            OUTPUT:: a tuple of Sage integers, sorted decreasingly
 
             EXAMPLES::
 
@@ -175,6 +179,39 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.codegrees()
                 [28, 16, 12, 0]
             """
+
+        def _test_degrees(self, **options):
+            """
+            Test the method :meth:`degrees`.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+            EXAMPLES:
+
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+                sage: W = ComplexReflectionGroups().Finite().example(); W
+                Reducible real reflection group of rank 4 and type A2 x B2
+                sage: W._test_degrees()
+
+                sage: SymmetricGroup(3)._test_degrees()
+
+            See the documentation for :class:`TestSuite` for more information.
+            """
+            from sage.structure.element import parent
+            from sage.rings.integer_ring import ZZ
+
+            tester = self._tester(**options)
+            degrees = self.degrees()
+            tester.assertEqual(isinstance(degrees, tuple),
+                               "the degrees method should return a tuple")
+            tester.assertEqual(all( parent(d) is ZZ for d in degrees ),
+                               "the degrees should be integers")
+            tester.assertEqual(tuple(sorted(degrees)) == degrees,
+                               "the degrees should be sorted increasingly")
+            tester.assertEqual(sum(d-1 for d in degrees) == self.number_of_reflection_hyperplanes())
+
 
         def number_of_reflecting_hyperplanes(self):
             r"""

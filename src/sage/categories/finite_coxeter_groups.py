@@ -213,6 +213,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return the degrees of the Coxeter group.
 
+            The output is an increasing list of integers.
+
             EXAMPLES::
 
                 sage: CoxeterGroup(['A', 4]).degrees()
@@ -236,6 +238,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 [2, 3]
             """
             from sage.rings.qqbar import QQbar
+            from sage.rings.integer_ring import ZZ
             c = self.coxeter_element()
             roots = c.matrix().change_ring(QQbar).charpoly().roots()
             args = [(z.rational_argument(), m) for z, m in roots]
@@ -244,7 +247,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             degs = []
             for z, m in args:
                 if z:
-                    degs.extend([z * h + 1] * m)
+                    degs.extend([ZZ(z * h + 1)] * m)
             return sorted(degs)
         
         def codegrees(self):

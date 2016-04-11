@@ -1718,6 +1718,25 @@ class InteractiveLPProblem(SageObject):
             5042
             sage: P.optimal_value()
             5042
+
+        TESTS:
+
+        Above also works for the equivalent minimization problem::
+
+            sage: c = (-10, -5)
+            sage: P = InteractiveLPProblem(A, b, c, variable_type=["<=", ""],
+            ....:                          objective_constant_term=-42,
+            ....:                          problem_type="min")
+            sage: PSF, f = P.standard_form(True)
+            sage: PSF.optimal_solution()
+            (0, 1000, 0)
+            sage: P.optimal_solution()
+            (0, 1000)
+            sage: PSF.optimal_value()
+            -5042
+            sage: P.optimal_value()
+            -5042
+
         """
         A, b, c, x = self.Abcx()
         f = identity_matrix(self.n()).columns()

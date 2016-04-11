@@ -772,15 +772,21 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ColoredPermutations(1,3)
-                sage: W.number_of_irreducible_components()
+                sage: SymmetricGroup(3).number_of_irreducible_components()
                 1
 
-                sage: W = ReflectionGroup((1,1,3),(2,1,3))
-                sage: W.number_of_irreducible_components()
+                sage: ColoredPermutations(1,3).number_of_irreducible_components()
+                1
+
+                sage: ReflectionGroup((1,1,3),(2,1,3)).number_of_irreducible_components()
                 2
+
+            TESTS::
+
+                sage: SymmetricGroup(3).number_of_irreducible_components.__module__
+                'sage.categories.complex_reflection_or_generalized_coxeter_groups'
             """
-            return len(self.irreducible_components())
+            return len(self.irreducible_component_index_sets())
 
         def is_irreducible(self):
             r"""

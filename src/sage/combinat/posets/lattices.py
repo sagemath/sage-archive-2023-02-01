@@ -1165,7 +1165,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_supersolvable(self):
         """
-        Return ``True`` if ``self`` is a supersolvable lattice, and
+        Return ``True`` if ``self`` is a supersolvable lattice and
         ``False`` otherwise.
 
         A lattice `L` is *supersolvable* if there exists a maximal chain `C`

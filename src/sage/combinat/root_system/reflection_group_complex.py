@@ -906,42 +906,42 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))
             sage: W.degrees()
-            [2, 3, 4]
+            (2, 3, 4)
 
             sage: W = ReflectionGroup((2,1,4))
             sage: W.degrees()
-            [2, 4, 6, 8]
+            (2, 4, 6, 8)
 
             sage: W = ReflectionGroup((4,1,4))
             sage: W.degrees()
-            [4, 8, 12, 16]
+            (4, 8, 12, 16)
 
             sage: W = ReflectionGroup((4,2,4))
             sage: W.degrees()
-            [4, 8, 12, 8]
+            (4, 8, 8, 12)
 
             sage: W = ReflectionGroup((4,4,4))
             sage: W.degrees()
-            [4, 8, 12, 4]
+            (4, 4, 8, 12)
 
         Examples of reducible types::
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2)); W
             Reducible complex reflection group of rank 5 and type A3 x G(3,1,2)
             sage: W.degrees()
-            [2, 3, 4, 3, 6]
+            (2, 3, 4, 3, 6)
 
             sage: W = ReflectionGroup((1,1,4), (6,1,12), 23) # fails in GAP3
             sage: W.degrees()
-            [2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10]
+            (2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10)
         """
         if self.is_irreducible():
             try:
-                return self._gap_group.degrees.sage()
+                return tuple(sorted(self._gap_group.degrees.sage()))
             except:
-                return self._gap_group.ReflectionDegrees().sage()
+                return tuple(sorted(self._gap_group.ReflectionDegrees().sage()))
         else:
-            return flatten([comp.degrees() for comp in self.irreducible_components()])
+            return sum([comp.degrees() for comp in self.irreducible_components()],tuple())
 
     @cached_method
     def codegrees(self):
@@ -953,40 +953,40 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))
             sage: W.codegrees()
-            [2, 1, 0]
+            (2, 1, 0)
 
             sage: W = ReflectionGroup((2,1,4))
             sage: W.codegrees()
-            [6, 4, 2, 0]
+            (6, 4, 2, 0)
 
             sage: W = ReflectionGroup((4,1,4))
             sage: W.codegrees()
-            [12, 8, 4, 0]
+            (12, 8, 4, 0)
 
             sage: W = ReflectionGroup((4,2,4))
             sage: W.codegrees()
-            [12, 8, 4, 0]
+            (12, 8, 4, 0)
 
             sage: W = ReflectionGroup((4,4,4))
             sage: W.codegrees()
-            [8, 4, 0, 8]
+            (8, 8, 4, 0)
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2))
             sage: W.codegrees()
-            [2, 1, 0, 3, 0]
+            (2, 1, 0, 3, 0)
 
             sage: W = ReflectionGroup((1,1,4), (6,1,12), 23) # fails in GAP3
             sage: W.codegrees()
-            [2, 1, 0, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 6, 0, 8, 4, 0]
+            (2, 1, 0, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 6, 0, 8, 4, 0)
         """
         if self.is_irreducible():
             if self.is_well_generated():
                 h = self.coxeter_number()
-                return [h-d for d in self.degrees()]
+                return tuple([h-d for d in self.degrees()])
             else:
-                return sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True)
+                return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True))
         else:
-            return flatten([comp.codegrees() for comp in self.irreducible_components()])
+            return sum([comp.codegrees() for comp in self.irreducible_components()],tuple())
 
     @cached_method
     def reflection_eigenvalues_family(self):
@@ -1279,14 +1279,17 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.fundamental_invariants()
-            [-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2]
+            (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.fundamental_invariants()
-            [x0^3 + x1^3, x0^3*x1^3]
+            (x0^3 + x1^3, x0^3*x1^3)
         """
         import re
         from sage.rings.polynomial.all import PolynomialRing
+
+        if not self.is_irreducible():
+            return sum([W.fundamental_invariants() for W in self.irreducible_components() ],tuple())
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
         P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])
@@ -1300,7 +1303,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
         # sage_eval is used since eval kills the rational entries!
         I = [ sage_eval(p, locals={'x':x}) for p in I ]
-        return I
+        return tuple(sorted(I,lambda f,g: cmp(f.degree(),g.degree())))
 
     def cartan_matrix(self):
         r"""

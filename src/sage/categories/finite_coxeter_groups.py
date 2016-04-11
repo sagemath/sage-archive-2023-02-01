@@ -259,19 +259,19 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: CoxeterGroup(['A', 4]).codegrees()
-                (0, 1, 2, 3)
+                (3, 2, 1, 0)
                 sage: CoxeterGroup(['B', 4]).codegrees()
-                (0, 2, 4, 6)
+                (6, 4, 2, 0)
                 sage: CoxeterGroup(['D', 4]).codegrees()
-                (0, 2, 2, 4)
+                (4, 2, 2, 0)
                 sage: CoxeterGroup(['F', 4]).codegrees()
-                (0, 4, 6, 10)
+                (10, 6, 4, 0)
                 sage: CoxeterGroup(['E', 8]).codegrees()
-                (0, 6, 10, 12, 16, 18, 22, 28)
+                (28, 22, 18, 16, 12, 10, 6, 0)
                 sage: CoxeterGroup(['H', 3]).codegrees()
-                (0, 4, 8)
+                (8, 4, 0)
             """
-            return tuple([d - 2 for d in self.degrees()])
+            return tuple(reversed([d - 2 for d in self.degrees()]))
 
         @cached_method
         def weak_poset(self, side="right", facade=False):

@@ -796,6 +796,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             rt = self * roots[i]
             return roots.index(rt)
 
+
 def _matrix_test_right_descent(M, i, n, zero):
     """
     Test if the matrix ``M`` has a right ``i``-descent.
@@ -830,10 +831,10 @@ def _matrix_test_right_descent(M, i, n, zero):
         [True, False, True]
     """
     for j in xrange(n):
-        c = M[j,i]
+        c = M[j, i]
         if c < zero:
             return True
         elif c > zero:
             return False
-    return False
+    raise AssertionError('a zero column, so there must be a bug')
 

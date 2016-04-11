@@ -219,8 +219,8 @@ class FiniteMeetSemilattice(FinitePoset):
 
         INPUT:
 
-        -  ``x, y`` - two elements of the (semi)lattice OR
-        -  ``x`` - a list or tuple of elements
+        -  ``x, y`` -- two elements of the (semi)lattice OR
+        -  ``x`` -- a list or tuple of elements
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteJoinSemilattice.join()`.
 
@@ -440,8 +440,8 @@ class FiniteJoinSemilattice(FinitePoset):
 
         INPUT:
 
-        -  ``x, y`` - two elements of the (semi)lattice OR
-        -  ``x`` - a list or tuple of elements
+        -  ``x, y`` -- two elements of the (semi)lattice OR
+        -  ``x`` -- a list or tuple of elements
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.meet()`.
 
@@ -734,7 +734,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element`` - an element of the lattice whose complement is
+        - ``element`` -- an element of the lattice whose complement is
           returned. If ``None`` (default) then dictionary of
           complements for all elements having at least one
           complement is returned.
@@ -1165,7 +1165,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_supersolvable(self):
         """
-        Return ``True`` if the lattice is supersolvable and
+        Return ``True`` if ``self`` is a supersolvable lattice, and
         ``False`` otherwise.
 
         A lattice `L` is *supersolvable* if there exists a maximal chain `C`

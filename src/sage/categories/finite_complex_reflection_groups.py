@@ -197,6 +197,26 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 sage: SymmetricGroup(3)._test_degrees()
 
+
+                sage: W = SymmetricGroup(5)
+                sage: W.degrees = lambda: (1/1,5)
+                sage: W._test_degrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the degrees should be integers
+
+                sage: W.degrees = lambda: (2,3,5,4)
+                sage: W._test_degrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the degrees should be sorted increasingly
+
+                sage: W.degrees = lambda: (1,2,3)
+                sage: W._test_degrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the degrees should be larger than 2
+
             See the documentation for :class:`TestSuite` for more information.
             """
             from sage.structure.element import parent
@@ -204,16 +224,77 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             tester = self._tester(**options)
             degrees = self.degrees()
-            tester.assertEqual(isinstance(degrees, tuple),
-                               "the degrees method should return a tuple")
-            tester.assertEqual(all( parent(d) is ZZ for d in degrees ),
-                               "the degrees should be integers")
-            tester.assertEqual(tuple(sorted(degrees)) == degrees,
-                               "the degrees should be sorted increasingly")
-            tester.assertEqual(sum(d-1 for d in degrees) == self.number_of_reflection_hyperplanes())
+            tester.assert_(isinstance(degrees, tuple),
+                           "the degrees method should return a tuple")
+            tester.assert_(all( parent(d) is ZZ for d in degrees ),
+                           "the degrees should be integers")
+            tester.assert_(all( d >= 2 for d in degrees ),
+                           "the degrees should be larger than 2")
+            tester.assert_(tuple(sorted(degrees)) == degrees,
+                           "the degrees should be sorted increasingly")
+            tester.assert_(len(degrees) == self.rank(),
+                           "the number of degrees should coincide with the rank")
+            tester.assertEqual(sum(d-1 for d in degrees), self.number_of_reflection_hyperplanes(),
+                               "the sum of the degrees should be consistent with the number of reflection hyperplanes")
+
+        def _test_codegrees(self, **options):
+            """
+            Test the method :meth:`degrees`.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+            EXAMPLES:
+
+                sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+                sage: W = ComplexReflectionGroups().Finite().example(); W
+                Reducible real reflection group of rank 4 and type A2 x B2
+                sage: W._test_codegrees()
+
+                sage: SymmetricGroup(3)._test_codegrees()
 
 
-        def number_of_reflecting_hyperplanes(self):
+                sage: W = SymmetricGroup(5)
+                sage: W.codegrees = lambda: (1/1,5)
+                sage: W._test_codegrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the codegrees should be integers
+
+                sage: W.codegrees = lambda: (2,3,5,4)
+                sage: W._test_codegrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the codegrees should be sorted decreasingly
+
+                sage: W.codegrees = lambda: (2,1,-1)
+                sage: W._test_codegrees()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the codegrees should be larger than 2
+
+            See the documentation for :class:`TestSuite` for more information.
+            """
+            from sage.structure.element import parent
+            from sage.rings.integer_ring import ZZ
+
+            tester = self._tester(**options)
+            codegrees = self.codegrees()
+            tester.assert_(isinstance(codegrees, tuple),
+                           "the codegrees method should return a tuple")
+            tester.assert_(all( parent(d) is ZZ for d in codegrees ),
+                           "the codegrees should be integers")
+            tester.assert_(all( d >= 0 for d in codegrees ),
+                           "the codegrees should be nonnegative")
+            tester.assert_(tuple(reversed(sorted(codegrees))) == codegrees,
+                           "the codegrees should be sorted decreasingly")
+            tester.assert_(len(codegrees) == self.rank(),
+                           "the number of codegrees should coincide with the rank")
+            tester.assertEqual(sum(d for d in codegrees), self.number_of_reflection_hyperplanes(),
+                               "the sum of the codegrees should be consistent with the number of reflection hyperplanes")
+
+        def number_of_reflection_hyperplanes(self):
             r"""
             Return the number of reflecting hyperplanes of ``self``.
 
@@ -230,16 +311,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,3)
-                sage: W.number_of_reflecting_hyperplanes()
+                sage: W.number_of_reflection_hyperplanes()
                 3
                 sage: W = ColoredPermutations(2,3)
-                sage: W.number_of_reflecting_hyperplanes()
+                sage: W.number_of_reflection_hyperplanes()
                 9
                 sage: W = ColoredPermutations(4,3)
-                sage: W.number_of_reflecting_hyperplanes()
+                sage: W.number_of_reflection_hyperplanes()
                 15
                 sage: W = ReflectionGroup((4,2,3))
-                sage: W.number_of_reflecting_hyperplanes()
+                sage: W.number_of_reflection_hyperplanes()
                 15
             """
             return sum(self.codegrees()) + self.rank()
@@ -254,7 +335,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             This implementation uses that it is given by the sum of
             the degrees of ``self`` minus its rank.
 
-            .. SEEALSO:: :meth:`number_of_reflecting_hyperplanes`
+            .. SEEALSO:: :meth:`number_of_reflection_hyperplanes`
 
             EXAMPLES::
 
@@ -516,7 +597,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     sage: W.coxeter_number()
                     30
                 """
-                return (self.number_of_reflecting_hyperplanes() + self.number_of_reflections()) // self.rank()
+                return (self.number_of_reflection_hyperplanes() + self.number_of_reflections()) // self.rank()
 
     class WellGenerated(CategoryWithAxiom):
 

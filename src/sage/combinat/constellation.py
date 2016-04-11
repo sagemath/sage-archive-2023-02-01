@@ -8,19 +8,14 @@ transitively ([LaZv04]_ definition 1). Geometrically, it corresponds
 to a covering of the 2-sphere ramified over `k` points (the transitivity
 condition corresponds to the connectivity of the covering).
 
-.. NOTE::
-
-    The permutations are on `[0, n-1]` and not on `[1, n]` for
-    algorithmic and practical reasons.
-
 EXAMPLES::
 
-    sage: c = Constellation(['(0,1)', '(0,2)', None])
+    sage: c = Constellation(['(1,2)', '(1,3)', None])
     sage: c
     Constellation of length 3 and degree 3
-    g0 (0,1)(2)
-    g1 (0,2)(1)
-    g2 (0,2,1)
+    g0 (1,2)(3)
+    g1 (1,3)(2)
+    g2 (1,3,2)
     sage: C = Constellations(3,4); C
     Connected constellations of length 3 and degree 4 on {1, 2, 3, 4}
     sage: C.cardinality()

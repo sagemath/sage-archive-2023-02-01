@@ -141,7 +141,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return the degrees of ``self``.
 
-            OUTPUT:: a tuple of Sage integers
+            OUTPUT: a tuple of Sage integers
 
             EXAMPLES::
 
@@ -163,7 +163,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return the codegrees of ``self``.
 
-            OUTPUT:: a tuple of Sage integers
+            OUTPUT: a tuple of Sage integers
 
             EXAMPLES::
 

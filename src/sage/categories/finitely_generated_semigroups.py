@@ -138,10 +138,12 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
                 sage: S = FiniteSemigroups().example(alphabet=('x','y'))
                 sage: it = S.__iter__()
                 sage: list(it)
-                ['y', 'x', 'xy', 'yx']
+                ['x', 'y', 'yx', 'xy']
             """
-            from sage.combinat.backtrack import TransitiveIdeal
-            return iter(TransitiveIdeal(self.succ_generators(side="right"), self.semigroup_generators()))
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return iter(RecursivelyEnumeratedSet(self.semigroup_generators(),
+                                                 self.succ_generators(side="right"),
+                                                 enumeration='breadth'))
 
         def ideal(self, gens, side="twosided"):
             r"""
@@ -162,29 +164,28 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
 
                 sage: S = FiniteSemigroups().example()
                 sage: list(S.ideal([S('cab')], side="left"))
-                ['cab', 'dcab', 'adcb', 'acb', 'bdca', 'bca', 'abdc',
-                'cadb', 'acdb', 'bacd', 'abcd', 'cbad', 'abc', 'acbd',
-                'dbac', 'dabc', 'cbda', 'bcad', 'cabd', 'dcba',
-                'bdac', 'cba', 'badc', 'bac', 'cdab', 'dacb', 'dbca',
-                'cdba', 'adbc', 'bcda']
+                ['cab', 'acb', 'dcab', 'bca', 'abc', 'adcb', 'bdca',
+                 'cba', 'cdab', 'bac', 'dacb', 'dbca', 'adbc', 'bcda',
+                 'dbac', 'dabc', 'cbda', 'cdba', 'abdc', 'bdac', 'dcba',
+                 'cadb', 'badc', 'acdb', 'abcd', 'cbad', 'bacd', 'acbd',
+                 'bcad', 'cabd']
                 sage: list(S.ideal([S('cab')], side="right"))
                 ['cab', 'cabd']
                 sage: list(S.ideal([S('cab')], side="twosided"))
-                ['cab', 'dcab', 'acb', 'adcb', 'acbd', 'bdca', 'bca',
-                'cabd', 'abdc', 'cadb', 'acdb', 'bacd', 'abcd', 'cbad',
-                'abc', 'dbac', 'dabc', 'cbda', 'bcad', 'dcba', 'bdac',
-                'cba', 'cdab', 'bac', 'badc', 'dacb', 'dbca', 'cdba',
-                'adbc', 'bcda']
+                ['cab', 'acb', 'dcab', 'bca', 'cabd', 'abc', 'adcb',
+                 'acbd', 'bdca', 'bcad', 'cba', 'cdab', 'bac', 'dacb',
+                 'dbca', 'abcd', 'cbad', 'bacd', 'bcda', 'dbac', 'dabc',
+                 'cbda', 'cdba', 'abdc', 'adbc', 'bdac', 'dcba', 'cadb',
+                 'badc', 'acdb']
                 sage: list(S.ideal([S('cab')]))
-                ['cab', 'dcab', 'acb', 'adcb', 'acbd', 'bdca', 'bca',
-                'cabd', 'abdc', 'cadb', 'acdb', 'bacd', 'abcd', 'cbad',
-                'abc', 'dbac', 'dabc', 'cbda', 'bcad', 'dcba', 'bdac',
-                'cba', 'cdab', 'bac', 'badc', 'dacb', 'dbca', 'cdba',
-                'adbc', 'bcda']
-
+                ['cab', 'acb', 'dcab', 'bca', 'cabd', 'abc', 'adcb',
+                 'acbd', 'bdca', 'bcad', 'cba', 'cdab', 'bac', 'dacb',
+                 'dbca', 'abcd', 'cbad', 'bacd', 'bcda', 'dbac', 'dabc',
+                 'cbda', 'cdba', 'abdc', 'adbc', 'bdac', 'dcba', 'cadb',
+                 'badc', 'acdb']
             """
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(self.succ_generators(side = side), gens)
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return RecursivelyEnumeratedSet(gens, self.succ_generators(side=side))
 
     class Finite(CategoryWithAxiom):
 
@@ -199,9 +200,10 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
 
                     sage: S = FiniteSemigroups().example(alphabet=('x','y'))
                     sage: S.some_elements()
-                    ['y', 'x', 'xy', 'yx']
+                    ['x', 'y', 'yx', 'xy']
                     sage: S = FiniteSemigroups().example(alphabet=('x','y','z'))
                     sage: S.some_elements()
-                    ['y', 'x', 'xy', 'xyz', 'xz', 'yx', 'yxz', 'xzy', 'yz', 'z']
+                    ['x', 'y', 'z', 'xz', 'yx', 'yz', 'zx', 'zy', 'xy', 'yxz']
                 """
                 return list(itertools.islice(self, 10))
+

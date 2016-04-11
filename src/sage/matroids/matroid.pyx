@@ -6411,14 +6411,18 @@ cdef class Matroid(SageObject):
 
     cpdef is_max_weight_independent_generic(self, X=None, weights=None):
         r"""
-        Test if only one basis has maximal weight.
+        Test if only one basis of the subset ``X`` has maximal
+        weight.
 
         The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
 
+        The method :meth:`is_max_weight_coindependent_generic`
+        computes the same function using a different algorithm.
+
         INPUT:
 
-        - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as an iterable).
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -6449,6 +6453,8 @@ cdef class Matroid(SageObject):
             sage: M = matroids.Uniform(2, 8)
             sage: M.is_max_weight_independent_generic(weights=wt)
             True
+            sage: M.is_max_weight_independent_generic(weights={x: x for x in M.groundset()})
+            True
             sage: M.is_max_weight_independent_generic()
             False
         """
@@ -6459,6 +6465,8 @@ cdef class Matroid(SageObject):
                 raise ValueError("input is not a subset of the groundset.")
         if len(X) == 0:
             return True
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
         if weights is None:
             Y = list(X)
         else:
@@ -6478,7 +6486,7 @@ cdef class Matroid(SageObject):
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
         res = []
-        smres= []
+        smres = []
         r = 0
         if weights is None:
             for e in Y:
@@ -6512,14 +6520,18 @@ cdef class Matroid(SageObject):
 
     cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
         r"""
-        Test if only one basis has maximal weight.
+        Test if only one basis of the subset ``X`` has maximal
+        weight.
 
         The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
 
+        The method :meth:`is_max_weight_independent_generic`
+        computes the same function using a different algorithm.
+
         INPUT:
 
-        - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as an iterable).
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -6550,6 +6562,8 @@ cdef class Matroid(SageObject):
             sage: M = matroids.Uniform(2, 8)
             sage: M.is_max_weight_coindependent_generic(weights=wt)
             True
+            sage: M.is_max_weight_coindependent_generic(weights={x: x for x in M.groundset()})
+            True
             sage: M.is_max_weight_coindependent_generic()
             False
         """
@@ -6560,6 +6574,8 @@ cdef class Matroid(SageObject):
                 raise ValueError("input is not a subset of the groundset.")
         if len(X) == 0:
             return True
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
         if weights is None:
             Y = list(X)
         else:
@@ -6579,7 +6595,7 @@ cdef class Matroid(SageObject):
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
         res = []
-        smres= []
+        smres = []
         r = 0
         if weights is None:
             for e in Y:

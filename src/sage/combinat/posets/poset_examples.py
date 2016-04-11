@@ -22,6 +22,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
+    :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
@@ -239,9 +240,9 @@ class Posets(object):
         INPUT:
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -274,12 +275,12 @@ class Posets(object):
 
         INPUT:
 
-        - ``n`` - number of vertices, an integer at least 3.
+        - ``n`` -- number of vertices, an integer at least 3
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -296,6 +297,47 @@ class Posets(object):
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
         return LatticePoset(c, facade = facade)
+
+    @staticmethod
+    def DivisorLattice(n, facade=None):
+        """
+        Return the divisor lattice of an integer.
+
+        Elements of the lattice are divisors of `n` and
+        `x < y` in the lattice if `x` divides `y`.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: P = Posets.DivisorLattice(12)
+            sage: sorted(P.cover_relations())
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+
+            sage: P = Posets.DivisorLattice(10, facade=False)
+            sage: P(2) < P(5)
+            False
+
+        TESTS::
+
+            sage: Posets.DivisorLattice(1)
+            Finite lattice containing 1 elements
+        """
+        from sage.arith.misc import divisors
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n <= 0:
+            raise ValueError("n must be a positive integer")
+        return LatticePoset( (divisors(n), lambda x, y: y % x == 0),
+                             facade=facade, linear_extension=True)
 
     @staticmethod
     def IntegerCompositions(n):

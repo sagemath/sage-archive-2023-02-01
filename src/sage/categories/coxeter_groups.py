@@ -70,7 +70,7 @@ class CoxeterGroups(Category_singleton):
 
         - :mod:`sage.combinat.root_system`
         - :class:`WeylGroups`
-        - :mod:`GeneralizedCoxeterGroups`
+        - :class:`GeneralizedCoxeterGroups`
 
     .. WARNING::
 
@@ -303,58 +303,10 @@ class CoxeterGroups(Category_singleton):
             return self.weak_order_ideal(attrcall("is_grassmannian", side=side),
                                          side=order_side)
 
-        def from_reduced_word(self, word):
-            r"""
-            INPUT:
-
-            - ``word`` - a list (or iterable) of elements of ``self.index_set()``
-
-            Returns the group element corresponding to the given
-            word. Namely, if ``word`` is `[i_1,i_2,\ldots,i_k]`, then
-            this returns the corresponding product of simple
-            reflections `s_{i_1} s_{i_2} \cdots s_{i_k}`.
-
-            Note: the main use case is for constructing elements from
-            reduced words, hence the name of this method. But actually
-            the input word need *not* be reduced.
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroups().example()
-                sage: W
-                The symmetric group on {0, ..., 3}
-                sage: s = W.simple_reflections()
-                sage: W.from_reduced_word([0,2,0,1])
-                (0, 3, 1, 2)
-                sage: W.from_reduced_word((0,2,0,1))
-                (0, 3, 1, 2)
-                sage: s[0]*s[2]*s[0]*s[1]
-                (0, 3, 1, 2)
-
-            See also :meth:'._test_reduced_word'::
-
-                sage: W._test_reduced_word()
-
-            TESTS::
-
-                sage: W=WeylGroup(['E',6])
-                sage: W.from_reduced_word([2,3,4,2])
-                [ 0  1  0  0  0  0  0  0]
-                [ 0  0 -1  0  0  0  0  0]
-                [-1  0  0  0  0  0  0  0]
-                [ 0  0  0  1  0  0  0  0]
-                [ 0  0  0  0  1  0  0  0]
-                [ 0  0  0  0  0  1  0  0]
-                [ 0  0  0  0  0  0  1  0]
-                [ 0  0  0  0  0  0  0  1]
-
-            """
-            return self.one().apply_simple_reflections(word, side = 'right')
-
         def _test_reduced_word(self, **options):
             """
             Runs sanity checks on :meth:'CoxeterGroups.ElementMethods.reduced_word' and
-            :meth:'.from_reduced_word`.
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ParentMethods.from_reduced_word`
 
             EXAMPLES::
 
@@ -827,7 +779,7 @@ class CoxeterGroups(Category_singleton):
             Tests whether ``self`` is Grassmannian, i.e. it has at
             most one descent on the right (resp. on the left).
 
-v            EXAMPLES::
+            EXAMPLES::
 
                 sage: W = CoxeterGroups().example(); W
                 The symmetric group on {0, ..., 3}
@@ -875,8 +827,7 @@ v            EXAMPLES::
 
             Default implementation: recursively remove the first right
             descent until the identity is reached (see :meth:`.first_descent` and
-            :meth:`apply_simple_reflection`).
-
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`).
             """
             while True:
                 i = self.first_descent()
@@ -1587,8 +1538,9 @@ v            EXAMPLES::
             Complexity: `O(l * c)`, where `l` is the minimum of the
             lengths of `u` and of `v`, and `c` is the cost of the low
             level methods :meth:`first_descent`, :meth:`has_descent`,
-            :meth:`apply_simple_reflection`, etc. Those are typically
-            `O(n)`, where `n` is the rank of the Coxeter group.
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`), etc.
+            Those are typically `O(n)`, where `n` is the rank of the
+            Coxeter group.
 
             TESTS:
 
@@ -1609,7 +1561,6 @@ v            EXAMPLES::
                 True
                 sage: all( P.is_lequal(u,v) == Q.is_lequal(u,v) for u in W for v in W)       # long time  (9s)
                 True
-
             """
             if not have_same_parent(self, other):
                 raise TypeError("%s and %s do not have the same parent"%(self, other))
@@ -1662,8 +1613,9 @@ v            EXAMPLES::
             Complexity: `O(l * c)`, where `l` is the minimum of the
             lengths of `u` and of `v`, and `c` is the cost of the low
             level methods :meth:`first_descent`, :meth:`has_descent`,
-            :meth:`apply_simple_reflection`. Those are typically
-            `O(n)`, where `n` is the rank of the Coxeter group.
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`), etc.
+            Those are typically `O(n)`, where `n` is the rank of the
+            Coxeter group.
 
             We now run consistency tests with permutations::
 

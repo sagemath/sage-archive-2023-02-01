@@ -78,8 +78,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: list(W)
             [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
-        #some_elements = GeneralizedCoxeterGroups.ParentMethods.__dict__["some_elements"]
-        __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
+        __iter__ = CoxeterGroups.ParentMethods.__dict__["__iter__"]
 
         @lazy_attribute
         def w0(self):

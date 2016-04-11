@@ -369,6 +369,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
+    @cached_method
     def invariant_form(self):
         r"""
         Return the form that is invariant under the action of ``self``.
@@ -575,6 +576,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         return self.fundamental_weights()[self._index_set_inverse[i]]
 
+    @cached_method
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix associated to ``self``.
@@ -664,6 +666,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         def _reduced_word(self):
             r"""
             Computes a reduced word and stores it into ``self._reduced_word``.
+            The words are in ``range(n)`` and not in the index set.
 
             TESTS::
 
@@ -672,6 +675,41 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [[], [1], [0], [0, 1], [1, 0], [0, 1, 0]]
             """
             return CoxeterGroups.ElementMethods.reduced_word.__func__(self)
+
+        def reduced_word_in_reflections(self):
+            r"""
+            Return a word in the reflections to obtain ``self``.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2], index_set=['a','b'], reflection_index_set=['A','B','C'])
+                sage: [(w.reduced_word(), w.reduced_word_in_reflections()) for w in W]
+                [([], []),
+                 (['b'], ['B']),
+                 (['a'], ['A']),
+                 (['a', 'b'], ['A', 'B']),
+                 (['b', 'a'], ['A', 'C']),
+                 (['a', 'b', 'a'], ['C'])]
+
+            .. SEEALSO:: :meth:`reduced_word`
+            """
+            if self.is_one():
+                return []
+
+            W = self.parent()
+            r = self.reflection_length()
+            R = W.reflections()
+            I = W.reflection_index_set()
+            word = []
+            while r > 0:
+                for i in I:
+                    w = R[i]._mul_(self)
+                    if w.reflection_length() < r:
+                        word += [i]
+                        r -= 1
+                        self = w
+                        break
+            return word
 
         def length(self):
             r"""

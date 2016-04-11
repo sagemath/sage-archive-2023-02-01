@@ -1407,7 +1407,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             -----
             sage: W.set_reflection_representation()
         """
-        self.one().to_matrix.clear_cache()
         if refl_repr is None or set(refl_repr.keys()) == set(self.index_set()):
             self._reflection_representation = refl_repr
         else:

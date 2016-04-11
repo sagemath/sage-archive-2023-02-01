@@ -41,7 +41,7 @@ Deprecation details:
       ``sage/sets/recursively_enumerated_set.pyx`` into a class named
       :class:`RecursivelyEnumeratedSet_forest` in a later ticket.
 
-	- Deprecate ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
+    - Deprecate ``TransitiveIdeal`` and ``TransitiveIdealGraded``.
 
     - Once the deprecation has been there for enough time: delete
       ``TransitiveIdeal`` and ``TransitiveIdealGraded``.

@@ -937,11 +937,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         if self.is_irreducible():
             try:
-                return self._gap_group.degrees.sage()
+                return tuple(sorted(self._gap_group.degrees.sage()))
             except:
-                return self._gap_group.ReflectionDegrees().sage()
+                return tuple(sorted(self._gap_group.ReflectionDegrees().sage()))
         else:
-            return flatten([comp.degrees() for comp in self.irreducible_components()])
+            return sum([comp.degrees() for comp in self.irreducible_components()],tuple())
 
     @cached_method
     def codegrees(self):
@@ -982,11 +982,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         if self.is_irreducible():
             if self.is_well_generated():
                 h = self.coxeter_number()
-                return [h-d for d in self.degrees()]
+                return tuple([h-d for d in self.degrees()])
             else:
-                return sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True)
+                return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True))
         else:
-            return flatten([comp.codegrees() for comp in self.irreducible_components()])
+            return sum([comp.codegrees() for comp in self.irreducible_components()],tuple())
 
     @cached_method
     def reflection_eigenvalues_family(self):
@@ -1288,6 +1288,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         import re
         from sage.rings.polynomial.all import PolynomialRing
 
+        if not self.is_irreducible():
+            return sum([W.fundamental_invariants() for W in self.irreducible_components() ],tuple())
+
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
         P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])
         x = P.gens()
@@ -1300,7 +1303,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
         # sage_eval is used since eval kills the rational entries!
         I = [ sage_eval(p, locals={'x':x}) for p in I ]
-        return I
+        return tuple(sorted(I,lambda f,g: cmp(f.degree(),g.degree())))
 
     def cartan_matrix(self):
         r"""

@@ -224,7 +224,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 sage: [SymmetricGroup(i).number_of_reflections()
                 ....:  for i in range(8)]
-                [0, 0, 1, 1, 3, 6, 10, 15]
+                [0, 0, 1, 3, 6, 10, 15, 21]
 
                 sage: W = ColoredPermutations(1,3)
                 sage: W.number_of_reflections()

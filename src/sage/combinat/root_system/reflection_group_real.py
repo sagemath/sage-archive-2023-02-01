@@ -90,6 +90,18 @@ def ReflectionGroup(*args,**kwds):
         sage: W = ReflectionGroup(23); W                                # optional - chevie
          Irreducible complex reflection group of rank 3 and type H3
 
+    Cartan types and matrices::
+
+        sage: ReflectionGroup(CartanType(['A',2]))
+        Irreducible real reflection group of rank 2 and type A2
+
+        sage: ReflectionGroup(CartanType((['A',2],['A',2])))
+        Reducible real reflection group of rank 4 and type A2 x A2
+
+        sage: C = CartanMatrix(['A',2])
+        sage: ReflectionGroup(C)
+        Irreducible real reflection group of rank 2 and type A2
+
     multiples of the above::
 
         sage: W = ReflectionGroup(['A',2],['B',2]); W
@@ -105,26 +117,38 @@ def ReflectionGroup(*args,**kwds):
         raise ImportError("the GAP3 package 'chevie' is needed to work with (complex) reflection groups")
     gap3.load_package("chevie")
 
+    error_msg = "the input data (%s) is not valid for reflection groups"
+
     W_types = []
     is_complex = False
     for arg in args:
         # preparsing
         if isinstance(arg, list):
             X = tuple(arg)
-        elif isinstance(arg, CartanType_abstract):
-            X = (arg.letter, arg.n)
         else:
             X = arg
 
         # precheck for valid input data
-        if not (is_Matrix(X) or isinstance(X, (CartanMatrix, tuple)) or (X in ZZ and 4 <= X <= 37)):
-            raise ValueError("the input data (%s) is not valid for reflection groups"%X)
+        if not (isinstance(X, (CartanType_abstract,tuple)) or (X in ZZ and 4 <= X <= 37)):
+            raise ValueError(error_msg%X)
 
         # transforming two reducible types and an irreducible type
-        if X == (2,2,2) or X == ('I',2):
+        if isinstance(X, CartanType_abstract):
+            if not X.is_finite():
+                raise ValueError(error_msg%X)
+            if hasattr(X,"cartan_type"):
+                X = X.cartan_type()
+            if X.is_irreducible():
+                W_types.extend([(X.letter, X.n)])
+            else:
+                W_types.extend([(x.letter, x.n) for x in X.component_types()])
+
+        elif X == (2,2,2) or X == ('I',2):
             W_types.extend([('A',1), ('A',1)])
+
         elif X == (2,2,3):
             W_types.extend([('A', 3)])
+
         else:
             W_types.append(X)
 

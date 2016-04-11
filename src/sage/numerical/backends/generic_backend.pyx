@@ -1296,7 +1296,13 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method).
 
-    - ``base_ring`` -- Request a solver that works over this field.
+    - ``base_ring`` -- If not ``None``, request a solver that works over this
+        (ordered) field.  If ``base_ring`` is not a field, its fraction field
+        is used.
+
+        For example, is ``base_ring=ZZ`` is provided, the solver will work over
+        the rational numbers.  This is unrelated to whether variables are
+        constrained to be integers or not.
 
     - ``constraint_generation`` -- Only used when ``solver=None``.
 
@@ -1320,6 +1326,8 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         Real Double Field
         sage: p = get_solver(base_ring=QQ); p
         <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        sage: p = get_solver(base_ring=ZZ); p
+        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
         sage: p.base_ring()
         Rational Field
         sage: p = get_solver(base_ring=AA); p
@@ -1341,6 +1349,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         solver = default_mip_solver()
 
         if base_ring is not None:
+            base_ring = base_ring.fraction_field()
             from sage.rings.all import QQ, RDF
             if base_ring is QQ:
                 solver = "Ppl"

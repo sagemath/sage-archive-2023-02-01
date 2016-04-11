@@ -11,11 +11,9 @@ Complex reflection groups
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.complex_reflection_or_generalized_coxeter_groups import ComplexReflectionOrGeneralizedCoxeterGroups
 
 class ComplexReflectionGroups(Category_singleton):
@@ -145,130 +143,5 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W.rank()
                 3
             """
-
-    class ElementMethods:
-
-        def apply_distinguished_reflection(self, i, side='right'):
-            r"""
-            Return the result of the (left/right) multiplication of
-            the ``i``-th distingiushed reflection to ``self``.
-
-            INPUT:
-
-            - ``i`` -- an index of a distinguished reflection
-            - ``side`` -- (default: ``'right'``) multiplying from left/right
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_distinguished_reflection(1)
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_distinguished_reflection(2)
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_distinguished_reflection(3)
-                (1,5)(2,4)(3,6)
-
-                sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W
-                Irreducible real reflection group of rank 2 and type A2
-                sage: W.one().apply_distinguished_reflection('A')
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_distinguished_reflection('B')
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_distinguished_reflection('C')
-                (1,5)(2,4)(3,6)
-            """
-            G = self.parent()
-            if not i in G.hyperplane_index_set():
-                raise ValueError("the given index %s is not an index of a hyperplane"%i)
-            if side == 'right':
-                return self * G.distinguished_reflection(i)
-            else:
-                return self.parent().reflection(i) * self
-
-        def apply_distinguished_reflections(self, word, side='right'):
-            r"""
-            Return the result of the (left/right) multiplication of the
-            distinguished reflections indexed by the elements in
-            ``word`` to ``self``.
-
-            INPUT:
-
-             - ``word`` -- iterable of distinguished reflections indices
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_distinguished_reflections([1])
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_distinguished_reflections([2])
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_distinguished_reflections([2,1])
-                (1,2,6)(3,4,5)
-            """
-            for i in word:
-                self = self.apply_distinguished_reflection(i, side=side)
-            return self
-
-        def apply_reflection(self, i, side='right'):
-            r"""
-            Return the result of the (left/right) multiplication of
-            the ``i``-th reflection to ``self``.
-
-            INPUT:
-
-             - ``i`` -- an index of a reflection
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflection(1)
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflection(2)
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflection(3)
-                (1,5)(2,4)(3,6)
-
-                sage: W = ReflectionGroup((1,1,3), reflection_index_set=['A','B','C']); W
-                Irreducible real reflection group of rank 2 and type A2
-                sage: W.one().apply_reflection('A')
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflection('B')
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflection('C')
-                (1,5)(2,4)(3,6)
-            """
-            W = self.parent()
-            if i not in W.reflection_index_set():
-                raise ValueError("the given index %s is not an index of a reflection"%i)
-            if side == 'right':
-                return self * W.reflection(i)
-            else:
-                return W.reflection(i) * self
-
-        def apply_reflections(self, word, side='right'):
-            r"""
-            Return the result of the (left/right) multiplication of the
-            reflections indexed by the elements in ``word`` to ``self``.
-
-            INPUT:
-
-             - ``word`` -- iterable of reflections indices
-             - ``side`` -- (default: ``'right'``) multiplying from left/right
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflections([1])
-                (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2])
-                (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([2,1])
-                (1,2,6)(3,4,5)
-            """
-            for i in word:
-                self = self.apply_reflection(i, side=side)
-            return self
 
     Finite = LazyImport('sage.categories.finite_complex_reflection_groups', 'FiniteComplexReflectionGroups', as_name='Finite')

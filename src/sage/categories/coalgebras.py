@@ -226,7 +226,7 @@ class Coalgebras(Category_over_base_ring):
 
             def counit(self, x):
                 r"""
-                Returns the counit of ``x``.
+                Return the counit of ``x``.
 
                 EXAMPLES::
 
@@ -258,7 +258,8 @@ class Coalgebras(Category_over_base_ring):
 
             def coproduct_by_coercion(self, x):
                 r"""
-                Returns the coproduct by coercion if coproduct_by_basis is not implemented.
+                Return the coproduct by coercion if ``coproduct_by_basis``
+                is not implemented.
 
                 EXAMPLES::
 
@@ -289,3 +290,26 @@ class Coalgebras(Category_over_base_ring):
                 """
                 R = self.realization_of().a_realization()
                 return self.tensor_square()(R(x).coproduct())
+
+            def counit_by_coercion(self, x):
+                r"""
+                Return the counit of ``x`` if ``counit_by_basis`` is
+                not implemented.
+
+                EXAMPLES::
+
+                    sage: sp = SymmetricFunctions(QQ).sp()
+                    sage: sp.an_element()
+                    2*sp[] + 2*sp[1] + 3*sp[2]
+                    sage: sp.counit(sp.an_element())
+                    2
+
+                    sage: o = SymmetricFunctions(QQ).o()
+                    sage: o.an_element()
+                    2*o[] + 2*o[1] + 3*o[2]
+                    sage: o.counit(o.an_element())
+                    -1
+                """
+                R = self.realization_of().a_realization()
+                return R(x).counit()
+

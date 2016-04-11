@@ -670,6 +670,39 @@ class Function_floor(BuiltinFunction):
 
 floor = Function_floor()
 
+class Function_Order(GinacFunction):
+    def __init__(self):
+        r"""
+        The order function.
+
+        This function gives the order of magnitude of some expression,
+        similar to `O`-terms.
+
+        .. SEEALSO::
+
+            :meth:`~sage.symbolic.expression.Expression.Order`,
+            :mod:`~sage.rings.big_oh`
+
+        EXAMPLES::
+
+            sage: x = SR('x')
+            sage: x.Order()
+            Order(x)
+            sage: (x^2 + x).Order()
+            Order(x^2 + x)
+
+        TESTS:
+
+        Check that :trac:`19425` is resolved::
+
+            sage: x.Order().operator()
+            Order
+        """
+        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+
+Function_Order()
+
+
 class Function_gamma(GinacFunction):
     def __init__(self):
         r"""
@@ -812,7 +845,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -827,7 +860,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -839,7 +872,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -899,7 +932,7 @@ class Function_gamma_inc(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc(CDF(0,1), 3)
-            0.003208574993369116 + 0.012406185811871568*I
+            0.0032085749933691158 + 0.012406185811871568*I
             sage: gamma_inc(RDF(1), 3)
             0.049787068367863944
             sage: gamma_inc(3,2)
@@ -1510,7 +1543,9 @@ class Function_binomial(GinacFunction):
             sage: SR(5).binomial(3, hold=True).simplify()
             10
 
-        TESTS: We verify that we can convert this function to Maxima and
+        TESTS:
+
+        We verify that we can convert this function to Maxima and
         bring it back into Sage.
 
         ::
@@ -1616,7 +1651,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.rings.arith.binomial(n, k)
+        return sage.arith.all.binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -1679,24 +1714,23 @@ class Function_beta(GinacFunction):
             -1
             sage: beta(-1/2,-1/2)
             0
-            sage: beta(x/2,3)
-            beta(3, 1/2*x)
+            sage: ex = beta(x/2,3)
+            sage: set(ex.operands()) == set([1/2*x, 3])
+            True
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)
             0.400000000000000 - 0.200000000000000*I
-            sage: beta(3,x+I)
-            beta(3, x + I)
-
-        Note that the order of arguments does not matter::
-
-            sage: beta(1/2,3*x)
-            beta(1/2, 3*x)
+            sage: ex = beta(3,x+I)
+            sage: set(ex.operands()) == set([x+I, 3])
+            True
 
         The result is symbolic if exact input is given::
 
-            sage: beta(2,1+5*I)
-            beta(2, 5*I + 1)
+            sage: ex = beta(2,1+5*I); ex
+            beta(...
+            sage: set(ex.operands()) == set([1+5*I, 2])
+            True
             sage: beta(2, 2.)
             0.166666666666667
             sage: beta(I, 2.)
@@ -2068,7 +2102,7 @@ class Function_real_part(GinacFunction):
             sage: latex(x.real())
             \Re \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
         """
@@ -2138,7 +2172,7 @@ class Function_imag_part(GinacFunction):
             sage: latex(x.imag())
             \Im \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).imag())
             \Im \left( f\left(x\right) \right)
         """
@@ -2203,7 +2237,7 @@ class Function_conjugate(GinacFunction):
             sage: f = function('f')
             sage: latex(f(x).conjugate())
             \overline{f\left(x\right)}
-            sage: f = function('psi',x,y)
+            sage: f = function('psi')(x,y)
             sage: latex(f.conjugate())
             \overline{\psi\left(x, y\right)}
             sage: x.conjugate().conjugate()

@@ -238,7 +238,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS:
+        INPUT:
 
         - ``pos`` -- ``bint``.  If ``True``, all integers will be in
           the range `[0,p-1]`, otherwise they will be in the range
@@ -389,9 +389,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
 
-        TESTS:
-
-        Check that #11586 has been resolved::
+        Check that :trac:`11586` has been resolved::
 
             sage: R.<x> = QQ[]
             sage: f = x^2 + 3*x + 1
@@ -500,7 +498,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         EXAMPLES::
 
             sage: QQ(Qq(125,names='a')(-1/5)) #indirect doctest
-            95367431640624/5
+            -1/5
         """
         if self.valuation() < 0:
             pk = self.parent().prime()**(-self.ordp()).ceil()
@@ -552,7 +550,7 @@ def _test_preprocess_list(R, L):
     Given a list of elements convertible to ``ntl_ZZ_p``s, finds the
     appropriate absolute precision and returns a list of either ``ntl_ZZs`` or ``ntl_ZZ_ps``.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension ring
 
@@ -578,21 +576,21 @@ def _test_preprocess_list(R, L):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _test_preprocess_list
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_preprocess_list(Zq(25,names='a'), [1,2,3])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1,2,3])
         ([1, 2, 3], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [10,20,30])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [10,20,30])
         ([10, 20, 30], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,2/5,3])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,2/5,3])
         ([1, 2, 15], -1, NTL modulus 95367431640625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),3])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),3])
         ([1, 10, 15], -1, NTL modulus 3125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
         ([1, 10, 15], -1, NTL modulus 125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3)])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3)])
         ([1, 10, 1], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),0])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),0])
         ([1, 10, 1, 0], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
         ([1, 10, 1, 0], -1, NTL modulus 625)
     """
     return preprocess_list(R(0), L)
@@ -608,7 +606,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
     cdef Integer pshift_m
     cdef long aprec
     cdef ntl_ZZ py_tmp
-    if not PyList_Check(L):
+    if not isinstance(L, list):
         raise TypeError, "L must be a list"
     #print "before find_val_aprec"
     min_val, min_aprec, total_type = find_val_aprec(elt.prime_pow, L)
@@ -678,7 +676,7 @@ def _find_val_aprec_test(R, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
@@ -704,13 +702,13 @@ def _find_val_aprec_test(R, L):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _find_val_aprec_test
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _find_val_aprec_test(Zq(25,names='a'), [15, int(75), ntl_ZZ(625)])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [15, int(75), ntl_ZZ(625)])
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [5, int(25), 7/25])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [5, int(25), 7/25])
         (-2, 340282366920938463463374607431768211457, 1)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(4,125), Zp(5)(5,5), ntl_ZZ_p(16,625), 4/125])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(4,125), Zp(5)(5,5), ntl_ZZ_p(16,625), 4/125])
         (-3, 3, 0)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(25,125), Zp(5)(5,5), ntl_ZZ_p(15,625)])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(25,125), Zp(5)(5,5), ntl_ZZ_p(15,625)])
         (0, 3, 0)
     """
     return find_val_aprec(R.prime_pow, L)
@@ -720,7 +718,7 @@ cdef find_val_aprec(PowComputer_ext pp, L):
     Given a list ``L``, finds the minimum valuation, minimum absolute
     precision and minimum common type of the elements.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- a PowComputer_ext for the element that this list is
       being initialized into.
@@ -754,7 +752,7 @@ def _test_get_val_prec(R, a):
     Returns valuation, absolute precision and type of an input
     element.
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- A `p`-adic extension ring to provide a ``PowComputer_ext``
 
@@ -781,42 +779,42 @@ def _test_get_val_prec(R, a):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _test_get_val_prec
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_get_val_prec(Zq(25,names='a'), 15)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 15)
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ(15))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ(15))
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), int(15))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), int(15))
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), 1/15)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 1/15)
         (-1, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(15,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Qp(5)(1/15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5)(1/15,4))
         (-1, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), mod(15,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(15,625))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(15,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ_p(15,625))
         (0, 4, 0)
 
     TESTS::
 
-        sage: _test_get_val_prec(Zq(25,names='a'), 0) #indirect doctest
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 0) #indirect doctest
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), int(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), int(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), 0/1)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 0/1)
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(25,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Qp(5)(1/25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5)(1/25,4))
         (-2, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), mod(0,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(0,625))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(0,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ_p(0,625))
         (0, 4, 0)
     """
     return get_val_prec(R.prime_pow, a)
@@ -825,7 +823,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
     """
     Returns valuation, absolute precision and type of an input element.
 
-    INPUTS:
+    INPUT:
 
     - ``pp`` -- A ``PowComputer_ext``
 

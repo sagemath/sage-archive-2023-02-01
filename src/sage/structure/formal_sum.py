@@ -381,8 +381,6 @@ class FormalSums(UniqueRepresentation, Module):
             P = x.parent()
             if P is self:
                 return x
-            elif P == self:
-                return self.element_class(x._data, check=False, reduce=False, parent=self)
             else:
                 x = x._data
         if isinstance(x, list):

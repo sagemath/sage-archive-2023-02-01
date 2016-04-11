@@ -87,12 +87,12 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
 
 from sage.structure.sage_object import SageObject
 
 from sage.misc.all import verbose, denominator, get_verbose
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
@@ -485,7 +485,7 @@ class pAdicLseries(SageObject):
             sage: alpha = L.alpha(10); alpha
             (1 + O(3^10))*alpha
             sage: alpha^2 - E.ap(3)*alpha + 3
-            (O(3^10))*alpha^2 + (O(3^11))*alpha + (O(3^11))
+            (O(3^11))*alpha + (O(3^11))
 
         A reducible prime::
 
@@ -827,7 +827,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(3)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + O(3))*T^4 + O(T^5)
 
-        Checks if the precision can be changed (:trac: `5846`)::
+        Checks if the precision can be changed (:trac:`5846`)::
 
             sage: L.series(3,prec=4)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
@@ -1093,17 +1093,17 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(2)
             O(T^3)
             sage: L.series(4)         # takes a long time (several seconds)
-            (O(3))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + O(T^5)
+            (O(3^2))*alpha + (O(3^3)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
             Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
 
-        An example where we only compute the leading term (:trac: `15737`)::
+        An example where we only compute the leading term (:trac:`15737`)::
 
             sage: E = EllipticCurve("17a1")
             sage: L = E.padic_lseries(3)
             sage: L.series(4,prec=1)
-            (O(3^18))*alpha^2 + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
+            (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
 
         """
         n = ZZ(n)

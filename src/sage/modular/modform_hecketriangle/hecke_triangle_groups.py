@@ -30,7 +30,6 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
-
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
     Hecke triangle group (2, n, infinity).
@@ -933,32 +932,33 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: list(G._conj_block[2])
             [((4, 1), (3, 1)), ((2, 2),), ((3, 2),), ((3, 1), (1, 1)), ((4, 1), (1, 1)), ((4, 1), (2, 1)), ((3, 1), (2, 1)), ((2, 1), (1, 1))]
 
-            sage: [key for key in G._conj_prim]
-            [0, lam - 3, 15*lam + 6, 7*lam + 6, 4*lam, 9*lam + 5, 33*lam + 21, -4]
-            sage: for key in G._conj_prim: print G._conj_prim[key]
-            [[V(4)]]
-            [[U], [U]]
-            [[V(1)*V(3)], [V(2)*V(4)]]
-            [[V(1)*V(4)]]
-            [[V(3)], [V(2)]]
-            [[V(3)*V(4)], [V(1)*V(2)]]
-            [[V(2)*V(3)]]
+            sage: [key for key in sorted(G._conj_prim)]
+            [-4, lam - 3, 0, 4*lam, 7*lam + 6, 9*lam + 5, 15*lam + 6, 33*lam + 21]
+            sage: for key in sorted(G._conj_prim):
+            ....:     print G._conj_prim[key]
             [[S], [S]]
-            sage: [key for key in G._conj_nonprim]
-            [lam - 3, 32*lam + 16, -lam - 2]
+            [[U], [U]]
+            [[V(4)]]
+            [[V(3)], [V(2)]]
+            [[V(1)*V(4)]]
+            [[V(3)*V(4)], [V(1)*V(2)]]
+            [[V(1)*V(3)], [V(2)*V(4)]]
+            [[V(2)*V(3)]]
+            sage: [key for key in sorted(G._conj_nonprim)]
+            [-lam - 2, lam - 3, 32*lam + 16]
 
-            sage: for key in G._conj_nonprim: print G._conj_nonprim[key]
+            sage: for key in sorted(G._conj_nonprim):
+            ....:     print G._conj_nonprim[key]
+            [[U^(-2)], [U^2], [U^(-2)], [U^2]]
             [[U^(-1)], [U^(-1)]]
             [[V(2)^2], [V(3)^2]]
-            [[U^(-2)], [U^2], [U^(-2)], [U^2]]
-
 
             sage: G.element_repr_method("default")
         """
 
         from sage.combinat.partition import OrderedPartitions
         from sage.combinat.combinat import tuples
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
 
         if not D is None:
             max_block_length = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()
@@ -1214,7 +1214,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         - ``primitive``  -- If ``True`` (default) then only primitive
                             elements are considered.
 
-        OUPUT:
+        OUTPUT:
 
         ``True`` if ``D`` is a primitive discriminant (a discriminant of
         a primitive element) and ``False`` otherwise.
@@ -1269,7 +1269,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                             discriminants which were gathered so far are listed
                             (however there might be missing discriminants inbetween).
 
-        OUPUT:
+        OUTPUT:
 
         A list of discriminants less than or equal to ``D``.
 

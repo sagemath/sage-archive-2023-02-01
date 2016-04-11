@@ -943,7 +943,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         - ``other`` -- an automorphism of the same module as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
         ``self.``
@@ -1081,7 +1081,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        return self.__mul__(other)
+        return self * other
 
     def matrix(self, basis1=None, basis2=None):
         r"""

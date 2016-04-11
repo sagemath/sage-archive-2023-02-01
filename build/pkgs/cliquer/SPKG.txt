@@ -16,7 +16,4 @@ http://users.tkk.fi/pat/cliquer.html
  * None
 
 == Patches ==
- * Makefile.patch: Patch the Makefile for Sage. Remove hardcoded
-   compiler and linker flags, allow flags to be set from spkg-install.
-   More importantly, we're building cliquer as a dynamic shared library,
-   instead of a stand-alone program.
+ * autotoolized - see https://github.com/dimpase/autocliquer

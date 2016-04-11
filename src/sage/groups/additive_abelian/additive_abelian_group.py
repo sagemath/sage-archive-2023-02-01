@@ -15,7 +15,7 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
     r"""
     Construct a finitely-generated additive abelian group.
 
-    INPUTS:
+    INPUT:
 
     - ``invs`` (list of integers): the invariants.
       These should all be greater than or equal to zero.

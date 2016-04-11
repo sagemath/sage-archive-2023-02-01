@@ -122,7 +122,7 @@ class GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(Combinatoria
 
         - ``i``, ``j`` -- non-negative integers
 
-        OUPUT:
+        OUTPUT:
 
         - a basis element indexed by ``i+j``
 

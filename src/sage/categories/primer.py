@@ -276,7 +276,7 @@ details).
 
 It is possible for a parent to also have simultaneously the
 structure of an element. Consider for example the monoid of all
-finite groups, endowed with the cartesian product operation.
+finite groups, endowed with the Cartesian product operation.
 Then, every finite group (which is a parent) is also an element of
 this monoid. This is not yet implemented, and the design details
 are not yet fixed but experiments are underway in this direction.
@@ -289,7 +289,7 @@ A *category* is a Python instance modelling a mathematical category.
 
 Examples of categories include the category of finite semigroups,
 the category of all (Python) objects, the category of
-`\ZZ`-algebras, and the category of cartesian products of
+`\ZZ`-algebras, and the category of Cartesian products of
 `\ZZ`-algebras::
 
     sage: FiniteSemigroups()
@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 
@@ -462,16 +462,18 @@ together with their operations, and designing an appropriate hierarchy
 of classes for organizing the code. As we have seen above, the design
 of the class hierarchy is easy since it can be modelled upon the
 hierarchy of categories (bookshelves). Here is for example a piece of
-the hierarchy of classes for an element of a group of matrices::
+the hierarchy of classes for an element of a group of permutations::
 
-    sage: G = GL(2,ZZ)
-    sage: m = G.an_element()
+    sage: P = Permutations(4)
+    sage: m = P.an_element()
     sage: for cls in m.__class__.mro(): print cls
-    <class 'sage.groups.matrix_gps.group_element.LinearMatrixGroup_gap_with_category.element_class'>
-    <class 'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap'>
+    <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
+    <class 'sage.combinat.permutation.StandardPermutations_n.Element'>
+    <class 'sage.combinat.permutation.Permutation'>
     ...
     <class 'sage.categories.groups.Groups.element_class'>
     <class 'sage.categories.monoids.Monoids.element_class'>
+    ...
     <class 'sage.categories.semigroups.Semigroups.element_class'>
     ...
 
@@ -512,7 +514,7 @@ kinds of sets:
 
 - A finite semigroup: left/right ideals, center, representation theory
 
-- A vector space, an algebra: cartesian product, tensor product, quotient
+- A vector space, an algebra: Cartesian product, tensor product, quotient
 
 Hence, following the OOP fundamental principle, parents should also be
 modelled by instances of some (hierarchy of) classes. For example, our
@@ -878,7 +880,7 @@ Wrap-up
   gathered in :class:`AlgebrasWithBasis` or its super categories.
   This includes properties and algorithms for elements, parents,
   morphisms, but also, as we will see, for constructions like
-  cartesian products or quotients.
+  Cartesian products or quotients.
 
 - The mathematical relations between elements, parents, and categories
   translate dynamically into a traditional hierarchy of classes.
@@ -1077,7 +1079,7 @@ algebraic structure. This includes:
   See: :meth:`Sets.ParentMethods.algebras`.
 
 Let for example `A` and `B` be two parents, and let us construct the
-cartesian product `A \times B \times B`::
+Cartesian product `A \times B \times B`::
 
     sage: A = AlgebrasWithBasis(QQ).example();     A.rename("A")
     sage: B = HopfAlgebrasWithBasis(QQ).example(); B.rename("B")
@@ -1093,7 +1095,7 @@ structure for pointwise multiplication::
     sage: C in Monoids()
     True
 
-the unit being the cartesian product of the units of the operands::
+the unit being the Cartesian product of the units of the operands::
 
     sage: C.one()
     B[(0, word: )] + B[(1, ())] + B[(2, ())]
@@ -1102,7 +1104,7 @@ the unit being the cartesian product of the units of the operands::
 
 The pointwise product can be implemented generically for all magmas
 (i.e. sets endowed with a multiplicative operation) that are
-constructed as cartesian products. It's thus implemented in the
+constructed as Cartesian products. It's thus implemented in the
 :class:`Magmas` category::
 
     sage: C.product.__module__
@@ -1119,7 +1121,7 @@ code, the product method is put in the nested class
             # methods for elements of magmas
         class CartesianProduct(CartesianProductCategory):
             class ParentMethods:
-                # methods for magmas that are constructed as cartesian products
+                # methods for magmas that are constructed as Cartesian products
                 def product(self, x, y):
                     # ...
             class ElementMethods:
@@ -1145,14 +1147,14 @@ Let us now look at the categories of ``C``::
      Category of Cartesian products of additive magmas, ..., Category of additive magmas,
      Category of Cartesian products of sets, Category of sets, ...]
 
-This reveals the parallel hierarchy of categories for cartesian
+This reveals the parallel hierarchy of categories for Cartesian
 products of semigroups magmas, ... We are thus glad that Sage uses
 its knowledge that a monoid is a semigroup to automatically deduce
-that a cartesian product of monoids is a cartesian product of
+that a Cartesian product of monoids is a Cartesian product of
 semigroups, and build the hierarchy of classes for parents and
 elements accordingly.
 
-In general, the cartesian product of `A` and `B` can potentially be an
+In general, the Cartesian product of `A` and `B` can potentially be an
 algebra, a coalgebra, a differential module, and be finite
 dimensional, or graded, or ....  This can only be decided at runtime,
 by introspection into the properties of `A` and `B`; furthermore, the
@@ -1496,7 +1498,7 @@ have been long identified and are relatively few:
 
 - Operations (`+`, `*`, ...)
 - Axioms on those operations (associativity, ...)
-- Constructions (cartesian products, ...)
+- Constructions (Cartesian products, ...)
 
 Better, those concepts are sufficiently well known so that a user can
 reasonably be expected to be familiar with the concepts that are

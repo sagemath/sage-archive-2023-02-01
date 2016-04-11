@@ -812,7 +812,7 @@ axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_construction.CovariantConstructionCategory.extra_super_categories`).
-For example, the fact that a cartesian product of associative magmas
+For example, the fact that a Cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
 
@@ -1560,9 +1560,6 @@ having read that far!
 Tests
 =====
 
-
-TESTS:
-
 .. NOTE::
 
     Quite a few categories with axioms are constructed early on during
@@ -1571,6 +1568,8 @@ TESTS:
     Sage. The following sequence of tests is designed to test the
     infrastructure from the ground up even in a partially broken
     Sage. Please don't remove the imports!
+
+TESTS:
 
 ::
 

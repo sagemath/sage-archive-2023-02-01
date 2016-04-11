@@ -223,7 +223,7 @@ author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
-    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, starting with [1,1,1].
+    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
     2: A080937: Number of Catalan paths (nonnegative, starting and ending at 0, step +/-1) of 2*n steps with all values <= 5.
 
 The result suggests that the trees are counted by one of the most famous
@@ -254,7 +254,7 @@ product `C\times C`).
 
 The founding idea of algebraic combinatorics, introduced by Euler in
 a letter to Goldbach of 1751 to treat a similar problem , is to
-manipuate all the numbers `c_n` simultaneously, by encoding them
+manipulate all the numbers `c_n` simultaneously, by encoding them
 as coefficients in a formal power series, called the *generating
 function* of the `c_n`’s:
 
@@ -419,8 +419,8 @@ In the present case, `P=y^2-y+x`. We formally differentiate this
 equation with respect to `z`::
 
     sage: x, y, z = var('x, y, z')
-    sage: P = function('P', x, y)
-    sage: C = function('C', z)
+    sage: P = function('P')(x, y)
+    sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
     D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0
@@ -531,7 +531,7 @@ found, based on the closed form:
 .. math:: c_{n+1}=\frac{(4n-2)}{n+1}c_n
 
 After fixing the correct initial conditions, it becomes possible to
-calculate the coefficents of `C(z)` recursively::
+calculate the coefficients of `C(z)` recursively::
 
     sage: def C(n): return 1 if n <= 1 else (4*n-6)/n * C(n-1)
     sage: [ C(i) for i in range(10) ]
@@ -937,7 +937,7 @@ Set comprehension and iterators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We will now show some of the possibilities offered by ``Python`` for
-constructing (and interating through) sets, with a notation that is
+constructing (and iterating through) sets, with a notation that is
 flexible and close to usual mathematical usage, and in particular the
 benefits this yields in combinatorics.
 
@@ -1106,7 +1106,7 @@ use the ``Sage`` function ``exists``::
     ....:         lambda p: not is_prime(mersenne(p)) )
     (True, 11)
 
-Alternatively, we could construct an interator on the counter-examples::
+Alternatively, we could construct an iterator on the counter-examples::
 
     sage: counter_examples = \
     ....:   (p for p in range(1000)
@@ -1116,7 +1116,7 @@ Alternatively, we could construct an interator on the counter-examples::
     sage: next(counter_examples)
     23
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     What do the following commands do?
 
@@ -1133,7 +1133,7 @@ Alternatively, we could construct an interator on the counter-examples::
     Which of the last two is more economical in terms of time? In terms
     of memory? By how much?
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     Try each of the following commands, and explain its result. If
     possible, hide the result first and try to guess it before
@@ -1283,7 +1283,7 @@ to creating an anonymous function::
     ....:                     Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-Implementation of new interators
+Implementation of new iterators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is easy to construct new iterators, using the keyword ``yield``
@@ -1342,7 +1342,7 @@ These words can then be counted by::
 
 Counting the words one by one is clearly not an efficient method in this
 case, since the formula `n^\ell` is also available; note,
-though, that this is not the stupidest possible approach — it does, at
+though, that this is not the stupidest possible approach - it does, at
 least, avoid constructing the entire list in memory.
 
 We now consider Dyck words, which are well-parenthesized words in the
@@ -1410,7 +1410,7 @@ previous section, and to construct the example of sets of cards in
 Consider a large Cartesian product::
 
     sage: C = cartesian_product([Compositions(8), Permutations(20)]); C
-    The cartesian product of (Compositions of 8, Standard permutations of 20)
+    The Cartesian product of (Compositions of 8, Standard permutations of 20)
     sage: C.cardinality()
     311411457046609920000
 
@@ -1730,9 +1730,8 @@ The Fibonacci sequence is easily recognized here, hence the name::
 
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-    1: A185357: Expansion of 1/(1 - x - x^2 + x^18 - x^20).
+    1: A212804: Expansion of (1-x)/(1-x-x^2).
     2: A132636: Fib(n) mod n^3.
-
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,
@@ -1787,7 +1786,7 @@ graph* is then an equivalence class of labelled graphs.
 In general, testing if two labelled graphs are isomorphic is expensive.
 However, the number of graphs, even unlabelled, grows very
 rapidly.  Nonetheless, it is possible to list unlabelled graphs very efficiently
-considering their number. For example, the program Nauty can list the
+considering their number. For example, the program ``Nauty`` can list the
 `12005168` simple graphs with `10` vertices in
 `20` seconds.
 

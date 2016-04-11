@@ -8,8 +8,6 @@ either equalities or less-or-equal. For example::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x = p.new_variable()
-    doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
-    See http://trac.sagemath.org/15521 for details.
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1
     sage: type(f)
@@ -75,7 +73,6 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 from cpython.object cimport *
 
 from sage.misc.fast_methods cimport hash_by_id
@@ -291,12 +288,12 @@ cdef class LinearFunctionsParent_class(Parent):
 
         - ``free_module`` -- vector space or matrix space over the
           same base ring.
-        
+
         OUTPUT:
 
         Instance of
         :class:`sage.numerical.linear_tensor.LinearTensorParent_class`.
-        
+
         EXAMPLES::
 
             sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
@@ -703,7 +700,7 @@ cdef class LinearFunction(ModuleElement):
            [x_0 0  ]
            [0   x_0]
            sage: tf.parent()
-           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over 
+           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over
            Rational Field and Linear functions over Rational Field
        """
        R = self.base_ring()
@@ -743,10 +740,24 @@ cdef class LinearFunction(ModuleElement):
             sage: f._coeff_formatter(RDF(12.3))
             '12.3*'
 
-            sage: q = MixedIntegerLinearProgram(solver='ppl')
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: f = p(1)
             sage: f._coeff_formatter(13/45)
             '13/45*'
+
+            sage: from sage.rings.number_field.number_field import QuadraticField
+            sage: K.<sqrt5> = QuadraticField(5, 'sqrt5')
+            sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=K)
+            sage: f = p(1)
+            sage: f._coeff_formatter(sqrt5)
+            'sqrt5*'
+
+            sage: from sage.rings.all import AA
+            sage: sqrt5 = AA(5).sqrt()
+            sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=AA)
+            sage: f = p(1)
+            sage: f._coeff_formatter(sqrt5)
+            '2.236067977499790?*'
         """
         R = self.base_ring()
         if coeff == R.one() and not constant_term:
@@ -754,7 +765,7 @@ cdef class LinearFunction(ModuleElement):
         try:
             from sage.rings.all import ZZ
             coeff = ZZ(coeff)    # print as integer if possible
-        except TypeError:
+        except (TypeError, ValueError):
             pass
         if constant_term:
             return str(coeff)
@@ -841,7 +852,7 @@ cdef class LinearFunction(ModuleElement):
         """
         return (left-right).is_zero()
 
-    cdef _richcmp(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Create an inequality or equality object.
 
@@ -898,8 +909,8 @@ cdef class LinearFunction(ModuleElement):
             1 <= x_0
             sage: 1 >= x[0]
             x_0 <= 1
-       """
-        LF = left.parent()
+        """
+        LF = (<LinearFunction?>left)._parent
         LC = LinearConstraintsParent(LF)
         equality = (op == Py_EQ)
         cdef LinearConstraint  left_constraint = LC(left,  equality=equality)
@@ -928,10 +939,10 @@ cdef class LinearFunction(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        # see _cmp_() if you want to change the hash function
+        # see __cmp__() if you want to change the hash function
         return hash_by_id(<void *> self)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    def __cmp__(left, right):
         """
         Implement comparison of two linear functions.
 
@@ -1238,9 +1249,7 @@ cdef class LinearConstraint(Element):
         """
         Evil hack to allow chained constraints
 
-        Python translates ``x < y < z`` into:
-
-        .. code-block:: python
+        Python translates ``x < y < z`` into::
 
              temp = x <= y      # calls x.__richcmp__(y)
              if temp:           # calls temp.__nonzero__()
@@ -1475,7 +1484,7 @@ cdef class LinearConstraint(Element):
         self._chained_comparator_hack_part2()
         return True
 
-    cdef _richcmp(py_left, py_right, int op):
+    def __richcmp__(py_left, py_right, int op):
         """
         Chain (in)equalities
 
@@ -1488,14 +1497,18 @@ cdef class LinearConstraint(Element):
             sage: b[0] <= 1 <= b[1] <= 2 <= b[2] <= 3
             x_0 <= 1 <= x_1 <= 2 <= x_2 <= 3
         """
-        #  print 'richcmp', py_left, ', ', py_right
-        LC = py_left.parent()
-        if not is_LinearConstraint(py_right):
-            py_right = LC(py_right, equality=py_left.is_equation())
-        elif py_right.parent() is not LC:
-            py_right = LC(py_right.constraints, equality=py_left.is_equation())
-        cdef LinearConstraint right = <LinearConstraint>py_right
-        cdef LinearConstraint left = py_left._chained_comparator_hack_part1(right)
+        cdef LinearConstraint left = <LinearConstraint?>py_left
+        LC = left._parent
+        cdef LinearConstraint right
+        try:
+            right = <LinearConstraint?>py_right
+        except TypeError:
+            right = <LinearConstraint>LC(py_right, equality=left.is_equation())
+
+        if right._parent is not LC:
+            right = <LinearConstraint>LC(right.constraints, equality=left.is_equation())
+
+        left = left._chained_comparator_hack_part1(right)
         if op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead.")
         elif op == Py_EQ:

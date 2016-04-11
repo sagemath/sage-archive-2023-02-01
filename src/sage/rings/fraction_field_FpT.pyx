@@ -3,7 +3,7 @@
 import sys
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
@@ -851,7 +851,7 @@ cdef class FpT_iter:
     """
     def __init__(self, parent, degree=None, FpTElement start=None):
         """
-        INPUTS:
+        INPUT:
 
         - parent -- The FpT that we're iterating over.
 
@@ -1013,7 +1013,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1196,7 +1196,7 @@ cdef class FpT_Polyring_section(Section):
 
     def __init__(self, Polyring_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- A Polyring_FpT_coerce homomorphism
 
@@ -1307,7 +1307,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1474,7 +1474,7 @@ cdef class FpT_Fp_section(Section):
 
     def __init__(self, Fp_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- An Fp_FpT_coerce homomorphism
 
@@ -1604,7 +1604,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 

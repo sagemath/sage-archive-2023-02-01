@@ -76,39 +76,21 @@ REFERENCE:
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
-#                          William Stein   <wstein@gmail.com>
+#                          William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from ell_field import EllipticCurve_field
-import ell_point
-import sage.matrix.all as matrix
-from sage.rings.ring import Ring
-from sage.rings.arith import gcd, prime_divisors
-from sage.misc.all import prod
-import ell_torsion
 from ell_generic import is_EllipticCurve
-
-from gp_simon import simon_two_descent
+from ell_point import EllipticCurvePoint_number_field
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, ZZ, QQ, RealField
-import sage.misc.misc
-from sage.misc.misc import verbose, forall
-from sage.rings.integer import Integer
-from sage.rings.arith import valuation
-
-import gal_reps_number_field
-
+from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
+from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -140,7 +122,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         self._known_points = []
         EllipticCurve_field.__init__(self, K, ainvs)
 
-    _point = ell_point.EllipticCurvePoint_number_field
+    _point = EllipticCurvePoint_number_field
 
     def base_extend(self, R):
         """
@@ -337,6 +319,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except KeyError:
             pass
 
+        from gp_simon import simon_two_descent
         t = simon_two_descent(self, verbose=verbose,
                               lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime,
@@ -521,7 +504,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # of just one point.
 
         # First factor f over F and then compute a root X of f over K.
-        g = prime_divisors(f)[0]
+        g = f.factor()[0][0]
         X = g.map_coefficients(F_to_K).roots(multiplicities=False)[0]
 
         # Polynomial defining the corresponding Y-coordinate
@@ -604,7 +587,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             RR = RealField()
         else:
             RR = RealField(precision)
-        M = matrix.MatrixSpace(RR, r)
+
+        from sage.matrix.all import MatrixSpace
+        M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
             mat[j,j] = points[j].height(precision=precision)
@@ -834,7 +819,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         K = self.base_field()
         ai = self.a_invariants()
         Ps = [[ ff[0] for ff in a.denominator_ideal().factor() ] for a in ai if not a.is_integral() ]
-        Ps = sage.misc.misc.union(sage.misc.flatten.flatten(Ps))
+        Ps = union(flatten(Ps))
         for P in Ps:
             pi = K.uniformizer(P,'positive')
             e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
@@ -915,15 +900,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        A model for this elliptic curve, optimally scaled with repect
-        to scaling by units when the base field is real quadratic;
-        unchanged otherwise.
+        A model for this elliptic curve, optimally scaled with respect
+        to scaling by units, with respect to the logarithmic embedding
+        of |c4|^(1/4)+|c6|^(1/6).  No scaling by roots of unity is
+        carried out, so there is no change when the unit rank is 0.
 
-        .. note::
-
-           This is currently only implemented for real quadratic fields.
-
-        EXAMPLE::
+        EXAMPLES::
 
            sage: K.<a> = NumberField(x^2-10)
            sage: u = K.units()[0]
@@ -937,32 +919,48 @@ class EllipticCurve_number_field(EllipticCurve_field):
            -77225139016967233228487820912*a - 244207331916752959911655344864)
            sage: E1._scale_by_units().ainvs()
            (0, 0, 0, 4536*a + 14148, -163728*a - 474336)
+
+        A totally real cubic example::
+
+           sage: K.<a> = NumberField(x^3-x^2-6*x+5)
+           sage: E = EllipticCurve([a + 1, a^2 + a - 1, a + 1, 44*a^2 + a - 258, -215*a^2 + 53*a + 1340])
+           sage: u1, u2 = K.units()
+           sage: u = u1^2/u2^3
+           sage: E1 = E.scale_curve(u)
+           sage: E1._scale_by_units().ainvs() == E.ainvs()
+           True
+
+        A complex quartic example::
+
+           sage: K.<a> = CyclotomicField(5)
+           sage: E = EllipticCurve([a + 1, a^2 + a - 1, a + 1, 44*a^2 + a - 258, -215*a^2 + 53*a + 1340])
+           sage: u = K.units()[0]
+           sage: E1 = E.scale_curve(u^5)
+           sage: E1._scale_by_units().ainvs() == E.ainvs()
+           True
         """
         K = self.base_field()
-        if not K.signature()==(2,0):
+        r1, r2 = K.signature()
+        if r1+r2==1: # unit rank is 0
             return self
 
-        R = RealField(1000)  # lower precision works badly!
-        embs = K.embeddings(R)
-        u = K.units()[0]
-        uv = [e(u).abs().log() for e in embs]
+        prec = 1000  # lower precision works badly!
+        embs = K.places(prec=prec)
+        degs = [1]*r1 + [2]*r2
+        fu = K.units()
+        from sage.matrix.all import Matrix
+        U = Matrix([[e(u).abs().log()*d for d,e in zip(degs,embs)] for u in fu])
+        A = U*U.transpose()
+        Ainv = A.inverse()
 
         c4, c6 = self.c_invariants()
         c4s = [e(c4) for e in embs]
         c6s = [e(c6) for e in embs]
-        v = [(x4.abs()**(R.one()/4)+x6.abs()**(R.one()/6)).log() for x4,x6 in zip(c4s,c6s)]
-        kr = -(v[0]*uv[0]+v[1]*uv[1])/(uv[0]**2+uv[1]**2)
-        k1 = kr.floor()
-        k2 = kr.ceil()
-        nv1 = (v[0] + k1*uv[0])**2 + (v[1] + k1*uv[1])**2
-        nv2 = (v[0] + k2*uv[0])**2 + (v[1] + k2*uv[1])**2
-        if nv1 < nv2:
-            k=k1
-        else:
-            k=k2
-        return self.scale_curve(u**k)
-
-
+        from sage.modules.all import vector
+        v = vector([(x4.abs().nth_root(4)+x6.abs().nth_root(6)).log()*d for x4,x6,d in zip(c4s,c6s,degs)])
+        es = [e.round() for e in -Ainv*U*v]
+        u = prod([uj**ej for uj,ej in zip(fu,es)])
+        return self.scale_curve(u)
 
     def local_data(self, P=None, proof=None, algorithm="pari", globally=False):
         r"""
@@ -1402,7 +1400,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: eK.tamagawa_numbers()
             [4, 6, 1]
         """
-        return [self.tamagawa_number(p) for p in prime_divisors(self.conductor())]
+        return [self.tamagawa_number(p) for p in self.conductor().prime_factors()]
 
     def tamagawa_exponent(self, P, proof = None):
         r"""
@@ -1503,11 +1501,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             if self.base_field().absolute_degree() == 1:
                 p = pp.gens_reduced()[0]
                 f = 1
-                v = valuation(ZZ(uu),p)
+                v = ZZ(uu).valuation(p)
             else:
                 p = pp.smallest_integer()
                 f = pp.residue_class_degree()
-                v = valuation(uu,pp)
+                v = uu.valuation(pp)
             uu_abs_val = p**(f*v)
             pr *= cv * uu_abs_val
         return pr
@@ -1890,7 +1888,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K2.<v> = K1.extension(m^2-w+1)
             sage: E = EllipticCurve([0*v,-432])
             sage: E.global_minimal_model()
-            Elliptic Curve defined by y^2 + (v+w+1)*y = x^3 + ((6*w-10)*v+16*w+20) over Number Field in v with defining polynomial x^2 - w + 1 over its base field
+            Elliptic Curve defined by y^2 + y = x^3 over Number Field in v with defining polynomial x^2 - w + 1 over its base field
 
         See :trac:`18662`: for fields of class number greater than 1,
         even when global minimal models did exist, their computation
@@ -2055,7 +2053,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         E = self
-        bound = 0
+        bound = ZZ(0)
         k = 0
         K = E.base_field()
         OK = K.ring_of_integers()
@@ -2080,12 +2078,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
                         if eqq < charqq - 1 and disc.valuation(qq) == 0:
                             Etilda = E.reduction(qq)
                             Npp = Etilda.cardinality()
-                            bound = gcd(bound,Npp)
+                            bound = bound.gcd(Npp)
                             if bound == 1:
                                 return bound
                             k += 1
         return bound
 
+    @cached_method
     def torsion_subgroup(self):
         r"""
         Returns the torsion subgroup of this elliptic curve.
@@ -2130,12 +2129,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_subgroup ()
             Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2  = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1
         """
-        try:
-            return self.__torsion_subgroup
-        except AttributeError:
-            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self)
-            return self.__torsion_subgroup
+        from ell_torsion import EllipticCurveTorsionSubgroup
+        return EllipticCurveTorsionSubgroup(self)
 
+    @cached_method
     def torsion_order(self):
         r"""
         Returns the order of the torsion subgroup of this elliptic curve.
@@ -2175,11 +2172,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_order()
             1
          """
-        try:
-            return self.__torsion_order
-        except AttributeError:
-            self.__torsion_order = self.torsion_subgroup().order()
-            return self.__torsion_order
+        return self.torsion_subgroup().order()
 
     def torsion_points(self):
         r"""
@@ -2253,7 +2246,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_points ()
              [(-2 : -3*i : 1), (-2 : 3*i : 1), (0 : -i : 1), (0 : i : 1), (0 : 1 : 0), (1 : 0 : 1)]
          """
-        T = self.torsion_subgroup() # make sure it is cached
+        T = self.torsion_subgroup() # cached
         return sorted(T.points())           # these are also cached in T
 
     def rank_bounds(self, **kwds):
@@ -2707,10 +2700,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [1 2]
             [2 1]
             sage: [E.ainvs() for E in C]
-            [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
-            (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
+            [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
+            (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (1391590873420*c^3+3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         An example with CM by `\sqrt{-23}` (class number `3`)::
 
@@ -2746,11 +2739,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-92, -23, -23]
 
             sage: C.matrix()
-            [1 2 2 2 4 4]
-            [2 1 2 4 2 4]
+            [1 2 2 4 2 4]
+            [2 1 2 2 4 4]
             [2 2 1 4 4 2]
-            [2 4 4 1 3 3]
-            [4 2 4 3 1 3]
+            [4 2 4 1 3 3]
+            [2 4 4 3 1 3]
             [4 4 2 3 3 1]
 
         The graph of this isogeny class has a shape which does not
@@ -2778,11 +2771,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: G = C.graph()
             sage: G.adjacency_matrix()
-            [0 1 1 1 0 0]
-            [1 0 1 0 1 0]
+            [0 1 1 0 1 0]
+            [1 0 1 1 0 0]
             [1 1 0 0 0 1]
-            [1 0 0 0 1 1]
-            [0 1 0 1 0 1]
+            [0 1 0 0 1 1]
+            [1 0 0 1 0 1]
             [0 0 1 1 1 0]
 
         To display the graph without any edge labels::
@@ -2838,10 +2831,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: C = E.isogeny_class(); len(C) # long time (~11s)
             4
             sage: C.matrix()                    # long time
-            [ 1  2 13 26]
-            [ 2  1 26 13]
-            [13 26  1  2]
-            [26 13  2  1]
+            [ 1 13  2 26]
+            [13  1 26  2]
+            [ 2 26  1 13]
+            [26  2 13  1]
             sage: len(Set([EE.j_invariant() for EE in C.curves]))  # long time
             2
 
@@ -2849,7 +2842,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         number)::
 
             sage: EL = E.change_ring(L)
-            sage: CL = EL.isogeny_class(); len(CL) # long time (~21s)
+            sage: CL = EL.isogeny_class(); len(CL) # long time (~121s)
             6
             sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False)) # long time
             True
@@ -2861,23 +2854,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         forms of discriminant `-104`, from which we have selected a
         small prime::
 
-            sage: CL.matrix() # long time
+            sage: CL.matrix() # long time # random (see :trac:`19229`)
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
-            [3 5 1 3 5 2]
-            [3 5 3 1 2 5]
-            [5 3 5 2 1 3]
-            [5 3 2 5 3 1]
+            [3 5 1 3 2 5]
+            [3 5 3 1 5 2]
+            [5 3 2 5 1 3]
+            [5 3 5 2 3 1]
 
         To see the array of binary quadratic forms::
 
-            sage: CL.qf_matrix()  # long time
+            sage: CL.qf_matrix()  # long time # random (see :trac:`19229`)
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
-            [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
-            [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [5, -4, 6], [2, 0, 13]],
-            [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [2, 0, 13], [5, -4, 6]],
-            [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [1], [3, -2, 9]],
-            [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [3, -2, 9], [1]]]
+             [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
+             [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],
+             [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [5, -4, 6], [2, 0, 13]],
+             [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [1], [3, -2, 9]],
+             [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [3, -2, 9], [1]]]
 
         As in the non-CM case, the isogeny class may be visualized by
         obtaining its graph and plotting it.  Since there are more
@@ -2892,6 +2885,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         rotated!::
 
             sage: G.show3d(color_by_label=True) # long time
+
+        TESTS:
+
+        An example which failed until fixed at :trac:`19229`::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([a+1,1,1,0,0])
+            sage: C = E.isogeny_class(); len(C)
+            4
         """
         try:
             return self._isoclass
@@ -3363,11 +3365,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: rho.non_surjective()
             [5]
         """
-        return gal_reps_number_field.GaloisRepresentation(self)
+        from gal_reps_number_field import GaloisRepresentation
+        return GaloisRepresentation(self)
 
+    @cached_method
     def cm_discriminant(self):
         """
-        Returns the CM discriminant of the `j`-invariant of this curve.
+        Returns the CM discriminant of the `j`-invariant of this curve, or 0.
 
         OUTPUT:
 
@@ -3401,25 +3405,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).cm_discriminant()
             -108
         """
-        try:
-            D = self._CMD
-        except AttributeError:
-            pass
-        else:
-            if D:
-                return D
-            else:
-                raise ValueError("%s does not have CM"%self)
-
         from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
         flag, df =  is_cm_j_invariant(self.j_invariant())
         if flag:
             d, f = df
-            self._CMD = d*f**2
-            return self._CMD
-        self._CMD = 0 # special cached value to indicate no CM
-        raise ValueError("%s does not have CM"%self)
+            return d*f**2
+        else: # no CM
+            return ZZ(0)
 
+    @cached_method
     def has_cm(self):
         """
         Returns whether or not this curve has a CM `j`-invariant.
@@ -3433,7 +3427,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            Even if `E` has CM in this sense (that its `j`-invariant is
-           a CM `j`-invariant), since the associated negative
+           a CM `j`-invariant), if the associated negative
            discriminant `D` is not a square in the base field `K`, the
            extra endomorphisms will not be defined over `K`.  See also
            the method :meth:`has_rational_cm` which tests whether `E`
@@ -3457,12 +3451,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).has_cm()
             True
         """
-        try:
-            D = self.cm_discriminant()
-        except ValueError:
-            return False
-        return True
+        return not self.cm_discriminant().is_zero()
 
+    @cached_method
     def has_rational_cm(self, field=None):
         """
         Returns whether or not this curve has CM defined over its
@@ -3541,9 +3532,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.has_rational_cm(K.extension(x^2+108,'b'))
             True
         """
-        try:
-            D = self.cm_discriminant()
-        except ValueError:
+        D = self.cm_discriminant()
+        if D.is_zero():
             return False
         if field is None:
             return self.base_field()(D).is_square()

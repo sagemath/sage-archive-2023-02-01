@@ -45,6 +45,28 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S.simple_reflections()
         Finite family {0: (1, 0, 2, 3), 1: (0, 2, 1, 3), 2: (0, 1, 3, 2)}
 
+    Only the following basic operations are implemented:
+
+    - :meth:`.one`
+    - :meth:`.product`
+    - :meth:`.simple_reflection`
+    - :meth:`.Element.has_right_descent`.
+
+    All the other usual Weyl group operations are inherited from the
+    categories::
+
+        sage: S.cardinality()
+        24
+        sage: S.long_element()
+        (3, 2, 1, 0)
+        sage: S.cayley_graph(side = "left").plot()
+        Graphics object consisting of 120 graphics primitives
+
+    Alternatively, one could have implemented
+    :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.apply_simple_reflection`
+    instead of :meth:`.simple_reflection` and :meth:`.product`. See
+    ``CoxeterGroups().example()``.
+
     TESTS::
 
         sage: TestSuite(S).run(verbose = True)
@@ -76,27 +98,6 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         running ._test_reduced_word() . . . pass
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
-
-    Only the following basic operations are implemented:
-     - :meth:`.one`
-     - :meth:`.product`
-     - :meth:`.simple_reflection`
-     - :meth:`.Element.has_right_descent`.
-
-    All the other usual Weyl group operations are inherited from the
-    categories::
-
-        sage: S.cardinality()
-        24
-        sage: S.long_element()
-        (3, 2, 1, 0)
-        sage: S.cayley_graph(side = "left").plot()
-        Graphics object consisting of 120 graphics primitives
-
-    Alternatively, one could have implemented
-    :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.apply_simple_reflection`
-    instead of :meth:`.simple_reflection` and :meth:`.product`. See
-    ``CoxeterGroups().example()``.
     """
 
     def __init__(self, n = 4):

@@ -38,7 +38,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 
@@ -56,7 +56,7 @@ from misc import matrix_integer_dense_rational_reconstruction
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import previous_prime, binomial
+from sage.arith.all import previous_prime, binomial
 from sage.rings.all import RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -385,7 +385,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             return xq
 
         x = self._base_ring(0)
-        ZZ_construct(&coeff)
         mpz_init_set_ui(denom, 1)
 
         # Get the least common multiple of the denominators in
@@ -406,7 +405,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_to_ZZ(&x.__denominator, denom)
         mpz_clear(denom)
         mpz_clear(tmp)
-        ZZ_destruct(&coeff)
 
         return x
 
@@ -609,14 +607,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: N1*N2
             [        0        -1    -zeta6     zeta6 zeta6 - 1]
 
-        Verify that a degenerate case bug reported at trac 5974 is fixed.
+        Verify that a degenerate case bug reported at :trac:`5974` is fixed.
 
             sage: K.<zeta6>=CyclotomicField(6); matrix(K,1,2) * matrix(K,2,[0, 1, 0, -2*zeta6, 0, 0, 1, -2*zeta6 + 1])
             [0 0 0 0]
 
         TESTS:
 
-        This is from trac #8666::
+        This is from :trac:`8666`::
 
             sage: K.<zeta4> = CyclotomicField(4)
             sage: m = matrix(K, [125])
@@ -683,8 +681,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         Yes, this works::
 
-            sage: hash(A)
-            -25
+            sage: hash(A)  # random
+            3107179158321342168
         """
         return self._matrix._hash()
 
@@ -702,8 +700,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             ...
             TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
-            sage: A.__hash__()
-            -18
+            sage: A.__hash__()  # random
+            2347601038649299176
         """
         if self._is_immutable:
             return self._hash()
@@ -801,7 +799,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [           z   -1/2*z - 1]
         """
         cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(), None, None, None)
-        A._matrix = self._matrix.__neg__()
+        A._matrix = -self._matrix
         return A
 
 

@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 r"""
-Finite semilattices and lattices
+Finite lattices and semilattices
 
 This module implements finite (semi)lattices. It defines:
 
@@ -8,15 +9,52 @@ This module implements finite (semi)lattices. It defines:
     :widths: 30, 70
     :delim: |
 
-    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
-    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
-    :class:`FiniteLatticePoset` | A class for finite lattices.
-    :meth:`JoinSemilattice` | Construct a join semi-lattice.
     :meth:`LatticePoset` | Construct a lattice.
     :meth:`MeetSemilattice` | Construct a meet semi-lattice.
+    :meth:`JoinSemilattice` | Construct a join semi-lattice.
+    :class:`FiniteLatticePoset` | A class for finite lattices.
+    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
+    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
 
 List of (semi)lattice methods
 -----------------------------
+
+**Meet and join**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements.
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+
+**Properties of the lattice**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
+    :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
+    :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
+    :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
+    :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
+    :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
+    :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+
+**Elements and sublattices**
 
 .. csv-table::
     :class: contentstable
@@ -24,21 +62,22 @@ List of (semi)lattice methods
     :delim: |
 
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
-    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
-    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices.
-    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
-    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
-    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
-    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
-    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
+    :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
-    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
-    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice is *upward* planar, and ``False`` otherwise.
-    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
-    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
-    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteLatticePoset.sublattice` | Return sublattice generated by list of elements.
+    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
+
+**Miscellaneous**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.moebius_algebra` | Return the quantum Möbius algebra of the lattice.
+    :meth:`~FiniteLatticePoset.quantum_moebius_algebra` | Return the quantum Möbius algebra of the lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -219,6 +258,66 @@ class FiniteMeetSemilattice(FinitePoset):
         for i in (self._element_to_vertex(_) for _ in x):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
+
+    def pseudocomplement(self, element):
+        """
+        Return the pseudocomplement of ``element``, if it exists.
+
+        The pseudocomplement is the greatest element whose
+        meet with given element is the bottom element. I.e.
+        in a meet-semilattice with bottom element `\hat{0}`
+        the pseudocomplement of an element `e` is the element
+        `e^\star` such that `e \wedge e^\star = \hat{0}` and
+        `e' \le e^\star` if `e \wedge e' = \hat{0}`.
+
+        See :wikipedia:`Pseudocomplement`.
+
+        INPUT:
+
+        - ``element`` -- an element of the lattice.
+
+        OUTPUT:
+
+        An element of the lattice or ``None`` if the pseudocomplement does
+        not exist.
+
+        EXAMPLES:
+
+        The pseudocompelement's pseudocomplement is not always the original
+        element::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})
+            sage: L.pseudocomplement(2)
+            5
+            sage: L.pseudocomplement(5)
+            4
+
+        An element can have complements but no pseudocomplement, or vice
+        versa::
+
+            sage: L = LatticePoset({0: [1, 2], 1: [3, 4, 5], 2: [5], 3: [6],
+            ....:                   4: [6], 5: [6]})
+            sage: L.complements(1), L.pseudocomplement(1)
+            ([], 2)
+            sage: L.complements(2), L.pseudocomplement(2)
+            ([3, 4], None)
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.is_pseudocomplemented()`.
+
+        TESTS::
+
+            sage: L = LatticePoset({'a': []})
+            sage: L.pseudocomplement('a')
+            'a'
+            sage: L = LatticePoset({'a': ['b'], 'b': ['c']})
+            sage: [L.pseudocomplement(e) for e in ['a', 'b', 'c']]
+            ['c', 'a', 'a']
+        """
+        v = self._element_to_vertex(element)
+        e = self._hasse_diagram.pseudocomplement(v)
+        if e is None:
+            return None
+        return self._vertex_to_element(e)
 
 ####################################################################################
 
@@ -530,6 +629,81 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
+    def is_relatively_complemented(self):
+        """
+        Return ``True`` if the lattice is relatively complemented, and
+        ``False`` otherwise.
+
+        A lattice is relatively complemented if every interval of it
+        is a complemented lattice.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4, 8], 2: [5, 6], 3: [5, 7],
+            ....:                   4: [6, 7], 5: [9], 6: [9], 7: [9], 8: [9]})
+            sage: L.is_relatively_complemented()
+            True
+
+            sage: L = Posets.PentagonPoset()
+            sage: L.is_relatively_complemented()
+            False
+
+        Relatively complemented lattice must be both atomic and coatomic.
+        Implication to other direction does not hold::
+
+            sage: L = LatticePoset({0: [1, 2, 3, 4, 5], 1: [6, 7], 2: [6, 8],
+            ....:                   3: [7, 8, 9], 4: [9, 11], 5: [9, 10],
+            ....:                   6: [10, 11], 7: [12], 8: [12], 9: [12],
+            ....:                   10: [12], 11: [12]})
+            sage: L.is_atomic() and L.is_coatomic()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_relatively_complemented() for
+            ....:  i in range(5)]
+            [True, True, True, False, False]
+
+        Usually a lattice that is not relatively complemented contains elements
+        `l`, `m`, and `u` such that `r(l) + 1 = r(m) = r(u) - 1`, where `r` is
+        the rank function and `m` is the only element in the interval `[l, u]`.
+        We construct an example where this does not hold::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B5 = Posets.BooleanLattice(5)
+            sage: B3 = B3.subposet([e for e in B3 if e not in [0, 7]])
+            sage: B5 = B5.subposet([e for e in B5 if e not in [0, 31]])
+            sage: B3 = B3.hasse_diagram()
+            sage: B5 = B5.relabel(lambda x: x+10).hasse_diagram()
+            sage: G = B3.union(B5)
+            sage: G.add_edge(B3.sources()[0], B5.neighbors_in(B5.sinks()[0])[0])
+            sage: L = LatticePoset(Poset(G).with_bounds())
+            sage: L.is_relatively_complemented()
+            False
+        """
+        from sage.misc.flatten import flatten
+        from collections import Counter
+
+        # Work directly with Hasse diagram
+        H = self._hasse_diagram
+        n = H.order()
+        if n < 3:
+            return True
+
+        # Quick check: the lattice must be atomic and coatomic.
+        if H.out_degree(0) != H.in_degree().count(1):
+            return False
+        if H.in_degree(n-1) != H.out_degree().count(1):
+            return False
+
+        for e1 in range(n-1):
+            C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
+            if any(c == 1 and len(H.closed_interval(e1, e3)) == 3 for e3, c in C.iteritems()):
+                return False
+        return True
+
     def breadth(self, certificate=False):
         r"""
         Return the breadth of the lattice.
@@ -639,7 +813,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element`` - an element of the poset whose complement is
+        - ``element`` - an element of the lattice whose complement is
           returned. If ``None`` (default) then dictionary of
           complements for all elements having at least one
           complement is returned.
@@ -702,21 +876,59 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
          self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
 
+    def is_pseudocomplemented(self):
+        """
+        Return ``True`` if the lattice is pseudocomplemented, and ``False``
+        otherwise.
+
+        A lattice is pseudocomplemented if every element `e` has a
+        pseudocomplement `e^\star`, i.e. the greatest element such that
+        the meet of `e` and `e^\star` is the bottom element.
+
+        See :wikipedia:`Pseudocomplement`.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 5], 2: [3, 6], 3: [4], 4: [7],
+            ....:                   5: [6], 6: [7]})
+            sage: L.is_pseudocomplemented()
+            True
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 3: [6], 4: [7],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
+            False
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
+
+        TESTS::
+
+            sage: LatticePoset({}).is_pseudocomplemented()
+            True
+        """
+        H = self._hasse_diagram
+        return all(H.pseudocomplement(e) is not None for e in H)
+
     def is_atomic(self):
         r"""
-        Returns ``True`` if ``self`` is an atomic lattice and ``False`` otherwise.
+        Return ``True`` if the lattice is atomic, and ``False`` otherwise.
 
         A lattice is atomic if every element can be written as a join of atoms.
 
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3:[5], 4:[6], 5:[6]})
             sage: L.is_atomic()
             True
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L = LatticePoset({0: [1, 2], 1: [3], 2: [3], 3:[4]})
             sage: L.is_atomic()
             False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_atomic()
+            True
 
         NOTES:
 
@@ -728,17 +940,87 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
            Enumerative Combinatorics, Vol. 1.
            Cambridge University Press, 1997
 
+        .. SEEALSO::
+
+            :meth:`~FiniteLatticePoset.is_coatomic`
         """
-        bottom_element = self.bottom()
-        for x in self:
-            if x == bottom_element:
-                continue
-            lcovers = self.lower_covers(x)
-            if bottom_element in lcovers:
-                continue
-            if len(lcovers)<=1:
-                return False
-        return True
+        return (self.cardinality() == 0 or
+                self._hasse_diagram.out_degree(0) ==
+                self._hasse_diagram.in_degree().count(1))
+
+    def is_coatomic(self):
+        r"""
+        Return ``True`` if the lattice is coatomic, and ``False`` otherwise.
+
+        A lattice is coatomic if every element can be written as a meet
+        of coatoms; i.e. if the dual of the lattice is atomic.
+
+        EXAMPLES::
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L.is_coatomic()
+            True
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4], 3: [5], 4:[5]})
+            sage: L.is_coatomic()
+            False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_coatomic()
+            True
+
+        .. SEEALSO::
+
+            :meth:`~FiniteLatticePoset.is_atomic`
+        """
+        n = self.cardinality()
+        if n == 0:
+            return True
+        return (self._hasse_diagram.in_degree(n-1) ==
+                self._hasse_diagram.out_degree().count(1))
+
+    def is_geometric(self):
+        """
+        Return ``True`` if the lattice is geometric, and ``False`` otherwise.
+
+        A lattice is geometric if it is both atomic and upper semimodular.
+
+        EXAMPLES:
+
+        Canonical example is the lattice of partitions of finite set
+        ordered by refinement::
+
+            sage: S = SetPartitions(3)
+            sage: L = LatticePoset( (S, lambda a, b: S.is_less_than(a, b)) )
+            sage: L.is_geometric()
+            True
+
+        Smallest example of geometric lattice that is not modular::
+
+            sage: L = LatticePoset(DiGraph('K]?@g@S?q?M?@?@?@?@?@?@??'))
+            sage: L.is_geometric()
+            True
+            sage: L.is_modular()
+            False
+
+        Two non-examples::
+
+            sage: L = LatticePoset({1:[2, 3, 4], 2:[5, 6], 3:[5], 4:[6], 5:[7], 6:[7]})
+            sage: L.is_geometric()  # Graded, but not upper semimodular
+            False
+            sage: L = Posets.ChainPoset(3)
+            sage: L.is_geometric()  # Modular, but not atomic
+            False
+
+        TESTS::
+
+            sage: LatticePoset({}).is_geometric()
+            True
+            sage: LatticePoset({1:[]}).is_geometric()
+            True
+        """
+        return self.is_atomic() and self.is_upper_semimodular()
 
     def is_planar(self):
         r"""
@@ -761,7 +1043,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ALGORITHM:
 
         Using the result from [Platt76]_, this method returns its result by
-        testing that the hasse diagram of the lattice is planar (in the sense of
+        testing that the Hasse diagram of the lattice is planar (in the sense of
         graph theory) when an edge is added between the top and bottom elements.
 
         EXAMPLES:
@@ -777,7 +1059,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
 
         Ordinal product of planar lattices is obviously planar. Same does
-        not apply to cartesian products::
+        not apply to Cartesian products::
 
             sage: P = Posets.PentagonPoset()
             sage: Pc = P.product(P)
@@ -914,7 +1196,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is upper semimodular and
         ``False`` otherwise.
 
-        A lattice is upper semimodular if for any `x` in the poset that is
+        A lattice is upper semimodular if for any `x` in the lattice that is
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
         See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
@@ -956,7 +1238,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is lower semimodular and
         ``False`` otherwise.
 
-        A lattice is lower semimodular if for any `x` in the poset that covers
+        A lattice is lower semimodular if for any `x` in the lattice that covers
         `y` and `z`, both `y` and `z` cover their meet.
 
         See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
@@ -1055,6 +1337,102 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.append(H.neighbor_in_iterator(cur))
         return True
 
+    def vertical_decomposition(self, elements_only=False):
+        r"""
+        Return sublattices from the vertical decomposition of the lattice.
+
+        Let `d_1, \ldots, d_n` be elements (excluding the top and bottom
+        elements) comparable to every element of the lattice. Let `b`
+        be the bottom element and `t` be the top element. This function
+        returns either a list `d_1, \ldots, d_n`, or the list of
+        intervals `[b, d_1], [d_1, d_2], \ldots, [d_{n-1}, d_n], [d_n,
+        t]` as lattices.
+
+        Informally said, this returns the lattice split into parts at
+        every single-element "cutting point".
+
+        INPUT:
+
+        - ``elements_only`` - if ``True``, return the list of decomposing
+          elements as defined above; if ``False`` (the default),
+          return the list of sublattices so that the lattice is a
+          vertical composition of them.
+
+        .. SEEALSO::
+
+            :meth:`is_vertically_decomposable`
+
+        EXAMPLES:
+
+        Number 6 is divided by 1, 2, and 3, and it divides 12, 18 and 36::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: parts = L.vertical_decomposition()
+            sage: [lat.list() for lat in parts]
+            [[1, 2, 3, 6], [6, 12, 18, 36]]
+            sage: L.vertical_decomposition(elements_only=True)
+            [6]
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).vertical_decomposition(elements_only=True)
+            ....:     for i in range(5)]
+            [[], [], [], [1], [1, 2]]
+        """
+        if self.cardinality() <= 2:
+            if not elements_only:
+                return [self]
+            else:
+                return []
+        if elements_only:
+            return [self[e] for e in
+                    self._hasse_diagram.vertical_decomposition(return_list=True)]
+        elms = ( [0] +
+                 self._hasse_diagram.vertical_decomposition(return_list=True) +
+                 [self.cardinality()-1] )
+        n = len(elms)
+        result = []
+        for i in range(n-1):
+            result.append(LatticePoset(
+                self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
+        return result
+
+    def is_vertically_decomposable(self):
+        r"""
+        Return ``True`` if the lattice is vertically decomposable, and
+        ``False`` otherwise.
+
+        A lattice is vertically decomposable if it has an element that
+        is comparable to all elements and is neither the bottom nor
+        the top element.
+
+        Informally said, a lattice is vertically decomposable if it
+        can be seen as two lattices "glued" by unifying the top
+        element of first lattice to the bottom element of second one.
+
+        .. SEEALSO::
+
+            :meth:`vertical_decomposition`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: L.is_vertically_decomposable()
+            True
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
+            False
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
+            ....:     range(5)]
+            [False, False, False, True, True]
+        """
+        # TODO: Make better example when compose_vertically() is done.
+        return self._hasse_diagram.vertical_decomposition()
+
     def sublattice(self, elms):
         r"""
         Return the smallest sublattice containing elements on the given list.
@@ -1072,12 +1450,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = Posets.BooleanLattice(3)
             sage: L.sublattice([3,5,6,7])
             Finite lattice containing 8 elements
-
-        .. NOTE::
-
-            This is very unoptimal algorithm. Better one is described on
-            "Computing the sublattice of a lattice generated by a set of
-            elements" by K. Bertet and M. Morvan. Feel free to implement it.
         """
         gens_remaining = set(elms)
         current_set = set()
@@ -1150,7 +1522,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def moebius_algebra(self, R):
         """
-        Return the Mobius algebra of ``self`` over ``R``.
+        Return the Möbius algebra of ``self`` over ``R``.
 
         EXAMPLES::
 
@@ -1163,7 +1535,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def quantum_moebius_algebra(self, q=None):
         """
-        Return the quantum Mobius algebra of ``self`` with parameter ``q``.
+        Return the quantum Möbius algebra of ``self`` with parameter ``q``.
 
         INPUT:
 
@@ -1178,6 +1550,116 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.combinat.posets.moebius_algebra import QuantumMoebiusAlgebra
         return QuantumMoebiusAlgebra(self, q)
+
+    def is_dismantlable(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is dismantlable, and ``False``
+        otherwise.
+
+        An `n`-element lattice `L_n` is dismantlable if there is a sublattice
+        chain `L_{n-1} \supset L_{n-2}, \supset \cdots, \supset L_0` so that
+        every `L_i` is a sublattice of `L_{i+1}` with one element less, and
+        `L_0` is the empty lattice. In other words, a dismantlable lattice
+        can be reduced to empty lattice removing doubly irreducible
+        element one by one.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- Whether to return a certificate.
+
+          * If ``certificate = False`` (default), returns ``True`` or
+            ``False`` accordingly.
+
+          * If ``certificate = True``, returns:
+
+            * ``(True, elms)`` when the lattice is dismantlable, where
+              ``elms`` is elements listed in a possible removing order.
+
+            * ``(False, crown)`` when the lattice is not dismantlable,
+              where ``crown`` is a subposet of `2k` elements
+              `a_1, \ldots, a_k, b_1, \ldots, b_k` with covering
+              relations `a_i \lessdot b_i` and `a_i \lessdot b_{i+1}`
+              for `i \in [1, \ldots, k-1]`, and `a_k \lessdot b_1`.
+
+        EXAMPLES::
+
+            sage: DL12 = LatticePoset((divisors(12), attrcall("divides")))
+            sage: DL12.is_dismantlable()
+            True
+            sage: DL12.is_dismantlable(certificate=True)
+            (True, [4, 2, 1, 3, 6, 12])
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_dismantlable()
+            False
+            sage: B3.is_dismantlable(certificate=True)
+            (False, Finite poset containing 6 elements)
+
+        Every planar lattice is dismantlable. Converse is not true::
+
+            sage: L = LatticePoset( ([], [[0, 1], [0, 2], [0, 3], [0, 4],
+            ....:                         [1, 7], [2, 6], [3, 5], [4, 5],
+            ....:                         [4, 6], [4, 7], [5, 8], [6, 8],
+            ....:                         [7, 8]]) )
+            sage: L.is_dismantlable()
+            True
+            sage: L.is_planar()
+            False
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_dismantlable()
+            True
+            sage: Posets.ChainPoset(1).is_dismantlable()
+            True
+
+            sage: L = LatticePoset(DiGraph('L@_?W?E?@CCO?A?@??_?O?Jw????C?'))
+            sage: L.is_dismantlable()
+            False
+            sage: c = L.is_dismantlable(certificate=True)[1]
+            sage: (3 in c, 12 in c, 9 in c)
+            (True, False, True)
+        """
+        from sage.graphs.digraph import DiGraph
+        from copy import copy
+
+        H = copy(self._hasse_diagram)
+        cert = []
+        # Smallest lattice that is not dismantlable is the
+        # Boolean lattice with 2^3=8 elements. Hence the limit 7.
+        limit = 0 if certificate else 7
+
+        while H.order() > limit:
+            for e in H:
+                i = H.in_degree(e)
+                o = H.out_degree(e)
+                if i < 2 and o < 2:
+                    if certificate:
+                        cert.append(e)
+                    if i == 1 and o == 1:  # Remove inside the lattice
+                        lower = H.neighbors_in(e)[0]
+                        upper = H.neighbors_out(e)[0]
+                        H.delete_vertex(e)
+                        if not upper in H.depth_first_search(lower):
+                            H.add_edge(lower, upper)
+                    else:  # Remove the top or bottom element
+                        H.delete_vertex(e)
+                    break
+            else:
+                if not certificate:
+                    return False
+                k = 3
+                while True:
+                    crown = DiGraph({i: [k + i, k + (i + 1) % k]
+                                     for i in range(k)})
+                    sg = H.transitive_closure().subgraph_search(crown, True)
+                    if sg:
+                        elms = [self[e] for e in sg]
+                        return (False, self.subposet(elms))
+                    k += 1
+        if not certificate:
+            return True
+        return (True, [self[e] for e in cert])
 
 ############################################################################
 

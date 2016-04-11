@@ -11,6 +11,7 @@ cdef class GenericBackend:
     cpdef set_variable_type(self, int variable, int vtype)
     cpdef set_sense(self, int sense)
     cpdef objective_coefficient(self, int variable, coeff=*)
+    cpdef objective_constant_term(self, d=*)
     cpdef set_objective(self, list coeff, d=*)
     cpdef set_verbosity(self, int level)
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=*)
@@ -43,7 +44,11 @@ cdef class GenericBackend:
     cpdef solver_parameter(self, name, value=*)
     cpdef zero(self)
     cpdef base_ring(self)
+    cpdef bint is_variable_basic(self, int index)
+    cpdef bint is_variable_nonbasic_at_lower_bound(self, int index)
+    cpdef bint is_slack_variable_basic(self, int index)
+    cpdef bint is_slack_variable_nonbasic_at_lower_bound(self, int index)
 
     cdef object obj_constant_term
 
-cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?)
+cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?, base_ring = ?)

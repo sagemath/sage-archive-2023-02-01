@@ -401,7 +401,7 @@ class ChainContraction(ChainHomotopy):
 
     ``H`` is defined by a dictionary ``matrices`` of matrices.
 
-    INPUTS:
+    INPUT:
 
     - ``matrices`` -- dictionary of matrices, keyed by dimension
     - ``pi`` -- a chain map `C \to D`

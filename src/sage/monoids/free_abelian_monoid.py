@@ -46,15 +46,18 @@ lists of integer exponents.
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL):
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.category_object import normalize_names
+from sage.structure.parent_gens import ParentWithGens
 from free_abelian_monoid_element import FreeAbelianMonoidElement
 from sage.rings.integer import Integer
 from sage.rings.all import ZZ

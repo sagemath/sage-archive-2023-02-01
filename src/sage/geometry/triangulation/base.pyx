@@ -140,8 +140,7 @@ cdef class Point(SageObject):
             sage: list(p)  # indirect doctest
             [3, 4]
         """
-        return self._affine.__iter__()
-
+        return iter(self._affine)
 
     def __len__(self):
         r"""

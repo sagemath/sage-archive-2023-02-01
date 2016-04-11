@@ -153,7 +153,7 @@ class AbstractSingleCrystalElement(Element):
             sage: T.highest_weight_vector() != T.highest_weight_vector().e(1)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def e(self,i):
         r"""
@@ -891,7 +891,7 @@ class ElementaryCrystal(UniqueRepresentation, Parent):
                 sage: B(0) != B(0)
                 False
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _latex_(self):
             r"""

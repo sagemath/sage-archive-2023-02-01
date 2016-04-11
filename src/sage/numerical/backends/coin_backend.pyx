@@ -1,3 +1,4 @@
+
 """
 COIN Backend
 
@@ -16,8 +17,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 
 from sage.numerical.mip import MIPSolverException
 from copy import copy
@@ -178,10 +179,21 @@ cdef class CoinBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - cbc
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - cbc
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - cbc
             6
-            sage: p.col_name(5)                                                        # optional - cbc
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - cbc
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - cbc
+            True
+            sage: p.col_name(5)              # optional - cbc
             'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - cbc
+            42.0
         """
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
@@ -453,13 +465,13 @@ cdef class CoinBackend(GenericBackend):
 
             c = constraints[i]
             if c < 0 or c >= nrows:
-                sage_free(rows)
+                sig_free(rows)
                 raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
 
             rows[i] = c
 
         self.si.deleteRows(m,rows)
-        sage_free(rows)
+        sig_free(rows)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -671,7 +683,7 @@ cdef class CoinBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -1309,8 +1321,8 @@ cdef class CoinBackend(GenericBackend):
             rstat = [c_rstat[j] for j in range(m)]
             return (cstat, rstat)
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef int set_basis_status(self, list cstat, list rstat) except -1:
         """
@@ -1431,14 +1443,16 @@ cdef class CoinBackend(GenericBackend):
         try:
             sig_on()            # To catch SIGABRT
             result = self.model.solver().setBasisStatus(c_cstat, c_rstat)
+            self.model.solver().setIntParam(OsiMaxNumIteration, 0)
+            self.model.solver().resolve()
             sig_off()
         except RuntimeError:    # corresponds to SIGABRT
             raise MIPSolverException('CBC : Signal sent, setBasisStatus() fails')
         else:
             return result
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef get_binva_row(self, int i):
         """
@@ -1505,8 +1519,8 @@ cdef class CoinBackend(GenericBackend):
             ithrow = [c_z[j] for j in range(n)]
             return (ithrow, slack)
         finally:
-            sage_free(c_slack)
-            sage_free(c_z)
+            sig_free(c_slack)
+            sig_free(c_z)
 
     cpdef get_binva_col(self, int j):
         """
@@ -1566,4 +1580,120 @@ cdef class CoinBackend(GenericBackend):
             jthcol = [c_vec[i] for i in range(m)]
             return jthcol
         finally:
-            sage_free(c_vec)
+            sig_free(c_vec)
+
+    cpdef get_basics(self):
+        r"""
+        Returns indices of basic variables.
+
+        The order of indices match the order of elements in the vectors returned 
+        by get_binva_col() and the order of rows in get_binva_row(). 
+
+        .. NOTE::
+
+            Has no meaning unless ``solve`` or ``set_basis_status`` 
+            has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                  # optional - cbc
+            sage: p.add_variables(2)                               # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
+            sage: p.set_objective([1, 1])                          # optional - cbc
+            sage: p.solve()                                        # optional - cbc
+            0
+            sage: p.get_basics()                                   # optional - cbc
+            [2, 1]
+        """
+        cdef int m = self.model.solver().getNumRows()
+        cdef int * c_indices = <int *>check_malloc(m * sizeof(int))
+        cdef list indices 
+        self.model.solver().enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            self.model.solver().getBasics(c_indices)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getBasics() fails')
+        else:
+            indices = [c_indices[j] for j in range(m)]
+            return indices 
+        finally:
+            sig_free(c_indices)
+
+    cpdef get_row_price(self):
+        r"""
+        Returns dual variable values.
+
+        .. NOTE::
+
+            Has no meaning unless ``solve`` or ``set_basis_status`` 
+            has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                  # optional - cbc
+            sage: p.add_variables(2)                               # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
+            sage: p.set_objective([1, 1])                          # optional - cbc
+            sage: p.solve()                                        # optional - cbc
+            0
+            sage: p.get_row_price()                                # optional - cbc
+            [0.0, -0.5]
+        """
+        cdef int m = self.model.solver().getNumRows()
+        cdef list price
+        cdef double * c_price
+        self.model.solver().enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            c_price = <double*>self.model.solver().getRowPrice()
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getRowPrice() fails')
+        else:
+            price = [c_price[j] for j in range(m)]
+            return price
+
+    cpdef get_reduced_cost(self):
+        r"""
+        Returns reduced costs.
+
+        .. NOTE::
+
+            Has no meaning unless ``solve`` or ``set_basis_status`` 
+            has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                  # optional - cbc
+            sage: p.add_variables(2)                               # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
+            sage: p.set_objective([1, 1])                          # optional - cbc
+            sage: p.solve()                                        # optional - cbc
+            0
+            sage: p.get_reduced_cost()                             # optional - cbc
+            [0.5, 0.0]
+        """
+        cdef int n = self.model.solver().getNumCols()
+        cdef list cost
+        cdef double * c_cost
+        self.model.solver().enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            c_cost = <double*>self.model.solver().getReducedCost()
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getReducedCost() fails')
+        else:
+            cost = [c_cost[i] for i in range(n)]
+            return cost

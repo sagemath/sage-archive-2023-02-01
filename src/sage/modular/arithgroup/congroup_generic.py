@@ -23,7 +23,7 @@ AUTHORS:
 ################################################################################
 
 from sage.rings.all import QQ, ZZ, Zmod
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.sets.set import Set
 from sage.groups.matrix_gps.all import MatrixGroup
 from sage.matrix.matrix_space import MatrixSpace

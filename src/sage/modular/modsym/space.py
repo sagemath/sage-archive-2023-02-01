@@ -28,7 +28,7 @@ import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -182,7 +182,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         TESTS:
 
-        Verify that Trac #12772 is fixed::
+        Verify that :trac:`12772` is fixed::
 
             sage: M = ModularSymbols(1,12,sign=1).cuspidal_subspace().new_subspace()
             sage: A = M.decomposition()[0]
@@ -1144,7 +1144,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: eps = f.q_eigenform_character('a'); eps
             Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -a - 1
             sage: parent(eps)
-            Group of Dirichlet characters of modulus 13 over Number Field in a with defining polynomial x^2 + 3*x + 3
+            Group of Dirichlet characters modulo 13 with values in Number Field in a with defining polynomial x^2 + 3*x + 3
             sage: eps(3)
             a + 1
 

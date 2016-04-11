@@ -13,7 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 import weakref
@@ -21,7 +20,7 @@ import weakref
 GF2EContextDict = {}
 
 
-cdef class ntl_GF2EContext_class:
+cdef class ntl_GF2EContext_class(object):
     def __init__(self, ntl_GF2X v):
         """
         EXAMPLES:
@@ -46,11 +45,8 @@ cdef class ntl_GF2EContext_class:
         pass
 
     def __cinit__(self, ntl_GF2X v):
-        GF2EContext_construct_GF2X(&self.x, &((<ntl_GF2X>v).x))
+        self.x = GF2EContext_c(v.x)
         self.m = v
-
-    def __dealloc__(self):
-        GF2EContext_destruct(&self.x)
 
     def __reduce__(self):
         """

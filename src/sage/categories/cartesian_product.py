@@ -33,7 +33,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         sage: A = FiniteEnumeratedSet(['a','b','c'])
         sage: B = FiniteEnumeratedSet([1,2])
         sage: C = cartesian_product([A, B]); C
-        The cartesian product of ({'a', 'b', 'c'}, {1, 2})
+        The Cartesian product of ({'a', 'b', 'c'}, {1, 2})
         sage: C.an_element()
         ('a', 1)
         sage: C.list()         # todo: not implemented
@@ -49,7 +49,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         sage: M.rename('M')
         sage: C = cartesian_product([M, ZZ, QQ])
         sage: C
-        The cartesian product of (M, Integer Ring, Rational Field)
+        The Cartesian product of (M, Integer Ring, Rational Field)
         sage: C.an_element()
         ('abcd', 1, 1/2)
         sage: C.an_element()^2
@@ -93,7 +93,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
     provide mathematical information and algorithms which are relevant
     to Cartesian product of monoids. For example, it specifies that
     the result is again a monoid, and that its multiplicative unit is
-    the cartesian product of the units of the underlying sets::
+    the Cartesian product of the units of the underlying sets::
 
         sage: C.one()
         ('', 1, 1)
@@ -141,12 +141,12 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         EXAMPLES::
 
             sage: cartesian_product([[0,1], ('a','b','c')])
-            The cartesian product of ({0, 1}, {'a', 'b', 'c'})
+            The Cartesian product of ({0, 1}, {'a', 'b', 'c'})
             sage: _.category()
             Category of Cartesian products of finite enumerated sets
 
             sage: cartesian_product([set([0,1,2]), [0,1]])
-            The cartesian product of ({0, 1, 2}, {0, 1})
+            The Cartesian product of ({0, 1, 2}, {0, 1})
             sage: _.category()
             Category of Cartesian products of sets
 
@@ -154,7 +154,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
 
             sage: C = cartesian_product([])
             sage: C
-            The cartesian product of ()
+            The Cartesian product of ()
             sage: C.cardinality()
             1
             sage: C.an_element()
@@ -219,7 +219,7 @@ class CartesianProductsCategory(CovariantConstructionCategory):
 
     def base_ring(self):
         """
-        The base ring of a cartesian product is the base ring of the underlying category.
+        The base ring of a Cartesian product is the base ring of the underlying category.
 
         EXAMPLES::
 
@@ -231,7 +231,7 @@ class CartesianProductsCategory(CovariantConstructionCategory):
 # Moved to avoid circular imports
 lazy_import('sage.categories.sets_cat', 'cartesian_product')
 """
-The cartesian product functorial construction
+The Cartesian product functorial construction
 
 See :class:`CartesianProductFunctor` for more information
 

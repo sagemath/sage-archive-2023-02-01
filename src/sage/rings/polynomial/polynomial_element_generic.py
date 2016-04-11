@@ -30,7 +30,7 @@ We test coercion in a particularly complicated situation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense
+from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense, Polynomial_generic_dense_inexact
 from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
@@ -41,6 +41,7 @@ from sage.structure.element import coerce_binop
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.structure.factorization import Factorization
 
 
 class Polynomial_generic_sparse(Polynomial):
@@ -57,7 +58,7 @@ class Polynomial_generic_sparse(Polynomial):
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
 
@@ -71,6 +72,7 @@ class Polynomial_generic_sparse(Polynomial):
         s + Tbar
         sage: (s + T)**2
         s^2 + 2*Tbar*s + 4
+
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
@@ -120,7 +122,7 @@ class Polynomial_generic_sparse(Polynomial):
     def dict(self):
         """
         Return a new copy of the dict of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -137,7 +139,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def coefficients(self,sparse=True):
         """
-        Return the coefficients of the monomials appearing in self.
+        Return the coefficients of the monomials appearing in ``self``.
 
         EXAMPLES::
 
@@ -154,7 +156,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def exponents(self):
         """
-        Return the exponents of the monomials appearing in self.
+        Return the exponents of the monomials appearing in ``self``.
 
         EXAMPLES::
 
@@ -170,6 +172,8 @@ class Polynomial_generic_sparse(Polynomial):
 
     def valuation(self):
         """
+        Return the valuation of ``self``.
+
         EXAMPLES::
 
             sage: R.<w> = PolynomialRing(GF(9,'a'), sparse=True)
@@ -191,9 +195,10 @@ class Polynomial_generic_sparse(Polynomial):
         Computes formal derivative of this polynomial with respect to
         the given variable.
 
-        If var is None or is the generator of this ring, the derivative
-        is with respect to the generator. Otherwise, _derivative(var) is called
-        recursively for each coefficient of this polynomial.
+        If ``var`` is ``None`` or is the generator of this ring, the
+        derivative is with respect to the generator. Otherwise,
+        _derivative(var) is called recursively for each coefficient of
+        this polynomial.
 
         .. seealso:: :meth:`.derivative`
 
@@ -302,7 +307,8 @@ class Polynomial_generic_sparse(Polynomial):
 
         ** DO NOT use this, unless you really really know what you are doing. **
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<w> = PolynomialRing(ZZ, sparse=True)
             sage: f = w^15 - w*3; f
             w^15 - 3*w
@@ -372,8 +378,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __getitem__(self,n):
         """
-        Return the `n`-th coefficient of this polynomial if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of this polynomial.
 
         Negative indexes are allowed and always return 0 (so you can
         view the polynomial as embedding Laurent series).
@@ -393,30 +398,53 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
             sage: f = (2-3.5*x)^3; f
             -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
-            sage: f[1:3]
-            73.500*x^2 - 42.000*x
+
+        Using slices, we can truncate polynomials::
+
             sage: f[:2]
             -42.000*x + 8.0000
-            sage: f[2:]
-            -42.875*x^3 + 73.500*x^2
+
+        Any other kind of slicing is deprecated or an error::
+
+            sage: f[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
+            73.500*x^2 - 42.000*x
+            sage: f[1:3:2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
+            sage: f["hello"]
+            Traceback (most recent call last):
+            ...
+            TypeError: list indices must be integers, not str
         """
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            if start < 0:
+            d = self.degree() + 1
+            start, stop, step = n.start, n.stop, n.step
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
+            if start is None:
                 start = 0
-            if stop is None:
-                stop = len(self.__coeffs) + 1
-            v = {}
+            else:
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
+            if stop is None or stop > d:
+                stop = d
             x = self.__coeffs
-            for k in x.keys():
-                if start <= k and k < stop:
-                    v[k] = x[k]
-            P = self.parent()
-            return P(v)
-        else:
-            if n not in self.__coeffs:
-                return self.base_ring()(0)
+            v = {k: x[k] for k in x.keys() if start <= k < stop}
+            return self.parent()(v)
+
+        try:
+            n = n.__index__()
+        except AttributeError:
+            raise TypeError("list indices must be integers, not {0}".format(type(n).__name__))
+        try:
             return self.__coeffs[n]
+        except KeyError:
+            return self.base_ring().zero()
 
     def _unsafe_mutate(self, n, value):
         r"""
@@ -433,7 +461,8 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f
             1.00000000000000*z^2 + 10.0000000000000
 
-        Much more nasty:
+        Much more nasty::
+
             sage: z._unsafe_mutate(1, 0)
             sage: z
             0
@@ -452,7 +481,7 @@ class Polynomial_generic_sparse(Polynomial):
     def list(self):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -674,15 +703,17 @@ class Polynomial_generic_sparse(Polynomial):
 
     def shift(self, n):
         r"""
-        Returns this polynomial multiplied by the power `x^n`. If `n` is negative,
-        terms below `x^n` will be discarded. Does not change this polynomial.
+        Returns this polynomial multiplied by the power `x^n`.
+
+        If `n` is negative, terms below `x^n` will be discarded. Does
+        not change this polynomial.
 
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
             sage: p.shift(0)
              x^100000 + 2*x + 4
             sage: p.shift(-1)
@@ -802,6 +833,7 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    @coerce_binop
     def gcd(self,other,algorithm=None):
         """
         Return the gcd of this polynomial and ``other``
@@ -839,10 +871,20 @@ class Polynomial_generic_sparse(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: Unknown algorithm 'foobar'
+
+        TESTS:
+
+        Check that :trac:`19676` is fixed::
+
+            sage: S.<y> = R[]
+            sage: x.gcd(y)
+            1
+            sage: (6*x).gcd(9)
+            3
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
 
         if algorithm is None:
             if self.base_ring() == ZZ:
@@ -907,13 +949,26 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return self[:n]
 
+    def number_of_terms(self):
+        """
+        Return the number of nonzero terms.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^100 - 3*x^10 + 12
+            sage: p.number_of_terms()
+            3
+        """
+        return len(self.__coeffs)
+
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
     def is_unit(self):
         r"""
-        Return True if this polynomial is a unit.
+        Return ``True`` if this polynomial is a unit.
 
         *EXERCISE* (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
         ring in one variable.  Then `f=\sum a_i x^i \in A[x]` is a
@@ -948,7 +1003,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
     def quo_rem(self, other):
         """
         Returns a tuple (quotient, remainder) where
-            self = quotient*other + remainder.
+            self = quotient * other + remainder.
 
         EXAMPLES::
 
@@ -990,7 +1045,7 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
         sage: R.<x> = PolynomialRing(Frac(RR['t']), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
     """
@@ -1001,6 +1056,340 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
 class Polynomial_generic_dense_field(Polynomial_generic_dense, Polynomial_generic_field):
     def __init__(self, parent, x=None, check=True, is_gen = False, construct=False):
         Polynomial_generic_dense.__init__(self, parent, x, check, is_gen)
+
+
+##########################################
+# Over discrete valuation rings and fields
+##########################################
+
+class Polynomial_generic_cdv(Polynomial_generic_domain):
+    """
+    A generic class for polynomials over complete discrete
+    valuation domains and fields.
+
+    AUTHOR:
+
+    - Xavier Caruso (2013-03)
+    """
+    def newton_slopes(self, repetition=True):
+        """
+        Returns a list of the Newton slopes of this polynomial.
+
+        These are the valuations of the roots of this polynomial.
+
+        If ``repetition`` is ``True``, each slope is repeated a number of
+        times equal to its multiplicity. Otherwise it appears only
+        one time.
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+            sage: f.newton_slopes()
+            [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+
+            sage: f.newton_slopes(repetition=False)
+            [1, 0, -1/3]
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        polygon = self.newton_polygon()
+        return [-s for s in polygon.slopes(repetition=repetition)]
+
+    def newton_polygon(self):
+        r"""
+        Returns a list of vertices of the Newton polygon of this polynomial.
+
+        .. NOTE::
+
+            If some coefficients have not enough precision an error is raised.
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+
+            sage: g = f + K(0,0)*t^4; g
+            (5^2 + O(5^22))*t^10 + (O(5^0))*t^4 + (3 + O(5^20))*t + (5 + O(5^21))
+            sage: g.newton_polygon()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: The coefficient of t^4 has not enough precision
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        d = self.degree()
+        from sage.geometry.newton_polygon import NewtonPolygon
+        polygon = NewtonPolygon([(x, self[x].valuation()) for x in range(d+1)])
+        polygon_prec = NewtonPolygon([ (x, self[x].precision_absolute()) for x in range(d+1) ])
+        vertices = polygon.vertices(copy=False)
+        vertices_prec = polygon_prec.vertices(copy=False)
+        if vertices[0][0] > vertices_prec[0][0]:
+            raise PrecisionError("first term with non-infinite valuation must have determined valuation")
+        elif vertices[-1][0] < vertices_prec[-1][0]:
+            raise PrecisionError("last term with non-infinite valuation must have determined valuation")
+        else:
+            for (x, y) in vertices:
+                if polygon_prec(x) <= y:
+                    raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
+        return polygon
+
+    def hensel_lift(self, a):
+        """
+        Lift `a` to a root of this polynomial (using
+        Newton iteration).
+
+        If `a` is not close enough to a root (so that
+        Newton iteration does not converge), an error
+        is raised.
+
+        EXAMPLES::
+
+            sage: K = Qp(5, 10)
+            sage: P.<x> = PolynomialRing(K)
+            sage: f = x^2 + 1
+            sage: root = f.hensel_lift(2); root
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: f(root)
+            O(5^10)
+
+            sage: g = (x^2 + 1)*(x - 7)
+            sage: g.hensel_lift(2)  # here, 2 is a multiple root modulo p
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not close enough to a root of this polynomial
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-23)
+        """
+        base = self.base_ring()
+        selfa = self(a)
+        der = self.derivative()
+        dera = der(a)
+        if selfa.valuation() <= 2 * dera.valuation():
+            raise ValueError("a is not close enough to a root of this polynomial")
+        # Newton iteration
+        # Todo: compute everything up to the adequate precision at each step
+        b = ~dera
+        while(True):
+            na = a - selfa * b
+            if na == a: return a
+            a = na
+            selfa = self(a)
+            dera = der(a)
+            b *= 2 - dera*b
+
+    def _factor_of_degree(self, deg):
+        """
+        Return a factor of ``self`` of degree ``deg``.
+
+        Algorithm is Newton iteration.
+
+        This fails if ``deg`` is not a breakpoint in the Newton
+        polygon of ``self``.
+
+        Only for internal use!
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<x> = K[]
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+
+            sage: g = f._factor_of_degree(4)
+            sage: (f % g).is_zero()
+            True
+
+            sage: g = f._factor_of_degree(3)    # not tested
+            Traceback (most recent call last)
+            ...
+            KeyboardInterrupt:
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+
+        TODO:
+
+        Precision is not optimal, and can be improved.
+        """
+        coeffs = self.list()
+        a = self.truncate(deg + 1)
+        b = v = self.parent()(1)
+        x = self % a
+        while(not x.is_zero()):
+            a += (v * x) % a
+            b, x = self.quo_rem(a)
+            b %= a
+            v = (v * (2 - b*v)) % a
+
+        return a
+
+    def factor_of_slope(self, slope=None):
+        """
+        INPUT:
+
+        -  slope -- a rational number (default: the first slope
+           in the Newton polygon of ``self``)
+
+        OUTPUT:
+
+        The factor of ``self`` corresponding to the slope ``slope`` (i.e.
+        the unique monic divisor of ``self`` whose slope is ``slope`` and
+        degree is the length of ``slope`` in the Newton polygon).
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<x> = K[]
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_slopes()
+            [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+
+            sage: g = f.factor_of_slope(0)
+            sage: g.newton_slopes()
+            [0, 0, 0]
+            sage: (f % g).is_zero()
+            True
+
+            sage: h = f.factor_of_slope()
+            sage: h.newton_slopes()
+            [1]
+            sage: (f % h).is_zero()
+            True
+
+        If ``slope`` is not a slope of ``self``, the corresponding factor
+        is `1`::
+
+            sage: f.factor_of_slope(-1)
+            (1 + O(5^20))
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        one = self.parent()(1)
+        vertices = self.newton_polygon().vertices(copy=False)
+        if len(vertices) < 2:
+            if slope is Infinity:
+                return self.parent().gen() ** self.degree()
+            else:
+                return one
+        if slope is None:
+            deg_first = vertices[0][0]
+            deg_last = vertices[1][0]
+        else:
+            (deg_first, y_first) = vertices[0]
+            for i in range(1, len(vertices)):
+                (deg_last, y_last) = vertices[i]
+                slope_cur = (y_first - y_last) / (deg_last - deg_first)
+                if slope_cur == slope:
+                    break
+                elif slope_cur < slope:
+                    return one
+                deg_first = deg_last
+                y_first = y_last
+            if slope_cur > slope:
+                return one
+        if deg_last == self.degree():
+            div = self
+        else:
+            div = self._factor_of_degree(deg_last)
+        if deg_first > 0:
+            div2 = div._factor_of_degree(deg_first)
+            div,_ = div.quo_rem(div2)
+        return div.monic()
+
+    def slope_factorization(self):
+        """
+        Return a factorization of ``self`` into a product of factors
+        corresponding to each slope in the Newton polygon.
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<x> = K[]
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_slopes()
+            [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+
+            sage: F = f.slope_factorization()
+            sage: F.prod() == f
+            True
+            sage: for (f,_) in F:
+            ....:     print f.newton_slopes()
+            [-1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+            [0, 0, 0]
+            [1]
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        vertices = self.newton_polygon().vertices(copy=False)
+
+        unit = self.leading_coefficient()
+        P = ~unit * self
+
+        deg_first = vertices[0][0]
+        factors = [ ]
+        if deg_first > 0:
+            P >>= deg_first
+            factors.append((self._parent.gen(), deg_first))
+        if len(vertices) > 2:
+            for i in range(1, len(vertices)-1):
+                deg = vertices[i][0]
+                div = P._factor_of_degree(deg-deg_first)
+                factors.append((div,1))
+                P,_ = P.quo_rem(div)
+                deg_first = deg
+        if len(vertices) > 1:
+            factors.append((P, 1))
+        factors.reverse()
+        return Factorization(factors, sort=False, unit=unit)
+
+class Polynomial_generic_dense_cdv(Polynomial_generic_dense_inexact, Polynomial_generic_cdv):
+    pass
+
+class Polynomial_generic_sparse_cdv(Polynomial_generic_sparse, Polynomial_generic_cdv):
+    pass
+
+
+class Polynomial_generic_cdvr(Polynomial_generic_cdv):
+    pass
+
+class Polynomial_generic_dense_cdvr(Polynomial_generic_dense_cdv, Polynomial_generic_cdvr):
+    pass
+
+class Polynomial_generic_sparse_cdvr(Polynomial_generic_sparse_cdv, Polynomial_generic_cdvr):
+    pass
+
+
+class Polynomial_generic_cdvf(Polynomial_generic_cdv, Polynomial_generic_field):
+    pass
+
+class Polynomial_generic_dense_cdvf(Polynomial_generic_dense_cdv, Polynomial_generic_cdvf):
+    pass
+
+class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_generic_cdvf):
+    pass
 
 ############################################################################
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #

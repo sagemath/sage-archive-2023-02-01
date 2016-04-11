@@ -10,27 +10,18 @@ AUTHORS:
   ``is_blum_prime``, ``least_significant_bits``, ``random_blum_prime``.
 """
 
-###########################################################################
-# Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
+#*****************************************************************************
+#       Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# http://www.gnu.org/licenses/
-###########################################################################
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import is_prime
-from sage.rings.arith import lcm
-from sage.rings.arith import primes
-from sage.rings.arith import random_prime
+from sage.arith.all import is_prime, lcm, primes, random_prime
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod import Mod as mod
 

@@ -70,7 +70,7 @@ import itertools
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer import Integer
 
 from sage.structure.parent import Parent
@@ -324,7 +324,6 @@ class KleberTreeNode(Element):
             return Integer(1)
 
         mult = Integer(1)
-        CM = self.parent()._classical_ct.cartan_matrix()
         I = self.parent()._classical_ct.index_set()
         for a,m in self.up_root:
             p = self.weight[a]

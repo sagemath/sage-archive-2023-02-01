@@ -13,13 +13,14 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure
+build/make/Makefile: configure build/make/deps build/pkgs/*/*
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
@@ -119,8 +120,7 @@ ptestoptional: ptestall # just an alias
 
 ptestoptionallong: ptestalllong # just an alias
 
-configure: configure.ac src/bin/sage-version.sh \
-        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
+configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
 install:

@@ -23,7 +23,7 @@ from sage.quadratic_forms.genera.genus import Genus, LocalGenusSymbol, \
 
 
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.arith import is_prime, prime_divisors
+from sage.arith.all import is_prime, prime_divisors
 
 
 

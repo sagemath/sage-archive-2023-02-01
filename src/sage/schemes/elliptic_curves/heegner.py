@@ -82,20 +82,15 @@ The above is consistent with the following analytic computation::
     3.0000?
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2005-2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 
 from sage.misc.all import verbose, prod
@@ -105,11 +100,12 @@ from sage.structure.sage_object import SageObject
 
 import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
-import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import (ZZ, GF, QQ, CDF,
                             Integers, RealField, ComplexField, QuadraticField,
-                            gcd, lcm, is_fundamental_discriminant)
+                            is_fundamental_discriminant)
+from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
+        binomial)
 from sage.quadratic_forms.all import (BinaryQF,
                                       BinaryQF_reduced_representatives)
 from sage.matrix.all import MatrixSpace, matrix
@@ -229,7 +225,7 @@ class RingClassField(SageObject):
     """
     def __init__(self, D, c, check=True):
         """
-        INPUTS:
+        INPUT:
 
             - `D` -- discriminant of quadratic imaginary field
 
@@ -320,7 +316,7 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-7).ring_class_field().ramified_primes()
             [7]
         """
-        return arith.prime_divisors(self.__D * self.__c)
+        return prime_divisors(self.__D * self.__c)
 
     def _repr_(self):
         """
@@ -362,8 +358,6 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-20,11).ring_class_field().degree_over_K()
             24
         """
-        D, c = self.__D, self.__c
-
         K = self.quadratic_field()
 
         # Multiply class number by relative degree of the Hilbert class field H over K.
@@ -1007,7 +1001,7 @@ class GaloisGroup(SageObject):
         w = A.coordinate_vector(alpha.vector())
         w *= w.denominator()
         w = w.change_ring(ZZ)
-        n = arith.gcd(w)
+        n = gcd(w)
         w /= n
         c = P1.N()
         w = P1.normalize(ZZ(w[0])%c, ZZ(w[1])%c)
@@ -1994,7 +1988,7 @@ class HeegnerPoints_level(HeegnerPoints):
         Return the first `n` quadratic imaginary discriminants that
         satisfy the Heegner hypothesis for `N`.
 
-        INPUTS:
+        INPUT:
 
             - `n` -- nonnegative integer
 
@@ -2722,7 +2716,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
              Q = N
         if Q == 1:
             return self  # trivial special case
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         if g != Q:
             raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
@@ -3289,7 +3283,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P.x_poly_exact(300)
             x^6 + 1108754853727159228/72351048803252547*x^5 + 88875505551184048168/1953478317687818769*x^4 - 2216200271166098662132/3255797196146364615*x^3 + 14941627504168839449851/9767391588439093845*x^2 - 3456417460183342963918/3255797196146364615*x + 1306572835857500500459/5426328660243941025
         """
-        D, c = self.discriminant(), self.conductor()
         n = self.ring_class_field().degree_over_K()
 
         if algorithm == 'lll':
@@ -3815,7 +3808,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             True
         """
         N = self.__E.conductor()
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         assert g == Q
         tau = self._qf_to_tau(f)
         tau2 = ((u*Q*tau + v) / (N*tau + Q))
@@ -4381,7 +4374,7 @@ class KolyvaginCohomologyClass(SageObject):
         if n is None:
             c = kolyvagin_point.conductor()
             E = kolyvagin_point.curve()
-            n = arith.GCD([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
+            n = gcd([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
 
         if not kolyvagin_point.satisfies_kolyvagin_hypothesis(n):
             raise ValueError("Kolyvagin point does not satisfy Kolyvagin hypothesis for %s"%n)
@@ -4609,7 +4602,7 @@ class HeegnerQuatAlg(SageObject):
             [-8, -39, -43, -51, -79, -95]
         """
         D = ZZ(D); c = ZZ(c)
-        if arith.gcd(c*D, self.__level*self.__ell) != 1 or arith.gcd(c,D) != 1:
+        if gcd(c*D, self.__level*self.__ell) != 1 or gcd(c,D) != 1:
             return False
         if not satisfies_weak_heegner_hypothesis(self.__level, D):
             return False
@@ -4698,13 +4691,13 @@ class HeegnerQuatAlg(SageObject):
             sage: H = heegner_points(11).reduce_mod(3)
             sage: R = H.left_orders()[0]
             sage: H.optimal_embeddings(-7, 1, R)
-            [Embedding sending sqrt(-7) to -i + j + k,
-             Embedding sending sqrt(-7) to i - j - k]
+            [Embedding sending sqrt(-7) to i - j - k,
+             Embedding sending sqrt(-7) to -i + j + k]
             sage: H.optimal_embeddings(-7, 2, R)
-            [Embedding sending 2*sqrt(-7) to -5*i + k,
-             Embedding sending 2*sqrt(-7) to 5*i - k,
-             Embedding sending 2*sqrt(-7) to -2*i + 2*j + 2*k,
-             Embedding sending 2*sqrt(-7) to 2*i - 2*j - 2*k]
+            [Embedding sending 2*sqrt(-7) to 5*i - k,
+             Embedding sending 2*sqrt(-7) to -5*i + k,
+             Embedding sending 2*sqrt(-7) to 2*i - 2*j - 2*k,
+             Embedding sending 2*sqrt(-7) to -2*i + 2*j + 2*k]
         """
         Q, G = R.ternary_quadratic_form(include_basis=True)
         n    = -D*c*c
@@ -4833,7 +4826,7 @@ class HeegnerQuatAlg(SageObject):
             a = Q.theta_series(n+1)[n]
             if a > 0:
                 reps = Q.representation_vector_list(n+1)[-1]
-                k = len([r for r in reps if arith.gcd(r) == 1])
+                k = len([r for r in reps if gcd(r) == 1])
                 assert k%2 == 0
                 v[i] += k/2
         return B(v)
@@ -5115,7 +5108,7 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 37; D = -7; ell = 17; c=5
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: B = H.brandt_module(); I = B.right_ideals()[32]
-            sage: f = H.optimal_embeddings(D, 1, I.left_order())[0]
+            sage: f = H.optimal_embeddings(D, 1, I.left_order())[1]
             sage: g = H.kolyvagin_generators(f.domain().number_field(), c)
             sage: alpha_quaternion = f(g[0]); alpha_quaternion
             1 - 5/128*i - 77/192*j + 137/384*k
@@ -5262,9 +5255,9 @@ class HeegnerQuatAlg(SageObject):
             sage: k118 = H.kolyvagin_sigma_operator(D, c, 118)
             sage: k104 = H.kolyvagin_sigma_operator(D, c, 104)
             sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]  # long time
-            [1, 0]
-            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [2, 0]
+            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
+            [1, 0]
 
         By the way, the above is the first ever provable verification
         of Kolyvagin's conjecture for any curve of rank at least 2.
@@ -5276,7 +5269,7 @@ class HeegnerQuatAlg(SageObject):
             sage: H.heegner_divisor(D,1).element().nonzero_positions()
             [32, 51]
             sage: k32 = H.kolyvagin_sigma_operator(D, c, 32); k32
-            (63, 68, 47, 47, 31, 52, 37, 0, 0, 47, 3, 31, 47, 7, 21, 26, 19, 10, 0, 0, 11, 28, 41, 2, 47, 25, 0, 0, 36, 0, 33, 0, 0, 0, 40, 6, 14, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            (17, 12, 33, 33, 49, 108, 3, 0, 0, 33, 37, 49, 33, 33, 59, 54, 21, 30, 0, 0, 29, 12, 41, 38, 33, 15, 0, 0, 4, 0, 7, 0, 0, 0, 0, 34, 26, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             sage: k51 = H.kolyvagin_sigma_operator(D, c, 51); k51
             (5, 13, 0, 0, 14, 0, 21, 0, 0, 0, 29, 0, 0, 45, 0, 6, 0, 40, 0, 61, 0, 0, 40, 32, 0, 9, 0, 0, 0, 0, 17, 0, 0, 0, 77, 40, 2, 10, 18, 0, 0, 61, 19, 45, 26, 80, 61, 35, 35, 19, 1, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('37a'), q, 5); V
@@ -5284,7 +5277,7 @@ class HeegnerQuatAlg(SageObject):
             Basis matrix:
             2 x 52 dense matrix over Ring of integers modulo 3
             sage: [b.dot_product(k32.element().change_ring(GF(q))) for b in V.basis()]
-            [1, 1]
+            [2, 2]
             sage: [b.dot_product(k51.element().change_ring(GF(q))) for b in V.basis()]
             [1, 1]
 
@@ -5295,7 +5288,7 @@ class HeegnerQuatAlg(SageObject):
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 5)
             sage: k = H.kolyvagin_sigma_operator(D, 17*41, 104)     # long time
             sage: k                                                 # long time
-            (494, 472, 1923, 1067, ..., 102, 926)
+            (990, 656, 219, ..., 246, 534, 1254)
             sage: [b.dot_product(k.element().change_ring(GF(3))) for b in V.basis()]   # long time (but only because depends on something slow)
             [0, 0]
         """
@@ -5412,13 +5405,13 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: k = H.rational_kolyvagin_divisor(D, c); k  # long time (5s on sage.math, 2013)
-            (14, 16, 0, 0, ... 0, 0, 0)
+            (2, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 4, 0, 0, 9, 11, 0, 6, 0, 0, 7, 0, 0, 0, 0, 14, 12, 13, 15, 17, 0, 0, 0, 0, 8, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 2)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]  # long time
             [0, 0]
             sage: k = H.rational_kolyvagin_divisor(D, 59)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
-            [1, 0]
+            [2, 0]
         """
         if not self.satisfies_heegner_hypothesis(D, c):
             raise ValueError("D and c must be coprime to N and ell")
@@ -5464,7 +5457,7 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 37; D = -7; ell = 17; c = 41; p = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: H.kolyvagin_point_on_curve(D, c, EllipticCurve('37a'), p)
-            [1, 1]
+            [2, 2]
         """
         k = self.rational_kolyvagin_divisor(D, c)
         V = self.modp_dual_elliptic_curve_factor(E, p, bound)
@@ -5687,7 +5680,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
     EXAMPLES::
 
         sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-        sage: f = H.optimal_embeddings(-7, 2, R)[0]; f
+        sage: f = H.optimal_embeddings(-7, 2, R)[1]; f
         Embedding sending 2*sqrt(-7) to -5*i + k
         sage: type(f)
         <class 'sage.schemes.elliptic_curves.heegner.HeegnerQuatAlgEmbedding'>
@@ -5750,7 +5743,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 1, R)[0]; f
+            sage: f = H.optimal_embeddings(-7, 1, R)[1]; f
             Embedding sending sqrt(-7) to -i + j + k
             sage: a = f.domain_gen(); a^2
             -7
@@ -5780,7 +5773,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 1, R)[0]; f
+            sage: f = H.optimal_embeddings(-7, 1, R)[1]; f
             Embedding sending sqrt(-7) to -i + j + k
             sage: f.matrix()
             [ 1  0  0  0]
@@ -5851,7 +5844,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: H.optimal_embeddings(-7, 2, R)[0].beta()
+            sage: H.optimal_embeddings(-7, 2, R)[1].beta()
             -5*i + k
         """
         return self.__beta
@@ -5876,7 +5869,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 2, R)[0]; f._repr_()
+            sage: f = H.optimal_embeddings(-7, 2, R)[1]; f._repr_()
             'Embedding sending 2*sqrt(-7) to -5*i + k'
         """
         a = '%ssqrt(%s)'%('%s*'%self.__c if self.__c > 1 else '', self.__D)
@@ -5890,7 +5883,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
-            sage: f = H.optimal_embeddings(-7, 2, R)[0]
+            sage: f = H.optimal_embeddings(-7, 2, R)[1]
             sage: f.conjugate()
             Embedding sending 2*sqrt(-7) to 5*i - k
             sage: f
@@ -6159,7 +6152,7 @@ def make_monic(f):
     n = f.degree()
     f = f / f.leading_coefficient()
     # find lcm of denominators
-    d = arith.lcm([b.denominator() for b in f.list() if b])
+    d = lcm([b.denominator() for b in f.list() if b])
     x = f.variables()[0]
     g = (d**n) * f(x/d)
     return g, d
@@ -6736,7 +6729,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         if ind.absolute_diameter() < 1:
             t, i = ind.is_int()
             if t:   # unique integer in interval, so we've found exact index squared.
-                return arith.prime_divisors(i), D, i
+                return prime_divisors(i), D, i
         raise RuntimeError("Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self, D))
 
     # First try a quick search, in case we get lucky and find
@@ -6974,7 +6967,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
+    L = binomial(rE + rF, rE) * (L_E * L_F / factorial(rE+rF) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:

@@ -55,21 +55,18 @@ For display options, see :meth:`Tableaux.global_options`.
 
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2011 Jason Bandlow <jbandlow@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -79,7 +76,7 @@ from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial
+from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
@@ -789,7 +786,7 @@ class Tableau(ClonableList):
         from output import tex_from_array
         return tex_from_array(self)
 
-    def __div__(self, t):
+    def __truediv__(self, t):
         """
         Return the skew tableau ``self``/``t``, where ``t`` is a partition
         contained in the shape of ``self``.
@@ -824,6 +821,8 @@ class Tableau(ClonableList):
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
+
+    __div__ = __truediv__
 
     def __call__(self, *cell):
         r"""
@@ -1022,39 +1021,6 @@ class Tableau(ClonableList):
         """
         return self.to_word_by_row()
 
-    def attacking_pairs(self):
-        """
-        Deprecated in :trac:`15327`. Use ``T.shape().attacking_pairs()``
-        instead for a tableau ``T``.
-
-        Return a list of the attacking pairs of ``self``. A pair of
-        cells `(c, d)` of a Young tableau is said to be attacking if one
-        of the following conditions holds:
-
-        1. `c` and `d` lie in the same row with `c` strictly to the west
-           of `d`.
-
-        2. `c` is in the row immediately to the south of `d`, and `c`
-           lies strictly east of `d`.
-
-        This only depends on the shape of ``self``, not on the entries.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2,3],[2,5]])
-            sage: t.attacking_pairs()
-            doctest:...: DeprecationWarning: attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()
-            See http://trac.sagemath.org/15327 for details.
-            [((0, 0), (0, 1)),
-             ((0, 0), (0, 2)),
-             ((0, 1), (0, 2)),
-             ((1, 0), (1, 1)),
-             ((1, 1), (0, 0))]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15327, 'attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()')
-        return self.shape().attacking_pairs()
-
     def descents(self):
         """
         Return a list of the cells ``(i,j)`` such that
@@ -1175,6 +1141,77 @@ class Tableau(ClonableList):
         """
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
+
+    def to_sign_matrix(self, max_entry = None):
+        r"""
+        Return the sign matrix of ``self``.
+
+        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the 
+        partial sums of each column is either 0 or 1 and the partial sums of 
+        each row is non-negative. [Aval2008]_
+        
+        INPUT: 
+
+        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in 
+          the tableau. Defaults to the largest entry in the tableau if not specified.
+
+
+        EXAMPLES:: 
+       
+            sage: t = SemistandardTableau([[1,1,1,2,4],[3,3,4],[4,5],[6,6]])
+            sage: t.to_sign_matrix(6)
+            [ 0  0  0  1  0  0]
+            [ 0  1  0 -1  0  0]
+            [ 1 -1  0  1  0  0]
+            [ 0  0  1 -1  1  1]
+            [ 0  0  0  1 -1  0]
+            sage: t = Tableau([[1,2,4],[3,5]])
+            sage: t.to_sign_matrix(7)
+            [ 0  0  0  1  0  0  0]
+            [ 0  1  0 -1  1  0  0]
+            [ 1 -1  1  0 -1  0  0]
+            sage: t=Tableau([(4,5,4,3),(2,1,3)])
+            sage: t.to_sign_matrix(5)
+            [ 0  0  1  0  0]
+            [ 0  0  0  1  0]
+            [ 1  0 -1 -1  1]
+            [-1  1  0  1 -1]
+            sage: s=Tableau([(1,0,-2,4),(3,4,5)])
+            sage: s.to_sign_matrix(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries must be non-negative integers
+
+
+        REFERENCES:
+
+        .. [Aval2008] Jean-Christope Aval.
+           *Keys and Alternating Sign Matrices*,
+           Seminaire Lotharingien de Combinatoire 59 (2008) B59f 
+           :arxiv:`0711.2150`
+        """
+        from sage.rings.all import ZZ
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+        for row in self:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries must be non-negative integers")        
+        from sage.matrix.matrix_space import MatrixSpace
+        if max_entry is None:
+            max_entry=max([max(c) for c in self])
+        MS = MatrixSpace(ZZ, len(self[0]), max_entry)
+        Tconj = self.conjugate()
+        l = len(Tconj)
+        d = {(l-i-1,elem-1): 1 for i, row in enumerate(Tconj) for elem in row}
+        partial_sum_matrix = MS(d)
+        from copy import copy
+        sign_matrix = copy(MS.zero())
+        for j in range(max_entry):
+            sign_matrix[0,j] = partial_sum_matrix[0,j]
+        for i in range(1,l):
+            for j in range(max_entry):
+                sign_matrix[i,j] = partial_sum_matrix[i,j] - partial_sum_matrix[i-1,j]
+        return sign_matrix
 
     def schuetzenberger_involution(self, n = None, check=True):
         r"""
@@ -5486,7 +5523,6 @@ class SemistandardTableaux_size(SemistandardTableaux):
             [[2, 4, 4, 6, 6, 6]]
         """
         from sage.rings.all import ZZ
-        from sage.rings.arith import binomial
         from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
         kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
@@ -6361,7 +6397,6 @@ class StandardTableaux_size(StandardTableaux):
             True
         """
         from sage.misc.prandom import randrange
-        from sage.rings.arith import binomial
         from sage.misc.prandom import sample
         from sage.combinat.perfect_matching import PerfectMatchings
         from sage.combinat.permutation import from_cycles

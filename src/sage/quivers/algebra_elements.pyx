@@ -16,6 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
@@ -1220,7 +1222,7 @@ cdef class PathAlgebraElement(RingElement):
             # memory occupied by out first.
             outnxt = out.nxt
             poly_free(out.poly)
-            sage_free(out)
+            sig_free(out)
             return self._new_(outnxt)
         return self._new_(out)
 
@@ -1251,11 +1253,11 @@ cdef class PathAlgebraElement(RingElement):
             # memory occupied by out first.
             outnxt = out.nxt
             poly_free(out.poly)
-            sage_free(out)
+            sig_free(out)
             return self._new_(outnxt)
         return self._new_(out)
 
-    def __div__(self, x):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -1290,6 +1292,9 @@ cdef class PathAlgebraElement(RingElement):
                 sample = sample._parent._semigroup.algebra(x.parent())(0)
             return sample._new_(homog_poly_scale((<PathAlgebraElement>self).data, x))
         raise TypeError("Don't know how to divide {} by {}".format(x, self))
+
+    def __div__(self, x):
+        return self / x
 
 ## Multiplication in the algebra
 
@@ -1385,8 +1390,8 @@ cdef class PathAlgebraElement(RingElement):
         while out_orig != NULL and out_orig.poly.lead == NULL:
             tmp = out_orig.nxt
             sig_check()
-            sage_free(out_orig.poly)
-            sage_free(out_orig)
+            sig_free(out_orig.poly)
+            sig_free(out_orig)
             out_orig = tmp
         if out_orig == NULL:
             return self._new_(NULL)
@@ -1395,8 +1400,8 @@ cdef class PathAlgebraElement(RingElement):
             if tmp.nxt.poly.lead == NULL:
                 sig_check()
                 nxt = tmp.nxt.nxt
-                sage_free(tmp.nxt.poly)
-                sage_free(tmp.nxt)
+                sig_free(tmp.nxt.poly)
+                sig_free(tmp.nxt)
                 tmp.nxt = nxt
             else:
                 tmp = tmp.nxt

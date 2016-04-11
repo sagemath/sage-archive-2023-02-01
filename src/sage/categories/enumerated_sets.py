@@ -499,7 +499,7 @@ class EnumeratedSets(Category_singleton):
                 sage: super(Parent, C)._an_element_
                 Cached version of <function _an_element_from_iterator at ...>
             """
-            it = self.__iter__()
+            it = iter(self)
             try:
                 return next(it)
             except StopIteration:

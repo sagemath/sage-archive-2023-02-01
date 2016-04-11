@@ -80,7 +80,6 @@ TESTS::
 from sage.structure.parent_gens import localvars
 
 import sage.libs.ntl.all as ntl
-import sage.rings.arith
 
 from sage.categories.map import is_Map
 from sage.structure.sequence import Sequence
@@ -948,7 +947,6 @@ class NumberField_relative(NumberField_generic):
             sage: L in L
             False
 
-        MORE TESTS:
         We construct the composite of three quadratic fields, then
         coerce from the quartic subfield of the relative extension::
 
@@ -1244,7 +1242,7 @@ class NumberField_relative(NumberField_generic):
             sage: M.is_galois_relative()
             False
 
-        The following example previously gave the wrong result; see #9390::
+        The next example previously gave a wrong result; see :trac:`9390`::
 
             sage: F.<a, b> = NumberField([x^2 - 2, x^2 - 3])
             sage: F.is_galois_relative()

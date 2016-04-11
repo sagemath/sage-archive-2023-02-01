@@ -969,7 +969,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.Faber_pol(-1, order_1=2)
             1/d^2*q^2 - 3/(4*d^2)*q + 81/(1024*d^2)
             sage: (MF.Faber_pol(-1, order_1=2)(MF.J_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)
@@ -1111,7 +1111,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.faber_pol(-1, order_1=2)
             q^2 - 3/(4*d)*q + 81/(1024*d^2)
             sage: (MF.faber_pol(-1, order_1=2)(MF.j_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)

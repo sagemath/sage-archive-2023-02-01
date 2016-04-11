@@ -100,7 +100,7 @@ cdef class LinearTensor(ModuleElement):
             sage: lt[1]
             2*x_0 + 5*x_3
         """
-        f = dict([key, value.__getitem__(indices)] for key, value in self._f.items())
+        f = dict([key, value[indices]] for key, value in self._f.items())
         LF = self.parent().linear_functions()
         return LF(f)
 
@@ -355,7 +355,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = b * coeff
         return self.parent()(result)
 
-    cdef _richcmp(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Create an inequality or equality object.
 

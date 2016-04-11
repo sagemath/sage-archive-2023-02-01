@@ -18,10 +18,11 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: docfilename = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
+    sage: from sage.env import SAGE_DOC
+    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
-    ...       if "#sage.symbolic.expression.Expression.N" in line:
-    ...           print line
+    ....:     if "#sage.symbolic.expression.Expression.N" in line:
+    ....:         print line
     <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
@@ -39,7 +40,7 @@ import pydoc
 from sage.misc.viewer import browser
 from sage.misc.temporary_file import tmp_dir
 import sage.version
-from sage.env import SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
 # The detex function does two kinds of substitutions: math, which
 # should only be done on the command line -- in the notebook, these
@@ -157,7 +158,6 @@ def _rmcmd(s, cmd, left='', right=''):
 ##             + right + s[m.end():]
 ##     return s
 
-import re
 itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
 itemreplace = r"* \1 \2"
 
@@ -225,6 +225,111 @@ def detex(s, embedded=False):
             s = re.sub(a+'([^a-zA-Z])', b+'\\1', s)
         s = s.replace('\\','')        # nuke backslashes
     return s
+
+def skip_TESTS_block(docstring):
+    r"""
+    Remove blocks labeled "TESTS:" from ``docstring``.
+
+    INPUT:
+
+    - ``docstring``, a string
+
+    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    the same with two colons), on a line on its own, and ending with
+    an unindented line (that is, the same level of indentation as
+    "TESTS") matching one of the following:
+
+    - a line which starts with whitespace and then a Sphinx directive
+      of the form ".. foo:", optionally followed by other text.
+
+    - a line which starts with whitespace and then text of the form
+      "UPPERCASE:", optionally followed by other text.
+
+    - lines which look like a ReST header: one line containing
+      anything, followed by a line consisting only of whitespace,
+      followed by a string of hyphens, equal signs, or other
+      characters which are valid markers for ReST headers: 
+      ``- = ` : ' " ~ _ ^ * + # < >``.
+
+    Return the string obtained from ``docstring`` by removing these
+    blocks.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import skip_TESTS_block
+        sage: start = ' Docstring\n\n'
+        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
+        sage: refs = ' REFERENCES: \n text text \n'
+        sage: directive = ' .. todo:: \n     do some stuff \n'
+
+        sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
+        True 
+        sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
+        True
+
+        sage: header = 'Header:\n~~~~~~~~'
+        sage: fake_header = 'Header:\n-=-=-=-=-='
+        sage: skip_TESTS_block(start + test + header) == start + header
+        True
+        sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
+        True
+
+    Not a header because it's indented compared to 'TEST' in the
+    string ``test``::
+
+        sage: another_fake = '\n    blah\n    ----'
+        sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
+        True
+   """
+    # tests_block: match a line starting with whitespace, then
+    # "TEST" or "TESTS" followed by ":" or "::", then possibly
+    # more whitespace, then the end of the line.
+    tests_block = re.compile('([ ]*)TEST[S]?:[:]?[ ]*$')
+    # end_of_block: match a line starting with whitespace, then Sphinx
+    # directives of the form ".. foo:". This will match directive
+    # names "foo" containing letters of either case, hyphens,
+    # underscores.
+    # Also match uppercase text followed by a colon, like
+    # "REFERENCES:" or "ALGORITHM:".
+    end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
+    # header: match a string of hyphens, or other characters which are
+    # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
+    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
+    s = ''
+    skip = False
+    previous = ''
+    # indentation: amount of indentation at the start of 'TESTS:'.
+    indentation = ''
+    for l in docstring.split('\n'):
+        if not skip:
+            m = tests_block.match(l)
+            if m:
+                skip = True
+                indentation = m.group(1)
+            else:
+                s += "\n"
+                s += l
+        else:
+            if end_of_block.match(l) and not tests_block.match(l):
+                skip = False
+                s += "\n"
+                s += l
+            elif header.match(l):
+                if l.find(indentation) == 0:
+                    continue
+                skip = False
+                if previous:
+                    s += "\n"
+                    s += previous
+                s += "\n"
+                s += l
+        previous = l
+    return s[1:] # Remove empty line from the beginning. 
 
 def process_dollars(s):
     r"""nodetex
@@ -326,7 +431,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``http://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC/common/conf.py.
+    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -353,8 +458,8 @@ def process_extlinks(s, embedded=False):
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
-    from conf import pythonversion, extlinks
+    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
+    from conf import extlinks
     sys.path = oldpath
     for key in extlinks:
         while True:
@@ -428,10 +533,10 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[201:273]
+        sage: identity_matrix(2).rook_vector.__doc__[202:274]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[201:273])
+        sage: format(identity_matrix(2).rook_vector.__doc__[202:274])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -552,6 +657,7 @@ def format(s, embedded=False):
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
+        s = skip_TESTS_block(s)
         if not embedded:
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)
@@ -694,19 +800,14 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = os.path.join(SAGE_DOC, 'output')
-        doc_path = SAGE_DOC
+        base_path = SAGE_DOC
+        doc_path = SAGE_DOC_SRC
 
-        # We need to import stuff from SAGE_DOC/common
-        # To do this, we temporarily change sys.path
-        oldpath = sys.path
-        sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
-        import build_options as builder
+        from sage_setup.docbuild.build_options import LANGUAGES, OMIT
         # List of languages
-        lang = builder.LANGUAGES
-        # Documents in SAGE_DOC/LANG/ to omit
-        omit = builder.OMIT
-        sys.path = oldpath
+        lang = LANGUAGES
+        # Documents in SAGE_DOC_SRC/LANG/ to omit
+        omit = OMIT
 
         # List of documents, minus the omitted ones
         documents = []
@@ -718,9 +819,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         # Check to see if any documents are missing.  This just
         # checks to see if the appropriate output directory exists,
         # not that it contains a complete build of the docs.
-        missing = [os.path.join(doc_path, 'output', 'html', doc)
+        missing = [os.path.join(SAGE_DOC, 'html', doc)
                    for doc in documents if not
-                   os.path.exists(os.path.join(doc_path, 'output', 'html', doc))]
+                   os.path.exists(os.path.join(SAGE_DOC, 'html', doc))]
         num_missing = len(missing)
         if num_missing > 0:
             print("""Warning, the following Sage documentation hasn't been built,
@@ -1000,8 +1101,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 
-    The file paths in the output are relative to
-    ``$SAGE_DOC/output``.
+    The file paths in the output are relative to ``$SAGE_DOC``.
 
     INPUT: same as for :func:`search_src`.
 
@@ -1208,7 +1308,7 @@ class _sage_doc:
             'http://localhost:8000/doc/live/'
         """
         self._base_url = "http://localhost:8000/doc/live/"
-        self._base_path = os.path.join(SAGE_DOC, "output/html/en/")
+        self._base_path = os.path.join(SAGE_DOC, "html", "en")
 
     def __call__(self, obj, output='html', view=True):
         r"""
@@ -1275,7 +1375,7 @@ class _sage_doc:
                 path = os.path.join(tmp_dir(), "temp.html")
                 filed = open(path, 'w')
 
-                static_path = os.path.join(SAGE_DOC, 'output/html/en/_static')
+                static_path = os.path.join(SAGE_DOC, "html", "en", "_static")
                 if os.path.exists(static_path):
                     title = obj_name + ' - Sage ' + sage.version.version + ' Documentation'
                     template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -1362,7 +1462,7 @@ class _sage_doc:
             sage: browse_sage_doc._open("reference", testing=True)[0]
             'http://localhost:8000/doc/live/reference/index.html'
             sage: browse_sage_doc._open("tutorial", testing=True)[1]
-            '...doc/output/html/en/tutorial/index.html'
+            '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")

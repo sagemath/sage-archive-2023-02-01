@@ -41,7 +41,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
         sage: a[0]*a[3]*a[0]
         0
         sage: A.an_element()
-        2*a0 + 3*a0*a1 + 1 + a0*a1*a2*a3
+        2*a0 + 1 + 3*a1 + a0*a1*a2*a3
     """
 
     def __init__(self, n, R = ZZ, prefix = 'a'):

@@ -231,16 +231,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             from sage.rings.qqbar import QQbar
             c = self.prod(self.gens())
-            chi = c.matrix().change_ring(QQbar)
-            roots = [u for u in chi.charpoly().roots()]
-            h = max(z[0].multiplicative_order() for z in roots)
-            prim = QQbar.zeta(h)
+            roots = c.matrix().change_ring(QQbar).charpoly().roots()
+            args = [(z.rational_argument(), m) for z, m in roots]
+            args = [(z if z >=0 else 1 + z, m) for z, m in args]
+            h = max(z.denominator() for z, m in args)
             degs = []
-            for z, m in roots:
-                for e in range(1, h):
-                    if prim ** e == z:
-                        degs.extend([e + 1] * m)
-                        break
+            for z, m in args:
+                degs.extend([z * h + 1] * m)
             return sorted(degs)
         
         @cached_method

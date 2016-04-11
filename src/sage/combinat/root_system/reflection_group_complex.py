@@ -1409,6 +1409,89 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
+    def invariant_form(self):
+        r"""
+        Return the form that is invariant under the action of ``self``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((3,1,2))
+            sage: W.invariant_form()
+            ?
+        """
+        C = self.cartan_matrix()
+        n = self.rank()
+
+        if self.is_crystallographic():
+            ring = QQ
+        else:
+            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+            ring = UniversalCyclotomicField()
+
+        from sage.matrix.constructor import zero_matrix
+        form = zero_matrix(ring, n, n)
+
+        # roots of unity of orders those of the simple reflections
+        exps = [1 - E(s.order()) for s in self.simple_reflections()]
+
+        for j in range(n):
+            for i in range(j):
+                if C[i,j] != 0:
+                    form[j,j] = (form[i,i].conjugate() * C[j,i].conjugate() /
+                                 C[i,j] * exps[j] / exps[i].conjugate())
+            if form[j,j] == 0:
+                form[j,j] = ring.one()
+        for j in range(n):
+            for i in range(j):
+                form[i, j] = C[i, j] * form[j, j] / exps[j]
+                form[j, i] = form[i, j].conjugate()
+
+        form.set_immutable()
+        return form
+
+    def invariant_form_brute_force(self):
+        r"""
+        Return the form that is invariant under the action of ``self``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((3,1,2))
+            sage: W.invariant_form_brute_force()
+            ?
+        """
+        Phi = self.roots()
+
+        base_change = self.base_change_matrix()
+        Delta = [ beta*base_change for beta in self.simple_roots() ]
+        basis_is_Delta = base_change.is_one()
+
+        S = self.simple_reflections()
+        n = len(S)
+
+        def act_on_root(w,root):
+            if basis_is_Delta:
+                return Phi[ w(Phi.index(root)+1)-1 ]
+            else:
+                return root * w.as_matrix()
+
+        @cached_function
+        def invariant_value(i,j):
+            if i > j:
+                return invariant_value(j,i).conjugate()
+            val = sum( (act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self )
+            if val in QQ:
+                val = QQ(val)
+            return val
+
+        coeffs = []
+        for i in range(n):
+            coeff = 1-E(S[i].order())
+            if coeff in QQ:
+                coeff = QQ(coeff)
+            coeffs.append(coeff)
+
+        return Matrix([ [ invariant_value(i,j)/self.cardinality() for j in range(n) ] for i in range(n) ])
+
     def set_reflection_representation(self,refl_repr=None):
         r"""
         Set the reflection representation of ``self``.

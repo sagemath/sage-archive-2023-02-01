@@ -1052,6 +1052,22 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix, relabelling_perm)
         ....:     if C.is_finite() or C.is_affine():
         ....:         assert recognized_type == C.coxeter_type()
+
+    We check the rank 2 cases (:trac:`20419`)::
+
+        sage: for i in range(2, 10):
+        ....:     M = matrix([[1,i],[i,1]])
+        ....:     CoxeterMatrix(M).coxeter_type()
+        Coxeter type of A1xA1 relabelled by {1: 2}
+        Coxeter type of ['A', 2]
+        Coxeter type of ['B', 2]
+        Coxeter type of ['I', 5]
+        Coxeter type of ['G', 2]
+        Coxeter type of ['I', 7]
+        Coxeter type of ['I', 8]
+        Coxeter type of ['I', 9]
+        sage: CoxeterMatrix(matrix([[1,-1],[-1,1]]), index_set=[0,1]).coxeter_type()
+        Coxeter type of ['A', 1, 1]
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
@@ -1070,8 +1086,10 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         if r == 2: # Type B2, G2, or I_2(p)
             e = S.edge_labels()[0]
             if e == 3: # Can't be 2 because it is connected
-                ct = CoxeterType(['B',2])
+                ct = CoxeterType(['A',2])
             elif e == 4:
+                ct = CoxeterType(['B',2])
+            elif e == 6:
                 ct = CoxeterType(['G',2])
             elif e > 0 and e < float('inf'): # Remaining non-affine types
                 ct = CoxeterType(['I',e])

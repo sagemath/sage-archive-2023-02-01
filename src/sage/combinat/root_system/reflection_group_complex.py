@@ -842,12 +842,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
              [1, 2, 1, 2, 3], [1, 2, 3, 1, 2, 1, 2, 3, 2],
              [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 1, 2, 1]]
         """
-        if self._conjugacy_classes_representatives is None:
-            S = str(gap3('List(ConjugacyClasses(%s),Representative)'%self._gap_group._name))
-            exec('self._conjugacy_classes_representatives=' + _gap_return(S))
-        return self._conjugacy_classes_representatives
+        S = str(gap3('List(ConjugacyClasses(%s),Representative)'%self._gap_group._name))
+        exec('_conjugacy_classes_representatives=' + _gap_return(S))
+        return _conjugacy_classes_representatives
 
-    @cached_method
     def conjugacy_classes(self):
         r"""
         Return the conjugacy classes of ``self``.
@@ -1039,7 +1037,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Ev_list = self._gap_group.ReflectionEigenvalues().sage()
         return Family(class_representatives,
                       lambda w: Ev_list[class_representatives.index(w)])
-
 
     @cached_method
     def reflection_eigenvalues(self, w, is_class_representative=False):
@@ -1894,7 +1891,6 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         type_str = self._irrcomp_repr_(self._type[0])
         return 'Irreducible complex reflection group of rank %s and type %s'%(self._rank,type_str)
 
-
     def elements_below_coxeter_element(self, c=None):
         r"""
         Return all elements in ``self`` in the interval `[1,c]` in the
@@ -1946,8 +1942,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         #self.conjugacy_classes()
         return filter(f, self)
 
-
     # TODO: lift to ComplexReflectionGroups.Finite
+    #       have a cached and an uncached version
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None, in_unitary_group=False):
         r"""
@@ -2097,7 +2093,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         return NCm
 
     # TODO: lift to ComplexReflectionGroups.Finite
-    @cached_method
+    #       have a cached and an uncached version
     def absolute_poset(self, in_unitary_group=False):
         r"""
         Return the poset induced by the absolute order of ``self`` as a
@@ -2132,7 +2128,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         # TODO:
         # - document and test the parameters
         # - lift to ComplexReflectionGroups.Finite
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def is_coxeter_element(self, which_primitive=1, is_class_representative=False):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
@@ -2158,7 +2154,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             return any(QQ(ev).denom() == h and QQ(ev).numer() == which_primitive
                        for ev in self.reflection_eigenvalues(is_class_representative=is_class_representative))
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def is_h_regular(self, is_class_representative=False):
             r"""
             Return whether ``self`` is regular.
@@ -2186,7 +2182,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             return any(QQ(ev).denom() == h
                        for ev in self.reflection_eigenvalues(is_class_representative=is_class_representative))
 
-        @cached_in_parent_method
+        #@cached_in_parent_method
         def is_regular(self, h, is_class_representative=False):
             r"""
             Return whether ``self`` is regular.

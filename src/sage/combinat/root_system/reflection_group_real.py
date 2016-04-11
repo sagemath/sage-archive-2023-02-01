@@ -369,6 +369,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
+    @cached_method
     def invariant_form(self):
         r"""
         Return the form that is invariant under the action of ``self``.
@@ -575,6 +576,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         return self.fundamental_weights()[self._index_set_inverse[i]]
 
+    @cached_method
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix associated to ``self``.

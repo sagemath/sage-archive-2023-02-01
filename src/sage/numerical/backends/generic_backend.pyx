@@ -151,19 +151,12 @@ cdef class GenericBackend:
         p = cls()                         # fresh instance of the backend
         if tester is None:
             tester = p._tester(**options)
-        # Test from CVXOPT interface:
+        # Test from CVXOPT interface (part 1):
         ncols_added = 5
         ncols_before = p.ncols()
         add_variables_result = p.add_variables(ncols_added)
         ncols_after = p.ncols()
         tester.assertEqual(ncols_after, ncols_before+ncols_added, "Added the wrong number of columns")
-        # Test from CVXOPT interface, continued
-        ncols_before = p.ncols()
-        add_variables_result = p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
-        ncols_after = p.ncols()
-        tester.assertEqual(p.col_bounds(ncols_before), (-2.0, None)) # FIXME: tol 1e-8
-        tester.assertEqual(p.col_name(ncols_before), 'a')
-        tester.assertEqual(p.objective_coefficient(ncols_before), 42.0) # FIXME: tol 1e-8
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """
@@ -470,8 +463,7 @@ cdef class GenericBackend:
         p.add_variables(2)
         coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
         upper = vector([5, 5])
-        lower = vector([0, 0])
-        p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
+        p.add_linear_constraint_vector(2, coeffs, None, upper, 'foo')
         # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
 
     cpdef add_col(self, list indices, list coeffs):
@@ -593,35 +585,6 @@ cdef class GenericBackend:
             MIPSolverException: ...
         """
         raise NotImplementedError()
-
-    ## Any test methods involving calls to 'solve' are set up as class methods,
-    ## which make a fresh instance of the backend.
-    @classmethod
-    def _test_solve(cls, tester=None, **options):
-        """
-        Trivial test for the solve method.
-
-        TEST::
-
-            sage: from sage.numerical.backends.generic_backend import GenericBackend
-            sage: p = GenericBackend()
-            sage: p._test_solve()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        p = cls()                         # fresh instance of the backend
-        if tester is None:
-            tester = p._tester(**options)
-        # From doctest of GenericBackend.solve:
-        tester.assertIsNone(p.add_linear_constraints(5, 0, None))
-        tester.assertIsNone(p.add_col(range(5), range(5)))
-        tester.assertEqual(p.solve(), 0)
-        tester.assertIsNone(p.objective_coefficient(0,1))
-        from sage.numerical.mip import MIPSolverException
-        #with tester.assertRaisesRegexp(MIPSolverException, "unbounded") as cm:  ## --- too specific
-        with tester.assertRaises(MIPSolverException) as cm:   # unbounded
-            p.solve()
 
     cpdef get_objective_value(self):
         """

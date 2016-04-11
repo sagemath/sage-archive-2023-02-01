@@ -217,7 +217,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
     """
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
-
+        # TODO: test / examplify the various input arguments
         TESTS::
 
             sage: W = ReflectionGroup(['A',3])
@@ -246,7 +246,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3],['B',2],['I',5],['I',6]); W
+            sage: W = ReflectionGroup(['A',3],['B',2],['I',5],['I',6]); W # indirect doctest
             Reducible real reflection group of rank 9 and type A3 x B2 x I2(5) x G2
         """
         type_str = ''

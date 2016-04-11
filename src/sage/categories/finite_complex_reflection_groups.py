@@ -15,8 +15,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.rings.all import ZZ
-
+from sage.categories.coxeter_groups import CoxeterGroups
 
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
@@ -270,6 +269,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             """
             return len(self.degrees())
 
+        @cached_method
         def cardinality(self):
             r"""
             Return the cardinality of ``self``.
@@ -291,6 +291,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.cardinality()
                 192
             """
+            from sage.rings.all import ZZ
             return ZZ.prod(self.degrees())
 
         def is_well_generated(self):
@@ -309,6 +310,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                   of type `G(r,r,n)` are well generated.
                 - The complex reflection groups of type `G(r,p,n)`
                   with `1 < p < r` are *not* well generated.
+
+                - The direct product of two well generated finite
+                  complex reflection group is still well generated.
 
             EXAMPLES::
 
@@ -516,6 +520,33 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     True
                 """
                 return True
+
+            coxeter_element = CoxeterGroups.ParentMethods.coxeter_element
+            standard_coxeter_elements = CoxeterGroups.ParentMethods.standard_coxeter_elements
+
+            @cached_method
+            def coxeter_elements(self):
+                r"""
+                Return the (unique) conjugacy class in ``self`` containing all
+                Coxeter elements.
+
+                .. NOTE::
+
+                    Beyond real reflection groups, the conjugacy class
+                    is not unique and we only obtain one such class.
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((1,1,3))
+                    sage: sorted(c.reduced_word() for c in W.coxeter_elements())
+                    [[1, 2], [2, 1]]
+
+                    sage: W = ReflectionGroup((1,1,4))
+                    sage: sorted(c.reduced_word() for c in W.coxeter_elements())
+                    [[1, 2, 3], [1, 2, 3, 1, 2], [2, 3, 1],
+                     [2, 3, 1, 2, 1], [3, 1, 2], [3, 2, 1]]
+                """
+                return self.coxeter_element().conjugacy_class()
 
         class Irreducible(CategoryWithAxiom):
             r"""

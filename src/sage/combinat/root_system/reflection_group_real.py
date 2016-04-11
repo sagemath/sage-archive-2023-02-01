@@ -657,6 +657,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     class Element(ComplexReflectionGroup.Element):
         # Use the generic reduced word from the Coxeter groups category
+        # TODO put a cached_method here instead of the lazy attribute below?
         reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__
 
         @lazy_attribute

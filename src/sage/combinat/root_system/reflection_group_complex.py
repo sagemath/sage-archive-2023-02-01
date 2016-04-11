@@ -207,7 +207,6 @@ from sage.rings.all import ZZ, QQ
 from sage.matrix.all import Matrix, identity_matrix
 from sage.matrix.matrix import is_Matrix
 from sage.interfaces.gap3 import gap3
-from sage.combinat.words.word import Word
 from sage.rings.universal_cyclotomic_field import E
 from sage.arith.misc import lcm
 from sage.modules.free_module_element import vector
@@ -384,8 +383,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 w._reduced_word = word
             yield w
 
-    __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
-
     @cached_method
     def index_set(self):
         r"""
@@ -404,6 +401,20 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             ('a', 'b', 'c')
         """
         return self._index_set
+
+    def simple_reflection(self, i):
+        r"""
+        Return the ``i``-th simple reflection of ``self``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((1,1,3))
+            sage: W.simple_reflection(1)
+            (1,4)(2,3)(5,6)
+            sage: W.simple_reflections()
+            Finite family {1: (1,4)(2,3)(5,6), 2: (1,3)(2,5)(4,6)}
+        """
+        return self.gens()[self._index_set_inverse[i]]
 
     def series(self):
         r"""
@@ -934,8 +945,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         else:
             return flatten([comp.degrees() for comp in self.irreducible_components()])
 
-    cardinality = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
-
     @cached_method
     def codegrees(self):
         r"""
@@ -1031,14 +1040,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return Family(class_representatives,
                       lambda w: Ev_list[class_representatives.index(w)])
 
+
     @cached_method
-    def reflection_eigenvalues(self, w, test_class_repr=True):
+    def reflection_eigenvalues(self, w, is_class_representative=False):
         r"""
         Return the reflection eigenvalue of ``w`` in ``self``.
 
         INPUT:
 
-        - ``test_class_repr`` -- boolean (default ``True``) whether to
+        - ``is_class_representative`` -- boolean (default ``True``) whether to
           compute instead on the conjugacy class representative
 
         .. SEEALSO:: :meth:`reflection_eigenvalues_family`
@@ -1055,11 +1065,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [2, 1] [1/3, 2/3]
             [1, 2, 1] [1/2, 0]
         """
-        if test_class_repr:
-            w_repr = w.conjugacy_class_representative()
-        else:
-            w_repr = w
-        return self.reflection_eigenvalues_family()[w_repr]
+        if not is_class_representative:
+            w = w.conjugacy_class_representative()
+        return self.reflection_eigenvalues_family()[w]
 
     @cached_method
     def simple_roots(self):
@@ -1412,44 +1420,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         _reduced_word = None
 
-        def apply_simple_reflection_right(self, i):
-            r"""
-            Return the product of ``self`` with the ``i``-th simple
-            reflection.
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: for w in W: w.apply_simple_reflection_right(1)
-                (1,4)(2,3)(5,6)
-                (1,2,6)(3,4,5)
-                ()
-                (1,5)(2,4)(3,6)
-                (1,3)(2,5)(4,6)
-                (1,6,2)(3,5,4)
-            """
-            gen = self.parent().gens()[self.parent()._index_set_inverse[i]]
-            return self * gen
-
-        def apply_simple_reflection_left(self, i):
-            r"""
-            Return the product of the ``i``-th simple reflection with
-            ``self``.
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: for w in W: w.apply_simple_reflection_left(1)
-                (1,4)(2,3)(5,6)
-                (1,6,2)(3,5,4)
-                ()
-                (1,3)(2,5)(4,6)
-                (1,5)(2,4)(3,6)
-                (1,2,6)(3,4,5)
-            """
-            gen = self.parent().gens()[self.parent()._index_set_inverse[i]]
-            return gen * self
-
         @cached_in_parent_method
         def conjugacy_class_representative(self):
             r"""
@@ -1660,7 +1630,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             W = self.parent()
             if self in W.conjugacy_classes_representatives():
                 if in_unitary_group or W.is_real():
-                    return W.rank() - self.reflection_eigenvalues(test_class_repr=False).count(0)
+                    return W.rank() - self.reflection_eigenvalues(is_class_representative=True).count(0)
                 else:
                     return len(self.reduced_word_in_reflections())
             else:
@@ -1762,8 +1732,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             I = identity_matrix(QQ, self.parent().rank())
             return (self.to_matrix() - I).right_kernel()
 
+        # TODO:
+        # - document is_class_representative
+        # - Remove the cache and instead put a cache on class_representative?
         @cached_in_parent_method
-        def reflection_eigenvalues(self, test_class_repr=True):
+        def reflection_eigenvalues(self, is_class_representative=False):
             r"""
             Return the reflection eigenvalues of ``self``.
 
@@ -1796,7 +1769,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [1/2, 1/2]
                 [1/4, 3/4]
             """
-            return self.parent().reflection_eigenvalues(self, test_class_repr=test_class_repr)
+            return self.parent().reflection_eigenvalues(self, is_class_representative=is_class_representative)
 
         @cached_in_parent_method
         def galois_conjugates(self):
@@ -1921,91 +1894,6 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         type_str = self._irrcomp_repr_(self._type[0])
         return 'Irreducible complex reflection group of rank %s and type %s'%(self._rank,type_str)
 
-    @cached_method
-    def a_coxeter_element(self):
-        r"""
-        Return a Coxeter element of a well-generated, irreducible
-        reflection group.
-
-        This is an element having a regular eigenvector (a vector not
-        contained in any reflecting hyperplane of ``self``).
-
-        .. WARNING::
-
-            ``self`` is assumed to be well-generated.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((1,1,4))
-            sage: W.a_coxeter_element().reduced_word()
-            [1, 2, 3]
-
-            sage: W = ReflectionGroup((2,1,4))
-            sage: W.a_coxeter_element().reduced_word()
-            [1, 2, 3, 4]
-
-            sage: W = ReflectionGroup((4,1,4))
-            sage: W.a_coxeter_element().reduced_word()
-            [1, 2, 3, 4]
-
-            sage: W = ReflectionGroup((4,4,4))
-            sage: W.a_coxeter_element().reduced_word()
-            [1, 2, 3, 4]
-        """
-        if not self.is_irreducible() or not self.is_well_generated():
-            raise ValueError("this method is available for irreducible, well-generated complex reflection groups")
-        return self.from_word(self._index_set)
-
-    @cached_method
-    def coxeter_elements(self):
-        r"""
-        Return the (unique) conjugacy class in ``self`` containing all
-        Coxeter elements.
-
-        .. NOTE::
-
-            - ``self`` is assumed to be well-generated.
-            - This works even beyond real reflection groups, but the
-              conjugacy class is not unique and we only obtain one such class.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((1,1,3))
-            sage: sorted(c.reduced_word() for c in W.coxeter_elements())
-            [[1, 2], [2, 1]]
-
-            sage: W = ReflectionGroup((1,1,4))
-            sage: sorted(c.reduced_word() for c in W.coxeter_elements())
-            [[1, 2, 3], [1, 2, 3, 1, 2], [2, 3, 1],
-             [2, 3, 1, 2, 1], [3, 1, 2], [3, 2, 1]]
-        """
-        return self.a_coxeter_element().conjugacy_class()
-
-    @cached_method
-    def standard_coxeter_elements(self):
-        r"""
-        Return all standard Coxeter elements in ``self``.
-
-        This is the set of all elements in self obtained from any
-        product of the simple reflections in ``self``.
-
-        .. NOTE::
-
-            - ``self`` is assumed to be well-generated.
-            - This works even beyond real reflection groups, but the conjugacy
-              class is not unique and we only obtain one such class.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(4)
-            sage: sorted(W.standard_coxeter_elements())
-            [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
-             (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
-        """
-        if not self.is_irreducible() or not self.is_well_generated():
-            raise ValueError("this method is available for irreducible, well-generated complex reflection groups")
-        from sage.combinat.permutation import Permutations
-        return set(self.from_word(w) for w in Permutations(self._index_set))
 
     def elements_below_coxeter_element(self, c=None):
         r"""
@@ -2038,16 +1926,16 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element() )
             [[], [1], [1, 2], [1, 2, 1], [2]]
 
-            sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([2,1])) )
+            sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_reduced_word([2,1])) )
             [[], [1], [1, 2, 1], [2], [2, 1]]
 
-            sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([2])) )
+            sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_reduced_word([2])) )
             [[], [2]]
         """
         if c in self:
             cs = [c]
         elif c is None:
-            cs = [self.a_coxeter_element()]
+            cs = [self.coxeter_element()]
         else:
             cs = list(c)
         l = cs[0].reflection_length(in_unitary_group=True)
@@ -2058,6 +1946,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         #self.conjugacy_classes()
         return filter(f, self)
 
+
+    # TODO: lift to ComplexReflectionGroups.Finite
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None, in_unitary_group=False):
         r"""
@@ -2089,15 +1979,15 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice() )
             [[], [1], [1, 2], [1, 2, 1], [2]]
 
-            sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([2,1])) )
+            sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_reduced_word([2,1])) )
             [[], [1], [1, 2, 1], [2], [2, 1]]
 
-            sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([2])) )
+            sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_reduced_word([2])) )
             [[], [2]]
         """
         from sage.combinat.posets.all import Poset, LatticePoset
         if c is None:
-            c = self.a_coxeter_element()
+            c = self.coxeter_element()
 
         smart_covers = not in_unitary_group
 
@@ -2127,6 +2017,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         else:
             return P
 
+    # TODO: lift to ComplexReflectionGroups.Finite
     def generalized_noncrossing_partitions(self, m, c=None, positive=False):
         r"""
         Return the set of all chains of length ``m`` in the noncrossing
@@ -2178,7 +2069,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         NC = self.noncrossing_partition_lattice(c=c)
         one = self.one()
         if c is None:
-            c = self.a_coxeter_element()
+            c = self.coxeter_element()
         chains = NC.chains()
         NCm = set()
         iter = chains.breadth_first_search_iterator()
@@ -2205,6 +2096,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 chain = range(m + 1)
         return NCm
 
+    # TODO: lift to ComplexReflectionGroups.Finite
     @cached_method
     def absolute_poset(self, in_unitary_group=False):
         r"""
@@ -2237,12 +2129,15 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     class Element(ComplexReflectionGroup.Element):
 
+        # TODO:
+        # - document and test the parameters
+        # - lift to ComplexReflectionGroups.Finite
         @cached_in_parent_method
-        def is_coxeter_element(self, which_primitive=1, test_class_repr=True):
+        def is_coxeter_element(self, which_primitive=1, is_class_representative=False):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
 
-            .. SEEALSO:: :meth:`~IrreducibleComplexReflectionGroup.a_coxeter_element`
+            .. SEEALSO:: :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
 
             EXAMPLES::
 
@@ -2261,12 +2156,12 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             h = self.parent().coxeter_number()
             # to check regularity for a Coxeter number h, we get that an eigenvector is regular for free
             return any(QQ(ev).denom() == h and QQ(ev).numer() == which_primitive
-                       for ev in self.reflection_eigenvalues(test_class_repr=test_class_repr))
+                       for ev in self.reflection_eigenvalues(is_class_representative=is_class_representative))
 
         @cached_in_parent_method
-        def is_h_regular(self, test_class_repr=True):
+        def is_h_regular(self, is_class_representative=False):
             r"""
-            Return ``True`` if ``self`` is regular.
+            Return whether ``self`` is regular.
 
             This is if ``self`` has an eigenvector with eigenvalue `h`
             and which does not lie in any reflecting hyperplane.
@@ -2289,12 +2184,12 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             h = self.parent().coxeter_number()
             # to check regularity for a Coxeter number h, we get that an eigenvector is regular for free
             return any(QQ(ev).denom() == h
-                       for ev in self.reflection_eigenvalues(test_class_repr=test_class_repr))
+                       for ev in self.reflection_eigenvalues(is_class_representative=is_class_representative))
 
         @cached_in_parent_method
-        def is_regular(self, h, test_class_repr=True):
+        def is_regular(self, h, is_class_representative=False):
             r"""
-            Return ``True`` if ``self`` is regular.
+            Return whether ``self`` is regular.
 
             This is, if ``self`` has an eigenvector with eigenvalue
             ``h`` and which does not lie in any reflecting hyperplane.
@@ -2340,7 +2235,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 1]
                 [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 2, 1, 2]
             """
-            evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
+            evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             I = identity_matrix(self.parent().rank())
             for ev in evs:
                 ev = QQ(ev)

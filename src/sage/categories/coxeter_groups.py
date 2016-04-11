@@ -242,11 +242,25 @@ class CoxeterGroups(Category_singleton):
             return SearchForest((self.one(),), succ, algorithm='breadth',
                                 category = default_category.or_subcategory(category))
 
+        @cached_method
         def coxeter_element(self):
             """
             Return a Coxeter element.
 
             The result is the product of the simple reflections, in some order.
+
+            .. NOTE::
+
+                This implementation is shared with well generated
+                complex reflection groups. It would be nicer to put it
+                in some joint super category; however, in the current
+                state of the art, there is none where it's clear that
+                this is the right construction for obtaining a coxeter
+                element.
+
+                In this context, this is an element having a regular
+                eigenvector (a vector not contained in any reflecting
+                hyperplane of ``self``).
 
             EXAMPLES::
 
@@ -263,6 +277,25 @@ class CoxeterGroups(Category_singleton):
                 sage: CoxeterGroup(['H', 3]).coxeter_element().reduced_word()
                 [1, 2, 3]
 
+            This method is also used for well generated finite complex
+            reflection groups::
+
+                sage: W = ReflectionGroup((1,1,4))
+                sage: W.coxeter_element().reduced_word()
+                [1, 2, 3]
+
+                sage: W = ReflectionGroup((2,1,4))
+                sage: W.coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+
+                sage: W = ReflectionGroup((4,1,4))
+                sage: W.coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+
+                sage: W = ReflectionGroup((4,4,4))
+                sage: W.coxeter_element().reduced_word()
+                [1, 2, 3, 4]
+
             TESTS::
 
                 sage: WeylGroup(['A', 4]).coxeter_element().reduced_word()
@@ -271,7 +304,33 @@ class CoxeterGroups(Category_singleton):
                 (1,3,2)
             """
             return self.prod(self.simple_reflections())
-            
+
+        @cached_method
+        def standard_coxeter_elements(self):
+            r"""
+            Return all standard Coxeter elements in ``self``.
+
+            This is the set of all elements in self obtained from any
+            product of the simple reflections in ``self``.
+
+            .. NOTE::
+
+                - ``self`` is assumed to be well-generated.
+                - This works even beyond real reflection groups, but the conjugacy
+                  class is not unique and we only obtain one such class.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(4)
+                sage: sorted(W.standard_coxeter_elements())
+                [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
+                 (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
+            """
+            if not self.is_irreducible() or not self.is_well_generated():
+                raise ValueError("this method is available for irreducible, well-generated complex reflection groups")
+            from sage.combinat.permutation import Permutations
+            return set(self.from_reduced_word(w) for w in Permutations(self._index_set))
+
         def grassmannian_elements(self, side="right"):
             """
             Return the left or right grassmanian elements of ``self``
@@ -858,8 +917,8 @@ class CoxeterGroups(Category_singleton):
 
             .. SEEALSO::
 
-                :meth:`.reduced_words`, :meth:`.reduced_word_reverse_iterator`,
-                :meth:`length`, :meth:`reduced_word_graph`
+                - :meth:`.reduced_words`, :meth:`.reduced_word_reverse_iterator`,
+                - :meth:`length`, :meth:`reduced_word_graph`
             """
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))

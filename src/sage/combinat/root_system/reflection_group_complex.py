@@ -906,34 +906,34 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))
             sage: W.degrees()
-            [2, 3, 4]
+            (2, 3, 4)
 
             sage: W = ReflectionGroup((2,1,4))
             sage: W.degrees()
-            [2, 4, 6, 8]
+            (2, 4, 6, 8)
 
             sage: W = ReflectionGroup((4,1,4))
             sage: W.degrees()
-            [4, 8, 12, 16]
+            (4, 8, 12, 16)
 
             sage: W = ReflectionGroup((4,2,4))
             sage: W.degrees()
-            [4, 8, 12, 8]
+            (4, 8, 8, 12)
 
             sage: W = ReflectionGroup((4,4,4))
             sage: W.degrees()
-            [4, 8, 12, 4]
+            (4, 4, 8, 12)
 
         Examples of reducible types::
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2)); W
             Reducible complex reflection group of rank 5 and type A3 x G(3,1,2)
             sage: W.degrees()
-            [2, 3, 4, 3, 6]
+            (2, 3, 4, 3, 6)
 
             sage: W = ReflectionGroup((1,1,4), (6,1,12), 23) # fails in GAP3
             sage: W.degrees()
-            [2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10]
+            (2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10)
         """
         if self.is_irreducible():
             try:
@@ -953,31 +953,31 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))
             sage: W.codegrees()
-            [2, 1, 0]
+            (2, 1, 0)
 
             sage: W = ReflectionGroup((2,1,4))
             sage: W.codegrees()
-            [6, 4, 2, 0]
+            (6, 4, 2, 0)
 
             sage: W = ReflectionGroup((4,1,4))
             sage: W.codegrees()
-            [12, 8, 4, 0]
+            (12, 8, 4, 0)
 
             sage: W = ReflectionGroup((4,2,4))
             sage: W.codegrees()
-            [12, 8, 4, 0]
+            (12, 8, 4, 0)
 
             sage: W = ReflectionGroup((4,4,4))
             sage: W.codegrees()
-            [8, 4, 0, 8]
+            (8, 8, 4, 0)
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2))
             sage: W.codegrees()
-            [2, 1, 0, 3, 0]
+            (2, 1, 0, 3, 0)
 
             sage: W = ReflectionGroup((1,1,4), (6,1,12), 23) # fails in GAP3
             sage: W.codegrees()
-            [2, 1, 0, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 6, 0, 8, 4, 0]
+            (2, 1, 0, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 6, 0, 8, 4, 0)
         """
         if self.is_irreducible():
             if self.is_well_generated():
@@ -1279,11 +1279,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.fundamental_invariants()
-            [-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2]
+            (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.fundamental_invariants()
-            [x0^3 + x1^3, x0^3*x1^3]
+            (x0^3 + x1^3, x0^3*x1^3)
         """
         import re
         from sage.rings.polynomial.all import PolynomialRing

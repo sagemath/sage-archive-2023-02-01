@@ -276,6 +276,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             category = category.Finite()
         else:
             category = category.Infinite()
+        self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
 
@@ -476,9 +477,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [ 0  1  0]
             [ 0  1 -1]
         """
-        if not i in self.index_set():
-            raise ValueError("%s is not in the index set %s" % (i, self.index_set()))
-        return self.gen(self.index_set().index(i))
+        return self.gen(self._index_set_inverse[i])
 
     @cached_method
     def _positive_roots_reflections(self):
@@ -626,7 +625,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [0, 2, 5]
         """
         roots = self.roots()
-        rt = roots[0].parent().gen(self.index_set().index(i))
+        rt = roots[0].parent().gen(self._index_set_inverse[i])
         return roots.index(rt)
 
     def fundamental_weights(self):
@@ -677,14 +676,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             if index_set is None:
                 index_set = range(n)
             else:
-                index_set = [I.index(i) for i in index_set]
+                I_inv = self.parent()._index_set_inverse
+                index_set = [I_inv[i] for i in index_set]
             if positive:
                 for i in index_set:
-                    if any(M[j,i] > zero for j in range(n)):
+                    if not _matrix_test_right_descent(M, i, n, zero):
                         return I[i]
             else:
                 for i in index_set:
-                    if all(M[j,i] <= zero for j in range(n)):
+                    if _matrix_test_right_descent(M, i, n, zero):
                         return I[i]
             return None
 
@@ -723,10 +723,11 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             if index_set is None:
                 index_set = range(n)
             else:
-                index_set = [I.index(i) for i in index_set]
+                I_inv = self.parent()._index_set_inverse
+                index_set = [I_inv[i] for i in index_set]
             if positive:
-                return [I[i] for i in index_set if any(M[j,i] > zero for j in range(n))]
-            return [I[i] for i in index_set if all(M[j,i] <= zero for j in range(n))]
+                return [I[i] for i in index_set if not _matrix_test_right_descent(M, i, n, zero)]
+            return [I[i] for i in index_set if _matrix_test_right_descent(M, i, n, zero)]
 
         def has_right_descent(self, i):
             r"""
@@ -754,11 +755,11 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 sage: [elt.has_right_descent(i) for i in [1, 2, 3]]
                 [True, False, True]
             """
-            i = self.parent().index_set().index(i)
+            i = self.parent()._index_set_inverse[i]
             n = len(self.parent().index_set())
             M = self.matrix()
             zero = M.base_ring().zero()
-            return all(M[j,i] <= zero for j in range(n))
+            return _matrix_test_right_descent(M, i, n, zero)
 
         def canonical_matrix(self):
             r"""
@@ -794,4 +795,45 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             roots = self.parent().roots()
             rt = self * roots[i]
             return roots.index(rt)
+
+def _matrix_test_right_descent(M, i, n, zero):
+    """
+    Test if the matrix ``M`` has a right ``i``-descent.
+
+    INPUT:
+
+    - ``M`` -- the matrix
+    - ``i`` -- the index
+    - ``n`` -- the size of the matrix
+    - ``zero`` -- the zero element in the base ring of ``M``
+
+    .. NOTE::
+
+        This is a helper function for :class:`CoxeterMatrixGroup.Element`
+        and optimized for speed. Specifically, it is called often and
+        there is no need to recompute ``n`` (and ``zero``) each time this
+        function is called.
+
+    .. TODO::
+
+        Cythonize this function.
+
+    EXAMPLES::
+
+        sage: from sage.groups.matrix_gps.coxeter_group import _matrix_test_right_descent
+        sage: W = CoxeterGroup(['A',3], implementation="reflection")
+        sage: a,b,c = W.gens()
+        sage: elt = b*a*c
+        sage: zero = W.base_ring().zero()
+        sage: [_matrix_test_right_descent(elt.matrix(), i, 3, zero)
+        ....:  for i in range(3)]
+        [True, False, True]
+    """
+    for j in xrange(n):
+        c = M[j,i]
+        if c < zero:
+            return True
+        elif c > zero:
+            return False
+    return False
 

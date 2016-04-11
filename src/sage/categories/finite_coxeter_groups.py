@@ -237,7 +237,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             h = max(z.denominator() for z, m in args)
             degs = []
             for z, m in args:
-                degs.extend([z * h + 1] * m)
+                if z:
+                    degs.extend([z * h + 1] * m)
             return sorted(degs)
         
         @cached_method

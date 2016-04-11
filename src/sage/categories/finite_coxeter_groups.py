@@ -12,7 +12,6 @@ Finite Coxeter Groups
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 
 
@@ -230,6 +229,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: CoxeterGroup(['H', 3]).degrees()
                 (2, 6, 10)
 
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).degrees()
+                (2, 3, 4, 2, 3, 4, 2, 4)
+
             TESTS::
 
                 sage: CoxeterGroup(['A', 4]).degrees()
@@ -237,19 +239,25 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: SymmetricGroup(3).degrees()
                 (2, 3)
             """
-            from sage.rings.qqbar import QQbar
-            from sage.rings.integer_ring import ZZ
-            c = self.coxeter_element()
-            roots = c.matrix().change_ring(QQbar).charpoly().roots()
-            args = [(z.rational_argument(), m) for z, m in roots]
-            args = [(z if z >=0 else 1 + z, m) for z, m in args]
-            h = max(z.denominator() for z, m in args)
-            degs = []
-            for z, m in args:
-                if z:
-                    degs.extend([ZZ(z * h + 1)] * m)
-            return tuple(sorted(degs))
-        
+            def degrees_of_irreducible_component(I):
+                """Return the degrees for the irreducible component indexed by I"""
+                # The coxeter element
+                from sage.rings.qqbar import QQbar
+                from sage.rings.integer_ring import ZZ
+
+                s = self.simple_reflections()
+                c = self.prod(s[i] for i in I)
+                roots = c.matrix().change_ring(QQbar).charpoly().roots()
+                args = [(z.rational_argument(), m) for z, m in roots]
+                args = [(z if z >=0 else 1 + z, m) for z, m in args]
+                h = max(z.denominator() for z, m in args)
+                return tuple(sorted(ZZ(z * h + 1)
+                                    for z, m in args if z
+                                    for i in range(m)))
+
+            return sum((degrees_of_irreducible_component(I)
+                        for I in self.irreducible_component_index_sets()), ())
+
         def codegrees(self):
             """
             Return the codegrees of the Coxeter group.
@@ -259,19 +267,22 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: CoxeterGroup(['A', 4]).codegrees()
-                (3, 2, 1, 0)
+                (0, 1, 2, 3)
                 sage: CoxeterGroup(['B', 4]).codegrees()
-                (6, 4, 2, 0)
+                (0, 2, 4, 6)
                 sage: CoxeterGroup(['D', 4]).codegrees()
-                (4, 2, 2, 0)
+                (0, 2, 2, 4)
                 sage: CoxeterGroup(['F', 4]).codegrees()
-                (10, 6, 4, 0)
+                (0, 4, 6, 10)
                 sage: CoxeterGroup(['E', 8]).codegrees()
-                (28, 22, 18, 16, 12, 10, 6, 0)
+                (0, 6, 10, 12, 16, 18, 22, 28)
                 sage: CoxeterGroup(['H', 3]).codegrees()
-                (8, 4, 0)
+                (0, 4, 8)
+
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).codegrees()
+                (0, 1, 2, 0, 1, 2, 0, 2)
             """
-            return tuple(reversed([d - 2 for d in self.degrees()]))
+            return tuple(d - 2 for d in self.degrees())
 
         @cached_method
         def weak_poset(self, side="right", facade=False):

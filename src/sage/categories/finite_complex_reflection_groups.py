@@ -141,21 +141,21 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return the degrees of ``self``.
 
-            OUTPUT:: a tuple of Sage integers, sorted increasingly
+            OUTPUT:: a tuple of Sage integers
 
             EXAMPLES::
 
                 sage: W = ColoredPermutations(1,4)
                 sage: W.degrees()
-                [2, 3, 4]
+                (2, 3, 4)
 
                 sage: W = ColoredPermutations(3,3)
                 sage: W.degrees()
-                [3, 6, 9]
+                (3, 6, 9)
 
                 sage: W = ReflectionGroup(31)
                 sage: W.degrees()
-                [8, 12, 20, 24]
+                (8, 12, 20, 24)
             """
 
         @abstract_method(optional=True)
@@ -163,7 +163,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             r"""
             Return the codegrees of ``self``.
 
-            OUTPUT:: a tuple of Sage integers, sorted decreasingly
+            OUTPUT:: a tuple of Sage integers
 
             EXAMPLES::
 
@@ -177,7 +177,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 sage: W = ReflectionGroup(31)
                 sage: W.codegrees()
-                [28, 16, 12, 0]
+                (28, 16, 12, 0)
             """
 
         def _test_degrees(self, **options):
@@ -205,12 +205,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 ...
                 AssertionError: the degrees should be integers
 
-                sage: W.degrees = lambda: (2,3,5,4)
-                sage: W._test_degrees()
-                Traceback (most recent call last):
-                ...
-                AssertionError: the degrees should be sorted increasingly
-
                 sage: W.degrees = lambda: (1,2,3)
                 sage: W._test_degrees()
                 Traceback (most recent call last):
@@ -230,8 +224,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                            "the degrees should be integers")
             tester.assert_(all( d >= 2 for d in degrees ),
                            "the degrees should be larger than 2")
-            tester.assert_(tuple(sorted(degrees)) == degrees,
-                           "the degrees should be sorted increasingly")
             tester.assert_(len(degrees) == self.rank(),
                            "the number of degrees should coincide with the rank")
             tester.assertEqual(sum(d-1 for d in degrees), self.number_of_reflection_hyperplanes(),
@@ -254,7 +246,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 sage: SymmetricGroup(3)._test_codegrees()
 
-
                 sage: W = SymmetricGroup(5)
                 sage: W.codegrees = lambda: (1/1,5)
                 sage: W._test_codegrees()
@@ -262,17 +253,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 ...
                 AssertionError: the codegrees should be integers
 
-                sage: W.codegrees = lambda: (2,3,5,4)
-                sage: W._test_codegrees()
-                Traceback (most recent call last):
-                ...
-                AssertionError: the codegrees should be sorted decreasingly
-
                 sage: W.codegrees = lambda: (2,1,-1)
                 sage: W._test_codegrees()
                 Traceback (most recent call last):
                 ...
-                AssertionError: the codegrees should be larger than 2
+                AssertionError: the codegrees should be nonnegative
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -287,11 +272,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                            "the codegrees should be integers")
             tester.assert_(all( d >= 0 for d in codegrees ),
                            "the codegrees should be nonnegative")
-            tester.assert_(tuple(reversed(sorted(codegrees))) == codegrees,
-                           "the codegrees should be sorted decreasingly")
             tester.assert_(len(codegrees) == self.rank(),
                            "the number of codegrees should coincide with the rank")
-            tester.assertEqual(sum(d for d in codegrees), self.number_of_reflection_hyperplanes(),
+            tester.assertEqual(sum(d+1 for d in codegrees), self.number_of_reflection_hyperplanes(),
                                "the sum of the codegrees should be consistent with the number of reflection hyperplanes")
 
         def number_of_reflection_hyperplanes(self):

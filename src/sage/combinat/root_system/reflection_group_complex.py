@@ -1158,6 +1158,18 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self.roots()[:len(self.gens())]
 
+    def simple_root(self, i):
+        r"""
+        Return the simple root with index ``i``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: W.simple_root(1)
+            (1, 0, 0)
+        """
+        return self.simple_roots()[self._index_set_inverse[i]]
+
     @cached_method
     def simple_coroots(self):
         r"""
@@ -1432,18 +1444,20 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         form = zero_matrix(ring, n, n)
 
         # roots of unity of orders those of the simple reflections
-        exps = [1 - E(s.order()) for s in self.simple_reflections()]
+        S = self.simple_reflections()
+        exps = [1 - E(S[i].order()) for i in self.index_set()]
 
         for j in range(n):
             for i in range(j):
                 if C[i,j] != 0:
-                    form[j,j] = (form[i,i].conjugate() * C[j,i].conjugate() /
-                                 C[i,j] * exps[j] / exps[i].conjugate())
+                    form[j,j] = form[i,i].conjugate() * \
+                                 ( C[i,j].conjugate() / C[j,i] ) * \
+                                 ( exps[j] / exps[i].conjugate() )
             if form[j,j] == 0:
                 form[j,j] = ring.one()
         for j in range(n):
             for i in range(j):
-                form[i, j] = C[i, j] * form[j, j] / exps[j]
+                form[i, j] = C[i, j] * form[i, i] / exps[j]
                 form[j, i] = form[i, j].conjugate()
 
         form.set_immutable()
@@ -1459,32 +1473,36 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.invariant_form_brute_force()
             ?
         """
+        from sage.misc.cachefunc import cached_function
+
         Phi = self.roots()
 
         base_change = self.base_change_matrix()
-        Delta = [ beta*base_change for beta in self.simple_roots() ]
+        Delta = [self.simple_root(i) for i in self.index_set()]
         basis_is_Delta = base_change.is_one()
+        if not basis_is_Delta:
+            Delta = [beta * base_change for beta in Delta]
 
         S = self.simple_reflections()
         n = len(S)
 
-        def act_on_root(w,root):
+        def act_on_root(w,beta):
             if basis_is_Delta:
-                return Phi[ w(Phi.index(root)+1)-1 ]
+                return w.act_on_root(beta)
             else:
-                return root * w.as_matrix()
+                return beta * w.to_matrix()
 
         @cached_function
         def invariant_value(i,j):
             if i > j:
                 return invariant_value(j,i).conjugate()
-            val = sum( (act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self )
+            val = sum((act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self)
             if val in QQ:
                 val = QQ(val)
             return val
 
         coeffs = []
-        for i in range(n):
+        for i in self.index_set():
             coeff = 1-E(S[i].order())
             if coeff in QQ:
                 coeff = QQ(coeff)

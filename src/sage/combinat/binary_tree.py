@@ -13,6 +13,7 @@ objects.
 AUTHORS:
 
 - Florent Hivert (2010-2011): initial implementation.
+- Adrien Boussicault (2015): Hook statistics.
 
 REFERENCES:
 
@@ -2034,6 +2035,211 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                      for m, i, n in right.single_edge_cut_shapes()]
             resu += [(L + 1, L + 2, R)]
         return resu
+
+    def comb(self, side='left'):
+        r"""
+        Return the comb of a tree.
+
+        There are two combs in a binary tree : a left comb and a right comb.
+        Consider all the vertices of the leftmost (resp. rightmost) branch of 
+        the root. The left (resp. right) comb is the list of right (resp. left) 
+        subtree of each of these vertices.
+
+        INPUT:
+
+        - ``side`` -- (default: 'left') set to 'left' to obtain a left comb, and to 'right' to 
+          obtain a right comb.
+
+        OUTPUT:
+
+        A list of binary trees.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTree( '.' )
+            sage: [BT.comb('left'), BT.comb('right')]
+            [[], []]
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: [BT.comb('left'), BT.comb('right')]
+            [[], []]
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT.comb('left')
+            [., .]
+            sage: BT.comb('right')
+            [.]
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                     ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o          
+            sage: BT.comb('left')
+            [[[., .], [[[., .], [., .]], [., .]]], ., [., .]]
+            sage: ascii_art(BT.comb('left'))
+            [   __o___     , , o ]
+            [  /      \          ]
+            [ o       _o_        ]
+            [        /   \       ]
+            [       o     o      ]
+            [      / \           ]
+            [     o   o          ]
+            sage: BT.comb('right')
+            [., [[., .], [[[., .], [., .]], .]]]
+            sage: ascii_art(BT.comb('right'))
+            [ ,   __o__   ]
+            [    /     \  ]
+            [   o       o ]
+            [          /  ]
+            [         o   ]
+            [        / \  ]
+            [       o   o ]
+        """
+        def _comb(side):
+            if self.is_empty():
+                return []
+            tree = self[side]
+            res = []
+            while not tree.is_empty():
+                res.append(tree[1-side])
+                tree = tree[side]
+            return res
+        if side == 'left':
+            return _comb(0)
+        elif side == 'right':
+            return _comb(1)
+
+    def hook_number(self):
+        r"""
+        Return the number of hooks.
+
+        The hook of a vertex v is the union of {v}, its leftmost and 
+        rightmost branches.
+
+        There is a unique way to partition the vertices in hooks.
+        The number of hooks in such a partition is the hook number of the tree.
+
+        We can obtain this partition recursively by extracting the root's hook 
+        and iterating the processus on each tree of the remaining forest.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTree( '.' )
+            sage: BT.hook_number()
+            0
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: BT.hook_number()
+            1
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' ); ascii_art(BT)
+                o
+               / \
+              o   o
+             /    
+            o     
+            sage: BT.hook_number()
+            1
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                    ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o
+            sage: BT.hook_number()
+            6
+        """
+        if self.is_empty():
+            return 0
+        return 1 + sum(t.hook_number() for t in self.comb('left') + self.comb('right'))
+
+    def twisting_number(self):
+        r"""
+        Return a 2-tuple where the first element of the tuple is the number 
+        of straight left branches in the binary tree and the second one is 
+        the number of straight right branches in the binary tree.
+
+        OUTPUT : 
+
+        A list of size 2 of non negative integers.        
+
+        EXAMPLES::
+            sage: BT = BinaryTree( '.' )
+            sage: BT.twisting_number()
+            [0, 0]
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: BT.twisting_number()
+            [0, 0]
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' ); ascii_art(BT)
+                o
+               / \
+              o   o
+             /    
+            o     
+            sage: BT.twisting_number()
+            [1, 1]
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: ascii_art(BT)
+                    ________o________
+                   /                 \
+                __o__                 o
+               /     \                 \
+              o     __o___              o
+             /     /      \            /
+            o     o       _o_       __o__
+             \           /   \     /     \
+              o         o     o   o       o
+                       / \               /
+                      o   o             o
+                                       / \
+                                      o   o
+            sage: BT.twisting_number()
+            [5, 6]
+            sage: BT = BinaryTree( '[.,[[[.,.],.],.]]' ); ascii_art(BT)
+              o
+               \
+                o
+               /
+              o
+             /
+            o
+            sage: BT.twisting_number()
+            [1, 1]
+        """
+        tn=[0,0]
+        if self.node_number()<=1:
+            return tn
+        L=self.comb('left')
+        if len(L)>0:
+            tn[0]=tn[0]+1
+            for h in L:
+                tw=BinaryTree([None,h]).twisting_number()
+                tn[0]=tn[0]+tw[0]
+                tn[1]=tn[1]+tw[1]
+        R=self.comb('right')
+        if len(R)>0:
+            tn[1]=tn[1]+1        
+            for l in R:
+                tw=BinaryTree([l,None]).twisting_number()
+                tn[0]=tn[0]+tw[0]
+                tn[1]=tn[1]+tw[1]            
+        return tn
+
 
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""

@@ -1,3 +1,6 @@
+Patch from upstream needed to fix an error when compiling on Cygwin
+See http://trac.sagemath.org/ticket/20423 for discussion and link to
+the original upstream patch.
 --- trunk/src/mpfr-impl.h	2016/04/08 15:55:03	10257
 +++ trunk/src/mpfr-impl.h	2016/04/08 23:17:07	10260
 @@ -208,19 +208,6 @@

@@ -930,11 +930,11 @@ def vars_in_str(s):
 
     INPUT:
 
-        - `s` -- string
+    - ``s`` -- a string
 
     OUTPUT:
 
-        - list of strings (unit names)
+    - a list of strings (unit names)
 
     EXAMPLES::
 
@@ -951,11 +951,11 @@ def unit_derivations_expr(v):
 
     INPUT:
 
-        - `v` -- string, name of a unit type such as 'area', 'volume', etc.
+    - ``v`` -- a string, name of a unit type such as 'area', 'volume', etc.
 
     OUTPUT:
 
-        - symbolic expression
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1017,11 +1017,11 @@ def str_to_unit(name):
 
     INPUT:
 
-        - ``name`` -- string
+    - ``name`` -- a string
 
     OUTPUT:
 
-        - UnitExpression
+    - a :class:`UnitExpression`
 
 
     EXAMPLES::
@@ -1183,11 +1183,11 @@ def unitdocs(unit):
 
     INPUT:
 
-        - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-        - ``string``
+    - a string
 
     EXAMPLES::
 
@@ -1214,11 +1214,11 @@ def is_unit(s):
 
     INPUT:
 
-        - `s` -- an object
+    - ``s`` -- an object
 
     OUTPUT:
 
-        - ``bool``
+    - a boolean
 
     EXAMPLES::
 
@@ -1246,13 +1246,13 @@ def convert(expr, target):
 
     INPUT:
 
-        - `expr` -- the symbolic expression converting from
+    - ``expr`` -- the symbolic expression converting from
 
-        - `target` -- (default None) the symbolic expression converting to
+    - ``target`` -- (default None) the symbolic expression converting to
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1338,11 +1338,11 @@ def base_units(unit):
 
     INPUT:
 
-            - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-            - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1388,12 +1388,12 @@ def convert_temperature(expr, target):
 
     INPUT:
 
-        - `expr` -- a unit of temperature
-        - `target` -- a units of temperature
+    - ``expr`` -- a unit of temperature
+    - ``target`` -- a units of temperature
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 

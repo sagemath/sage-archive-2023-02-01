@@ -259,7 +259,7 @@ class CoxeterGroups(Category_singleton):
                 element.
 
                 In this context, this is an element having a regular
-                eigenvector (a vector not contained in any reflecting
+                eigenvector (a vector not contained in any reflection
                 hyperplane of ``self``).
 
             EXAMPLES::

@@ -279,7 +279,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
         def number_of_reflection_hyperplanes(self):
             r"""
-            Return the number of reflecting hyperplanes of ``self``.
+            Return the number of reflection hyperplanes of ``self``.
 
             This is also the number of distinguished reflections.  For
             real groups, this coincides with the number of
@@ -314,7 +314,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             Return the number of reflections of ``self``.
 
             For real groups, this coincides with the number of
-            reflecting hyperplanes.
+            reflection hyperplanes.
 
             This implementation uses that it is given by the sum of
             the degrees of ``self`` minus its rank.
@@ -572,7 +572,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 This is defined as `\frac{N + N^*}{n}` where
                 `N` is the number of reflections, `N^*` is the
-                number of reflecting hyperplanes, and `n` is the
+                number of reflection hyperplanes, and `n` is the
                 rank of ``self``.
 
                 EXAMPLES::

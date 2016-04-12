@@ -195,10 +195,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Reducible real reflection group of rank 4 and type A2 x B2
                 sage: W._test_degrees()
 
-                sage: SymmetricGroup(3)._test_degrees()
-
-
                 sage: W = SymmetricGroup(5)
+                sage: W._test_degrees()
+
+            We now break the implementation of W.degrees and check that this is caught::
+
                 sage: W.degrees = lambda: (1/1,5)
                 sage: W._test_degrees()
                 Traceback (most recent call last):
@@ -210,6 +211,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the degrees should be larger than 2
+
+            We restore W to its normal state::
+
+                sage: del W.degrees
+                sage: W._test_degrees()
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -244,9 +250,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Reducible real reflection group of rank 4 and type A2 x B2
                 sage: W._test_codegrees()
 
-                sage: SymmetricGroup(3)._test_codegrees()
-
                 sage: W = SymmetricGroup(5)
+                sage: W._test_codegrees()
+
+            We now break the implementation of W.degrees and check that this is caught::
+
                 sage: W.codegrees = lambda: (1/1,5)
                 sage: W._test_codegrees()
                 Traceback (most recent call last):
@@ -258,6 +266,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the codegrees should be nonnegative
+
+            We restore W to its normal state::
+
+                sage: del W.codegrees
+                sage: W._test_codegrees()
 
             See the documentation for :class:`TestSuite` for more information.
             """

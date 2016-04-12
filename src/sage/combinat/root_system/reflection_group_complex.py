@@ -129,14 +129,14 @@ would look at elements with either of the following methods::
     <BLANKLINE>
 
 The standard references for actions of complex reflection groups have
-the matrices acting on the left, so::
+the matrices acting on the right, so::
 
     sage: W.simple_reflection(1).to_matrix()
     [-1  0]
     [ 2  1]
 
-sends the simple root `\alpha_0` to its negative, while sending `\alpha_1`
-to `2\alpha_0+\alpha_1`.
+sends the simple root `\alpha_0`, or ``(1,0)`` in vector notation, to
+its negative, while sending `\alpha_1` to `2\alpha_0+\alpha_1`.
 
 .. TODO::
 

@@ -92,6 +92,7 @@ import re
 # Sage library
 from ring import SR
 from expression import Expression
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -1032,7 +1033,7 @@ def str_to_unit(name):
     """
     return UnitExpression(SR, SR.var(name))
 
-class Units:
+class Units(ExtraTabCompletion):
     """
     A collection of units of some type.
 
@@ -1101,37 +1102,32 @@ class Units:
             return cmp(type(self), type(other))
         return cmp((self.__name, self.__data), (other.__name, other.__data))
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
-        Return completions of this unit objects.  This is used by the
-        Sage command line and notebook to create the list of method
-        names.
+        Return tab completions.
+
+        This complements the usual content of :func:`dir`, with the
+        list of the names of the unit collections (resp. units) for
+        :obj:`units` (resp. its subcollections), in particular for tab
+        completion purposes.
+
+        .. SEEALSO:: :class:`ExtraTabCompletion`
 
         EXAMPLES::
 
-            sage: units.area.trait_names()
+            sage: units.area._tab_completion()
             ['acre', 'are', 'barn', 'hectare', 'rood', 'section', 'square_chain', 'square_meter', 'township']
-        """
-        return sorted([x for x in self.__data.keys() if '/' not in x])
-
-    def __dir__(self):
-        """
-        Return the list of names of the attributes of ``self``.
-
-        This complements the usual content of ``dir``, with the names
-        of the units (or unit collections) of ``self``.
-
-        This enables tab completion on ``units`` and its
-        subcollections.
-
-        EXAMPLES::
+            sage: units._tab_completion()
+            ['acceleration', ..., 'volume']
+            sage: units.force._tab_completion()
+            ['dyne', ..., 'ton_force']
 
             sage: dir(units)
-            ['_Units__data', '_Units__name', '_Units__units', 'acceleration', ..., 'volume']
+            ['_Units__data', ..., 'acceleration', ..., 'volume']
             sage: dir(units.force)
-            ['_Units__data', '_Units__name', '_Units__units', 'dyne', ..., 'ton_force']
+            ['_Units__data', ..., 'dyne', ..., 'ton_force']
         """
-        return self.__dict__.keys() + self.__data.keys()
+        return sorted([x for x in self.__data.keys() if '/' not in x])
 
     def __getattr__(self, name):
         """

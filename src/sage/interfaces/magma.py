@@ -298,7 +298,7 @@ class Magma(ExtraTabCompletion, Expect):
         '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional - magma
     """
-    def __init__(self, maxread=None, script_subdirectory=None,
+    def __init__(self, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
                  user_config=False, seed=None, command='magma'):
         """
@@ -311,10 +311,14 @@ class Magma(ExtraTabCompletion, Expect):
 
         -  ``server`` - address of remote server
 
+        - ``server_tmpdir`` - temporary directory to use in remote server
+
         -  ``user_config`` - if True, then local user
            configuration files will be read by Magma. If False (the default),
            then Magma is started with the -n option which suppresses user
            configuration files.
+
+        - ``seed`` - Seed to use in the random number generator.
 
         -  ``command`` - (Default: 'magma') The command to execute to start Magma.
 
@@ -325,6 +329,21 @@ class Magma(ExtraTabCompletion, Expect):
         """
         if not user_config:
             command += ' -n'
+
+        # Obtain the parameters from the environment, to allow the magma = Magma() phrase
+        # to work with non-default parameters.
+        import os
+        if server is None:
+            server = os.getenv('SAGE_MAGMA_SERVER')
+        if server_tmpdir is None:
+            server_tmpdir = os.getenv('SAGE_MAGMA_SERVER_TMPDIR')
+        if command is None:
+            command = os.getenv('SAGE_MAGMA_COMMAND')
+        if script_subdirectory is None:
+            script_subdirectory = os.getenv('SAGE_MAGMA_SCRIPT_SUBDIRECTORY')
+        if seed is None:
+            seed = os.getenv('SAGE_MAGMA_SEED')
+
         Expect.__init__(self,
                         name = "magma",
                         prompt = ">>SAGE>>",

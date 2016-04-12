@@ -268,7 +268,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
     class Element(Element):
         def is_prime(self):
             """
-            Return whether ``self`` if a prime number
+            Return whether ``self`` is a prime number.
 
             EXAMPLES::
 
@@ -587,7 +587,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: z.parent()
         Integer Ring
 
-    The disadvantage of this implementation is that the elements don't know
+    The disadvantage of this implementation is that the elements do not know
     that they are prime, so that prime testing is slow::
 
         sage: pf = Sets().example("facade").an_element()
@@ -596,7 +596,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
     compared to the other implementations where prime testing is only done if
     needed during the construction of the element, and later on the elements
-    "knows" that they are prime::
+    "know" that they are prime::
 
         sage: pw = Sets().example("wrapper").an_element()
         sage: timeit("pw.is_prime()")    # random

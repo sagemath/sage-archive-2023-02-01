@@ -287,6 +287,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
 
                 sage: P = Sets().example("inherits")
                 sage: p = P.an_element(); p
+                47
                 sage: p.next()
                 53
 

@@ -1553,7 +1553,7 @@ class CombinatorialClass(Parent):
 
     def __iterator_from_next(self):
         """
-        An iterator to use when .first() and .next() are provided.
+        An iterator to use when .first(x) and .next(x) are provided.
 
         EXAMPLES::
 
@@ -1569,7 +1569,7 @@ class CombinatorialClass(Parent):
         while True:
             try:
                 f = self.next(f)
-            except (TypeError, ValueError ):
+            except (TypeError, ValueError):
                 break
 
             if f is None or f is False :
@@ -1670,7 +1670,7 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: iterator called but not implemented
         """
-        #Check to see if .first() and .next() are overridden in the subclass
+        #Check if .first(x) and .next(x) are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
             return self.__iterator_from_next()

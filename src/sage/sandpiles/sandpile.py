@@ -607,7 +607,7 @@ class Sandpile(DiGraph):
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
         self._dict = deepcopy(g)
-        if sink==None:
+        if sink is None:
             sink = self.vertices()[0]
         self._sink = sink  # key for sink
         self._sink_ind = self.vertices().index(sink)
@@ -2136,7 +2136,7 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(3)
             sage: a = s.stable_configs()
-            sage: a.next()
+            sage: next(a)
             {1: 0, 2: 0}
             sage: [i.values() for i in a]
             [[0, 1], [1, 0], [1, 1]]
@@ -2144,7 +2144,7 @@ class Sandpile(DiGraph):
             sage: list(b)
             [{1: 0, 2: 0}, {1: 1, 2: 0}]
         """
-        if smax==None:
+        if smax is None:
             smax = self.max_stable().values()
         else:
             c = SandpileConfig(self,smax)
@@ -2174,42 +2174,42 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(4)
             sage: m = s.markov_chain([0,0,0])
-            sage: m.next()          # random
+            sage: next(m)          # random
             {1: 0, 2: 0, 3: 0}
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 1, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [2, 2, 1]
             sage: m = s.markov_chain(s.zero_div(), [0.1,0.1,0.1,0.7])
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 3]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 4]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 3, 4]
 
         .. NOTE::
@@ -2244,7 +2244,7 @@ class Sandpile(DiGraph):
                 st = SandpileDivisor(self,st)
             else:
                 raise SyntaxError(state)
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
@@ -3822,7 +3822,7 @@ class SandpileConfig(dict):
         c = deepcopy(self)
         ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
-        if distrib==None:  # default = uniform distribution on nonsink vertices
+        if distrib is None:  # default = uniform distribution on nonsink vertices
             distrib = [1/(n-1)]*(n-1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
@@ -5148,7 +5148,7 @@ class SandpileDivisor(dict):
         S = E.sandpile()
         V = S.vertices()
         n = S.num_verts()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
@@ -6032,7 +6032,7 @@ class SandpileDivisor(dict):
         D = deepcopy(self)
         S = self.sandpile()
         V = S.vertices()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             n = S.num_verts()
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)

@@ -217,7 +217,7 @@ class EnumeratedSets(Category_singleton):
                 [5, 6, 7]
 
             """
-            #Check to see if .first() and .next() are overridden in the subclass
+            # Check if .first(x) and .next(x) are overridden in the subclass
             if ( self.first != self._first_from_iterator and
                  self.next  != self._next_from_iterator ):
                 return self._iterator_from_next()

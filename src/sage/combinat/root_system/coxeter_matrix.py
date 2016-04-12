@@ -678,7 +678,7 @@ class CoxeterMatrix(CoxeterType):
         EXAMPLES::
 
             sage: CM = CoxeterMatrix([[1,8],[8,1]])
-            sage: CM.__iter__().next()
+            sage: next(CM.__iter__())
             (1, 8)
         """
         return iter(self._matrix)

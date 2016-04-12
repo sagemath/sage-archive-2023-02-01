@@ -1531,7 +1531,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         EXAMPLES::
 
             sage: G = ArithmeticSubgroup_Permutation(S2="(1,2)(3,4)(5,6)", S3="(1,2,3)(4,5,6)")
-            sage: H = G.surgroups().next()
+            sage: H = next(G.surgroups())
             sage: H
              Arithmetic subgroup with permutations of right cosets
              S2=(1,2)

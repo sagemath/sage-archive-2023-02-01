@@ -757,7 +757,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 self.it = it
                 self.var = None
                 self.factors = None
-            def next(self):
+
+            def custom_next(self):
                 try:
                     self.var, factors = next(self.it)
                     self.factors = tuple(factors)
@@ -772,24 +773,24 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         newS = []
         newO = []
 
-        S.next()
-        O.next()
+        S.custom_next()
+        O.custom_next()
         while S.var is not None or O.var is not None:
             if S.var is not None and S.var < O.var:
                 newS.extend(S.factors)
                 newO.extend(S.factors)
-                S.next()
+                S.custom_next()
             elif O.var is not None and S.var > O.var:
                 newS.extend(O.factors)
                 newO.extend(O.factors)
-                O.next()
+                O.custom_next()
             else:
                 SL, OL = pushout_univariate_factors(self, other, S.var,
                                                     S.factors, O.factors)
                 newS.extend(SL)
                 newO.extend(OL)
-                S.next()
-                O.next()
+                S.custom_next()
+                O.custom_next()
 
         assert(len(newS) == len(newO))
 

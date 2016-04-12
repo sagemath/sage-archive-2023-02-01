@@ -235,7 +235,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
 
     def next(self, i):
         """
-        Returns the next prime number
+        Return the next prime number.
 
         EXAMPLES::
 
@@ -250,7 +250,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
 
     def some_elements(self):
         """
-        Returns some prime numbers
+        Return some prime numbers.
 
         EXAMPLES::
 
@@ -268,7 +268,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
     class Element(Element):
         def is_prime(self):
             """
-            Returns if a prime number is prime = True !
+            Return whether ``self`` if a prime number
 
             EXAMPLES::
 
@@ -281,7 +281,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
 
         def next(self):
             """
-            Returns the next prime number
+            Return the next prime number.
 
             EXAMPLES::
 
@@ -587,16 +587,16 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: z.parent()
         Integer Ring
 
-    The disadvantage of this implementation is that the element doesn't know
-    that they are primes so that prime testing is slow::
+    The disadvantage of this implementation is that the elements don't know
+    that they are prime, so that prime testing is slow::
 
         sage: pf = Sets().example("facade").an_element()
         sage: timeit("pf.is_prime()") #    random
         625 loops, best of 3: 4.1 us per loop
 
     compared to the other implementations where prime testing is only done if
-    needed during the construction of the element. Then the elements themselve
-    "know" that they are prime::
+    needed during the construction of the element, and later on the elements
+    "knows" that they are prime::
 
         sage: pw = Sets().example("wrapper").an_element()
         sage: timeit("pw.is_prime()")    # random
@@ -606,14 +606,14 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         sage: timeit("pw.is_prime()")    # random
         625 loops, best of 3: 854 ns per loop
 
-    And moreover, the next methods for the element does not exist::
+    Note also that the ``next` method for the elements does not exist::
 
         sage: pf.next()
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute 'next'
 
-    whereas::
+    unlike in the other implementations::
 
         sage: next(pw)
         53

@@ -369,7 +369,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
-    def invariant_form_real(self):
+    def invariant_form(self):
         r"""
         Return the form that is invariant under the action of ``self``.
 

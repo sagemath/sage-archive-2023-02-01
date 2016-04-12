@@ -1118,29 +1118,47 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.simple_coroots()
-            [[2, -1], [-1, 2]]
+            [(2, -1), (-1, 2)]
 
             sage: W = ReflectionGroup((1,1,4), (2,1,2))
             sage: W.simple_coroots()
-            [[2, -1, 0, 0, 0],
-             [-1, 2, -1, 0, 0],
-             [0, -1, 2, 0, 0],
-             [0, 0, 0, 2, -2],
-             [0, 0, 0, -1, 2]]
+            [(2, -1, 0, 0, 0),
+             (-1, 2, -1, 0, 0),
+             (0, -1, 2, 0, 0),
+             (0, 0, 0, 2, -2),
+             (0, 0, 0, -1, 2)]
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.simple_coroots()
-            [[-2*E(3) - E(3)^2, 0], [-1, 1]]
+            [(-2*E(3) - E(3)^2, 0), (-1, 1)]
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2))
             sage: W.simple_coroots()
-            [[2, -1, 0, 0, 0],
-             [-1, 2, -1, 0, 0],
-             [0, -1, 2, 0, 0],
-             [0, 0, 0, -2*E(3) - E(3)^2, 0],
-             [0, 0, 0, -1, 1]]
+            [(2, -1, 0, 0, 0),
+             (-1, 2, -1, 0, 0),
+             (0, -1, 2, 0, 0),
+             (0, 0, 0, -2*E(3) - E(3)^2, 0),
+             (0, 0, 0, -1, 1)]
         """
-        return self._gap_group.simpleCoroots.sage()
+        coroots = self._gap_group.simpleCoroots.sage()
+        for i,coroot in enumerate(coroots):
+            coroot = vector(coroot)
+            coroot.set_immutable()
+            coroots[i] = coroot
+        return coroots
+
+    def simple_coroot(self, i):
+        r"""
+        Return the simple root with index ``i``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: W.simple_coroot(1)
+            (2, -1, 0)
+        """
+        return self.simple_coroots()[self._index_set_inverse[i]]
+
 
     @cached_method
     def independent_roots(self):
@@ -1361,6 +1379,48 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
+    #def invariant_form(self):
+        #r"""
+        #Return the form that is invariant under the action of ``self``.
+
+        #EXAMPLES::
+
+            #sage: W = ReflectionGroup((3,1,2))
+            #sage: W.invariant_form()
+            #?
+        #"""
+        #C = self.cartan_matrix()
+        #n = self.rank()
+
+        #if self.is_crystallographic():
+            #ring = QQ
+        #else:
+            #from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+            #ring = UniversalCyclotomicField()
+
+        #from sage.matrix.constructor import zero_matrix
+        #form = zero_matrix(ring, n, n)
+
+        ## roots of unity of orders those of the simple reflections
+        #S = self.simple_reflections()
+        #exps = [1 - E(S[i].order()) for i in self.index_set()]
+
+        #for j in range(n):
+            #for i in range(j):
+                #if C[i,j] != 0:
+                    #form[j,j] = form[i,i].conjugate() * \
+                                 #( C[i,j].conjugate() / C[j,i] ) * \
+                                 #( exps[j] / exps[i].conjugate() )
+            #if form[j,j] == 0:
+                #form[j,j] = ring.one()
+        #for j in range(n):
+            #for i in range(j):
+                #form[i, j] = C[i, j] * form[i, i] / exps[j]
+                #form[j, i] = form[i, j].conjugate()
+
+        #form.set_immutable()
+        #return form
+
     def invariant_form(self):
         r"""
         Return the form that is invariant under the action of ``self``.
@@ -1369,49 +1429,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.invariant_form()
-            ?
-        """
-        C = self.cartan_matrix()
-        n = self.rank()
-
-        if self.is_crystallographic():
-            ring = QQ
-        else:
-            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-            ring = UniversalCyclotomicField()
-
-        from sage.matrix.constructor import zero_matrix
-        form = zero_matrix(ring, n, n)
-
-        # roots of unity of orders those of the simple reflections
-        S = self.simple_reflections()
-        exps = [1 - E(S[i].order()) for i in self.index_set()]
-
-        for j in range(n):
-            for i in range(j):
-                if C[i,j] != 0:
-                    form[j,j] = form[i,i].conjugate() * \
-                                 ( C[i,j].conjugate() / C[j,i] ) * \
-                                 ( exps[j] / exps[i].conjugate() )
-            if form[j,j] == 0:
-                form[j,j] = ring.one()
-        for j in range(n):
-            for i in range(j):
-                form[i, j] = C[i, j] * form[i, i] / exps[j]
-                form[j, i] = form[i, j].conjugate()
-
-        form.set_immutable()
-        return form
-
-    def invariant_form_brute_force(self):
-        r"""
-        Return the form that is invariant under the action of ``self``.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup((3,1,2))
-            sage: W.invariant_form_brute_force()
-            ?
+            [1 0]
+            [0 1]
         """
         from sage.misc.cachefunc import cached_function
 

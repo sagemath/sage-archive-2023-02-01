@@ -720,6 +720,10 @@ class MatrixFactory(object):
                 if is_numpy_type(type(arg)):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
+                        # Convert to a numpy array if it was a matrix.
+                        if type(arg) is not numpy.ndarray:
+                            arg = numpy.array(arg)
+
                         str_dtype = str(arg.dtype)
 
                         if not (arg.flags.c_contiguous is True or arg.flags.f_contiguous is True):

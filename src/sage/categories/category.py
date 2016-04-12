@@ -1837,7 +1837,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Monoids().or_subcategory(EnumeratedSets())
             Traceback (most recent call last):
             ...
-            AssertionError: Subcategory of `Category of enumerated sets` required; got `Category of monoids`
+            AssertionError: Subcategory of `Category of monoids` required; got `Category of enumerated sets`
 
         Otherwise, the two categories are joined together::
 
@@ -1852,7 +1852,7 @@ class Category(UniqueRepresentation, SageObject):
         if join:
             return Category.join([self, category])
         else:
-            assert category.is_subcategory(self), "Subcategory of `{}` required; got `{}`".format(category, self)
+            assert category.is_subcategory(self), "Subcategory of `{}` required; got `{}`".format(self, category)
             return category
 
     def _is_subclass(self, c):

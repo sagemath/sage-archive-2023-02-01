@@ -161,7 +161,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: A.basis(4)
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'subset'
+                AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'list'
 
             Without arguments, the full basis is returned::
 
@@ -195,9 +195,21 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: A = GradedModulesWithBasis(ZZ).example()
                 sage: A.homogeneous_component_basis(4)
                 Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+
+                sage: cat = GradedModulesWithBasis(ZZ)
+                sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
+                sage: C.degree_on_basis = lambda x: 1 if x == 'a' else 2
+                sage: C.homogeneous_component_basis(1)
+                Finite family {'a': B['a']}
+                sage: C.homogeneous_component_basis(2)
+                Finite family {'b': B['b']}
             """
             from sage.sets.family import Family
-            return Family(self._indices.subset(size=d), self.monomial)
+            try:
+                S = self._indices.subset(size=d)
+            except (AttributeError, ValueError, TypeError):
+                S = [i for i in self._indices if self.degree_on_basis(i) == d]
+            return Family(S, self.monomial)
 
         def homogeneous_component(self, d):
             """
@@ -964,26 +976,4 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             return self.parent().sum_of_terms((i, c) for (i, c) in self
                                               if degree_on_basis(i) < n)
 
-    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
-        class ParentMethods:
-            def homogeneous_component_basis(self, d):
-                """
-                Return a basis for the ``d``-th graded component of ``self``.
-
-                EXAMPLES::
-
-                    sage: cat = GradedModulesWithBasis(ZZ).FiniteDimensional()
-                    sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
-                    sage: C.degree_on_basis = lambda x: 1 if x == 'a' else 2
-                    sage: C.homogeneous_component_basis(1)
-                    Finite family {'a': B['a']}
-                    sage: C.homogeneous_component_basis(2)
-                    Finite family {'b': B['b']}
-                """
-                from sage.sets.family import Family
-                try:
-                    S = self._indices.subset(size=d)
-                except (AttributeError, ValueError, TypeError):
-                    S = [i for i in self._indices if self.degree_on_basis(i) == d]
-                return Family(S, self.monomial)
 

@@ -1553,7 +1553,7 @@ class CombinatorialClass(Parent):
 
     def __iterator_from_next(self):
         """
-        An iterator to use when .first(x) and .next(x) are provided.
+        An iterator to use when the .first() and .next(x) methods are provided.
 
         EXAMPLES::
 
@@ -1670,18 +1670,18 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: iterator called but not implemented
         """
-        #Check if .first(x) and .next(x) are overridden in the subclass
+        # Check whether .first() and .next(x) are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
             return self.__iterator_from_next()
-        #Check to see if .last() and .previous() are overridden in the subclass
+        # Check whether .last() and .previous() are overridden in the subclass
         elif ( self.last != self.__last_from_iterator and
                self.previous != self.__previous_from_iterator):
             return self.__iterator_from_previous()
-        #Check to see if .unrank() is overridden in the subclass
+        # Check whether .unrank() is overridden in the subclass
         elif self.unrank != self.__unrank_from_iterator:
             return self.__iterator_from_unrank()
-        #Finally, check to see if .list() is overridden in the subclass
+        # Check whether .list() is overridden in the subclass
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:

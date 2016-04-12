@@ -1201,8 +1201,6 @@ class Partition(CombinatorialElement):
 
         return self.parent()(next_p[:m])
 
-    __next__ = next
-
     def size(self):
         """
         Return the size of ``self``.

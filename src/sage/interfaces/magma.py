@@ -251,8 +251,17 @@ def extcode_dir(iface = None):
         else:
             import os
             tmp = iface._remote_tmpdir()
-            os.system('scp -q -r %s/magma/ %s:%s/data'%(SAGE_EXTCODE,iface._server,tmp))
-            EXTCODE_DIR = "%s/data/"%tmp
+            command = 'scp -q -r "%s/magma/" "%s:%s/data" 1>&2 2>/dev/null'%(SAGE_EXTCODE,iface._server,tmp)
+            try:
+                ans = os.system(command)
+                EXTCODE_DIR = "%s/data/"%tmp
+                if ans != 0:
+                    raise IOError
+            except (OSError,IOError):
+                out_str = 'Tried to copy the file structure in "%s/magma/" to "%s:%s/data" and failed (possibly because scp is not installed in the system).\nFor the remote Magma to work you should populate the remote directory by some other method, or install scp in the system and retry.'%(SAGE_EXTCODE, iface._server, tmp)
+                from warnings import warn, resetwarnings
+                resetwarnings()
+                warn(out_str)
     return EXTCODE_DIR
 
 

@@ -140,7 +140,7 @@ class Expect(Interface):
             else:
                 command = "sage-native-execute ssh -t %s '%s'"%(server, command)
             self.__is_remote = True
-#            eval_using_file_cutoff = 0  # don't allow this!
+            eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:
                 print "Using remote server"
                 print command

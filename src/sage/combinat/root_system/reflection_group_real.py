@@ -206,7 +206,6 @@ def ReflectionGroup(*args,**kwds):
                hyperplane_index_set=kwds.get('hyperplane_index_set', None),
                reflection_index_set=kwds.get('reflection_index_set', None))
 
-
 class RealReflectionGroup(ComplexReflectionGroup):
     """
     A real reflection group given as a permutation group.
@@ -657,9 +656,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         return sage_eval(_gap_return(S), locals={'self': self})
 
     class Element(ComplexReflectionGroup.Element):
-        # Use the generic reduced word from the Coxeter groups category
-        # TODO put a cached_method here instead of the lazy attribute below?
-        reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__
 
         @lazy_attribute
         def _reduced_word(self):
@@ -729,12 +725,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [2, 1] 2
                 [1, 2, 1] 3
             """
-            if not self._reduced_word is None:
-                return len(self._reduced_word)
-            else:
-                N = self.parent().number_of_reflections()
-                return ZZ.sum(ZZ.one() for i in range(N)
-                              if self(i+1) >= N)
+            return len(self._reduced_word)
+            #N = self.parent().number_of_reflections()
+            #return ZZ.sum(ZZ.one() for i in range(N)
+                          #if self(i+1) >= N)
 
         def has_left_descent(self, i):
             r"""

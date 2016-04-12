@@ -379,8 +379,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         from sage.combinat.root_system.reflection_group_c import iterator_tracking_words
         for w,word in iterator_tracking_words(self):
-            if w._reduced_word is None:
-                w._reduced_word = word
+            w._reduced_word = word
             yield w
 
     @cached_method
@@ -1536,8 +1535,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             raise ValueError("the reflection representation must be defined for the complete index set")
 
     class Element(PermutationGroupElement):
-
-        _reduced_word = None
 
         #@cached_in_parent_method
         def conjugacy_class_representative(self):

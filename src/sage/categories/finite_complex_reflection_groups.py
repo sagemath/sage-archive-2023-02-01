@@ -195,10 +195,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Reducible real reflection group of rank 4 and type A2 x B2
                 sage: W._test_degrees()
 
-                sage: SymmetricGroup(3)._test_degrees()
-
-
                 sage: W = SymmetricGroup(5)
+                sage: W._test_degrees()
+
+            We now break the implementation of W.degrees and check that this is caught::
+
                 sage: W.degrees = lambda: (1/1,5)
                 sage: W._test_degrees()
                 Traceback (most recent call last):
@@ -210,6 +211,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the degrees should be larger than 2
+
+            We restore W to its normal state::
+
+                sage: del W.degrees
+                sage: W._test_degrees()
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -244,9 +250,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Reducible real reflection group of rank 4 and type A2 x B2
                 sage: W._test_codegrees()
 
-                sage: SymmetricGroup(3)._test_codegrees()
-
                 sage: W = SymmetricGroup(5)
+                sage: W._test_codegrees()
+
+            We now break the implementation of W.degrees and check that this is caught::
+
                 sage: W.codegrees = lambda: (1/1,5)
                 sage: W._test_codegrees()
                 Traceback (most recent call last):
@@ -258,6 +266,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the codegrees should be nonnegative
+
+            We restore W to its normal state::
+
+                sage: del W.codegrees
+                sage: W._test_codegrees()
 
             See the documentation for :class:`TestSuite` for more information.
             """
@@ -279,7 +292,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
         def number_of_reflection_hyperplanes(self):
             r"""
-            Return the number of reflecting hyperplanes of ``self``.
+            Return the number of reflection hyperplanes of ``self``.
 
             This is also the number of distinguished reflections.  For
             real groups, this coincides with the number of
@@ -306,14 +319,15 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflection_hyperplanes()
                 15
             """
-            return sum(self.codegrees()) + self.rank()
+            from sage.rings.all import ZZ
+            return ZZ.sum(self.codegrees()) + self.rank()
 
         def number_of_reflections(self):
             r"""
             Return the number of reflections of ``self``.
 
             For real groups, this coincides with the number of
-            reflecting hyperplanes.
+            reflection hyperplanes.
 
             This implementation uses that it is given by the sum of
             the degrees of ``self`` minus its rank.
@@ -571,7 +585,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 This is defined as `\frac{N + N^*}{n}` where
                 `N` is the number of reflections, `N^*` is the
-                number of reflecting hyperplanes, and `n` is the
+                number of reflection hyperplanes, and `n` is the
                 rank of ``self``.
 
                 EXAMPLES::

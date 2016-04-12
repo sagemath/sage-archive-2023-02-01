@@ -539,7 +539,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def reflection_hyperplanes(self, as_linear_functionals=False):
         r"""
-        Return the list of all reflecting hyperplanes of ``self``,
+        Return the list of all reflection hyperplanes of ``self``,
         either as a codimension 1 space, or as its linear functional.
 
         INPUT:
@@ -601,9 +601,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def reflection_hyperplane(self, i, as_linear_functional=False):
         r"""
-        Return the ``i``-th reflecting hyperplane of ``self``.
+        Return the ``i``-th reflection hyperplane of ``self``.
 
-        The ``i``-th reflecting hyperplane corresponds to the ``i``
+        The ``i``-th reflection hyperplane corresponds to the ``i``
         distinguished reflection.
 
         INPUT:
@@ -2280,7 +2280,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             Return whether ``self`` is regular.
 
             This is if ``self`` has an eigenvector with eigenvalue `h`
-            and which does not lie in any reflecting hyperplane.
+            and which does not lie in any reflection hyperplane.
             Here, `h` denotes the Coxeter number.
 
             EXAMPLES::
@@ -2308,7 +2308,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             Return whether ``self`` is regular.
 
             This is, if ``self`` has an eigenvector with eigenvalue
-            ``h`` and which does not lie in any reflecting hyperplane.
+            ``h`` and which does not lie in any reflection hyperplane.
 
             - ``is_class_representative`` -- boolean (default ``True``) whether to
               compute instead on the conjugacy class representative.

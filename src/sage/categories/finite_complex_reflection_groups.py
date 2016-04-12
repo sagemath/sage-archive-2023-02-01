@@ -306,7 +306,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflection_hyperplanes()
                 15
             """
-            return sum(self.codegrees()) + self.rank()
+            from sage.rings.all import ZZ
+            return ZZ.sum(self.codegrees()) + self.rank()
 
         def number_of_reflections(self):
             r"""

@@ -5270,7 +5270,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Compute the dispersion set of two polynomials.
 
-        The dispersion set of `p` and `q` is the set of nonnegative integers
+        The dispersion set of `f` and `g` is the set of nonnegative integers
         `n` such that `f(x + n)` and `g(x)` have a nonconstant common factor.
 
         When ``other`` is ``None``, compute the auto-dispersion set of
@@ -5325,7 +5325,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Compute the dispersion of a pair of polynomials.
 
-        The dispersion of `p` and `q` is the largest nonnegative integer `n`
+        The dispersion of `f` and `g` is the largest nonnegative integer `n`
         such that `f(x + n)` and `g(x)` have a nonconstant common factor.
 
         When ``other`` is ``None``, compute the auto-dispersion of ``self``,

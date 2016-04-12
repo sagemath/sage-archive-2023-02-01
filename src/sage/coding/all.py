@@ -36,7 +36,7 @@ lazy_import("sage.coding.linear_code", ["LinearCode",
             "bounds_minimum_distance",
             "self_orthogonal_binary_codes"])
 
-lazy_import("sage.coding.delsarte_bounds", ["Krawtchouk",
+lazy_import("sage.coding.delsarte_bounds", ["Krawtchouk", "Kravchuk",
             "delsarte_bound_hamming_space",
             "delsarte_bound_additive_hamming_space"])
 

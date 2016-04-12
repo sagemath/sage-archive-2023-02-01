@@ -24,6 +24,11 @@ see :trac:`12849`::
     ....:     if "#sage.symbolic.expression.Expression.N" in line:
     ....:         print line
     <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
+
+Check that sphinx is not imported at Sage start-up::
+
+    sage: "sphinx" in sys.modules
+    False
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -37,8 +42,9 @@ see :trac:`12849`::
 from __future__ import print_function
 import os, re, sys
 import pydoc
-from sage.misc.viewer import browser
 from sage.misc.temporary_file import tmp_dir
+from .viewer import browser
+from .sphinxify import sphinxify
 import sage.version
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 
@@ -215,7 +221,6 @@ def detex(s, embedded=False):
     if not embedded: # not in the notebook
         s = _rmcmd(s, 'mathop')
         s = _rmcmd(s, 'mathrm')
-        from sagenb.misc.sphinxify import sphinxify
         s = sphinxify(s, format='text')
         # Do math substitutions. The strings to be replaced should be
         # TeX commands like "\\blah". Do a regular expression
@@ -1369,7 +1374,6 @@ class _sage_doc:
 
         # now s should be the reST version of the docstring
         if output == 'html':
-            from sagenb.misc.sphinxify import sphinxify
             html = sphinxify(s)
             if view:
                 path = os.path.join(tmp_dir(), "temp.html")
@@ -1438,7 +1442,6 @@ class _sage_doc:
         elif output == 'rst':
             return s
         elif output == 'text':
-            from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
             raise ValueError("output type {} not recognized".format(output))

@@ -149,7 +149,7 @@ class Core(CombinatorialElement):
         return self._hash
 
     def _latex_(self):
-        """
+        r"""
         Output the LaTeX representation of this core as a partition.
 
         See the ``_latex_`` method of :class:`Partition`.

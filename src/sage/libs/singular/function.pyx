@@ -878,9 +878,8 @@ cdef class Converter(SageObject):
         Append ``a`` to the list as intvec.
         """
         s = len(a)
-        cdef intvec *iv=intvec_new()
+        cdef intvec *iv = new intvec()
         iv.resize(s)
-        #new intvec(s);
 
         for i in xrange(s):
             iv.ivGetVec()[i]=<int>a[i]
@@ -908,8 +907,7 @@ cdef class Converter(SageObject):
         """
         cdef int nrows = <int> a.nrows()
         cdef int ncols = <int> a.ncols()
-        cdef intvec *iv=intvec_new_int3(nrows, ncols, 0)
-        #new intvec(s);
+        cdef intvec *iv = new intvec(nrows, ncols, 0)
 
         for i in xrange(nrows):
             for j in xrange(ncols):

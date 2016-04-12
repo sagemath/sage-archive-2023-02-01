@@ -522,6 +522,75 @@ cdef class IndexFaceSet(PrimitiveObject):
                  for j from 0 <= j < self._faces[i].n]
                 for i from 0 <= i < self.fcount]
 
+    def has_local_colors(self):
+        """
+        Return ``True`` if and only if every face has an individual color.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.has_local_colors()
+            True
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.has_local_colors()
+            False
+        """
+        return not(self.global_texture)
+    
+    def index_faces_with_colors(self):
+        """
+        Return the list over all faces of (indices of the vertices, color).
+
+        This only works if every face has its own color.
+
+        .. SEEALSO::
+
+            :meth:`has_local_colors`
+
+        EXAMPLES:
+
+        A simple colored one::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.index_faces_with_colors()
+            [([0, 4, 5], '#ff0000'),
+            ([3, 4, 5], '#ff9900'),
+            ([2, 3, 4], '#cbff00'),
+            ([1, 3, 5], '#33ff00')]
+
+        When the texture is global, an error is raised::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.index_faces_with_colors()
+            Traceback (most recent call last):
+            ...
+            ValueError: the texture is global
+        """
+        cdef Py_ssize_t i, j
+        if self.global_texture:
+            raise ValueError('the texture is global')
+        return [([self._faces[i].vertices[j]
+                  for j from 0 <= j < self._faces[i].n],
+                 Color(self._faces[i].color.r,
+                       self._faces[i].color.g,
+                       self._faces[i].color.b).html_color())
+                for i from 0 <= i < self.fcount]
+
     def faces(self):
         """
         An iterator over the faces.

@@ -985,6 +985,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
             sage: type(matrix(GF(16007), 2, range(4)))
             <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+            sage: type(matrix(CBF, 2, range(4)))
+            <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
             sage: type(matrix(GF(2), 2, range(4)))
             <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
             sage: type(matrix(GF(64,'z'), 2, range(4)))
@@ -1032,11 +1034,18 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
-            # the default
+
             from sage.symbolic.ring import SR   # causes circular imports
             if R is SR:
                 import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
+
+            # ComplexBallField might become a lazy import,
+            # thus do not import it here too early.
+            from sage.rings.complex_arb import ComplexBallField
+            if isinstance(R, ComplexBallField):
+                import matrix_complex_ball_dense
+                return matrix_complex_ball_dense.Matrix_complex_ball_dense
             return matrix_generic_dense.Matrix_generic_dense
 
         else:

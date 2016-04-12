@@ -16,7 +16,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class SymmetricGroup(UniqueRepresentation, Parent):
     r"""
-
     An example of finite Weyl group: the symmetric group, with
     elements in list notation.
 
@@ -170,6 +169,24 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert x in self
         assert y in self
         return self(tuple(x.value[i] for i in y.value))
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: W = FiniteWeylGroups().example()
+            sage: W.degrees()
+            (2, 3, 4)
+
+        TESTS::
+
+            sage: W = FiniteWeylGroups().example()
+            sage: prod(W.degrees()) == W.cardinality()
+            True
+        """
+        return tuple(range(2, self.n + 1))
 
     class Element(ElementWrapper):
 

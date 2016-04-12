@@ -6162,11 +6162,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         EXAMPLES::
 
             sage: Permutations(3).degrees()
-            [2, 3]
+            (2, 3)
             sage: Permutations(7).degrees()
-            [2, 3, 4, 5, 6, 7]
+            (2, 3, 4, 5, 6, 7)
         """
-        return range(2, self.n+1)
+        return tuple(Integer(i) for i in range(2, self.n+1))
 
     def codegrees(self):
         """
@@ -6175,11 +6175,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         EXAMPLES::
 
             sage: Permutations(3).codegrees()
-            [0, 1]
+            (0, 1)
             sage: Permutations(7).codegrees()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
         """
-        return range(self.n-1)
+        return tuple(Integer(i) for i in range(self.n-1))
 
     def element_in_conjugacy_classes(self, nu):
         r"""

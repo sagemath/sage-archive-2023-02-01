@@ -73,6 +73,8 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_codegrees() . . . pass
+        running ._test_degrees() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -180,14 +182,9 @@ class SymmetricGroup(UniqueRepresentation, Parent):
             sage: W = FiniteWeylGroups().example()
             sage: W.degrees()
             (2, 3, 4)
-
-        TESTS::
-
-            sage: W = FiniteWeylGroups().example()
-            sage: prod(W.degrees()) == len(W)
-            True
         """
-        return tuple(range(2, self.n + 1))
+        from sage.rings.integer_ring import ZZ
+        return tuple(ZZ(i) for i in range(2, self.n + 1))
 
     class Element(ElementWrapper):
 

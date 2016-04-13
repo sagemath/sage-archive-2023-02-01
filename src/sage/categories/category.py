@@ -1078,8 +1078,6 @@ class Category(UniqueRepresentation, SageObject):
             Category of left modules over Integer Ring
             sage: Coalgebras(QQ).additional_structure()   # coproduct
             Category of coalgebras over Rational Field
-            sage: CoxeterGroups().additional_structure()  # distinguished generators
-            Category of coxeter groups
             sage: Crystals().additional_structure()       # crystal operators
             Category of crystals
 
@@ -1176,9 +1174,15 @@ class Category(UniqueRepresentation, SageObject):
             This method together with the methods overloading it
             provide the basic data to determine, for a given category,
             the super categories that define some structure (see
-            :meth:`structure`), and to test whether a
-            category is a full subcategory of some other category (see
-            :meth:`is_full_subcategory`).
+            :meth:`structure`), and to test whether a category is a
+            full subcategory of some other category (see
+            :meth:`is_full_subcategory`). For example, the category of
+            Coxeter groups is not full subcategory of the category of
+            groups since morphisms need to perserve the distinguished
+            generators::
+
+                sage: CoxeterGroups().is_full_subcategory(Groups())
+                False
 
             The support for modeling full subcategories has been
             introduced in :trac:`16340`.

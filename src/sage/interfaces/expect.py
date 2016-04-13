@@ -132,33 +132,13 @@ class Expect(Interface):
         Interface.__init__(self, name)
         self.__is_remote = False
         self.__remote_cleaner = remote_cleaner
-        if command is None:
-            command = name
-        if server is not None:
-            if ulimit:
-                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
-            else:
-                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
-            self.__is_remote = True
-            eval_using_file_cutoff = 0  # don't allow this!
-            if verbose_start:
-                print "Using remote server"
-                print command
-            self._server = server
-            if server_tmpdir is None:
-                # TO DO: Why default to /tmp/? Might be better to use the expect process itself to get a tmp folder
-                print "No remote temporary directory (option server_tmpdir) specified, using /tmp/ on "+server
-                self.__remote_tmpdir = "/tmp/"
-            else:
-                self.__remote_tmpdir = server_tmpdir
-        else:
-            self._server = None
-        self.__do_cleaner = do_cleaner
+        self._expect = None
         self._eval_using_file_cutoff = eval_using_file_cutoff
-        self.__command = command
+        self.__verbose_start = verbose_start
+        self.set_server_and_command(server, command, server_tmpdir, ulimit)
+        self.__do_cleaner = do_cleaner
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
-        self.__verbose_start = verbose_start
         if path is not None:
             self.__path = os.path.abspath(path)
         elif script_subdirectory is None:
@@ -169,7 +149,6 @@ class Expect(Interface):
             raise EnvironmentError("path %r does not exist" % self.__path)
         self.__initialized = False
         self.__seq = -1
-        self._expect = None
         self._session_number = 0
         self.__init_code = init_code
 
@@ -184,6 +163,48 @@ class Expect(Interface):
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
         self._terminal_echo = terminal_echo
+
+    def set_server_and_command(self,server = None,command = None, server_tmpdir = None, ulimit = None):
+        """
+        Changes the server and the command to use for this interface. This raises a Runtime error
+        if the interface is already started.
+        """
+        if self._expect:
+            raise RuntimeError("interface has already started")
+        if command is None:
+            command = self.name()
+        self._server = server
+        if server is not None:
+            if ulimit:
+                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
+            else:
+                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
+            self.__is_remote = True
+            self._eval_using_file_cutoff = 0  # don't allow this!
+            if self.__verbose_start:
+                print "Using remote server"
+                print command
+            if server_tmpdir is None:
+                # TO DO: Why default to /tmp/? Might be better to use the expect process itself to get a tmp folder
+                print "No remote temporary directory (option server_tmpdir) specified, using /tmp/ on "+server
+                self.__remote_tmpdir = "/tmp/"
+            else:
+                self.__remote_tmpdir = server_tmpdir
+        else:
+            self.__is_remote = False
+        self.__command = command
+
+    def server(self):
+        """
+        Returns the server used in this interface.
+        """
+        return self._server
+
+    def command(self):
+        """
+        Returns the command used in this interface.
+        """
+        return self.__command
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:

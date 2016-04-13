@@ -2791,7 +2791,6 @@ def magma_version():
         sage: magma_version()       # random, optional - magma
         ((2, 14, 9), 'V2.14-9')
     """
-    global magma
     t = tuple([int(n) for n in magma.eval('GetVersion()').split()])
     return t, 'V%s.%s-%s'%t
 

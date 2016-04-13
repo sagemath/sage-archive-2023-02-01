@@ -1,7 +1,7 @@
 """
-Detecting external softwares
+Detecting external software
 
-This module makes up a list of external softwares that Sage interfaces. Availability
+This module makes up a list of external software that Sage interfaces. Availability
 of each software is tested only when necessary.
 
 AUTHORS:
@@ -21,7 +21,6 @@ AUTHORS:
 #*****************************************************************************
 
 from multiprocessing import Array
-from cysignals.alarm import alarm, cancel_alarm, AlarmInterrupt
 
 # Functions in this module whose name is of the form 'has_xxx' tests if the
 # software xxx is available to Sage.
@@ -42,11 +41,9 @@ def has_internet():
     """
     from six.moves import urllib
     try:
-        alarm(1)
-        urllib.request.urlopen("http://www.sagemath.org")
-        cancel_alarm()
+        urllib.request.urlopen("http://www.sagemath.org",timeout=1)
         return True
-    except (Exception, AlarmInterrupt):
+    except urllib.error.URLError:
         return False
 
 def has_latex():
@@ -224,9 +221,9 @@ def has_gurobi():
     except Exception:
         return False
 
-def external_softwares():
+def external_software():
     """
-    Return the alphabetical list of external softwares supported by this module.
+    Return the alphabetical list of external software supported by this module.
     """
     supported = list()
     for func in globals():
@@ -234,26 +231,26 @@ def external_softwares():
             supported.append(func[len(prefix):])
     return sorted(supported)
 
-external_softwares = external_softwares()
+external_software = external_software()
 
 def _lookup(software):
     """
     Return true if the software is available on the system.
     """
-    if software in external_softwares:
+    if software in external_software:
         func = globals().get(prefix + software)
         return func()
     else:
         return False
 
-class AvailableSoftwares(object):
+class AvailableSoftware(object):
     """
-    Class of the set of external softwares whose availability is detected lazily.
+    Class of the set of external software whose availability is detected lazily.
 
     EXAMPLES::
 
-        sage: from sage.doctest.external import external_softwares,available_softwares
-        sage: external_softwares
+        sage: from sage.doctest.external import external_software,available_software
+        sage: external_software
         ['cplex',
          'gurobi',
          'internet',
@@ -265,21 +262,21 @@ class AvailableSoftwares(object):
          'matlab',
          'octave',
          'scilab']
-        sage: 'internet' in available_softwares # random
+        sage: 'internet' in available_software # random
         True
-        sage: available_softwares.issuperset(set(['internet','latex','magma'])) # random
+        sage: available_software.issuperset(set(['internet','latex','magma'])) # random
         True
-        sage: available_softwares.seen()
+        sage: available_software.seen() # random
         ['internet', 'latex', 'magma']
     """
     def __init__(self):
         # For multiprocessing of doctests, the data self._seen should be shared among
         # subprocesses, so we use Array class from the multiprocessing module.
-        self._seen = Array('i', len(external_softwares)) # initialized to zeroes
+        self._seen = Array('i', len(external_software)) # initialized to zeroes
 
     def __contains__(self, item):
         try:
-            idx = external_softwares.index(item)
+            idx = external_software.index(item)
         except Exception:
             return False
         if not self._seen[idx]:
@@ -305,8 +302,8 @@ class AvailableSoftwares(object):
 
     def seen(self):
         """
-        Return the list of detected external softwares by now.
+        Return the list of detected external software by now.
         """
-        return [external_softwares[i] for i in range(len(external_softwares)) if self._seen[i] > 0]
+        return [external_software[i] for i in range(len(external_software)) if self._seen[i] > 0]
 
-available_softwares = AvailableSoftwares()
+available_software = AvailableSoftware()

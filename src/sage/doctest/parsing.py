@@ -30,7 +30,7 @@ import collections
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
-from external import available_softwares
+from external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
@@ -569,7 +569,7 @@ class SageDocTestParser(doctest.DocTestParser):
                         extra = optional_tags - self.optional_tags # set difference
                         if len(extra) > 0:
                             if not('external' in self.optional_tags
-                                   and available_softwares.issuperset(extra)):
+                                   and available_software.issuperset(extra)):
                                 continue
                 elif self.optional_only:
                     self.optionals['sage'] += 1

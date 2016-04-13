@@ -31,7 +31,7 @@ from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
-from external import external_softwares, available_softwares
+from external import external_software, available_software
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -1035,7 +1035,7 @@ class DocTestController(SageObject):
 
             self.log("Using --optional=" + self._optional_tags_string())
             if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External softwares to be detected: " + ','.join(external_softwares))
+                self.log("External software to be detected: " + ','.join(external_software))
 
             self.add_files()
             self.expand_files_into_sources()
@@ -1044,8 +1044,8 @@ class DocTestController(SageObject):
             self.run_doctests()
 
             if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External softwares detected for doctesting: "
-                         + ','.join(available_softwares.seen()))
+                self.log("External software detected for doctesting: "
+                         + ','.join(available_software.seen()))
             return self.reporter.error_status
 
 def run_doctests(module, options=None):

@@ -332,16 +332,8 @@ class Magma(ExtraTabCompletion, Expect):
 
         # Obtain the parameters from the environment, to allow the magma = Magma() phrase
         # to work with non-default parameters.
-        import os
-        if server is None:
-            server = os.getenv('SAGE_MAGMA_SERVER')
-        if server_tmpdir is None:
-            server_tmpdir = os.getenv('SAGE_MAGMA_SERVER_TMPDIR')
-        if command is None:
-            command = os.getenv('SAGE_MAGMA_COMMAND')
-        if script_subdirectory is None:
-            script_subdirectory = os.getenv('SAGE_MAGMA_SCRIPT_SUBDIRECTORY')
         if seed is None:
+            import os
             seed = os.getenv('SAGE_MAGMA_SEED')
 
         Expect.__init__(self,

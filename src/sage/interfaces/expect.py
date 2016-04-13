@@ -130,6 +130,18 @@ class Expect(Interface):
                  terminal_echo=True):
 
         Interface.__init__(self, name)
+
+        # Read environment variables
+        env_name = 'SAGE_%s_{}'%self.name().upper()
+        import os
+        if server is None:
+            server = os.getenv(env_name.format('SERVER'))
+        if server_tmpdir is None:
+            server_tmpdir = os.getenv(env_name.format('TMPDIR'))
+        if command is None:
+            command = os.getenv(env_name.format('COMMAND'))
+        if script_subdirectory is None:
+            script_subdirectory = os.getenv(env_name.format('SCRIPT_SUBDIRECTORY'))
         self.__is_remote = False
         self.__remote_cleaner = remote_cleaner
         self._expect = None
@@ -164,10 +176,19 @@ class Expect(Interface):
         self._available_vars = []
         self._terminal_echo = terminal_echo
 
-    def set_server_and_command(self,server = None,command = None, server_tmpdir = None, ulimit = None):
+    def set_server_and_command(self, server=None, command=None, server_tmpdir=None, ulimit=None):
         """
-        Changes the server and the command to use for this interface. This raises a Runtime error
-        if the interface is already started.
+        Changes the server and the command to use for this interface.
+        This raises a Runtime error if the interface is already started.
+
+        EXAMPLES::
+
+            sage: magma.set_server_and_command(server = 'remote', command = 'mymagma') # indirect doctest
+            No remote temporary directory (option server_tmpdir) specified, using /tmp/ on remote
+            sage: magma.server()
+            'remote'
+            sage: magma.command()
+            "sage-native-execute ssh -t remote 'mymagma'"
         """
         if self._expect:
             raise RuntimeError("interface has already started")
@@ -197,12 +218,25 @@ class Expect(Interface):
     def server(self):
         """
         Returns the server used in this interface.
+
+        EXAMPLES::
+
+            sage: magma.set_server_and_command(server = 'remote')
+            No remote temporary directory (option server_tmpdir) specified, using /tmp/ on remote
+            sage: magma.server() # indirect doctest
+            'remote'
         """
         return self._server
 
     def command(self):
         """
         Returns the command used in this interface.
+
+        EXAMPLES::
+
+            sage: magma.set_server_and_command(command = 'magma-2.19')
+            sage: magma.command() # indirect doctest
+            'magma-2.19'
         """
         return self.__command
 

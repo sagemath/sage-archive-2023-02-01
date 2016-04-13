@@ -492,6 +492,13 @@ class RealReflectionGroup(ComplexReflectionGroup):
         r"""
         Return the fundamental weights of ``self`` in terms of the simple roots.
 
+        The fundamental weights are defined by `s_j(\omega_i) = \omega_i - \delta_{i=j}\alpha_j`
+        for the simple reflection `s_j` with corresponding simple roots `\alpha_j`.
+
+        In other words, the transpose Cartan matrix sends the weight
+        basis to the root basis. Observe again that the action here is
+        defined as a right action, see the example below.
+
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',3],['B',2])
@@ -501,13 +508,27 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W = ReflectionGroup(['A',3])
             sage: W.fundamental_weights()
             Finite family {1: (3/4, 1/2, 1/4), 2: (1/2, 1, 1/2), 3: (1/4, 1/2, 3/4)}
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: S = W.simple_reflections()
+            sage: N = W.fundamental_weights()
+            sage: for i in W.index_set():
+            ....:     for j in W.index_set():
+            ....:         print i, j, N[i], N[i]*S[j].to_matrix()
+            1 1 (3/4, 1/2, 1/4) (-1/4, 1/2, 1/4)
+            1 2 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)
+            1 3 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)
+            2 1 (1/2, 1, 1/2) (1/2, 1, 1/2)
+            2 2 (1/2, 1, 1/2) (1/2, 0, 1/2)
+            2 3 (1/2, 1, 1/2) (1/2, 1, 1/2)
+            3 1 (1/4, 1/2, 3/4) (1/4, 1/2, 3/4)
+            3 2 (1/4, 1/2, 3/4) (1/4, 1/2, 3/4)
+            3 3 (1/4, 1/2, 3/4) (1/4, 1/2, -1/4)
         """
         from sage.sets.family import Family
-        # TODO: needs to be checked whether this is the correct
-        #       definition on the weights
         m = self.cartan_matrix().transpose().inverse()
-        Delta = self.simple_roots()
-        zero = Delta[self._index_set[0]].parent().zero()
+        Delta = tuple(self.simple_roots())
+        zero = Delta[0].parent().zero()
         weights = [sum([m[i,j] * sj for j,sj in enumerate(Delta)], zero)
                    for i in range(len(Delta))]
         for weight in weights:

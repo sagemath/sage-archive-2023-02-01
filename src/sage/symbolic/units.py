@@ -92,6 +92,7 @@ import re
 # Sage library
 from ring import SR
 from expression import Expression
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -929,11 +930,11 @@ def vars_in_str(s):
 
     INPUT:
 
-        - `s` -- string
+    - ``s`` -- a string
 
     OUTPUT:
 
-        - list of strings (unit names)
+    - a list of strings (unit names)
 
     EXAMPLES::
 
@@ -950,11 +951,11 @@ def unit_derivations_expr(v):
 
     INPUT:
 
-        - `v` -- string, name of a unit type such as 'area', 'volume', etc.
+    - ``v`` -- a string, name of a unit type such as 'area', 'volume', etc.
 
     OUTPUT:
 
-        - symbolic expression
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1016,11 +1017,11 @@ def str_to_unit(name):
 
     INPUT:
 
-        - ``name`` -- string
+    - ``name`` -- a string
 
     OUTPUT:
 
-        - UnitExpression
+    - a :class:`UnitExpression`
 
 
     EXAMPLES::
@@ -1032,9 +1033,9 @@ def str_to_unit(name):
     """
     return UnitExpression(SR, SR.var(name))
 
-class Units:
+class Units(ExtraTabCompletion):
     """
-    A collection of units of a some type.
+    A collection of units of some type.
 
         EXAMPLES::
 
@@ -1101,16 +1102,30 @@ class Units:
             return cmp(type(self), type(other))
         return cmp((self.__name, self.__data), (other.__name, other.__data))
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
-        Return completions of this unit objects.  This is used by the
-        Sage command line and notebook to create the list of method
-        names.
+        Return tab completions.
+
+        This complements the usual content of :func:`dir`, with the
+        list of the names of the unit collections (resp. units) for
+        :obj:`units` (resp. its subcollections), in particular for tab
+        completion purposes.
+
+        .. SEEALSO:: :class:`ExtraTabCompletion`
 
         EXAMPLES::
 
-            sage: units.area.trait_names()
+            sage: units.area._tab_completion()
             ['acre', 'are', 'barn', 'hectare', 'rood', 'section', 'square_chain', 'square_meter', 'township']
+            sage: units._tab_completion()
+            ['acceleration', ..., 'volume']
+            sage: units.force._tab_completion()
+            ['dyne', ..., 'ton_force']
+
+            sage: dir(units)
+            ['_Units__data', ..., 'acceleration', ..., 'volume']
+            sage: dir(units.force)
+            ['_Units__data', ..., 'dyne', ..., 'ton_force']
         """
         return sorted([x for x in self.__data.keys() if '/' not in x])
 
@@ -1168,11 +1183,11 @@ def unitdocs(unit):
 
     INPUT:
 
-        - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-        - ``string``
+    - a string
 
     EXAMPLES::
 
@@ -1199,11 +1214,11 @@ def is_unit(s):
 
     INPUT:
 
-        - `s` -- an object
+    - ``s`` -- an object
 
     OUTPUT:
 
-        - ``bool``
+    - a boolean
 
     EXAMPLES::
 
@@ -1231,13 +1246,13 @@ def convert(expr, target):
 
     INPUT:
 
-        - `expr` -- the symbolic expression converting from
+    - ``expr`` -- the symbolic expression converting from
 
-        - `target` -- (default None) the symbolic expression converting to
+    - ``target`` -- (default None) the symbolic expression converting to
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1323,11 +1338,11 @@ def base_units(unit):
 
     INPUT:
 
-            - ``unit``
+    - ``unit`` -- a unit
 
     OUTPUT:
 
-            - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 
@@ -1373,12 +1388,12 @@ def convert_temperature(expr, target):
 
     INPUT:
 
-        - `expr` -- a unit of temperature
-        - `target` -- a units of temperature
+    - ``expr`` -- a unit of temperature
+    - ``target`` -- a units of temperature
 
     OUTPUT:
 
-        - `symbolic expression`
+    - a symbolic expression
 
     EXAMPLES::
 

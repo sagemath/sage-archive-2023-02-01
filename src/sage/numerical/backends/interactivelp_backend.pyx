@@ -66,8 +66,8 @@ cdef class InteractiveLPBackend:
         """
 
         if base_ring is None:
-            from sage.rings.all import AA
-            base_ring = AA
+            from sage.rings.all import QQ
+            base_ring = QQ
 
         self.lp = InteractiveLPProblem([], [], [], base_ring=base_ring)
         self.set_verbosity(0)
@@ -92,7 +92,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.base_ring()
-            Algebraic Real Field
+            Rational Field
         """
         return self.lp.base_ring()
 
@@ -308,7 +308,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p._AbcxCVPRd()
-            ([], (), (), (), (), (), 'max', Algebraic Real Field, 0)
+            ([], (), (), (), (), (), 'max', Rational Field, 0)
         """
         A, b, c, x = self.lp.Abcx()
         constraint_types = self.lp.constraint_types()

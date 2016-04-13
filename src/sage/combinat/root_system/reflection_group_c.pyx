@@ -25,6 +25,35 @@ cdef class Iterator(object):
     cdef tuple S
     cdef str algorithm
     cdef bint tracking_words
+    cdef list noncom
+
+    cdef list noncom_letters(self):
+        """
+        Return a list ``L`` of lists such that ...
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])
+            sage: I = Iterator(W, W.number_of_reflections())
+            sage: TestSuite(I).run(skip="_test_pickling")
+        """
+        cdef tuple S = self.S
+        cdef int n = len(S)
+        cdef list noncom = []
+        cdef list noncom_i
+        for i in range(n):
+            si = S[i]
+            noncom_i = []
+            for j in range(i+1,n):
+                sj = S[j]
+                if si._mul_(sj) == sj._mul_(si):
+                    pass
+                else:
+                    noncom_i.append(j)
+            noncom.append(noncom_i)
+        noncom.append(range(n))
+        return noncom
 
     def __init__(self, W, int N, str algorithm="depth", bint tracking_words=True):
         """
@@ -48,9 +77,11 @@ cdef class Iterator(object):
             raise ValueError('the algorithm (="%s") must be either "depth" or "breadth"')
         self.algorithm = algorithm
 
+        self.noncom = self.noncom_letters()
+
     cdef list succ(self, PermutationGroupElement u, int first):
         cdef PermutationGroupElement u1, si
-        cdef int i, j
+        cdef int i
         cdef list successors = []
         cdef tuple S = self.S
         cdef int N = self.N
@@ -59,7 +90,8 @@ cdef class Iterator(object):
             si = <PermutationGroupElement>(S[i])
             if self.test(u, si, i):
                 successors.append((si._mul_(u), i))
-        for i in range(first+1, self.n):
+        for i in range(first+1,self.n):
+#        for i in self.noncom[first]:
             if u.perm[i] < N:
                 si = <PermutationGroupElement>(S[i])
                 if self.test(u, si, i):
@@ -334,4 +366,3 @@ def iterator_tracking_words(W):
                     level_set_old.add(y)
                     level_set_new.append((y, word+[i]))
         level_set_cur = level_set_new
-

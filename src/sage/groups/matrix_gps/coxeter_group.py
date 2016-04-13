@@ -647,6 +647,18 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         return {i: simple_weights[k]
                 for k, i in enumerate(self.index_set())}
 
+    def fundamental_weight(self, i):
+        r"""
+        Return the fundamental weight with index ``i``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',3], implementation='reflection')
+            sage: W.fundamental_weight(1)
+            (3/2, 1, 1/2)
+        """
+        return self.fundamental_weights()[i]
+
     class Element(MatrixGroupElement_generic):
         """
         A Coxeter group element.

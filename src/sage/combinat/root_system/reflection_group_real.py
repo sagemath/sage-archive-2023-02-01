@@ -602,7 +602,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             point = [1] * n
         v = sum(point[i] * wt for i, wt in enumerate(weights))
         from sage.geometry.polyhedron.constructor import Polyhedron
-        return Polyhedron(vertices=[v*(~w).to_matrix() for w in self])
+        return Polyhedron(vertices=[v*w.to_matrix() for w in self])
 
     @cached_method
     def right_coset_representatives(self,J):
@@ -761,26 +761,36 @@ class RealReflectionGroup(ComplexReflectionGroup):
             else:
                 raise ValueError("the method 'has_descent' needs the input 'side' to be either 'left' or 'right'")
 
-        def act_on_root(self, root):
+        def act_on_root(self, root, side="right"):
             r"""
             Return the root obtained by applying ``self`` on ``root``.
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(['A',2], implementation='chevie')
+                sage: W = ReflectionGroup(['A',2])
                 sage: for w in W:
-                ....:     print("%s %s"%(w.reduced_word(), [w.act_on_root(beta) for beta in W.roots()]))
-                [] [(1, 0), (0, 1), (1, 1), (-1, 0), (0, -1), (-1, -1)]
-                [2] [(1, 1), (0, -1), (1, 0), (-1, -1), (0, 1), (-1, 0)]
-                [1] [(-1, 0), (1, 1), (0, 1), (1, 0), (-1, -1), (0, -1)]
-                [1, 2] [(0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1), (1, 0)]
-                [2, 1] [(-1, -1), (1, 0), (0, -1), (1, 1), (-1, 0), (0, 1)]
-                [1, 2, 1] [(0, -1), (-1, 0), (-1, -1), (0, 1), (1, 0), (1, 1)]
+                ....:     print("%s %s"%(w.reduced_word(), [w.act_on_root(beta) for beta in W.positive_roots()]))
+                [] [(1, 0), (0, 1), (1, 1)]
+                [2] [(1, 1), (0, -1), (1, 0)]
+                [1] [(-1, 0), (1, 1), (0, 1)]
+                [1, 2] [(-1, -1), (1, 0), (0, -1)]
+                [2, 1] [(0, 1), (-1, -1), (-1, 0)]
+                [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
+
+                sage: [ W.from_reduced_word([1,2]).act_on_root(beta, side="left") for beta in W.positive_roots() ]
+                [(0, 1), (-1, -1), (-1, 0)]
             """
             Phi = self.parent().roots()
-            return Phi[(~self)(Phi.index(root)+1) - 1]
+            if side == "left":
+                w = ~self
+            elif side == "right":
+                w = self
+            else:
+                raise ValueError("the action on roots must be on the left or on the right")
 
-        def inversion_set(self):
+            return Phi[w(Phi.index(root)+1) - 1]
+
+        def inversion_set(self, side="right"):
             r"""
             Return the inversion set of ``self``.
 
@@ -789,18 +799,28 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = CoxeterGroup(['A',2], implementation='chevie')
+                sage: W = ReflectionGroup(['A',2])
                 sage: for w in W:
                 ....:     print("%s %s"%(w.reduced_word(), w.inversion_set()))
                 [] []
                 [2] [(0, 1)]
                 [1] [(1, 0)]
-                [1, 2] [(0, 1), (1, 1)]
-                [2, 1] [(1, 0), (1, 1)]
+                [1, 2] [(1, 0), (1, 1)]
+                [2, 1] [(0, 1), (1, 1)]
                 [1, 2, 1] [(0, 1), (1, 0), (1, 1)]
+
+                sage: W.from_reduced_word([1,2]).inversion_set(side="left")
+                [(0, 1), (1, 1)]
             """
             Phi_plus = set(self.parent().positive_roots())
-            return [root for root in Phi_plus if self.act_on_root(root) not in Phi_plus]
+            if side == "left":
+                w = ~self
+            elif side == "right":
+                w = self
+            else:
+                raise ValueError("the action on roots must be on the left or on the right")
+
+            return [root for root in Phi_plus if w.act_on_root(root) not in Phi_plus]
 
         @cached_in_parent_method
         def right_coset_representatives(self):

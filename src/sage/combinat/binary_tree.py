@@ -2125,7 +2125,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         Recalling that a branch is a path from a vertex of the tree to a leaf, 
         the leftmost (resp. rightmost) branch of a vertex `v` is the branch from
- 	`v` made only of left (resp. right) edges.
+        `v` made only of left (resp. right) edges.
 
         The hook of a vertex `v` is a set of vertices formed by the
         union of `{v}`, and the vertices of its leftmost and rightmost branches.
@@ -2178,13 +2178,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def twisting_number(self):
         r"""
         Return a pair (number of maximal left branches, number of maximal right 
-	branches).
+        branches).
 
-	Recalling that a branch of a vertex `v` is a path from a vertex of the 
-	tree to a leaf, a left (resp. right) branch is a branch made only of 
-	left (resp. right) edges. The length of a branch is the number of edges 
-	composing it. A left (resp. right) branch is maximal if it is not 
-	included in a strictly longer left (resp. right) branch. 
+        Recalling that a branch of a vertex `v` is a path from a vertex of the 
+        tree to a leaf, a left (resp. right) branch is a branch made only of 
+        left (resp. right) edges. The length of a branch is the number of edges 
+        composing it. A left (resp. right) branch is maximal if it is not 
+        included in a strictly longer left (resp. right) branch. 
 
 
         OUTPUT :

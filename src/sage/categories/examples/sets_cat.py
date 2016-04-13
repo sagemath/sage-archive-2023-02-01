@@ -286,8 +286,15 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: P = Sets().example("inherits")
-                sage: next(P.an_element())
+                sage: p = P.an_element(); p
+                47
+                sage: p.next()
                 53
+
+            .. NOTE::
+
+                This method is not meant to implement the protocol iterator,
+                and thus not subject to Python 2 vs Python 3 incompatibilities.
             """
             return self.parent().next(self)
 
@@ -615,9 +622,9 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
     whereas::
 
-        sage: next(pw)
+        sage: pw.next()
         53
-        sage: next(pi)
+        sage: pi.next()
         53
 
     TESTS::

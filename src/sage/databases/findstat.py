@@ -527,7 +527,7 @@ class FindStat(SageObject):
             # we expect a dictionary from objects or strings to
             # integers
             l = query.iteritems()
-            (key, value) = l.next()
+            (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
 
@@ -2475,7 +2475,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
             # check whether entry is iterable (it's not a string!)
             try:
-                obj = iter(entry).next()
+                obj = next(iter(entry))
                 for (id, c) in self._findstat_collections.iteritems():
                     if isinstance(obj, c[3]):
                         return self.element_class(self, id, c, entry)

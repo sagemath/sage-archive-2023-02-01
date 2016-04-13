@@ -1913,7 +1913,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: it = P.relations_iterator()
             sage: type(it)
             <type 'generator'>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([1, 1], [1, 2])
 
             sage: P = posets.PentagonPoset()
@@ -3017,7 +3017,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
             <type 'generator'>
-            sage: l0.next()
+            sage: next(l0)
             2
         """
         for e in self._hasse_diagram.neighbor_in_iterator(self._element_to_vertex(x)):
@@ -3493,7 +3493,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: it = Posets.PentagonPoset().antichains_iterator(); it
             <generator object antichains_iterator at ...>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([], [4])
 
         .. SEEALSO:: :meth:`antichains`

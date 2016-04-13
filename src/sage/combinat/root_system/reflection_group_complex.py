@@ -1087,23 +1087,22 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.simple_roots()
-            [(1, 0), (0, 1)]
+            Finite family {1: (1, 0), 2: (0, 1)}
 
             sage: W = ReflectionGroup((1,1,4), (2,1,2))
             sage: W.simple_roots()
-            [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0),
-             (0, 0, 0, 1, 0), (0, 0, 0, 0, 1)]
+            Finite family {1: (1, 0, 0, 0, 0), 2: (0, 1, 0, 0, 0), 3: (0, 0, 1, 0, 0), 4: (0, 0, 0, 1, 0), 5: (0, 0, 0, 0, 1)}
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.simple_roots()
-            [(1, 0), (-1, 1)]
+            Finite family {1: (1, 0), 2: (-1, 1)}
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2))
             sage: W.simple_roots()
-            [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0),
-             (0, 0, 0, 1, 0), (0, 0, 0, -1, 1)]
+            Finite family {1: (1, 0, 0, 0, 0), 2: (0, 1, 0, 0, 0), 3: (0, 0, 1, 0, 0), 4: (0, 0, 0, 1, 0), 5: (0, 0, 0, -1, 1)}
         """
-        return self.roots()[:len(self.gens())]
+        from sage.sets.family import Family
+        return Family({ind:self.roots()[i] for i,ind in enumerate(self.index_set())})
 
     def simple_root(self, i):
         r"""
@@ -1114,8 +1113,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W = ReflectionGroup(['A',3])
             sage: W.simple_root(1)
             (1, 0, 0)
+            sage: W.simple_root(2)
+            (0, 1, 0)
+            sage: W.simple_root(3)
+            (0, 0, 1)
+
+        TESTS::
+
+            sage: W.simple_root(0)
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
         """
-        return self.simple_roots()[self._index_set_inverse[i]]
+        return self.simple_roots()[i]
 
     @cached_method
     def simple_coroots(self):
@@ -1128,34 +1138,27 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.simple_coroots()
-            [(2, -1), (-1, 2)]
+            Finite family {1: (2, -1), 2: (-1, 2)}
 
             sage: W = ReflectionGroup((1,1,4), (2,1,2))
             sage: W.simple_coroots()
-            [(2, -1, 0, 0, 0),
-             (-1, 2, -1, 0, 0),
-             (0, -1, 2, 0, 0),
-             (0, 0, 0, 2, -2),
-             (0, 0, 0, -1, 2)]
+            Finite family {1: (2, -1, 0, 0, 0), 2: (-1, 2, -1, 0, 0), 3: (0, -1, 2, 0, 0), 4: (0, 0, 0, 2, -2), 5: (0, 0, 0, -1, 2)}
 
             sage: W = ReflectionGroup((3,1,2))
             sage: W.simple_coroots()
-            [(-2*E(3) - E(3)^2, 0), (-1, 1)]
+            Finite family {1: (-2*E(3) - E(3)^2, 0), 2: (-1, 1)}
 
             sage: W = ReflectionGroup((1,1,4), (3,1,2))
             sage: W.simple_coroots()
-            [(2, -1, 0, 0, 0),
-             (-1, 2, -1, 0, 0),
-             (0, -1, 2, 0, 0),
-             (0, 0, 0, -2*E(3) - E(3)^2, 0),
-             (0, 0, 0, -1, 1)]
+            Finite family {1: (2, -1, 0, 0, 0), 2: (-1, 2, -1, 0, 0), 3: (0, -1, 2, 0, 0), 4: (0, 0, 0, -2*E(3) - E(3)^2, 0), 5: (0, 0, 0, -1, 1)}
         """
+        from sage.sets.family import Family
         coroots = self._gap_group.simpleCoroots.sage()
         for i,coroot in enumerate(coroots):
             coroot = vector(coroot)
             coroot.set_immutable()
             coroots[i] = coroot
-        return coroots
+        return Family({ind:coroots[i] for i,ind in enumerate(self.index_set())})
 
     def simple_coroot(self, i):
         r"""
@@ -1167,8 +1170,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.simple_coroot(1)
             (2, -1, 0)
         """
-        return self.simple_coroots()[self._index_set_inverse[i]]
-
+        return self.simple_coroots()[i]
 
     @cached_method
     def independent_roots(self):
@@ -1184,15 +1186,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.independent_roots()
-            [(1, 0), (0, 1)]
+            ((1, 0), (0, 1))
 
             sage: W = ReflectionGroup((4,2,3))
             sage: W.simple_roots()
-            [(1, 0, 0), (-E(4), 1, 0), (-1, 1, 0), (0, -1, 1)]
+            Finite family {1: (1, 0, 0), 2: (-E(4), 1, 0), 3: (-1, 1, 0), 4: (0, -1, 1)}
             sage: W.independent_roots()
             [(1, 0, 0), (-E(4), 1, 0), (0, -1, 1)]
         """
-        Delta = self.simple_roots()
+        Delta = tuple(self.simple_roots())
         if len(Delta) == self.rank():
             basis = Delta
         else:

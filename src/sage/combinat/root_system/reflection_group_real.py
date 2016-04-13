@@ -379,7 +379,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.simple_root(1)
             (1, 0, 0)
         """
-        return self.simple_roots()[self._index_set_inverse[i]]
+        return self.simple_roots()[i]
 
     def positive_roots(self):
         r"""
@@ -496,24 +496,23 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.fundamental_weights()
-            [(3/4, 1/2, 1/4, 0, 0),
-             (1/2, 1, 1/2, 0, 0),
-             (1/4, 1/2, 3/4, 0, 0),
-             (0, 0, 0, 1, 1/2),
-             (0, 0, 0, 1, 1)]
+            Finite family {1: (3/4, 1/2, 1/4, 0, 0), 2: (1/2, 1, 1/2, 0, 0), 3: (1/4, 1/2, 3/4, 0, 0), 4: (0, 0, 0, 1, 1/2), 5: (0, 0, 0, 1, 1)}
 
             sage: W = ReflectionGroup(['A',3])
             sage: W.fundamental_weights()
-            [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
+            Finite family {1: (3/4, 1/2, 1/4), 2: (1/2, 1, 1/2), 3: (1/4, 1/2, 3/4)}
         """
+        from sage.sets.family import Family
+        # TODO: needs to be checked whether this is the correct
+        #       definition on the weights
         m = self.cartan_matrix().transpose().inverse()
-        S = self.simple_roots()
-        zero = S[0] - S[0]
-        weights = [sum([m[i,j] * sj for j,sj in enumerate(S)], zero)
-                   for i in range(len(S))]
+        Delta = self.simple_roots()
+        zero = Delta[self._index_set[0]].parent().zero()
+        weights = [sum([m[i,j] * sj for j,sj in enumerate(Delta)], zero)
+                   for i in range(len(Delta))]
         for weight in weights:
             weight.set_immutable()
-        return weights
+        return Family({ind:weights[i] for i,ind in enumerate(self._index_set)})
 
     def fundamental_weight(self, i):
         r"""
@@ -525,7 +524,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: [ W.fundamental_weight(i) for i in W.index_set() ]
             [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
         """
-        return self.fundamental_weights()[self._index_set_inverse[i]]
+        return self.fundamental_weights()[i]
 
     @cached_method
     def coxeter_matrix(self):

@@ -1773,6 +1773,24 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
                 return prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
+        def to_permutation_of_roots(self):
+            r"""
+            Return ``self`` as a permutation of the roots with indexing
+            starting at `1`.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup((1,1,3))
+                sage: for w in W: print w, w.to_permutation_of_roots()
+                [] ()
+                [2] (1,3)(2,5)(4,6)
+                [1] (1,4)(2,3)(5,6)
+                [1, 2] (1,6,2)(3,5,4)
+                [2, 1] (1,2,6)(3,4,5)
+                [1, 2, 1] (1,5)(2,4)(3,6)
+            """
+            return PermutationGroupElement(self)
+
         #@cached_in_parent_method
         def fix_space(self):
             r"""

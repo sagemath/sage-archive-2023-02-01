@@ -369,54 +369,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
-    def invariant_form(self):
-        r"""
-        Return the form that is invariant under the action of ``self``.
-
-        This is unique only up to a global scalar factor.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',3])
-            sage: W.invariant_form()
-            [   1 -1/2    0]
-            [-1/2    1 -1/2]
-            [   0 -1/2    1]
-
-            sage: W = ReflectionGroup(['B',3])
-            sage: F = W.invariant_form(); F
-            [ 1 -1  0]
-            [-1  2 -1]
-            [ 0 -1  2]
-            sage: w = W.an_element().to_matrix()
-            sage: w * F * w.transpose().conjugate() == F
-            True
-        """
-        C = self.cartan_matrix()
-        n = self.rank()
-
-        if self.is_crystallographic():
-            ring = QQ
-        else:
-            ring = UniversalCyclotomicField()
-
-        from sage.matrix.constructor import zero_matrix
-        form = zero_matrix(ring, n, n)
-
-        for j in range(n):
-            for i in range(j):
-                if C[i,j] != 0:
-                    form[j,j] = form[i,i] * C[i,j] / C[j,i]
-            if form[j,j] == 0:
-                form[j,j] = 1
-        for j in range(n):
-            for i in range(j):
-                form[i,j] = C[i,j] * form[i,i] / 2
-                form[j,i] = C[j,i] * form[j,j] / 2
-
-        form.set_immutable()
-        return form
-
     def simple_root(self, i):
         r"""
         Return the simple root with index ``i``.

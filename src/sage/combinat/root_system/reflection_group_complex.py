@@ -1378,49 +1378,84 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
-    #def invariant_form(self):
-        #r"""
-        #Return the form that is invariant under the action of ``self``.
-
-        #EXAMPLES::
-
-            #sage: W = ReflectionGroup((3,1,2))
-            #sage: W.invariant_form()
-            #?
-        #"""
-        #C = self.cartan_matrix()
-        #n = self.rank()
-
-        #if self.is_crystallographic():
-            #ring = QQ
-        #else:
-            #from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-            #ring = UniversalCyclotomicField()
-
-        #from sage.matrix.constructor import zero_matrix
-        #form = zero_matrix(ring, n, n)
-
-        ## roots of unity of orders those of the simple reflections
-        #S = self.simple_reflections()
-        #exps = [1 - E(S[i].order()) for i in self.index_set()]
-
-        #for j in range(n):
-            #for i in range(j):
-                #if C[i,j] != 0:
-                    #form[j,j] = form[i,i].conjugate() * \
-                                 #( C[i,j].conjugate() / C[j,i] ) * \
-                                 #( exps[j] / exps[i].conjugate() )
-            #if form[j,j] == 0:
-                #form[j,j] = ring.one()
-        #for j in range(n):
-            #for i in range(j):
-                #form[i, j] = C[i, j] * form[i, i] / exps[j]
-                #form[j, i] = form[i, j].conjugate()
-
-        #form.set_immutable()
-        #return form
-
     def invariant_form(self):
+        r"""
+        Return the form that is invariant under the action of ``self``.
+
+        This is unique only up to a global scalar on the irreducible
+        components.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: W.invariant_form()
+            [   1 -1/2    0]
+            [-1/2    1 -1/2]
+            [   0 -1/2    1]
+
+            sage: W = ReflectionGroup(['B',3])
+            sage: F = W.invariant_form(); F
+            [ 1 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
+            sage: w = W.an_element().to_matrix()
+            sage: w * F * w.transpose().conjugate() == F
+            True
+
+            sage: W = ReflectionGroup((3,1,2))
+            sage: W.invariant_form()
+            [1 0]
+            [0 1]
+
+        TESTS::
+
+            sage: tests = [['A',3],['B',3],['F',4]]
+            sage: for ty in tests:
+            ....:     W = ReflectionGroup(['F',4])
+            ....:     A = W.invariant_form()
+            ....:     B = W.invariant_form_brute_force()
+            ....:     print ty, A == B/B[0,0]
+            ['A', 3] True
+            ['B', 3] True
+            ['F', 4] True
+        """
+        # the algorithm does currently only work if the group action as
+        # matrices is represented in the basis of simple roots
+        if not self.base_change_matrix().is_one():
+            return self.invariant_form_brute_force()
+        C = self.cartan_matrix()
+        n = self.rank()
+
+        if self.is_crystallographic():
+            ring = QQ
+        else:
+            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+            ring = UniversalCyclotomicField()
+
+        from sage.matrix.constructor import zero_matrix
+        form = zero_matrix(ring, n, n)
+
+        # roots of unity of orders those of the simple reflections
+        S = self.simple_reflections()
+        exps = [1 - E(S[i].order()) for i in self.index_set()]
+
+        for j in range(n):
+            for i in range(j):
+                if C[i,j] != 0:
+                    form[j,j] = form[i,i].conjugate() * \
+                                 ( C[i,j].conjugate() / C[j,i] ) * \
+                                 ( exps[j] / exps[i].conjugate() )
+            if form[j,j] == 0:
+                form[j,j] = ring.one()
+        for j in range(n):
+            for i in range(j):
+                form[i, j] = C[i, j] * form[i, i] / exps[j]
+                form[j, i] = form[i, j].conjugate()
+
+        form.set_immutable()
+        return form
+
+    def invariant_form_brute_force(self):
         r"""
         Return the form that is invariant under the action of ``self``.
 
@@ -1657,8 +1692,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup(4)
-                sage: for w in W:
-                ....:   print('%s %s'%(w.reduced_word(), w.length()))
+                sage: for w in W: print w.reduced_word(), w.length()
                 [] 0
                 [1] 1
                 [2] 1
@@ -1679,9 +1713,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [2, 2, 1, 1] 4
                 [1, 1, 2, 1, 1] 5
                 [1, 1, 2, 2, 1] 5
-                [2, 1, 1, 2, 1] 5
+                [1, 2, 1, 1, 2] 5
                 [1, 2, 2, 1, 1] 5
-                [2, 1, 1, 2, 1, 1] 6
+                [1, 1, 2, 1, 1, 2] 6
                 [1, 1, 2, 2, 1, 1] 6
             """
             return len(self.reduced_word())
@@ -1781,13 +1815,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,3))
-                sage: for w in W: print w, w.to_permutation_of_roots()
-                [] ()
-                [2] (1,3)(2,5)(4,6)
-                [1] (1,4)(2,3)(5,6)
-                [1, 2] (1,6,2)(3,5,4)
-                [2, 1] (1,2,6)(3,4,5)
-                [1, 2, 1] (1,5)(2,4)(3,6)
+                sage: for w in W: perm = w.to_permutation_of_roots(); print perm, perm==w
+                () True
+                (1,3)(2,5)(4,6) True
+                (1,4)(2,3)(5,6) True
+                (1,6,2)(3,5,4) True
+                (1,2,6)(3,4,5) True
+                (1,5)(2,4)(3,6) True
             """
             return PermutationGroupElement(self)
 

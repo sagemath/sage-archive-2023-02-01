@@ -31,6 +31,8 @@ cdef class Iterator(object):
         """
         Return a list ``L`` of lists such that ...
 
+        WARNING:: This is not used as it slows down the computation.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.reflection_group_c import Iterator
@@ -77,7 +79,7 @@ cdef class Iterator(object):
             raise ValueError('the algorithm (="%s") must be either "depth" or "breadth"')
         self.algorithm = algorithm
 
-        self.noncom = self.noncom_letters()
+#        self.noncom = self.noncom_letters()
 
     cdef list succ(self, PermutationGroupElement u, int first):
         cdef PermutationGroupElement u1, si
@@ -85,13 +87,14 @@ cdef class Iterator(object):
         cdef list successors = []
         cdef tuple S = self.S
         cdef int N = self.N
+#        cdef list nc = self.noncom[first]
 
         for i in range(first):
             si = <PermutationGroupElement>(S[i])
             if self.test(u, si, i):
                 successors.append((si._mul_(u), i))
         for i in range(first+1,self.n):
-#        for i in self.noncom[first]:
+#        for i in nc:
             if u.perm[i] < N:
                 si = <PermutationGroupElement>(S[i])
                 if self.test(u, si, i):
@@ -125,10 +128,14 @@ cdef class Iterator(object):
         return successors
 
     cdef bint test(self, PermutationGroupElement u, PermutationGroupElement si, int i):
-        cdef int j
+        cdef int j, sij
+        cdef int N = self.N
+        cdef int* siperm = si.perm
+        cdef int* uperm = u.perm
 
         for j in range(i):
-            if u.perm[si.perm[j]] >= self.N:
+            sij = siperm[j]
+            if uperm[sij] >= N:
                 return False
         return True
 

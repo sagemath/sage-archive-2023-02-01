@@ -40,7 +40,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
         def join_irreducibles(self):
             r"""
-            Returns the join-irreducible elements of this finite lattice.
+            Return the join-irreducible elements of this finite lattice.
 
             A *join-irreducible element* of ``self`` is an element
             `x` that is not minimal and that can not be written as
@@ -52,7 +52,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L.join_irreducibles()
                 [1, 2, 4]
 
-            .. seealso:: :meth:`meet_irreducibles`, :meth:`join_irreducibles_poset`
+            .. seealso:: :meth:`meet_irreducibles`, :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`, :meth:`meet_irreducibles_poset`
             """
             return [x for x in self if len(self.lower_covers(x)) == 1]
 
@@ -76,7 +76,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
         def meet_irreducibles(self):
             r"""
-            Returns the meet-irreducible elements of this finite lattice.
+            Return the meet-irreducible elements of this finite lattice.
 
             A *meet-irreducible element* of ``self`` is an element
             `x` that is not maximal and that can not be written as
@@ -88,7 +88,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L.meet_irreducibles()
                 [1, 3, 4]
 
-            .. seealso:: :meth:`join_irreducibles`, :meth:`meet_irreducibles_poset`
+            .. seealso:: :meth:`join_irreducibles`, :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`, :meth:`meet_irreducibles_poset`
             """
             return [x for x in self if len(self.upper_covers(x)) == 1]
 

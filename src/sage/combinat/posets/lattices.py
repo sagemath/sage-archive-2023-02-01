@@ -61,6 +61,9 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
+    :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
+    :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
+    :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
     :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
@@ -103,7 +106,7 @@ from sage.combinat.posets.elements import (LatticePosetElement,
 
 ####################################################################################
 
-def MeetSemilattice(data, *args, **options):
+def MeetSemilattice(data=None, *args, **options):
     r"""
     Construct a meet semi-lattice from various forms of input data.
 
@@ -325,7 +328,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
 ####################################################################################
 
-def JoinSemilattice(data, *args, **options):
+def JoinSemilattice(data=None, *args, **options):
     r"""
     Construct a join semi-lattice from various forms of input data.
 
@@ -487,7 +490,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
 ####################################################################################
 
-def LatticePoset(data, *args, **options):
+def LatticePoset(data=None, *args, **options):
     r"""
     Construct a lattice from various forms of input data.
 
@@ -587,6 +590,93 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
+
+    def atoms(self):
+        """
+        Return the atoms of the lattice.
+
+        An *atom* of a lattice is an element covering the bottom element.
+
+        .. SEEALSO::
+
+            :meth:`coatoms`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.atoms())
+            [2, 3, 5]
+
+        TESTS::
+
+            sage: LatticePoset().atoms()
+            []
+            sage: LatticePoset({0: []}).atoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.upper_covers(self.bottom())
+
+    def coatoms(self):
+        """
+        Return the co-atoms of the lattice.
+
+        A *co-atom* of a lattice is an element covered by the top element.
+
+        .. SEEALSO::
+
+            :meth:`atoms`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.coatoms())
+            [12, 20, 30]
+
+        TESTS::
+
+            sage: LatticePoset().coatoms()
+            []
+            sage: LatticePoset({0: []}).coatoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.lower_covers(self.top())
+
+    def double_irreducibles(self):
+        """
+        Return the list of double irreducible elements of the lattice.
+
+        A *double irreducible* element of a lattice is an element
+        covering and covered by exactly one element. In other words
+        it is neither a meet nor a join of any elements.
+
+        .. SEEALSO::
+
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`, :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(12)
+            sage: sorted(L.double_irreducibles())
+            [3, 4]
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L.double_irreducibles()
+            []
+
+        TESTS::
+
+            sage: LatticePoset().double_irreducibles()
+            []
+            sage: Posets.ChainPoset(2).double_irreducibles()
+            []
+        """
+        H = self._hasse_diagram
+        return [self._vertex_to_element(e) for e in H if
+                H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
     def is_distributive(self):
         r"""

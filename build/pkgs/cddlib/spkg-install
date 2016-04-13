@@ -28,7 +28,7 @@ cd src
 cp ../patches/random.{c,h} lib-src/
 cp ../patches/random.{c,h} lib-src-gmp/
 
-# Required by sage.geometry.polyhedra 
+# Required by sage.geometry.polyhedron
 cp ../patches/cdd_both_reps.c src/
 cp ../patches/cdd_both_reps.c src-gmp/cdd_both_reps.c
 

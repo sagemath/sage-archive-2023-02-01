@@ -131,7 +131,7 @@ cdef extern from "gap/objects.h":
     cdef int libGAP_LAST_TESTING_TNUM
 
 cdef extern from "gap/read.h":
-    void* libGAP_ReadEvalCommand(libGAP_Obj context)
+    void* libGAP_ReadEvalCommand(libGAP_Obj context, libGAP_UInt *dualSemicolon)
     void* libGAP_ReadEvalFile()
     void* libGAP_ReadEvalResult
     bint libGAP_READ_ERROR()

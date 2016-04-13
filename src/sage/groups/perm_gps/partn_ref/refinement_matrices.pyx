@@ -48,10 +48,10 @@ cdef class MatrixStruct:
         self.nsymbols = len(self.symbols)
 
         self.symbol_structs = []
-        num_rows = <int *> sage_malloc(self.nsymbols * sizeof(int))
+        num_rows = <int *> sig_malloc(self.nsymbols * sizeof(int))
         self.temp_col_ps = PS_new(self.degree, 1)
         if num_rows is NULL or self.temp_col_ps is NULL:
-            sage_free(num_rows)
+            sig_free(num_rows)
             PS_dealloc(self.temp_col_ps)
             raise MemoryError
 
@@ -78,7 +78,7 @@ cdef class MatrixStruct:
                 bitset_set( &S_temp.words[num_rows[j]], i)
                 if row_list.count(s) == 1 or row_list.index(s) == self.degree - i - 1:
                     num_rows[j] += 1
-        sage_free(num_rows)
+        sig_free(num_rows)
         self.output = NULL
 
     def __dealloc__(self):
@@ -233,12 +233,12 @@ cdef class MatrixStruct:
             S_temp = other.symbol_structs[i]
             S_temp.first_time = 1
         part = PS_new(n, 1)
-        ordering = <int *> sage_malloc(self.degree * sizeof(int))
-        output = <int *> sage_malloc(self.degree * sizeof(int))
+        ordering = <int *> sig_malloc(self.degree * sizeof(int))
+        output = <int *> sig_malloc(self.degree * sizeof(int))
         if part is NULL or ordering is NULL or output is NULL:
             PS_dealloc(part)
-            sage_free(ordering)
-            sage_free(output)
+            sig_free(ordering)
+            sig_free(output)
             raise MemoryError
         for i from 0 <= i < self.degree:
             ordering[i] = i
@@ -246,12 +246,12 @@ cdef class MatrixStruct:
         cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, NULL, NULL, output)
 
         PS_dealloc(part)
-        sage_free(ordering)
+        sig_free(ordering)
         if isomorphic:
             output_py = [output[i] for i from 0 <= i < self.degree]
         else:
             output_py = False
-        sage_free(output)
+        sig_free(output)
         return output_py
 
 cdef int refine_matrix(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):

@@ -13,6 +13,7 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log

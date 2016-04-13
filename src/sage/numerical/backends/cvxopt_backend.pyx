@@ -21,6 +21,23 @@ from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
 
 cdef class CVXOPTBackend(GenericBackend):
+    """
+    MIP Backend that uses the CVXOPT solver.
+
+    There is no support for integer variables.
+
+    EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
+
+    TESTS:
+
+    :trac:`20332`::
+
+        sage: p
+        Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+    """
+
     cdef list objective_function #c_matrix
     cdef list G_matrix
     cdef str prob_name
@@ -35,7 +52,6 @@ cdef class CVXOPTBackend(GenericBackend):
     cdef list col_name_var
     cdef dict answer
     cdef dict param
-    cdef str name
 
     def __cinit__(self, maximization = True):
         """
@@ -50,7 +66,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
         self.objective_function = [] #c_matrix in the example for cvxopt
         self.G_matrix = []
-        self.prob_name = None
+        self.prob_name = ''
         self.obj_constant_term = 0
         self.is_maximize = 1
 
@@ -138,7 +154,7 @@ cdef class CVXOPTBackend(GenericBackend):
             ...
             RuntimeError: CVXOPT only supports continuous variables
         """
-        if obj == None:
+        if obj is None:
             obj = 0.0
         if binary or integer:
             raise RuntimeError("CVXOPT only supports continuous variables")
@@ -150,7 +166,7 @@ cdef class CVXOPTBackend(GenericBackend):
         return len(self.objective_function) - 1
 
 
-    cpdef int add_variables(self, int n, lower_bound=None, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
+    cpdef int add_variables(self, int n, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
         """
         Add ``n`` variables.
 
@@ -187,11 +203,23 @@ cdef class CVXOPTBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
+            sage: p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8
+            (-2.0, None)
+            sage: p.col_name(5)
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8
+            42.0
         """
         for i in range(n):
-            self.add_variable()
+            self.add_variable(lower_bound, upper_bound, binary, continuous, integer, obj,
+                              None if names is None else names[i])
         return len(self.objective_function) - 1;
 
 
@@ -417,10 +445,17 @@ cdef class CVXOPTBackend(GenericBackend):
             ([], [])
             sage: p.row_bounds(4)
             (None, 2)
+
+        TESTS:
+
+        It does not add mysterious new variables::
+
+            sage: p.ncols()
+            5
+
         """
         for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()+1),[0]*(self.ncols()+1)), 
-                                       lower_bound, upper_bound, 
+            self.add_linear_constraint([], lower_bound, upper_bound,
                                        name=None if names is None else names[i])
 
     cpdef int solve(self) except -1:
@@ -707,13 +742,15 @@ cdef class CVXOPTBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
+            sage: p.problem_name()
+            ''
             sage: p.problem_name("There once was a french fry")
             sage: print p.problem_name()
             There once was a french fry
         """
         if name == NULL:
-            return self.name
-        self.name = str(<bytes>name)
+            return self.prob_name
+        self.prob_name = str(<bytes>name)
 
 
     cpdef row(self, int i):
@@ -1022,7 +1059,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

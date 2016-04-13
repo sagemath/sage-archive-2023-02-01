@@ -496,7 +496,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
         Traceback (most recent call last):
         ...
-        AttributeError: 'Piecewise' object has no attribute '_sage_'
+        AttributeError: 'ExprCondPair' object has no attribute '_sage_'
 
     We integrate the above function in Maple now::
 

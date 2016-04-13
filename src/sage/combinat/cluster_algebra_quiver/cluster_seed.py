@@ -725,19 +725,17 @@ class ClusterSeed(SageObject):
  
         EXAMPLES::
 
-        sage: S = ClusterSeed(['A',4]); S._init_vars
-        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
-        sage: S._sanitize_init_vars([1,2,3,4],'z')
-        sage: S._init_vars
-        {0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4'}
+            sage: S = ClusterSeed(['A',4]); S._init_vars
+            {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+            sage: S._sanitize_init_vars([1,2,3,4],'z')
+            sage: S._init_vars
+            {0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4'}
 
-        sage: S = ClusterSeed(['A',4]); S._init_vars
-        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
-        sage: S._sanitize_init_vars(['a', 'b', 'c', 'd'])
-        sage: S._init_vars
-        {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
-
-
+            sage: S = ClusterSeed(['A',4]); S._init_vars
+            {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+            sage: S._sanitize_init_vars(['a', 'b', 'c', 'd'])
+            sage: S._init_vars
+            {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
         """
         if isinstance(user_labels,list):
             self._init_vars = {}
@@ -1508,7 +1506,9 @@ class ClusterSeed(SageObject):
         r"""
         An internal procedure that returns ``self`` with g-vectors mutated at k.
 
-        WARNING: This function assumes you are sending it good data
+        .. WARNING::
+
+            This function assumes you are sending it good data.
 
         EXAMPLES::
 
@@ -1520,8 +1520,8 @@ class ClusterSeed(SageObject):
         REFERENCES:
 
         .. [NaZe2011] Tomoki Nakanishi and Andrei Zelevinsky
-        *On Tropical Dualities In Cluster Algebras*
-        :arxiv:`1101.3736v3`
+           *On Tropical Dualities In Cluster Algebras*
+           :arxiv:`1101.3736v3`
         """
         from sage.matrix.all import identity_matrix
 

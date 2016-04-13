@@ -1,4 +1,3 @@
-include 'sage/ext/stdsage.pxi'
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 def mcqd(G):

@@ -845,7 +845,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -860,7 +860,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -872,7 +872,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -1119,16 +1119,7 @@ def gamma(a, *args, **kwds):
             ...
             TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I

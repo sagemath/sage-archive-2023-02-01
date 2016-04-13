@@ -696,7 +696,7 @@ cdef class Map(Element):
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
-        by :meth:`pushforward` (see trac ticket #10496)::
+        by :meth:`pushforward` (see :trac:`10496`)::
 
             sage: D = {(0, 2): -1, (0, 0): -1, (1, 1): 7, (2, 0): 1/3}
             sage: phi(D)

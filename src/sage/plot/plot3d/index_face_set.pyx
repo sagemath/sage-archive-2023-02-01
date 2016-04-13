@@ -32,7 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_calloc, check_allocarray, check_reallocarray, sage_free
+include "cysignals/memory.pxi"
 
 cdef extern from *:
     void memset(void *, int, Py_ssize_t)
@@ -364,7 +364,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     face.vertices[j] = point_map[face.vertices[j]]
             self.realloc(ix, self.fcount, self.icount)
             self.vcount = ix
-        sage_free(point_map)
+        sig_free(point_map)
 
     def _seperate_creases(self, threshold):
         """
@@ -402,7 +402,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         try:
             point_faces = <face_c **>check_allocarray(total, sizeof(face_c*))
         except MemoryError:
-            sage_free(point_counts)
+            sig_free(point_counts)
             raise
         sig_on()
         memset(point_counts, 0, sizeof(int) * self.vcount)
@@ -441,8 +441,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 try:
                     self.vs = <point_c *>check_reallocarray(self.vs, ix, sizeof(point_c))
                 except MemoryError:
-                    sage_free(point_counts)
-                    sage_free(point_faces)
+                    sig_free(point_counts)
+                    sig_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
                     sig_off()
                     raise
@@ -469,17 +469,17 @@ cdef class IndexFaceSet(PrimitiveObject):
             start = self.vcount
             self.vcount = ix
 
-        sage_free(point_counts)
-        sage_free(point_faces)
+        sig_free(point_counts)
+        sig_free(point_faces)
         sig_off()
 
     def _mem_stats(self):
         return self.vcount, self.fcount, self.icount
 
     def __dealloc__(self):
-        sage_free(self.vs)
-        sage_free(self._faces)
-        sage_free(self.face_indices)
+        sig_free(self.vs)
+        sig_free(self._faces)
+        sig_free(self.face_indices)
 
     def is_enclosed(self):
         """
@@ -520,6 +520,75 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i, j
         return [[self._faces[i].vertices[j]
                  for j from 0 <= j < self._faces[i].n]
+                for i from 0 <= i < self.fcount]
+
+    def has_local_colors(self):
+        """
+        Return ``True`` if and only if every face has an individual color.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.has_local_colors()
+            True
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.has_local_colors()
+            False
+        """
+        return not(self.global_texture)
+    
+    def index_faces_with_colors(self):
+        """
+        Return the list over all faces of (indices of the vertices, color).
+
+        This only works if every face has its own color.
+
+        .. SEEALSO::
+
+            :meth:`has_local_colors`
+
+        EXAMPLES:
+
+        A simple colored one::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.index_faces_with_colors()
+            [([0, 4, 5], '#ff0000'),
+            ([3, 4, 5], '#ff9900'),
+            ([2, 3, 4], '#cbff00'),
+            ([1, 3, 5], '#33ff00')]
+
+        When the texture is global, an error is raised::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.index_faces_with_colors()
+            Traceback (most recent call last):
+            ...
+            ValueError: the texture is global
+        """
+        cdef Py_ssize_t i, j
+        if self.global_texture:
+            raise ValueError('the texture is global')
+        return [([self._faces[i].vertices[j]
+                  for j from 0 <= j < self._faces[i].n],
+                 Color(self._faces[i].color.r,
+                       self._faces[i].color.g,
+                       self._faces[i].color.b).html_color())
                 for i from 0 <= i < self.fcount]
 
     def faces(self):
@@ -761,7 +830,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     ix += face.n
             face_set._clean_point_list()
             all[part] = face_set
-        sage_free(partition)
+        sig_free(partition)
         return all
 
     def tachyon_repr(self, render_params):

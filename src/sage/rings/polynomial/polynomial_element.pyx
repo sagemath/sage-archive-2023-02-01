@@ -1032,7 +1032,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: hash(f)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
             sage: f._cache_key()
             (Univariate Polynomial Ring in x over Unramified Extension of 2-adic Field with capped relative precision 20 in u defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)),
              0,
@@ -1082,7 +1082,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: hash(t)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
 
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
@@ -2204,7 +2204,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: latex(x+2)
             x + 2.0
 
-        The following illustrates the fix of trac #2586::
+        The following illustrates the fix of :trac:`2586`::
 
             sage: latex(ZZ['alpha']['b']([0, ZZ['alpha'].0]))
             \alpha b
@@ -3538,7 +3538,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        This came up in ticket #7088::
+        This came up in :trac:`7088`::
 
             sage: R.<x>=PolynomialRing(ZZ)
             sage: f = 12*x^10 + x^9 + 432*x^3 + 9011
@@ -3549,7 +3549,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: F = f^2 * g^3 * 7; F.factor()
             7 * (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
 
-        This example came up in ticket #7097::
+        This example came up in :trac:`7097`::
 
             sage: x = polygen(QQ)
             sage: f = 8*x^9 + 42*x^6 + 6*x^3 - 1
@@ -3629,7 +3629,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: A(x^2 - 1/3).factor()
             (T - a) * (T + a)
 
-        Test that ticket #10279 is fixed::
+        Test that :trac:`10279` is fixed::
 
             sage: R.<t> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(t^4 - t^2 + 1)
@@ -3646,7 +3646,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             sage: pari.default("debug", 0)
 
-        Test that ticket #10369 is fixed::
+        Test that :trac:`10369` is fixed::
 
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^6 + x^5 + x^4 + x^3 + x^2 + x + 1)
@@ -3673,7 +3673,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = (x+a)^50 - (a-1)^50
             sage: len(factor(f))
             6
-            sage: pari(K.discriminant()).factor(limit=0)
+            sage: pari(K.discriminant()).factor(limit=10^6)
             [-1, 1; 3, 15; 23, 1; 887, 1; 12583, 1; 2354691439917211, 1]
             sage: factor(K.discriminant())
             -1 * 3^15 * 23 * 887 * 12583 * 6335047 * 371692813
@@ -4211,7 +4211,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.gcd(q)
             x + a
             sage: del O._gcd_univariate_polynomial
+
+        Use multivariate implementation for polynomials over polynomials rings::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = R[]
+            sage: T.<z> = S[]
+            sage: r = 2*x*y + z
+            sage: p = r * (3*x*y*z - 1)
+            sage: q = r * (x + y + z - 2)
+            sage: p.gcd(q)
+            z + 2*x*y
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: r = 2*x*y + 1
+            sage: p = r * (x - 1/2 * y)
+            sage: q = r * (x*y^2 - x + 1/3)
+            sage: p.gcd(q)
+            2*x*y + 1
         """
+        variables = self._parent.variable_names_recursive()
+        if len(variables) > 1:
+            base = self._parent._mpoly_base_ring()
+            ring = PolynomialRing(base, variables)
+            if ring._has_singular:
+                try:
+                    d1 = self._mpoly_dict_recursive()
+                    d2 = other._mpoly_dict_recursive()
+                    return self._parent(ring(d1).gcd(ring(d2)))
+                except NotImplementedError:
+                    pass
+
         if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
             return self.base_ring()._gcd_univariate_polynomial(self, other)
         else:
@@ -8422,6 +8453,7 @@ cdef class Polynomial_generic_dense(Polynomial):
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
 
+
 @cached_function
 def universal_discriminant(n):
     r"""
@@ -8457,6 +8489,132 @@ def universal_discriminant(n):
     pr2 = PolynomialRing(pr1, 'x')
     p = pr2(list(pr1.gens()))
     return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
+
+
+cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
+    """
+    A dense polynomial over an inexact ring.
+
+    AUTHOR:
+
+    - Xavier Caruso (2013-03)
+    """
+    cdef int __normalize(self) except -1:
+        r"""
+        TESTS::
+
+        Coefficients indistinguishable from 0 are not removed.
+
+            sage: R = Zp(5)
+            sage: S.<x> = R[]
+            sage: S([1,R(0,20)])
+            (O(5^20))*x + (1 + O(5^20))
+        """
+        cdef list x = self.__coeffs
+        cdef Py_ssize_t n = len(x) - 1
+        cdef RingElement c
+        while n >= 0:
+            c = x[n]
+            if c.is_zero() and c.precision_absolute() is infinity.Infinity:
+                del x[n]
+                n -= 1
+            else:
+                break
+
+    def degree(self, secure=False):
+        r"""
+        INPUT:
+
+        - secure  -- a boolean (default: False)
+
+        OUTPUT:
+
+        The degree of self.
+
+        If ``secure`` is True and the degree of this polynomial
+        is not determined (because the leading coefficient is
+        indistinguishable from 0), an error is raised
+
+        If ``secure`` is False, the returned value is the largest
+        $n$ so that the coefficient of $x^n$ does not compare equal
+        to `0`.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.degree()
+            1
+            sage: (f-T).degree()
+            0
+            sage: (f-T).degree(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: the leading coefficient is indistinguishable from 0
+
+            sage: x = O(3^5)
+            sage: li = [3^i * x for i in range(0,5)]; li
+            [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
+            sage: f = R(li); f
+            (O(3^9))*T^4 + (O(3^8))*T^3 + (O(3^7))*T^2 + (O(3^6))*T + (O(3^5))
+            sage: f.degree()
+            -1
+            sage: f.degree(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: the leading coefficient is indistinguishable from 0
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03)
+        """
+        coeffs = self.__coeffs
+        d = len(coeffs) - 1
+        while d >= 0:
+            c = coeffs[d]
+            if c.is_zero():
+                if secure:
+                    from sage.rings.padics.precision_error import PrecisionError
+                    raise PrecisionError("the leading coefficient is indistinguishable from 0")
+                else:
+                    d -= 1
+            else:
+                break
+        return d
+
+    def prec_degree(self):
+        r"""
+        Returns the largest `n` so that precision information is
+        stored about the coefficient of `x^n`.
+
+        Always greater than or equal to degree.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.degree()
+            1
+            sage: f.prec_degree()
+            1
+
+            sage: g = f - T; g
+            (O(3^10))*T + (2 + O(3^10))
+            sage: g.degree()
+            0
+            sage: g.prec_degree()
+            1
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03)
+        """
+        return len(self.__coeffs) - 1
+
 
 cdef class ConstantPolynomialSection(Map):
     """

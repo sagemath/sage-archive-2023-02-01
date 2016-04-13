@@ -373,3 +373,38 @@ def iterator_tracking_words(W):
                     level_set_old.add(y)
                     level_set_new.append((y, word+[i]))
         level_set_cur = level_set_new
+
+cdef bint has_descent(PermutationGroupElement w, int i, int N):
+    return w.perm[i] >= N
+
+cdef int first_descent(PermutationGroupElement w, int n, int N):
+    cdef int i
+    for i in range(n):
+        if has_descent(w,i,N):
+            return i
+    return -1
+
+cpdef list reduced_word_c(W,w):
+    r"""
+    Computes a reduced word for the element `w` in the
+    reflection group `W` in the positions ``range(n)``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.reflection_group_c import reduced_word_c
+        sage: W = ReflectionGroup(['B',2])                                 
+        sage: [ reduced_word_c(W,w) for w in W ]
+        [[], [1], [0], [0, 1], [1, 0], [1, 0, 1], [0, 1, 0], [0, 1, 0, 1]]
+    """
+    cdef tuple S = tuple(W.simple_reflections())
+    cdef int n = len(S)
+    cdef int N = W._number_of_reflections
+    cdef int fdes = 0
+    cdef list word = []
+
+    while fdes != -1:
+        fdes = first_descent(w,n,N)
+        si = S[fdes]
+        w = si._mul_(w)
+        word.append(fdes)
+    return word[:-1]

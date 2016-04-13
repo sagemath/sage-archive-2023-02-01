@@ -82,7 +82,7 @@ would look at elements with either of the following methods::
     [2, 1]
     [2, 1, 2]
     [1, 2, 1]
-    [2, 1, 2, 1]
+    [1, 2, 1, 2]
 
     sage: for w in W: w.reduced_word_in_reflections()
     []
@@ -123,7 +123,7 @@ would look at elements with either of the following methods::
     [-1 -1]
     [ 0  1]
     <BLANKLINE>
-    [2, 1, 2, 1]
+    [1, 2, 1, 2]
     [-1  0]
     [ 0 -1]
     <BLANKLINE>
@@ -309,7 +309,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if len(self._hyperplane_index_set) != len(Nstar_set):
                 raise ValueError("the given hyperplane index set (= %s) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = {i: ii for ii,i in enumerate(self._hyperplane_index_set)}
-        N_set = range(1, self.number_of_reflections()+1)
+
+        # storing the number of reflections for later use in descents
+        self._number_of_reflections = self.number_of_reflections()
+
+        N_set = range(1, self._number_of_reflections+1)
         if self._reflection_index_set is None:
             self._reflection_index_set = tuple(N_set)
         else:
@@ -828,7 +832,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,4))
             sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
-            [[], [1], [3, 1], [1, 2], [3, 1, 2]]
+            [[], [1], [1, 3], [1, 2], [1, 3, 2]]
 
             sage: W = ReflectionGroup((3,1,2))
             sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
@@ -837,9 +841,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup(23)
             sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
-            [[], [1], [1, 2], [3, 1], [2, 3], [1, 2, 3], [1, 2, 1, 2],
-             [1, 2, 1, 2, 3], [1, 2, 3, 1, 2, 1, 2, 3, 2],
-             [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 1, 2, 1]]
+                [[],
+                 [1],
+                 [1, 2],
+                 [1, 3],
+                 [2, 3],
+                 [1, 2, 3],
+                 [1, 2, 1, 2],
+                 [1, 2, 1, 2, 3],
+                 [1, 2, 1, 2, 3, 2, 1, 2, 3],
+                 [1, 2, 1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]]
         """
         S = str(gap3('List(ConjugacyClasses(%s),Representative)'%self._gap_group._name))
         exec('_conjugacy_classes_representatives=' + _gap_return(S))
@@ -1462,7 +1473,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         EXAMPLES::
 
             sage: W = ReflectionGroup((3,1,2))
-            sage: W.invariant_form()
+            sage: W.invariant_form_brute_force()
             [1 0]
             [0 1]
         """
@@ -2364,9 +2375,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3)); h = W.coxeter_number()
                 sage: for w in W:
-                ....:     print('%s %s'%(w.reduced_word(), w.is_regular(W.coxeter_number())))
+                ....:     print w.reduced_word(), w.is_regular(h)
                 [] False
                 [2] False
                 [1] False
@@ -2374,34 +2385,34 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [2, 1] True
                 [1, 2, 1] False
 
-                sage: W = ReflectionGroup(23)
+                sage: W = ReflectionGroup(23); h = W.coxeter_number()
                 sage: for w in W:
-                ....:     if w.is_regular(W.coxeter_number()):
+                ....:     if w.is_regular(h):
                 ....:         w.reduced_word()
                 [1, 2, 3]
-                [2, 3, 1]
-                [3, 1, 2]
+                [2, 1, 3]
+                [1, 3, 2]
                 [3, 2, 1]
                 [2, 1, 2, 3, 2]
                 [2, 3, 2, 1, 2]
                 [1, 2, 1, 2, 3, 2, 1]
                 [1, 2, 3, 2, 1, 2, 1]
-                [1, 2, 3, 1, 2, 1, 2, 3, 2]
-                [2, 1, 2, 3, 1, 2, 1, 2, 3]
-                [2, 3, 1, 2, 1, 2, 3, 2, 1]
-                [3, 1, 2, 1, 2, 3, 2, 1, 2]
-                [3, 2, 1, 2, 3, 1, 2, 1, 2]
-                [1, 2, 1, 2, 3, 1, 2, 1, 2]
-                [3, 2, 1, 2, 3, 2, 1, 2, 1]
-                [2, 1, 2, 3, 1, 2, 1, 2, 1]
-                [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 1]
-                [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 2]
-                [2, 1, 2, 3, 1, 2, 1, 2, 3, 2, 1]
-                [1, 2, 3, 1, 2, 1, 2, 3, 2, 1, 2]
-                [3, 1, 2, 1, 2, 3, 1, 2, 1, 2, 1]
-                [2, 3, 1, 2, 1, 2, 3, 2, 1, 2, 1]
-                [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 1]
-                [3, 2, 1, 2, 3, 1, 2, 1, 2, 3, 2, 1, 2]
+                [1, 2, 1, 2, 3, 2, 1, 2, 3]
+                [2, 1, 2, 1, 3, 2, 1, 2, 3]
+                [2, 1, 2, 3, 2, 1, 2, 1, 3]
+                [1, 2, 3, 2, 1, 2, 1, 3, 2]
+                [3, 2, 1, 2, 1, 3, 2, 1, 2]
+                [1, 2, 1, 2, 1, 3, 2, 1, 2]
+                [2, 3, 2, 1, 2, 1, 3, 2, 1]
+                [2, 1, 2, 1, 3, 2, 1, 2, 1]
+                [2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
+                [1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
+                [1, 2, 1, 2, 1, 3, 2, 1, 2, 1, 3]
+                [1, 2, 1, 2, 3, 2, 1, 2, 1, 3, 2]
+                [1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2]
+                [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1]
+                [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
+                [1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
             """
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             I = identity_matrix(self.parent().rank())

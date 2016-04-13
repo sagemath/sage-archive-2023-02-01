@@ -17,9 +17,9 @@ AUTHORS:
 
 .. TODO::
 
-    - Properly provide root systems for real reflection groups
-    - Element class should be unique to be able to work with large groups
-      without creating elements multiple times.
+    - Implement descents, left/right descents, has_descent, first_descent
+      directly in this class, since the generic implementation is much
+      slower.
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
@@ -43,6 +43,7 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
 from sage.misc.sage_eval import sage_eval
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+from sage.combinat.root_system.reflection_group_c import reduced_word_c
 
 def ReflectionGroup(*args,**kwds):
     r"""
@@ -205,7 +206,6 @@ def ReflectionGroup(*args,**kwds):
                index_set=kwds.get('index_set', None),
                hyperplane_index_set=kwds.get('hyperplane_index_set', None),
                reflection_index_set=kwds.get('reflection_index_set', None))
-
 
 class RealReflectionGroup(ComplexReflectionGroup):
     """
@@ -609,9 +609,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         return sage_eval(_gap_return(S), locals={'self': self})
 
     class Element(ComplexReflectionGroup.Element):
-        # Use the generic reduced word from the Coxeter groups category
-        # TODO put a cached_method here instead of the lazy attribute below?
-        reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__
 
         @lazy_attribute
         def _reduced_word(self):
@@ -625,7 +622,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: [w._reduced_word for w in W]
                 [[], [1], [0], [0, 1], [1, 0], [0, 1, 0]]
             """
-            return CoxeterGroups.ElementMethods.reduced_word.__func__(self)
+            return reduced_word_c(self.parent(),self)
 
         def reduced_word_in_reflections(self):
             r"""

@@ -1820,6 +1820,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
                 return prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
+        matrix = to_matrix
+
         def to_permutation_of_roots(self):
             r"""
             Return ``self`` as a permutation of the roots with indexing

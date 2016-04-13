@@ -1,3 +1,3 @@
-from btquotient import BTQuotient, DoubleCosetReduction
-from pautomorphicform import (HarmonicCocycleElement, HarmonicCocycles,
-                              pAutomorphicFormElement, pAutomorphicForms)
+from btquotient import BTQuotient as BruhatTitsQuotient
+from pautomorphicform import pAutomorphicForms as pAdicAutomorphicForms
+from pautomorphicform import HarmonicCocycles as BruhatTitsHarmonicCocycles

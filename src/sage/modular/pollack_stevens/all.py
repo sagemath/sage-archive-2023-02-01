@@ -1,4 +1,3 @@
-from space import PSModularSymbols
-from distributions import Distributions, Symk
-from fund_domain import ManinRelations
-from padic_lseries import pAdicLseries
+from space import PSModularSymbols as PollackStevensModularSymbols
+from distributions import Symk
+from distributions import Distributions as OverconvergentDistributions

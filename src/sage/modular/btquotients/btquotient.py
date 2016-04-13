@@ -6,8 +6,11 @@
 #                  http://www.gnu.org/licenses/
 #########################################################################
 r"""
-Compute arithmetic quotients of the Bruhat-Tits tree
+Quotients of the Bruhat-Tits tree
 
+Compute quotients and fundamental domains of the Bruhat-Tits tree
+under the action of arithmetic groups arising from units in definite
+quaternion algebras.
 """
 from sage.rings.integer import Integer
 from sage.matrix.constructor import Matrix
@@ -64,7 +67,7 @@ class DoubleCosetReduction(SageObject):
     matrices in `\GL_2`. Given a matrix `x` in `\GL_2`, this
     class computes and stores the data corresponding to the
     double coset representation of `x` in terms of a fundamental
-    domain of edges for the action of the arithmetic group `\Gamma'.
+    domain of edges for the action of the arithmetic group `\Gamma`.
 
     More precisely:
 
@@ -73,21 +76,23 @@ class DoubleCosetReduction(SageObject):
     stores these values as members ``gamma``, ``label`` and functions
     ``self.sign()``,  ``self.t()`` and ``self.igamma()``, satisfying:
 
-        if ``self.sign() == +1``:
-            ``igamma() * edge_list[label].rep * t() == x``
+    - if ``self.sign() == +1``:
+      ``igamma() * edge_list[label].rep * t() == x``
 
-        if ``self.sign() == -1``:
-            ``igamma() * edge_list[label].opposite.rep * t() == x``
+    - if ``self.sign() == -1``:
+      ``igamma() * edge_list[label].opposite.rep * t() == x``
 
     It also stores a member called power so that:
 
         ``p**(2*power) = gamma.reduced_norm()``
 
-    The usual decomposition ``get=x`` would be:
+    The usual decomposition `get=x` would be:
 
-    g = gamma / (p ** power)
-    e = edge_list[label]
-    t' = t * p ** power
+    - g = gamma / (p ** power)
+
+    - e = edge_list[label]
+
+    - t' = t * p ** power
 
     Here usual denotes that we have rescaled gamma to have unit
     determinant, and so that the result is honestly an element
@@ -310,12 +315,12 @@ class DoubleCosetReduction(SageObject):
 
         INPUT:
 
-        - ``prec`` - a p-adic precision that t will be computed
-        to. Default is the default working precision of self
+        ``prec`` - a p-adic precision that t will be computed
+        to. Defaults to the default working precision of self.
 
         OUTPUT:
 
-        - ``cached_t`` - a 2x2 p-adic matrix with entries of
+        a 2x2 p-adic matrix with entries of
         precision 'prec' that is the 't-part' of the decomposition of
         self
 
@@ -328,6 +333,7 @@ class DoubleCosetReduction(SageObject):
             sage: t = d.t(20)
             sage: t[1,0].valuation() > 0
             True
+
         """
         Y = self._parent
         if prec is None:
@@ -453,7 +459,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - ``e`` - A 2x2 integer matrix
+        - ``e`` - A 2x2 integer matrix
 
         EXAMPLES::
 
@@ -707,7 +713,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          List of size p+1 of 2x2 integer matrices
+        List of size p+1 of 2x2 integer matrices
 
         EXAMPLES::
 
@@ -762,7 +768,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A list of size p+1 of 2x2 integer matrices
+        A list of size p+1 of 2x2 integer matrices
 
         EXAMPLES::
 
@@ -793,7 +799,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A list of 2x2 integer matrices
+        A list of 2x2 integer matrices
 
         EXAMPLES::
 
@@ -855,16 +861,16 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         INPUT:
 
-          - ``v`` - a 2x2 matrix representing a vertex ``boundary`` -
+        - ``v`` - a 2x2 matrix representing a vertex ``boundary``
 
-          - a list of matrices (default: None). If ommitted, finds the
+        - a list of matrices (default: None). If ommitted, finds the
           geodesic from ``v`` to the central vertex.
 
         OUTPUT:
 
-          An ordered list of vertices describing the geodesic from
-          ``v`` to ``boundary``, followed by the vertex in the boundary
-          that is closest to ``v``.
+        An ordered list of vertices describing the geodesic from
+        ``v`` to ``boundary``, followed by the vertex in the boundary
+        that is closest to ``v``.
 
         EXAMPLES::
 
@@ -926,7 +932,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A 2x2 integer matrix representing a vertex of ``self``.
+        A 2x2 integer matrix representing a vertex of ``self``.
 
         EXAMPLES::
 
@@ -984,8 +990,8 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An ordered list of 2x2 integer matrices representing the vertices
-          of the paths joining ``v1`` and ``v2``.
+        An ordered list of 2x2 integer matrices representing the vertices
+        of the paths joining ``v1`` and ``v2``.
 
         EXAMPLES::
 
@@ -1023,11 +1029,11 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         INPUT:
 
-          - ``z1``, ``z2`` - unramified algebraic points of h_p
+        - ``z1``, ``z2`` - unramified algebraic points of h_p
 
         OUTPUT:
 
-          a list of 2x2 integer matrices representing edges of self
+        a list of 2x2 integer matrices representing edges of self
 
         EXAMPLES::
 
@@ -1566,7 +1572,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - A list with the vertices of the quotient.
+        - A list with the vertices of the quotient.
 
         EXAMPLES::
 
@@ -1582,18 +1588,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_edge_list(self):
         r"""
-        Returns a list of ``Edge``s which represent a fundamental
+        Returns a list of ``Edge`` which represent a fundamental
         domain inside the Bruhat-Tits tree for the quotient.
 
         OUTPUT:
 
-          A list of ``Edge``s.
+        A list of ``Edge``.
 
         EXAMPLES::
 
             sage: X = BTQuotient(37,3)
             sage: len(X.get_edge_list())
             8
+
         """
         try:
             return self._edge_list
@@ -1603,14 +1610,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_list(self):
         r"""
-        Returns a list of ``Edge``s which represent a fundamental
+        Returns a list of ``Edge`` which represent a fundamental
         domain inside the Bruhat-Tits tree for the quotient,
         together with a list of the opposite edges. This is used
         to work with automorphic forms.
 
         OUTPUT:
 
-          A list of ``Edge``s.
+        A list of ``Edge``.
 
         EXAMPLES::
 
@@ -1633,7 +1640,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - A generating list of elements of an arithmetic
+        - A generating list of elements of an arithmetic
             quaternionic group.
 
         EXAMPLES::
@@ -1660,7 +1667,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - A generating list of elements of an arithmetic
+        - A generating list of elements of an arithmetic
             quaternionic group.
 
         EXAMPLES::
@@ -1718,7 +1725,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @lazy_attribute
     def e3(self):
-        """
+        r"""
         Compute the `e_3` invariant defined by the formula
 
         .. math::
@@ -1734,13 +1741,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(31,3)
             sage: X.e3
             1
+
         """
         self._compute_invariants()
         return self.e3
 
     @lazy_attribute
     def e4(self):
-        """
+        r"""
         Compute the `e_4` invariant defined by the formula
 
         .. math::
@@ -1756,6 +1764,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(31,3)
             sage: X.e4
             2
+
         """
         self._compute_invariants()
         return self.e4
@@ -1788,7 +1797,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - An integer (the number of vertices)
+        - An integer (the number of vertices)
 
         EXAMPLES::
 
@@ -1805,7 +1814,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          - An integer
+        - An integer
 
         EXAMPLES::
 
@@ -1854,7 +1863,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An integer equal to the genus
+        An integer equal to the genus
 
         EXAMPLES::
 
@@ -1947,7 +1956,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An integer equal to `N^+`.
+        An integer equal to `N^+`.
 
         EXAMPLES::
 
@@ -1964,7 +1973,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An integer equal to `N^-`.
+        An integer equal to `N^-`.
 
         EXAMPLES::
 
@@ -1983,7 +1992,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An integer equal to `p N^-`.
+        An integer equal to `p N^-`.
 
         EXAMPLES::
 
@@ -2055,7 +2064,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A plot of the quotient graph
+        A plot of the quotient graph
 
         EXAMPLES::
 
@@ -2088,7 +2097,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A plot of the fundamental domain.
+        A plot of the fundamental domain.
 
         EXAMPLES::
 
@@ -2127,7 +2136,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A boolean describing whether the quadratic field is admissible
+        A boolean describing whether the quadratic field is admissible
 
         EXAMPLES::
 
@@ -2151,11 +2160,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-            prec -- Integer. The precision of the splitting.
+        - prec -- Integer. The precision of the splitting.
 
         OUTPUT:
 
-            A function giving the splitting.
+        A function giving the splitting.
 
         EXAMPLES::
 
@@ -2347,8 +2356,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-           - ``amount`` Integer (Default: 1). The amount by which to
-             increase the precision.
+        - ``amount`` Integer (Default: 1). The amount by which to
+          increase the precision.
 
         EXAMPLES:
 
@@ -2452,8 +2461,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A 2x2 matrix with coefficients in `\QQ_p` if ``exact`` is
-          False, or a number field if ``exact`` is True.
+        A 2x2 matrix with coefficients in `\QQ_p` if ``exact`` is
+        False, or a number field if ``exact`` is True.
 
         EXAMPLES::
 
@@ -2509,14 +2518,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A list of lists encoding edge stabilizers. It contains one
-          entry for each edge. Each entry is a list of data
-          corresponding to the group elements in the stabilizer of the
-          edge. The data consists of: (0) a column matrix representing
-          a quaternion, (1) the power of `p` that one needs to divide
-          by in order to obtain a quaternion of norm 1, and hence an
-          element of the arithmetic group `\Gamma`, (2) a boolean that
-          is only used to compute spaces of modular forms.
+        A list of lists encoding edge stabilizers. It contains one
+        entry for each edge. Each entry is a list of data
+        corresponding to the group elements in the stabilizer of the
+        edge. The data consists of: (0) a column matrix representing
+        a quaternion, (1) the power of `p` that one needs to divide
+        by in order to obtain a quaternion of norm 1, and hence an
+        element of the arithmetic group `\Gamma`, (2) a boolean that
+        is only used to compute spaces of modular forms.
 
         EXAMPLES::
 
@@ -2543,14 +2552,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A list of lists encoding edge stabilizers. It contains one
-          entry for each edge. Each entry is a list of data
-          corresponding to the group elements in the stabilizer of the
-          edge. The data consists of: (0) a column matrix representing
-          a quaternion, (1) the power of `p` that one needs to divide
-          by in order to obtain a quaternion of norm 1, and hence an
-          element of the arithmetic group `\Gamma`, (2) a boolean that
-          is only used to compute spaces of modular forms.
+        A list of lists encoding edge stabilizers. It contains one
+        entry for each edge. Each entry is a list of data
+        corresponding to the group elements in the stabilizer of the
+        edge. The data consists of: (0) a column matrix representing
+        a quaternion, (1) the power of `p` that one needs to divide
+        by in order to obtain a quaternion of norm 1, and hence an
+        element of the arithmetic group `\Gamma`, (2) a boolean that
+        is only used to compute spaces of modular forms.
 
         EXAMPLES::
 
@@ -2574,9 +2583,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          A list of vertex stabilizers. Each vertex stabilizer is a
-          finite cyclic subgroup, so we return generators for these
-          subgroups.
+        A list of vertex stabilizers. Each vertex stabilizer is a
+        finite cyclic subgroup, so we return generators for these
+        subgroups.
 
         EXAMPLES::
 
@@ -2600,7 +2609,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          The underlying definite quaternion algebra
+        The underlying definite quaternion algebra
 
         EXAMPLES::
 
@@ -2652,7 +2661,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          Underlying maximal order.
+        Underlying maximal order.
 
         EXAMPLES::
 
@@ -2948,7 +2957,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-          - ``q`` - integer dividing p*Nminus*Nplus
+        - ``q`` - integer dividing p*Nminus*Nplus
 
         EXAMPLES::
 

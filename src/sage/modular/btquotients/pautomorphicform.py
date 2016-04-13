@@ -5,6 +5,12 @@
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
+r"""
+Spaces of p-adic automorphic forms
+
+Compute with harmonic cocycles and p-adic automorphic forms, including
+overconvergent p-adic automorphic forms.
+"""
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.matrix.matrix_space import MatrixSpace
@@ -287,9 +293,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-        sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
-        sage: M.monomial_coefficients()
-        {}
+            sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+            sage: M.monomial_coefficients()
+            {}
 
         """
         return {}
@@ -721,9 +727,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
-        sage: M.monomial_coefficients()
-        {}
+            sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+            sage: M.monomial_coefficients()
+            {}
 
         """
         return {}
@@ -762,7 +768,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         INPUT:
 
-        - ``new_base_ring'' - a ring that has a coerce map from the
+        - ``new_base_ring`` - a ring that has a coerce map from the
           current base ring
 
         OUTPUT:
@@ -778,6 +784,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: H1 = H.base_extend(Qp(5,prec=15)) # indirect doctest
             sage: H1.base_ring()
             5-adic Field with capped relative precision 15
+
         """
         if not new_base_ring.has_coerce_map_from(self.base_ring()):
             raise ValueError("No coercion defined")
@@ -1822,8 +1829,8 @@ class pAutomorphicFormElement(ModuleElement):
 
         AUTHORS:
 
-        - Marc Masdeu (2012-02-20)
         - Cameron Franc (2012-02-20)
+        - Marc Masdeu (2012-02-20)
 
         """
         E = self.parent()._source._BT.get_balls(center, level)

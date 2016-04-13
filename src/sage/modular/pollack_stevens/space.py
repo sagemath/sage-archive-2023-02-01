@@ -804,12 +804,13 @@ def cusps_from_mat(g):
 
 def ps_modsym_from_elliptic_curve(E, sign = 0):
     r"""
-    Returns the PS modular symbol associated to an elliptic curve
-    defined over the rationals.
+    Returns the Pollack-Stevens modular symbol associated to
+    an elliptic curve defined over the rationals.
 
     INPUT:
 
     - ``E`` -- an elliptic curve defined over the rationals
+
     - ``sign`` -- the sign (default: 0). If nonzero, returns either
     the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
     symbol. The default of 0 returns the sum of the plus and minus symbols.

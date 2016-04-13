@@ -9,13 +9,15 @@ relevant Manin relations off of that picture. The algorithm follows [PS2011].
 
 REFERENCES:
 
-.. [PS2011] R. Pollack, and G. Stevens. "Overconvergent modular symbols and
-p-adic L-functions." Annales scientifiques de l'Ecole normale superieure. Vol.
-44. No. 1. Elsevier, 2011.
+.. [PS2011] R. Pollack, and G. Stevens.
+*Overconvergent modular symbols and p-adic L-functions.*
+Annales scientifiques de l'Ecole normale superieure.
+Vol. 44. No. 1. Elsevier, 2011.
 
 AUTHORS:
 
 - Robert Pollack, Jonathan Hanke (2012): initial version
+
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>

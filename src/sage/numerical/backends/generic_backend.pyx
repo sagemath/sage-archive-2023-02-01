@@ -1169,7 +1169,7 @@ def default_mip_solver(solver = None):
 
         - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
           implementation of the revised simplex method in Sage.  It works over
-          any exact ordered field, the default is ``AA``.
+          any exact ordered field, the default is ``QQ``.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
         ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"``, ``"PPL"`, or
@@ -1294,7 +1294,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
         - ``InteractiveLPProblem`` (``solver="InteractiveLP"``).  A didactical
           implementation of the revised simplex method in Sage.  It works over
-          any exact ordered field, the default is ``AA``.
+          any exact ordered field, the default is ``QQ``.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
         ``"CPLEX"``, ``"CVXOPT"``,``"Gurobi"``, ``"PPL"``, ``"InteractiveLP"``,

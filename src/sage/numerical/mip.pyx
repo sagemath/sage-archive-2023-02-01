@@ -598,7 +598,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
-            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
+            sage: from sage.rings.all import AA
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', base_ring=AA)
             sage: p.base_ring()
             Algebraic Real Field
             sage: d = polytopes.dodecahedron()

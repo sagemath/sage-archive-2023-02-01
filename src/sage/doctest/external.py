@@ -2,12 +2,12 @@
 Detecting external software
 
 This module makes up a list of external software that Sage interfaces. Availability
-of each software is tested only when necessary.
+of each software is tested only when necessary. This is mainly used for the doctests
+which require certain external software installed on the system.
 
 AUTHORS:
 
-- Kwankyu Lee (2016-03-09) -- initial version, based on the codes by Robert Bradshaw
-                              and Nathann Cohen
+- Kwankyu Lee (2016-03-09) -- initial version, based on the codes by Robert Bradshaw and Nathann Cohen
 """
 
 #*****************************************************************************
@@ -28,10 +28,10 @@ prefix = 'has_'
 
 def has_internet():
     """
-    Return ``True`` if Internet is available.
+    Test if Internet is available.
 
-    It attempts to connect to the site "http://www.sagemath.org". Failure
-    of doing this within a second is regarded as internet being not available.
+    Failure of connecting to the site "http://www.sagemath.org" within a second
+    is regarded as internet being not available.
 
     EXAMPLES::
 
@@ -48,7 +48,7 @@ def has_internet():
 
 def has_latex():
     """
-    Return ``True`` if Latex is available.
+    Test if Latex is available.
 
     EXAMPLES::
 
@@ -70,7 +70,7 @@ def has_latex():
 
 def has_magma():
     """
-    Return ``True`` if Magma is available.
+    Test if Magma is available.
 
     EXAMPLES::
 
@@ -87,7 +87,7 @@ def has_magma():
 
 def has_matlab():
     """
-    Return ``True`` if Matlab is available.
+    Test if Matlab is available.
 
     EXAMPLES::
 
@@ -104,7 +104,7 @@ def has_matlab():
 
 def has_mathematica():
     """
-    Return ``True`` if Mathematica is available.
+    Test if Mathematica is available.
 
     EXAMPLES::
 
@@ -121,7 +121,7 @@ def has_mathematica():
 
 def has_maple():
     """
-    Return ``True`` if Maple is available.
+    Test if Maple is available.
 
     EXAMPLES::
 
@@ -138,7 +138,7 @@ def has_maple():
 
 def has_macaulay2():
     """
-    Return ``True`` if Macaulay2 is available.
+    Test if Macaulay2 is available.
 
     EXAMPLES::
 
@@ -155,7 +155,7 @@ def has_macaulay2():
 
 def has_octave():
     """
-    Return ``True`` if Octave is available.
+    Test if Octave is available.
 
     EXAMPLES::
 
@@ -172,7 +172,7 @@ def has_octave():
 
 def has_scilab():
     """
-    Return ``True`` if Scilab is available.
+    Test if Scilab is available.
 
     EXAMPLES::
 
@@ -189,7 +189,7 @@ def has_scilab():
 
 def has_cplex():
     """
-    Return ``True`` if CPLEX is available.
+    Test if CPLEX is available.
 
     EXAMPLES::
 
@@ -206,7 +206,7 @@ def has_cplex():
 
 def has_gurobi():
     """
-    Return ``True`` if Gurobi is available.
+    Test if Gurobi is available.
 
     EXAMPLES::
 
@@ -224,6 +224,22 @@ def has_gurobi():
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import external_software
+        sage: external_software # random
+        ['cplex',
+         'gurobi',
+         'internet',
+         'latex',
+         'macaulay2',
+         'magma',
+         'maple',
+         'mathematica',
+         'matlab',
+         'octave',
+         'scilab']
     """
     supported = list()
     for func in globals():
@@ -235,7 +251,12 @@ external_software = external_software()
 
 def _lookup(software):
     """
-    Return true if the software is available on the system.
+    Test if the software is available on the system.
+    
+    EXAMPLES::
+
+        sage: sage.doctest.external._lookup('internet') # random
+        True
     """
     if software in external_software:
         func = globals().get(prefix + software)
@@ -245,7 +266,8 @@ def _lookup(software):
 
 class AvailableSoftware(object):
     """
-    Class of the set of external software whose availability is detected lazily.
+    This class keeps the set of available software whose availability is detected lazily
+    from the list of external software.
 
     EXAMPLES::
 
@@ -264,17 +286,33 @@ class AvailableSoftware(object):
          'scilab']
         sage: 'internet' in available_software # random
         True
-        sage: available_software.issuperset(set(['internet','latex','magma'])) # random
+        sage: available_software.issuperset(set(['internet','latex'])) # random
         True
-        sage: available_software.seen() # random
-        ['internet', 'latex', 'magma']
     """
     def __init__(self):
-        # For multiprocessing of doctests, the data self._seen should be shared among
-        # subprocesses, so we use Array class from the multiprocessing module.
+        """
+        Initialization.
+
+        EXAMPLES::
+            sage: from sage.doctest.external import AvailableSoftware
+            sage: S = AvailableSoftware()
+            sage: S.seen() # random
+            []
+        """
+        # For multiprocessing of doctests, the data self._seen should be 
+        # shared among subprocesses. Thus we use Array class from the 
+        # multiprocessing module.
         self._seen = Array('i', len(external_software)) # initialized to zeroes
 
     def __contains__(self, item):
+        """
+        Return ``True`` if ``item`` is available on the system.
+
+        EXAMPLES::
+            sage: from sage.doctest.external import available_software
+            sage: 'internet' in available_software # random
+            True
+        """
         try:
             idx = external_software.index(item)
         except Exception:
@@ -293,7 +331,13 @@ class AvailableSoftware(object):
 
     def issuperset(self, other):
         """
-        Return ``True`` if ``other`` is a subset of ``self``. 
+        Return ``True`` if ``other`` is a subset of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.external import available_software
+            sage: available_software.issuperset(set(['internet','latex','magma'])) # random
+            True
         """
         for item in other:
             if item not in self:
@@ -302,7 +346,13 @@ class AvailableSoftware(object):
 
     def seen(self):
         """
-        Return the list of detected external software by now.
+        Return the list of detected external software.
+        
+        EXAMPLES::
+
+            sage: from sage.doctest.external import available_software
+            sage: available_software.seen() # random
+            ['internet', 'latex', 'magma']
         """
         return [external_software[i] for i in range(len(external_software)) if self._seen[i] > 0]
 

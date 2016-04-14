@@ -2774,6 +2774,8 @@ def magma_version():
     Return the version of Magma that you have in your PATH on your
     computer.
 
+    It has been deprecated, use instead :meth:`sage.interfaces.magma.Magma.version`.
+
     OUTPUT:
 
 

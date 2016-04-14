@@ -502,7 +502,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         r"""
         Return the involution permutation triple of ``self``.
 
-        From Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram
+        From Graham-Lehrer (see :class:`BrauerDiagrams`), a Brauer diagram
         is a triple `(D_1, D_2, \pi)`, where:
 
         - `D_1` is a partition of the top nodes;
@@ -814,7 +814,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     r"""
     This class represents all Brauer diagrams of integer or integer
     `+1/2` order. For more information on Brauer diagrams,
-    see `class: BrauerAlgebra`.
+    see :class:`BrauerAlgebra`.
 
     EXAMPLES::
 
@@ -999,7 +999,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     All Temperley-Lieb diagrams of integer or integer `+1/2` order.
 
     For more information on Temperley-Lieb diagrams, see
-    `class: TemperleyLiebAlgebra`.
+    :class:`TemperleyLiebAlgebra`.
 
     EXAMPLES::
 

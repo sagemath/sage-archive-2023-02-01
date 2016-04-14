@@ -354,12 +354,18 @@ cdef class GenericBackend:
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import GenericBackend
-            sage: solver = GenericBackend()
-            sage: solver.add_linear_constraint(zip(range(5), range(5)), 2.0, 2.0)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: add_linear_constraint
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")             # optional - Nonexistent_LP_solver
+            sage: p.add_variables(5)                                           # optional - Nonexistent_LP_solver
+            4
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)  # optional - Nonexistent_LP_solver
+            sage: p.row(0)                                                     # optional - Nonexistent_LP_solver
+            ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
+            sage: p.row_bounds(0)                                              # optional - Nonexistent_LP_solver
+            (2.0, 2.0)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - Nonexistent_LP_solver
+            sage: p.row_name(1)                                                           # optional - Nonexistent_LP_solver
+            'foo'
         """
         raise NotImplementedError('add_linear_constraint')
 
@@ -394,15 +400,14 @@ cdef class GenericBackend:
 
         EXAMPLE::
 
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
             sage: upper = vector([5, 5])
             sage: lower = vector([0, 0])
-            sage: from sage.numerical.backends.generic_backend import GenericBackend
-            sage: solver = GenericBackend()
-            sage: solver.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: add_linear_constraint
+            sage: p.add_variables(2)  # optional - Nonexistent_LP_solver
+            1
+            sage: p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')  # optional - Nonexistent_LP_solver
         """
         for d in range(degree):
             coefficients_d = []
@@ -1296,7 +1301,13 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method).
 
-    - ``base_ring`` -- Request a solver that works over this field.
+    - ``base_ring`` -- If not ``None``, request a solver that works over this
+        (ordered) field.  If ``base_ring`` is not a field, its fraction field
+        is used.
+
+        For example, is ``base_ring=ZZ`` is provided, the solver will work over
+        the rational numbers.  This is unrelated to whether variables are
+        constrained to be integers or not.
 
     - ``constraint_generation`` -- Only used when ``solver=None``.
 
@@ -1320,6 +1331,8 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         Real Double Field
         sage: p = get_solver(base_ring=QQ); p
         <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        sage: p = get_solver(base_ring=ZZ); p
+        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
         sage: p.base_ring()
         Rational Field
         sage: p = get_solver(base_ring=AA); p
@@ -1341,6 +1354,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         solver = default_mip_solver()
 
         if base_ring is not None:
+            base_ring = base_ring.fraction_field()
             from sage.rings.all import QQ, RDF
             if base_ring is QQ:
                 solver = "Ppl"
@@ -1379,7 +1393,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
     elif solver == "Ppl":
         from sage.numerical.backends.ppl_backend import PPLBackend
-        return PPLBackend()
+        return PPLBackend(base_ring=base_ring)
 
     elif solver == "Interactivelp":
         from sage.numerical.backends.interactivelp_backend import InteractiveLPBackend

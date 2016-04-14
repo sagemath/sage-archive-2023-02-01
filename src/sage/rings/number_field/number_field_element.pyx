@@ -2646,7 +2646,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return hash(self.polynomial())
 
-    def _coefficients(self):
+    cpdef list _coefficients(self):
         """
         Return the coefficients of the underlying polynomial corresponding
         to this number field element.
@@ -2654,7 +2654,7 @@ cdef class NumberFieldElement(FieldElement):
         OUTPUT:
 
         - a list whose length corresponding to the degree of this
-          element written in terms of a generator.
+          element written in terms of a generator
 
         EXAMPLES::
 
@@ -2662,7 +2662,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (b^2 + 1)._coefficients()
             [1, 0, 1]
         """
-        coeffs = []
+        cdef list coeffs = []
         cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
         cdef Integer numCoeff
         cdef int i
@@ -3208,9 +3208,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: F.<z> = CyclotomicField(5) ; t = 3*z**3 + 4*z**2 + 2
             sage: t.matrix(F)
             [3*z^3 + 4*z^2 + 2]
-            sage: x=QQ['x'].gen()
-            sage: K.<v>=NumberField(x^4 + 514*x^2 + 64321)
-            sage: R.<r>=NumberField(x^2 + 4*v*x + 5*v^2 + 514)
+            sage: x = QQ['x'].gen()
+            sage: K.<v> = NumberField(x^4 + 514*x^2 + 64321)
+            sage: R.<r> = NumberField(x^2 + 4*v*x + 5*v^2 + 514)
             sage: r.matrix()
             [           0            1]
             [-5*v^2 - 514         -4*v]
@@ -3219,13 +3219,13 @@ cdef class NumberFieldElement(FieldElement):
             [-5*v^2 - 514         -4*v]
             sage: r.matrix(R)
             [r]
-            sage: foo=R.random_element()
+            sage: foo = R.random_element()
             sage: foo.matrix(R) == matrix(1,1,[foo])
             True
         """
-        from sage.matrix.constructor import matrix
+        import sage.matrix.matrix_space
         if base is self.parent():
-            return matrix(1,1,[self])
+            return sage.matrix.matrix_space.MatrixSpace(base,1)([self])
         if base is not None and base is not self.base_ring():
             if number_field.is_NumberField(base):
                 return self._matrix_over_base(base)
@@ -3237,17 +3237,16 @@ cdef class NumberFieldElement(FieldElement):
         # and transpose.
         if self.__matrix is None:
             K = self.number_field()
-            v = []
-            x = K.gen()
-            a = K(1)
             d = K.relative_degree()
-            for n in range(d):
-                v += (a*self).list()
-                a *= x
-            k = K.base_ring()
-            import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(k, d)
+            cur = self.vector()
+            X = K._generator_matrix()
+            v = cur.list()
+            for n in range(d-1):
+                cur = cur * X
+                v += cur.list()
+            M = sage.matrix.matrix_space.MatrixSpace(K.base_ring(), d)
             self.__matrix = M(v)
+            self.__matrix.set_immutable()
         return self.__matrix
 
     def valuation(self, P):

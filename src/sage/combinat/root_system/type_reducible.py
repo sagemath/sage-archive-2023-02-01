@@ -176,9 +176,19 @@ class CartanType(SageObject, CartanType_abstract):
             False
             sage: ct1 == ct3
             False
+
+        TESTS:
+
+        Check that :trac:`20418` is fixed::
+
+            sage: ct = CartanType(["A2", "B2"])
+            sage: ct == (1, 2, 1)
+            False
         """
         if isinstance(other, CartanType_simple):
             return 1
+        if other.__class__ != self.__class__:
+            return cmp(self.__class__, other.__class__)
         return cmp(self._types, other._types)
 
     def component_types(self):

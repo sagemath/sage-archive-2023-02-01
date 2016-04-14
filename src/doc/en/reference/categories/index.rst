@@ -22,6 +22,7 @@ Maps and Morphisms
    sage/categories/map
    sage/categories/homset
    sage/categories/morphism
+   sage/categories/pushout
 
 Individual Categories
 ---------------------
@@ -29,6 +30,7 @@ Individual Categories
 .. toctree::
    :maxdepth: 2
 
+   sage/categories/action
    sage/categories/additive_groups
    sage/categories/additive_magmas
    sage/categories/additive_monoids
@@ -86,6 +88,8 @@ Individual Categories
    sage/categories/finite_semigroups
    sage/categories/finite_sets
    sage/categories/finite_weyl_groups
+   sage/categories/finitely_generated_magmas
+   sage/categories/finitely_generated_semigroups
    sage/categories/function_fields
    sage/categories/g_sets
    sage/categories/gcd_domains
@@ -145,6 +149,11 @@ Individual Categories
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps
    sage/categories/simplicial_complexes
+   sage/categories/super_algebras
+   sage/categories/super_algebras_with_basis
+   sage/categories/super_hopf_algebras_with_basis
+   sage/categories/super_modules
+   sage/categories/super_modules_with_basis
    sage/categories/topological_spaces
    sage/categories/unique_factorization_domains
    sage/categories/unital_algebras

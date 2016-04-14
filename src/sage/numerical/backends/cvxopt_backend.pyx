@@ -36,6 +36,11 @@ cdef class CVXOPTBackend(GenericBackend):
 
         sage: p
         Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
     """
 
     cdef list objective_function #c_matrix

@@ -20,6 +20,18 @@ from sage.numerical.mip import MIPSolverException
 
 cdef class CPLEXBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the CPLEX solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - CPLEX
+
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor

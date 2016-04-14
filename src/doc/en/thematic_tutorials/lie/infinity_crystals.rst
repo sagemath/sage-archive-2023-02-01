@@ -242,16 +242,18 @@ containing the element `\boldsymbol{1}`, which we denote by
     sage: m.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
 
-We can also model `B(\infty)` using the monomials `A_{i,k}` instead::
+We can also model `B(\infty)` using the monomials `A_{i,k}` instead:
 
-    sage: Ninf = crystals.infinity.NakajimaMonomials(['C',3,1], use_Y = False)
-    sage: ninf = Ninf.highest_weight_vector()
-    sage: n = ninf.f_string([0,1,2,3,2,1,0]); n
+.. link::
+
+    sage: Minf.set_monomials('A')
+    sage: m
     A(0,0)^-1 A(0,3)^-1 A(1,0)^-1 A(1,2)^-1 A(2,0)^-1 A(2,1)^-1 A(3,0)^-1
-    sage: n.weight()
+    sage: m.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
-    sage: n.weight_in_root_lattice()
+    sage: m.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
+    sage: Minf.set_monomials('Y')
 
 Building the crystal graph output for these monomial crystals is the same
 as the constructions above::

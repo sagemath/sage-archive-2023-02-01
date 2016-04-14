@@ -344,7 +344,6 @@ class Magma(ExtraTabCompletion, Expect):
                         name = "magma",
                         prompt = ">>SAGE>>",
                         command = command,
-                        command_args = command_args,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

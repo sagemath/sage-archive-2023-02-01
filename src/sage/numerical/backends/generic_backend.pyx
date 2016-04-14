@@ -1352,11 +1352,24 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         sage: p.base_ring()
         Rational Field
 
-    Passing a callable as the 'solver':
+    Passing a callable as the 'solver'::
 
         sage: from sage.numerical.backends.glpk_backend import GLPKBackend
         sage: p = get_solver(GLPKBackend); p
         <...sage.numerical.backends.glpk_backend.GLPKBackend...>
+
+    Passing a callable that customizes a backend::
+
+        sage: def glpk_exact_solver():
+        ....:     from sage.numerical.backends.generic_backend import get_solver
+        ....:     b = get_solver(solver="GLPK")
+        ....:     b.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+        ....:     return b
+        sage: delsarte_bound_additive_hamming_space(19,15,7,solver=glpk_exact_solver) # long time
+        glp_exact...
+        ...
+        OPTIMAL SOLUTION FOUND
+        2
 
     """
     if solver is None:

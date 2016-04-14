@@ -1437,7 +1437,7 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
-    cpdef CPLEXBackend copy(self):
+    cpdef __copy__(self):
         r"""
         Returns a copy of self.
 

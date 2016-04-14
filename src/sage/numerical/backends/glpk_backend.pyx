@@ -1600,7 +1600,7 @@ cdef class GLPKBackend(GenericBackend):
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
-    cpdef GLPKBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 

@@ -1194,7 +1194,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return ""
 
-    cpdef CoinBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 

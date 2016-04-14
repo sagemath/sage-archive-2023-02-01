@@ -1159,7 +1159,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             raise RuntimeError("This should not happen.")
 
-    cpdef GurobiBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 

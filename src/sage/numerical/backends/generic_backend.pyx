@@ -744,6 +744,40 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    cpdef copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable() # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
+            sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
+            sage: copy(p).solve() # optional - Nonexistent_LP_solver
+            6.0
+        """
+        return self.__copy__()
+
+    # Override this method in backends.
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable() # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
+            sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
+            sage: p.get_backend().solve(); # optional - Nonexistent_LP_solver
+            sage: p.get_backend().get_objective_value() # optional - Nonexistent_LP_solver
+            6.0
+        """
+        raise NotImplementedError()
+
     cpdef row(self, int i):
         """
         Return a row

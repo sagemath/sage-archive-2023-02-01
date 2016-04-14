@@ -33,7 +33,7 @@ at least one `y_i(k) \neq 0`.  The crystal structure on this set is defined by
 
 where `\{h_i : i \in I\}` and `\{\Lambda_i : i \in I \}` are the simple
 coroots and fundamental weights, respectively.  With a chosen set of integers
-`C = (c_{ij})_{i\neq j}` such that `c_{ij}+c{ji} =1`, one defines
+`C = (c_{ij})_{i\neq j}` such that `c_{ij}+c_{ji} =1`, one defines
 
 .. MATH::
 
@@ -116,7 +116,7 @@ class NakajimaMonomial(Element):
     r"""
     An element of the monomial crystal.
 
-    Monomials of the form `Y_{i_1,k_1}^{a_1} \cdots Y_{i_t,k_t}^{y_t}`,
+    Monomials of the form `Y_{i_1,k_1}^{y_1} \cdots Y_{i_t,k_t}^{y_t}`,
     where `i_1, \dots, i_t` are elements of the index set, `k_1, \dots, k_t`
     are nonnegative integers, and `y_1, \dots, y_t` are integers.
 
@@ -133,13 +133,13 @@ class NakajimaMonomial(Element):
     An example using the `A` variables::
 
         sage: M = crystals.infinity.NakajimaMonomials("A3")
-        sage: M.set_monomials('A')
+        sage: M.set_variables('A')
         sage: mg = M.module_generators[0]
         sage: mg.f_string([1,2,3,2,1])
         A(1,0)^-1 A(1,1)^-1 A(2,0)^-2 A(3,0)^-1
         sage: mg.f_string([3,2,1])
         A(1,2)^-1 A(2,1)^-1 A(3,0)^-1
-        sage: M.set_monomials('Y')
+        sage: M.set_variables('Y')
     """
 
     def __init__(self, parent, Y, A):
@@ -167,12 +167,12 @@ class NakajimaMonomial(Element):
             sage: M = crystals.infinity.NakajimaMonomials(['A',5,2])
             sage: x = M({(1,0):1, (2,2):-2, (0,5):10}); x
             Y(0,5)^10 Y(1,0) Y(2,2)^-2
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: x
             A(1,0)^-2 A(1,1)^-2 A(2,0)^-4 A(2,1)^-2 A(3,0)^-2
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
         """
-        return getattr(self, '_repr_' + self.parent()._monomial)()
+        return getattr(self, '_repr_' + self.parent()._variable)()
 
     def _repr_Y(self):
         r"""
@@ -290,12 +290,12 @@ class NakajimaMonomial(Element):
             sage: x = M.module_generators[0].f_string([1,0,2])
             sage: latex(x)
             Y_{0,0}^{-1} Y_{1,0}^{-1} Y_{1,1}^{2} Y_{2,0} Y_{2,1}^{-1}
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: latex(x)
             A_{0,0}^{-1} A_{1,0}^{-1} A_{2,0}^{-1}
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
         """
-        return getattr(self, '_latex_' + self.parent()._monomial)()
+        return getattr(self, '_latex_' + self.parent()._variable)()
 
     def _latex_Y(self):
         r"""
@@ -581,7 +581,7 @@ class NakajimaMonomial(Element):
              None]
 
             sage: M = crystals.infinity.NakajimaMonomials(['D',4,1])
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: m = M.module_generators[0].f_string([4,2,3,0])
             sage: [m.e(i) for i in M.index_set()]
             [A(2,1)^-1 A(3,1)^-1 A(4,0)^-1,
@@ -589,7 +589,7 @@ class NakajimaMonomial(Element):
              None,
              A(0,2)^-1 A(2,1)^-1 A(4,0)^-1,
              None]
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
         """
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
@@ -711,7 +711,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
     where `\{h_i : i \in I\}` and `\{\Lambda_i : i \in I \}` are the simple
     coroots and fundamental weights, respectively.  With a chosen set of
     non-negative integers `C = (c_{ij})_{i\neq j}` such that
-    `c_{ij} + c{ji} = 1`, one defines
+    `c_{ij} + c_{ji} = 1`, one defines
 
     .. MATH::
 
@@ -737,7 +737,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
     - ``cartan_type`` -- a Cartan type
 
     - ``c`` -- (optional) the matrix `(c_{ij})_{i,j \in I}` such that
-      `c_{ii} = 0` for all `i \in I`, `c_{ij} \in ZZ_{>0}` for all
+      `c_{ii} = 0` for all `i \in I`, `c_{ij} \in \ZZ_{>0}` for all
       `i,j \in I`, and `c_{ij} + c_{ji} = 1` for all `i \neq j`; the
       default is `c_{ij} = 0` if `i < j` and `0` otherwise
 
@@ -847,14 +847,14 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         """
         if use_Y is not None:
             from sage.misc.superseded import deprecation
-            deprecation(18895, 'use_Y is deprecated; use the set_monomials() method instead.')
+            deprecation(18895, 'use_Y is deprecated; use the set_variables() method instead.')
 
         cartan_type = CartanType(ct)
         n = len(cartan_type.index_set())
         c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
         M = super(InfinityCrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, c)
         if use_Y:
-            M.set_monomials('A')
+            M.set_variables('A')
         return M
 
     def __init__(self, ct, c, category=None):
@@ -866,7 +866,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         """
         self._cartan_type = ct
         self._c = c
-        self._monomial = 'Y'
+        self._variable = 'Y'
 
         if category is None:
             category = (HighestWeightCrystals(), InfiniteEnumeratedSets())
@@ -999,12 +999,12 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             return F.weight_lattice(extended=True)
         return F.weight_lattice()
 
-    def set_monomials(self, letter):
+    def set_variables(self, letter):
         r"""
         Set the type of monomials to use for the element output.
 
         If the `A` variables are used, the output is written as
-        `\prod_i Y_{i0}^{\lambda_i} \prod_{ik} A_{ik}^c_{ik}`, where
+        `\prod_{i\in I} Y_{i,0}^{\lambda_i} \prod_{i,k} A_{i,k}^{c_{i,k}}`, where
         `\sum_{i \in I} \lambda_i \Lambda_i` is the corresponding
         dominant weight.
 
@@ -1012,8 +1012,8 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
 
         - ``letter`` -- can be one of the following:
 
-          * ``'Y'`` - use `Y_{ik}`, corresponds to fundamental weights
-          * ``'A'`` - use `A_{ik}`, corresponds to simple roots
+          * ``'Y'`` - use `Y_{i,k}`, corresponds to fundamental weights
+          * ``'A'`` - use `A_{i,k}`, corresponds to simple roots
 
         EXAMPLES::
 
@@ -1021,10 +1021,10 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: elt = M.highest_weight_vector().f_string([2,1,3,2,3,2,4,3])
             sage: elt
             Y(1,2) Y(2,0)^-1 Y(2,2)^-1 Y(3,0)^-1 Y(3,2)^-1 Y(4,0)
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: elt
             A(1,1)^-1 A(2,0)^-1 A(2,1)^-2 A(3,0)^-2 A(3,1)^-1 A(4,0)^-1
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
 
         ::
 
@@ -1033,26 +1033,26 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             sage: lw = M.lowest_weight_vectors()[0]
             sage: lw
             Y(1,2)^-1 Y(2,1)^-1
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: lw
             Y(1,0) Y(2,0) A(1,0)^-1 A(1,1)^-1 A(2,0)^-2
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
         """
         if letter not in ['Y', 'A']:
             raise ValueError("invalid monomial type")
-        self._monomial = letter
+        self._variable = letter
 
-    def get_monomials(self):
+    def get_variables(self):
         """
         Return the type of monomials to use for the element output.
 
         EXAMPLES::
 
             sage: M = crystals.infinity.NakajimaMonomials(['A', 4])
-            sage: M.get_monomials()
+            sage: M.get_variables()
             'Y'
         """
-        return self._monomial
+        return self._variable
 
     Element = NakajimaMonomial
 
@@ -1098,7 +1098,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaMonomial):
         ::
 
             sage: M = crystals.infinity.NakajimaMonomials("E8")
-            sage: M.set_monomials('A')
+            sage: M.set_variables('A')
             sage: m = M.module_generators[0].f_string([4,2,3,8])
             sage: m
             A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-1
@@ -1111,7 +1111,7 @@ class CrystalOfNakajimaMonomialsElement(NakajimaMonomial):
              A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(6,0)^-1 A(8,0)^-1,
              A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(7,1)^-1 A(8,0)^-1,
              A(2,1)^-1 A(3,1)^-1 A(4,0)^-1 A(8,0)^-2]
-            sage: M.set_monomials('Y')
+            sage: M.set_variables('Y')
         """
         if self.phi(i) == 0:
             return None

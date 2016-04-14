@@ -1365,11 +1365,11 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         ....:     b = get_solver(solver="GLPK")
         ....:     b.solver_parameter("simplex_or_intopt", "exact_simplex_only")
         ....:     return b
-        sage: delsarte_bound_additive_hamming_space(19,15,7,solver=glpk_exact_solver) # long time
+        sage: delsarte_bound_additive_hamming_space(11,3,4,solver=glpk_exact_solver) # long time
         glp_exact...
         ...
         OPTIMAL SOLUTION FOUND
-        2
+        8
 
     """
     if solver is None:

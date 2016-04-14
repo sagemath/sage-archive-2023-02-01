@@ -300,7 +300,7 @@ class Magma(ExtraTabCompletion, Expect):
     """
     def __init__(self, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
-                 user_config=False, seed=None, command='magma'):
+                 user_config=False, seed=None, command=None):
         """
         INPUT:
 
@@ -327,6 +327,10 @@ class Magma(ExtraTabCompletion, Expect):
             sage: Magma(logfile=tmp_filename())
             Magma
         """
+        if command is None:
+            import os
+            command = os.getenv('SAGE_MAGMA_COMMAND') or 'magma'
+
         if not user_config:
             command += ' -n'
 
@@ -340,6 +344,7 @@ class Magma(ExtraTabCompletion, Expect):
                         name = "magma",
                         prompt = ">>SAGE>>",
                         command = command,
+                        command_args = command_args,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

@@ -267,6 +267,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - If ``solver=None`` (default), the default solver is used (see
         :func:`default_mip_solver`)
 
+      - ``solver`` can also be a callable,
+        see :func:`sage.numerical.backends.generic_backend.get_solver` for
+        examples.
+
     - ``maximization``
 
       - When set to ``True`` (default), the ``MixedIntegerLinearProgram``
@@ -358,8 +362,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - PPL (``solver="PPL"``). See the `PPL
             <http://bugseng.com/products/ppl>`_ web site.
 
-          -If ``solver=None`` (default), the default solver is used (see
-           ``default_mip_solver`` method.
+          - If ``solver=None`` (default), the default solver is used, see
+            :func:`default_mip_solver`.
+
+          - ``solver`` can also be a callable,
+            see :func:`sage.numerical.backends.generic_backend.get_solver` for
+            examples.
 
         - ``maximization``
 

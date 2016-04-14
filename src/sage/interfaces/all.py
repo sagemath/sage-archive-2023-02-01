@@ -15,14 +15,7 @@ from gp import gp, gp_version, Gp
 from gnuplot import gnuplot
 from kash import  kash, kash_version, Kash
 from lisp import lisp, Lisp
-from magma import magma, Magma
-from sage.misc.superseded import deprecated_callable_import
-deprecated_callable_import(20388,
-                     'sage.interfaces.magma',
-                     globals(),
-                     locals(),
-                    ["magma_version"],
-"This function has been deprecated. Use magma.version() instead.")
+from magma import magma, magma_version, Magma
 from magma_free import magma_free
 from macaulay2 import macaulay2, Macaulay2
 from maple import maple, Maple

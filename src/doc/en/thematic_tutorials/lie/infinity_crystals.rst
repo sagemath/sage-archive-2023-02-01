@@ -255,9 +255,8 @@ We can also model `B(\infty)` using the variables `A_{i,k}` instead::
 
     sage: Minf = crystals.infinity.NakajimaMonomials(['C',3,1])
     sage: minf = Minf.highest_weight_vector()
-    sage: m = minf.f_string([0,1,2,3,2,1,0]); m
     sage: Minf.set_variables('A')
-    sage: m
+    sage: m = minf.f_string([0,1,2,3,2,1,0]); m
     A(0,0)^-1 A(0,3)^-1 A(1,0)^-1 A(1,2)^-1 A(2,0)^-1 A(2,1)^-1 A(3,0)^-1
     sage: m.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta

@@ -2040,7 +2040,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         Return the comb of a tree.
 
-        There are two combs in a binary tree : a left comb and a right comb.
+        There are two combs in a binary tree: a left comb and a right comb.
 
         Consider all the vertices of the leftmost (resp. rightmost) branch of
         the root. The left (resp. right) comb is the list of right (resp. left)
@@ -2070,7 +2070,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [.]
             sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
             sage: ascii_art(BT)
-                     ________o________
+                    ________o________
                    /                 \
                 __o__                 o
                /     \                 \

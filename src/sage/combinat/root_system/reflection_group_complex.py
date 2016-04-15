@@ -1412,13 +1412,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',3])
-            sage: W.invariant_form()
+            sage: F = W.invariant_form(); F
             [   1 -1/2    0]
             [-1/2    1 -1/2]
             [   0 -1/2    1]
 
         To check that this is indeed the invariant form, see::
 
+            sage: S = W.simple_reflections()
             sage: all( F == S[i].matrix()*F*S[i].matrix().transpose() for i in W.index_set() )
             True
 
@@ -1431,14 +1432,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: w * F * w.transpose().conjugate() == F
             True
 
+            sage: S = W.simple_reflections()
             sage: all( F == S[i].matrix()*F*S[i].matrix().transpose() for i in W.index_set() )
             True
 
             sage: W = ReflectionGroup((3,1,2))
-            sage: W.invariant_form()
+            sage: F = W.invariant_form(); F
             [1 0]
             [0 1]
 
+            sage: S = W.simple_reflections()
             sage: all( F == S[i].matrix()*F*S[i].matrix().transpose().conjugate() for i in W.index_set() )
             True
 
@@ -1458,7 +1461,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         # matrices is represented in the basis of simple roots
         B = self.base_change_matrix()
         #if not force and not B.is_one():
-        if not brute_  or not B.is_one():
+        if brute_force or not B.is_one():
             #print "tour de force"
             return self._invariant_form_brute_force()
 

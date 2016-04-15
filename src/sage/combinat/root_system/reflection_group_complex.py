@@ -1385,18 +1385,29 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [    E(4)        2 1 - E(4)]
             [      -1 1 + E(4)        2]
         """
+        # an alternative implementation is
+        # Matrix(tuple(W.simple_coroots()))*Matrix(tuple(W.simple_roots())).transpose()
+        # this should be implemented once we get the simple roots in an easy way
         if self.is_crystallographic():
             from sage.combinat.root_system.cartan_matrix import CartanMatrix as CartanMat
         else:
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
-    def invariant_form(self):
+    def invariant_form(self, brute_force=False):
         r"""
         Return the form that is invariant under the action of ``self``.
 
         This is unique only up to a global scalar on the irreducible
         components.
+
+        INPUT:
+
+        - ``brute_force`` -- if ``True``, the computation is done by
+          applying the Reynolds operator. This is, the invariant form
+          of `e_i` and `e_j` is computed as the sum `\langle w(e_i), w(e_j)\rangle`
+          where `\langle \cdot, \cdot\rangle` is the standard scalar
+          product.
 
         EXAMPLES::
 
@@ -1405,6 +1416,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [   1 -1/2    0]
             [-1/2    1 -1/2]
             [   0 -1/2    1]
+
+        To check that this is indeed the invariant form, see::
+
+            sage: all( F == S[i].matrix()*F*S[i].matrix().transpose() for i in W.index_set() )
+            True
 
             sage: W = ReflectionGroup(['B',3])
             sage: F = W.invariant_form(); F
@@ -1415,10 +1431,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: w * F * w.transpose().conjugate() == F
             True
 
+            sage: all( F == S[i].matrix()*F*S[i].matrix().transpose() for i in W.index_set() )
+            True
+
             sage: W = ReflectionGroup((3,1,2))
             sage: W.invariant_form()
             [1 0]
             [0 1]
+
+            sage: all( F == S[i].matrix()*F*S[i].matrix().transpose().conjugate() for i in W.index_set() )
+            True
 
         TESTS::
 
@@ -1426,7 +1448,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: for ty in tests:
             ....:     W = ReflectionGroup(['F',4])
             ....:     A = W.invariant_form()
-            ....:     B = W.invariant_form_brute_force()
+            ....:     B = W.invariant_form(brute_force=True)
             ....:     print ty, A == B/B[0,0]
             ['A', 3] True
             ['B', 3] True
@@ -1434,9 +1456,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         # the algorithm does currently only work if the group action as
         # matrices is represented in the basis of simple roots
-        if not self.base_change_matrix().is_one():
-            return self.invariant_form_brute_force()
-        C = self.cartan_matrix()
+        B = self.base_change_matrix()
+        #if not force and not B.is_one():
+        if not brute_  or not B.is_one():
+            #print "tour de force"
+            return self._invariant_form_brute_force()
+
+        #print "smart way"
+        C = self.cartan_matrix() * B.transpose()
         n = self.rank()
 
         if self.is_crystallographic():
@@ -1468,14 +1495,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         form.set_immutable()
         return form
 
-    def invariant_form_brute_force(self):
+    def _invariant_form_brute_force(self):
         r"""
         Return the form that is invariant under the action of ``self``.
 
         EXAMPLES::
 
             sage: W = ReflectionGroup((3,1,2))
-            sage: W.invariant_form_brute_force()
+            sage: W._invariant_form_brute_force()
             [1 0]
             [0 1]
         """
@@ -1484,13 +1511,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Phi = self.roots()
 
         base_change = self.base_change_matrix()
-        Delta = [self.simple_root(i) for i in self.index_set()]
+        Delta = self.independent_roots()
         basis_is_Delta = base_change.is_one()
         if not basis_is_Delta:
             Delta = [beta * base_change for beta in Delta]
 
         S = self.simple_reflections()
-        n = len(S)
+        n = self.rank()
 
         def act_on_root(w,beta):
             if basis_is_Delta:

@@ -15673,7 +15673,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the Wiener index of the graph.
 
-        The graph is expected to not have cycles of negative weight.
+        The graph is expected to have no cycles of negative weight.
 
         The Wiener index of a graph `G` is
         `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`

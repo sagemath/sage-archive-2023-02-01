@@ -1,5 +1,5 @@
 r"""
-COIN Backend
+InteractiveLP Backend
 
 AUTHORS:
 
@@ -22,6 +22,7 @@ AUTHORS:
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
 from sage.modules.all import vector
+from copy import copy
 
 cdef class InteractiveLPBackend:
     """
@@ -85,6 +86,28 @@ cdef class InteractiveLPBackend:
         self.obj_constant_term = 0
 
         self.row_names = []
+
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "InteractiveLP")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: p.get_backend().solve()
+            0
+            sage: p.get_backend().get_objective_value()
+            6
+        """
+        cp = InteractiveLPBackend(base_ring=self.base_ring())
+        cp.lp = self.lp                   # it's considered immutable; so no need to copy.
+        cp.row_names = copy(self.row_names)
+        cp.prob_name = self.prob_name
+        return cp
 
     cpdef base_ring(self):
         """

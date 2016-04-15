@@ -770,8 +770,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         TESTS::
 
-            sage: W = ReflectionGroup(23)                   # optional - chevie
-            sage: W._element_class() is W.element_class     # optional - chevie
+            sage: W = ReflectionGroup(23)                   # optional - gap3
+            sage: W._element_class() is W.element_class     # optional - gap3
             True
         """
         return self.element_class

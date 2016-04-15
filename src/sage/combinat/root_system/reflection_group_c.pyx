@@ -374,17 +374,66 @@ def iterator_tracking_words(W):
                     level_set_new.append((y, word+[i]))
         level_set_cur = level_set_new
 
-cdef bint has_descent(PermutationGroupElement w, int i, int N):
+cpdef bint has_descent_c(PermutationGroupElement w, int i, int N, bint left):
+    if not left:
+        w = ~w
     return w.perm[i] >= N
 
-cdef int first_descent(PermutationGroupElement w, int n, int N):
+cpdef int first_descent_c(PermutationGroupElement w, int n, int N, bint left):
     cdef int i
+    if not left:
+        w = ~w
     for i in range(n):
-        if has_descent(w,i,N):
+        if has_descent_c(w,i,N,left):
             return i
     return -1
 
-cpdef list reduced_word_c(W,w):
+cpdef int first_descent_in_parabolic_c(PermutationGroupElement w, list parabolic, int N, bint left):
+    cdef int i
+    if not left:
+        w = ~w
+    # this loop over a list might be slow
+    for i in parabolic:
+        if has_descent_c(w,i,N,left):
+            return i
+    return -1
+
+cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S, list parabolic, int N, bint right):
+    cdef int i
+    cdef PermutationGroupElement si
+
+    while True:
+        i = first_descent_in_parabolic_c(w, parabolic, N, right)
+        if i == -1:
+            return w
+        else:
+            si = S[i]
+            if right:
+                w = si._mul_(w)
+            else:
+                w = w._mul_(si)
+
+#cpdef list reduced_coset_repesentatives(W, list parabolic, bint right):
+#    cdef tuple S = tuple(W.simple_reflections())
+#    cdef int n = len(S)
+#    cdef int N = W._number_of_reflections
+#    cdef list reps = []
+    
+#ReducedRightCosetRepresentatives:=function(W, H)local res, totest, new;
+#  totest:=Set([W.identity]);
+#  res:=Set([W.identity]);
+#  repeat
+#    new:=Concatenation(List(totest,w->List(
+#      W.reflections{W.generatingReflections},s->ReducedInRightCoset(H, w*s))));
+#    UniteSet(res,totest);
+#    totest:=Difference(new,res);
+#  until Length(totest)=0;
+#  InfoChevie2("#I nb. of cosets: ",Length(res),"\n");
+#  SortBy(res,x->CoxeterLength(W,x));
+#  return res;
+#end;
+
+cpdef list reduced_word_c(W, PermutationGroupElement w):
     r"""
     Computes a reduced word for the element `w` in the
     reflection group `W` in the positions ``range(n)``.
@@ -403,7 +452,7 @@ cpdef list reduced_word_c(W,w):
     cdef list word = []
 
     while fdes != -1:
-        fdes = first_descent(w,n,N)
+        fdes = first_descent_c(w,n,N,True)
         si = S[fdes]
         w = si._mul_(w)
         word.append(fdes)

@@ -781,14 +781,15 @@ class IntegerVectors_nk(CombinatorialClass):
 
         rem = -1 # Amount remaining
         cur = [self.n+1]
+        k = int(self.k)
         while cur:
             cur[-1] -= 1
             rem += 1
             if rem == 0:
-                yield cur + [Integer(0)] * (self.k - len(cur))
+                yield cur + [Integer(0)] * (k - len(cur))
             elif cur[-1] < 0:
                 rem += cur.pop()
-            elif len(cur) == self.k - 1:
+            elif len(cur) == k - 1:
                 yield cur + [Integer(rem)]
             else:
                 cur.append(rem + 1)

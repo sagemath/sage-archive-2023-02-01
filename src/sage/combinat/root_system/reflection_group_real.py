@@ -237,7 +237,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         TESTS::
 
             sage: W = ReflectionGroup(['A',3])                          # optional - gap3
-            sage: TestSuite(W).run()
+            sage: TestSuite(W).run()                                    # optional - gap3
         """
         W_types = tuple([tuple(W_type) if isinstance(W_type, (list,tuple)) else W_type
                          for W_type in W_types])

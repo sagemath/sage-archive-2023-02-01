@@ -1,4 +1,4 @@
-$(INST)/$(NBCONVERT) $(INST)/$(IPYTHON)
+nbconvert ipython
 
 ----------
 All lines of this file are ignored except the first.

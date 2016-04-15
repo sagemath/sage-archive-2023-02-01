@@ -4200,7 +4200,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: for i in range(100):
             ....:     assert len(f.factor()) == 4
 
-        Test for :trac:`20345`::
+        Test for :trac:`20435`::
 
             sage: x,y = polygen(ZZ,'x,y')
             sage: p = x**2-y**2

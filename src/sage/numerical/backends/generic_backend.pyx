@@ -858,8 +858,10 @@ cdef class GenericBackend:
             sage: b = p.new_variable() # optional - Nonexistent_LP_solver
             sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
             sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
-            sage: p.get_backend().solve(); # optional - Nonexistent_LP_solver
-            sage: p.get_backend().get_objective_value() # optional - Nonexistent_LP_solver
+            sage: cp = copy(p.get_backend()) # optional - Nonexistent_LP_solver
+            sage: cp.solve() # optional - Nonexistent_LP_solver
+            0
+            sage: cp.get_objective_value() # optional - Nonexistent_LP_solver
             6.0
         """
         raise NotImplementedError()

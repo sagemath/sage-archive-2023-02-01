@@ -1073,6 +1073,8 @@ cdef class GenericBackend:
             sage: tester = p._tester()
             sage: p._do_test_problem_data(tester, p)
         """
+        tester.assertEqual(type(self), type(cp),
+                           "Classes do not match")
         def assert_equal_problem_data(method):
             tester.assertEqual(getattr(self, method)(), getattr(cp, method)(),
                                "{} does not match".format(method))

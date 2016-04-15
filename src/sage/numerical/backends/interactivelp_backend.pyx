@@ -98,9 +98,10 @@ cdef class InteractiveLPBackend:
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
             sage: p.set_objective(b[1] + b[2])
-            sage: p.get_backend().solve()
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
             0
-            sage: p.get_backend().get_objective_value()
+            sage: cp.get_objective_value()
             6
         """
         cp = InteractiveLPBackend(base_ring=self.base_ring())

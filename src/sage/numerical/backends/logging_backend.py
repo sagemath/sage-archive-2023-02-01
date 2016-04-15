@@ -185,7 +185,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         |
         |    @classmethod
         |    def _test_something(cls, tester=None, **options):
-        |        """
+        |        ...
         |        Run tests on ...
         |
         |        TEST::
@@ -197,7 +197,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         |            ...
         |            NotImplementedError
         |
-        |        """
+        |        ...
         |        p = cls()                         # fresh instance of the backend
         |        if tester is None:
         |            tester = p._tester(**options)

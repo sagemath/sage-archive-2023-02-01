@@ -23,6 +23,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from __builtin__ import list as builtinlist
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -155,9 +156,9 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: [3,-1,0] in WeightedIntegerVectors([2,1,1])
             False
         """
-        return isinstance(x, (builtinlist, Permutation)) and \
-            len(x) == len(self._weights)   and \
-            all(isinstance(i, (int, Integer)) and i>=0 for i in x)
+        return (isinstance(x, (builtinlist, Permutation))
+                and len(x) == len(self._weights)
+                and all(isinstance(i, (int, Integer)) and i >= 0 for i in x))
 
     def subset(self, size = None):
         """
@@ -245,27 +246,6 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
 
         return True
 
-    def _recfun(self, n, l):
-        """
-        EXAMPLES::
-
-            sage: w = WeightedIntegerVectors(3, [2,1,1])
-            sage: list(w._recfun(3, [1,1,2]))
-            [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
-        """
-        w = l[-1]
-        l = l[:-1]
-        if l == []:
-            d = int(n) // int(w)
-            if n % w == 0:
-                yield [d]
-                # Otherwise: bad branch
-            return
-
-        for d in range(int(n)//int(w), -1, -1):
-            for x in self._recfun(n-d*w, l):
-                yield x + [d]
-
     def __iter__(self):
         """
         TESTS::
@@ -288,13 +268,62 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
             sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
             True
         """
-        if len(self._weights) == 0:
+        if not self._weights:
             if self._n == 0:
                 yield []
             return
 
         perm = Word(self._weights).standard_permutation()
         l = [x for x in sorted(self._weights)]
-        for x in self._recfun(self._n, l):
+        for x in iterator_fast(self._n, l):
             yield perm.action(x)
             #_left_to_right_multiply_on_right(Permutation(x))
+
+def iterator_fast(n, l):
+    """
+    Iterate over all ``l`` weighted integer vectors with total weight ``n``.
+
+    INPUT:
+
+    - ``n`` -- an integer
+    - ``l`` -- the weights in weakly increasing order
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_vector_weighted import iterator_fast
+        sage: list(iterator_fast(3, [1,1,2]))
+        [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
+        sage: list(iterator_fast(2, [2]))
+        [[1]]
+    """
+    if n < 0:
+        return
+
+    if not l:
+        if n == 0:
+            yield []
+        return
+    if len(l) == 1:
+        if n % l[-1] == 0:
+            yield [n / l[-1]]
+        return
+
+    k = -1
+    cur = [n // l[k] + 1]
+    rem = n - cur[0] * l[k] # Amount remaining
+    while cur:
+        cur[0] -= 1
+        rem += l[k]
+        if rem == 0:
+            yield [ZZ.zero()] * (len(l) - len(cur)) + cur
+        elif cur[0] < 0 or rem < 0:
+            rem += cur.pop(0) * l[k]
+            k += 1
+        elif len(l) == len(cur) + 1:
+            if rem % l[0] == 0:
+                yield [rem // l[0]] + cur
+        else:
+            k -= 1
+            cur.insert(0, rem // l[k] + 1)
+            rem -= cur[0] * l[k]
+

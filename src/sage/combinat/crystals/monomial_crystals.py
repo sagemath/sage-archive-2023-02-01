@@ -848,13 +848,17 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
         if use_Y is not None:
             from sage.misc.superseded import deprecation
             deprecation(18895, 'use_Y is deprecated; use the set_variables() method instead.')
+        else:
+            use_Y = True
 
         cartan_type = CartanType(ct)
         n = len(cartan_type.index_set())
         c = InfinityCrystalOfNakajimaMonomials._normalize_c(c, n)
         M = super(InfinityCrystalOfNakajimaMonomials, cls).__classcall__(cls, cartan_type, c)
-        if use_Y:
+        if not use_Y:
             M.set_variables('A')
+        else:
+            M.set_variables('Y')
         return M
 
     def __init__(self, ct, c, category=None):

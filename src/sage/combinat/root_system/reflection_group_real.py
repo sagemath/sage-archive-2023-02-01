@@ -698,12 +698,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [2, 1] 2
                 [1, 2, 1] 3
             """
-            if not self._reduced_word is None:
-                return len(self._reduced_word)
-            else:
-                N = self.parent().number_of_reflections()
-                return ZZ.sum(ZZ.one() for i in range(N)
-                              if self(i+1) >= N)
+            return len(self._reduced_word)
 
         def has_left_descent(self, i):
             r"""

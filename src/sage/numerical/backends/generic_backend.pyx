@@ -1123,7 +1123,8 @@ cdef class GenericBackend:
             tester = p._tester(**options)
         # From doctest of GenericBackend.solve:
         p.add_linear_constraints(5, 0, None)
-        p.add_col(range(5), range(5))
+        # p.add_col(range(5), range(5))     -- bad test because COIN sparsifies the 0s away on copy
+        p.add_col(range(5), range(1, 6))
         # From doctest of GenericBackend.problem_name:
         p.problem_name("There once was a french fry")
         p._test_copy(**options)

@@ -15671,7 +15671,9 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Returns the Wiener index of the graph.
+        Return the Wiener index of the graph.
+
+        The graph is expected to not have cycles of negative weight.
 
         The Wiener index of a graph `G` is
         `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
@@ -15688,28 +15690,32 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` (string) - the algorithm to use:
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+          - For ``by_weight==False`` only:
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+            - ``'BFS'`` - the computation is done through a BFS centered on
+              each vertex successively.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+            - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+              the Floyd-Warshall algorithm. Usually slower than ``'BFS'``.
 
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
+          - For graphs without negative weights:
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
+            - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in
+              Boost.
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
+            - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+              NetworkX. Usually slower than ``'Dijkstra_Boost'``.
+
+          - For graphs with negative weights:
+
+            - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+              Boost.
+
+            - ``'Floyd-Warshall-Python'`` - the Python implementation of
+              the Floyd-Warshall algorithm. Usually slower than
+              ``'Johnson_Boost'``.
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are

@@ -2,18 +2,34 @@ r"""
 Finite real reflection groups
 -------------------------------
 
+Let `V` be a finite-dimensional real vector space. A reflection of
+`V` is an operator `r \in \operatorname{GL}(V)` that has order `2`
+and fixes pointwise a hyperplane in `V`.
+In the present implementation, finite real reflection groups are
+tied with a root system.
+
+Finite real reflection groups with root systems have been classified
+according to finite Cartan-Killing types.
+For more definitions and classification types of finite complex
+reflection groups, see :wikipedia:`Complex_reflection_group`.
+
+The point of entry to work with reflection groups is :func:`~sage.combinat.root_system.reflection_group_real.ReflectionGroup`
+which can be used with finite Cartan-Killing types::
+
+    sage: ReflectionGroup(['A',2])
+    Irreducible real reflection group of rank 2 and type A2
+    sage: ReflectionGroup(['F',4])
+    Irreducible real reflection group of rank 4 and type F4
+    sage: ReflectionGroup(['H',3])
+    Irreducible real reflection group of rank 3 and type H3
+
 AUTHORS:
 
 - Christian Stump (initial version 2011--2015)
 
-.. NOTE::
-
-    - For definitions and classification types of finite
-      complex reflection groups, see :wikipedia:`Complex_reflection_group`.
-    - Uses the GAP3 package *chevie* available at
-      `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
-
-.. WARNING:: Works only if the GAP3 package Chevie is available.
+.. WARNING:: Uses the GAP3 package *Chevie* which is available as an
+             experimental package (installed by ``sage -i gap3``) or to
+             download by hand from `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 .. TODO::
 

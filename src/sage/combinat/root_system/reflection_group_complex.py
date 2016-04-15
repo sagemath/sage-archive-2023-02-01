@@ -48,7 +48,7 @@ Some special cases also occur, among them are::
 
 .. WARNING:: Uses the GAP3 package *Chevie* which is available as an
              experimental package (installed by ``sage -i gap3``) or to
-             download by hand at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+             download by hand from `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 A guided tour
 -------------

@@ -1385,6 +1385,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method).
 
+        ``solver`` can also be a callable, in which case it is called,
+        and its result is returned.
+
     - ``base_ring`` -- If not ``None``, request a solver that works over this
         (ordered) field.  If ``base_ring`` is not a field, its fraction field
         is used.
@@ -1432,6 +1435,26 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Rational Field
+
+    Passing a callable as the 'solver'::
+
+        sage: from sage.numerical.backends.glpk_backend import GLPKBackend
+        sage: p = get_solver(GLPKBackend); p
+        <...sage.numerical.backends.glpk_backend.GLPKBackend...>
+
+    Passing a callable that customizes a backend::
+
+        sage: def glpk_exact_solver():
+        ....:     from sage.numerical.backends.generic_backend import get_solver
+        ....:     b = get_solver(solver="GLPK")
+        ....:     b.solver_parameter("simplex_or_intopt", "exact_simplex_only")
+        ....:     return b
+        sage: delsarte_bound_additive_hamming_space(11,3,4,solver=glpk_exact_solver) # long time
+        glp_exact...
+        ...
+        OPTIMAL SOLUTION FOUND
+        8
+
     """
     if solver is None:
 
@@ -1451,6 +1474,12 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         # work
         if solver == "Coin" and constraint_generation:
             solver = "Glpk"
+
+    elif callable(solver):
+        kwds = {}
+        if base_ring is not None:
+            kwds['base_ring']=base_ring
+        return solver(**kwds)
 
     else:
         solver = solver.capitalize()
@@ -1484,4 +1513,4 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return InteractiveLPBackend(base_ring=base_ring)
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', or None (in which case the default one is used).")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', None (in which case the default one is used), or a callable.")

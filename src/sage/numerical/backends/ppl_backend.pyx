@@ -25,6 +25,15 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 cdef class PPLBackend(GenericBackend):
+
+    """
+    TESTS::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "PPL")
+            sage: TestSuite(p).run(skip="_test_pickling")
+    """
+
     cdef object mip
     cdef list Matrix
     cdef list row_lower_bound

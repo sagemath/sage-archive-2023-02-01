@@ -31,6 +31,18 @@ include "cysignals/memory.pxi"
 from sage.numerical.mip import MIPSolverException
 
 cdef class GurobiBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the Gurobi solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="Gurobi")                # optional - Gurobi
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - Gurobi
+    """
+
     def __init__(self, maximization = True):
         """
         Constructor

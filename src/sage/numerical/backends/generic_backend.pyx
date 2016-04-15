@@ -134,6 +134,30 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def _test_add_variables(cls, tester=None, **options):
+        """
+        Run tests on the method :meth:`.add_linear_constraints`.
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_add_variables()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        # Test from CVXOPT interface (part 1):
+        ncols_added = 5
+        ncols_before = p.ncols()
+        add_variables_result = p.add_variables(ncols_added)
+        ncols_after = p.ncols()
+        tester.assertEqual(ncols_after, ncols_before+ncols_added, "Added the wrong number of columns")
+
     cpdef  set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable
@@ -417,6 +441,31 @@ cdef class GenericBackend:
             upper_bound_d = None if upper_bound is None else upper_bound[d] 
             self.add_linear_constraint(coefficients_d, lower_bound_d, upper_bound_d, name=name)
 
+    @classmethod
+    def _test_add_linear_constraint_vector(cls, tester=None, **options):
+        """
+        Run tests on the method :meth:`.add_linear_constraints`.
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_add_linear_constraint_vector()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        from sage.modules.all import vector
+        # Ensure there are at least 2 variables
+        p.add_variables(2)
+        coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
+        upper = vector([5, 5])
+        p.add_linear_constraint_vector(2, coeffs, None, upper, 'foo')
+        # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
+
     cpdef add_col(self, list indices, list coeffs):
         """
         Add a column.
@@ -480,6 +529,36 @@ cdef class GenericBackend:
             (None, 2.0)
         """
         raise NotImplementedError()
+
+    @classmethod
+    def _test_add_linear_constraints(cls, tester=None, **options):
+        """
+        Run tests on the method :meth:`.add_linear_constraints`.
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_add_linear_constraints()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        nrows_before = p.nrows()
+        nrows_added = 5
+        p.add_linear_constraints(nrows_added, None, 2)
+        nrows_after = p.nrows()
+        # Test correct number of rows
+        tester.assertEqual(nrows_after, nrows_before+nrows_added, "Added the wrong number of rows")
+        # Test contents of the new rows are correct (sparse zero)
+        for i in range(nrows_before, nrows_after):
+            tester.assertEqual(p.row(i), ([], []))
+            tester.assertEqual(p.row_bounds(i), (None, 2.0))
+        # FIXME: Not sure if we should test that no new variables were added.
+        # Perhaps some backend may need to introduce explicit slack variables?
 
     cpdef int solve(self) except -1:
         """
@@ -651,6 +730,11 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
+    def _test_ncols_nonnegative(self, **options):
+        tester = self._tester(**options)
+        p = self
+        tester.assertGreaterEqual(self.ncols(), 0)
+    
     cpdef int nrows(self):
         """
         Return the number of rows/constraints.
@@ -1364,22 +1448,22 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         sage: p.base_ring()
         Real Double Field
         sage: p = get_solver(base_ring=QQ); p
-        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        <...sage.numerical.backends.ppl_backend.PPLBackend...>
         sage: p = get_solver(base_ring=ZZ); p
-        <sage.numerical.backends.ppl_backend.PPLBackend object at ...>
+        <...sage.numerical.backends.ppl_backend.PPLBackend...>
         sage: p.base_ring()
         Rational Field
         sage: p = get_solver(base_ring=AA); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Algebraic Real Field
         sage: d = polytopes.dodecahedron()
         sage: p = get_solver(base_ring=d.base_ring()); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Number Field in sqrt5 with defining polynomial x^2 - 5
         sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
-        <sage.numerical.backends.interactivelp_backend.InteractiveLPBackend object at ...>
+        <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
         sage: p.base_ring()
         Rational Field
     """

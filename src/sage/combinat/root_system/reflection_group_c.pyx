@@ -413,25 +413,36 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
             else:
                 w = w._mul_(si)
 
-#cpdef list reduced_coset_repesentatives(W, list parabolic, bint right):
-#    cdef tuple S = tuple(W.simple_reflections())
-#    cdef int n = len(S)
-#    cdef int N = W._number_of_reflections
-#    cdef list reps = []
-    
-#ReducedRightCosetRepresentatives:=function(W, H)local res, totest, new;
-#  totest:=Set([W.identity]);
-#  res:=Set([W.identity]);
-#  repeat
-#    new:=Concatenation(List(totest,w->List(
-#      W.reflections{W.generatingReflections},s->ReducedInRightCoset(H, w*s))));
-#    UniteSet(res,totest);
-#    totest:=Difference(new,res);
-#  until Length(totest)=0;
-#  InfoChevie2("#I nb. of cosets: ",Length(res),"\n");
-#  SortBy(res,x->CoxeterLength(W,x));
-#  return res;
-#end;
+def reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
+    cdef tuple S = tuple(W.simple_reflections())
+    cdef int N = W._number_of_reflections
+    cdef list totest = [W.one()]
+    cdef res = set(totest)
+    cdef list new
+
+    while totest:
+        new = []
+        for w in totest:
+            new.extend(reduce_in_coset(w*S[i], S, parabolic_small, N, right) for i in parabolic_big)
+        res.update(totest)
+        totest = [ w for w in new if w not in res ]
+    return list(res)
+
+cpdef list reduced_coset_representative_sequence(W):
+    cdef int n = W.rank()
+    return [reduced_coset_repesentatives(W,range(i+1),range(i),True) for i in range(n)]
+
+def parabolic_iteration(W):
+    cdef PermutationGroupElement one = W.one()
+    cdef PermutationGroupElement w
+    cdef n = W.rank()
+    cdef list cosets_seq = reduced_coset_representative_sequence(W)
+    from itertools import product
+    for word in product( *cosets_seq ):
+        w = one
+        for i in range(n):
+            w = w._mul_(word[i])
+        yield w
 
 cpdef list reduced_word_c(W, PermutationGroupElement w):
     r"""

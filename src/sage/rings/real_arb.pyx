@@ -348,10 +348,10 @@ cdef int real_part_of_quadratic_element_to_arb(arb_t res,
                 continue
         break
     if _do_sig(myprec): sig_on()
-    arb_clear(rootD)
-    fmpz_clear(tmpz)
     fmpz_set_mpz(tmpz, x.denom)
     arb_div_fmpz(res, res, tmpz, prec)
+    arb_clear(rootD)
+    fmpz_clear(tmpz)
     if _do_sig(myprec): sig_off()
     return 0
 

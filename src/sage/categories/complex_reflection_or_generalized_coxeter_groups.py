@@ -694,10 +694,10 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word()  # optional - gap3
                 [1, 2, 3]
 
-                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word_in_reflections()
+                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word_in_reflections()   # optional - gap3
                 [1, 2, 3]
 
-                sage: W.from_reduced_word([1,2,3]).reduced_word_in_reflections()
+                sage: W.from_reduced_word([1,2,3]).reduced_word_in_reflections()    # optional - gap3
                 [1, 2, 3]
 
             TESTS::
@@ -1031,9 +1031,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
                 sage: W.one().apply_reflections([1])                    # optional - gap3
                 (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2])
+                sage: W.one().apply_reflections([2])                    # optional - gap3
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([2,1])
+                sage: W.one().apply_reflections([2,1])                  # optional - gap3
                 (1,2,6)(3,4,5)
 
 
@@ -1051,11 +1051,11 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
                 sage: W.one().apply_reflections([1], word_type='distinguished')   # optional - gap3
                 (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2],   word_type='distinguished')
+                sage: W.one().apply_reflections([2],   word_type='distinguished')   # optional - gap3
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([3],   word_type='distinguished')
+                sage: W.one().apply_reflections([3],   word_type='distinguished')   # optional - gap3
                 (1,5)(2,4)(3,6)
-                sage: W.one().apply_reflections([2,1], word_type='distinguished')
+                sage: W.one().apply_reflections([2,1], word_type='distinguished')   # optional - gap3
                 (1,2,6)(3,4,5)
 
                 sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W   # optional - gap3

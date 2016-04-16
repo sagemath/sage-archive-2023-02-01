@@ -193,7 +193,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3
                 Reducible real reflection group of rank 4 and type A2 x B2
-                sage: W._test_degrees()
+                sage: W._test_degrees()                                 # optional - gap3
 
                 sage: W = SymmetricGroup(5)
                 sage: W._test_degrees()
@@ -248,7 +248,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3
                 Reducible real reflection group of rank 4 and type A2 x B2
-                sage: W._test_codegrees()
+                sage: W._test_codegrees()                               # optional - gap3
 
                 sage: W = SymmetricGroup(5)
                 sage: W._test_codegrees()

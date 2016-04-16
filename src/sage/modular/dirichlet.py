@@ -1143,7 +1143,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         TESTS:
 
-        This shows that ticket #6393 has been fixed::
+        This shows that :trac:`6393` has been fixed::
 
             sage: G = DirichletGroup(5); X = G.list(); Y = X[0]; Z = X[1]
             sage: # Y is trivial and Z is quartic

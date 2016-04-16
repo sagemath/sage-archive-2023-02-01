@@ -160,10 +160,20 @@ values and should be preferred::
 TESTS::
 
     sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
-    Full MatrixSpace of 3 by 3 dense matrices over Real ball field with 53 bits precision
+    Full MatrixSpace of 3 by 3 dense matrices over Real ball field
+    with 53 bits precision
 
     sage: polygen(RBF, x)^3
     x^3
+
+::
+
+    sage: SR.coerce(RBF(0.42))
+    [0.4200000000000000 +/- 1.56e-17]
+    sage: RBF(0.42) + SR(1)
+    [1.420000000000000 +/- 2.94e-16]
+    sage: _.parent()
+    Symbolic Ring
 
 Classes and Methods
 ===================
@@ -293,6 +303,7 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
     finally:
         mpfr_clear(left)
         mpfr_clear(right)
+
 
 class RealBallField(UniqueRepresentation, Field):
     r"""

@@ -110,6 +110,10 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(GF(9, 'a'))
             True
+            sage: SR.has_coerce_map_from(RealBallField())
+            True
+            sage: SR.has_coerce_map_from(ComplexBallField())
+            True
 
         TESTS:
 
@@ -133,6 +137,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
             True
             sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
+            True
+
+            sage: SR.has_coerce_map_from(AA)
+            True
+            sage: SR.has_coerce_map_from(QQbar)
             True
         """
         if isinstance(R, type):
@@ -161,6 +170,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.real_arb import RealBallField
+            from sage.rings.complex_arb import ComplexBallField
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
@@ -173,19 +184,15 @@ cdef class SymbolicRing(CommutativeRing):
             from subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precision of CC
-
-                # In order to have coercion from SR to AA or QQbar,
-                # we disable coercion in the reverse direction.
-                # This makes the following work:
-                # sage: QQbar(sqrt(2)) + sqrt(3)
-                # 3.146264369941973?
-                return R not in (RLF, CLF, AA, QQbar)
+                # Almost anything with a coercion into any precision of CC
+                return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
             elif (R is InfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
+                  or isinstance(R, RealBallField)
+                  or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):

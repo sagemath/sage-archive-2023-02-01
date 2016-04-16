@@ -1587,10 +1587,10 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ArithmeticError: multiplicative order of 0 not defined since it is not a unit modulo 5
         """
         try:
-            return sage.rings.integer.Integer(self._pari_().order())  # pari's "order" is by default multiplicative
+            return sage.rings.integer.Integer(self._pari_().znorder())
         except PariError:
-            raise ArithmeticError, "multiplicative order of %s not defined since it is not a unit modulo %s"%(
-                self, self.__modulus.sageInteger)
+            raise ArithmeticError("multiplicative order of %s not defined since it is not a unit modulo %s"%(
+                self, self.__modulus.sageInteger))
 
     def valuation(self, p):
         """

@@ -69,9 +69,9 @@ length 6 with three sticks of length 1, 2 and 3. There are six solutions::
     15
     sage: it = T.solve()
     sage: next(it)
-    [Polyomino: [(0,)], Color: gray, Polyomino: [(1,), (2,)], Color: gray, Polyomino: [(3,), (4,), (5,)], Color: gray]
+    [Polyomino: [(0)], Color: gray, Polyomino: [(1), (2)], Color: gray, Polyomino: [(3), (4), (5)], Color: gray]
     sage: next(it)
-    [Polyomino: [(0,)], Color: gray, Polyomino: [(1,), (2,), (3,)], Color: gray, Polyomino: [(4,), (5,)], Color: gray]
+    [Polyomino: [(0)], Color: gray, Polyomino: [(1), (2), (3)], Color: gray, Polyomino: [(4), (5)], Color: gray]
     sage: T.number_of_solutions()
     6
 
@@ -447,13 +447,25 @@ class Polyomino(SageObject):
             sage: Polyomino([(0,0), (1,0), (2,0)])
             Polyomino: [(0, 0), (1, 0), (2, 0)], Color: gray
         """
-        assert isinstance(color, str)
+        from sage.modules.free_module import FreeModule
+        from sage.rings.integer_ring import ZZ
+
+        if not isinstance(color, str):
+            raise TypeError("color = ({!r}) must be a string".format(color))
         self._color = color
-        self._blocs = frozenset(tuple(c) for c in coords)
-        assert len(self._blocs) != 0, "Polyomino must be non empty"
-        dimension_set = set(len(a) for a in self._blocs)
-        assert len(dimension_set) <= 1, "coord must be all of the same dimension"
-        self._dimension = dimension_set.pop()
+
+        if not isinstance(coords, (tuple,list)):
+            coords = list(coords)
+        if not coords:
+            raise ValueError("Polyomino must be non empty")
+        self._dimension = ZZ(len(coords[0]))
+        self._free_module = FreeModule(ZZ, self._dimension)
+
+        self._blocs = coords
+        self._blocs = map(self._free_module, self._blocs)
+        for b in self._blocs:
+            b.set_immutable()
+        self._blocs = tuple(sorted(set(self._blocs)))
 
     def __repr__(self):
         r"""
@@ -503,7 +515,7 @@ class Polyomino(SageObject):
             sage: p == r
             False
         """
-        return self._blocs == other._blocs
+        return isinstance(other, Polyomino) and self._blocs == other._blocs
 
     def __ne__(self, other):
         r"""
@@ -528,7 +540,7 @@ class Polyomino(SageObject):
             sage: p != r
             True
         """
-        return self._blocs != other._blocs
+        return not self._blocs == other._blocs
 
     def __iter__(self):
         r"""
@@ -538,7 +550,7 @@ class Polyomino(SageObject):
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: it = iter(p)
             sage: next(it)
-            (1, 1, 0)
+            (0, 0, 0)
         """
         return iter(self._blocs)
 
@@ -589,11 +601,8 @@ class Polyomino(SageObject):
             sage: p - (2,2,2)
             Polyomino: [(-2, -2, -2), (-1, -2, -2), (-1, -1, -2), (-1, -1, -1), (-1, 0, -2)], Color: deeppink
         """
-        if not len(v) == self._dimension:
-            raise ValueError("Dimension of input vector must match the "
-                             "dimension of the polyomino")
-        v = vector(v)
-        return Polyomino([vector(p)-v for p in self], color=self._color)
+        v = self._free_module(v)
+        return Polyomino([p-v for p in self], color=self._color)
 
     def __add__(self, v):
         r"""
@@ -614,11 +623,8 @@ class Polyomino(SageObject):
             sage: p + (2,2,2)
             Polyomino: [(2, 2, 2), (3, 2, 2), (3, 3, 2), (3, 3, 3), (3, 4, 2)], Color: deeppink
         """
-        if not len(v) == self._dimension:
-            raise ValueError("Dimension of input vector must match "
-                             "the dimension of the polyomino")
-        v = vector(v)
-        return Polyomino([vector(p)+v for p in self], color=self._color)
+        v = self._free_module(v)
+        return Polyomino([p+v for p in self], color=self._color)
 
     def __rmul__(self, m):
         r"""
@@ -655,7 +661,7 @@ class Polyomino(SageObject):
         if not m.nrows() == m.ncols() == self._dimension:
             raise ValueError("Dimension of input matrix must match the "
                              "dimension of the polyomino")
-        return Polyomino([m * vector(p) for p in self], color=self._color)
+        return Polyomino([m * p for p in self], color=self._color)
 
     def bounding_box(self):
         r"""
@@ -913,7 +919,6 @@ class Polyomino(SageObject):
             [(1, 1), (1, 2)]
         """
         for P, Q in itertools.combinations(self, 2):
-            P, Q = vector(P), vector(Q)
             s = sorted(map(abs, Q-P))
             firsts = s[:-1]
             last = s[-1]
@@ -943,7 +948,7 @@ class Polyomino(SageObject):
             sage: p.center()
             (3/4, 3/4)
         """
-        return sum(vector(t) for t in self) / len(self)
+        return sum(self) / len(self)
 
     def boundary(self):
         r"""
@@ -1143,6 +1148,7 @@ class TilingSolver(SageObject):
             Reusing pieces allowed: False
         """
         self._pieces = pieces
+        self._free_module = self._pieces[0]._free_module
         self._box = box
         self._rotation = rotation
         self._reflection = reflection
@@ -1241,7 +1247,10 @@ class TilingSolver(SageObject):
             sage: list(T.space())
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (0, 0, 4), (0, 0, 5)]
         """
-        return xmrange(self._box, tuple)
+        for v in xmrange(self._box, tuple):
+            v = self._free_module(v)
+            v.set_immutable()
+            yield v
 
     @cached_method
     def coord_to_int_dict(self):
@@ -1350,9 +1359,9 @@ class TilingSolver(SageObject):
             sage: T.rows_for_piece(0)
             [[0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8]]
             sage: T.rows_for_piece(1)
-            [[1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 8, 7]]
+            [[1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 7, 8]]
             sage: T.rows_for_piece(2)
-            [[2, 3, 4, 5], [2, 4, 5, 6], [2, 5, 6, 7], [2, 8, 6, 7]]
+            [[2, 3, 4, 5], [2, 4, 5, 6], [2, 5, 6, 7], [2, 6, 7, 8]]
 
         Less rows when using ``mod_box_isometries=True``::
 
@@ -1360,18 +1369,18 @@ class TilingSolver(SageObject):
             sage: b = Polyomino([(0,0,0), (1,0,0), (0,1,0)])
             sage: T = TilingSolver([a,b], box=(2,1,3))
             sage: T.rows_for_piece(0)
-            [[0, 5, 3, 6],
-             [0, 7, 4, 6],
+            [[0, 3, 5, 6],
+             [0, 4, 6, 7],
+             [0, 2, 5, 6],
+             [0, 3, 6, 7],
              [0, 2, 3, 6],
-             [0, 7, 3, 4],
-             [0, 5, 2, 3],
-             [0, 3, 4, 6],
-             [0, 5, 2, 6],
-             [0, 7, 3, 6]]
+             [0, 3, 4, 7],
+             [0, 2, 3, 5],
+             [0, 3, 4, 6]]
             sage: T.rows_for_piece(0, mod_box_isometries=True)
-            [[0, 2, 3, 6], [0, 7, 3, 4]]
+            [[0, 2, 5, 6], [0, 3, 6, 7]]
             sage: T.rows_for_piece(1, mod_box_isometries=True)
-            [[1, 2, 3, 6], [1, 7, 3, 4]]
+            [[1, 2, 5, 6], [1, 3, 6, 7]]
         """
         p = self._pieces[i]
         if self._rotation:
@@ -1420,11 +1429,11 @@ class TilingSolver(SageObject):
             [1, 4, 5]
             [1, 5, 6]
             [1, 6, 7]
-            [1, 8, 7]
+            [1, 7, 8]
             [2, 3, 4, 5]
             [2, 4, 5, 6]
             [2, 5, 6, 7]
-            [2, 8, 6, 7]
+            [2, 6, 7, 8]
         """
         rows = []
         for i in range(len(self._pieces)):
@@ -1453,20 +1462,20 @@ class TilingSolver(SageObject):
             sage: p = Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (2,0,1)], color='red')
             sage: T = TilingSolver([p], box=(3,4,2))
             sage: T._rows_mod_box_isometries(0)
-            [[0, 4, 3, 11, 2, 5],
-             [0, 7, 5, 6, 13, 4],
-             [0, 11, 12, 19, 13, 10],
-             [0, 14, 13, 15, 12, 21],
-             [0, 9, 12, 1, 18, 10],
-             [0, 11, 3, 20, 12, 14],
-             [0, 22, 5, 13, 16, 14],
-             [0, 9, 12, 20, 2, 10],
-             [0, 22, 11, 12, 4, 14],
-             [0, 14, 13, 16, 24, 6],
-             [0, 4, 3, 1, 13, 11],
-             [0, 5, 6, 15, 13, 3],
-             [0, 9, 11, 12, 19, 21],
-             [0, 14, 13, 21, 23, 11]]
+            [[0, 2, 10, 11, 12, 20],
+             [0, 4, 12, 13, 14, 22],
+             [0, 6, 14, 15, 16, 24],
+             [0, 1, 9, 10, 11, 18],
+             [0, 3, 11, 12, 13, 20],
+             [0, 5, 13, 14, 15, 22],
+             [0, 4, 6, 10, 11, 12],
+             [0, 6, 8, 12, 13, 14],
+             [0, 12, 14, 18, 19, 20],
+             [0, 14, 16, 20, 21, 22],
+             [0, 4, 9, 11, 12, 14],
+             [0, 6, 11, 13, 14, 16],
+             [0, 12, 17, 19, 20, 22],
+             [0, 14, 19, 21, 22, 24]]
 
         We test that there are four times less rows for that polyomino::
 
@@ -1569,7 +1578,7 @@ class TilingSolver(SageObject):
         ::
 
             sage: T.row_to_polyomino(7)
-            Polyomino: [(0, 0, 1), (1, 0, 1), (1, 0, 2)], Color: blue
+            Polyomino: [(0, 0, 1), (0, 0, 2), (1, 0, 1)], Color: blue
 
         ::
 
@@ -1665,25 +1674,25 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_common_prefix_solutions_iterator(): a
-            [64, 83, 149, 44, 179, 62, 35, 162, 132, 101]
-            [64, 83, 149, 44, 179]
-            [64, 83, 149, 44, 179, 154, 35, 162, 132, 175]
-            [64, 83, 149]
-            [64, 83, 149, 97, 39, 162, 35, 62, 48, 106]
-            [64]
-            [64, 157, 149, 136, 179, 62, 35, 162, 132, 101]
-            [64, 157, 149, 136, 179]
-            [64, 157, 149, 136, 179, 154, 35, 162, 132, 175]
+            [0, 65, 177, 164, 87, 44, 109, 70, 160, 129]
+            [0, 65, 177, 164, 87]
+            [0, 65, 177, 164, 87, 182, 109, 70, 160, 83]
+            [0]
+            [0, 111, 177, 26, 87, 44, 109, 70, 160, 129]
+            [0, 111, 177, 26, 87]
+            [0, 111, 177, 26, 87, 182, 109, 70, 160, 83]
+            [0, 111, 177]
+            [0, 111, 177, 125, 21, 70, 109, 44, 30, 134]
             []
-            [82, 119, 58, 97, 38, 87, 8, 63, 48, 107]
-            [82, 119, 58, 97, 38]
-            [82, 119, 58, 97, 38, 161, 8, 63, 140, 107]
-            [82, 119]
-            [82, 119, 150, 136, 180, 63, 8, 161, 131, 175]
-            [82, 119, 150]
-            [82, 119, 150, 171, 38, 87, 8, 63, 48, 107]
-            [82, 119, 150, 171, 38]
-            [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
+            [110, 147, 40, 125, 20, 69, 54, 45, 168, 135]
+            [110, 147, 40, 125, 20]
+            [110, 147, 40, 125, 20, 115, 54, 45, 30, 135]
+            [110, 147]
+            [110, 147, 178, 79, 20, 69, 54, 45, 168, 135]
+            [110, 147, 178, 79, 20]
+            [110, 147, 178, 79, 20, 115, 54, 45, 30, 135]
+            [110, 147, 178]
+            [110, 147, 178, 164, 88, 45, 54, 69, 159, 83]
         """
         it = self._dlx_solutions_iterator()
         B = next(it)
@@ -1730,16 +1739,16 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_solutions_iterator(): a
-            [64, 83, 149, 44, 179, 62, 35, 162, 132, 101]
-            [64, 83, 149, 44, 179, 154, 35, 162, 132, 175]
-            [64, 83, 149, 97, 39, 162, 35, 62, 48, 106]
-            [64, 157, 149, 136, 179, 62, 35, 162, 132, 101]
-            [64, 157, 149, 136, 179, 154, 35, 162, 132, 175]
-            [82, 119, 58, 97, 38, 87, 8, 63, 48, 107]
-            [82, 119, 58, 97, 38, 161, 8, 63, 140, 107]
-            [82, 119, 150, 136, 180, 63, 8, 161, 131, 175]
-            [82, 119, 150, 171, 38, 87, 8, 63, 48, 107]
-            [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
+            [0, 65, 177, 164, 87, 44, 109, 70, 160, 129]
+            [0, 65, 177, 164, 87, 182, 109, 70, 160, 83]
+            [0, 111, 177, 26, 87, 44, 109, 70, 160, 129]
+            [0, 111, 177, 26, 87, 182, 109, 70, 160, 83]
+            [0, 111, 177, 125, 21, 70, 109, 44, 30, 134]
+            [110, 147, 40, 125, 20, 69, 54, 45, 168, 135]
+            [110, 147, 40, 125, 20, 115, 54, 45, 30, 135]
+            [110, 147, 178, 79, 20, 69, 54, 45, 168, 135]
+            [110, 147, 178, 79, 20, 115, 54, 45, 30, 135]
+            [110, 147, 178, 164, 88, 45, 54, 69, 159, 83]
             sage: len(list(T._dlx_incremental_solutions_iterator()))
             123
         """

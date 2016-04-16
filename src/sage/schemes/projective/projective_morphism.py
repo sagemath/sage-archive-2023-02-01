@@ -874,6 +874,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2-1*y^2, t*y^2])
             sage: f.dynatomic_polynomial([1, 2]).parent()
             Symbolic Ring
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quo(R.ideal(y^2-x+1))
+            sage: P.<u,v> = ProjectiveSpace(FractionField(S),1)
+            sage: H = End(P)
+            sage: f = H([u^2 + S(x^2)*v^2, v^2])
+            sage: f.dynatomic_polynomial([1,1])
+            v^3*xbar^2 + u^2*v + u*v^2
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
@@ -905,7 +915,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:
                 return(QR[0])
-        except TypeError: # something Singular can't handle
+        except (TypeError, NotImplementedError): # something Singular can't handle
             pass
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
@@ -3572,7 +3582,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Determine the set of rational periodic points for an endomorphism of projective space.
 
-        Must be defined over `\QQ`.
+        The map must be defined over `\QQ` and be an endomorphism of projective space.
+        If the map is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
+        ramified fixed point, then the base ring can be an absolute number field.
+        This is done by passing to the Weil restriction.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
         trouble getting a particular map to finish, try first computing the possible periods, then
@@ -3602,6 +3615,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 
@@ -3634,53 +3650,126 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([-5*x^2 + 4*y^2, 4*x*y])
             sage: sorted(f.rational_periodic_points()) # long time
             [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2 + v^2,v^2])
+            sage: f.rational_periodic_points()
+            [(w : 1), (-w + 1 : 1), (1 : 0)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2+v^2,u*v])
+            sage: f.rational_periodic_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: rational periodic points for number fields only implemented for polynomials
         """
         if not self.is_endomorphism():
             raise NotImplementedError("must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("must be QQ") #for p-adic lifting
-
-        primebound = kwds.pop("prime_bound", [1, 20])
-        p = kwds.pop("lifting_prime", 23)
-        periods = kwds.pop("periods", None)
-        badprimes = kwds.pop("bad_primes", None)
-
-        if (isinstance(primebound, (list, tuple)) == False):
-            try:
-                primebound = [1, ZZ(primebound)]
-            except TypeError:
-                raise TypeError("bound on primes must be an integer")
-        else:
-            try:
-                primebound[0] = ZZ(primebound[0])
-                primebound[1] = ZZ(primebound[1])
-            except TypeError:
-                raise TypeError("prime bounds must be integers")
-
-        if badprimes is None:
-            badprimes = self.primes_of_bad_reduction()
-        if periods is None:
-            periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes)
         PS = self.domain()
-        R = PS.base_ring()
-        periodic = set()
-        while p in badprimes:
-            p = next_prime(p + 1)
-        B = e ** self.height_difference_bound()
+        K = PS.base_ring()
+        if K in _NumberFields:
+            if not K.is_absolute():
+                raise TypeError("base field must be an absolute field")
+            d = K.absolute_degree()
+            #check that we are not over QQ
+            if d > 1:
+                if PS.dimension_relative() != 1:
+                    raise NotImplementedError("rational periodic points for number fields only implemented in dimension 1")
+                w = K.absolute_generator()
+                #we need to dehomogenize for the Weil restriction and will check that point at infty
+                #separately. We also check here that we are working with a polynomial. If the map
+                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
+                #apply this algorithm.
+                g = self.dehomogenize(1)
+                inf = PS([1,0])
+                k = 1
+                if isinstance(g[0], FractionFieldElement):
+                    g = self.dehomogenize(0)
+                    inf = PS([0,1])
+                    k = 0
+                    if isinstance(g[0], FractionFieldElement):
+                        raise NotImplementedError("rational periodic points for number fields only implemented for polynomials")
+                #determine rational periodic points
+                #infinity is a totally ramified fixed point for a polynomial
+                periodic_points = set([inf])
+                #compute the weil resctriction
+                G = g.weil_restriction()
+                F = G.homogenize(d)
+                #find the QQ rational periodic points for the weil restriction
+                Fper = F.rational_periodic_points(**kwds)
+                for P in Fper:
+                    #take the 'good' points in the weil restriction and find the
+                    #associated number field points.
+                    if P[d] == 1:
+                        pt = [sum([P[i]*w**i for i in range(d)])]
+                        pt.insert(k,1)
+                        Q = PS(pt)
+                        #for each periodic point get the entire cycle
+                        if not Q in periodic_points:
+                            #check periodic not preperiodic and add all points in cycle
+                            orb = set([Q])
+                            Q2 = self(Q)
+                            while Q2 not in orb:
+                                orb.add(Q2)
+                                Q2 = self(Q2)
+                            if Q2 == Q:
+                                periodic_points = periodic_points.union(orb)
+                return list(periodic_points)
+            else:
+                primebound = kwds.pop("prime_bound", [1, 20])
+                p = kwds.pop("lifting_prime", 23)
+                periods = kwds.pop("periods", None)
+                badprimes = kwds.pop("bad_primes", None)
+                num_cpus = kwds.pop("ncpus", ncpus())
 
-        f = self.change_ring(GF(p))
-        all_points = f.possible_periods(True) #return the list of points and their periods.
-        pos_points = []
-        for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
-                pos_points.append(all_points[i])
-        periodic_points = self.lift_to_rational_periodic(pos_points,B)
-        for p,n in periodic_points:
-            for k in range(n):
-                p.normalize_coordinates()
-                periodic.add(p)
-                p = self(p)
-        return(list(periodic))
+                if (isinstance(primebound, (list, tuple)) == False):
+                    try:
+                        primebound = [1, ZZ(primebound)]
+                    except TypeError:
+                        raise TypeError("bound on primes must be an integer")
+                else:
+                    try:
+                        primebound[0] = ZZ(primebound[0])
+                        primebound[1] = ZZ(primebound[1])
+                    except TypeError:
+                        raise TypeError("prime bounds must be integers")
+
+                if badprimes is None:
+                    badprimes = self.primes_of_bad_reduction()
+                if periods is None:
+                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
+                PS = self.domain()
+                R = PS.base_ring()
+                periodic = set()
+                while p in badprimes:
+                    p = next_prime(p + 1)
+                B = e ** self.height_difference_bound()
+
+                f = self.change_ring(GF(p))
+                all_points = f.possible_periods(True) #return the list of points and their periods.
+                pos_points = []
+                for i in range(len(all_points)):
+                    if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
+                        pos_points.append(all_points[i])
+                periodic_points = self.lift_to_rational_periodic(pos_points,B)
+                for p,n in periodic_points:
+                    for k in range(n):
+                        p.normalize_coordinates()
+                        periodic.add(p)
+                        p = self(p)
+                return list(periodic)
+        else:
+            raise TypeError("base field must be an absolute number field")
 
     def rational_preimages(self, Q):
         r"""
@@ -3919,11 +4008,22 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             25/16 : 1), (w^2 - 29/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 25/16 : 1),
             (-w - 1/2 : 1), (w : 1), (-w : 1), (-w^2 + 29/16 : 1), (w^2 + w - 33/16
             : 1)]
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2+v^2, v^2])
+            sage: f.all_rational_preimages(P(4))
+            [(-w : 1), (w : 1)]
         """
         if not self.is_endomorphism():
             raise NotImplementedError("must be an endomorphism of projective space")
         if self.domain().base_ring() not in NumberFields():
             raise TypeError("field won't return finite list of elements")
+        if not isinstance(points, (list, tuple)):
+            points = [points]
 
         PS = self.domain()
         RPS = PS.base_ring()
@@ -3973,6 +4073,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 
@@ -4077,15 +4180,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 badprimes = kwds.pop("bad_primes", None)
                 periods = kwds.pop("periods", None)
                 primebound = kwds.pop("prime_bound", [1, 20])
+                num_cpus = kwds.pop("ncpus", ncpus())
                 if badprimes is None:
                     badprimes = self.primes_of_bad_reduction()
                 if periods is None:
-                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes) #determine the set of possible periods
+                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus) #determine the set of possible periods
                 if periods == []:
                     return([]) #no rational preperiodic points
                 else:
                     p = kwds.pop("lifting_prime", 23)
-                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes) #find the rational preperiodic points
+                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes, ncpus=num_cpus) #find the rational preperiodic points
                     preper = self.all_rational_preimages(T) #find the preperiodic points
                     preper = list(preper)
             return(preper)
@@ -4124,6 +4228,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 

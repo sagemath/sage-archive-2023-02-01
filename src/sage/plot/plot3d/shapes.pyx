@@ -248,6 +248,13 @@ def ColorCube(size, colors, opacity=1, **kwds):
     repeated colors on opposing faces)::
 
         sage: c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import ColorCube
+        c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+        sphinx_plot(c)
+
     """
     if not isinstance(size, (tuple, list)):
         size = (size, size, size)

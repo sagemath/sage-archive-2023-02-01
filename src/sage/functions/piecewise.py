@@ -129,6 +129,7 @@ class PiecewiseFunction(BuiltinFunction):
             (-1, 0, 1)
         """
         #print 'pf_call', function_pieces, kwds
+        from types import *
         var = kwds.pop('var', None)
         parameters = []
         domain_list = []
@@ -138,6 +139,13 @@ class PiecewiseFunction(BuiltinFunction):
                 domain = RealSet(domain)
             if domain.is_empty():
                 continue
+            if isinstance(function, FunctionType):
+                if var is None:
+                    var = SR.var('x')
+                if function.func_code.co_argcount == 0:
+                    function = function()
+                else:
+                    function = function(var)
             function = SR(function)
             if var is None and len(function.variables()) > 0:
                 var = function.variables()[0]
@@ -967,5 +975,166 @@ class PiecewiseFunction(BuiltinFunction):
                         rsum += func(x0, x1)
             return piecewise(rsum)
 
+        def laplace(cls, self, parameters, variable, x='x', s='t'):
+            r"""
+            Returns the Laplace transform of self with respect to the variable
+            var.
+
+            INPUT:
+
+            -  ``x`` - variable of self
+
+            -  ``s`` - variable of Laplace transform.
+
+            We assume that a piecewise function is 0 outside of its domain and
+            that the left-most endpoint of the domain is 0.
+
+            EXAMPLES::
+
+                sage: x, s, w = var('x, s, w')
+                sage: f = piecewise([[(0,1),1],[[1,2], 1-x]])
+                sage: f.laplace(x, s)
+                -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
+                sage: f.laplace(x, w)
+                -e^(-w)/w + (w + 1)*e^(-2*w)/w^2 + 1/w - e^(-w)/w^2
+
+            ::
+
+                sage: y, t = var('y, t')
+                sage: f = piecewise([[[1,2], 1-y]])
+                sage: f.laplace(y, t)
+                (t + 1)*e^(-2*t)/t^2 - e^(-t)/t^2
+
+            ::
+
+                sage: s = var('s')
+                sage: t = var('t')
+                sage: f1(t) = -t
+                sage: f2(t) = 2
+                sage: f = piecewise([[[0,1],f1],[(1,infinity),f2]])
+                sage: f.laplace(t,s)
+                (s + 1)*e^(-s)/s^2 + 2*e^(-s)/s - 1/s^2
+            """
+            from sage.all import assume, exp, forget
+            x = SR.var(x)
+            s = SR.var(s)
+            assume(s>0)
+            result = 0
+            for domain, f in parameters:
+                for interval in domain:
+                    a = interval.lower()
+                    b = interval.upper()
+                    result += (SR(f)*exp(-s*x)).integral(x,a,b)
+            forget(s>0)
+            return result
+
+        def fourier_series_cosine_coefficient(cls, self, parameters, variable, n, L):
+            r"""
+            Returns the n-th Fourier series coefficient of
+            `\cos(n\pi x/L)`, `a_n`.
+
+            INPUT:
+
+
+            -  ``self`` - the function f(x), defined over -L x L
+
+            -  ``n`` - an integer n=0
+
+            -  ``L`` - (the period)/2
+
+
+            OUTPUT:
+            `a_n = \frac{1}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx`
+
+            EXAMPLES::
+
+                sage: f(x) = x^2
+                sage: f = piecewise([[(-1,1),f]])
+                sage: f.fourier_series_cosine_coefficient(2,1)
+                pi^(-2)
+                sage: f(x) = x^2
+                sage: f = piecewise([[(-pi,pi),f]])
+                sage: f.fourier_series_cosine_coefficient(2,pi)
+                1
+                sage: f1(x) = -1
+                sage: f2(x) = 2
+                sage: f = piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
+                sage: f.fourier_series_cosine_coefficient(5,pi)
+                -3/5/pi
+            """
+            from sage.all import cos, pi
+            x = SR.var('x')
+            result = 0
+            for domain, f in parameters:
+                for interval in domain:
+                    a = interval.lower()
+                    b = interval.upper()
+                    result += (f*cos(pi*x*n/L)/L).integrate(x, a, b)
+            return SR(result).simplify_trig()
+
+        def fourier_series_sine_coefficient(cls, self, parameters, variable, n, L):
+            r"""
+            Returns the n-th Fourier series coefficient of
+            `\sin(n\pi x/L)`, `b_n`.
+
+            INPUT:
+
+
+            -  ``self`` - the function f(x), defined over -L x L
+
+            -  ``n`` - an integer n0
+
+            -  ``L`` - (the period)/2
+
+
+            OUTPUT:
+            `b_n = \frac{1}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx`
+
+            EXAMPLES::
+
+                sage: f(x) = x^2
+                sage: f = piecewise([[(-1,1),f]])
+                sage: f.fourier_series_sine_coefficient(2,1)  # L=1, n=2
+                0
+            """
+            from sage.all import sin, pi
+            x = SR.var('x')
+            result = 0
+            for domain, f in parameters:
+                for interval in domain:
+                    a = interval.lower()
+                    b = interval.upper()
+                    result += (f*sin(pi*x*n/L)/L).integrate(x, a, b)
+            return SR(result).simplify_trig()
+
+        def fourier_series_partial_sum(cls, self, parameters, variable, N, L):
+            r"""
+            Returns the partial sum
+
+            .. math::
+
+               f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+
+            as a string.
+
+            EXAMPLE::
+
+                sage: f(x) = x^2
+                sage: f = piecewise([[(-1,1),f]])
+                sage: f.fourier_series_partial_sum(3,1)
+                cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
+                sage: f1(x) = -1
+                sage: f2(x) = 2
+                sage: f = piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
+                sage: f.fourier_series_partial_sum(3,pi)
+                -3*cos(x)/pi - 3*sin(2*x)/pi + 3*sin(x)/pi - 1/4
+            """
+            from sage.all import pi, sin, cos, srange
+            x = self.default_variable()
+            a0 = self.fourier_series_cosine_coefficient(0,L)
+            result = a0/2 + sum([(self.fourier_series_cosine_coefficient(n,L)*cos(n*pi*x/L) +
+                                  self.fourier_series_sine_coefficient(n,L)*sin(n*pi*x/L))
+                                 for n in srange(1,N)])
+            return SR(result).expand()
 
 piecewise = PiecewiseFunction()

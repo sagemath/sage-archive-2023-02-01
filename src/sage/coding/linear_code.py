@@ -2925,10 +2925,10 @@ class AbstractLinearCode(module.Module):
 
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.punctured([1,2])
-            Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) [1, 2]
+            Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) set([1, 2])
         """
         from punctured_code import PuncturedCode
-        return PuncturedCode(self, L)
+        return PuncturedCode(self, set(L))
 
     def _punctured_form(self, points):
         r"""
@@ -2936,7 +2936,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``points`` -- a list of positions where to puncture ``self``
+        - ``points`` -- a set of positions where to puncture ``self``
 
         EXAMPLES::
 
@@ -2945,7 +2945,7 @@ class AbstractLinearCode(module.Module):
             Linear code of length 10, dimension 4 over Finite Field of size 7
         """
         M = self.generator_matrix()
-        G = M.delete_columns(points)
+        G = M.delete_columns(list(points))
         G = G.echelon_form()
         delete = []
         cpt = 0
@@ -3246,7 +3246,7 @@ class AbstractLinearCode(module.Module):
             Linear code of length 5, dimension 2 over Finite Field of size 2
         """
         Cd = self.dual_code()
-        Cdp = Cd.punctured(L)
+        Cdp = Cd.punctured(set(L))
         return Cdp.dual_code()
 
     def spectrum(self, algorithm=None):
@@ -3763,16 +3763,16 @@ class LinearCode(AbstractLinearCode):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
-        
+
     Providing a code as the parameter in order to "forget" its structure (see
     :trac:`20198`)::
-    
+
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
         Linear code of length 23, dimension 12 over Finite Field of size 23
-        
+
     Another example::
-    
+
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
         [57, 54] Hamming Code over Finite Field of size 7
@@ -3835,19 +3835,19 @@ class LinearCode(AbstractLinearCode):
             ...
             ValueError: this linear code contains no non-zero vector
         """
-        
+
         base_ring = generator.base_ring()
         if not base_ring.is_field():
             raise ValueError("'generator' must be defined on a field (not a ring)")
-        
+
         try:
             basis = generator.row_space().basis() # generator matrix case
-            
+
             # if the matrix does not have full rank we replace it
             if len(basis) != generator.nrows():
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
-    
+
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:

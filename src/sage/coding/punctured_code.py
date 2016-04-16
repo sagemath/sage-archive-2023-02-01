@@ -72,11 +72,11 @@ class PuncturedCode(AbstractLinearCode):
         sage: C = codes.RandomLinearCode(11, 5, GF(7))
         sage: Cp = codes.PuncturedCode(C, 3)
         sage: Cp
-        Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+        Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3])
 
-        sage: Cp = codes.PuncturedCode(C, [3, 5])
+        sage: Cp = codes.PuncturedCode(C, {3, 5})
         sage: Cp
-        Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3, 5]
+        Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3, 5])
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -88,28 +88,21 @@ class PuncturedCode(AbstractLinearCode):
         If one of the positions to puncture is bigger than the length of ``C``, an exception will be raised::
 
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
-            sage: Cp = codes.PuncturedCode(C, [4,8,15])
+            sage: Cp = codes.PuncturedCode(C, {4,8,15})
             Traceback (most recent call last):
             ...
             ValueError: Positions to puncture must be positive integers smaller than the length of the provided code
         """
-        if not isinstance(positions, (Integer, int, tuple, list)):
-            raise TypeError("positions must be either a Sage Integer, a Python int, a tuple or a list")
+        if not isinstance(positions, (Integer, int, set)):
+            raise TypeError("positions must be either a Sage Integer, a Python int, or a set")
         if isinstance(positions, (Integer, int)):
-            positions = [positions]
+            positions = {positions}
         if not isinstance(C, AbstractLinearCode):
             raise ValueError("Provided code must be a linear code")
         if not all (i in range(0, C.length()) for i in positions):
             raise ValueError("Positions to puncture must be positive integers smaller than the length of the provided code")
-        unique_positions = set()
-        for i in positions:
-            unique_positions.add(i)
-        positions = []
-        for i in unique_positions:
-            positions.append(i)
         super(PuncturedCode, self).__init__(C.base_ring(), C.length() - len(positions), \
                 "PuncturedMatrix", "OriginalCode")
-        positions.sort()
         self._original_code = C
         self._positions = positions
 
@@ -138,7 +131,7 @@ class PuncturedCode(AbstractLinearCode):
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp
-            Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+            Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3])
         """
         return "Punctured code coming from %s punctured on position(s) %s"\
                 % (self.original_code(), self.punctured_positions())
@@ -152,7 +145,7 @@ class PuncturedCode(AbstractLinearCode):
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: latex(Cp)
-            \textnormal{Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) } [3]
+            \textnormal{Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) } set([3])
         """
         return "\\textnormal{Punctured code coming from %s punctured on position(s) } %s"\
                 % (self.original_code(), self.punctured_positions())
@@ -166,7 +159,7 @@ class PuncturedCode(AbstractLinearCode):
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp.punctured_positions()
-            [3]
+            {3}
         """
         return self._positions
 
@@ -319,7 +312,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
-            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3])
     """
 
     def __init__(self, code):
@@ -329,7 +322,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
-            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3])
         """
         super(PuncturedCodePuncturedMatrixEncoder, self).__init__(code)
 
@@ -343,7 +336,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
-            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) set([3])
         """
         return "Punctured matrix-based encoder for the %s" % self.code()
 
@@ -357,7 +350,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: latex(E)
-            \textnormal{Punctured matrix-based encoder for the }\textnormal{Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) } [3]
+            \textnormal{Punctured matrix-based encoder for the }\textnormal{Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) } set([3])
         """
         return "\\textnormal{Punctured matrix-based encoder for the }%s" % self.code()._latex_()
 
@@ -382,7 +375,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
         C = self.code().original_code()
         pos = self.code().punctured_positions()
         M = C.generator_matrix()
-        G = M.delete_columns(pos)
+        G = M.delete_columns(list(pos))
         G = G.echelon_form()
         delete = []
         cpt = 0
@@ -437,7 +430,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
-            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
+            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) set([3]) through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
 
         As seen below, if all optional are left blank, and if an error-erasure decoder is
         available, it will be chosen as the original decoder.
@@ -532,7 +525,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: D
-            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
+            Decoder of Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) set([3]) through Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
 
         """
         return "Decoder of %s through %s" % (self.code(), self.original_decoder())
@@ -548,7 +541,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: latex(D)
-            \textnormal{Decoder of } Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) [3] \textnormal{ through } Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
+            \textnormal{Decoder of } Punctured code coming from [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4 punctured on position(s) set([3]) \textnormal{ through } Error-Erasure decoder for [15, 7, 9] Generalized Reed-Solomon Code over Finite Field in a of size 2^4
         """
         return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
 

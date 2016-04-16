@@ -458,7 +458,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         INPUT:
 
-        - ``points`` -- a list of positions where to puncture ``self``
+        - ``points`` -- a set of positions where to puncture ``self``
 
         EXAMPLES::
 
@@ -479,7 +479,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         punctured_alphas += alphas[start:n]
         punctured_col_mults += col_mults[start:n]
         G = self.generator_matrix()
-        G = G.delete_columns(points)
+        G = G.delete_columns(list(points))
         dimension = self.dimension()
         if G.rank() != dimension:
             G = G.echelon_form()

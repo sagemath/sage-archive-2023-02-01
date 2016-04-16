@@ -274,9 +274,11 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
             return
 
         perm = Word(self._weights).standard_permutation()
-        l = [x for x in sorted(self._weights)]
+        perm = [len(self._weights)-i for i in perm]
+        l = [x for x in sorted(self._weights, reverse=True)]
         for x in iterator_fast(self._n, l):
-            yield perm.action(x)
+            yield [x[i] for i in perm]
+            #.action(x)
             #_left_to_right_multiply_on_right(Permutation(x))
 
 def iterator_fast(n, l):
@@ -286,44 +288,47 @@ def iterator_fast(n, l):
     INPUT:
 
     - ``n`` -- an integer
-    - ``l`` -- the weights in weakly increasing order
+    - ``l`` -- the weights in weakly decreasing order
 
     EXAMPLES::
 
         sage: from sage.combinat.integer_vector_weighted import iterator_fast
-        sage: list(iterator_fast(3, [1,1,2]))
-        [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
+        sage: list(iterator_fast(3, [2,1,1]))
+        [[1, 1, 0], [1, 0, 1], [0, 3, 0], [0, 2, 1], [0, 1, 2], [0, 0, 3]]
         sage: list(iterator_fast(2, [2]))
         [[1]]
     """
     if n < 0:
         return
 
+    zero = ZZ.zero()
+    one = ZZ.one()
+
     if not l:
         if n == 0:
             yield []
         return
     if len(l) == 1:
-        if n % l[-1] == 0:
-            yield [n / l[-1]]
+        if n % l[0] == 0:
+            yield [n / l[0]]
         return
 
-    k = -1
-    cur = [n // l[k] + 1]
-    rem = n - cur[0] * l[k] # Amount remaining
+    k = 0
+    cur = [n // l[k] + one]
+    rem = n - cur[-1] * l[k] # Amount remaining
     while cur:
-        cur[0] -= 1
+        cur[-1] -= one
         rem += l[k]
-        if rem == 0:
-            yield [ZZ.zero()] * (len(l) - len(cur)) + cur
-        elif cur[0] < 0 or rem < 0:
-            rem += cur.pop(0) * l[k]
-            k += 1
-        elif len(l) == len(cur) + 1:
-            if rem % l[0] == 0:
-                yield [rem // l[0]] + cur
-        else:
+        if rem == zero:
+            yield cur + [zero] * (len(l) - len(cur))
+        elif cur[-1] < zero or rem < zero:
+            rem += cur.pop() * l[k]
             k -= 1
-            cur.insert(0, rem // l[k] + 1)
-            rem -= cur[0] * l[k]
+        elif len(l) == len(cur) + 1:
+            if rem % l[-1] == zero:
+                yield cur + [rem // l[-1]]
+        else:
+            k += 1
+            cur.append(rem // l[k] + one)
+            rem -= cur[-1] * l[k]
 

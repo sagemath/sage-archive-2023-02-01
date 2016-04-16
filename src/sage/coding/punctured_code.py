@@ -283,7 +283,6 @@ class PuncturedCode(AbstractLinearCode):
                 pts.add(i + cpt)
                 cpt += 1
             C = C.original_code()
-        print pts
         return C._punctured_form(pts)
 
 
@@ -371,13 +370,8 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
         M = C.generator_matrix()
         G = M.delete_columns(list(pos))
         G = G.echelon_form()
-        delete = []
-        cpt = 0
-        for i in G.rows():
-            if i.is_zero():
-                delete.append(cpt)
-            cpt += 1
-        return G.delete_rows(delete)
+        k = G.rank()
+        return G[:k]
 
 
 

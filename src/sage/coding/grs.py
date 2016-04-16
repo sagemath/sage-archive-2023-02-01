@@ -463,29 +463,21 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         EXAMPLES::
 
             sage: C_grs = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
-            sage: C_grs._punctured_form([3])
-            [39, 12, 28] Generalized Reed-Solomon Code over Finite Field of size 59
+            sage: C_grs._punctured_form({4, 3})
+            [38, 12, 27] Generalized Reed-Solomon Code over Finite Field of size 59
         """
+        if not isinstance(points, (Integer, int, set)):
+            raise TypeError("points must be either a Sage Integer, a Python int, or a set")
         alphas = list(self.evaluation_points())
         col_mults = list(self.column_multipliers())
         n = self.length()
         punctured_alphas = []
         punctured_col_mults = []
-        start = 0
-        for i in points:
-            punctured_alphas += alphas[start:i]
-            punctured_col_mults += col_mults[start:i]
-            start = i + 1
-        punctured_alphas += alphas[start:n]
-        punctured_col_mults += col_mults[start:n]
+        punctured_alphas = [alphas[i] for i in range(n) if i not in points]
+        punctured_col_mults = [col_mults[i] for i in range(n) if i not in points]
         G = self.generator_matrix()
         G = G.delete_columns(list(points))
-        dimension = self.dimension()
-        if G.rank() != dimension:
-            G = G.echelon_form()
-            for i in range(dimension):
-                if G[i] == 0:
-                    dimension -= 1
+        dimension = G.rank()
         return GeneralizedReedSolomonCode(punctured_alphas, dimension, punctured_col_mults)
 
     def decode_to_message(self, r):

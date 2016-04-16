@@ -424,7 +424,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
         As seen below, if all optional are left blank, and if an error-erasure decoder is
         available, it will be chosen as the original decoder.
-        Now, if one forces ``strategy `` to ``'try-all'`` or ``'random_values'``, the
+        Now, if one forces ``strategy `` to ``'try-all'`` or ``'random-values'``, the
         default decoder of the original code will be chosen, even if an error-erasure is available::
 
             sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
@@ -490,10 +490,10 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
         elif strategy == 'random-values' or strategy == 'try-all':
             self._original_decoder = code.original_code().decoder(**kwargs)
         else:
-            error_erasure = 0
+            error_erasure = False
             for D in original_code._registered_decoders.values():
                 if 'error-erasure' in D._decoder_type:
-                    error_erasure = 1
+                    error_erasure = True
                     self._original_decoder = D(original_code, **kwargs)
                     break
             if not error_erasure:
@@ -642,20 +642,22 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: D.decoding_radius(2)
-            3
+            2
         """
         punctured = len(self.code().punctured_positions())
         D = self.original_decoder()
         if self._strategy != 'try-all' and "error-erasure" not in D.decoder_type():
-            return D.decoding_radius() - punctured
+            if D.decoding_radius() - punctured >= 0:
+                return D.decoding_radius - punctured
+            else:
+                return 0
         elif "error-erasure" in D.decoder_type() and number_erasures is not None:
             diff = self.code().original_code().minimum_distance() - number_erasures
             if diff <= 0:
-                raise ValueError("The number of erasures exceed decoding capability")
-            return (diff - punctured) // 2
+                raise ValueError("The number of erasures exceeds decoding capability")
+            return (diff - punctured - 1) // 2
         elif "error-erasure" in D.decoder_type() and number_erasures is None:
             raise ValueError("You must provide the number of erasures")
-        return D.decoding_radius()
 
 ####################### registration ###############################
 

@@ -2941,19 +2941,16 @@ class AbstractLinearCode(module.Module):
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(11, 4, GF(7))
-            sage: C._punctured_form([3])
+            sage: C._punctured_form({3})
             Linear code of length 10, dimension 4 over Finite Field of size 7
         """
+        if not isinstance(points, (Integer, int, set)):
+            raise TypeError("points must be either a Sage Integer, a Python int, or a set")
         M = self.generator_matrix()
         G = M.delete_columns(list(points))
         G = G.echelon_form()
-        delete = []
-        cpt = 0
-        for i in G.rows():
-            if i.is_zero():
-                delete.append(cpt)
-            cpt += 1
-        return LinearCode(G.delete_rows(delete))
+        k = G.rank()
+        return LinearCode(G[:k])
 
     def random_element(self, *args, **kwds):
         """

@@ -55,12 +55,11 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
 from libc.stdlib cimport free
-from sage.ext.memory cimport check_realloc
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ####################
 #

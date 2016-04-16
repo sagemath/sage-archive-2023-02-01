@@ -14,7 +14,7 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 ctypedef long long llong
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ###############################################################
 #
@@ -690,11 +690,11 @@ cdef class P1List:
 
         # Allocate memory for xgcd table.
         self.g = NULL; self.s = NULL; self.t = NULL
-        self.g = <int*> sage_malloc(sizeof(int)*N)
+        self.g = <int*> sig_malloc(sizeof(int)*N)
         if not self.g: raise MemoryError
-        self.s = <int*> sage_malloc(sizeof(int)*N)
+        self.s = <int*> sig_malloc(sizeof(int)*N)
         if not self.s: raise MemoryError
-        self.t = <int*> sage_malloc(sizeof(int)*N)
+        self.t = <int*> sig_malloc(sizeof(int)*N)
         if not self.t: raise MemoryError
 
         # Initialize xgcd table
@@ -713,9 +713,9 @@ cdef class P1List:
         """
         Deallocates memory for an object of the class P1List.
         """
-        if self.g: sage_free(self.g)
-        if self.s: sage_free(self.s)
-        if self.t: sage_free(self.t)
+        if self.g: sig_free(self.g)
+        if self.s: sig_free(self.s)
+        if self.t: sig_free(self.t)
 
 
     def __cmp__(self, other):

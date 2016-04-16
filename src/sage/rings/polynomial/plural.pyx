@@ -102,7 +102,7 @@ TESTS::
     True
 
 """
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.categories.algebras import Algebras
 
@@ -2017,7 +2017,7 @@ cdef class NCPolynomial_plural(RingElement):
         cdef int i
         cdef int flag
         cdef int gens = self._parent.ngens()
-        cdef int *exps = <int*>sage_malloc(sizeof(int)*gens)
+        cdef int *exps = <int*>sig_malloc(sizeof(int)*gens)
         for i from 0<=i<gens:
             exps[i] = -1
 
@@ -2062,7 +2062,7 @@ cdef class NCPolynomial_plural(RingElement):
                 newp = p_Add_q(newp,newptemp,r)
             p = pNext(p)
 
-        sage_free(exps)
+        sig_free(exps)
 
         return new_NCP(self.parent(),newp)
 

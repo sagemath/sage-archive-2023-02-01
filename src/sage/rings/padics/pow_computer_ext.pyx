@@ -220,7 +220,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     ##printer.x = (low_shifter[0]).val()
     ##print printer
     ZZ_pX_InvMod_newton_ram(shift_seed_inv, shift_seed.x, prime_pow.get_top_modulus()[0], prime_pow.get_top_context().x)
-    for i from 0 <= i < low_length:
+    for i in range(low_length):
         # Currently tmp = p / x^(2^(i-1)).  Squaring yields p^2 / x^(2^i)
         #ZZ_pX_SqrMod(tmp, tmp, modup)
         # Now we divide by p.
@@ -266,7 +266,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     else:
         high_shifter_p[0] = into_multiplier
     # Now we cache powers of p/x^e.  This is a unit, so we don't have to worry about precision issues (yay!)
-    for i from 1 <= i < high_length:
+    for i in range(1, high_length):
         ZZ_pX_SqrMod_pre(into_multiplier, into_multiplier, prime_pow.get_top_modulus()[0])
         if multiplier:
             ZZ_pX_Multiplier_build(high_shifter_m[i], into_multiplier, prime_pow.get_top_modulus()[0])
@@ -322,7 +322,7 @@ cdef int ZZ_pX_eis_shift_p(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long 
         sage: yr = xr^2
         sage: dtr = xr.derivative()
         sage: f_dtr = yr*dtr; f_dtr
-        (a^6 + 6*a^36 + 2*a^66 + 7*a^96 + 4*a^126 + O(a^156))*t^5 + (a^8 + 2*a^38 + 8*a^68 + 3*a^98 + O(a^158))*t^7 + (8*a^40 + 10*a^100 + 5*a^130 + O(a^160))*t^9 + (2*a^12 + 5*a^42 + 3*a^72 + 7*a^102 + O(a^162))*t^11 + (8*a^14 + a^44 + 6*a^74 + 4*a^104 + 7*a^134 + O(a^164))*t^13 + (2*a^16 + 8*a^46 + 5*a^106 + 4*a^136 + O(a^166))*t^15 + (a^18 + 6*a^48 + 5*a^78 + 2*a^108 + 9*a^138 + O(a^168))*t^17 + (8*a^50 + 2*a^110 + O(a^170))*t^19 + (4*a^52 + 2*a^82 + 7*a^112 + 5*a^142 + O(a^172))*t^21 + (2*a^54 + 3*a^84 + 8*a^114 + 6*a^144 + O(a^174))*t^23 + (a^26 + 6*a^56 + 4*a^86 + 9*a^116 + 3*a^146 + O(a^176))*t^25 + (10*a^28 + 5*a^58 + 4*a^88 + 10*a^118 + 6*a^148 + O(a^178))*t^27 + (5*a^30 + 5*a^60 + 4*a^90 + 9*a^120 + 3*a^150 + O(a^180))*t^29 + (4*a^32 + 10*a^62 + 5*a^92 + 7*a^122 + 3*a^152 + O(a^182))*t^31 + (5*a^34 + 9*a^94 + 3*a^124 + 6*a^154 + O(a^184))*t^33 + (4*a^36 + 3*a^66 + 10*a^96 + 2*a^126 + 6*a^156 + O(a^186))*t^35 + (6*a^38 + 9*a^68 + 7*a^128 + 10*a^158 + O(a^188))*t^37 + (7*a^40 + 3*a^70 + 4*a^100 + 4*a^130 + 8*a^160 + O(a^190))*t^39 + (a^42 + 10*a^72 + 10*a^102 + a^132 + 7*a^162 + O(a^192))*t^41 + (8*a^74 + 8*a^104 + 9*a^134 + 7*a^164 + O(a^194))*t^43 + (10*a^136 + 2*a^166 + O(a^196))*t^45 + (7*a^48 + 10*a^78 + 5*a^108 + 8*a^138 + 3*a^168 + O(a^198))*t^47 + (6*a^50 + 5*a^80 + a^110 + 6*a^170 + O(a^200))*t^49 + (a^52 + 8*a^82 + 2*a^112 + 10*a^172 + O(a^202))*t^51 + (9*a^54 + 2*a^84 + 6*a^114 + 4*a^144 + O(a^204))*t^53 + (2*a^56 + 5*a^86 + 2*a^116 + 4*a^146 + a^176 + O(a^206))*t^55 + (3*a^58 + 3*a^88 + a^118 + 5*a^148 + 2*a^178 + O(a^208))*t^57 + (5*a^60 + 10*a^90 + 9*a^120 + a^150 + 6*a^180 + O(a^210))*t^59 + (4*a^62 + 9*a^92 + 7*a^122 + 7*a^152 + 9*a^182 + O(a^212))*t^61 + (10*a^64 + 8*a^94 + 6*a^124 + 8*a^154 + 4*a^184 + O(a^214))*t^63 + (4*a^126 + 10*a^156 + 9*a^186 + O(a^216))*t^65 + (7*a^98 + 4*a^128 + 6*a^158 + 6*a^188 + O(a^218))*t^67 + (3*a^70 + 6*a^100 + 8*a^130 + 9*a^160 + 10*a^190 + O(a^220))*t^69 + (9*a^72 + 5*a^102 + 9*a^132 + 3*a^162 + 10*a^192 + O(a^222))*t^71 + (3*a^74 + 8*a^104 + 7*a^134 + 2*a^164 + O(a^224))*t^73 + (10*a^76 + a^106 + 2*a^136 + 4*a^166 + 9*a^196 + O(a^226))*t^75 + (3*a^78 + 6*a^108 + 9*a^138 + 4*a^168 + 5*a^198 + O(a^228))*t^77 + (4*a^80 + 10*a^110 + 7*a^170 + 8*a^200 + O(a^230))*t^79 + (5*a^82 + 4*a^112 + 9*a^142 + 8*a^172 + 8*a^202 + O(a^232))*t^81 + (4*a^84 + 9*a^114 + 8*a^144 + 2*a^174 + 6*a^204 + O(a^234))*t^83 + (3*a^86 + 5*a^116 + 4*a^146 + 8*a^206 + O(a^236))*t^85 + (a^118 + 7*a^148 + 6*a^208 + O(a^238))*t^87 + (4*a^90 + 9*a^120 + 9*a^150 + 6*a^180 + 6*a^210 + O(a^240))*t^89 + (10*a^122 + 3*a^152 + 8*a^182 + 4*a^212 + 2*a^242 + O(a^244))*t^91 + (9*a^154 + 10*a^184 + 10*a^214 + 7*a^244 + 9*a^274 + O(a^276))*t^93 + (9*a^186 + 4*a^216 + 5*a^246 + a^276 + 10*a^306 + O(a^308))*t^95
+        O(a^456)*t^2 + O(a^306)*t^3 + O(a^156)*t^4 + (a^6 + 6*a^36 + 2*a^66 + 7*a^96 + 4*a^126 + O(a^156))*t^5 + O(a^158)*t^6 + (a^8 + 2*a^38 + 8*a^68 + 3*a^98 + O(a^158))*t^7 + O(a^160)*t^8 + (8*a^40 + 10*a^100 + 5*a^130 + O(a^160))*t^9 + O(a^162)*t^10 + (2*a^12 + 5*a^42 + 3*a^72 + 7*a^102 + O(a^162))*t^11 + O(a^164)*t^12 + (8*a^14 + a^44 + 6*a^74 + 4*a^104 + 7*a^134 + O(a^164))*t^13 + O(a^166)*t^14 + (2*a^16 + 8*a^46 + 5*a^106 + 4*a^136 + O(a^166))*t^15 + O(a^168)*t^16 + (a^18 + 6*a^48 + 5*a^78 + 2*a^108 + 9*a^138 + O(a^168))*t^17 + O(a^170)*t^18 + (8*a^50 + 2*a^110 + O(a^170))*t^19 + O(a^172)*t^20 + (4*a^52 + 2*a^82 + 7*a^112 + 5*a^142 + O(a^172))*t^21 + O(a^174)*t^22 + (2*a^54 + 3*a^84 + 8*a^114 + 6*a^144 + O(a^174))*t^23 + O(a^176)*t^24 + (a^26 + 6*a^56 + 4*a^86 + 9*a^116 + 3*a^146 + O(a^176))*t^25 + O(a^178)*t^26 + (10*a^28 + 5*a^58 + 4*a^88 + 10*a^118 + 6*a^148 + O(a^178))*t^27 + O(a^180)*t^28 + (5*a^30 + 5*a^60 + 4*a^90 + 9*a^120 + 3*a^150 + O(a^180))*t^29 + O(a^182)*t^30 + (4*a^32 + 10*a^62 + 5*a^92 + 7*a^122 + 3*a^152 + O(a^182))*t^31 + O(a^184)*t^32 + (5*a^34 + 9*a^94 + 3*a^124 + 6*a^154 + O(a^184))*t^33 + O(a^186)*t^34 + (4*a^36 + 3*a^66 + 10*a^96 + 2*a^126 + 6*a^156 + O(a^186))*t^35 + O(a^188)*t^36 + (6*a^38 + 9*a^68 + 7*a^128 + 10*a^158 + O(a^188))*t^37 + O(a^190)*t^38 + (7*a^40 + 3*a^70 + 4*a^100 + 4*a^130 + 8*a^160 + O(a^190))*t^39 + O(a^192)*t^40 + (a^42 + 10*a^72 + 10*a^102 + a^132 + 7*a^162 + O(a^192))*t^41 + O(a^194)*t^42 + (8*a^74 + 8*a^104 + 9*a^134 + 7*a^164 + O(a^194))*t^43 + O(a^196)*t^44 + (10*a^136 + 2*a^166 + O(a^196))*t^45 + O(a^198)*t^46 + (7*a^48 + 10*a^78 + 5*a^108 + 8*a^138 + 3*a^168 + O(a^198))*t^47 + O(a^200)*t^48 + (6*a^50 + 5*a^80 + a^110 + 6*a^170 + O(a^200))*t^49 + O(a^202)*t^50 + (a^52 + 8*a^82 + 2*a^112 + 10*a^172 + O(a^202))*t^51 + O(a^204)*t^52 + (9*a^54 + 2*a^84 + 6*a^114 + 4*a^144 + O(a^204))*t^53 + O(a^206)*t^54 + (2*a^56 + 5*a^86 + 2*a^116 + 4*a^146 + a^176 + O(a^206))*t^55 + O(a^208)*t^56 + (3*a^58 + 3*a^88 + a^118 + 5*a^148 + 2*a^178 + O(a^208))*t^57 + O(a^210)*t^58 + (5*a^60 + 10*a^90 + 9*a^120 + a^150 + 6*a^180 + O(a^210))*t^59 + O(a^212)*t^60 + (4*a^62 + 9*a^92 + 7*a^122 + 7*a^152 + 9*a^182 + O(a^212))*t^61 + O(a^214)*t^62 + (10*a^64 + 8*a^94 + 6*a^124 + 8*a^154 + 4*a^184 + O(a^214))*t^63 + O(a^216)*t^64 + (4*a^126 + 10*a^156 + 9*a^186 + O(a^216))*t^65 + O(a^218)*t^66 + (7*a^98 + 4*a^128 + 6*a^158 + 6*a^188 + O(a^218))*t^67 + O(a^220)*t^68 + (3*a^70 + 6*a^100 + 8*a^130 + 9*a^160 + 10*a^190 + O(a^220))*t^69 + O(a^222)*t^70 + (9*a^72 + 5*a^102 + 9*a^132 + 3*a^162 + 10*a^192 + O(a^222))*t^71 + O(a^224)*t^72 + (3*a^74 + 8*a^104 + 7*a^134 + 2*a^164 + O(a^224))*t^73 + O(a^226)*t^74 + (10*a^76 + a^106 + 2*a^136 + 4*a^166 + 9*a^196 + O(a^226))*t^75 + O(a^228)*t^76 + (3*a^78 + 6*a^108 + 9*a^138 + 4*a^168 + 5*a^198 + O(a^228))*t^77 + O(a^230)*t^78 + (4*a^80 + 10*a^110 + 7*a^170 + 8*a^200 + O(a^230))*t^79 + O(a^232)*t^80 + (5*a^82 + 4*a^112 + 9*a^142 + 8*a^172 + 8*a^202 + O(a^232))*t^81 + O(a^234)*t^82 + (4*a^84 + 9*a^114 + 8*a^144 + 2*a^174 + 6*a^204 + O(a^234))*t^83 + O(a^236)*t^84 + (3*a^86 + 5*a^116 + 4*a^146 + 8*a^206 + O(a^236))*t^85 + O(a^238)*t^86 + (a^118 + 7*a^148 + 6*a^208 + O(a^238))*t^87 + O(a^240)*t^88 + (4*a^90 + 9*a^120 + 9*a^150 + 6*a^180 + 6*a^210 + O(a^240))*t^89 + O(a^244)*t^90 + (10*a^122 + 3*a^152 + 8*a^182 + 4*a^212 + 2*a^242 + O(a^244))*t^91 + O(a^276)*t^92 + (9*a^154 + 10*a^184 + 10*a^214 + 7*a^244 + 9*a^274 + O(a^276))*t^93 + O(a^308)*t^94 + (9*a^186 + 4*a^216 + 5*a^246 + a^276 + 10*a^306 + O(a^308))*t^95
     """
     ##print "starting..."
     cdef ZZ_pX_c low_part
@@ -499,6 +499,8 @@ cdef class PowComputer_ext(PowComputer_class):
 
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
         """
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
+
         self._initialized = 0
         self.small_powers = Allocate_ZZ_array(cache_limit + 1)
         if self.small_powers == NULL:
@@ -513,12 +515,13 @@ cdef class PowComputer_ext(PowComputer_class):
             mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
-        for i from 2 <= i <= cache_limit:
+        for i in range(2, cache_limit + 1):
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
+        mpz_init(self.temp_m2)
 
         self._poly = poly
         self._shift_seed = shift_seed
@@ -532,7 +535,7 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del PC # indirect doctest
         """
-        if (<PowComputer_class>self)._initialized:
+        if (<PowComputer_ext>self)._initialized:
             self.cleanup_ext()
 
     def __repr__(self):
@@ -578,8 +581,9 @@ cdef class PowComputer_ext(PowComputer_class):
         """
         Delete_ZZ_array(self.small_powers)
         mpz_clear(self.temp_m)
+        mpz_clear(self.temp_m2)
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -751,6 +755,16 @@ cdef class PowComputer_ext(PowComputer_class):
 
 cdef class PowComputer_ZZ_pX(PowComputer_ext):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
+            sage: TestSuite(PC).run()
+        """
         if not isinstance(poly, ntl_ZZ_pX):
             raise TypeError
         self.deg = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
@@ -863,7 +877,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         end = mpz_get_ui((<Integer>Integer(runs)).value)
         _n = mpz_get_ui((<Integer>Integer(n)).value)
         t = cputime()
-        for i from 0 <= i < end:
+        for i in range(end):
             # Put the function you want speed tested here.
             self.get_modulus(_n)
         return cputime(t)
@@ -1218,7 +1232,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             ZZ_pX_add(xnew_q, xnew_q, x[0])
             # while x != xnew:
             #     x = xnew
-            #     xnew = x + u*(x^p - x)
+            #     xnew = x + u*(x^q - x)
             while x[0] != xnew_q:
                 x[0] = xnew_q
                 ZZ_pX_PowerMod_pre(xnew_q, x[0], q, self.get_modulus(absprec)[0])
@@ -1612,7 +1626,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.c.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.c.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -1620,7 +1634,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.c[cache_limit]).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.c[i]).restore_c()
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.c[i]).x)
                 ZZ_pX_Modulus_build(self.mod[i], tmp)
@@ -1775,6 +1789,18 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 10, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'small', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_small_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
@@ -1958,7 +1984,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         if isinstance(poly, ntl_ZZ_pX):
             pol = (<ntl_ZZ_pX>poly).x
             self.context_list.append(None)
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 self.context_list.append(PowComputer_ZZ_pX.get_context(self,i))
 
             # create a temporary polynomial with the highest modulus to
@@ -1967,7 +1993,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             (<ntl_ZZ_pContext_class>self.top_context).restore_c()
             tmp = (<ntl_ZZ_pX>poly).x
 
-            for i from 1 <= i <= cache_limit:
+            for i in range(1, cache_limit + 1):
                 (<ntl_ZZ_pContext_class>self.context_list[i]).restore_c()
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.context_list[i]).x)
                 ZZ_pX_Modulus_build(self.modulus_list[i], tmp)
@@ -2191,6 +2217,18 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 3, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'big', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_big_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"

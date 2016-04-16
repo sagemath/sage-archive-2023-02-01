@@ -1020,7 +1020,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R
             Infinite polynomial ring in a, b over Integer Ring
 
-        The following tests against a bug that was fixed at trac ticket #10468::
+        The following tests against a bug that was fixed at :trac:`10468`::
 
             sage: R.<x,y> = InfinitePolynomialRing(QQ)
             sage: R.tensor_with_ring(QQ) is R
@@ -1087,7 +1087,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.is_field()
             False
 
-        Ticket #9443::
+        :trac:`9443`::
 
             sage: W = PowerSeriesRing(InfinitePolynomialRing(QQ,'a'),'x')
             sage: W.is_field()
@@ -1261,7 +1261,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         TESTS:
 
-        Ticket #9443::
+        :trac:`9443`::
 
             sage: W = PolynomialRing(InfinitePolynomialRing(QQ,'a'),2,'x,y')
             sage: W.is_integral_domain()
@@ -1536,7 +1536,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             sage: R
             Infinite polynomial ring in a, b over Integer Ring
 
-        The following tests against a bug that was fixed at trac ticket #10468::
+        The following tests against a bug that was fixed at :trac:`10468`::
 
             sage: R.<x,y> = InfinitePolynomialRing(QQ, implementation='sparse')
             sage: R.tensor_with_ring(QQ) is R

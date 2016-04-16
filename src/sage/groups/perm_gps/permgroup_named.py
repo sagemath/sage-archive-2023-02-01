@@ -91,7 +91,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -275,7 +275,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [PermutationGroupElement(g, self, check=False)
+        self._gens = [self._element_class()(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -351,6 +351,19 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.root_system.cartan_type import CartanType
         return CartanType(['A', max(self.degree() - 1,0)])
 
+    def coxeter_matrix(self):
+        r"""
+        Return the Coxeter matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup([2,3,7,'a']); A.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """
+        return self.cartan_type().coxeter_matrix()
+
     def simple_reflection(self, i):
         r"""
         For `i` in the index set of ``self``, this returns the
@@ -367,6 +380,20 @@ class SymmetricGroup(PermutationGroup_symalt):
             Finite family {2: (2,3), 3: (3,7)}
         """
         return self([(i, self._domain[self._domain.index(i)+1])], check=False)
+
+    def reflections(self):
+        """
+        Return the list of all reflections in ``self``.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup(3)
+            sage: A.reflections()
+            [(1,2), (1,3), (2,3)]
+        """
+        from itertools import combinations
+        dom = self._domain
+        return [self([(i, j)], check=False) for i, j in combinations(dom, 2)]
 
     def young_subgroup(self, comp):
         """
@@ -590,6 +617,17 @@ class SymmetricGroup(PermutationGroup_symalt):
             return SymmetricGroupAlgebra(base_ring, self, category=category)
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
+
+    def _element_class(self):
+        r"""
+        Return the class to be used for creating elements of this group.
+
+        EXAMPLE::
+
+            sage: SymmetricGroup(17)._element_class()
+            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
+        """
+        return SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

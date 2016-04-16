@@ -469,27 +469,8 @@ cdef class Function(SageObject):
                     method = getattr(args[0], self._name, None)
                     if callable(method):
                         return method()
+                raise TypeError("cannot coerce arguments: %s" % (err))
 
-                # There is no natural coercion from QQbar to the symbolic ring
-                # in order to support
-                #     sage: QQbar(sqrt(2)) + sqrt(3)
-                #     3.146264369941973?
-                # to work around this limitation, we manually convert
-                # elements of QQbar to symbolic expressions here
-                from sage.rings.qqbar import QQbar, AA
-                nargs = [None]*len(args)
-                for i in range(len(args)):
-                    carg = args[i]
-                    if isinstance(carg, Element) and \
-                            (<Element>carg)._parent is QQbar or \
-                            (<Element>carg)._parent is AA:
-                        nargs[i] = SR(carg)
-                    else:
-                        try:
-                            nargs[i] = SR.coerce(carg)
-                        except Exception:
-                            raise TypeError("cannot coerce arguments: %s" % (err))
-                args = nargs
         else: # coerce == False
             for a in args:
                 if not isinstance(a, Expression):

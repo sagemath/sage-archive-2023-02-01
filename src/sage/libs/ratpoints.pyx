@@ -2,7 +2,7 @@ r"""
 Hyperelliptic Curve Point Finding, via ratpoints.
 """
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 
@@ -15,9 +15,9 @@ cdef int process(long x, long z, mpz_t y, void *info0, int *quit):
     if plist.array_size == plist.num_points:
         i = plist.array_size
         plist.array_size *= 2
-        plist.xes = <long *> sage_realloc(plist.xes, plist.array_size * sizeof(long))
-        plist.ys = <mpz_t *> sage_realloc(plist.ys, plist.array_size * sizeof(mpz_t))
-        plist.zs = <long *> sage_realloc(plist.zs, plist.array_size * sizeof(long))
+        plist.xes = <long *> sig_realloc(plist.xes, plist.array_size * sizeof(long))
+        plist.ys = <mpz_t *> sig_realloc(plist.ys, plist.array_size * sizeof(mpz_t))
+        plist.zs = <long *> sig_realloc(plist.zs, plist.array_size * sizeof(long))
         while i < plist.array_size:
             mpz_init(plist.ys[i])
             i += 1
@@ -141,19 +141,19 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
     # Set the soefficient array:
     coeffs = [Integer(a) for a in coeffs]
     args.degree = len(coeffs)-1
-    args.cof = <mpz_t *> sage_malloc((args.degree+1) * sizeof(mpz_t))
+    args.cof = <mpz_t *> sig_malloc((args.degree+1) * sizeof(mpz_t))
 
     # Create an array to hold the points found:
-    plist = <point_list *> sage_malloc(sizeof(point_list))
+    plist = <point_list *> sig_malloc(sizeof(point_list))
     if max == 0:
         plist.array_size = 64
     else:
         plist.array_size = max
-    plist.xes = <long *> sage_malloc(plist.array_size * sizeof(long))
-    plist.ys = <mpz_t *> sage_malloc(plist.array_size * sizeof(mpz_t))
+    plist.xes = <long *> sig_malloc(plist.array_size * sizeof(long))
+    plist.ys = <mpz_t *> sig_malloc(plist.array_size * sizeof(mpz_t))
     for i from 0 <= i < plist.array_size:
         mpz_init(plist.ys[i])
-    plist.zs = <long *> sage_malloc(plist.array_size * sizeof(long))
+    plist.zs = <long *> sig_malloc(plist.array_size * sizeof(long))
     plist.num_points = 0
     plist.max_num_points = max
 
@@ -162,7 +162,7 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
 
     # Set the intervals to be searched, including any specified:
     args.num_inter = len(intervals)
-    args.domain = <ratpoints_interval *> sage_malloc((args.num_inter + args.degree) * sizeof(ratpoints_interval))
+    args.domain = <ratpoints_interval *> sig_malloc((args.num_inter + args.degree) * sizeof(ratpoints_interval))
     for i,I in enumerate(intervals):
         args.domain[i].low = I[0]
         args.domain[i].up  = I[1]
@@ -199,8 +199,8 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
     for i from 0 <= i <= args.degree:
         mpz_clear(args.cof[i])
 
-    sage_free(args.cof)
-    sage_free(args.domain)
+    sig_free(args.cof)
+    sig_free(args.domain)
 
     cdef list L = []
     for i from 0 <= i < plist.num_points:
@@ -214,10 +214,10 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
 
     for i from 0 <= i < plist.array_size:
         mpz_clear(plist.ys[i])
-    sage_free(plist.xes)
-    sage_free(plist.ys)
-    sage_free(plist.zs)
-    sage_free(plist)
+    sig_free(plist.xes)
+    sig_free(plist.ys)
+    sig_free(plist.zs)
+    sig_free(plist)
 
     return L
 
@@ -243,7 +243,7 @@ cdef int ratpoints_mpz_exists_only(mpz_t *coeffs, long H, int degree, bint verbo
     assert degree <= RATPOINTS_MAX_DEGREE
     args.degree = degree
     args.cof = coeffs
-    args.domain = <ratpoints_interval *> sage_malloc(2*args.degree * sizeof(ratpoints_interval))
+    args.domain = <ratpoints_interval *> sig_malloc(2*args.degree * sizeof(ratpoints_interval))
     args.height = H
     args.num_inter = 0
     args.b_low = 1
@@ -258,7 +258,7 @@ cdef int ratpoints_mpz_exists_only(mpz_t *coeffs, long H, int degree, bint verbo
     sig_on()
     total = find_points(&args, process_exists_only, <void *>(&info_s))
     sig_off()
-    sage_free(args.domain)
+    sig_free(args.domain)
     if total == RATPOINTS_NON_SQUAREFREE:
         raise RuntimeError('Polynomial must be square-free')
     if total == RATPOINTS_BAD_ARGS:

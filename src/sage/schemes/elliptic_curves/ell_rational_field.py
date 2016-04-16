@@ -4015,22 +4015,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             k += 1
         return bound
 
-
-    def torsion_subgroup(self, algorithm="pari"):
+    def torsion_subgroup(self, algorithm=None):
         """
         Returns the torsion subgroup of this elliptic curve.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-        -  ``"pari"`` - (default) use the PARI library
-
-        -  ``"doud"`` - use Doud's algorithm
-
-        -  ``"lutz_nagell"`` - use the Lutz-Nagell theorem
-
 
         OUTPUT: The EllipticCurveTorsionSubgroup instance associated to
         this elliptic curve.
@@ -4064,26 +4051,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__torsion_subgroup
         except AttributeError:
+            # algorithm is deprecated: if not None, this will give a warning.
+            # deprecation(20219)
             self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
             self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 
-    def torsion_points(self, algorithm="pari"):
+    def torsion_points(self, algorithm=None):
         """
         Returns the torsion points of this elliptic curve as a sorted
         list.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-           -  "pari" - (default) use the PARI library
-
-           -  "doud" - use Doud's algorithm
-
-           -  "lutz_nagell" - use the Lutz-Nagell theorem
-
 
         OUTPUT: A list of all the torsion points on this elliptic curve.
 
@@ -4153,6 +4130,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              (244 : -3902 : 1),
              (244 : 3658 : 1)]
         """
+        # algorithm is deprecated: if not None, this will give a warning.
+        # deprecation(20219)
         return sorted(self.torsion_subgroup(algorithm).points())
 
     @cached_method

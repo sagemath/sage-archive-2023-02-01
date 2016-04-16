@@ -225,6 +225,8 @@ class Function_cot(GinacFunction):
 
             sage: cot(complex(1,1))     # rel tol 1e-15
             (0.21762156185440273-0.8680141428959249j)
+            sage: cot(1.+I)
+            0.217621561854403 - 0.868014142895925*I
         """
         GinacFunction.__init__(self, "cot", latex_name=r"\cot")
 
@@ -425,6 +427,8 @@ class Function_arcsin(GinacFunction):
 
             sage: arcsin(x).operator()
             arcsin
+            sage: asin(complex(1,1))
+            (0.6662394324925152+1.0612750619050357j)
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin'))
@@ -480,6 +484,8 @@ class Function_arccos(GinacFunction):
 
             sage: arccos(x).operator()
             arccos
+            sage: acos(complex(1,1))
+            (0.9045568943023814-1.0612750619050357j)
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos'))
@@ -537,6 +543,8 @@ class Function_arctan(GinacFunction):
 
             sage: arctan(x).operator()
             arctan
+            sage: atan(complex(1,1))
+            (1.0172219678978514+0.4023594781085251j)
 
         Check that :trac:`19918` is fixed::
 
@@ -589,6 +597,8 @@ class Function_arccot(GinacFunction):
 
             sage: arccot(complex(1,1))  # rel tol 1e-15
             (0.5535743588970452-0.4023594781085251j)
+            sage: arccot(1.+I)
+            0.553574358897045 - 0.402359478108525*I
 
         """
         GinacFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',

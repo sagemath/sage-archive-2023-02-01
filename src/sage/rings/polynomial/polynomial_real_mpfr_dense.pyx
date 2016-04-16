@@ -22,9 +22,8 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     1.50000000000000*x
 """
 
-include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
+include "cysignals/memory.pxi"
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
@@ -100,7 +99,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: (a*x).complex_roots()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='a') to real number.
+            TypeError: unable to convert 'a' to a real number
 
         Check that :trac:`17190` is fixed::
 
@@ -165,7 +164,7 @@ cdef class PolynomialRealDense(Polynomial):
         if self._coeffs != NULL:
             for i from 0 <= i <= self._degree:
                 mpfr_clear(self._coeffs[i])
-            sage_free(self._coeffs)
+            sig_free(self._coeffs)
 
     def __reduce__(self):
         """

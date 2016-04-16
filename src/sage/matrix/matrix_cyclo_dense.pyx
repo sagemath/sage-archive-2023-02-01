@@ -529,8 +529,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Multiply a dense cyclotomic matrix by a scalar.
 
         INPUT:
-            self -- dense cyclotomic matrix
-            right --- scalar in the base cyclotomic field
+
+        - ``right`` -- scalar in the base cyclotomic field
 
         EXAMPLES::
 
@@ -548,7 +548,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         if right == 1:
             return self
         elif right == 0:
-            return self.parent()(0)
+            return self.parent().zero()
 
         # Create a new matrix object but with the _matrix attribute not initialized:
         cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
@@ -607,14 +607,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: N1*N2
             [        0        -1    -zeta6     zeta6 zeta6 - 1]
 
-        Verify that a degenerate case bug reported at trac 5974 is fixed.
+        Verify that a degenerate case bug reported at :trac:`5974` is fixed.
 
             sage: K.<zeta6>=CyclotomicField(6); matrix(K,1,2) * matrix(K,2,[0, 1, 0, -2*zeta6, 0, 0, 1, -2*zeta6 + 1])
             [0 0 0 0]
 
         TESTS:
 
-        This is from trac #8666::
+        This is from :trac:`8666`::
 
             sage: K.<zeta4> = CyclotomicField(4)
             sage: m = matrix(K, [125])
@@ -750,6 +750,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Make a copy of this matrix.
 
         EXAMPLES:
+
         We create a cyclotomic matrix.::
 
             sage: W.<z> = CyclotomicField(5)
@@ -810,6 +811,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     #    * Specialized echelon form
+    #    * tensor product
     ########################################################################
     def set_immutable(self):
         """
@@ -1830,4 +1832,80 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         lifted_matrix = Finv * reduction
 
         return (lifted_matrix, pivot_ls)
+
+    def tensor_product(self, A, subdivide=True):
+        r"""
+        Return the tensor product of two matrices.
+
+        INPUT:
+
+        - ``A`` -- a matrix
+        - ``subdivide`` -- (default: ``True``) whether or not to return
+          natural subdivisions with the matrix
+
+        OUTPUT:
+
+        Replace each element of ``self`` by a copy of ``A``, but first
+        create a scalar multiple of ``A`` by the element it replaces.
+        So if ``self`` is an `m\times n` matrix and ``A`` is a
+        `p\times q` matrix, then the tensor product is an `mp\times nq`
+        matrix.  By default, the matrix will be subdivided into
+        submatrices of size `p\times q`.
+
+        EXAMPLES::
+
+            sage: C = CyclotomicField(12)
+            sage: M = matrix.random(C, 3, 3)
+            sage: N = matrix.random(C, 50, 50)
+            sage: M.tensor_product(M) == super(type(M), M).tensor_product(M)
+            True
+            sage: N = matrix.random(C, 15, 20)
+            sage: M.tensor_product(N) == super(type(M), M).tensor_product(N)
+            True
+
+        TESTS::
+
+            sage: Mp = matrix.random(C, 2,3)
+            sage: Np = matrix.random(C, 4,5)
+            sage: subdiv = super(type(Mp),Mp).tensor_product(Np).subdivisions()
+            sage: Mp.tensor_product(Np).subdivisions() == subdiv
+            True
+        """
+        if not isinstance(A, Matrix):
+            raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
+
+        if A.base_ring() is not self.base_ring():
+            return super(Matrix_cyclo_dense, self).tensor_product(A, subdivide)
+
+        cdef Matrix_cyclo_dense M
+        l = []
+        R = self.base_ring()
+        X = R._generator_matrix()
+        d = self._degree
+        MS = MatrixSpace(QQ, d, d)
+        mlst = self.list()
+        for c in self._matrix.columns():
+            v = c.list()
+            for n in range(d-1):
+                c = c * X
+                v += c.list()
+            temp = MS(v)
+            rmul = MS([v[d*i+j] for j in range(d) for i in range(d)]) # We take the transpose
+            l.append(rmul * A._rational_matrix())
+
+        nr = self.nrows()
+        nc = self.ncols()
+        Anr = A.nrows()
+        Anc = A.ncols()
+        P = MatrixSpace(R, nr*Anr, nc*Anc)
+        M = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, P,
+                                       None, None, None)
+        MS = MatrixSpace(QQ, d, P.nrows()*P.ncols())
+        ret = [[l[mr*nc+mc][i,r*Anc+c] for mr in range(nr) for r in range(Anr)
+                for mc in range(nc) for c in range(Anc)]
+               for i in range(d)]
+        M._matrix = MS(ret)
+        if subdivide:
+            M.subdivide([Anr*i for i in range(1,nr)], [Anc*i for i in range(1,nc)])
+        return M
 

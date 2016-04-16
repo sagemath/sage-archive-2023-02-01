@@ -260,13 +260,13 @@ class PuncturedCode(AbstractLinearCode):
 
             sage: C_grs = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
 
-        A punctured GRS code is still a punctured code::
+        A punctured GRS code is still a GRS code::
 
             sage: Cp_grs = codes.PuncturedCode(C_grs, 3)
             sage: Cp_grs.structured_representation()
             [39, 12, 28] Generalized Reed-Solomon Code over Finite Field of size 59
 
-        Which is not the case for generic linear codes::
+        Another example with structureless linear codes::
 
             sage: set_random_seed(42)
             sage: C_lin  = codes.RandomLinearCode(10, 5, GF(2))
@@ -280,9 +280,10 @@ class PuncturedCode(AbstractLinearCode):
         while(isinstance(C, PuncturedCode)):
             cur_pts = C.punctured_positions()
             for i in cur_pts:
-                pts.append(i + cpt)
+                pts.add(i + cpt)
                 cpt += 1
             C = C.original_code()
+        print pts
         return C._punctured_form(pts)
 
 

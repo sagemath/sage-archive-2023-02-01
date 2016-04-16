@@ -173,7 +173,7 @@ def pyx_preparse(s):
         'ntl'],
         ['.../include',
         '.../include/python...',
-        '.../python.../site-packages/numpy/core/include',
+        '.../python.../numpy/core/include',
         '...',
         '.../sage/ext',
         '.../cysignals'],
@@ -200,7 +200,7 @@ def pyx_preparse(s):
         ['bar',
         '.../include',
         '.../include/python...',
-        '.../python.../site-packages/numpy/core/include',
+        '.../python.../numpy/core/include',
         '...',
         '.../sage/ext',
         '.../cysignals']

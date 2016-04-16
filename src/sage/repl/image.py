@@ -39,7 +39,7 @@ from sage.structure.sage_object import SageObject
 
 class Image(SageObject):
 
-    def __init__(self, mode, size, color=0):
+    def __init__(self, mode, size, color=(0,)):
         """
         Creates a new image with the given mode and size.
 
@@ -76,13 +76,12 @@ class Image(SageObject):
 
         - ``size`` -- 2-tuple, containing (width, height) in pixels.
 
-        - ``color`` -- string or numeric. What colour to use for the
-          image. Default is black.  If given, this should be a single
-          integer or floating point value for single-band modes, and a
-          tuple for multi-band modes (one value per band).  When
-          creating RGB images, you can also use colour strings as
-          supported by the ImageColor module.  If the colour is None,
-          the image is not initialised.
+        - ``color`` -- string or tuple of numeric. What colour to use
+          for the image. Default is black.  If given, this should be a
+          a tuple with one value per band. When creating RGB images,
+          you can also use colour strings as supported by the
+          ImageColor module.  If the colour is None, the image is not
+          initialised.
 
         OUTPUT:
         
@@ -91,7 +90,7 @@ class Image(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.image import Image
-            sage: Image('P', (16, 16), 13)
+            sage: Image('P', (16, 16), (13,))
             16x16px 8-bit Color image
         """
         self._pil = PIL.Image.new(mode, size, color)
@@ -233,7 +232,7 @@ class Image(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.image import Image
-            sage: img = Image('P', (12, 34), 13)
+            sage: img = Image('P', (12, 34), (13,))
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')

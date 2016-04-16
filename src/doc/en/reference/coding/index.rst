@@ -60,6 +60,8 @@ Source coding
 .. toctree::
    :maxdepth: 1
 
+    sage/coding/source_coding/huffman
+
 Canonical forms
 ---------------
 

@@ -16,7 +16,9 @@ on the `i`-th position.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import AbstractLinearCode
+from linear_code import (AbstractLinearCode,
+                         LinearCodeSyndromeDecoder,
+                         LinearCodeNearestNeighborDecoder)
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method
@@ -660,3 +662,5 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 PuncturedCode._registered_encoders["PuncturedMatrix"] = PuncturedCodePuncturedMatrixEncoder
 PuncturedCode._registered_decoders["OriginalCode"] = PuncturedCodeOriginalCodeDecoder
 PuncturedCodeOriginalCodeDecoder._decoder_type = {"dynamic"}
+PuncturedCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+PuncturedCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

@@ -4516,15 +4516,14 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D.decode_to_code(w_err)
             (1, 1, 0, 0, 1, 1, 0)
         """
-        It = iter(self.code.list())
-        c_min = It.next()
+        c_min = self.code().zero()
         h_min = r.hamming_weight()
         try:
             for c in self.code():
                 if (c-r).hamming_weight() < h_min:
                     h_min = (c-r).hamming_weight()
                     c_min = c
-        except:
+        except StopIteration:
             pass
         c_min.set_immutable()
         return c_min

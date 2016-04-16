@@ -428,21 +428,18 @@ def reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bi
         totest = [ w for w in new if w not in res ]
     return list(res)
 
-cpdef list reduced_coset_representative_sequence(W):
-    cdef int n = W.rank()
-    return [reduced_coset_repesentatives(W,range(i+1),range(i),True) for i in range(n)]
+def parabolic_iteration(W, i=None):
+    cdef PermutationGroupElement w, v
 
-def parabolic_iteration(W):
-    cdef PermutationGroupElement one = W.one()
-    cdef PermutationGroupElement w
-    cdef n = W.rank()
-    cdef list cosets_seq = reduced_coset_representative_sequence(W)
-    from itertools import product
-    for word in product( *cosets_seq ):
-        w = one
-        for i in range(n):
-            w = w._mul_(word[i])
-        yield w
+    if i is None:
+        i = W.rank()
+    elif i == 0:
+        yield W.one()
+        return
+
+    for w in parabolic_iteration(W,i-1):
+        for v in reduced_coset_repesentatives(W, range(i), range(i-1), True):
+            yield w._mul_(v)
 
 cpdef list reduced_word_c(W, PermutationGroupElement w):
     r"""

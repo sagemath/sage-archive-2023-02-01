@@ -1102,7 +1102,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Finite family {1: (1, 0, 0, 0, 0), 2: (0, 1, 0, 0, 0), 3: (0, 0, 1, 0, 0), 4: (0, 0, 0, 1, 0), 5: (0, 0, 0, -1, 1)}
         """
         from sage.sets.family import Family
-        return Family({ind:self.roots()[i] for i,ind in enumerate(self.index_set())})
+        return Family({ind:self.roots()[i] for i,ind in enumerate(self._index_set)})
 
     def simple_root(self, i):
         r"""
@@ -1186,23 +1186,25 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
             sage: W.independent_roots()                                 # optional - gap3
-            ((1, 0), (0, 1))
+            Finite family {1: (1, 0), 2: (0, 1)}
 
             sage: W = ReflectionGroup((4,2,3))                          # optional - gap3
             sage: W.simple_roots()                                      # optional - gap3
             Finite family {1: (1, 0, 0), 2: (-E(4), 1, 0), 3: (-1, 1, 0), 4: (0, -1, 1)}
             sage: W.independent_roots()                                 # optional - gap3
-            [(1, 0, 0), (-E(4), 1, 0), (0, -1, 1)]
+            Finite family {1: (1, 0, 0), 2: (-E(4), 1, 0), 4: (0, -1, 1)}
         """
-        Delta = tuple(self.simple_roots())
-        if len(Delta) == self.rank():
-            basis = Delta
-        else:
-            basis = []
-            for alpha in Delta:
-                if Matrix(basis+[alpha]).rank() == len(basis) + 1:
-                    basis.append(alpha)
-        return basis
+        Delta = self.simple_roots()
+        if self.is_well_generated():
+            return Delta
+
+        from sage.sets.family import Family
+        basis = dict()
+        for i,ind in enumerate(self._index_set):
+            vec = Delta[ind]
+            if Matrix(basis.values()+[vec]).rank() == len(basis) + 1:
+                basis[ind] = vec
+        return Family(basis)
 
     @cached_method
     def base_change_matrix(self):
@@ -1239,7 +1241,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [   1    0]
             [E(4)    1]
         """
-        return Matrix( self.independent_roots() ).inverse()
+        return Matrix( list(self.independent_roots()) ).inverse()
 
     @cached_method
     def roots(self):
@@ -1445,29 +1447,47 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: all( F == S[i].matrix()*F*S[i].matrix().transpose().conjugate() for i in W.index_set() )  # optional - gap3
             True
 
+        It also worked for badly generated groups::
+
+            sage: W = ReflectionGroup(7)                                # optional - gap3
+            sage: W.is_well_generated()                                 # optional - gap3
+            False
+
+            sage: F = W.invariant_form(); F                             # optional - gap3
+            [1 0]
+            [0 1]
+            sage: S = W.simple_reflections()                            # optional - gap3
+            sage: all( F == S[i].matrix()*F*S[i].matrix().transpose().conjugate() for i in W.index_set() )  # optional - gap3
+            True
+
+        And also for reducible types::
+
+            sage: W = ReflectionGroup(['B',3],(4,2,3),4,7); W           # optional - gap3
+            Reducible complex reflection group of rank 10 and type B3 x G(4,2,3) x ST4 x ST7
+            sage: F = W.invariant_form(); S = W.simple_reflections()    # optional - gap3
+            sage: all( F == S[i].matrix()*F*S[i].matrix().transpose().conjugate() for i in W.index_set() )  # optional - gap3
+            True
+
         TESTS::
 
-            sage: tests = [['A',3],['B',3],['F',4]]                     # optional - gap3
+            sage: tests = [['A',3],['B',3],['F',4],(4,2,2),4,7]         # optional - gap3
             sage: for ty in tests:                                      # optional - gap3
-            ....:     W = ReflectionGroup(['F',4])                      # optional - gap3
+            ....:     W = ReflectionGroup(ty)                           # optional - gap3
             ....:     A = W.invariant_form()                            # optional - gap3
             ....:     B = W.invariant_form(brute_force=True)            # optional - gap3
             ....:     print ty, A == B/B[0,0]                           # optional - gap3
             ['A', 3] True
             ['B', 3] True
             ['F', 4] True
+            (4, 2, 2) True
+            4 True
+            7 True
         """
-        # the algorithm does currently only work if the group action as
-        # matrices is represented in the basis of simple roots
-        B = self.base_change_matrix()
-        #if not force and not B.is_one():
-        if brute_force or not B.is_one():
-            #print "tour de force"
+        if brute_force:
             return self._invariant_form_brute_force()
 
-        #print "smart way"
-        C = self.cartan_matrix() * B.transpose()
         n = self.rank()
+        from sage.matrix.constructor import zero_matrix
 
         if self.is_crystallographic():
             ring = QQ
@@ -1475,32 +1495,37 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
             ring = UniversalCyclotomicField()
 
-        from sage.matrix.constructor import zero_matrix
         form = zero_matrix(ring, n, n)
 
-        # roots of unity of orders those of the simple reflections
-        S = self.simple_reflections()
-        exps = [1 - E(S[i].order()) for i in self.index_set()]
+        C = self.cartan_matrix()
+        if not self.is_well_generated():
+            indep_inds = sorted(self._index_set_inverse[key] for key in self.independent_roots().keys())
+            C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
 
         for j in range(n):
             for i in range(j):
-                if C[i,j] != 0:
-                    form[j,j] = form[i,i].conjugate() * \
-                                 ( C[i,j].conjugate() / C[j,i] ) * \
-                                 ( exps[j] / exps[i].conjugate() )
+                if C[j,i] != 0:
+                    form[j,j] = form[i,i] * \
+                                ( C[i,j] * C[j,j].conjugate() ) / \
+                                ( C[j,i].conjugate() * C[i,i] )
             if form[j,j] == 0:
                 form[j,j] = ring.one()
         for j in range(n):
             for i in range(j):
-                form[i, j] = C[i, j] * form[i, i] / exps[j]
-                form[j, i] = form[i, j].conjugate()
+                form[j, i] = C[i, j] * form[i, i] / C[i,i]
+                form[i, j] = form[j, i].conjugate()
 
+        B = self.base_change_matrix()
+        form = B*form*B.conjugate().transpose()
+        form /= form[0,0]
         form.set_immutable()
         return form
 
     def _invariant_form_brute_force(self):
         r"""
         Return the form that is invariant under the action of ``self``.
+
+        This brute force algorithm is only kept for possible testing.
 
         EXAMPLES::
 
@@ -1514,7 +1539,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Phi = self.roots()
 
         base_change = self.base_change_matrix()
-        Delta = self.independent_roots()
+        Delta = tuple(self.independent_roots())
         basis_is_Delta = base_change.is_one()
         if not basis_is_Delta:
             Delta = [beta * base_change for beta in Delta]

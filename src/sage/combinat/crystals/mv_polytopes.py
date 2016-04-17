@@ -211,7 +211,7 @@ class MVPolytope(PBWCrystalElement):
             Graphics object consisting of 12 graphics primitives
 
         Here is the above example placed inside the ambient space
-        of type `C_2`::
+        of type `C_2`:
 
         .. PLOT::
             :width: 300 px

@@ -557,6 +557,22 @@ cdef class MixedIntegerLinearProgram(SageObject):
         p._backend = (<GenericBackend> self._backend).copy()
         return p
 
+    def __deepcopy__(self, memo={}):
+        """
+        Return a deep copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = deepcopy(p)
+            sage: cp.solve()
+            6.0
+        """
+        return self.__copy__()
+
     def __getitem__(self, v):
         r"""
         Returns the symbolic variable corresponding to the key

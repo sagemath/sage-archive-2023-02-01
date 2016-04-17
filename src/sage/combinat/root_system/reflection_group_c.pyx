@@ -413,22 +413,39 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
             else:
                 w = w._mul_(si)
 
-def reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
+cpdef reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
     cdef tuple S = tuple(W.simple_reflections())
     cdef int N = W._number_of_reflections
-    cdef list totest = [W.one()]
-    cdef res = set(totest)
-    cdef list new
+    cdef set totest = set([W.one()])
+    cdef set res = set(totest)
+    cdef set new
 
     while totest:
-        new = []
+        new = set()
         for w in totest:
-            new.extend(reduce_in_coset(w*S[i], S, parabolic_small, N, right) for i in parabolic_big)
+            new.update([reduce_in_coset(w*S[i], S, parabolic_small, N, right) for i in parabolic_big])
         res.update(totest)
-        totest = [ w for w in new if w not in res ]
+        totest = new.difference(res)#[ w for w in new if w not in res ]
     return list(res)
 
-def parabolic_iteration(W, i=None):
+def parabolic_iteration(W,f):
+    cdef PermutationGroupElement w, v
+
+    cdef n = W.rank()
+    cdef i
+    cdef list coset_reps = [ reduced_coset_repesentatives(W, range(i), range(i-1), True) for i in range(1,n+1) ]
+
+    def g(x,v):
+        if not v:
+            f(x)
+        else:
+            for y in v[0]:
+                # this keeps all products of elemenents in
+                # coset_reps[:-1] in memory!
+                g(x._mul_(y),v[1:])
+    g(W.one(),coset_reps)
+
+def parabolic_iteration_slow(W, i=None):
     cdef PermutationGroupElement w, v
 
     if i is None:

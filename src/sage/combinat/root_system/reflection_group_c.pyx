@@ -413,7 +413,7 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
             else:
                 w = w._mul_(si)
 
-cpdef reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
+cpdef list reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
     cdef tuple S = tuple(W.simple_reflections())
     cdef int N = W._number_of_reflections
     cdef set totest = set([W.one()])
@@ -428,7 +428,43 @@ cpdef reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, 
         totest = new.difference(res)#[ w for w in new if w not in res ]
     return list(res)
 
-def parabolic_iteration(W,f):
+def parabolic_iteration(W,order=None):
+    r"""
+    This algorithm is an alternative to the one in *chevie* and about
+    20% faster. It yields indeed all elements in the group rather than
+    applying a given function.
+    """
+    cdef PermutationGroupElement w, v
+    cdef n = W.rank()
+    cdef int i,j
+    cdef list coset_reps
+
+    cdef list elts = [W.one()]
+
+    if order is None:
+        order = range(n)
+
+    for i in range(1,n):
+        coset_reps = reduced_coset_repesentatives(W, order[:i], order[:i-1], True)
+        elts = [ w._mul_(v) for w in elts for v in coset_reps ]
+    # the list ``elts`` now contains all prods of red coset reps
+
+    coset_reps = reduced_coset_repesentatives(W, order, order[:-1], True)
+
+    for i in range(len(elts)):
+        w = elts[i]
+        for j in range(len(coset_reps)):
+            v = coset_reps[j]
+#    for w in elts:
+#        for v in coset_reps:
+            yield w._mul_(v)
+
+def parabolic_iteration_application(W,f):
+    r"""
+    This is the word-for-word translation of the algorithm in chevie.
+
+    It keeps all products of elemenents in coset_reps[:-1] in memory.
+    """
     cdef PermutationGroupElement w, v
 
     cdef n = W.rank()
@@ -440,23 +476,8 @@ def parabolic_iteration(W,f):
             f(x)
         else:
             for y in v[0]:
-                # this keeps all products of elemenents in
-                # coset_reps[:-1] in memory!
                 g(x._mul_(y),v[1:])
     g(W.one(),coset_reps)
-
-def parabolic_iteration_slow(W, i=None):
-    cdef PermutationGroupElement w, v
-
-    if i is None:
-        i = W.rank()
-    elif i == 0:
-        yield W.one()
-        return
-
-    for w in parabolic_iteration(W,i-1):
-        for v in reduced_coset_repesentatives(W, range(i), range(i-1), True):
-            yield w._mul_(v)
 
 cpdef list reduced_word_c(W, PermutationGroupElement w):
     r"""

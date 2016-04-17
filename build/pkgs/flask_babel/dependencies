@@ -1,4 +1,4 @@
-$(PYTHON) numpy freetype libpng dateutil pyparsing tornado six cycler | pytz setuptools
+$(PYTHON) | pip flask speaklater
 
 ----------
 All lines of this file are ignored except the first.

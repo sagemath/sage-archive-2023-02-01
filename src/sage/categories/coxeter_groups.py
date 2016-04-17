@@ -280,20 +280,20 @@ class CoxeterGroups(Category_singleton):
             This method is also used for well generated finite complex
             reflection groups::
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: W.coxeter_element().reduced_word()
+                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: W.coxeter_element().reduced_word()                # optional - gap3
                 [1, 2, 3]
 
-                sage: W = ReflectionGroup((2,1,4))
-                sage: W.coxeter_element().reduced_word()
+                sage: W = ReflectionGroup((2,1,4))                      # optional - gap3
+                sage: W.coxeter_element().reduced_word()                # optional - gap3
                 [1, 2, 3, 4]
 
-                sage: W = ReflectionGroup((4,1,4))
-                sage: W.coxeter_element().reduced_word()
+                sage: W = ReflectionGroup((4,1,4))                      # optional - gap3
+                sage: W.coxeter_element().reduced_word()                # optional - gap3
                 [1, 2, 3, 4]
 
-                sage: W = ReflectionGroup((4,4,4))
-                sage: W.coxeter_element().reduced_word()
+                sage: W = ReflectionGroup((4,4,4))                      # optional - gap3
+                sage: W.coxeter_element().reduced_word()                # optional - gap3
                 [1, 2, 3, 4]
 
             TESTS::
@@ -321,8 +321,8 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(4)
-                sage: sorted(W.standard_coxeter_elements())
+                sage: W = ReflectionGroup(4)                            # optional - gap3
+                sage: sorted(W.standard_coxeter_elements())             # optional - gap3
                 [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
                  (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
             """

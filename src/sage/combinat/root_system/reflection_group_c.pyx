@@ -451,9 +451,11 @@ def parabolic_iteration(W,order=None):
 
     coset_reps = reduced_coset_repesentatives(W, order, order[:-1], True)
 
-    for i in range(len(elts)):
+    cdef int coset_reps_len = len(coset_reps)
+    cdef int elts_len = len(elts)
+    for i in range(elts_len):
         w = elts[i]
-        for j in range(len(coset_reps)):
+        for j in range(coset_reps_len):
             v = coset_reps[j]
 #    for w in elts:
 #        for v in coset_reps:

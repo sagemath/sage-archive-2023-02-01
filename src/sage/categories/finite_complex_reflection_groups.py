@@ -52,10 +52,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
     An example of a finite reflection group::
 
-        sage: W = ComplexReflectionGroups().Finite().example(); W
+        sage: W = ComplexReflectionGroups().Finite().example(); W       # optional - gap3
         Reducible real reflection group of rank 4 and type A2 x B2
 
-        sage: W.reflections()
+        sage: W.reflections()                                           # optional - gap3
         Finite family {1: (1,8)(2,5)(9,12), 2: (1,5)(2,9)(8,12),
                        3: (3,10)(4,7)(11,14), 4: (3,6)(4,11)(10,13),
                        5: (1,9)(2,8)(5,12), 6: (4,14)(6,13)(7,11),
@@ -63,7 +63,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
     ``W`` is in the category of complex reflection groups::
 
-        sage: W in ComplexReflectionGroups().Finite()
+        sage: W in ComplexReflectionGroups().Finite()                   # optional - gap3
         True
     """
     def example(self):
@@ -101,7 +101,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             Here is an example of a finite well-generated complex
             reflection group::
 
-                sage: W = C.example(); W
+                sage: W = C.example(); W                                # optional - gap3
                 Reducible complex reflection group of rank 4 and type A2 x G(3,1,2)
 
             All finite Coxeter groups are well generated::
@@ -121,8 +121,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             TESTS::
 
-                sage: TestSuite(W).run()
-                sage: TestSuite(ComplexReflectionGroups().Finite().WellGenerated()).run()
+                sage: TestSuite(W).run()                                # optional - gap3
+                sage: TestSuite(ComplexReflectionGroups().Finite().WellGenerated()).run()   # optional - gap3
                 sage: CoxeterGroups().Finite().WellGenerated.__module__
                 'sage.categories.finite_complex_reflection_groups'
 

@@ -29,7 +29,6 @@ for further details.
 #******************************************************************************
 
 from sage.categories.filtered_modules import FilteredModulesCategory
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 
 class FilteredModulesWithBasis(FilteredModulesCategory):

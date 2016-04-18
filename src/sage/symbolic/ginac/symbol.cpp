@@ -199,7 +199,6 @@ void symbol::set_domain(unsigned d)
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::positive, true);
                         iflags.set(info_flags::nonnegative, true);
-                        iflags.set(info_flags::integer, true);
                         break;
                 case domain::integer:
                         if(iflags.get(info_flags::positive)) {

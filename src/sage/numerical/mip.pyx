@@ -570,6 +570,19 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: cp = deepcopy(p)
             sage: cp.solve()
             6.0
+
+        TEST:
+
+        Test that `deepcopy` makes actual copies but preserves identities::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: ll = [mip, mip]
+            sage: dcll=deepcopy(ll)
+            sage: ll[0] is dcll[0]
+            False
+            sage: dcll[0] is dcll[1]
+            True
+
         """
         return self.__copy__()
 

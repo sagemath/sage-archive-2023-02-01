@@ -954,9 +954,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         if len(self) != len(other):
             return False
         for i in range(len(self)):
-            if (self[i] < other[i]) == True:
+            if (self[i] < other[i]):
                 return True
-            if (other[i] < self[i]) == True:
+            if (other[i] < self[i]):
                 return False
         return False
 

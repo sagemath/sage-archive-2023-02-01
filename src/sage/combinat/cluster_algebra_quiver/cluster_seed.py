@@ -391,7 +391,7 @@ class ClusterSeed(SageObject):
                 self._BC = copy(self._M)
         if self._bot_is_c != bot_is_c: # If we need to do this. It overrides the previous designations.
             self._bot_is_c = bot_is_c
-            if self._bot_is_c == True:
+            if self._bot_is_c:
                 self._use_c_vec = True
                 if self._m == self._n: # in this case, the second half of a 2n x n matrix is a c-matrix.
                     self._C = copy(self._M[self._n:(self._n+self._m),:self._n])
@@ -623,7 +623,7 @@ class ClusterSeed(SageObject):
                     self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n+self._m)])) for j in xrange(self._n)])
                 elif self._cluster:
                     raise ValueError("should not be possible to have cluster variables without f-polynomials")    # added this as a sanity check.  This error should never appear however.
-                elif self._track_mut == True: # If we can navigate from the root to where we are
+                elif self._track_mut: # If we can navigate from the root to where we are
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
                     catchup = ClusterSeed(self._b_initial, user_labels=user_labels, user_labels_prefix=user_labels_prefix)

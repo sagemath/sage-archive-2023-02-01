@@ -417,7 +417,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         s = W.simple_reflections()
         highest_weight_crystal = self._highest_weight_crystal
 
-        if highest_weight_crystal == True:
+        if highest_weight_crystal:
             successors = 'bruhat_upper_covers'
         else:
             successors = 'quantum_bruhat_successors'
@@ -622,7 +622,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         s = W.simple_reflections()
         highest_weight_crystal = self.parent()._highest_weight_crystal
 
-        if highest_weight_crystal == True:
+        if highest_weight_crystal:
             successors = 'bruhat_upper_covers'
         else:
             successors = 'quantum_bruhat_successors'

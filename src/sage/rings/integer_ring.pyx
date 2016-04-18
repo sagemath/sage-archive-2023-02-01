@@ -1377,7 +1377,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             roots = []
 
-        if p.is_constant(): 
+        if p.is_constant():
             sig_off()
             return roots
 

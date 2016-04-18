@@ -1,4 +1,4 @@
-"""
+r"""
 Ring `\ZZ` of Integers
 
 The :class:`IntegerRing_class` represents the ring `\ZZ` of (arbitrary
@@ -1283,7 +1283,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - ``algorithm`` -- the algorithm to use, either "dense" or "sparse".
           The "dense" algorithm calls `_roots_from_factorization`, and the
-          "sparse" algorithm is described in [CKS1999]_. Default is "sparse".
+          "sparse" algorithm is described in [CKS1999]_. Default is "dense" for
+          polynomials of degree at most 100, and "sparse" otherwise.
 
         .. NOTE::
 
@@ -1298,11 +1299,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         TESTS::
 
-            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
-            sage: p = (x+1)^23*(x-1)^23*(x-100)*(x+5445)^5
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
             sage: ZZ._roots_univariate_polynomial(p)
             [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
-            sage: p *= (1+x^3458645-76*x^3435423343+x^45346567867756556)
+            sage: p *= (1 + x^3458645 - 76*x^3435423343 + x^45346567867756556)
             sage: ZZ._roots_univariate_polynomial(p)
             [(1, 23), (-1, 23), (100, 1), (-5445, 5)]
             sage: p *= x^156468451540687043504386074354036574634735074
@@ -1312,27 +1313,25 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
              (-1, 23),
              (100, 1),
              (-5445, 5)]
-            sage: ZZ._roots_univariate_polynomial(p,multiplicities=False)
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
             [0, 1, -1, 100, -5445]
 
-            sage: R.<x> = PolynomialRing(ZZ,sparse=False)
-            sage: p = (x+1)^23*(x-1)^23*(x-100)*(x+5445)^5
+            sage: R.<x> = PolynomialRing(ZZ, sparse=False)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
             sage: ZZ._roots_univariate_polynomial(p)
             [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
-            sage: ZZ._roots_univariate_polynomial(p,multiplicities=False)
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
             [100, -5445, 1, -1]
 
-            sage: ZZ._roots_univariate_polynomial(p,algorithm="sparse")
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
             [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
-            sage: ZZ._roots_univariate_polynomial(p,algorithm="dense")
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
             [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
-            sage: ZZ._roots_univariate_polynomial(p,algorithm="foobar")
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="foobar")
             Traceback (most recent call last):
             ...
             ValueError: Unknown algorithm 'foobar'
-
         """
-
         if p.degree() < 0:
             raise ValueError("Roots of 0 are not defined");
 
@@ -1362,7 +1361,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # The dense algorithm is to compute the roots from the factorization
         if algorithm == "dense":
-            return p._roots_from_factorization(p.factor(),multiplicities)
+            return p._roots_from_factorization(p.factor(), multiplicities)
 
         sig_on()
 
@@ -1372,7 +1371,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         # Root 0
         cdef list roots = []
         if v>0:
-            if multiplicities: roots = [(self.zero(),v)]
+            if multiplicities: roots = [(self.zero(), v)]
             else: roots = [self.zero()]
         else:
             roots = []
@@ -1383,75 +1382,73 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         cdef list c = p.coefficients()
         cdef list e = p.exponents()
-        cdef int i_min, i, j, k = len(c)
+        cdef int i_min, i, j, k = len(e)
 
         # totally dense polynomial
-        if k == p.degree() + 1:
+        if k == 1 + p.degree():
+            sig_off()
             return p._roots_from_factorization(p.factor(), multiplicities)
 
         K = p.base_ring()
         x = p.variable_name()
-        R = PolynomialRing(K,x,sparse=False)
-
-        cst_coeff = c[0]
-        c_max_nbits = cst_coeff.nbits()
-
-        # Computation of roots of modulus > 1
+        R = PolynomialRing(K, x, sparse=False)
+        c_max_nbits = c[0].nbits()
         i_min = 0
         g = R.zero()
 
         # Looking for "large" gaps in the exponents
         # These gaps split the polynomial into lower degree components
         # Roots of modulus > 1 are common roots of the components
-        for i in xrange(1,k):
-            if e[i]-e[i-1] > c_max_nbits:
-                g = g.gcd(R(p[e[i_min]:e[i]].shift(-e[i_min])))
-                # no need to continue as soon as there is no common root
+        for i in xrange(1, k):
+            if e[i] - e[i-1] > c_max_nbits:
+                g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min,i)}))
                 if g.is_one(): break
                 i_min = i
                 c_max_nbits = c[i].nbits()
             else:
                 c_max_nbits = max(c[i].nbits(), c_max_nbits)
 
-            # if no gap, directly return the roots of p
-            if g.is_zero():
-                roots.extend(p._roots_from_factorization(p.factor(),multiplicities))
-                sig_off()
-                return roots
+        # if no gap, directly return the roots of p
+        if g.is_zero():
+            roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
+            sig_off()
+            return roots
 
-            g = g.gcd(R(p[e[i_min]:1+e[k-1]].shift(-e[i_min])))
+        g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min, k)}))
 
-        cdef list cc = c
-        cdef list ee = e
-        cdef int m1 = 0, m2 = 0
-        cdef bint b1 = True, b2 = True
 
+        cdef list cc
+        cdef list ee
+        cdef int m1, m2
+        cdef bint b1, b2
         # Computation of the roots of modulus 1, without multiplicities
         # 1 is root iff p(1) == 0 ; -1 iff p(-1) == 0
         if not multiplicities:
-            s1 = s2 = 0
-            for j in range(k):
-                s1 += cc[j]
-                s2 += cc[j] * (-1)**(ee[j]%2)
-            if s1 == 0:
+            if not sum(c):
                 roots.append(1)
-            if s2 == 0:
+            s = 0
+            for j in range(k):
+                s += -c[j] if (e[j] % 2) else c[j]
+            if not s:
                 roots.append(-1)
 
         # Computation of the roots of modulus 1, with multiplicities
         # For the multiplicities, take the derivatives
         else:
+            cc = c
+            ee = e
+            m1 = m2 = 0
+            b1 = b2 = True
+
             for i in xrange(k):
                 s1 = s2 = 0
                 for j in xrange(k-i):
-                    if b1:
-                        s1 += cc[j]
-                    if b2:
-                        s2 += cc[j]*(-1)**(ee[j]%2)
-                if b1 and s1 != 0:
+                    if b1: s1 += cc[j]
+                    if b2: s2 += -cc[j] if (ee[j] % 2) else cc[j]
+                if b1 and s1:
                     m1 = i
                     b1 = False
-                if b2 and s2 != 0:
+                if b2 and s2:
                     m2 = i
                     b2 = False
                 # Stop asap
@@ -1459,19 +1456,19 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                     break
 
                 # Sparse derivative, that is (p/x^v)' where v = p.val():
-                ee = [ee[j]-ee[0]-1 for j in xrange(1,k-i)]
-                cc = [(ee[j]+1)*cc[j+1] for j in xrange(k-i-1)]
+                ee = [ee[j] - ee[0] - 1 for j in xrange(1,k-i)]
+                cc = [(ee[j] + 1) * cc[j+1] for j in xrange(k-i-1)]
 
             if m1 > 0:
-                roots.append((1,m1))
+                roots.append((1, m1))
             if m2 > 0:
-                roots.append((-1,m2))
+                roots.append((-1, m2))
 
         # Add roots of modulus > 1 to `roots`:
         if multiplicities:
-            roots.extend(r for r in g._roots_from_factorization(g.factor(),True) if r[0].abs()>1)
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), True) if r[0].abs() > 1)
         else:
-            roots.extend(r for r in g._roots_from_factorization(g.factor(),False) if r.abs()>1)
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), False) if r.abs() > 1)
 
         sig_off()
         return roots

@@ -15,6 +15,8 @@ finite complex or real reflection groups.
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from collections import deque
+include "sage/ext/stdsage.pxi"
+from cpython.list cimport *
 
 cdef class Iterator(object):
     """
@@ -446,7 +448,8 @@ def parabolic_iteration(W,order=None):
 
     for i in range(1,n):
         coset_reps = reduced_coset_repesentatives(W, order[:i], order[:i-1], True)
-        elts = [ w._mul_(v) for w in elts for v in coset_reps ]
+        # WARNING: This still uses the below hardly tested method
+        elts = [ _new_mul_(w,v) for w in elts for v in coset_reps ]
     # the list ``elts`` now contains all prods of red coset reps
 
     coset_reps = reduced_coset_repesentatives(W, order, order[:-1], True)
@@ -459,7 +462,8 @@ def parabolic_iteration(W,order=None):
             v = coset_reps[j]
 #    for w in elts:
 #        for v in coset_reps:
-            yield w._mul_(v)
+            # WARNING: This still uses the below hardly tested method
+            yield _new_mul_(w,v)#w._mul_(v)
 
 def parabolic_iteration_application(W,f):
     r"""
@@ -505,3 +509,33 @@ cpdef list reduced_word_c(W, PermutationGroupElement w):
         w = si._mul_(w)
         word.append(fdes)
     return word[:-1]
+
+cdef PermutationGroupElement _new_mul_(PermutationGroupElement left, PermutationGroupElement right):
+    """
+    EXAMPLES::
+
+        sage: S = SymmetricGroup(['a', 'b'])
+        sage: s = S([('a', 'b')]); s
+        ('a','b')
+        sage: s*s
+        ()
+    """
+    cdef PermutationGroupElement prod = PermutationGroupElement.__new__(PermutationGroupElement)
+    cdef int n = left.n
+    cdef int sizeofint = sizeof(int)
+    cdef int n_sizeofint = sizeofint*n
+
+#    if HAS_DICTIONARY(left):
+#        prod.__class__ = left.__class__
+    prod._parent = left._parent
+    prod.n = n
+    if n_sizeofint <= sizeof(prod.perm_buf):
+        prod.perm = prod.perm_buf
+    else:
+        prod.perm = <int *>sig_malloc(n_sizeofint)
+
+    cdef int i
+    for i in range(n):#from 0 <= i < n:
+        prod.perm[i] = right.perm[left.perm[i]]
+
+    return prod

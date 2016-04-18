@@ -4188,9 +4188,10 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
                             nEA1 += 1
                     if nAF1 == b*nAF2 or nEA2 == c*nEA1:
                         uv_okay = True
-                if uv_okay == False:
+                if not uv_okay:
                         return False
         return True
+
 
 def get_green_vertices(C):
     r"""

@@ -1360,9 +1360,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         """
         unmatched_plus = []
         height = 0
-        if reverse == True:
+        if reverse:
             self = self.reversed()
-        if dual == False:
+        if not dual:
             for j in range(len(self)):
                 minus = self[j].phi(i)
                 plus = self[j].epsilon(i)

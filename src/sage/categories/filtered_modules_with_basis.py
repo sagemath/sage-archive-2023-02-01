@@ -185,6 +185,10 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             else:
                 return self.homogeneous_component_basis(d)
 
+        # TODO: Change `list(self._indices)` to `self._indices` and move
+        #   this fallback to the category of finite-dimensional filtered
+        #   modules with basis when it is implemented and the MRO issues
+        #   are fixed (see trac #19397)
         def homogeneous_component_basis(self, d):
             """
             Return a basis for the ``d``-th homogeneous component of ``self``.
@@ -193,7 +197,8 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
                 sage: A = GradedModulesWithBasis(ZZ).example()
                 sage: A.homogeneous_component_basis(4)
-                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+                Lazy family (Term map from Partitions to An example of a graded module with basis:
+                             the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
 
                 sage: cat = GradedModulesWithBasis(ZZ)
                 sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
@@ -207,7 +212,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             try:
                 S = self._indices.subset(size=d)
             except (AttributeError, ValueError, TypeError):
-                S = [i for i in self._indices if self.degree_on_basis(i) == d]
+                S = [i for i in list(self._indices) if self.degree_on_basis(i) == d]
             return Family(S, self.monomial)
 
         def homogeneous_component(self, d):

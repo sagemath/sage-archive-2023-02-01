@@ -567,6 +567,35 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         return p
 
+    def __deepcopy__(self, memo={}):
+        """
+        Return a deep copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = deepcopy(p)
+            sage: cp.solve()
+            6.0
+
+        TEST:
+
+        Test that `deepcopy` makes actual copies but preserves identities::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: ll = [mip, mip]
+            sage: dcll=deepcopy(ll)
+            sage: ll[0] is dcll[0]
+            False
+            sage: dcll[0] is dcll[1]
+            True
+
+        """
+        return self.__copy__()
+
     def __getitem__(self, v):
         r"""
         Returns the symbolic variable corresponding to the key

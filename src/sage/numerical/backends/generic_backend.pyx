@@ -29,6 +29,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
+
 cdef class GenericBackend:
 
     cpdef base_ring(self):
@@ -828,6 +830,61 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    cpdef copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable() # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
+            sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
+            sage: copy(p).solve() # optional - Nonexistent_LP_solver
+            6.0
+        """
+        return self.__copy__()
+
+    # Override this method in backends.
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable() # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
+            sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
+            sage: cp = copy(p.get_backend()) # optional - Nonexistent_LP_solver
+            sage: cp.solve() # optional - Nonexistent_LP_solver
+            0
+            sage: cp.get_objective_value() # optional - Nonexistent_LP_solver
+            6.0
+        """
+        raise NotImplementedError()
+
+    def __deepcopy__(self, memo={}):
+        """
+        Return a deep copy of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable() # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b[1] + b[2] <= 6) # optional - Nonexistent_LP_solver
+            sage: p.set_objective(b[1] + b[2]) # optional - Nonexistent_LP_solver
+            sage: cp = deepcopy(p.get_backend()) # optional - Nonexistent_LP_solver
+            sage: cp.solve() # optional - Nonexistent_LP_solver
+            0
+            sage: cp.get_objective_value() # optional - Nonexistent_LP_solver
+            6.0
+        """
+        return self.__copy__()
+
     cpdef row(self, int i):
         """
         Return a row
@@ -1023,6 +1080,76 @@ cdef class GenericBackend:
             'I am a variable'
         """
         raise NotImplementedError()
+
+    def _do_test_problem_data(self, tester, cp):
+        """
+        TESTS:
+
+        Test, with an actual working backend, that comparing a problem with itself works::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver='GLPK')
+            sage: tester = p._tester()
+            sage: p._do_test_problem_data(tester, p)
+        """
+        tester.assertEqual(type(self), type(cp),
+                           "Classes do not match")
+        def assert_equal_problem_data(method):
+            tester.assertEqual(getattr(self, method)(), getattr(cp, method)(),
+                               "{} does not match".format(method))
+        for method in ("ncols", "nrows", "objective_constant_term", "problem_name", "is_maximization"):
+            assert_equal_problem_data(method)
+        def assert_equal_col_data(method):
+            for i in range(self.ncols()):
+                tester.assertEqual(getattr(self, method)(i), getattr(cp, method)(i),
+                                   "{}({}) does not match".format(method, i))
+        for method in ("objective_coefficient", "is_variable_binary", "is_variable_binary", "is_variable_integer",
+                       "is_variable_continuous", "col_bounds", "col_name"):
+            # don't test variable_lower_bound, variable_upper_bound because we already test col_bounds.
+            # TODO: Add a test elsewhere to ensure that variable_lower_bound, variable_upper_bound
+            # are consistent with col_bounds.
+            assert_equal_col_data(method)
+        def assert_equal_row_data(method):
+            for i in range(self.nrows()):
+                tester.assertEqual(getattr(self, method)(i), getattr(cp, method)(i),
+                                   "{}({}) does not match".format(method, i))
+        for method in ("row_bounds", "row", "row_name"):
+            assert_equal_row_data(method)
+    
+    def _test_copy(self, **options):
+        """
+        Test whether the backend can be copied
+        and at least the problem data of the copy is equal to that of the original.
+        Does not test whether solutions or solver parameters are copied.
+        """
+        tester = self._tester(**options)
+        cp = copy(self)
+        self._do_test_problem_data(tester, cp)
+
+    def _test_copy_does_not_share_data(self, **options):
+        """
+        Test whether copy makes an independent copy of the backend.
+        """
+        tester = self._tester(**options)
+        cp = copy(self)
+        cpcp = copy(cp)
+        del cp
+        self._do_test_problem_data(tester, cpcp)
+
+    # TODO: We should have a more systematic way of generating MIPs for testing.
+    @classmethod
+    def _test_copy_some_mips(cls, tester=None, **options):
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        # From doctest of GenericBackend.solve:
+        p.add_linear_constraints(5, 0, None)
+        # p.add_col(range(5), range(5))     -- bad test because COIN sparsifies the 0s away on copy
+        p.add_col(range(5), range(1, 6))
+        # From doctest of GenericBackend.problem_name:
+        p.problem_name("There once was a french fry")
+        p._test_copy(**options)
+        p._test_copy_does_not_share_data(**options)
 
     cpdef variable_upper_bound(self, int index, value = False):
         """

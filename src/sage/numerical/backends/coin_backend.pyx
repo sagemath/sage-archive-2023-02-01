@@ -735,6 +735,9 @@ cdef class CoinBackend(GenericBackend):
 
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
 
+        self.col_names.append("")
+
+
     cpdef int solve(self) except -1:
         r"""
         Solves the problem.
@@ -1206,7 +1209,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return ""
 
-    cpdef CoinBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 

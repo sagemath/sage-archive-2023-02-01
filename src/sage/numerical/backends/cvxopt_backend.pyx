@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
+from copy import copy
 
 cdef class CVXOPTBackend(GenericBackend):
     """
@@ -95,6 +96,43 @@ cdef class CVXOPTBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
+    cpdef __copy__(self):
+        # Added a second inequality to this doctest,
+        # because otherwise CVXOPT complains: ValueError: Rank(A) < p or Rank([G; A]) < n
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "CVXOPT")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.add_constraint(b[2] <= 5)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
+            0
+            sage: cp.get_objective_value()
+            6.0
+        """
+        cp = CVXOPTBackend()
+        cp.objective_function = self.objective_function[:]
+        cp.G_matrix = [row[:] for row in self.G_matrix]
+        cp.prob_name = self.prob_name
+        cp.obj_constant_term = self.obj_constant_term
+        cp.is_maximize = self.is_maximize
+
+        cp.row_lower_bound = self.row_lower_bound[:]
+        cp.row_upper_bound = self.row_upper_bound[:]
+        cp.col_lower_bound = self.col_lower_bound[:]
+        cp.col_upper_bound = self.col_upper_bound[:]
+
+        cp.row_name_var = self.row_name_var[:]
+        cp.col_name_var = self.col_name_var[:]
+
+        cp.param = copy(self.param)
+        return cp
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, name=None) except -1:
         """

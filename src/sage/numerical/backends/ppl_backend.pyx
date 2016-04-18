@@ -28,11 +28,13 @@ from copy import copy
 cdef class PPLBackend(GenericBackend):
 
     """
-    TESTS::
+    MIP Backend that uses the exact MIP solver from the Parma Polyhedra Library.
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "PPL")
-            sage: TestSuite(p).run(skip="_test_pickling")
+    General backend testsuite::
+
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: p = get_solver(solver = "PPL")
+        sage: TestSuite(p).run(skip="_test_pickling")
     """
 
     cdef object mip

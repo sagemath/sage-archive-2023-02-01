@@ -446,7 +446,7 @@ cdef class GenericBackend:
     @classmethod
     def _test_add_linear_constraint_vector(cls, tester=None, **options):
         """
-        Run tests on the method :meth:`.add_linear_constraints`.
+        Run tests on the method :meth:`.add_linear_constraint_vector`.
 
         TEST::
 

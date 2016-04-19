@@ -6283,7 +6283,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     for out in it_output]
 
         # process output: cannot return output to due input parameters
-        if not options['list_of_outputs']:
+        if options['list_of_outputs'] is False:
             if not it_output and only_accepted:
                 raise ValueError('No accepting output was found but according '
                                  'to the given options, an accepting output '
@@ -11984,7 +11984,7 @@ class Automaton(FiniteStateMachine):
         options = copy(self._process_default_options_)
         options.update(kwargs)
 
-        condensed_output = (not options['list_of_outputs'] and
+        condensed_output = (options['list_of_outputs'] is False and
                             not options['full_output'])
 
         if condensed_output:
@@ -13171,7 +13171,7 @@ class Transducer(FiniteStateMachine):
         options = copy(self._process_default_options_)
         options.update(kwargs)
 
-        condensed_output = (not options['list_of_outputs'] and
+        condensed_output = (options['list_of_outputs'] is False and
                             not options['full_output'])
 
         if condensed_output:

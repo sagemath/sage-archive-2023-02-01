@@ -530,7 +530,7 @@ class ECM(SageObject):
         the factor, this is the best algorithm to find a
         factor.
 
-        .. NOTE:
+        .. NOTE::
 
             ECM is not a good primality test. Not finding a
             factorization is only weak evidence for `n` being

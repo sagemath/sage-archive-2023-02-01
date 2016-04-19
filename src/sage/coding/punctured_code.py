@@ -28,28 +28,37 @@ from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from copy import copy
 
-def puncture(v, points):
+def _puncture(v, points):
     r"""
     Returns v punctured as the positions listed in ``points``.
 
     INPUT:
 
-    - ``v`` -- a vector
+    - ``v`` -- a vector or a list of vectors
 
     - ``points`` -- a set of integers, or an integer
 
     EXAMPLES::
 
         sage: v = vector(GF(7), (2,3,0,2,1,5,1,5,6,5,3))
-        sage: from sage.coding.punctured_code import puncture
-        sage: puncture(v, {4, 3})
+        sage: from sage.coding.punctured_code import _puncture
+        sage: _puncture(v, {4, 3})
         (2, 3, 0, 5, 1, 5, 6, 5, 3)
     """
     if not isinstance(points, (Integer, int, set)):
         raise TypeError("points must be either a Sage Integer, a Python int, or a set")
+    if isinstance(v, list):
+        size = len(v[0])
+        S = VectorSpace(v[0].base_ring(), size - len(points))
+        l = []
+        for i in v:
+            new_v = [i[j] for j in range(size) if j not in points]
+            l.append(S(new_v))
+        return l
     S = VectorSpace(v.base_ring(), len(v) - len(points))
     new_v = [v[i] for i in range(len(v)) if i not in points]
     return S(new_v)
+
 
 
 class PuncturedCode(AbstractLinearCode):
@@ -215,7 +224,7 @@ class PuncturedCode(AbstractLinearCode):
         C_original = self.original_code()
         m = (C_original.base_ring() ** C_original.dimension()).random_element()
         c = C_original.encode(m)
-        return puncture(c, self.punctured_positions())
+        return _puncture(c, self.punctured_positions())
 
     def encode(self, m, original_encode=False, encoder_name=None, **kwargs):
         r"""
@@ -248,7 +257,7 @@ class PuncturedCode(AbstractLinearCode):
         """
         if original_encode:
             c = self.original_code().encode(m, encoder_name, **kwargs)
-            return puncture(c, self.punctured_positions, self)
+            return _puncture(c, self.punctured_positions, self)
         return self.encoder(encoder_name, **kwargs).encode(m)
 
     @cached_method
@@ -600,7 +609,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                 yl.insert(i + shift, F.zero())
                 shift += 1
             y = A(yl)
-            return puncture(D.decode_to_code((y, e)), pts)
+            return _puncture(D.decode_to_code((y, e)), pts)
         elif self._strategy == 'try-all':
             end = False
             yl = y.list()
@@ -626,15 +635,15 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         pass
                 except StopIteration:
                     raise DecodingError
-            return puncture(c_or, pts)
-        A = C.original_code().ambient_space()
+            return _puncture(c_or, pts)
+        A = Cor.ambient_space()
         yl = y.list()
         shift = 0
         for i in pts:
             yl.insert(i + shift, F.random_element())
             shift += 1
         y = A(yl)
-        return puncture(self.original_decoder().decode_to_code(y), pts)
+        return _puncture(D.decode_to_code(y), pts)
 
     def decoding_radius(self, number_erasures = None):
         r"""
@@ -652,7 +661,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
         D = self.original_decoder()
         if self._strategy != 'try-all' and "error-erasure" not in D.decoder_type():
             if D.decoding_radius() - punctured >= 0:
-                return D.decoding_radius - punctured
+                return D.decoding_radius() - punctured
             else:
                 return 0
         elif "error-erasure" in D.decoder_type() and number_erasures is not None:

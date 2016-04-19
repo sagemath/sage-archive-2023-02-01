@@ -59,6 +59,40 @@ def _puncture(v, points):
     new_v = [v[i] for i in range(len(v)) if i not in points]
     return S(new_v)
 
+def _insert_punctured_positions(l, punctured_points, value = None):
+    r"""
+    Returns ``l`` with ``value`` inserted in the corresponding
+    position from ``punctured_points``.
+
+    INPUT:
+
+    - ``l`` -- a list
+
+    - ``punctured_points`` -- a set of integers
+
+    - ``value`` -- (default: ``None``) an element to insert in every position given in``punctured_points``.
+      If it is let to ``None``, a random value will be chosen for each insertion.
+
+    EXAMPLES::
+
+        sage: from sage.coding.punctured_code import _insert_punctured_positions
+        sage: _insert_punctured_positions([1,2,3,4], {2,4,5}, 1)
+        [1, 2, 1, 3, 1, 1, 4]
+    """
+    F = l[0].base_ring()
+    final = [None] * (len(l) + len(punctured_points))
+    for i in punctured_points:
+        if value == None:
+            final[i] = F.random_element()
+        else:
+            final[i] = value
+    index = 0
+    for i in range(len(final)):
+        if final[i] == None:
+            final[i] = l[index]
+            index += 1
+    return final
+
 
 
 class PuncturedCode(AbstractLinearCode):
@@ -591,10 +625,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             if isinstance(y, (tuple, list)):
                 y, e = y[0], y[1]
                 e_list = e.list()
-                shift = 0
-                for i in range(Cor.length()):
-                    if i in pts:
-                        e_list.insert(i + shift, one)
+                e_list = _insert_punctured_positions(e_list, pts, one)
             else:
                 e_list = []
                 for i in range(Cor.length()):
@@ -604,25 +635,24 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         e_list.append(zero)
             e = vector(GF(2), e_list)
             yl = y.list()
-            shift = 0
-            for i in pts:
-                yl.insert(i + shift, F.zero())
-                shift += 1
+            yl = _insert_punctured_positions(yl, pts, zero)
             y = A(yl)
             return _puncture(D.decode_to_code((y, e)), pts)
         elif self._strategy == 'try-all':
             end = False
             yl = y.list()
             I = iter(VectorSpace(F, len(pts)))
+            list_pts = list(pts)
+            list_pts.sort()
             shift = 0
-            for i in pts:
-                yl.insert(i + shift, F.zero())
+            for i in list_pts:
+                yl.insert(i + shift, zero)
                 shift += 1
             values = I.next()
             while not end:
                 try:
                     shift = 0
-                    for i in pts:
+                    for i in list_pts:
                         yl[i + shift] =  values[shift]
                         shift += 1
                     y = A(yl)
@@ -638,10 +668,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             return _puncture(c_or, pts)
         A = Cor.ambient_space()
         yl = y.list()
-        shift = 0
-        for i in pts:
-            yl.insert(i + shift, F.random_element())
-            shift += 1
+        yl = _insert_punctured_positions(yl, pts)
         y = A(yl)
         return _puncture(D.decode_to_code(y), pts)
 
@@ -665,10 +692,10 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             else:
                 return 0
         elif "error-erasure" in D.decoder_type() and number_erasures is not None:
-            diff = self.code().original_code().minimum_distance() - number_erasures
+            diff = self.code().original_code().minimum_distance() - number_erasures - punctured - 1
             if diff <= 0:
                 raise ValueError("The number of erasures exceeds decoding capability")
-            return (diff - punctured - 1) // 2
+            return diff // 2
         elif "error-erasure" in D.decoder_type() and number_erasures is None:
             raise ValueError("You must provide the number of erasures")
 

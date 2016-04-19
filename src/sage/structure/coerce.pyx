@@ -75,7 +75,7 @@ see the documentation for Parent.
 #*****************************************************************************
 
 from cpython.object cimport (PyObject, PyTypeObject,
-        PyObject_CallObject, PyObject_RichCompare)
+        PyObject_CallObject, PyObject_RichCompare, Py_TYPE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
@@ -85,7 +85,7 @@ cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
-from .parent cimport Set_PythonType
+from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport arith_error_message, parent_c
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
@@ -1792,12 +1792,22 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if y is None or y is Ellipsis:
             return rich_to_bool(op, 0 if x is y else 1)
 
+        # Check for manual __richcmp__ override (only on y since
+        # x.__richmp__ would already have been called)
+        if isinstance(y, Element):
+            if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
+                return Py_TYPE(y).tp_richcompare(x, y, op)
+
         # Coerce to a common parent
         try:
             x, y = self.canonical_coercion(x, y)
         except (TypeError, NotImplementedError):
             pass
         else:
+            # The common parent should not be one which explicitly
+            # asked to *not* use coercion for comparisons.
+            assert not (isinstance(x, Element) and
+                (<Element>x)._parent.get_flag(Parent_richcmp_element_without_coercion))
             return PyObject_RichCompare(x, y, op)
 
         # Comparing with coercion didn't work, try something else.

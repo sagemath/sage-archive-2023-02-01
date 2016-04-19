@@ -1411,6 +1411,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return x.__copy__()
             else:
                 if x.nrows() == m and x.ncols() == n:
+                    if (x.base_ring() == self.base_ring()
+                        and x.is_sparse() and not sparse):
+                        # If x is sparse and large, calling x.dense_matrix()
+                        # is much faster than calling x.list(). See #20470.
+                        return x.dense_matrix()
                     x = x.list()
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "

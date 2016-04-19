@@ -4518,13 +4518,10 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         c_min = self.code().zero()
         h_min = r.hamming_weight()
-        try:
-            for c in self.code():
-                if (c-r).hamming_weight() < h_min:
-                    h_min = (c-r).hamming_weight()
-                    c_min = c
-        except StopIteration:
-            pass
+        for c in self.code():
+            if (c-r).hamming_weight() < h_min:
+                h_min = (c-r).hamming_weight()
+                c_min = c
         c_min.set_immutable()
         return c_min
 

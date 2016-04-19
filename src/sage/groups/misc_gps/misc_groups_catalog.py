@@ -21,4 +21,4 @@ from sage.groups.semimonomial_transformations.semimonomial_transformation_group 
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.groups.raag import RightAngledArtinGroup as RightAngledArtin
-
+from sage.combinat.root_system.reflection_group_real import ReflectionGroup

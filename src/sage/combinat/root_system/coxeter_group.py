@@ -10,9 +10,6 @@ Coxeter Groups
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_function, cached_method
-from sage.categories.category import Category
-from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
-from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.structure.unique_representation import UniqueRepresentation
@@ -104,6 +101,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         ...
         NotImplementedError: Coxeter group of type ['A', 4, 1] as permutation group not implemented
 
+        sage: W = CoxeterGroup(["A",4], implementation="chevie"); W     # optional - gap3
+        Irreducible real reflection group of rank 4 and type A4
+
     We use the different options for the "reflection" implementation::
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection", base_ring=RR)
@@ -122,7 +122,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = groups.misc.CoxeterGroup(["H",3])
     """
-    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
+    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", "chevie", None]:
         raise ValueError("invalid type implementation")
 
     try:
@@ -149,6 +149,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         if cartan_type.is_crystallographic():
             return WeylGroup(cartan_type)
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
+    elif implementation == "chevie":
+        from sage.combinat.root_system.reflection_group_real import ReflectionGroup
+        return ReflectionGroup(data, index_set=index_set)
 
     raise NotImplementedError("Coxeter group of type {} as {} group not implemented".format(cartan_type, implementation))
 
@@ -212,8 +215,10 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
         N = self._gap_group.__getattr__("N").sage()
         generators = [str(x) for x in self._gap_group.generators]
         self._is_positive_root = [None] + [ True ] * N + [False]*N
-        PermutationGroup_generic.__init__(self, gens = generators,
-                                          category = Category.join([FinitePermutationGroups(), FiniteCoxeterGroups()]))
+        from sage.categories.finite_permutation_groups import FinitePermutationGroups
+        from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
+        PermutationGroup_generic.__init__(self, gens=generators,
+                                          category=(FinitePermutationGroups(), FiniteCoxeterGroups()))
 
     def _element_class(self):
         """

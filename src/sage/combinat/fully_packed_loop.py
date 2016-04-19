@@ -490,7 +490,7 @@ class FullyPackedLoop(Element):
             self._six_vertex_model = generator
 
         self.configuration = matrix(list(self._six_vertex_model))
-        self._n = len(self._end_point_dictionary)/2
+        self._n = len(self._end_point_dictionary) // 2
         Element.__init__(self, parent)
 
     def _repr_(self):
@@ -1204,30 +1204,30 @@ class FullyPackedLoop(Element):
         for k in range(n):
             if k % 2 == 0:
                 # top row
-                end_points[1 + k/2] = (0, k)
+                end_points[1 + k // 2] = (0, k)
 
                 # bottom row
-                end_points[n + 1 + k/2] = (n-1, n-1-k)
+                end_points[n + 1 + k // 2] = (n-1, n-1-k)
 
         # sides for even case
         if n % 2 == 0:
             for k in range(n):
                 if k % 2 == 0:
                     # left side
-                    end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
+                    end_points[((3*n + 2 + k) // 2)] = (n-1-k, 0)
 
                     # right side
-                    end_points[(n + 2 + k)/2] = (k, n-1)
+                    end_points[(n + 2 + k) // 2] = (k, n-1)
 
         # side for odd case
         if n % 2 == 1:
             for k in range(n):
                 if k % 2 == 1:
                     # left side
-                    end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
+                    end_points[(3*n + 2 + k) // 2] = (n-1-k, 0)
 
                     # right side
-                    end_points[(n + 2 + k)/2] = (k, n-1)
+                    end_points[(n + 2 + k) // 2] = (k, n-1)
 
         return end_points
 

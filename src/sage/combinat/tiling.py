@@ -1479,8 +1479,8 @@ class TilingSolver(SageObject):
 
         We test that there are four times less rows for that polyomino::
 
-            sage: len(T.rows()) / len(T._rows_mod_box_isometries(0))
-            4
+            sage: len(T.rows()) == 4 * len(T._rows_mod_box_isometries(0))
+            True
 
         Now, a real use case. A solution of the game Quantumino is a tiling
         of a 5x8x2 box. Since a 5x8x2 box has four orientation preserving

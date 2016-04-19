@@ -282,7 +282,7 @@ class AbstractPartitionDiagram(SetPartition):
         """
         if self._base_diagram:
             tst = sorted(flatten(self._base_diagram))
-            if len(tst) % 2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst) % 2 != 0 or tst != range(-len(tst) // 2,0) + range(1,len(tst) // 2+1):
                 raise ValueError("this does not represent two rows of vertices")
 
     def __eq__(self, other):
@@ -744,7 +744,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 return False
         if len(obj.base_diagram()) > 0:
             tst = sorted(flatten(obj.base_diagram()))
-            if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst)%2 != 0 or tst != range(-len(tst)//2,0) + range(1,len(tst)//2+1):
                 return False
             return True
         return self.order == 0

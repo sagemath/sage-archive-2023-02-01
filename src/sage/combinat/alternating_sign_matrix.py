@@ -1273,7 +1273,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 1 -1  1]
             [ 0  1  0]
         """
-        return self.from_corner_sum(matrix( [[((i+j-height[i][j])/int(2))
+        return self.from_corner_sum(matrix( [[((i+j-height[i][j])//int(2))
                                               for i in range(len(list(height)))]
                                              for j in range(len(list(height)))] ))
 

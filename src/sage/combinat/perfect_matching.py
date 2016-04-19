@@ -834,7 +834,8 @@ class PerfectMatching(ElementWrapper):
             raise ValueError("matching must be non-crossing")
         else:
             perm = self.to_permutation()
-            perm2 = Permutation([(perm[2*i])/2 for i in range(len(perm)/2)])
+            perm2 = Permutation([perm[2 * i] // 2
+                                 for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
 
 

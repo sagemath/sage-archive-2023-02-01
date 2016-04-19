@@ -341,7 +341,7 @@ class SubwordComplexFacet(Simplex, Element):
         conf = self._root_configuration_indices()
         W = self.parent().group()
         Phi = W.roots()
-        N = len(Phi) / 2
+        N = len(Phi) // 2
         return [Phi[i - N] for i in conf if i >= N]
 
     # weights

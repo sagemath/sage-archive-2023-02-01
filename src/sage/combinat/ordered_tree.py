@@ -443,7 +443,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             relabel = True
         roots = [self]
         g.add_vertex(name=self.label())
-        while len(roots):
+        while roots:
             node = roots.pop()
             for child in node:
                 g.add_vertex(name=child.label())
@@ -489,7 +489,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         relations = []
         elements = [self.label()]
         roots = [self]
-        while len(roots):
+        while roots:
             node = roots.pop()
             for child in node:
                 elements.append(child.label())

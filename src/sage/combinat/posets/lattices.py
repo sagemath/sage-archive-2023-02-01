@@ -593,13 +593,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def atoms(self):
         """
-        Return the atoms of the lattice.
+        Return the atoms of this lattice.
 
         An *atom* of a lattice is an element covering the bottom element.
 
         .. SEEALSO::
 
-            :meth:`coatoms`.
+            :meth:`coatoms`
 
         EXAMPLES::
 
@@ -620,13 +620,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def coatoms(self):
         """
-        Return the co-atoms of the lattice.
+        Return the co-atoms of this lattice.
 
         A *co-atom* of a lattice is an element covered by the top element.
 
         .. SEEALSO::
 
-            :meth:`atoms`.
+            :meth:`atoms`
 
         EXAMPLES::
 
@@ -647,7 +647,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def double_irreducibles(self):
         """
-        Return the list of double irreducible elements of the lattice.
+        Return the list of double irreducible elements of this lattice.
 
         A *double irreducible* element of a lattice is an element
         covering and covered by exactly one element. In other words
@@ -655,7 +655,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`, :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`.
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
 
         EXAMPLES::
 
@@ -675,8 +676,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             []
         """
         H = self._hasse_diagram
-        return [self._vertex_to_element(e) for e in H if
-                H.in_degree(e) == 1 and H.out_degree(e) == 1]
+        return [self._vertex_to_element(e) for e in H
+                if H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
     def is_distributive(self):
         r"""

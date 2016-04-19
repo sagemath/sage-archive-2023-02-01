@@ -228,18 +228,8 @@ def external_software():
     EXAMPLES::
 
         sage: from sage.doctest.external import external_software
-        sage: external_software # random
-        ['cplex',
-         'gurobi',
-         'internet',
-         'latex',
-         'macaulay2',
-         'magma',
-         'maple',
-         'mathematica',
-         'matlab',
-         'octave',
-         'scilab']
+        sage: sorted(external_software) == external_software
+        True
     """
     supported = list()
     for func in globals():

@@ -7,7 +7,7 @@ which require certain external software installed on the system.
 
 AUTHORS:
 
-- Kwankyu Lee (2016-03-09) -- initial version, based on the codes by Robert Bradshaw and Nathann Cohen
+- Kwankyu Lee (2016-03-09) -- initial version, based on code by Robert Bradshaw and Nathann Cohen
 """
 
 #*****************************************************************************
@@ -261,7 +261,7 @@ class AvailableSoftware(object):
 
     EXAMPLES::
 
-        sage: from sage.doctest.external import external_software,available_software
+        sage: from sage.doctest.external import external_software, available_software
         sage: external_software
         ['cplex',
          'gurobi',

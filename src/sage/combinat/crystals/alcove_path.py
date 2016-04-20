@@ -417,7 +417,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         s = W.simple_reflections()
         highest_weight_crystal = self._highest_weight_crystal
 
-        if highest_weight_crystal == True:
+        if highest_weight_crystal:
             successors = 'bruhat_upper_covers'
         else:
             successors = 'quantum_bruhat_successors'
@@ -622,7 +622,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         s = W.simple_reflections()
         highest_weight_crystal = self.parent()._highest_weight_crystal
 
-        if highest_weight_crystal == True:
+        if highest_weight_crystal:
             successors = 'bruhat_upper_covers'
         else:
             successors = 'quantum_bruhat_successors'
@@ -1723,14 +1723,14 @@ def compare_graphs(g1, g2, node1, node2):
         matched = False
         for o2 in g2.outgoing_edges( node2 ):
             if o2[2] == out_edge[2]:
-                if matched == True:
+                if matched:
                     print "ERROR:  Two edges with the same label for ", out_edge, " exist."
                     return False
                 matched = True
                 result = compare_graphs(g1, g2, out_edge[1], o2[1])
-                if result == False:
+                if not result:
                     return False
-        if matched == False:
+        if not matched:
             print "ERROR:  No matching edge for ", out_edge, "."
             return False
     return True

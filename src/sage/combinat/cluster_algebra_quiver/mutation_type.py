@@ -1139,8 +1139,8 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         else:
             long_cycle = [ cycle, ['A',n-1,1] ]
     # if we haven't found a "long_cycle", we are in finite type A
-    if long_cycle == False:
-        long_cycle = [ [], QuiverMutationType(['A',n]) ]
+    if not long_cycle:
+        long_cycle = [[], QuiverMutationType(['A', n])]
 
     # The 'connected vertices' are now computed.
     # Attention: 0-1-2 in type A_3 has connecting vertices 0 and 2, while in type D_3 it has connecting vertex 1;

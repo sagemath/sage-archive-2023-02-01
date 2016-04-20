@@ -2102,7 +2102,7 @@ class PartitionTuples_level_size(PartitionTuples):
         return ZZ(gp.eval('polcoeff((1/eta(x+O(x^%s)))^%s, %s, x)'%(self.size()+1,self.level(), self.size())))
 
     def __setstate__(self, state):
-        """
+        r"""
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
         ``__setstate__``.

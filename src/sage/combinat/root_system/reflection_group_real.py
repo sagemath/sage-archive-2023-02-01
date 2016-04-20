@@ -27,15 +27,18 @@ AUTHORS:
 
 - Christian Stump (initial version 2011--2015)
 
-.. WARNING:: Uses the GAP3 package *Chevie* which is available as an
-             experimental package (installed by ``sage -i gap3``) or to
-             download by hand from `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
+.. WARNING::
+
+    Uses the GAP3 package *Chevie* which is available as an
+    experimental package (installed by ``sage -i gap3``) or to
+    download by hand from `Jean Michel's website
+    <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 .. TODO::
 
-    - Implement descents, left/right descents, has_descent, first_descent
-      directly in this class, since the generic implementation is much
-      slower.
+    - Implement descents, left/right descents, ``has_descent``,
+      ``first_descent`` directly in this class, since the generic
+      implementation is much slower.
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
@@ -71,13 +74,13 @@ def ReflectionGroup(*args,**kwds):
 
     can be one or multiple of the following:
 
-    - triple `(r,p,n)` with `p` divides `r`, which denotes the group
-      `G(r,p,n)`
+    - a triple `(r, p, n)` with `p` divides `r`, which denotes the group
+      `G(r, p, n)`
 
-    - integer between `4` and `37`, which denotes an exceptional
+    - an integer between `4` and `37`, which denotes an exceptional
       irreducible complex reflection group
 
-    - finite Cartan-Killing type
+    - a finite Cartan-Killing type
 
     EXAMPLES:
 
@@ -200,7 +203,7 @@ def ReflectionGroup(*args,**kwds):
         if W_type in ZZ or (isinstance(W_type, tuple) and len(W_type) == 3):
             is_complex = True
 
-    for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
+    for index_set_kwd in ['index_set', 'hyperplane_index_set', 'reflection_index_set']:
         index_set = kwds.get(index_set_kwd, None)
         if index_set is not None:
             if isinstance(index_set, (list, tuple)):
@@ -233,7 +236,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
     """
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
-        # TODO: test / examplify the various input arguments
+        Initialize ``self``.
+
         TESTS::
 
             sage: W = ReflectionGroup(['A',3])                          # optional - gap3
@@ -376,7 +380,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.cartan_type()                                       # optional - gap3
             ['A', 3]
 
-            sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
             sage: W.cartan_type()                                       # optional - gap3
             A3xB2
         """
@@ -404,7 +408,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
             sage: W.positive_roots()                                    # optional - gap3
             [(1, 0, 0, 0, 0),
              (0, 1, 0, 0, 0),
@@ -429,7 +433,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
             sage: W.almost_positive_roots()                             # optional - gap3
             [(-1, 0, 0, 0, 0),
              (0, -1, 0, 0, 0),
@@ -509,8 +513,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
         r"""
         Return the fundamental weights of ``self`` in terms of the simple roots.
 
-        The fundamental weights are defined by `s_j(\omega_i) = \omega_i - \delta_{i=j}\alpha_j`
-        for the simple reflection `s_j` with corresponding simple roots `\alpha_j`.
+        The fundamental weights are defined by
+        `s_j(\omega_i) = \omega_i - \delta_{i=j}\alpha_j`
+        for the simple reflection `s_j` with corresponding simple
+        roots `\alpha_j`.
 
         In other words, the transpose Cartan matrix sends the weight
         basis to the root basis. Observe again that the action here is
@@ -518,7 +524,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+            sage: W = ReflectionGroup(['A',3], ['B',2])                 # optional - gap3
             sage: W.fundamental_weights()                               # optional - gap3
             Finite family {1: (3/4, 1/2, 1/4, 0, 0), 2: (1/2, 1, 1/2, 0, 0), 3: (1/4, 1/2, 3/4, 0, 0), 4: (0, 0, 0, 1, 1/2), 5: (0, 0, 0, 1, 1)}
 
@@ -590,7 +596,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         INPUT:
 
         - ``point`` -- optional, a point given by its coordinates in
-          the weight basis (default is (1,1,1,..))
+          the weight basis (default is `(1, 1, 1, \ldots)`)
 
         .. NOTE::
 
@@ -622,7 +628,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         return Polyhedron(vertices=[v*w.to_matrix() for w in self])
 
     @cached_method
-    def right_coset_representatives(self,J):
+    def right_coset_representatives(self, J):
         r"""
         Return the right coset representatives of ``self`` for the
         parabolic subgroup generated by the simple reflections in ``J``.
@@ -631,13 +637,44 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(["A",3])                          # optional - gap3
             sage: for J in Subsets([1,2,3]): W.right_coset_representatives(J)   # optional - gap3
-            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11), (1,7)(2,4)(5,6)(8,10)(11,12), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12), (1,8)(2,7)(3,6)(4,10)(9,12), (1,10,9,5)(2,6,8,12)(3,11,7,4), (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,5)(2,4,9)(3,8,10)(6,11,7), (1,3,7,9)(2,11,6,10)(4,8,5,12), (1,9,7,3)(2,10,6,11)(4,12,5,8), (1,11)(3,10)(4,9)(5,7)(6,12), (1,9)(2,8)(3,7)(4,11)(5,10)(6,12)]
-            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,3,7,9)(2,11,6,10)(4,8,5,12)]
-            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,7)(2,4)(5,6)(8,10)(11,12), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9), (1,10,9,5)(2,6,8,12)(3,11,7,4), (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,12,5)(2,4,9)(3,8,10)(6,11,7), (1,11)(3,10)(4,9)(5,7)(6,12)]
-            [(), (1,4)(2,8)(3,5)(7,10)(9,11), (1,7)(2,4)(5,6)(8,10)(11,12), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,8)(2,7)(3,6)(4,10)(9,12), (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,9,7,3)(2,10,6,11)(4,12,5,8)]
-            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,2,3,12)(4,5,10,11)(6,7,8,9)]
-            [(), (1,4)(2,8)(3,5)(7,10)(9,11), (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9)]
-            [(), (1,7)(2,4)(5,6)(8,10)(11,12), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,12,3,2)(4,11,10,5)(6,9,8,7)]
+            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11),
+             (1,7)(2,4)(5,6)(8,10)(11,12), (1,2,10)(3,6,5)(4,7,8)(9,12,11),
+             (1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,6,4)(2,11,3)(5,9,8)(7,12,10),
+             (1,7)(2,6)(3,9)(4,5)(8,12)(10,11),
+             (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9),
+             (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12),
+             (1,8)(2,7)(3,6)(4,10)(9,12), (1,10,9,5)(2,6,8,12)(3,11,7,4),
+             (1,12,3,2)(4,11,10,5)(6,9,8,7), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9),
+             (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,8,11)(2,5,7)(3,12,4)(6,10,9),
+             (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,5)(2,4,9)(3,8,10)(6,11,7),
+             (1,3,7,9)(2,11,6,10)(4,8,5,12), (1,9,7,3)(2,10,6,11)(4,12,5,8),
+             (1,11)(3,10)(4,9)(5,7)(6,12), (1,9)(2,8)(3,7)(4,11)(5,10)(6,12)]
+            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4)(2,8)(3,5)(7,10)(9,11),
+             (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12),
+             (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,2,3,12)(4,5,10,11)(6,7,8,9),
+             (1,5,9,10)(2,12,8,6)(3,4,7,11), (1,6)(2,9)(3,8)(5,11)(7,12),
+             (1,3)(2,12)(4,10)(5,11)(6,8)(7,9),
+             (1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,3,7,9)(2,11,6,10)(4,8,5,12)]
+            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,7)(2,4)(5,6)(8,10)(11,12),
+             (1,4,6)(2,3,11)(5,8,9)(7,10,12),
+             (1,7)(2,6)(3,9)(4,5)(8,12)(10,11),
+             (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,2,3,12)(4,5,10,11)(6,7,8,9),
+             (1,10,9,5)(2,6,8,12)(3,11,7,4), (1,12,3,2)(4,11,10,5)(6,9,8,7),
+             (1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,12,5)(2,4,9)(3,8,10)(6,11,7),
+             (1,11)(3,10)(4,9)(5,7)(6,12)]
+            [(), (1,4)(2,8)(3,5)(7,10)(9,11), (1,7)(2,4)(5,6)(8,10)(11,12),
+             (1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,6,4)(2,11,3)(5,9,8)(7,12,10),
+             (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,5,9,10)(2,12,8,6)(3,4,7,11),
+             (1,8)(2,7)(3,6)(4,10)(9,12), (1,12,3,2)(4,11,10,5)(6,9,8,7),
+             (1,3)(2,12)(4,10)(5,11)(6,8)(7,9),
+             (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,9,7,3)(2,10,6,11)(4,12,5,8)]
+            [(), (2,5)(3,9)(4,6)(8,11)(10,12), (1,4,6)(2,3,11)(5,8,9)(7,10,12),
+             (1,2,3,12)(4,5,10,11)(6,7,8,9)]
+            [(), (1,4)(2,8)(3,5)(7,10)(9,11), (1,2,10)(3,6,5)(4,7,8)(9,12,11),
+             (1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,5,9,10)(2,12,8,6)(3,4,7,11),
+             (1,3)(2,12)(4,10)(5,11)(6,8)(7,9)]
+            [(), (1,7)(2,4)(5,6)(8,10)(11,12), (1,10,2)(3,5,6)(4,8,7)(9,11,12),
+             (1,12,3,2)(4,11,10,5)(6,9,8,7)]
             [()]
         """
         from sage.combinat.root_system.reflection_group_complex import _gap_return
@@ -707,7 +744,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
-                ....:   print("%s %s"%(w.reduced_word(), w.length()))   # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(), w.length())) # optional - gap3
                 [] 0
                 [2] 1
                 [1] 1
@@ -781,7 +818,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
-                ....:     print("%s %s"%(w.reduced_word(), [w.act_on_root(beta) for beta in W.positive_roots()]))   # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
+                ....:           [w.act_on_root(beta) for beta in W.positive_roots()]))  # optional - gap3
                 [] [(1, 0), (0, 1), (1, 1)]
                 [2] [(1, 1), (0, -1), (1, 0)]
                 [1] [(-1, 0), (1, 1), (0, 1)]
@@ -789,7 +827,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [2, 1] [(0, 1), (-1, -1), (-1, 0)]
                 [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
 
-                sage: [ W.from_reduced_word([1,2]).act_on_root(beta, side="left") for beta in W.positive_roots() ]  # optional - gap3
+                sage: elt = W.from_reduced_word([1,2])                  # optional - gap3
+                sage: [ elt.act_on_root(beta, side="left") for beta in W.positive_roots() ]  # optional - gap3
                 [(0, 1), (-1, -1), (-1, 0)]
             """
             Phi = self.parent().roots()
@@ -892,7 +931,7 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
         EXAMPLES::
 
-            sage: for i in [2..7]: ReflectionGroup(["I",i])             # optional - gap3
+            sage: for i in [2..7]: ReflectionGroup(["I", i])             # optional - gap3
             Reducible real reflection group of rank 2 and type A1 x A1
             Irreducible real reflection group of rank 2 and type A2
             Irreducible real reflection group of rank 2 and type C2
@@ -903,5 +942,6 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
         type_str = self._irrcomp_repr_(self._type[0])
         return 'Irreducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
-    class Element(RealReflectionGroup.Element,IrreducibleComplexReflectionGroup.Element):
+    class Element(RealReflectionGroup.Element, IrreducibleComplexReflectionGroup.Element):
         pass
+

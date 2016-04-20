@@ -91,3 +91,4 @@ class GeneralizedCoxeterGroups(Category_singleton):
             """
             from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             return [ComplexReflectionGroups().Finite().WellGenerated()]
+

@@ -902,7 +902,7 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
+            if (res - ex).is_trivial_zero():
                 raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 

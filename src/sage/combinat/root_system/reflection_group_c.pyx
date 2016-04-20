@@ -4,7 +4,7 @@ finite complex or real reflection groups.
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
-#                     2016 Travis Scrimshaw
+#                     2016 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(["B", 4])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: TestSuite(I).run(skip="_test_pickling")               # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: TestSuite(I).run(skip="_test_pickling")     # optional - gap3
         """
         cdef tuple S = self.S
         cdef int n = len(S)
@@ -65,10 +65,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(["B", 4])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: TestSuite(I).run(skip="_test_pickling")               # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: TestSuite(I).run(skip="_test_pickling")     # optional - gap3
         """
         self.S = tuple(W.simple_reflections())
         self.n = len(W._index_set)
@@ -145,10 +145,10 @@ cdef class Iterator(object):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(["B", 4])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: len(list(I)) == W.cardinality()                       # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(["B", 4])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: len(list(I)) == W.cardinality()             # optional - gap3
             True
         """
         # the breadth search iterator is ~2x slower as it
@@ -170,10 +170,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(['B', 2])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: list(I.iter_depth())                                  # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: list(I.iter_depth())                        # optional - gap3
             [(),
              (1,3)(2,6)(5,7),
              (1,5)(2,4)(6,8),
@@ -207,10 +207,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(['B', 2])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: for w in I.iter_words_depth(): w._reduced_word        # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: for w in I.iter_words_depth(): w._reduced_word  # optional - gap3
             []
             [1]
             [0]
@@ -248,10 +248,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(['B', 2])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: list(I.iter_breadth())                                # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: list(I.iter_breadth())                      # optional - gap3
             [(),
              (1,3)(2,6)(5,7),
              (1,5)(2,4)(6,8),
@@ -285,10 +285,10 @@ cdef class Iterator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.reflection_group_c import Iterator # optional - gap3
-            sage: W = ReflectionGroup(['B', 2])                         # optional - gap3
-            sage: I = Iterator(W, W.number_of_reflections())            # optional - gap3
-            sage: for w in I.iter_words_breadth(): w._reduced_word      # optional - gap3
+            sage: from sage.combinat.root_system.reflection_group_c import Iterator
+            sage: W = ReflectionGroup(['B', 2])               # optional - gap3
+            sage: I = Iterator(W, W.number_of_reflections())  # optional - gap3
+            sage: for w in I.iter_words_breadth(): w._reduced_word  # optional - gap3
             []
             [1]
             [0]
@@ -329,9 +329,9 @@ def iterator_tracking_words(W):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.reflection_group_c import iterator_tracking_words  # optional - gap3
-        sage: W = ReflectionGroup(4)                                    # optional - gap3
-        sage: for w in iterator_tracking_words(W): w                    # optional - gap3
+        sage: from sage.combinat.root_system.reflection_group_c import iterator_tracking_words
+        sage: W = ReflectionGroup(4)                        # optional - gap3
+        sage: for w in iterator_tracking_words(W): w        # optional - gap3
         ((), [])
         ((1,3,9)(2,4,7)(5,10,18)(6,11,16)(8,12,19)(13,15,20)(14,17,21)(22,23,24), [0])
         ((1,5,13)(2,6,10)(3,7,14)(4,8,15)(9,16,22)(11,12,17)(18,19,23)(20,21,24), [1])
@@ -492,9 +492,9 @@ cpdef list reduced_word_c(W, PermutationGroupElement w):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.reflection_group_c import reduced_word_c   # optional - gap3
-        sage: W = ReflectionGroup(['B',2])                              # optional - gap3
-        sage: [ reduced_word_c(W,w) for w in W ]                        # optional - gap3
+        sage: from sage.combinat.root_system.reflection_group_c import reduced_word_c
+        sage: W = ReflectionGroup(['B',2])                  # optional - gap3
+        sage: [ reduced_word_c(W,w) for w in W ]            # optional - gap3
         [[], [1], [0], [0, 1], [1, 0], [1, 0, 1], [0, 1, 0], [0, 1, 0, 1]]
     """
     cdef tuple S = tuple(W.simple_reflections())

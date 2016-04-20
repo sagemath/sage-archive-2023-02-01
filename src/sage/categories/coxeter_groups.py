@@ -255,7 +255,7 @@ class CoxeterGroups(Category_singleton):
                 complex reflection groups. It would be nicer to put it
                 in some joint super category; however, in the current
                 state of the art, there is none where it's clear that
-                this is the right construction for obtaining a coxeter
+                this is the right construction for obtaining a Coxeter
                 element.
 
                 In this context, this is an element having a regular
@@ -280,20 +280,20 @@ class CoxeterGroups(Category_singleton):
             This method is also used for well generated finite complex
             reflection groups::
 
-                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
-                sage: W.coxeter_element().reduced_word()                # optional - gap3
+                sage: W = ReflectionGroup((1,1,4))          # optional - gap3
+                sage: W.coxeter_element().reduced_word()    # optional - gap3
                 [1, 2, 3]
 
-                sage: W = ReflectionGroup((2,1,4))                      # optional - gap3
-                sage: W.coxeter_element().reduced_word()                # optional - gap3
+                sage: W = ReflectionGroup((2,1,4))          # optional - gap3
+                sage: W.coxeter_element().reduced_word()    # optional - gap3
                 [1, 2, 3, 4]
 
-                sage: W = ReflectionGroup((4,1,4))                      # optional - gap3
-                sage: W.coxeter_element().reduced_word()                # optional - gap3
+                sage: W = ReflectionGroup((4,1,4))          # optional - gap3
+                sage: W.coxeter_element().reduced_word()    # optional - gap3
                 [1, 2, 3, 4]
 
-                sage: W = ReflectionGroup((4,4,4))                      # optional - gap3
-                sage: W.coxeter_element().reduced_word()                # optional - gap3
+                sage: W = ReflectionGroup((4,4,4))          # optional - gap3
+                sage: W.coxeter_element().reduced_word()    # optional - gap3
                 [1, 2, 3, 4]
 
             TESTS::
@@ -321,8 +321,8 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(4)                            # optional - gap3
-                sage: sorted(W.standard_coxeter_elements())             # optional - gap3
+                sage: W = ReflectionGroup(4)                 # optional - gap3
+                sage: sorted(W.standard_coxeter_elements())  # optional - gap3
                 [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
                  (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
             """
@@ -1201,10 +1201,10 @@ class CoxeterGroups(Category_singleton):
                 sage: w1 = s[1]*s[2]*s[3]
                 sage: w0.absolute_covers()
                 [
-                [0 0 0 1]  [0 0 1 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]
-                [1 0 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]  [1 0 0 0]
-                [0 0 1 0]  [0 1 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]
-                [0 1 0 0], [0 0 0 1], [0 0 0 1], [1 0 0 0], [0 0 1 0]
+                [0 0 1 0]  [0 1 0 0]  [0 0 0 1]  [0 1 0 0]  [0 1 0 0]
+                [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [0 0 1 0]  [0 0 0 1]
+                [0 1 0 0]  [0 0 0 1]  [0 0 1 0]  [1 0 0 0]  [0 0 1 0]
+                [0 0 0 1], [0 0 1 0], [0 1 0 0], [0 0 0 1], [1 0 0 0]
                 ]
             """
             W = self.parent()
@@ -1597,8 +1597,8 @@ class CoxeterGroups(Category_singleton):
             Complexity: `O(l * c)`, where `l` is the minimum of the
             lengths of `u` and of `v`, and `c` is the cost of the low
             level methods :meth:`first_descent`, :meth:`has_descent`,
-            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`), etc.
-            Those are typically `O(n)`, where `n` is the rank of the
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`),
+            etc. Those are typically `O(n)`, where `n` is the rank of the
             Coxeter group.
 
             TESTS:
@@ -1672,8 +1672,8 @@ class CoxeterGroups(Category_singleton):
             Complexity: `O(l * c)`, where `l` is the minimum of the
             lengths of `u` and of `v`, and `c` is the cost of the low
             level methods :meth:`first_descent`, :meth:`has_descent`,
-            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`), etc.
-            Those are typically `O(n)`, where `n` is the rank of the
+            :meth:`~sage.categories.complex_reflection_or_generalized_coxeter_groups.ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection`),
+            etc. Those are typically `O(n)`, where `n` is the rank of the
             Coxeter group.
 
             We now run consistency tests with permutations::
@@ -1682,9 +1682,9 @@ class CoxeterGroups(Category_singleton):
                 sage: P4 = Permutations(4)
                 sage: def P4toW(w): return W.from_reduced_word(w.reduced_word())
                 sage: for u in P4:  # long time (5s on sage.math, 2011)
-                ...       for v in P4:
-                ...           assert u.permutohedron_lequal(v) == P4toW(u).weak_le(P4toW(v))
-                ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
+                ....:     for v in P4:
+                ....:         assert u.permutohedron_lequal(v) == P4toW(u).weak_le(P4toW(v))
+                ....:         assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
             """
             if not have_same_parent(self, other):
                 raise TypeError("%s and %s do not have the same parent"%(self,other))

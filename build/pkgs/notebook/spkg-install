@@ -11,8 +11,7 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-
-python setup.py install
+$PIP_INSTALL .
 
 # Install the Jupyter notebook configuration
 ETC_JUPYTER="$SAGE_ETC"/jupyter

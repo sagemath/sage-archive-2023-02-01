@@ -22,6 +22,17 @@ export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 export PYTHONPATH="$SAGE_LOCAL"
 
+# Default arguments for all packages insalled with `pip install`
+# env PYTHONPATH=.   : Sage's Python unconditionally removes . from sys.path
+#                      which can break several packages' installation
+# --ignore-installed : Force pip to re-install package even if it thinks it's
+#                      already installed (for which it sometimes gets false
+#                      positives for partially-installed packages).
+# --no-deps          : Don't install runtime dependencies from PyPI.
+# --no-index         : Don't even look at any package index--this also disables
+#                      pip's version self-check
+export PIP_INSTALL="env PYTHONPATH=. pip install --ignore-installed --no-deps --no-index"
+
 # Storing the start time of the build process. The time is stored in
 # seconds since 1970-01-01 in a hidden file called
 # "SAGE_ROOT/.BUILDSTART". See ticket #6744.

@@ -2238,10 +2238,7 @@ class SR_gf2n(SR_generic):
 
         INPUT:
 
-
-        -  ``l`` - a vector in the sense of
-           ``self.is_vector``
-
+        - ``l`` -- a vector in the sense of :meth:`is_vector`
 
         EXAMPLE::
 
@@ -2262,7 +2259,8 @@ class SR_gf2n(SR_generic):
         elif isinstance(l, tuple):
             return tuple(ret)
         elif is_Matrix(l):
-            return Matrix(self.base_ring(), l.ncols(), l.nrows()/self.e, ret).transpose()
+            return Matrix(self.base_ring(), l.ncols(), l.nrows() // self.e,
+                          ret).transpose()
         else:
             raise TypeError
 

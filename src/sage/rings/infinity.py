@@ -1686,7 +1686,9 @@ def test_comparison(ring):
         AssertionError: testing -1000.0 in Symbolic Ring: id = ...
     """
     from sage.symbolic.ring import SR
-    elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1, 3^(-1/3), SR.pi(), 100000]
+    from sage.rings.rational_field import QQ
+    elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1,
+                3 ** (-QQ.one()/3), SR.pi(), 100000]
     elements.append(ring.an_element())
     elements.extend(ring.some_elements())
     for z in elements:

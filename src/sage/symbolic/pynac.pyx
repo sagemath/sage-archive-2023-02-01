@@ -1100,6 +1100,14 @@ cdef bint py_is_real(object a) except +:
     if type(a) is int or isinstance(a, Integer) or\
             type(a) is long or type(a) is float:
         return True
+    try:
+        P = parent_c(a)
+        if P.is_field() and P.is_finite():
+            return False
+    except NotImplementedError:
+        return False
+    except AttributeError:
+        pass
     return py_imag(a) == 0
 
 cdef bint py_is_prime(object n) except +:

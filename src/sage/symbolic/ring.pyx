@@ -293,6 +293,14 @@ cdef class SymbolicRing(CommutativeRing):
             3*x^5*log(y)
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
+
+        Check that :trac:`20162` is fixed::
+
+            sage: k.<a> = GF(9)
+            sage: SR(a).is_real()
+            False
+            sage: SR(a).is_positive()
+            False
         """
         cdef GEx exp
         if is_Expression(x):

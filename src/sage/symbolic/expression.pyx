@@ -3584,6 +3584,22 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(ex)
             \left(e^{\sqrt{x}}\right)^{x}
 
+        Test simplification of powers involving the reciprocal
+        logarithm of the (positive) base::
+
+            sage: 2^(1/log(2))
+            e
+            sage: 2^(x/log(2))
+            e^x
+            sage: 2^(-x^2/2/log(2))
+            e^(-1/2*x^2)
+            sage: x^(x/log(x))
+            x^(x/log(x))
+            sage: assume(x > 0)
+            sage: x^(x/log(x))
+            e^x
+            sage: forget()
+
         Test base a Python numeric type::
 
             sage: int(2)^x

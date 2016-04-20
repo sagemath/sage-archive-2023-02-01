@@ -23,7 +23,7 @@ cdef class GLPKExactBackend(GLPKBackend):
     reconstructs rationals from doubles and also provides results
     as doubles.
 
-    No support for integer variables.
+    There is no support for integer variables.
 
     TESTS:
 
@@ -50,9 +50,11 @@ cdef class GLPKExactBackend(GLPKBackend):
         Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
-        the variable is both positive and real.
-        Variable types are always continuous, and thus the parameters
-        ``binary``, ``integer``, and ``continuous`` have no effect.
+        the variable is both nonnegative and real.
+
+        In this backend, variables are always continuous (real).
+        If integer variables are requested via the parameters
+        ``binary`` and ``integer``, an error will be raised.
 
         INPUT:
 
@@ -114,7 +116,11 @@ cdef class GLPKExactBackend(GLPKBackend):
         Add ``number`` variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
+        the variables are both nonnegative and real.
+
+        In this backend, variables are always continuous (real).
+        If integer variables are requested via the parameters
+        ``binary`` and ``integer``, an error will be raised.
 
         INPUT:
 
@@ -156,7 +162,11 @@ cdef class GLPKExactBackend(GLPKBackend):
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
-        Set the type of a variable
+        Set the type of a variable.
+
+        In this backend, variables are always continuous (real).
+        If integer or binary variables are requested via the parameter
+        ``vtype``, an error will be raised.
 
         INPUT:
 
@@ -171,7 +181,7 @@ cdef class GLPKExactBackend(GLPKBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "cvxopt")
+            sage: p = get_solver(solver = "GLPK/exact")
             sage: p.add_variables(5)
             4
             sage: p.set_variable_type(3, -1)

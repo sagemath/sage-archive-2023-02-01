@@ -14,7 +14,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
 
-
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
     The category of finite Coxeter groups.
@@ -24,7 +23,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: CoxeterGroups.Finite()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of finite generalized coxeter groups, Category of coxeter groups]
+        [Category of finite generalized coxeter groups,
+         Category of coxeter groups]
 
         sage: G = CoxeterGroups().Finite().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -50,7 +50,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         EXAMPLES::
 
             sage: CoxeterGroups().Finite().super_categories()
-            [Category of finite generalized coxeter groups, Category of coxeter groups]
+            [Category of finite generalized coxeter groups,
+             Category of coxeter groups]
         """
         from sage.categories.complex_reflection_groups import ComplexReflectionGroups
         return [ComplexReflectionGroups().Finite().WellGenerated()]
@@ -239,12 +240,11 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: SymmetricGroup(3).degrees()
                 (2, 3)
             """
+            from sage.rings.qqbar import QQbar
+            from sage.rings.integer_ring import ZZ
             def degrees_of_irreducible_component(I):
                 """Return the degrees for the irreducible component indexed by I"""
-                # The coxeter element
-                from sage.rings.qqbar import QQbar
-                from sage.rings.integer_ring import ZZ
-
+                # A Coxeter element
                 s = self.simple_reflections()
                 c = self.prod(s[i] for i in I)
                 roots = c.matrix().change_ring(QQbar).charpoly().roots()

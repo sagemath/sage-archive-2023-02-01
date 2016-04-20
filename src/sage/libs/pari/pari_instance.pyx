@@ -160,6 +160,27 @@ Sage (:trac:`9636`)::
     sage: pari('print("test")')
     test
 
+Check that ``default()`` works properly::
+
+    sage: pari.default("debug")
+    0
+    sage: pari.default("debug", 3)
+    sage: pari(2^67+1).factor()
+    IFAC: cracking composite
+            49191317529892137643
+    IFAC: factor 6713103182899
+            is prime
+    IFAC: factor 7327657
+            is prime
+    IFAC: prime 7327657
+            appears with exponent = 1
+    IFAC: prime 6713103182899
+            appears with exponent = 1
+    IFAC: found 2 large prime (power) factors.
+    [3, 1; 7327657, 1; 6713103182899, 1]
+    sage: pari.default("debug", 0)
+    sage: pari(2^67+1).factor()
+    [3, 1; 7327657, 1; 6713103182899, 1]
 """
 
 #*****************************************************************************
@@ -584,11 +605,6 @@ cdef class PariInstance(PariInstance_auto):
         """
         return (<Parent>left)._richcmp(right, op)
 
-    def default(self, variable, value=None):
-        if not value is None:
-            return self('default(%s, %s)'%(variable, value))
-        return self('default(%s)'%variable)
-
     def set_debug_level(self, level):
         """
         Set the debug PARI C library variable.
@@ -669,8 +685,13 @@ cdef class PariInstance(PariInstance_auto):
     cdef inline gen new_gen(self, GEN x):
         """
         Create a new gen wrapping `x`, then call ``clear_stack()``.
+        Except if `x` is ``gnil``, then we return ``None`` instead.
         """
-        cdef gen g = self.new_gen_noclear(x)
+        cdef gen g
+        if x is gnil:
+            g = None
+        else:
+            g = self.new_gen_noclear(x)
         self.clear_stack()
         return g
 

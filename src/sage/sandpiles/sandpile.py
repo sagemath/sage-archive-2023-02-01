@@ -339,7 +339,6 @@ from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
 from sage.arith.srange import xsrange
-from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
@@ -452,6 +451,7 @@ class Sandpile(DiGraph):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(Sandpile.__dict__.keys()):
             if i[0]!='_':
@@ -2932,6 +2932,7 @@ class SandpileConfig(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileConfig.__dict__.keys()):
             if i[0]!='_':
@@ -4285,6 +4286,7 @@ class SandpileDivisor(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileDivisor.__dict__.keys()):
             if i[0]!='_':

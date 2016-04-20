@@ -161,11 +161,11 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = ColoredPermutations(1, 4)
                 sage: W.index_set()
                 (1, 2, 3)
-                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])
-                sage: W.index_set()
+                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])  # optional - gap3
+                sage: W.index_set()                                     # optional - gap3
                 (1, 3, 'asdf')
-                sage: W = ReflectionGroup((1,1,4), index_set=('a','b','c'))
-                sage: W.index_set()
+                sage: W = ReflectionGroup((1,1,4), index_set=('a','b','c')) # optional - gap3
+                sage: W.index_set()                                     # optional - gap3
                 ('a', 'b', 'c')
             """
             # return self.simple_reflections().keys()
@@ -194,9 +194,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: s[1]
                 (0, 2, 1, 3)
 
-                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])
-                sage: for i in W.index_set():
-                ....:     print('%s %s'%(i, W.simple_reflection(i)))
+                sage: W = ReflectionGroup((1,1,4), index_set=[1,3,'asdf'])  # optional - gap3
+                sage: for i in W.index_set():                           # optional - gap3
+                ....:     print('%s %s'%(i, W.simple_reflection(i)))    # optional - gap3
                 1 (1,7)(2,4)(5,6)(8,10)(11,12)
                 3 (1,4)(2,8)(3,5)(7,10)(9,11)
                 asdf (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -239,8 +239,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.simple_reflections()
                 Finite family {1: [[0, 0, 0], [2, 1, 3]], 2: [[0, 0, 0], [1, 3, 2]]}
 
-                sage: W = ReflectionGroup((1,1,3), index_set=['a','b'])
-                sage: W.simple_reflections()
+                sage: W = ReflectionGroup((1,1,3), index_set=['a','b']) # optional - gap3
+                sage: W.simple_reflections()                            # optional - gap3
                 Finite family {'a': (1,4)(2,3)(5,6), 'b': (1,3)(2,5)(4,6)}
 
             This default implementation uses :meth:`.index_set` and
@@ -264,8 +264,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = ColoredPermutations(4,3)
                 sage: W.number_of_simple_reflections()
                 3
-                sage: W = ReflectionGroup((4,2,3))
-                sage: W.number_of_simple_reflections()
+                sage: W = ReflectionGroup((4,2,3))                      # optional - gap3
+                sage: W.number_of_simple_reflections()                  # optional - gap3
                 4
             """
             return len(self.index_set())
@@ -418,14 +418,14 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: W.reflection_index_set()
+                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: W.reflection_index_set()                          # optional - gap3
                 (1, 2, 3, 4, 5, 6)
-                sage: W = ReflectionGroup((1,1,4), reflection_index_set=[1,3,'asdf',7,9,11])
-                sage: W.reflection_index_set()
+                sage: W = ReflectionGroup((1,1,4), reflection_index_set=[1,3,'asdf',7,9,11])    # optional - gap3
+                sage: W.reflection_index_set()                          # optional - gap3
                 (1, 3, 'asdf', 7, 9, 11)
-                sage: W = ReflectionGroup((1,1,4), reflection_index_set=('a','b','c','d','e','f'))
-                sage: W.reflection_index_set()
+                sage: W = ReflectionGroup((1,1,4), reflection_index_set=('a','b','c','d','e','f'))  # optional - gap3
+                sage: W.reflection_index_set()                          # optional - gap3
                 ('a', 'b', 'c', 'd', 'e', 'f')
             """
 
@@ -444,9 +444,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: for i in W.reflection_index_set():
-                ....:     print('%s %s'%(i, W.reflection(i)))
+                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: for i in W.reflection_index_set():                # optional - gap3
+                ....:     print('%s %s'%(i, W.reflection(i)))           # optional - gap3
                 1 (1,7)(2,4)(5,6)(8,10)(11,12)
                 2 (1,4)(2,8)(3,5)(7,10)(9,11)
                 3 (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -468,33 +468,33 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))
-                sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()):
-                ....:     print('%s %s'%(index, reflections[index]))
+                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: reflections = W.reflections()                     # optional - gap3
+                sage: for index in sorted(reflections.keys()):          # optional - gap3
+                ....:     print('%s %s'%(index, reflections[index]))    # optional - gap3
                 1 (1,4)(2,3)(5,6)
                 2 (1,3)(2,5)(4,6)
                 3 (1,5)(2,4)(3,6)
 
-                sage: W = ReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
-                sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()):
-                ....:     print('%s %s'%(index, reflections[index]))
+                sage: W = ReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])   # optional - gap3
+                sage: reflections = W.reflections()                     # optional - gap3
+                sage: for index in sorted(reflections.keys()):          # optional - gap3
+                ....:     print('%s %s'%(index, reflections[index]))    # optional - gap3
                 a (1,4)(2,3)(5,6)
                 b (1,3)(2,5)(4,6)
                 c (1,5)(2,4)(3,6)
 
-                sage: W = ReflectionGroup((3,1,1))
-                sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()):
-                ....:     print('%s %s'%(index, reflections[index]))
+                sage: W = ReflectionGroup((3,1,1))                      # optional - gap3
+                sage: reflections = W.reflections()                     # optional - gap3
+                sage: for index in sorted(reflections.keys()):          # optional - gap3
+                ....:     print('%s %s'%(index, reflections[index]))    # optional - gap3
                 1 (1,2,3)
                 2 (1,3,2)
 
-                sage: W = ReflectionGroup((1,1,3), (3,1,2))
-                sage: reflections = W.reflections()
-                sage: for index in sorted(reflections.keys()):
-                ....:     print('%s %s'%(index, reflections[index]))
+                sage: W = ReflectionGroup((1,1,3), (3,1,2))             # optional - gap3
+                sage: reflections = W.reflections()                     # optional - gap3
+                sage: for index in sorted(reflections.keys()):          # optional - gap3
+                ....:     print('%s %s'%(index, reflections[index]))    # optional - gap3
                 1 (1,6)(2,5)(7,8)
                 2 (1,5)(2,7)(6,8)
                 3 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
@@ -532,14 +532,14 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: W.hyperplane_index_set()
+                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: W.hyperplane_index_set()                          # optional - gap3
                 (1, 2, 3, 4, 5, 6)
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=[1,3,'asdf',7,9,11])
-                sage: W.hyperplane_index_set()
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=[1,3,'asdf',7,9,11])    # optional - gap3
+                sage: W.hyperplane_index_set()                          # optional - gap3
                 (1, 3, 'asdf', 7, 9, 11)
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))
-                sage: W.hyperplane_index_set()
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))  # optional - gap3
+                sage: W.hyperplane_index_set()                          # optional - gap3
                 ('a', 'b', 'c', 'd', 'e', 'f')
             """
 
@@ -559,9 +559,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))
-                sage: for i in W.hyperplane_index_set():
-                ....:     print('%s %s'%(i, W.distinguished_reflection(i)))
+                sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))  # optional - gap3
+                sage: for i in W.hyperplane_index_set():                    # optional - gap3
+                ....:     print('%s %s'%(i, W.distinguished_reflection(i))) # optional - gap3
                 a (1,7)(2,4)(5,6)(8,10)(11,12)
                 b (1,4)(2,8)(3,5)(7,10)(9,11)
                 c (2,5)(3,9)(4,6)(8,11)(10,12)
@@ -592,32 +592,32 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))
-                sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()):
-                ....:     print('%s %s'%(index, distinguished_reflections[index]))
+                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 1 (1,4)(2,3)(5,6)
                 2 (1,3)(2,5)(4,6)
                 3 (1,5)(2,4)(3,6)
 
-                sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
-                sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()):
-                ....:     print('%s %s'%(index, distinguished_reflections[index]))
+                sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])   # optional - gap3
+                sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 a (1,4)(2,3)(5,6)
                 b (1,3)(2,5)(4,6)
                 c (1,5)(2,4)(3,6)
 
-                sage: W = ReflectionGroup((3,1,1))
-                sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()):
-                ....:     print('%s %s'%(index, distinguished_reflections[index]))
+                sage: W = ReflectionGroup((3,1,1))                      # optional - gap3
+                sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 1 (1,2,3)
 
-                sage: W = ReflectionGroup((1,1,3), (3,1,2))
-                sage: distinguished_reflections = W.distinguished_reflections()
-                sage: for index in sorted(distinguished_reflections.keys()):
-                ....:     print('%s %s'%(index, distinguished_reflections[index]))
+                sage: W = ReflectionGroup((1,1,3), (3,1,2))             # optional - gap3
+                sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):    # optional - gap3
+                ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 1 (1,6)(2,5)(7,8)
                 2 (1,5)(2,7)(6,8)
                 3 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
@@ -644,7 +644,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
               index set of ``self`` (resp. of the distinguished
               or of all reflections)
             - ``word_type`` -- (optional, default: ``'simple'``):
-              ``'simple'``, ``'distinguished'``, or ``'all'``.
+              either ``'simple'``, ``'distinguished'``, or ``'all'``
 
             If ``word`` is `[i_1,i_2,\ldots,i_k]`, then this returns
             the corresponding product of simple reflections
@@ -654,18 +654,20 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             then the product of the distinguished reflections (resp. all
             reflections) is returned.
 
-            Note: the main use case is for constructing elements from
-            reduced words, hence the name of this method. But actually
-            the input word need *not* be reduced.
+            .. NOTE::
+
+                The main use case is for constructing elements from
+                reduced words, hence the name of this method.
+                However, the input word need *not* be reduced.
 
             .. SEEALSO::
 
                 - :meth:`index_set`
                 - :meth:`reflections_index_set`
                 - :meth:`hyperplane_index_set`
-                - :meth:`ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflections`
-                - :meth:`CoxeterGroup.ElementMethods.reduced_word`
-                - :meth:`CoxeterGroup.ParentMethods._test_reduced_word`
+                - :meth:`~ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflections`
+                - :meth:`~CoxeterGroup.ElementMethods.reduced_word`
+                - :meth:`~CoxeterGroup.ParentMethods._test_reduced_word`
 
             EXAMPLES::
 
@@ -690,14 +692,14 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.from_reduced_word([1, 2, 3]).reduced_word()
                 [1, 2, 3]
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word()
+                sage: W = ReflectionGroup((1,1,4))           # optional - gap3
+                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word()  # optional - gap3
                 [1, 2, 3]
 
-                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word_in_reflections()
+                sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word_in_reflections()   # optional - gap3
                 [1, 2, 3]
 
-                sage: W.from_reduced_word([1,2,3]).reduced_word_in_reflections()
+                sage: W.from_reduced_word([1,2,3]).reduced_word_in_reflections()    # optional - gap3
                 [1, 2, 3]
 
             TESTS::
@@ -729,9 +731,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup([1,1,3], [3,1,3], 4); W
+                sage: W = ReflectionGroup([1,1,3], [3,1,3], 4); W       # optional - gap3
                 Reducible complex reflection group of rank 7 and type A2 x G(3,1,3) x ST4
-                sage: sorted(W.irreducible_component_index_sets())
+                sage: sorted(W.irreducible_component_index_sets())      # optional - gap3
                 [[1, 2], [3, 4, 5], [6, 7]]
 
             ALGORITHM:
@@ -758,8 +760,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup([1,1,3], [3,1,3], 4)
-                sage: W.irreducible_components()
+                sage: W = ReflectionGroup([1,1,3], [3,1,3], 4)          # optional - gap3
+                sage: W.irreducible_components()                        # optional - gap3
                 [Irreducible real reflection group of rank 2 and type A2,
                  Irreducible complex reflection group of rank 3 and type G(3,1,3),
                  Irreducible complex reflection group of rank 2 and type ST4]
@@ -778,7 +780,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: ColoredPermutations(1,3).number_of_irreducible_components()
                 1
 
-                sage: ReflectionGroup((1,1,3),(2,1,3)).number_of_irreducible_components()
+                sage: ReflectionGroup((1,1,3),(2,1,3)).number_of_irreducible_components()   # optional - gap3
                 2
 
             TESTS::
@@ -799,9 +801,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.is_irreducible()
                 True
 
-                sage: W = ReflectionGroup((1,1,3),(2,1,3)); W
+                sage: W = ReflectionGroup((1,1,3),(2,1,3)); W           # optional - gap3
                 Reducible real reflection group of rank 5 and type A2 x B3
-                sage: W.is_irreducible()
+                sage: W.is_irreducible()                                # optional - gap3
                 False
             """
             return self.number_of_irreducible_components() == 1
@@ -817,9 +819,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.is_reducible()
                 False
 
-                sage: W = ReflectionGroup((1,1,3), (2,1,3)); W
+                sage: W = ReflectionGroup((1,1,3), (2,1,3)); W          # optional - gap3
                 Reducible real reflection group of rank 5 and type A2 x B3
-                sage: W.is_reducible()
+                sage: W.is_reducible()                                  # optional - gap3
                 True
             """
             return not self.is_irreducible()
@@ -940,7 +942,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_simple_reflection(2, side = "right")
                 (1, 2, 0, 3)
 
-            By default, ``side`` is "right"::
+            By default, ``side`` is ``"right"``::
 
                 sage: w.apply_simple_reflection(0)
                 (2, 1, 3, 0)
@@ -991,8 +993,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             :meth:`apply_reflections` for the simple reflections. The
             rationale for its existence are:
 
-            - It can take advantage of apply_simple_reflection which
-              often is less expensive than computing a product.
+            - It can take advantage of ``apply_simple_reflection``,
+              which often is less expensive than computing a product.
 
             - It reduced burden on implementations that would want to
               provide an optimized version of this method.
@@ -1024,16 +1026,16 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             - ``side`` -- (default: ``'right'``) indicates multiplying
               from left or right
             - ``word_type`` -- (optional, default: ``'all'``):
-              ``'simple'``, ``'distinguished'``, or ``'all'``.
+              either ``'simple'``, ``'distinguished'``, or ``'all'``
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflections([1])
+                sage: W = ReflectionGroup((1,1,3))          # optional - gap3
+                sage: W.one().apply_reflections([1])        # optional - gap3
                 (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2])
+                sage: W.one().apply_reflections([2])        # optional - gap3
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([2,1])
+                sage: W.one().apply_reflections([2,1])      # optional - gap3
                 (1,2,6)(3,4,5)
 
 
@@ -1048,19 +1050,19 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 (0, 1, 3, 2)
 
 
-                sage: W = ReflectionGroup((1,1,3))
-                sage: W.one().apply_reflections([1],   word_type='distinguished')
+                sage: W = ReflectionGroup((1,1,3))          # optional - gap3
+                sage: W.one().apply_reflections([1], word_type='distinguished')   # optional - gap3
                 (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2],   word_type='distinguished')
+                sage: W.one().apply_reflections([2],   word_type='distinguished')   # optional - gap3
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([3],   word_type='distinguished')
+                sage: W.one().apply_reflections([3],   word_type='distinguished')   # optional - gap3
                 (1,5)(2,4)(3,6)
-                sage: W.one().apply_reflections([2,1], word_type='distinguished')
+                sage: W.one().apply_reflections([2,1], word_type='distinguished')   # optional - gap3
                 (1,2,6)(3,4,5)
 
-                sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W
+                sage: W = ReflectionGroup((1,1,3), hyperplane_index_set=['A','B','C']); W   # optional - gap3
                 Irreducible real reflection group of rank 2 and type A2
-                sage: W.one().apply_reflections(['A'], word_type='distinguished')
+                sage: W.one().apply_reflections(['A'], word_type='distinguished')   # optional - gap3
                 (1,4)(2,3)(5,6)
             """
             if word_type == 'simple':
@@ -1147,7 +1149,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_conjugation_by_simple_reflection(1).reduced_word()
                 [3, 2]
             """
-            return (self.apply_simple_reflection(i)).apply_simple_reflection(i, side='left')
+            return self.apply_simple_reflection(i).apply_simple_reflection(i, side='left')
 
         @abstract_method(optional=True)
         def reflection_length(self):
@@ -1159,20 +1161,20 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,2))
-                sage: sorted([t.reflection_length() for t in W])
+                sage: W = ReflectionGroup((1,1,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
                 [0, 1]
 
-                sage: W = ReflectionGroup((2,1,2))
-                sage: sorted([t.reflection_length() for t in W])
+                sage: W = ReflectionGroup((2,1,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
                 [0, 1, 1, 1, 1, 2, 2, 2]
 
-                sage: W = ReflectionGroup((3,1,2))
-                sage: sorted([t.reflection_length() for t in W])
+                sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
                 [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-                sage: W = ReflectionGroup((2,2,2))
-                sage: sorted([t.reflection_length() for t in W])
+                sage: W = ReflectionGroup((2,2,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
                 [0, 1, 1, 2]
             """
 
@@ -1182,16 +1184,16 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,4))
-                sage: [t.is_reflection() for t in W.reflections()]
+                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: [t.is_reflection() for t in W.reflections()]      # optional - gap3
                 [True, True, True, True, True, True]
-                sage: len([t for t in W.reflections() if t.is_reflection()])
+                sage: len([t for t in W.reflections() if t.is_reflection()])    # optional - gap3
                 6
 
-                sage: W = ReflectionGroup((2,1,3))
-                sage: [t.is_reflection() for t in W.reflections()]
+                sage: W = ReflectionGroup((2,1,3))                      # optional - gap3
+                sage: [t.is_reflection() for t in W.reflections()]      # optional - gap3
                 [True, True, True, True, True, True, True, True, True]
-                sage: len([t for t in W.reflections() if t.is_reflection()])
+                sage: len([t for t in W.reflections() if t.is_reflection()])    # optional - gap3
                 9
             """
             return self.reflection_length() == 1
@@ -1211,3 +1213,4 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                     [4-colored permutations of size 3]
                 """
                 return [self]
+

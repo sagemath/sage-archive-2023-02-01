@@ -290,11 +290,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(3).rho() == 1/2 + sqrt(3)/2*i
+            sage: HeckeTriangleGroup(3).rho() == QQbar(1/2 + sqrt(3)/2*i)
             True
-            sage: HeckeTriangleGroup(4).rho() == sqrt(2)/2*(1 + i)
+            sage: HeckeTriangleGroup(4).rho() == QQbar(sqrt(2)/2*(1 + i))
             True
-            sage: HeckeTriangleGroup(6).rho() == sqrt(3)/2 + 1/2*i
+            sage: HeckeTriangleGroup(6).rho() == QQbar(sqrt(3)/2 + 1/2*i)
             True
             sage: HeckeTriangleGroup(10).rho()
             0.95105651629515...? + 0.30901699437494...?*I

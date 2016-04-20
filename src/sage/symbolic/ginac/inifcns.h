@@ -230,6 +230,9 @@ DECLARE_FUNCTION_2P(binomial)
 /** Hermite polynomial. */
 DECLARE_FUNCTION_2P(hermite)
 
+/** Gegenbauer (ultraspherical) polynomial. */
+DECLARE_FUNCTION_3P(gegenbauer)
+
 /** Order term function (for truncated power series). */
 DECLARE_FUNCTION_1P(Order)
 

@@ -85,4 +85,87 @@ REGISTER_FUNCTION(hermite, eval_func(hermite_eval).
                         derivative_func(hermite_deriv).
 		        latex_name("H"));
 
+//////////
+// Gegenbauer (ultraspherical) polynomials C^a_n(x)
+//////////
+
+static ex gegenb_evalf(const ex& n, const ex &a, const ex& x, PyObject* parent)
+{
+        numeric numn = ex_to<numeric>(n);
+        numeric numx = ex_to<numeric>(x);
+        std::vector<numeric> numveca, numvecb;
+        numveca.push_back(numn / *_num_2_p);
+        numveca.push_back(*_num1_2_p + (numn / *_num_2_p));
+        return hypergeometric_pFq(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
+}
+
+static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
+{
+	if (is_exactly_a<numeric>(x)) {
+                numeric numx = ex_to<numeric>(x);
+                if (is_exactly_a<numeric>(n)
+			and is_exactly_a<numeric>(a)
+			and not numx.info(info_flags::crational))
+                        return gegenb_evalf(n, a, x, nullptr);
+        }
+
+        if (not is_exactly_a<numeric>(n)
+		or not is_exactly_a<numeric>(a))
+                return gegenbauer(n, a, x).hold();
+
+        numeric numn = ex_to<numeric>(n);
+	numeric numa = ex_to<numeric>(a);
+        if (not numn.info(info_flags::integer) or numn < 0)
+                throw std::runtime_error("gegenb_eval: The index n must be a nonnegative integer");
+        if (not numa.info(info_flags::rational) or numa < 0)
+                throw std::runtime_error("gegenb_eval: The parameter a must be a nonnegative rational");
+
+	// from here on see flint2/fmpq_poly/gegenbauer_c.c
+        if (numn.is_zero())
+                return _ex1;
+	if (numn.is_equal(*_num1_p))
+		return _ex2 * a * x;
+
+	numeric numer = numa.numer();
+	numeric denom = numa.denom();
+	numeric t = numn.factorial();
+	numeric overall_denom = pow(denom, numn) * t;
+
+	unsigned long nn = numn.to_long();
+	numeric p = t / (numeric(nn/2).factorial());
+	if (nn%2)
+		p *= *_num2_p;
+	if (nn&2)
+		p = -p;
+
+	for (unsigned long k=0; k < nn-nn/2; k++) {
+		p *= numer;
+		numer += denom;
+	}
+
+	p *= denom.power(nn/2);
+        ex sum = _ex0;
+	if (nn%2)
+		sum += x*p;
+	else
+		sum += p;
+
+	for (long k=nn/2-1; k>=0; --k) {
+		p *= numer;
+		p *= 4*(k+1);
+		p *= *_num_1_p;
+		p /= denom;
+		p /= nn-2*k-1;
+		p /= nn-2*k;
+		sum += pow(x, nn-2*k) * p;
+		numer += denom;
+	}
+
+        return sum / overall_denom;
+}
+
+REGISTER_FUNCTION(gegenbauer, eval_func(gegenb_eval).
+                        evalf_func(gegenb_evalf).
+		        latex_name("C"));
+
 } // namespace GiNaC

@@ -129,9 +129,15 @@ class Posets(object):
         return FinitePosets_n(n)
 
     @staticmethod
-    def BooleanLattice(n):
+    def BooleanLattice(n, facade=None):
         """
-        Returns the Boolean lattice containing `2^n` elements.
+        Return the Boolean lattice containing `2^n` elements.
+
+        - ``n`` (an integer) -- number of elements will be `2^n`
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -149,12 +155,18 @@ class Posets(object):
         if n==1:
             return LatticePoset( ([0,1], [[0,1]]) )
         return LatticePoset([[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
-            x in range(0,2**n)])
+                             x in range(0,2**n)], facade=facade)
 
     @staticmethod
-    def ChainPoset(n):
+    def ChainPoset(n, facade=None):
         """
-        Returns a chain (a totally ordered poset) containing ``n`` elements.
+        Return a chain (a totally ordered poset) containing ``n`` elements.
+
+        - ``n`` (an integer) -- number of elements.
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -189,13 +201,22 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
-        return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]))
+        return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]),
+                            facade=facade)
 
     @staticmethod
-    def AntichainPoset(n):
+    def AntichainPoset(n, facade=None):
         """
-        Returns an antichain (a poset with no comparable elements)
+        Return an antichain (a poset with no comparable elements)
         containing `n` elements.
+
+        INPUT:
+
+        - ``n`` (an integer) -- number of elements
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -230,12 +251,12 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
-        return Poset((range(n), []))
+        return Poset((range(n), []), facade=facade)
 
     @staticmethod
-    def PentagonPoset(facade = None):
+    def PentagonPoset(facade=None):
         """
-        Returns the Pentagon poset.
+        Return the Pentagon poset.
 
         INPUT:
 
@@ -574,7 +595,7 @@ class Posets(object):
         return LatticePoset((S, S.is_less_than))
 
     @staticmethod
-    def SSTPoset(s,f=None):
+    def SSTPoset(s, f=None):
         """
         The poset on semistandard tableaux of shape ``s`` and largest
         entry ``f`` that is ordered by componentwise comparison of the

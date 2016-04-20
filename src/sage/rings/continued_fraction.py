@@ -198,6 +198,9 @@ AUTHORS:
 - Vincent Delecroix (2014): cleaning, refactorisation, documentation from the
   old implementation in ``contfrac`` (:trac:`14567`).
 """
+# python3
+from __future__ import division
+
 from sage.structure.sage_object import SageObject
 from integer import Integer
 from infinity import Infinity

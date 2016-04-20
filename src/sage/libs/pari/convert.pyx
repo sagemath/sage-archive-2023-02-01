@@ -135,6 +135,19 @@ cpdef gen_to_integer(gen x):
         -18446744073709551615L
         sage: gen_to_integer(pari("1 - 2^64"))
         -18446744073709551615L
+
+    Check some corner cases::
+
+        sage: for s in [1, -1]:
+        ....:     for a in [1, 2^31, 2^32, 2^63, 2^64]:
+        ....:         for b in [-1, 0, 1]:
+        ....:             Nstr = str(s * (a + b))
+        ....:             N1 = gen_to_integer(pari(Nstr))  # Convert via PARI
+        ....:             N2 = int(Nstr)                   # Convert via Python
+        ....:             if N1 != N2:
+        ....:                 print(Nstr, N1, N2)
+        ....:             if type(N1) is not type(N2):
+        ....:                 print(N1, type(N1), N2, type(N2))
     """
     # First convert the input to a t_INT
     cdef GEN g = gtoi(x.g)

@@ -28,6 +28,9 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
@@ -37,6 +40,7 @@ from sage.homology.simplicial_complex import SimplicialComplex, Simplex
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.cone import Cone
 from sage.combinat.subword_complex_c import _flip_c, _construct_facets_c
+
 
 class SubwordComplexFacet(Simplex, Element):
     r"""

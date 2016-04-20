@@ -15,6 +15,8 @@ Ribbon Tableaux
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -28,6 +30,7 @@ from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
 import permutation
 import functools
+
 
 class RibbonTableau(SkewTableau):
     r"""

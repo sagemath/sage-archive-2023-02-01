@@ -18,7 +18,9 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#****************************************************************************
+# python3
+from __future__ import division
 
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -39,6 +41,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
+
 
 BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
     doc=r"""

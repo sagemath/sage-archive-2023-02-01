@@ -218,12 +218,16 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
 from sage.misc.mrange import xmrange
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.superseded import deprecated_function_alias
+
 
 #######################################
 # n-cube isometry group transformations

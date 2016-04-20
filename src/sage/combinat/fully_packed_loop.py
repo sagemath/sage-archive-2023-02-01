@@ -1,6 +1,9 @@
 r"""
 Fully packed loops
 """
+# python3
+from __future__ import division
+
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
@@ -18,6 +21,7 @@ from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute
+
 
 class FullyPackedLoop(Element):
     r"""

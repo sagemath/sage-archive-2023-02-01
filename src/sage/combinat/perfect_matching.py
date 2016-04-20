@@ -44,13 +44,14 @@ REFERENCES:
     .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
        orthogonal Weingarten functions, :arxiv:`0903.5143`.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 
 from sage.structure.unique_representation import UniqueRepresentation

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-q-Analogues
+`q`-Analogues
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -16,6 +16,8 @@ q-Analogues
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod

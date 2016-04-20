@@ -422,7 +422,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         lr_tree = self[0]._ascii_art_()
         rr_tree = self[1]._ascii_art_()
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
-        nb_L = int( nb_ / 2 )
+        nb_L = nb_ // 2
         nb_R = nb_L + ( 1 if nb_ % 2 == 1 else 0 )
         f_line = " " ** Integer( lr_tree._root + 1 ) + "_" ** Integer( nb_L ) + node
         f_line += "_" ** Integer( nb_R )

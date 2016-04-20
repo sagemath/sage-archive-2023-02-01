@@ -144,4 +144,6 @@ class ComplexReflectionGroups(Category_singleton):
                 3
             """
 
-    Finite = LazyImport('sage.categories.finite_complex_reflection_groups', 'FiniteComplexReflectionGroups', as_name='Finite')
+    Finite = LazyImport('sage.categories.finite_complex_reflection_groups',
+                        'FiniteComplexReflectionGroups', as_name='Finite')
+

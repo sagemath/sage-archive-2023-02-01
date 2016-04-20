@@ -39,3 +39,4 @@ class ShephardGroups(Category_singleton):
             [Category of finite generalized coxeter groups]
         """
         return [GeneralizedCoxeterGroups().Finite()]
+

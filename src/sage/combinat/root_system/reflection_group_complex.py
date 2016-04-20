@@ -142,9 +142,9 @@ its negative, while sending `\alpha_1` to `2\alpha_0+\alpha_1`.
 
     - properly provide root systems for real reflection groups
     - element class should be unique to be able to work with large groups
-      without creating elements multiple times.
-    - is_shephard_group, is_generalized_coxeter_group
-    - exponents & coexponents
+      without creating elements multiple times
+    - ``is_shephard_group``, ``is_generalized_coxeter_group``
+    - exponents and coexponents
     - coinvariant ring:
 
       * fake degrees from Torsten Hoge
@@ -162,24 +162,28 @@ its negative, while sending `\alpha_1` to `2\alpha_0+\alpha_1`.
     - linear characters
     - permutation pi on irreducibles
     - hyperplane orbits (76.13 in Gap Manual)
-    - improve invariant_form with a code similar to the one in reflection_group_real.py
-    - add a method reflection_to_root or distinguished_reflection_to_positive_root.
+    - improve invariant_form with a code similar to the one in
+      ``reflection_group_real.py``
+    - add a method ``reflection_to_root`` or
+      ``distinguished_reflection_to_positive_root``
     - diagrams in ASCII-art (76.15)
     - standard (BMR) presentations
     - character table directly from Chevie
-    - GenericOrder (76.20), TorusOrder (76.21)
-    - correct fundamental invariants for G34, check the others
+    - ``GenericOrder`` (76.20), ``TorusOrder`` (76.21)
+    - correct fundamental invariants for `G_34`, check the others
     - copy hardcoded data (degrees, invariants, braid relations...) into sage
-    - add other hardcoded data from the tables in chevie (location is SAGEDIR/local/gap3/gap-jm5-2015-02-01/gap3/pkg/chevie/tbl): basic derivations, discriminant, ...
-    - transfer code for reduced_word_in_reflections into Gap4 or Sage
+    - add other hardcoded data from the tables in chevie (location is
+      SAGEDIR/local/gap3/gap-jm5-2015-02-01/gap3/pkg/chevie/tbl):
+      basic derivations, discriminant, ...
+    - transfer code for ``reduced_word_in_reflections`` into Gap4 or Sage
     - list of reduced words for an element
     - list of reduced words in reflections for an element
     - Hurwitz action?
-    - is_crystallographic should be hardcoded
+    - :meth:`is_crystallographic` should be hardcoded
 
 AUTHORS:
 
-- Christian Stump (initial version 2011--2015)
+- Christian Stump (2015): initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
@@ -226,7 +230,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         r"""
         TESTS::
 
-            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups # optional - gap3
+            sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
             sage: W = ComplexReflectionGroups().example()               # optional - gap3
             sage: TestSuite(W).run()                                    # optional - gap3
         """
@@ -1357,7 +1361,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         an instance of :class:`CartanMatrix`, and a normal matrix
         otherwise.
 
-        Let `s_1,\ldots,s_n` be a set of reflections which generate
+        Let `s_1, \ldots, s_n` be a set of reflections which generate
         ``self`` with associated simple roots `s_1,\ldots,s_n` and
         simple coroots `s^\vee_i`. Then the Cartan matrix `C = (c_{ij})`
         is given by `s^\vee_i(s_j)`. The Cartan matrix completely
@@ -1406,10 +1410,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         INPUT:
 
         - ``brute_force`` -- if ``True``, the computation is done by
-          applying the Reynolds operator. This is, the invariant form
-          of `e_i` and `e_j` is computed as the sum `\langle w(e_i), w(e_j)\rangle`
-          where `\langle \cdot, \cdot\rangle` is the standard scalar
-          product.
+          applying the Reynolds operator; this is, the invariant form
+          of `e_i` and `e_j` is computed as the sum
+          `\langle w(e_i), w(e_j)\rangle`, where
+          `\langle \cdot, \cdot\rangle` is the standard scalar product
 
         EXAMPLES::
 
@@ -1798,7 +1802,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             INPUT:
 
-            - ``in_unitary_group`` -- (default:``False``) if ``True``,
+            - ``in_unitary_group`` -- (default: ``False``) if ``True``,
               the reflection length is computed in the unitary group
               which is the dimension of the move space of ``self``
 
@@ -1952,9 +1956,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             INPUT:
 
-            - ``is_class_representative`` -- (default:False) whether to
-              first replace ``self`` by the representative of its
-              conjugacy class.
+            - ``is_class_representative`` -- (default: ``False``) whether
+              to first replace ``self`` by the representative of its
+              conjugacy class
 
             EXAMPLES::
 
@@ -2002,69 +2006,87 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                  [   0 E(3)], [     1      0]
                  [     0 E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
                  [ 2/3*E(3) + 4/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
                 [[     1      0]
                  [     0 E(3)^2], [   1    0]
                  [   0 E(3)]]
                 [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                 [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                 [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
                  [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
-                 [ 4/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
+                 [ 4/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                  [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                 [ 2/3*E(3) + 4/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
+                 [ 2/3*E(3) + 4/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                  [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
                  [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
-                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
+                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                  [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
+                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                  [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                  [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                  [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
-                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
+                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                  [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                 [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
+                 [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                  [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                  [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                  [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
                 [[   -1     0]
                  [    0 -E(3)], [     -1       0]
                  [      0 -E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
-                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
+                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                  [ 4/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                 [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                 [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2],
+                 [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                  [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                 [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                 [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                  [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
                 [[     -1       0]
                  [      0 -E(3)^2], [   -1     0]
                  [    0 -E(3)]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
-                 [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
+                 [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                  [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
                 [[-1  0]
                  [ 0 -1]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
-                 [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
+                 [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2],
+                 [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                  [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
             """
             rk = self.parent().rank()
@@ -2330,9 +2352,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         INPUT:
 
         - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
-          relation is given by ``\sigma \leq \tau`` if ``l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)``.
-          If ``True``, the relation is given by ``\sigma \leq \tau`` if
-          ``dim(Fix(\sigma)) + dim(Fix(\sigma^{-1}\tau)) = dim(Fix(\tau))``.
+          relation is given by ``\sigma \leq \tau`` if
+          `l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)`
+          If ``True``, the relation is given by `\sigma \leq \tau` if
+          `\dim(\mathrm{Fix}(\sigma)) + \dim(\mathrm{Fix}(\sigma^{-1}\tau))
+          = \dim(\mathrm{Fix}(\tau))`.
 
         .. SEEALSO:: :meth:`noncrossing_partition_lattice`
 
@@ -2366,13 +2390,14 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
             - ``which_primitive`` -- (default:``1``) for which power of
               the first primitive ``h``-th root of unity to look as a
-              reflection eigenvalue for a regular element.
+              reflection eigenvalue for a regular element
 
-            - ``is_class_representative`` -- boolean (default ``True``) whether to
-              compute instead on the conjugacy class representative
+            - ``is_class_representative`` -- boolean (default ``True``) whether
+              to compute instead on the conjugacy class representative
 
+            .. SEEALSO::
 
-            .. SEEALSO:: :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
+                :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
 
             EXAMPLES::
 
@@ -2429,8 +2454,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             This is, if ``self`` has an eigenvector with eigenvalue
             ``h`` and which does not lie in any reflection hyperplane.
 
-            - ``is_class_representative`` -- boolean (default ``True``) whether to
-              compute instead on the conjugacy class representative.
+            - ``is_class_representative`` -- boolean (default ``True``) whether
+              to compute instead on the conjugacy class representative
 
             EXAMPLES::
 
@@ -2490,11 +2515,11 @@ def _gap_factorization(w, gens):
 
     .. WARNING::
 
-        This is only available through GAP3 and chevie.
+        This is only available through GAP3 and Chevie.
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.reflection_group_complex import _gap_factorization # optional - gap3
+        sage: from sage.combinat.root_system.reflection_group_complex import _gap_factorization
         sage: W = ReflectionGroup((1,1,3))                              # optional - gap3
         sage: gens = [ W.simple_reflection(i) for i in W.index_set() ]  # optional - gap3
         sage: for w in W: _gap_factorization(w,gens)                    # optional - gap3
@@ -2564,15 +2589,16 @@ def _gap_return(S, coerce_obj='self'):
     r"""
     Return the string ``S`` after a few modifications are done.
 
-    This is a stupid internal function to take gap output as a string,
-    replace a few things, to then turn it into a sage object.
+    This is a stupid internal function to take GAP output as a string,
+    replace a few things, to then turn it into a Sage object.
 
     TESTS::
 
-        sage: from sage.combinat.root_system.reflection_group_complex import _gap_return    # optional - gap3
+        sage: from sage.combinat.root_system.reflection_group_complex import _gap_return
         sage: _gap_return("[ (), (1,4)(2,3)(5,6), (1,6,2)(3,5,4) ]")    # optional - gap3
         "[self('()',check=False),self('(1,4)(2,3)(5,6)',check=False),self('(1,6,2)(3,5,4)',check=False)]"
     """
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S
+

@@ -560,7 +560,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((1,1,4), hyperplane_index_set=('a','b','c','d','e','f'))  # optional - gap3
-                sage: for i in W.hyperplane_index_set():                # optional - gap3
+                sage: for i in W.hyperplane_index_set():                    # optional - gap3
                 ....:     print('%s %s'%(i, W.distinguished_reflection(i))) # optional - gap3
                 a (1,7)(2,4)(5,6)(8,10)(11,12)
                 b (1,4)(2,8)(3,5)(7,10)(9,11)
@@ -594,7 +594,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
                 sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
                 sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
-                sage: for index in sorted(distinguished_reflections.keys()):    # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 1 (1,4)(2,3)(5,6)
                 2 (1,3)(2,5)(4,6)
@@ -602,7 +602,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
                 sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])   # optional - gap3
                 sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
-                sage: for index in sorted(distinguished_reflections.keys()):    # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 a (1,4)(2,3)(5,6)
                 b (1,3)(2,5)(4,6)
@@ -610,7 +610,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
                 sage: W = ReflectionGroup((3,1,1))                      # optional - gap3
                 sage: distinguished_reflections = W.distinguished_reflections() # optional - gap3
-                sage: for index in sorted(distinguished_reflections.keys()):    # optional - gap3
+                sage: for index in sorted(distinguished_reflections.keys()):        # optional - gap3
                 ....:     print('%s %s'%(index, distinguished_reflections[index]))  # optional - gap3
                 1 (1,2,3)
 
@@ -644,7 +644,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
               index set of ``self`` (resp. of the distinguished
               or of all reflections)
             - ``word_type`` -- (optional, default: ``'simple'``):
-              ``'simple'``, ``'distinguished'``, or ``'all'``.
+              either ``'simple'``, ``'distinguished'``, or ``'all'``
 
             If ``word`` is `[i_1,i_2,\ldots,i_k]`, then this returns
             the corresponding product of simple reflections
@@ -654,18 +654,20 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             then the product of the distinguished reflections (resp. all
             reflections) is returned.
 
-            Note: the main use case is for constructing elements from
-            reduced words, hence the name of this method. But actually
-            the input word need *not* be reduced.
+            .. NOTE::
+
+                The main use case is for constructing elements from
+                reduced words, hence the name of this method.
+                However, the input word need *not* be reduced.
 
             .. SEEALSO::
 
                 - :meth:`index_set`
                 - :meth:`reflections_index_set`
                 - :meth:`hyperplane_index_set`
-                - :meth:`ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflections`
-                - :meth:`CoxeterGroup.ElementMethods.reduced_word`
-                - :meth:`CoxeterGroup.ParentMethods._test_reduced_word`
+                - :meth:`~ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflections`
+                - :meth:`~CoxeterGroup.ElementMethods.reduced_word`
+                - :meth:`~CoxeterGroup.ParentMethods._test_reduced_word`
 
             EXAMPLES::
 
@@ -690,7 +692,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W.from_reduced_word([1, 2, 3]).reduced_word()
                 [1, 2, 3]
 
-                sage: W = ReflectionGroup((1,1,4))                      # optional - gap3
+                sage: W = ReflectionGroup((1,1,4))           # optional - gap3
                 sage: W.from_reduced_word([1,2,3], word_type='all').reduced_word()  # optional - gap3
                 [1, 2, 3]
 
@@ -940,7 +942,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_simple_reflection(2, side = "right")
                 (1, 2, 0, 3)
 
-            By default, ``side`` is "right"::
+            By default, ``side`` is ``"right"``::
 
                 sage: w.apply_simple_reflection(0)
                 (2, 1, 3, 0)
@@ -991,8 +993,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             :meth:`apply_reflections` for the simple reflections. The
             rationale for its existence are:
 
-            - It can take advantage of apply_simple_reflection which
-              often is less expensive than computing a product.
+            - It can take advantage of ``apply_simple_reflection``,
+              which often is less expensive than computing a product.
 
             - It reduced burden on implementations that would want to
               provide an optimized version of this method.
@@ -1024,16 +1026,16 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             - ``side`` -- (default: ``'right'``) indicates multiplying
               from left or right
             - ``word_type`` -- (optional, default: ``'all'``):
-              ``'simple'``, ``'distinguished'``, or ``'all'``.
+              either ``'simple'``, ``'distinguished'``, or ``'all'``
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
-                sage: W.one().apply_reflections([1])                    # optional - gap3
+                sage: W = ReflectionGroup((1,1,3))          # optional - gap3
+                sage: W.one().apply_reflections([1])        # optional - gap3
                 (1,4)(2,3)(5,6)
-                sage: W.one().apply_reflections([2])                    # optional - gap3
+                sage: W.one().apply_reflections([2])        # optional - gap3
                 (1,3)(2,5)(4,6)
-                sage: W.one().apply_reflections([2,1])                  # optional - gap3
+                sage: W.one().apply_reflections([2,1])      # optional - gap3
                 (1,2,6)(3,4,5)
 
 
@@ -1048,7 +1050,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 (0, 1, 3, 2)
 
 
-                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: W = ReflectionGroup((1,1,3))          # optional - gap3
                 sage: W.one().apply_reflections([1], word_type='distinguished')   # optional - gap3
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflections([2],   word_type='distinguished')   # optional - gap3
@@ -1147,7 +1149,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_conjugation_by_simple_reflection(1).reduced_word()
                 [3, 2]
             """
-            return (self.apply_simple_reflection(i)).apply_simple_reflection(i, side='left')
+            return self.apply_simple_reflection(i).apply_simple_reflection(i, side='left')
 
         @abstract_method(optional=True)
         def reflection_length(self):
@@ -1211,3 +1213,4 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                     [4-colored permutations of size 3]
                 """
                 return [self]
+

@@ -2383,8 +2383,7 @@ class ClusterSeed(SageObject):
             sage: S._mut_path
             [0, 1, 0, 1, 0, 2, 1]
             
-            sage: S = ClusterSeed(DiGraph([[1,2],[2,'c']]));S
-            A seed for a cluster algebra of rank 3
+            sage: S = ClusterSeed(DiGraph([[1,2],[2,'c']]))
             sage: S.mutate(1)
             Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.
             sage: S.cluster()
@@ -2417,7 +2416,7 @@ class ClusterSeed(SageObject):
         if inplace:
             seed = self
         else:
-            seed = ClusterSeed( self)
+            seed = ClusterSeed( self)# change to deepcopy?
 
         # If we get a string, execute as a function
         if isinstance(sequence, str) and len(sequence) > 1 and sequence[0] is not '_':
@@ -2491,7 +2490,7 @@ class ClusterSeed(SageObject):
                 raise ValueError('input_type set to "cluster_vars" but not everything in the mutation sequence is a cluster variable.')
             
             elif input_type not in ["vertices", "indices", "cluster_vars"]:
-                raise ValueError('Invalid input_type. Possible values for input_type are "vertices," "indices," and "cluster_vars.')
+                raise ValueError('Invalid input_type. Possible values for input_type are "vertices," "indices," and "cluster_vars."')
 
         # Classifies the input_type.  Raises warnings if the input is ambiguous, and errors if the input is not all of the same type.
         else:
@@ -2522,14 +2521,20 @@ class ClusterSeed(SageObject):
         if input_type == "cluster_vars" and len(seqq) >1:
             mutation_seed = deepcopy(seed)
             try:
+                index_list = []
                 for cluster_var in seqq:
-                    mutation_seed.mutate(cluster_var, input_type = "cluster_vars")
+                    new_index = mutation_seed.cluster_index(cluster_var)
+                    mutation_seed.mutate(new_index, input_type = "indices")
+                    index_list.append(new_index)
             except:
                 raise ValueError('Input interpreted as cluster variables but the input sequence did not consist of cluster variables.')
-            mutation_seed._cluster = None
-            mutation_seed._quiver = None
+         
+            input_type = "indices"
+            seqq = index_list
                                  
             if not inplace:
+                mutation_seed._cluster = None
+                mutation_seed._quiver = None
                 return mutation_seed
         
         seq = iter(seqq)
@@ -2561,7 +2566,7 @@ class ClusterSeed(SageObject):
 
             seed._BC.mutate(k)
             seed._M = copy(seed._BC[:n+m,:n])
-            self._M.set_immutable()
+            self._M.set_immutable()  ## should this be seed rather than self
 
             if seed._use_c_vec:
                 seed._C = seed._BC[n+m:2*n+m,:n+m]

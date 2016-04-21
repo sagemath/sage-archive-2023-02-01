@@ -952,7 +952,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         if self.is_irreducible():
             try:
                 return tuple(sorted(self._gap_group.degrees.sage()))
-            except:
+            except Exception:
                 return tuple(sorted(self._gap_group.ReflectionDegrees().sage()))
         else:
             return sum([comp.degrees() for comp in self.irreducible_components()],tuple())

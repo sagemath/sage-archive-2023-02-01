@@ -14,11 +14,31 @@ import sys
 import tarfile
 import zipfile
 
+
+class IgnoreDirModeTarFile(tarfile.TarFile):
+    """
+    Sage as tarfile.TarFile, but ignores directory permissions stored in the
+    tar file.
+
+    This preserves file permissions stored in tarballs, but creates all
+    directories with mode 700.
+    """
+
+    def chmod(self, tarinfo, target):
+        # The method TarFile uses to apply permissions stored in tar files to
+        # the extracted paths. Changing it to a no-op for directories preserves
+        # the behavior that directories are created with 700 by default.
+        #
+        # See http://trac.sagemath.org/ticket/20218#comment:16
+        if not tarinfo.isdir():
+            return super(IgnoreDirModeTarFile, self).chmod(tarinfo, target)
+
+
 if __name__ == '__main__':
     filename = sys.argv[1]
     if tarfile.is_tarfile(filename):
         # tar file, possibly compressed:
-        archive = tarfile.open(filename, 'r:*')
+        archive = IgnoreDirModeTarFile.open(filename, 'r:*')
         if len(sys.argv) == 2:
             archive.extractall()
         else:

@@ -66,10 +66,12 @@ See :trac:`12091` ::
 #*****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -194,6 +196,15 @@ def LinearConstraintsParent(linear_functions_parent):
    """
    return LinearConstraintsParent_class(linear_functions_parent)
 
+
+#*****************************************************************************
+#
+# Elements of linear functions or constraints
+#
+#*****************************************************************************
+
+cdef class LinearFunctionOrConstraint(ModuleElement):
+    pass
 
 
 #*****************************************************************************
@@ -426,7 +437,7 @@ cdef class LinearFunctionsParent_class(Parent):
 #
 #*****************************************************************************
 
-cdef class LinearFunction(ModuleElement):
+cdef class LinearFunction(LinearFunctionOrConstraint):
     r"""
     An elementary algebra to represent symbolic linear functions.
 
@@ -928,7 +939,7 @@ cdef class LinearFunction(ModuleElement):
 
     def __hash__(self):
         r"""
-        Return a hash.
+        Return a hash from the ``id()``.
 
         EXAMPLES::
 
@@ -940,7 +951,7 @@ cdef class LinearFunction(ModuleElement):
             sage: d[f] = 3
         """
         # see __cmp__() if you want to change the hash function
-        return hash_by_id(<void *> self)
+        return hash_by_id(<void*>self)
 
     def __cmp__(left, right):
         """
@@ -966,7 +977,13 @@ cdef class LinearFunction(ModuleElement):
         # Note: if you want to implement smarter comparison, you also
         # need to change __hash__(). The comparison function must
         # satisfy cmp(x,y)==0 => hash(x)==hash(y)
-        return cmp(id(left), id(right))
+        if left is right:
+            return 0
+        if <size_t><void*>left < <size_t><void*>right:
+            return -1
+        else:
+            return 1
+
 
 #*****************************************************************************
 #
@@ -1141,7 +1158,6 @@ cdef class LinearConstraintsParent_class(Parent):
         return self(0) <= LF.an_element()
 
 
-
 #*****************************************************************************
 #
 # Elements of linear constraints
@@ -1151,7 +1167,7 @@ cdef class LinearConstraintsParent_class(Parent):
 _chained_comparator_hack_search = None
 _chained_comparator_hack_replace = None
 
-cdef class LinearConstraint(Element):
+cdef class LinearConstraint(LinearFunctionOrConstraint):
     """
     A class to represent formal Linear Constraints.
 

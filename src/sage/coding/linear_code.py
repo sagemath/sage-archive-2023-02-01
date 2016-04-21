@@ -211,6 +211,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+# python3
+from __future__ import division
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -1184,7 +1186,7 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowts:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
@@ -1193,11 +1195,11 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowtsp:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         if s<=d-t:
-            des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
+            des = [[t,(n,w,wts[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowts]
             ans = ans + ["weights from C: ",nonzerowts,"designs from C: ",des]
-            desp = [[t,(n,w,wtsp[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowtsp]
+            desp = [[t,(n,w,wtsp[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowtsp]
             ans = ans + ["weights from C*: ",nonzerowtsp,"designs from C*: ",desp]
             return ans
         return 0
@@ -1273,7 +1275,7 @@ class AbstractLinearCode(module.Module):
         if i<d:
             return 0
         if i>n-dp and i<=n:
-            return binomial(n,i)*(q**(i+k-n) -1)/(q-1)
+            return binomial(n,i)*(q**(i+k-n) -1)//(q-1)
         P = SetPartitions(J,2).list()
         b = QQ(0)
         for p in P:
@@ -1282,7 +1284,7 @@ class AbstractLinearCode(module.Module):
             if len(S)==n-i:
                 C_S = self.shortened(S)
                 k_S = C_S.dimension()
-                b = b + (q**(k_S) -1)/(q-1)
+                b = b + (q**(k_S) -1)//(q-1)
         return b
 
     @cached_method

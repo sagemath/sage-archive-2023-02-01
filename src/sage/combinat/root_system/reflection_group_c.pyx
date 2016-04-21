@@ -94,13 +94,13 @@ cdef class Iterator(object):
         for i in range(first):
             si = <PermutationGroupElement>(S[i])
             if self.test(u, si, i):
-                successors.append((si._mul_(u), i))
+                successors.append((_new_mul_(si,u), i))
         for i in range(first+1,self.n):
 #        for i in nc:
             if u.perm[i] < N:
                 si = <PermutationGroupElement>(S[i])
                 if self.test(u, si, i):
-                    successors.append((si._mul_(u), i))
+                    successors.append((_new_mul_(si,u), i))
         return successors
 
     cdef list succ_words(self, PermutationGroupElement u, list word, int first):
@@ -114,7 +114,7 @@ cdef class Iterator(object):
         for i in range(first):
             si = <PermutationGroupElement>(S[i])
             if self.test(u, si, i):
-                u1 = <PermutationGroupElement>(si._mul_(u))
+                u1 = <PermutationGroupElement>(_new_mul_(si,u))
                 # try to use word+[i] and the reversed
                 word_new = [i] + word
                 u1._reduced_word = word_new
@@ -123,7 +123,7 @@ cdef class Iterator(object):
             if u.perm[i] < self.N:
                 si = <PermutationGroupElement>(S[i])
                 if self.test(u, si, i):
-                    u1 = <PermutationGroupElement>(si._mul_(u))
+                    u1 = <PermutationGroupElement>(_new_mul_(si,u))
                     word_new = [i] + word
                     u1._reduced_word = word_new
                     successors.append((u1, word_new, i))
@@ -411,9 +411,9 @@ cpdef PermutationGroupElement reduce_in_coset(PermutationGroupElement w, tuple S
         else:
             si = S[i]
             if right:
-                w = si._mul_(w)
+                w = _new_mul_(si,w)
             else:
-                w = w._mul_(si)
+                w = _new_mul_(w,si)
 
 cpdef list reduced_coset_repesentatives(W, list parabolic_big, list parabolic_small, bint right):
     cdef tuple S = tuple(W.simple_reflections())

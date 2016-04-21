@@ -118,7 +118,7 @@ cdef class PPLBackend(GenericBackend):
             sage: cp.get_objective_value()
             6
         """
-        cp = PPLBackend()
+        cdef PPLBackend cp = type(self)()
         cp.Matrix = [row[:] for row in self.Matrix]
         cp.row_lower_bound = self.row_lower_bound[:]
         cp.row_upper_bound = self.row_upper_bound[:]

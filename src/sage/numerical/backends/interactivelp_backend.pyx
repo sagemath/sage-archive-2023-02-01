@@ -105,7 +105,7 @@ cdef class InteractiveLPBackend:
             sage: cp.get_objective_value()
             6
         """
-        cp = InteractiveLPBackend(base_ring=self.base_ring())
+        cdef InteractiveLPBackend cp = type(self)(base_ring=self.base_ring())
         cp.lp = self.lp                   # it's considered immutable; so no need to copy.
         cp.row_names = copy(self.row_names)
         cp.prob_name = self.prob_name

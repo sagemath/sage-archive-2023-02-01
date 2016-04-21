@@ -1185,7 +1185,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: copy(p).solve()                                                   # optional - Gurobi
             6.0
         """
-        cdef GurobiBackend p = GurobiBackend(maximization = self.is_maximization())
+        cdef GurobiBackend p = type(self)(maximization = self.is_maximization())
         p.model = GRBcopymodel(self.model)
         p.env = GRBgetenv(p.model)
         return p

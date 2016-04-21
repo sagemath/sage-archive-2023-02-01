@@ -1463,7 +1463,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: copy(p).solve()                              # optional - CPLEX
             6.0
         """
-        cdef CPLEXBackend p = CPLEXBackend()
+        cdef CPLEXBackend p = type(self)()
 
         p.lp = CPXcloneprob(p.env, self.lp, &status)
         check(status)

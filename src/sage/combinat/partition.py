@@ -3093,7 +3093,7 @@ class Partition(CombinatorialElement):
 
            \prod_i m_i! i^{m_i}.
 
-        Including the optional parameters `t` and `q` gives the `q - t` analog
+        Including the optional parameters `t` and `q` gives the `q,t` analog,
         which is the former product times
 
         .. MATH::
@@ -3115,10 +3115,11 @@ class Partition(CombinatorialElement):
             sage: Partition([]).centralizer_size(q=2, t=4)
             1
         """
-        p = self
-        a = p.to_exp()
-        size = prod([(i+1)**a[i]*factorial(a[i]) for i in range(len(a))])
-        size *= prod( [ (1-q**j)/(1-t**j) for j in p ] )
+        size = prod(i ** mi * factorial(mi)
+                    for i, mi in self.to_exp_dict().iteritems())
+        if t or q:
+            size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
+                         for j in self)
 
         return size
 

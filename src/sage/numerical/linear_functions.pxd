@@ -3,13 +3,16 @@ from sage.structure.element cimport ModuleElement, RingElement, Element
 
 cpdef is_LinearFunction(x)
 
+cdef class LinearFunctionOrConstraint(ModuleElement):
+    pass
+
 cdef class LinearFunctionsParent_class(Parent):
     cpdef _element_constructor_(self, x)
     cpdef _coerce_map_from_(self, R)
     cdef object _multiplication_symbol
     cpdef object _get_multiplication_symbol(self)
 
-cdef class LinearFunction(ModuleElement):
+cdef class LinearFunction(LinearFunctionOrConstraint):
     cdef dict _f
     cpdef iteritems(self)
     cpdef ModuleElement _add_(self, ModuleElement b)
@@ -26,12 +29,9 @@ cdef class LinearConstraintsParent_class(Parent):
     cpdef _element_constructor_(self, left, right=?, equality=?)
     cpdef _coerce_map_from_(self, R)
 
-cdef class LinearConstraint(Element):
+cdef class LinearConstraint(LinearFunctionOrConstraint):
     cdef bint equality
     cdef list constraints
     cdef LinearConstraint _chained_comparator_hack_part1(LinearConstraint left, LinearConstraint right)
     cdef _chained_comparator_hack_part2(self)
     cpdef equals(LinearConstraint left, LinearConstraint right)
-
-cdef LinearConstraint _chained_comparator_hack_search
-cdef LinearConstraint _chained_comparator_hack_replace

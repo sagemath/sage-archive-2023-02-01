@@ -4562,16 +4562,15 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decode the received word ``r`` to the nearest element in associated code of ``self``.
+        Corrects the errors in ``word`` and returns a codeword.
 
         INPUT:
 
-        - ``r`` -- a vector of same length as the length of the associated
-          code of ``self`` and over the base field of the associated code of ``self``
+        - ``r`` -- a codeword of ``self``
 
         OUTPUT:
 
-        - a codeword of the associated code of ``self``
+        - a vector of ``self``'s message space
 
         EXAMPLES::
 
@@ -4580,18 +4579,17 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
             sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
-            sage: D.decode_to_code(word)
+            sage: D.decode_to_code(w_err)
             (1, 1, 0, 0, 1, 1, 0)
         """
-        V = self.input_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
-        diffs.sort(key=lambda x: x[1])
-        c = diffs[0][0] + r
-        c.set_immutable()
-        return c
+        c_min = self.code().zero()
+        h_min = r.hamming_weight()
+        for c in self.code():
+            if (c-r).hamming_weight() < h_min:
+                h_min = (c-r).hamming_weight()
+                c_min = c
+        c_min.set_immutable()
+        return c_min
 
     def decoding_radius(self):
         r"""

@@ -297,7 +297,7 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
         if self.is_irreducible():
             try:
                 return tuple(sorted(self._gap_group.degrees.sage()))
-            except Exception:
+            except AttributeError:
                 return tuple(sorted(self._gap_group.ReflectionDegrees().sage()))
         else:
             return sum([comp.degrees() for comp in self.irreducible_components()],tuple())

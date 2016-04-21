@@ -3115,10 +3115,10 @@ class Partition(CombinatorialElement):
             sage: Partition([]).centralizer_size(q=2, t=4)
             1
         """
-        size = prod((i + 1) ** mi * factorial(mi)
-                    for i, mi in enumerate(self.to_exp()))
+        size = prod(i ** mi * factorial(mi)
+                    for i, mi in self.to_exp_dict().iteritems())
         if t or q:
-            size *= prod([(1 - q ** j) / (1 - t ** j) for j in self])
+            size *= prod((1 - q ** j) / (1 - t ** j) for j in self)
 
         return size
 

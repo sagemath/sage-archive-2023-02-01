@@ -27,6 +27,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 import itertools
 import copy
@@ -50,8 +52,8 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
-
 from sage.misc.decorators import rename_keyword
+
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -1273,7 +1275,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 1 -1  1]
             [ 0  1  0]
         """
-        return self.from_corner_sum(matrix( [[((i+j-height[i][j])/int(2))
+        return self.from_corner_sum(matrix( [[((i+j-height[i][j])//2)
                                               for i in range(len(list(height)))]
                                              for j in range(len(list(height)))] ))
 

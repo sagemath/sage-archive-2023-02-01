@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-q-Analogues
+`q`-Analogues
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -16,6 +16,8 @@ q-Analogues
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
@@ -278,8 +280,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         is_polynomial = isinstance(q, Polynomial)
 
     R = parent(q)
-    zero = R(0)
-    one = R(1)
+    zero = R.zero()
+    one = R.one()
 
     if not(0 <= k and k <= n):
         return zero
@@ -290,7 +292,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if algorithm == 'auto':
         from sage.symbolic.ring import SR
         if is_polynomial:
-            if n <= 70 or k <= n/4:
+            if n <= 70 or k <= n // 4:
                 algorithm = 'naive'
             else:
                 algorithm = 'cyclo_polynomial'
@@ -325,11 +327,12 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
     elif algorithm == 'cyclo_polynomial':
         return prod(R.cyclotomic_polynomial(d)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
+
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
     r"""

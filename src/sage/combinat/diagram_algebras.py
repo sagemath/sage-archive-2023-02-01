@@ -18,7 +18,9 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#****************************************************************************
+# python3
+from __future__ import division
 
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -39,6 +41,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
+
 
 BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
     doc=r"""
@@ -282,7 +285,7 @@ class AbstractPartitionDiagram(SetPartition):
         """
         if self._base_diagram:
             tst = sorted(flatten(self._base_diagram))
-            if len(tst) % 2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst) % 2 or tst != range(-len(tst)//2,0) + range(1,len(tst)//2+1):
                 raise ValueError("this does not represent two rows of vertices")
 
     def __eq__(self, other):
@@ -744,7 +747,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 return False
         if len(obj.base_diagram()) > 0:
             tst = sorted(flatten(obj.base_diagram()))
-            if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst) % 2 or tst != range(-len(tst)//2,0) + range(1,len(tst)//2+1):
                 return False
             return True
         return self.order == 0

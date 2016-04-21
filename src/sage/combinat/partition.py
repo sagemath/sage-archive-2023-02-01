@@ -3093,7 +3093,7 @@ class Partition(CombinatorialElement):
 
            \prod_i m_i! i^{m_i}.
 
-        Including the optional parameters `t` and `q` gives the `q - t` analog
+        Including the optional parameters `t` and `q` gives the `q,t` analog,
         which is the former product times
 
         .. MATH::
@@ -3118,7 +3118,8 @@ class Partition(CombinatorialElement):
         size = prod(i ** mi * factorial(mi)
                     for i, mi in self.to_exp_dict().iteritems())
         if t or q:
-            size *= prod((1 - q ** j) / (1 - t ** j) for j in self)
+            size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
+                         for j in self)
 
         return size
 

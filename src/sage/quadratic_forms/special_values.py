@@ -6,6 +6,8 @@ Routines for computing special values of L-functions
 - :func:`quadratic_L_function__exact` -- Exact values of the Dirichlet L-functions of quadratic characters at critical values
 - :func:`quadratic_L_function__numerical` -- Numerical values of the Dirichlet L-functions of quadratic characters in the domain of convergence
 """
+# python3
+from __future__ import division
 
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
@@ -73,10 +75,10 @@ def gamma__exact(n):
         if n > 0:
             return factorial(n-1)
     else:
-        ans = QQ(1)
-        while (n != QQ(1)/2):
+        ans = QQ.one()
+        while (n != QQ.one()/2):
             if n < 0:
-                ans *= QQ(1)/n
+                ans *= QQ.one()/n
                 n += 1
             elif n > 0:
                 n += -1
@@ -120,6 +122,10 @@ def zeta__exact(n):
 
     TESTS::
 
+        sage: zeta__exact(4)
+        1/90*pi^4
+        sage: zeta__exact(-3)
+        1/120
         sage: zeta__exact(5)
         Traceback (most recent call last):
         ...
@@ -135,13 +141,13 @@ def zeta__exact(n):
         return bernoulli(1-n)/(n-1)
     elif n > 1:
         if (n % 2 == 0):
-            return ZZ(-1)**(n/2 + 1) * ZZ(2)**(n-1) * pi**n * bernoulli(n) / factorial(n)
+            return ZZ(-1)**(n//2 + 1) * ZZ(2)**(n-1) * pi**n * bernoulli(n) / factorial(n)
         else:
             raise TypeError("n must be a critical value (i.e. even > 0 or odd < 0)")
-    elif n==1:
+    elif n == 1:
         return infinity
-    elif n==0:
-        return -1/2
+    elif n == 0:
+        return -QQ.one() / 2
 
 # ---------- Dirichlet L-functions with quadratic characters ----------
 
@@ -193,6 +199,8 @@ def quadratic_L_function__exact(n, d):
         1/4*pi
         sage: quadratic_L_function__exact(-4, -4)
         5/2
+        sage: quadratic_L_function__exact(2, 1)
+        1/6*pi^2
 
     TESTS::
 
@@ -227,7 +235,7 @@ def quadratic_L_function__exact(n, d):
             ans = SR(ZZ(-1)**(1+(n-delta)/2))
             ans *= (2*pi/f)**n
             ans *= GS     # Evaluate the Gauss sum here! =0
-            ans *= 1/(2 * I**delta)
+            ans *= QQ.one()/(2 * I**delta)
             ans *= QuadraticBernoulliNumber(n,d)/factorial(n)
             return ans
         else:

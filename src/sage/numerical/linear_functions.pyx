@@ -42,14 +42,32 @@ inequalities as less or equal::
     sage: x[5] >= ieq_01234
     x_0 <= x_1 <= x_2 <= x_3 <= x_4 <= x_5
 
-    sage: (x[5]<=x[6]) >= ieq_01234
+    sage: (x[5] <= x[6]) >= ieq_01234
     x_0 <= x_1 <= x_2 <= x_3 <= x_4 <= x_5 <= x_6
-    sage: (x[5]<=x[6]) <= ieq_01234
+    sage: (x[5] <= x[6]) <= ieq_01234
     x_5 <= x_6 <= x_0 <= x_1 <= x_2 <= x_3 <= x_4
+
+.. WARNING::
+
+    The implementation of chained inequalities uses a Python hack to
+    make it work, so it is not completely robust. In particular, while
+    constants are allowed, no two constants can appear next to
+    eachother. The following does not work for example::
+
+        sage: x[0] <= 3 <= 4
+        True
+
+    If you really need this for some reason, you can explicitly convert
+    the constants to a :class:`LinearFunction`::
+
+        sage: from sage.numerical.linear_functions import LinearFunctionsParent
+        sage: LF = LinearFunctionsParent(QQ)
+        sage: x[0] <= LF(3) <= LF(4)
+        x_0 <= 3 <= 4
 
 TESTS:
 
-See :trac:`12091` ::
+See :trac:`12091`::
 
     sage: p = MixedIntegerLinearProgram()
     sage: b = p.new_variable()
@@ -208,6 +226,12 @@ cdef chained_comparator_right = None
 cdef LinearConstraint chained_comparator_replace = None
 
 cdef class LinearFunctionOrConstraint(ModuleElement):
+    """
+    Base class for :class:`LinearFunction` and :class:`LinearConstraint`.
+
+    This class exists solely to implement chaining of inequalities
+    in constraints.
+    """
     def __richcmp__(py_left, py_right, int op):
         """
         Create an inequality or equality object, possibly chaining

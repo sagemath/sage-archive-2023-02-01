@@ -26,12 +26,13 @@ namespace GiNaC {
 
 static ex hermite_evalf(const ex& n, const ex& x, PyObject* parent)
 {
+        // see http://dlmf.nist.gov/18.5.E13
         numeric numn = ex_to<numeric>(n);
         numeric numx = ex_to<numeric>(x);
         std::vector<numeric> numveca, numvecb;
         numveca.push_back(numn / *_num_2_p);
         numveca.push_back(*_num1_2_p + (numn / *_num_2_p));
-        return hypergeometric_pFq(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
+        return pow(numx * (*_num2_p), numn) * hypergeometric_pFq(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
 }
 
 static ex hermite_eval(const ex& n, const ex& x)
@@ -76,8 +77,8 @@ static ex hermite_eval(const ex& n, const ex& x)
 
 static ex hermite_deriv(const ex& n, const ex & x, unsigned deriv_param)
 {
-	GINAC_ASSERT(deriv_param==0);
-	return _ex2 * n * hermite(n-1, x).hold();
+	    GINAC_ASSERT(deriv_param==0);
+	    return _ex2 * n * hermite(n-1, x).hold();
 }
 
 REGISTER_FUNCTION(hermite, eval_func(hermite_eval).
@@ -91,12 +92,18 @@ REGISTER_FUNCTION(hermite, eval_func(hermite_eval).
 
 static ex gegenb_evalf(const ex& n, const ex &a, const ex& x, PyObject* parent)
 {
+        // see http://dlmf.nist.gov/18.5.E9
         numeric numn = ex_to<numeric>(n);
         numeric numx = ex_to<numeric>(x);
+        numeric numa = ex_to<numeric>(a);
+        numeric num2a = numa * (*_num2_p);
         std::vector<numeric> numveca, numvecb;
-        numveca.push_back(numn / *_num_2_p);
-        numveca.push_back(*_num1_2_p + (numn / *_num_2_p));
-        return hypergeometric_pFq(numveca, numvecb, -pow(numx, *_num2_p).inverse(), parent);
+        numveca.push_back(-numn);
+        numveca.push_back(numn + num2a);
+        numvecb.push_back(numa + (*_num1_2_p));
+        numeric factor = numn + num2a - (*_num1_p);
+        factor = factor.binomial(numn);
+        return factor * hypergeometric_pFq(numveca, numvecb, ((*_num1_p)-numx)/(*_num2_p), parent);
 }
 
 static ex gegenb_eval(const ex& n, const ex &a, const ex& x)

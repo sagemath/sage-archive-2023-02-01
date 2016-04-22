@@ -168,7 +168,9 @@ class PiecewiseFunction(BuiltinFunction):
 
         EXAMPLES::
 
-        
+            sage: p = piecewise([((-2, 0), -x), ([0, 4], x)], var=x)
+            sage: str(p)    # indirect doctest
+            'piecewise(x|-->-x on (-2, 0), x|-->x on [0, 4]; x)'
         """
         s = 'piecewise(' 
         args = []
@@ -258,7 +260,7 @@ class PiecewiseFunction(BuiltinFunction):
 
 
     @staticmethod
-    def simplify():
+    def simplify(ex):
         """
         Combine piecewise operands into single piecewise function
 
@@ -267,6 +269,13 @@ class PiecewiseFunction(BuiltinFunction):
         A piecewise function whose operands are not piecewiese if 
         possible, that is, as long as the piecewise variable is the same.
 
+        EXAMPLES::
+            
+            sage: f = piecewise([([0,0], sin(x)), ((0,2), cos(x))])
+            sage: piecewise.simplify(f)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 

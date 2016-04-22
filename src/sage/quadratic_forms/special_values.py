@@ -78,7 +78,7 @@ def gamma__exact(n):
         ans = QQ.one()
         while n != QQ((1, 2)):
             if n < 0:
-                ans *= QQ.one()/n
+                ans *= QQ((1, n))
                 n += 1
             elif n > 0:
                 n += -1
@@ -147,7 +147,7 @@ def zeta__exact(n):
     elif n == 1:
         return infinity
     elif n == 0:
-        return -QQ((1, 2))
+        return QQ((-1, 2))
 
 # ---------- Dirichlet L-functions with quadratic characters ----------
 

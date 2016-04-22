@@ -63,7 +63,7 @@ def mass__by_Siegel_densities(self, odd_algorithm="Pall", even_algorithm="Watson
         0
     """
     ## Setup
-    n = ZZ(self.dim())
+    n = self.dim()
     s = (n-1) // 2
     if n % 2 != 0:
         char_d = squarefree_part(2*self.det())   ## Accounts for the det as a QF

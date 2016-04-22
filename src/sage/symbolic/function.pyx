@@ -452,7 +452,6 @@ cdef class Function(SageObject):
         else:
             symbolic_input = False
 
-
         cdef Py_ssize_t i
         if coerce:
             try:
@@ -778,7 +777,7 @@ cdef class GinacFunction(BuiltinFunction):
     There is also no need to register these functions.
     """
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            ginac_name=None, evalf_params_first=True):
+            ginac_name=None, evalf_params_first=True, preserved_arg=None):
         """
         TESTS::
 
@@ -793,7 +792,7 @@ cdef class GinacFunction(BuiltinFunction):
         """
         self._ginac_name = ginac_name
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
-                evalf_params_first=evalf_params_first)
+                evalf_params_first=evalf_params_first, preserved_arg=preserved_arg)
 
     def __call__(self, *args, **kwds):
         """
@@ -900,7 +899,7 @@ cdef class BuiltinFunction(Function):
     of this class.
     """
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            evalf_params_first=True, alt_name=None):
+            evalf_params_first=True, alt_name=None, preserved_arg=None):
         """
         TESTS::
 
@@ -909,6 +908,10 @@ cdef class BuiltinFunction(Function):
             sage: c(pi/2)
             0
         """
+        self._preserved_arg = preserved_arg
+        if preserved_arg and (preserved_arg < 1 or preserved_arg > nargs):
+            raise ValueError("preserved_arg must be between 1 and nargs")
+
         # If we have an _evalf_ method, change _eval_ to a
         # wrapper function which first tries to call _evalf_.
         if hasattr(self, '_evalf_'):
@@ -969,10 +972,28 @@ cdef class BuiltinFunction(Function):
                 res = super(BuiltinFunction, self).__call__(
                         *args, coerce=coerce, hold=hold)
 
-        # If none of the input arguments was a Sage Element but the
-        # output is, then convert the output back to the corresponding
+        # Convert the output back to the corresponding
         # Python type if possible.
         if any(isinstance(x, Element) for x in args):
+            if (self._preserved_arg
+                    and isinstance(args[self._preserved_arg-1], Element)):
+                from sage.structure.all import parent
+                arg_parent = parent(args[self._preserved_arg-1])
+                if arg_parent is SR:
+                    return res
+                from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
+                from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+                if (isinstance(arg_parent, PolynomialRing_commutative)
+                    or isinstance(arg_parent, MPolynomialRing_polydict_domain)):
+                    try:
+                        return res.polynomial(ring=arg_parent)
+                    except TypeError:
+                        return res
+                else:
+                    try:
+                        return arg_parent(res)
+                    except TypeError:
+                        return res
             return res
         if not isinstance(res, Element):
             return res

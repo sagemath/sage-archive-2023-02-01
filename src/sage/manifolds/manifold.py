@@ -1028,7 +1028,7 @@ class TopologicalManifold(ManifoldSubset):
 
         In general, one has always::
 
-            sage: M.irange().next() == M.start_index()
+            sage: next(M.irange()) == M.start_index()
             True
 
         """

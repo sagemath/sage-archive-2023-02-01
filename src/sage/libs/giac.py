@@ -255,7 +255,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         gens = gens.gens()
 
     # get the ring from gens
-    P = iter(gens).next().parent()
+    P = next(iter(gens)).parent()
     K = P.base_ring()
     p = K.characteristic()
 

@@ -87,8 +87,6 @@ Miscellaneous
 .. toctree::
    :maxdepth: 2
 
-   sage/ext/interactive_constructors_c
-
    sage/repl/readline_extra_commands
 
    sage/repl/interpreter

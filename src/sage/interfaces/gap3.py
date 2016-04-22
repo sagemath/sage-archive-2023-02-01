@@ -6,34 +6,28 @@ This module implements an interface to GAP3.
 AUTHORS:
 
 -  Franco Saliola (February 2010)
+-  Christian Stump (March 2016)
 
 .. WARNING::
 
-    GAP3 is not distrubuted with Sage. You need to install it
-    separately; see the section `Obtaining GAP3`_.
+    The experimental package for GAP3 is Jean Michel's pre-packaged GAP3,
+    which is a minimal GAP3 distribution containing packages that have
+    no equivalent in GAP4, see :trac:20107 and also 
+
+        https://webusers.imj-prg.fr/~jean.michel/gap3/
 
 Obtaining GAP3
 --------------
 
-The GAP3 interface will only work if GAP3 is installed on your computer.
-Here are some ways to obtain GAP3:
-
-- There is an optional Sage package providing GAP3 pre-packaged
-  with several GAP3 packages:
-
-    http://trac.sagemath.org/sage_trac/ticket/8906
+Instead of installing the experimental GAP3 package, one can as well install
+by hand either of the following two versions of GAP3:
 
 - Frank Luebeck maintains a GAP3 Linux executable, optimized
   for i686 and statically linked for jobs of 2 GByte or more:
 
     http://www.math.rwth-aachen.de/~Frank.Luebeck/gap/GAP3
 
-- Jean Michel maintains a version of GAP3 pre-packaged with
-  CHEVIE and VKCURVE. It can be obtained here:
-
-    http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
-
-- Finally, you can download GAP3 from the GAP website below. Since GAP3
+- or you can download GAP3 from the GAP website below. Since GAP3
   is no longer supported, it may not be easy to install this version.
 
     http://www.gap-system.org/Gap3/Download3/download.html
@@ -171,15 +165,14 @@ Common Pitfalls
     ``RequirePackage`` method (note that one can instead use the
     ``load_package`` method)::
 
-        sage: gap3.RequirePackage('"chevie"')             #optional - gap3 chevie
-        W...  to  the  CHEVIE  package, ...
+        sage: gap3.RequirePackage('"chevie"')             #optional - gap3
 
 Examples
 --------
 
 Load a GAP3 package::
 
-    sage: gap3.load_package("chevie")                      #optional - gap3 chevie
+    sage: gap3.load_package("chevie")                      #optional - gap3
     sage: gap3.version() # random                          #optional - gap3
     'lib: v3r4p4 1997/04/18, src: v3r4p0 1994/07/10, sys: usg gcc ansi'
 
@@ -568,33 +561,26 @@ class Gap3(Gap_generic):
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
-                - If you do not have GAP3 installed, then you must download ...
+                - If you do not have GAP3 installed, then you must either...
             sage: print gap3._install_hints()
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
-                - If you do not have GAP3 installed, then you must download ...
+                - If you do not have GAP3 installed, then you must either...
         """
         return r"""
     Your attempt to start GAP3 failed, either because you do not have
     have GAP3 installed, or because it is not configured correctly.
 
-    - If you do not have GAP3 installed, then you must download and
-      install it yourself because it is not distrubuted with Sage.
-      Here are some ways to obtain GAP3:
-
-        - There is an optional Sage package providing GAP3 pre-packaged
-          with several GAP3 packages:
-            http://trac.sagemath.org/sage_trac/ticket/8906
+    - If you do not have GAP3 installed, then you must either install
+      the optional package, see :trac:20107, or you download and
+      install it yourself.
+      Here are two other ways to obtain GAP3:
 
         - Frank Luebeck maintains a GAP3 Linux executable, optimized
           for i686 and statically linked for jobs of 2 GByte or more:
             http://www.math.rwth-aachen.de/~Frank.Luebeck/gap/GAP3
-
-        - Jean Michel maintains a version of GAP3 pre-packaged with
-          CHEVIE and VKCURVE. It can be obtained here:
-            http://people.math.jussieu.fr/~jmichel/chevie/chevie.html
 
         - Finally, you can download GAP3 from the GAP website below. Since
           GAP3 is no longer an officially supported distribution of GAP, it

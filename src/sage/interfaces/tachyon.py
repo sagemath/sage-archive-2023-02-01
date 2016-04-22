@@ -19,7 +19,6 @@ import os
 
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
-from sage.misc.sagedoc import format
 from sage.structure.sage_object import SageObject
 
 
@@ -778,6 +777,7 @@ Basically, the image maps require the center, rotate and scale
 parameters so that you can position the image map on the object
 properly.
 """
+        from sage.misc.sagedoc import format
         f = format(s)
         f = f.replace('{ ','').replace('}','').replace('{','')
         if use_pager == True:

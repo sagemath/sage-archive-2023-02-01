@@ -452,7 +452,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Real Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float64')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'float64')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -464,7 +464,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Complex Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex128')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'complex128')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -480,6 +480,8 @@ class MatrixFactory(object):
         [1.0 2.0]
         [3.0 4.0]
         sage: matrix(numpy.array([[5]]))
+        [5]
+        sage: matrix(numpy.matrix([[5]]))
         [5]
 
     A ring and a numpy array::
@@ -720,6 +722,10 @@ class MatrixFactory(object):
                 if is_numpy_type(type(arg)):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
+                        # Convert to a numpy array if it was a matrix.
+                        if type(arg) is not numpy.ndarray:
+                            arg = numpy.array(arg)
+
                         str_dtype = str(arg.dtype)
 
                         if not (arg.flags.c_contiguous is True or arg.flags.f_contiguous is True):

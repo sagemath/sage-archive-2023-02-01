@@ -254,10 +254,10 @@ class ModularSymbol(SageObject):
 
             sage: rk0 = ['11a1', '11a2', '15a1', '27a1', '37b1']
             sage: for la in rk0:  # long time (3s on sage.math, 2011)
-            ...          E = EllipticCurve(la)
-            ...          me = E.modular_symbol(use_eclib = True)
-            ...          ms = E.modular_symbol(use_eclib = False)
-            ...          print E.lseries().L_ratio()*E.real_components(), me(0), ms(0)
+            ....:          E = EllipticCurve(la)
+            ....:          me = E.modular_symbol(use_eclib = True)
+            ....:          ms = E.modular_symbol(use_eclib = False)
+            ....:          print E.lseries().L_ratio()*E.real_components(), me(0), ms(0)
             1/5 1/5 1/5
             1 1 1
             1/4 1/4 1/4
@@ -268,14 +268,14 @@ class ModularSymbol(SageObject):
             sage: [EllipticCurve(la).modular_symbol(use_eclib=True)(0) for la in rk1]  # long time (1s on sage.math, 2011)
             [0, 0, 0, 0, 0, 0]
             sage: for la in rk1:  # long time (8s on sage.math, 2011)
-            ...       E = EllipticCurve(la)
-            ...       m = E.modular_symbol(use_eclib = True)
-            ...       lp = E.padic_lseries(5)
-            ...       for D in [5,17,12,8]:
-            ...           ED = E.quadratic_twist(D)
-            ...           md = sum([kronecker(D,u)*m(ZZ(u)/D) for u in range(D)])
-            ...           etaa = lp._quotient_of_periods_to_twist(D)
-            ...           assert ED.lseries().L_ratio()*ED.real_components()*etaa == md
+            ....:       E = EllipticCurve(la)
+            ....:       m = E.modular_symbol(use_eclib = True)
+            ....:       lp = E.padic_lseries(5)
+            ....:       for D in [5,17,12,8]:
+            ....:           ED = E.quadratic_twist(D)
+            ....:           md = sum([kronecker(D,u)*m(ZZ(u)/D) for u in range(D)])
+            ....:           etaD = lp._quotient_of_periods_to_twist(D)
+            ....:           assert ED.lseries().L_ratio()*ED.real_components() * etaD == md
 
         """
         E = self._E
@@ -361,13 +361,15 @@ class ModularSymbol(SageObject):
         E = self._E
         ED = E.quadratic_twist(D)
         lv = ED.lseries().L_ratio() # this is L(ED,1) divided by the Neron period omD of ED
-        lv *= ED.real_components()
+        lv *= ED.real_components() # now it is by the least positive period
         omD = ED.period_lattice().basis()[0]
         if D > 0 :
             om = E.period_lattice().basis()[0]
             q = sqrt(D)*omD/om * 8
         else :
             om = E.period_lattice().basis()[1].imag()
+            if E.real_components() == 1:
+                om *= 2
             q = sqrt(-D)*omD/om*8
 
         # see padic_lseries.pAdicLeries._quotient_of_periods_to_twist
@@ -409,8 +411,15 @@ class ModularSymbol(SageObject):
             print "Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2."
             cr0 = Integer(crla[0]).str() + crla[1] + '1'
             E0 = EllipticCurve(cr0)
-            q = E0.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
-            q = QQ(int(round(q*200)))/200
+            if self._sign == 1:
+                q = E0.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
+            else:
+                q = E0.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[1].imag()
+                if E0.real_components() == 1:
+                    q *= 2
+                if self._E.real_components() == 1:
+                    q /= 2
+            q = ZZ(int(round(q*200)))/200
             verbose('scale modular symbols by %s'%q)
             self._scaling = q
 
@@ -589,7 +598,7 @@ class ModularSymbolSage(ModularSymbol):
             1
             sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolSage(E,-1)
             sage: M(1/3)
-            1
+            1/2
 
         This is a rank 1 case with vanishing positive twists.
         The modular symbol is adjusted by -2::
@@ -597,9 +606,9 @@ class ModularSymbolSage(ModularSymbol):
             sage: E=EllipticCurve('121b1')
             sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolSage(E,-1,normalize='L_ratio')
             sage: M(1/3)
-            2
+            1
             sage: M._scaling
-            -2
+            -1
 
             sage: M = EllipticCurve('121d1').modular_symbol(use_eclib=False)
             sage: M(0)
@@ -679,7 +688,14 @@ class ModularSymbolSage(ModularSymbol):
         else :
             cr0 = Integer(crla[0]).str() + crla[1] + '1'
             E0 = EllipticCurve(cr0)
-            q = E0.period_lattice().basis()[0]/E.period_lattice().basis()[0]
+            if self._sign == 1:
+                q = E0.period_lattice().basis()[0]/E.period_lattice().basis()[0]
+            else:
+                q = E0.period_lattice().basis()[1].imag()/E.period_lattice().basis()[1].imag()
+                if E0.real_components() == 1:
+                    q *= 2
+                if E.real_components() == 1:
+                    q /= 2
             q = QQ(int(round(q*200)))/200
             verbose('scale modular symbols by %s'%q)
             self._scaling = q

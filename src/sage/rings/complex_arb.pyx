@@ -137,6 +137,8 @@ import sage.categories.fields
 cimport sage.rings.integer
 cimport sage.rings.rational
 
+import sage.rings.number_field.number_field as number_field
+
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
@@ -148,13 +150,14 @@ from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
-from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
-from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
+from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
+from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi, real_part_of_quadratic_element_to_arb
 from sage.rings.real_arb import RealBallField
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.rings.ring import Field
@@ -428,6 +431,10 @@ class ComplexBallField(UniqueRepresentation, Field):
             True
             sage: CBF.has_coerce_map_from(RealBallField(52))
             False
+            sage: CBF.has_coerce_map_from(QuadraticField(-2))
+            True
+            sage: CBF.has_coerce_map_from(QuadraticField(2, embedding=None))
+            False
 
         Check that there are no coercions from interval or floating-point parents::
 
@@ -442,6 +449,10 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         if isinstance(other, (RealBallField, ComplexBallField)):
             return (other._prec >= self._prec)
+        elif isinstance(other, number_field.NumberField_quadratic):
+            emb = other.coerce_embedding()
+            if emb is not None:
+                return self.has_coerce_map_from(emb.codomain())
 
     def _element_constructor_(self, x=None, y=None):
         r"""
@@ -484,6 +495,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
             sage: ComplexBallField(106)(1/3, 1/6)
             [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
+            sage: NF.<a> = QuadraticField(-2)
+            sage: CBF(1/5 + a/2)
+            [0.2000000000000000 +/- 4.45e-17] + [0.707106781186547 +/- 5.86e-16]*I
             sage: CBF(infinity, NaN)
             [+/- inf] + nan*I
             sage: CBF(x)
@@ -500,7 +514,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF(1+I, 2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert I + 1 to a RealBall
+            ValueError: nonzero imaginary part
         """
         try:
             return self.element_class(self, x, y)
@@ -694,9 +708,19 @@ cdef class ComplexBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported initializer
+            sage: NF.<a> = QuadraticField(-1, embedding=CC(0, -1))
+            sage: CBF(a)
+            -1.000000000000000*I
+            sage: NF.<a> = QuadraticField(-1, embedding=None)
+            sage: CBF(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: need an embedding
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
+        cdef NumberFieldElement_quadratic x_as_qe
+        cdef long myprec
 
         RingElement.__init__(self, parent)
 
@@ -726,6 +750,25 @@ cdef class ComplexBall(RingElement):
             elif isinstance(x, ComplexIntervalFieldElement):
                 ComplexIntervalFieldElement_to_acb(self.value,
                                                    <ComplexIntervalFieldElement> x)
+            elif isinstance(x, NumberFieldElement_quadratic):
+                x_as_qe = <NumberFieldElement_quadratic> x
+                real_part_of_quadratic_element_to_arb(acb_realref(self.value),
+                        x_as_qe, prec(self))
+                myprec = prec(self) + 4
+                if mpz_sgn(x_as_qe.D.value) < 0:
+                    if x_as_qe._parent._embedding is None:
+                        raise ValueError("need an embedding")
+                    fmpz_init(tmpz)
+                    fmpz_set_mpz(tmpz, x_as_qe.D.value)
+                    fmpz_abs(tmpz, tmpz)
+                    arb_sqrt_fmpz(acb_imagref(self.value), tmpz, myprec)
+                    fmpz_set_mpz(tmpz, x_as_qe.b)
+                    arb_mul_fmpz(acb_imagref(self.value), acb_imagref(self.value), tmpz, myprec)
+                    fmpz_set_mpz(tmpz, x_as_qe.denom)
+                    arb_div_fmpz(acb_imagref(self.value), acb_imagref(self.value), tmpz, prec(self))
+                    fmpz_clear(tmpz)
+                    if not x_as_qe.standard_embedding:
+                        acb_conj(self.value, self.value)
             else:
                 raise TypeError("unsupported initializer")
         elif isinstance(x, RealBall) and isinstance(y, RealBall):

@@ -309,11 +309,10 @@ class CoveringDesign(SageObject):
                 tset[tuple(y)] = True
 
         for i in Svt:
-            if tset[tuple(i)] == False:     # uncovered
+            if not tset[tuple(i)]:     # uncovered
                 return False
 
         return True                  # everything was covered
-
 
     def v(self):
         """

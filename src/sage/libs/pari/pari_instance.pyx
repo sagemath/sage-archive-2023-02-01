@@ -160,6 +160,27 @@ Sage (:trac:`9636`)::
     sage: pari('print("test")')
     test
 
+Check that ``default()`` works properly::
+
+    sage: pari.default("debug")
+    0
+    sage: pari.default("debug", 3)
+    sage: pari(2^67+1).factor()
+    IFAC: cracking composite
+            49191317529892137643
+    IFAC: factor 6713103182899
+            is prime
+    IFAC: factor 7327657
+            is prime
+    IFAC: prime 7327657
+            appears with exponent = 1
+    IFAC: prime 6713103182899
+            appears with exponent = 1
+    IFAC: found 2 large prime (power) factors.
+    [3, 1; 7327657, 1; 6713103182899, 1]
+    sage: pari.default("debug", 0)
+    sage: pari(2^67+1).factor()
+    [3, 1; 7327657, 1; 6713103182899, 1]
 """
 
 #*****************************************************************************
@@ -367,13 +388,6 @@ cdef PariInstance pari_instance, P
 pari_instance = PariInstance()
 P = pari_instance   # shorthand notation
 
-# PariInstance.__init__ must not create gen objects because their parent is not constructed yet
-sig_on()
-pari_instance.PARI_ZERO = pari_instance.new_gen_noclear(gen_0)
-pari_instance.PARI_ONE  = pari_instance.new_gen_noclear(gen_1)
-pari_instance.PARI_TWO  = pari_instance.new_gen_noclear(gen_2)
-sig_off()
-
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
 
@@ -509,6 +523,13 @@ cdef class PariInstance(PariInstance_auto):
         global factor_proven
         factor_proven = 1
 
+        # Initialize some constants
+        sig_on()
+        self.PARI_ZERO = self.new_gen_noclear(gen_0)
+        self.PARI_ONE = self.new_gen_noclear(gen_1)
+        self.PARI_TWO = self.new_gen_noclear(gen_2)
+        sig_off()
+
     def debugstack(self):
         r"""
         Print the internal PARI variables ``top`` (top of stack), ``avma``
@@ -583,11 +604,6 @@ cdef class PariInstance(PariInstance_auto):
             False
         """
         return (<Parent>left)._richcmp(right, op)
-
-    def default(self, variable, value=None):
-        if not value is None:
-            return self('default(%s, %s)'%(variable, value))
-        return self('default(%s)'%variable)
 
     def set_debug_level(self, level):
         """
@@ -669,8 +685,13 @@ cdef class PariInstance(PariInstance_auto):
     cdef inline gen new_gen(self, GEN x):
         """
         Create a new gen wrapping `x`, then call ``clear_stack()``.
+        Except if `x` is ``gnil``, then we return ``None`` instead.
         """
-        cdef gen g = self.new_gen_noclear(x)
+        cdef gen g
+        if x is gnil:
+            g = None
+        else:
+            g = self.new_gen_noclear(x)
         self.clear_stack()
         return g
 

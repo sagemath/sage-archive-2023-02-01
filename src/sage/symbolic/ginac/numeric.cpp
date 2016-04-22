@@ -2117,7 +2117,43 @@ const numeric numeric::doublefactorial() const {
 }
 
 const numeric numeric::binomial(const numeric &k) const {
-        PY_RETURN2(py_funcs.py_binomial, k);
+        numeric res;
+        PyObject *nobj, *kobj;
+
+        if (t == MPZ and k.info(info_flags::integer)) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_bin_ui(bigint, v._bigint, k.to_long());
+                return bigint;
+        }
+        nobj = this->to_pyobject();
+        kobj = k.to_pyobject();
+
+        PyObject* m = PyImport_ImportModule("sage.arith.misc");
+        if (!m)
+                py_error("Error importing arith.misc");
+        PyObject* binfunc = PyObject_GetAttrString(m, "binomial");
+        if (!binfunc)
+                py_error("Error getting binomial");
+
+        PyObject* pyresult = PyObject_CallFunctionObjArgs(binfunc, nobj, kobj, NULL);
+        Py_DECREF(kobj);
+        Py_DECREF(nobj);
+        Py_DECREF(m);
+        Py_DECREF(binfunc);
+        if (!pyresult) {
+                throw(std::runtime_error("numeric::binomial(): python function binomial raised exception"));
+        }
+        if ( pyresult == Py_None ) {
+                throw(std::runtime_error("numeric::binomial: python function binomial returned None"));
+        }
+        // convert output Expression to an ex
+        ex eval_result = py_funcs.pyExpression_to_ex(pyresult);
+        Py_DECREF(pyresult);
+        if (PyErr_Occurred()) {
+                throw(std::runtime_error("numeric::binomial(): python function (Expression_to_ex) raised exception"));
+        }
+        return ex_to<numeric>(eval_result);
 }
 
 const numeric numeric::bernoulli() const {
@@ -2151,29 +2187,13 @@ const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const s
         PyObject* hypfunc = PyObject_GetAttrString(m, "hypergeometric");
         if (!hypfunc)
                 py_error("Error getting hypergeometric attribute");
-        PyObject *itemp, *itema;
-        if (parent and PyDict_CheckExact(parent)) {
-                itemp = PyDict_GetItemString(parent, const_cast<char*>("parent"));
-                itema = PyDict_GetItemString(parent, const_cast<char*>("algorithm"));
-        }
-        else {
-                itemp = parent;
-                if (itemp)
-                        Py_INCREF(itemp);
-                itema = NULL;
-        }
-        if (itemp == NULL) {
-                itemp = RR;
-                Py_INCREF(itemp);
-        }
-        PyObject* name = PyString_FromString(const_cast<char*>("_evalf_"));
-        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, itemp, itema, NULL);
+
+        if (parent and PyDict_CheckExact(parent))
+                z = ex_to<numeric>(this->evalf(0, parent)).to_pyobject();
+        PyObject* name = PyString_FromString(const_cast<char*>("_evalf_try_"));
+        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, NULL);
         Py_DECREF(m);
         Py_DECREF(name);
-        if (itemp)
-                Py_DECREF(itemp);
-        if (itema)
-                Py_DECREF(itema);
         Py_DECREF(hypfunc);
         if (!pyresult) {
                 throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::_evalf_ raised exception"));
@@ -2558,15 +2578,12 @@ const numeric stieltjes(const numeric &x) {
         return x.stieltjes();
 }
 
-/** The Gamma function.
- *  Use the Lanczos approximation. If the coefficients used here are not
- *  sufficiently many or sufficiently accurate, more can be calculated
- *  using the program doc/examples/lanczos.cpp. In that case, be sure to
- *  read the comments in that file. */
+/** Apparently calls log_gamma in Sage's pynac.pyx */
 const numeric lgamma(const numeric &x) {
         return x.lgamma();
 }
 
+/** The Gamma function. */
 const numeric tgamma(const numeric &x) {
         return x.tgamma();
 }

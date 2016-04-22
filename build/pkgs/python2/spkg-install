@@ -110,7 +110,7 @@ build()
 
 build
 
-PYTHON_VERSION=$($SAGE_LOCAL/bin/python -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 cd "$SAGE_LOCAL/lib"
 

@@ -109,7 +109,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-PYTHON_VERSION=$($SAGE_LOCAL/bin/python -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python/config/libpython3.x.a causes problems with

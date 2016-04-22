@@ -258,6 +258,10 @@ cpdef bint is_numpy_type(t):
         True
         sage: is_numpy_type(numpy.float)  # Alias for Python float
         False
+        sage: is_numpy_type(numpy.ndarray)
+        True
+        sage: is_numpy_type(numpy.matrix)
+        True
         sage: is_numpy_type(int)
         False
         sage: is_numpy_type(Integer)
@@ -269,7 +273,13 @@ cpdef bint is_numpy_type(t):
     """
     if not isinstance(t, type):
         return False
-    return strncmp((<PyTypeObject*>t).tp_name, "numpy.", 6) == 0
+    cdef PyTypeObject* T = <PyTypeObject*>t
+    if strncmp(T.tp_name, "numpy.", 6) == 0:
+        return True
+    # Check base type. This is needed to detect numpy.matrix.
+    if strncmp(T.tp_base.tp_name, "numpy.", 6) == 0:
+        return True
+    return False
 
 
 cdef object _Integer

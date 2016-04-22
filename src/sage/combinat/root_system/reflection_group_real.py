@@ -258,7 +258,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         cls.__init__(self, W_types, index_set            = index_set,
                                     hyperplane_index_set = hyperplane_index_set,
                                     reflection_index_set = reflection_index_set)
-        N = self.number_of_reflections()
 
     def _repr_(self):
         r"""
@@ -324,7 +323,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,5)(2,6)(3,7)(4,8)
         """
         from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, N=self.number_of_reflections(),
+        return iter(Iterator(self, N=self._number_of_reflections,
                              algorithm=algorithm, tracking_words=tracking_words))
 
     def __iter__(self):
@@ -425,7 +424,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.positive_roots()                                    # optional - gap3
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
         """
-        return self.roots()[:self.number_of_reflections()]
+        return self.roots()[:self._number_of_reflections]
 
     def almost_positive_roots(self):
         r"""
@@ -786,7 +785,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 False
             """
             W = self.parent()
-            return self(W._index_set_inverse[i]+1) > W.number_of_reflections()
+            return self(W._index_set_inverse[i]+1) > W._number_of_reflections
 
         def has_descent(self, i, side='left', positive=False):
             r"""

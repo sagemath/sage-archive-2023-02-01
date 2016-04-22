@@ -1,5 +1,5 @@
 """
-libSingular conversion routines and initialisation.
+libSingular: Conversion Routines and Initialisation
 
 AUTHOR:
 

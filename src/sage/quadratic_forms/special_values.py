@@ -76,7 +76,7 @@ def gamma__exact(n):
             return factorial(n-1)
     else:
         ans = QQ.one()
-        while (n != QQ.one()/2):
+        while n != QQ((1, 2)):
             if n < 0:
                 ans *= QQ.one()/n
                 n += 1
@@ -147,7 +147,7 @@ def zeta__exact(n):
     elif n == 1:
         return infinity
     elif n == 0:
-        return -QQ.one() / 2
+        return -QQ((1, 2))
 
 # ---------- Dirichlet L-functions with quadratic characters ----------
 
@@ -287,7 +287,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
         raise ValueError('the Dirichlet series does not converge here')
 
     d1 = fundamental_discriminant(d)
-    ans = R(0)
+    ans = R.zero()
     for i in range(1,num_terms):
         ans += R(kronecker_symbol(d1,i) / R(i)**n)
     return ans

@@ -100,15 +100,15 @@ def ReflectionGroup(*args,**kwds):
     the complex infinite family `G(r,p,n)` with `p` divides `r`::
 
         sage: W = ReflectionGroup((1,1,4)); W                           # optional - gap3
-        Irreducible complex reflection group of rank 3 and type A3
+        Irreducible real reflection group of rank 3 and type A3
 
         sage: W = ReflectionGroup((2,1,3)); W                           # optional - gap3
-        Irreducible complex reflection group of rank 3 and type B3
+        Irreducible real reflection group of rank 3 and type B3
 
     Chevalley-Shepard-Todd exceptional classification types::
 
         sage: W = ReflectionGroup(23); W                                # optional - gap3
-         Irreducible complex reflection group of rank 3 and type H3
+        Irreducible real reflection group of rank 3 and type H3
 
     Cartan types and matrices::
 
@@ -268,7 +268,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             sage: W = ReflectionGroup(['A',3],['B',2],['I',5],['I',6])  # optional - gap3
             sage: W._repr_()                                            # optional - gap3
-            Reducible real reflection group of rank 9 and type A3 x B2 x I2(5) x G2
+            'Reducible real reflection group of rank 9 and type A3 x B2 x I2(5) x G2'
         """
         type_str = ''
         for W_type in self._type:
@@ -615,6 +615,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         TESTS::
 
+            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
             sage: W.permutahedron([3,5,8])                              # optional - gap3
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull
             of 24 vertices

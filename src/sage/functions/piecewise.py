@@ -384,7 +384,30 @@ class PiecewiseFunction(BuiltinFunction):
             """
             return tuple(fun for dom, fun in parameters)
 
-        def iteritems(cls, self, parameters, variable):
+        def items(cls, self, parameters, variable):
+            """
+            Iterate over the pieces of the piecewise function
+
+            .. NOTE::
+
+                You should probably use :meth:`pieces` instead, which
+                offers a nicer interface.
+
+            OUTPUT:
+
+            This method iterates over pieces of the piecewise
+            function, each represented by a pair. The first element is
+            the support, and the second the function over that
+            support.
+
+            EXAMPLES::
+
+                sage: f = piecewise([([0,0], sin(x)), ((0,2), cos(x))])
+                sage: for support, function in f.items():
+                ....:     print('support is {0}, function is {1}'.format(support, function))
+                support is {0}, function is sin(x)
+                support is (0, 2), function is cos(x)
+            """
             for pair in parameters:
                 yield pair
 
@@ -407,7 +430,7 @@ class PiecewiseFunction(BuiltinFunction):
             """
             self = piecewise(parameters, var=variable)
             substitution = dict()
-            for k, v in kwds.iteritems():
+            for k, v in kwds.items():
                 substitution[SR.var(k)] = v
             if value is not None:
                 substitution[variable] = value
@@ -896,7 +919,7 @@ class PiecewiseFunction(BuiltinFunction):
             uu = SR.var('uu')
             conv = 0
             fd,f0 = parameters[0]
-            gd,g0 = other.iteritems().next()
+            gd,g0 = next(other.items())
             if len(f)==1 and len(g)==1:
                 f = f.unextend_zero()
                 g = g.unextend_zero()

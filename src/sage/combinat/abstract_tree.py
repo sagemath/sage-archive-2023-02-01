@@ -979,7 +979,7 @@ class AbstractTree(object):
             if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
             else: lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid

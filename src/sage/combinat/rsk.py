@@ -555,6 +555,16 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    Check that :trac:`20430` is fixed::
+
+        sage: RSK([1,1,1,1,1,1,1,2,2,2,3], [1,1,1,1,1,1,3,2,2,2,1])
+        [[[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]],
+         [[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]]]
+        sage: t = SemistandardTableau([[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]])
+        sage: RSK_inverse(t, t, 'array')
+        [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
+         [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
     """
     if insertion == 'hecke':
         return hecke_insertion_reverse(p, q, output)
@@ -577,7 +587,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
         use_EG = (insertion == 'EG')
 
-        for i in reversed(d.values()): # Delete last entry from i-th row of p_copy
+        for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
+            i = d[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y_pos = bisect_left(row,x) - 1
@@ -626,8 +637,9 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     #d is now a double family such that for every integers k and j,
     #the value d[k][j] is the row i such that the (i, j)-th cell of
     #q is filled with k.
-    for value, row_dict in reversed(d.items()):
-        for i in reversed(row_dict.values()):
+    for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+        for key in sorted(row_dict, reverse=True):
+            i = row_dict[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y = bisect_left(row,x) - 1

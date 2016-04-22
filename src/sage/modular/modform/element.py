@@ -573,13 +573,13 @@ class ModularForm_abstract(ModuleElement):
         to it, which can be computed using the method
         `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
-        linear combinations of a basis for the period lattice of `E`::
+        linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
             sage: t = E.modular_symbol(sign=-1)
             sage: s(3/11), t(3/11)
-            (1/10, 1)
-            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            (1/10, 1/2)
+            sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
             0.634604652139777 + 1.45881661693850*I
 
         ALGORITHM:

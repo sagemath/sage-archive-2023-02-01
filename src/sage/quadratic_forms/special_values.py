@@ -126,6 +126,8 @@ def zeta__exact(n):
         1/90*pi^4
         sage: zeta__exact(-3)
         1/120
+        sage: zeta__exact(0)
+        -1/2
         sage: zeta__exact(5)
         Traceback (most recent call last):
         ...

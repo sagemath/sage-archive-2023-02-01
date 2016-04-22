@@ -246,7 +246,7 @@ def matrix_plot(mat, **options):
 
     If the matrix is dense, each matrix element is given a different
     color value depending on its relative size compared to the other
-    elements in the matrix.  
+    elements in the matrix.
 
     The default is for the lowest number to be black and the highest
     number to be white in a greyscale pattern; see the information about

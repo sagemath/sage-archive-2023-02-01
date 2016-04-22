@@ -794,7 +794,7 @@ class PiecewiseFunction(BuiltinFunction):
                 return F(b) - F(a)
 
             if a != None or b != None:
-                raise TypeError, 'only one endpoint given'
+                raise TypeError('only one endpoint given')
 
             area = 0
             new_pieces = []

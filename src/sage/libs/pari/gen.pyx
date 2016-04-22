@@ -3025,60 +3025,6 @@ cdef class gen(gen_auto):
             raise ValueError("%s is not a square modulo %s" % (self, n))
         return P.new_gen(s)
 
-    def ellinit(self, long flag=-1, unsigned long precision=0):
-        """
-        Return the PARI elliptic curve object with Weierstrass coefficients
-        given by self, a list with 5 elements.
-
-        INPUT:
-
-
-        -  ``self`` -- a list of 5 coefficients
-
-        -  ``flag`` -- ignored (for backwards compatibility)
-
-        -  ``precision (optional, default: 0)`` - the real
-           precision to be used in the computation of the components of the
-           PARI (s)ell structure; if 0, use the default 64 bits.
-
-           .. note::
-
-              The parameter ``precision`` in ``ellinit`` controls not
-              only the real precision of the resulting (s)ell structure,
-              but in some cases also the precision of most subsequent
-              computations with this elliptic curve (if those rely on
-              the precomputations done by ``ellinit``).  You should
-              therefore set the precision from the start to the value
-              you require.
-
-        OUTPUT:
-
-        -  ``gen`` -- a PARI ell structure.
-
-        EXAMPLES:
-
-        An elliptic curve with integer coefficients::
-
-            sage: e = pari([0,1,0,1,0]).ellinit(); e
-            [0, 1, 0, 1, 0, 4, 2, 0, -1, -32, 224, -48, 2048/3, Vecsmall([1]), [Vecsmall([64, -1])], [0, 0, 0, 0, 0, 0, 0, 0]]
-
-        The coefficients can be any ring elements that convert to PARI::
-
-            sage: pari([0,1/2,0,-3/4,0]).ellinit()
-            [0, 1/2, 0, -3/4, 0, 2, -3/2, 0, -9/16, 40, -116, 117/4, 256000/117, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
-            sage: pari([0,0.5,0,-0.75,0]).ellinit()
-            [0, 0.500000000000000, 0, -0.750000000000000, 0, 2.00000000000000, -1.50000000000000, 0, -0.562500000000000, 40.0000000000000, -116.000000000000, 29.2500000000000, 2188.03418803419, Vecsmall([0]), [Vecsmall([64, 1])], [0, 0, 0, 0]]
-            sage: pari([0,I,0,1,0]).ellinit()
-            [0, I, 0, 1, 0, 4*I, 2, 0, -1, -64, 352*I, -80, 16384/5, Vecsmall([0]), [Vecsmall([64, 0])], [0, 0, 0, 0]]
-            sage: pari([0,x,0,2*x,1]).ellinit()
-            [0, x, 0, 2*x, 1, 4*x, 4*x, 4, -4*x^2 + 4*x, 16*x^2 - 96*x, -64*x^3 + 576*x^2 - 864, 64*x^4 - 576*x^3 + 576*x^2 - 432, (256*x^6 - 4608*x^5 + 27648*x^4 - 55296*x^3)/(4*x^4 - 36*x^3 + 36*x^2 - 27), Vecsmall([0]), [Vecsmall([64, 0])], [0, 0, 0, 0]]
-        """
-        if flag != -1:
-            from sage.misc.superseded import deprecation
-            deprecation(16997, 'The flag argument to ellinit() is deprecated and not used anymore')
-        sig_on()
-        return P.new_gen(ellinit(self.g, NULL, prec_bits_to_words(precision)))
-
     def ellan(self, long n, python_ints=False):
         """
         Return the first `n` Fourier coefficients of the modular
@@ -3187,49 +3133,6 @@ cdef class gen(gen_auto):
         for i from 0 <= i < glength(g):
             set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
         return P.new_gen(g)
-
-    def ellheight(self, a, b=None, long flag=-1, unsigned long precision=0):
-        """
-        Canonical height of point ``a`` on elliptic curve ``self``,
-        resp. the value of the associated bilinear form at ``(a,b)``.
-
-        INPUT:
-
-        - ``self``-- an elliptic curve over `\QQ`.
-
-        - ``a`` -- rational point on ``self``.
-
-        - ``b`` -- (optional) rational point on ``self``.
-
-        - ``precision (optional)`` -- the precision of the
-          result, in bits.
-
-        EXAMPLES::
-
-            sage: e = pari([0,1,1,-2,0]).ellinit()
-            sage: e.ellheight([1,0])
-            0.476711659343740
-            sage: e.ellheight([1,0], precision=128).sage()
-            0.47671165934373953737948605888465305945902294218            # 32-bit
-            0.476711659343739537379486058884653059459022942211150879336  # 64-bit
-
-        Computing the bilinear form::
-
-            sage: e.ellheight([1, 0], [-1, 1])
-            0.418188984498861
-        """
-        if flag != -1:
-            from sage.misc.superseded import deprecation
-            deprecation(16997, 'The flag argument to ellheight() is deprecated and not used anymore')
-        cdef gen t0 = objtogen(a)
-        cdef gen t1
-        if b is None:
-            sig_on()
-            return P.new_gen(ellheight(self.g, t0.g, prec_bits_to_words(precision)))
-        else:
-            t1 = objtogen(b)
-            sig_on()
-            return P.new_gen(ellheight0(self.g, t0.g, t1.g, prec_bits_to_words(precision)))
 
     def ellisoncurve(self, x):
         """
@@ -3563,11 +3466,6 @@ cdef class gen(gen_auto):
             sage: pari(f).nfbasis(fa=[2,p])              # Equivalent with the above
             [1, 1/10000000019*x]
         """
-        if flag < 0 or flag > 1:
-            flag = flag & 1
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'In nfbasis(), flag must be 0 or 1, other bits are deprecated and ignored')
-
         cdef gen t0
         cdef GEN g0
         if fa is not None:
@@ -3602,11 +3500,6 @@ cdef class gen(gen_auto):
             sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
             ([1, x, x^2], -108)
         """
-        if flag < 0 or flag > 1:
-            flag = flag & 1
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'In nfbasis_d(), flag must be 0 or 1, other bits are deprecated and ignored')
-
         cdef gen t0
         cdef GEN g0
         cdef GEN disc
@@ -3654,37 +3547,6 @@ cdef class gen(gen_auto):
         cdef gen t0 = objtogen(x)
         sig_on()
         return P.new_gen(gel(basistoalg(nf.g, t0.g), 2))
-
-    def nfdisc(self, long flag=-1, p=None):
-        """
-        nfdisc(x): Return the discriminant of the number field defined over
-        QQ by x.
-
-        EXAMPLES::
-
-            sage: F = NumberField(x^3-2,'alpha')
-            sage: F._pari_()[0].nfdisc()
-            -108
-
-        ::
-
-            sage: G = NumberField(x^5-11,'beta')
-            sage: G._pari_()[0].nfdisc()
-            45753125
-
-        ::
-
-            sage: f = x^3-2
-            sage: f._pari_()
-            x^3 - 2
-            sage: f._pari_().nfdisc()
-            -108
-        """
-        if flag != -1 or p is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16997, 'The flag and p arguments to nfdisc() are deprecated and not used anymore')
-        sig_on()
-        return P.new_gen(nfdisc(self.g))
 
     def nfgenerator(self):
         f = self[0]
@@ -3962,7 +3824,7 @@ cdef class gen(gen_auto):
         """
         return self.eval(*args, **kwds)
 
-    def factorpadic(self, p, long r=20, long flag=-1):
+    def factorpadic(self, p, long r=20):
         """
         p-adic factorization of the polynomial ``pol`` to precision ``r``.
 
@@ -3975,9 +3837,6 @@ cdef class gen(gen_auto):
             sage: pari(pol).factorpadic(5,3)
             [(1 + O(5^3))*x + (1 + O(5^3)), 2; (1 + O(5^3))*x + (4 + 4*5 + 4*5^2 + O(5^3)), 2]
         """
-        if flag != -1:
-            from sage.misc.superseded import deprecation
-            deprecation(16997, 'The flag argument to factorpadic() is deprecated and not used anymore')
         cdef gen t0 = objtogen(p)
         sig_on()
         return P.new_gen(factorpadic(self.g, t0.g, r))
@@ -4001,25 +3860,13 @@ cdef class gen(gen_auto):
         P.clear_stack()
         return t != 0
 
-    def polroots(self, long flag=-1, unsigned long precision=0):
+    def polroots(self, unsigned long precision=0):
         """
         Complex roots of the given polynomial using Schonhage's method,
         as modified by Gourdon.
         """
-        if flag != -1:
-            from sage.misc.superseded import deprecation
-            deprecation(16997, 'The flag argument to polroots() is deprecated and not used anymore')
         sig_on()
         return P.new_gen(cleanroots(self.g, prec_bits_to_words(precision)))
-
-    def polrootspadicfast(self, p, r=20):
-        from sage.misc.superseded import deprecation
-        deprecation(16997, 'polrootspadicfast is deprecated, use polrootspadic or the direct PARI call ZpX_roots instead')
-        cdef gen t0 = objtogen(p)
-        sig_on()
-        return P.new_gen(rootpadic(self.g, t0.g, r))
-
-    polsturm_full = deprecated_function_alias(18203, gen_auto.polsturm)
 
     def rnfisnorm(self, T, long flag=0):
         cdef gen t0 = objtogen(T)
@@ -4133,6 +3980,8 @@ cdef class gen(gen_auto):
             [1; -2]
         """
         if flag:
+            # Keep this deprecation warning as long as PARI supports
+            # this deprecated flag
             deprecation(18203, "The flag argument to matkerint() is deprecated by PARI")
         sig_on()
         return P.new_gen(matkerint0(self.g, flag))
@@ -4497,21 +4346,6 @@ cdef class gen(gen_auto):
         sig_off()
         return
 
-    def xgcd(x, y):
-        """
-        Returns u,v,d such that d=gcd(x,y) and u\*x+v\*y=d.
-
-        EXAMPLES::
-
-            sage: pari(10).xgcd(15)
-            doctest:...: DeprecationWarning: xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)
-            See http://trac.sagemath.org/18203 for details.
-            (5, -1, 1)
-        """
-        deprecation(18203, "xgcd() is deprecated, use gcdext() instead (note that the output is in a different order!)")
-        u, v, g = x.gcdext(y)
-        return g, u, v
-
     ####################################################################
     # Functions deprecated by upstream PARI
     #
@@ -4589,7 +4423,7 @@ cdef class gen(gen_auto):
 
     bezoutres = deprecated_function_alias(18203, gen_auto.polresultantext)
 
-    ellbil = deprecated_function_alias(18203, ellheight)
+    ellbil = deprecated_function_alias(18203, gen_auto.ellheight)
 
     ellpow = deprecated_function_alias(18203, gen_auto.ellmul)
 

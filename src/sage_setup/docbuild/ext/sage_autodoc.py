@@ -41,17 +41,12 @@ from sphinx.application import ExtensionError
 from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util.compat import Directive
 from sphinx.util.inspect import getargspec, isdescriptor, safe_getmembers, \
-    safe_getattr, safe_repr, is_builtin_class_method
+    safe_getattr, object_description, is_builtin_class_method
 from sphinx.util.docstrings import prepare_docstring
 
 from sage.misc.sageinspect import (sage_getdoc_original,
         sage_getargspec, sage_formatargspec, isclassinstance)
 from sage.misc.lazy_import import LazyImport
-
-
-_re_address = re.compile(" *at 0x[0-9a-fA-F]+")
-def object_description(*args):
-    return _re_address.sub("", safe_repr(*args))
 
 
 #: extended signature RE: with explicit module name separated by ::

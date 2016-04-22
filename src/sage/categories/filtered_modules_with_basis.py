@@ -832,12 +832,14 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 0
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
-                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                sage: G = A.algebra_generators()
+                sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.homogeneous_component(-1)
                 0
                 sage: g.homogeneous_component(0)
-                0
+                1
                 sage: g.homogeneous_component(2)
                 -2*U['x']*U['y']
                 sage: g.homogeneous_component(5)
@@ -896,22 +898,25 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 2*P[] + 2*P[1] + 3*P[2]
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
-                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                sage: G = A.algebra_generators()
+                sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(-1)
                 0
                 sage: g.truncate(0)
                 0
                 sage: g.truncate(2)
-                0
+                2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(3)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(5)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(7)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(8)
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
 
             TESTS:
 

@@ -1264,7 +1264,7 @@ def _exp_gen(R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _exp_gen
         sage: g = _exp_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
     return (_exp_term(i, R) for i in _integers_from(0))
@@ -1323,7 +1323,7 @@ def _cl_gen (R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _cl_gen
         sage: g = _cl_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
     return (_cl_term(i, R) for i in _integers_from(0))

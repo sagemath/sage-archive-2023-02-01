@@ -15,6 +15,7 @@ cdef class InteractiveLPBackend(GenericBackend):
     cdef object prob_name
 
     cdef object lp_std_form
+    cdef object std_form_transformation
     cdef object final_dictionary
     cdef int verbosity
 

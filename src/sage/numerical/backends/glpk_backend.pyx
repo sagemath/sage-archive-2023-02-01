@@ -34,6 +34,17 @@ include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the GLPK solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor
@@ -1600,7 +1611,7 @@ cdef class GLPKBackend(GenericBackend):
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
-    cpdef GLPKBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 

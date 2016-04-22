@@ -2620,10 +2620,10 @@ class Tableau(ClonableList):
                 right_neighbor = new_st[spotl][spotc + 1]
                 if go_right is None or upper_neighbor > right_neighbor:
                     go_right = True
-            if go_right == True:
+            if go_right is True:
                 new_st[spotl][spotc] = right_neighbor
                 spotc += 1
-            elif go_right == False:
+            elif go_right is False:
                 new_st[spotl][spotc] = upper_neighbor
                 spotl += 1
             else:

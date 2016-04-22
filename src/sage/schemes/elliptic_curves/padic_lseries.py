@@ -125,6 +125,7 @@ class pAdicLseries(SageObject):
         2 + 4*5 + 4*5^2 + O(5^4) + O(5)*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + O(5)*T^4 + O(T^5)
 
 
+
     A prime p such that E[p] is reducible::
 
         sage: L = EllipticCurve('11a').padic_lseries(5)
@@ -140,11 +141,11 @@ class pAdicLseries(SageObject):
         sage: E=EllipticCurve('11a1')
         sage: lp=E.padic_lseries(7)
         sage: lp.series(4,eta=1)
-        6 + 2*7^3 + 5*7^4 + O(7^6) + (4*7 + 2*7^2 + O(7^3))*T + (2 + 3*7^2 + O(7^3))*T^2 + (1 + 2*7 + 2*7^2 + O(7^3))*T^3 + (1 + 3*7^2 + O(7^3))*T^4 + O(T^5)
+        3 + 7^3 + 6*7^4 + 3*7^5 + O(7^6) + (2*7 + 7^2 + O(7^3))*T + (1 + 5*7^2 + O(7^3))*T^2 + (4 + 4*7 + 4*7^2 + O(7^3))*T^3 + (4 + 3*7 + 7^2 + O(7^3))*T^4 + O(T^5)
         sage: lp.series(4,eta=2)
         5 + 6*7 + 4*7^2 + 2*7^3 + 3*7^4 + 2*7^5 + O(7^6) + (6 + 4*7 + 7^2 + O(7^3))*T + (3 + 2*7^2 + O(7^3))*T^2 + (1 + 4*7 + 7^2 + O(7^3))*T^3 + (6 + 6*7 + 6*7^2 + O(7^3))*T^4 + O(T^5)
         sage: lp.series(4,eta=3)
-        O(7^6) + (3 + 2*7 + 5*7^2 + O(7^3))*T + (5 + 4*7 + 5*7^2 + O(7^3))*T^2 + (3*7 + 7^2 + O(7^3))*T^3 + (2*7 + 7^2 + O(7^3))*T^4 + O(T^5)
+        O(7^6) + (5 + 4*7 + 2*7^2 + O(7^3))*T + (6 + 5*7 + 2*7^2 + O(7^3))*T^2 + (5*7 + O(7^3))*T^3 + (7 + 4*7^2 + O(7^3))*T^4 + O(T^5)
 
     (Note that the last series vanishes at `T = 0`, which is consistent with ::
 
@@ -208,15 +209,13 @@ class pAdicLseries(SageObject):
         sage: E = EllipticCurve('11a1')
         sage: lp = E.padic_lseries(5)
         sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
-        -1
+        -1/2
 
         """
         if self._use_eclib:
             verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
             # once there is a eclib implementation of -1, this should be changed.
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
-        else:
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
 
     def __cmp__(self,other):
         r"""
@@ -297,7 +296,7 @@ class pAdicLseries(SageObject):
         Note also that this function does not check if the condition
         on the quadratic_twist=D is satisfied. So the result will only
         be correct if for each prime `\ell` dividing `D`, we have
-        `ord_{\ell(N)}<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
+        `ord_{\ell}(N)<= ord_{\ell}(D)`, where `N` is the conductor of the curve.
 
         INPUT:
 
@@ -314,13 +313,15 @@ class pAdicLseries(SageObject):
             sage: [lp.modular_symbol(r) for r in [0,1/5,oo,1/11]]
             [1/5, 6/5, 0, 0]
             sage: [lp.modular_symbol(r,sign=-1) for r in [0,1/3,oo,1/7]]
-            [0, 1, 0, -1]
+            [0, 1/2, 0, -1/2]
             sage: [lp.modular_symbol(r,quadratic_twist=-20) for r in [0,1/5,oo,1/11]]
-            [2, 2, 0, 1]
+            [1, 1, 0, 1/2]
 
-            sage: lpt = E.quadratic_twist(-3).padic_lseries(5)
-            sage: et = E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
-            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-3)/et
+            sage: E = EllipticCurve('20a1')
+            sage: Et = E.quadratic_twist(-4)
+            sage: lpt = Et.padic_lseries(5)
+            sage: eta = lpt._quotient_of_periods_to_twist(-4)
+            sage: lpt.modular_symbol(0) == lp.modular_symbol(0,quadratic_twist=-4) / eta
             True
 
         """
@@ -341,7 +342,9 @@ class pAdicLseries(SageObject):
                 raise NotImplementedError("Quadratic twists for negative modular symbols are not yet implemented.")
             if D > 0:
                 m = self._modular_symbol
-                s = +1
+                return sum([ kronecker_symbol(D,u) * m(r+ZZ(u)/D) \
+                             for u in range(1,D) ] )
+
             else:
                 try:
                     m = self._negative_modular_symbol
@@ -349,10 +352,8 @@ class pAdicLseries(SageObject):
                     if not hasattr(self, '_modular_symbol_negative'):
                         self.__add_negative_space()
                         m = self._negative_modular_symbol
-                s = -1
-            # without the ZZ here the u is treated as a 'int' and dividing by D gives 0
-            # this only happens when it is called from __init__ (?)
-            return s * sum([kronecker_symbol(D,u) * m(r+ZZ(u)/D) for u in range(1,abs(D))])
+                return -sum([ kronecker_symbol(D,u) * m(r+ZZ(u)/D) \
+                             for u in range(1,-D) ] )
 
 
     def measure(self, a, n, prec, quadratic_twist=+1, sign = +1):
@@ -411,7 +412,7 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('11a1')
             sage: a = E.quadratic_twist(-3).padic_lseries(5).measure(1,2,prec=15)
             sage: b = E.padic_lseries(5).measure(1,2, quadratic_twist=-3,prec=15)
-            sage: a == b/E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
+            sage: a == b * E.padic_lseries(5)._quotient_of_periods_to_twist(-3)
             True
 
         """
@@ -422,7 +423,7 @@ class pAdicLseries(SageObject):
             raise NotImplementedError("Quadratic twists not implemented for sign -1")
 
         if quadratic_twist < 0:
-            s = -1
+            s = ZZ(-1)
 
         try:
             p, alpha, z, w, f = self.__measure_data[(n,prec,s)]
@@ -447,14 +448,17 @@ class pAdicLseries(SageObject):
         if quadratic_twist == 1:
             if self._E.conductor() % p == 0:
                 return z * f(a/(p*w))
-            return z * f(a/(p*w)) - (z/alpha) * f(a/w)
+            return z * ( f(a/(p*w)) - f(a/w) / alpha)
         else:
             D = quadratic_twist
-            chip = kronecker_symbol(D,p)
-            if self._E.conductor() % p == 0:
-                mu = chip**n * z * sum([kronecker_symbol(D,u) * f(a/(p*w)+ZZ(u)/D) for u in range(1,abs(D))])
+            if self.is_ordinary():
+                chip = kronecker_symbol(D,p)
             else:
-                mu = chip**n * sum([kronecker_symbol(D,u) *(z * f(a/(p*w)+ZZ(u)/D) - chip *(z/alpha)* f(a/w+ZZ(u)/D)) for u in range(1,abs(D))])
+                chip = 1 # alpha is +- sqrt(-p) anyway
+            if self._E.conductor() % p == 0:
+                mu = chip**n * z * sum([kronecker_symbol(D,u) * f(a/(p*w)+ZZ(u)/D) for u in range(1,D.abs())])
+            else:
+                mu = chip**n * z * sum([kronecker_symbol(D,u) *( f(a/(p*w)+ZZ(u)/D) - chip /alpha * f(a/w+ZZ(u)/D) ) for u in range(1,D.abs())])
             return s*mu
 
     def alpha(self, prec=20):
@@ -483,9 +487,9 @@ class pAdicLseries(SageObject):
 
             sage: L = E.padic_lseries(3)
             sage: alpha = L.alpha(10); alpha
-            (1 + O(3^10))*alpha
+            alpha + O(alpha^21)
             sage: alpha^2 - E.ap(3)*alpha + 3
-            (O(3^11))*alpha + (O(3^11))
+            O(alpha^22)
 
         A reducible prime::
 
@@ -519,8 +523,9 @@ class pAdicLseries(SageObject):
                     return K(a)
             raise RunTimeError("bug in p-adic L-function alpha")
         else: # supersingular case
-            f = f.change_ring(Qp(p, prec, print_mode='series'))
-            a = f.root_field('alpha', check_irreducible=False).gen()
+            f = f.change_ring(K)
+            A = K.extension(f, names="alpha")
+            a = A.gen()
             self._alpha[prec] = a
             return a
 
@@ -591,13 +596,6 @@ class pAdicLseries(SageObject):
                 self.__ord = v
                 return v
             n += 1
-
-
-#    def _c_bounds(self, n):
-#        raise NotImplementedError
-
-#    def _prec_bounds(self, n,prec):
-#        raise NotImplementedError
 
     def teichmuller(self, prec):
         r"""
@@ -702,10 +700,12 @@ class pAdicLseries(SageObject):
 
     def _quotient_of_periods_to_twist(self,D):
         r"""
-        For a fundamental discriminant `D` of a quadratic number field this computes the constant `\eta` such that
-        `\sqrt{D}\cdot\Omega_{E_D}^{+} =\eta\cdot \Omega_E^{sign(D)}`. As in [MTT]_ page 40.
-        This is either 1 or 2 unless the condition on the twist is not satisfied, e.g. if we are 'twisting back'
-        to a semi-stable curve.
+        For a fundamental discriminant `D` of a quadratic number field this
+        computes the constant `\eta` such that
+        `\sqrt{\vert D\vert }\cdot\Omega_{E_D}^{+} =\eta\cdot \Omega_E^{sign(D)}`.
+        As in [MTT]_ page 40. This is either 1 or 2 unless the condition
+        on the twist is not satisfied, e.g. if we are 'twisting back' to a
+        semi-stable curve.
 
         REFERENCES:
 
@@ -738,7 +738,7 @@ class pAdicLseries(SageObject):
             sage: Et = E.quadratic_twist(-3)
             sage: lpt = Et.padic_lseries(5)
             sage: lpt._quotient_of_periods_to_twist(-3)
-            6
+            3
 
         """
         from sage.functions.all import sqrt
@@ -747,13 +747,14 @@ class pAdicLseries(SageObject):
         # Note that the number of real components does not change by twisting.
         if D == 1:
             return 1
+        Et = self._E.quadratic_twist(D)
         if D > 1:
-            Et = self._E.quadratic_twist(D)
             qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[0]
             qt *= sqrt(qt.parent()(D))
         else:
-            Et = self._E.quadratic_twist(D)
-            qt = Et.period_lattice().basis()[0]/self._E.period_lattice().basis()[1].imag()
+            qt = Et.period_lattice().basis()[1].imag()/self._E.period_lattice().basis()[0]
+            if Et.real_components() == 1:
+                qt *= 2
             qt *= sqrt(qt.parent()(-D))
         verbose('the real approximation is %s'%qt)
         # we know from MTT that the result has a denominator 1
@@ -851,9 +852,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L = EllipticCurve('110a1').padic_lseries(5)
             sage: for j in [0..3]: print L.series(4, eta=j)
             O(5^6) + (2 + 2*5 + 2*5^2 + O(5^3))*T + (5 + 5^2 + O(5^3))*T^2 + (4 + 4*5 + 2*5^2 + O(5^3))*T^3 + (1 + 5 + 3*5^2 + O(5^3))*T^4 + O(T^5)
-            3 + 2*5 + 2*5^3 + 3*5^4 + O(5^6) + (2 + 5 + 4*5^2 + O(5^3))*T + (1 + 4*5 + 2*5^2 + O(5^3))*T^2 + (1 + 5 + 5^2 + O(5^3))*T^3 + (2 + 4*5 + 4*5^2 + O(5^3))*T^4 + O(T^5)
+            4 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^6) + (1 + 3*5 + 4*5^2 + O(5^3))*T + (3 + 4*5 + 3*5^2 + O(5^3))*T^2 + (3 + 3*5^2 + O(5^3))*T^3 + (1 + 2*5 + 2*5^2 + O(5^3))*T^4 + O(T^5)
             2 + O(5^6) + (1 + 5 + O(5^3))*T + (2 + 4*5 + 3*5^2 + O(5^3))*T^2 + (4 + 5 + 2*5^2 + O(5^3))*T^3 + (4 + O(5^3))*T^4 + O(T^5)
-            1 + 3*5 + 4*5^2 + 2*5^3 + 5^4 + 4*5^5 + O(5^6) + (2 + 4*5 + 3*5^2 + O(5^3))*T + (2 + 3*5 + 5^2 + O(5^3))*T^2 + (1 + O(5^3))*T^3 + (2*5 + 2*5^2 + O(5^3))*T^4 + O(T^5)
+            3 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + O(5^6) + (1 + 2*5 + 4*5^2 + O(5^3))*T + (1 + 4*5 + O(5^3))*T^2 + (3 + 2*5 + 2*5^2 + O(5^3))*T^3 + (5 + 5^2 + O(5^3))*T^4 + O(T^5)
         """
         n = ZZ(n)
         if n < 1:
@@ -892,7 +893,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 # set prec arbitrary to 20.
                 K = Qp(p, 20, print_mode='series')
                 R = PowerSeriesRing(K,'T',1)
-                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
+                L = self.modular_symbol(0, sign=+1, quadratic_twist=D)
                 chip = kronecker_symbol(D,p)
                 if self._E.conductor() % p == 0:
                     L *= 1 - chip/self.alpha()
@@ -928,6 +929,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
         p_power = p**(n-1)
+        si = 1-2*(eta % 2)
 
         verbose("Now iterating over %s summands"%((p-1)*p_power))
         verbose_level = get_verbose()
@@ -939,7 +941,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += teich[a]**eta * self.measure(b, n, padic_prec,quadratic_twist=D, sign = 1-2*(eta % 2)).lift()
+                s += teich[a]**eta * self.measure(b, n, padic_prec, quadratic_twist=D, sign=si).lift()
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
@@ -952,7 +954,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
         L = R(L,res_series_prec)
         aj = L.list()
         if len(aj) > 0:
-            aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
+            aj = [aj[0].add_bigoh(padic_prec-2)] + \
+                 [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec )
 
         L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
@@ -1066,7 +1069,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         Here the normalization of the `p`-adic L-series is chosen
         such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
-        where `\alpha` is the unit root of the characteristic
+        where `\alpha` is a root of the characteristic
         polynomial of Frobenius on `T_pE` and `\Omega_E` is the
         Neron period of `E`.
 
@@ -1082,6 +1085,12 @@ class pAdicLseriesSupersingular(pAdicLseries):
           Teichmueller character on the group of roots of unity in
           `\ZZ_p^\times`)
 
+        OUTPUT:
+
+        a power series with coefficients in a quadratic ramified extension of
+        the `p`-adic numbers generated by a root `alpha` of the characteristic
+        polynomial of Frobenius on `T_pE`.
+
         ALIAS: power_series is identical to series.
 
         EXAMPLES:
@@ -1093,18 +1102,16 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(2)
             O(T^3)
             sage: L.series(4)         # takes a long time (several seconds)
-            (O(3^2))*alpha + (O(3^3)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + O(T^5)
+            O(alpha) + (alpha^-2 + O(alpha^0))*T + (alpha^-2 + O(alpha^0))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
-            relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
+            Eisenstein Extension of 3-adic Field with capped relative precision 2 in alpha defined by (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
 
         An example where we only compute the leading term (:trac:`15737`)::
 
             sage: E = EllipticCurve("17a1")
             sage: L = E.padic_lseries(3)
             sage: L.series(4,prec=1)
-            (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
-
+            alpha^-2 + alpha^-1 + 2 + 2*alpha + ... + O(alpha^38) + O(T)
         """
         n = ZZ(n)
         if n < 1:
@@ -1131,7 +1138,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         p = self._p
         eta = ZZ(eta) % (p-1)
         if p == 2 and self._normalize :
-            print 'Warning : for p == 2 the normalization might not be correct !'
+            print 'Warning : for p = 2 the normalization might not be correct !'
 
         if prec == 1:
             if eta == 0:
@@ -1141,27 +1148,22 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 alpha = self.alpha(prec=20)
                 K = alpha.parent()
                 R = PowerSeriesRing(K,'T',1)
-                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
-                if self._E.has_nonsplit_multiplicative_reduction(p):
-                    L *= 2
-                if self._E.has_split_multiplicative_reduction(p):
-                    L *= 0
-                else:
-                    chip = kronecker_symbol(D,p)
-                    L *= (1-chip/self.alpha())**2
+                L = self.modular_symbol(0, sign=+1, quadratic_twist=D)
+                L *= (1-1/self.alpha())**2
                 L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
                 L = R(L, 1)
                 return L
             else:
                 # here we need some sums anyway
                 bounds = self._prec_bounds(n,prec)
-                padic_prec = 20
+                alphaadic_prec = 20
         else:
             prec = min(p**(n-1), prec)
             bounds = self._prec_bounds(n,prec)
-            padic_prec = max(sum(bounds[1:],[])) + 5
+            alphaadic_prec = max(bounds[1:]) + 5
 
-        verbose("using p-adic precision of %s"%padic_prec)
+        padic_prec = alphaadic_prec//2+1
+        verbose("using alpha-adic precision of %s"%padic_prec)
         ans = self._get_series_from_cache(n, prec, quadratic_twist,eta)
         if not ans is None:
             verbose("found series in cache")
@@ -1176,6 +1178,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         one_plus_T_factor = R(1)
         gamma_power = 1
         teich = self.teichmuller(padic_prec)
+        si = 1-2*(eta % 2)
 
         verbose("Now iterating over %s summands"%((p-1)*p**(n-1)))
         verbose_level = get_verbose()
@@ -1187,18 +1190,22 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 count_verb += 3
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += teich[a]**eta * self.measure(b, n, padic_prec,quadratic_twist=D, sign=1-2*(eta % 2))
+                s += teich[a]**eta * self.measure(b, n, padic_prec, quadratic_twist=D, sign=si)
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
         # Now create series but with each coefficient truncated
         # so it is proven correct:
+        # the coefficients are now treated as alpha-adic numbers (trac 20254)
         L = R(L,prec)
         aj = L.list()
         if len(aj) > 0:
-            bj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
-            bj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
+            bj = [aj[0].add_bigoh(2*(padic_prec-2))]
+            j = 1
+            while j < len(aj):
+                bj.append( aj[j].add_bigoh(bounds[j]) )
+                j += 1
             L = R(bj, prec)
         L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
         self._set_series_in_cache(n, prec, quadratic_twist, eta, L)
@@ -1236,7 +1243,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         r"""
         A helper function not designed for direct use.
 
-        It returns the `p`-adic precisions of the approximation
+        It returns the `\alpha`-adic precisions of the approximation
         to the `p`-adic L-function.
 
         EXAMPLES::
@@ -1244,18 +1251,45 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(19)
             sage: Lp._prec_bounds(3,5)
-            [[+Infinity, +Infinity], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
+            [+Infinity, -1, -1, -1, -1]
             sage: Lp._prec_bounds(2,5)
-            [[+Infinity, +Infinity], [-1, -2], [-1, -2], [-1, -2], [-1, -2]]
+            [+Infinity, -2, -2, -2, -2]
             sage: Lp._prec_bounds(10,5)
-            [[+Infinity, +Infinity], [3, 2], [3, 2], [3, 2], [3, 2]]
+            [+Infinity, 6, 6, 6, 6]
         """
-        p = self._p
         e = self._e_bounds(n-1,prec)
-        c0 = ZZ(n+2)/2
-        c1 = ZZ(n+3)/2
-        return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
+        c0 = ZZ(n+2)
+        return [infinity] + [ 2* e[j] - c0 for j in range(1,len(e))]
 
+
+    def _poly(self, a):
+        """
+        Given an element a in Qp[alpha] this returns the list
+        containing the two coordinates in Qp.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve("14a1")
+            sage: lp = E.padic_lseries(5)
+            sage: K = lp.alpha().parent()
+            sage: a = K(5)
+            sage: a
+            4*alpha^2 + alpha^4 + O(alpha^42)
+            sage: lp._poly(a)
+            [5 + O(5^21), O(5^21)]
+        """
+        # this should be implemented in elements of Eisenstein rings at some point trac 20248
+
+        if a.is_zero():
+            return [0,0]
+        v, k = a._ntl_rep_abs()
+        K = a.base_ring()
+        pi = K.uniformiser()
+        v0 =  K(v[0]._sage_()) * pi**k
+        v1 =  K(v[1]._sage_()) * pi**k
+        alpha = a.parent().gen()
+        assert v0 + v1*alpha == a
+        return [ v0, v1 ]
 
     def Dp_valued_series(self, n=3, quadratic_twist = +1, prec=5):
         r"""
@@ -1289,7 +1323,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(4)  # long time (9s on sage.math, 2011)
-            (1 + 4*5 + 4*5^3 + O(5^4) + (4 + O(5))*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + (2 + O(5))*T^4 + O(T^5))
+            (1 + 4*5 + O(5^2) + (4 + O(5))*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5), 5^2 + O(5^3) + O(5^2)*T + (4*5 + O(5^2))*T^2 + (2*5 + O(5^2))*T^3 + (2 + 2*5 + O(5^2))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p
@@ -1298,8 +1332,14 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # now split up the series in two lps = G + H * alpha
         R = lps.base_ring().base_ring() # Qp
         QpT , T = PowerSeriesRing(R,'T',prec).objgen()
-        G = QpT([lps[n][0] for n in range(0,lps.prec())], prec)
-        H = QpT([lps[n][1] for n in range(0,lps.prec())], prec)
+        Gli = []
+        Hli = []
+        for n in range(0,lps.prec()):
+            v = self._poly(lps[n])
+            Gli.append( v[0] )
+            Hli.append( v[1] )
+        G = QpT( Gli, prec )
+        H = QpT( Hli, prec )
 
         # now compute phi
         phi = matrix.matrix([[0,-1/p],[1,E.ap(p)/p]])

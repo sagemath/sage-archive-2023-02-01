@@ -966,7 +966,6 @@ class Permutation(CombinatorialElement):
             sage: all(from_cycles(size, p.to_cycles()) == p for p in sample)
             True
 
-
         Note: there is an alternative implementation called ``_to_cycle_set``
         which could be slightly (10%) faster for some input (typically for
         permutations of size in the range [100, 10000]). You can run the
@@ -995,17 +994,17 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
-        #Go through until we've considered every number between 1 and len(l)
+        # Go through until we've considered every number between 1 and len(l)
         for i in range(len(l)):
-            if l[i] == False:
+            if not l[i]:
                 continue
-            cycleFirst = i+1
-            cycle = [ cycleFirst ]
+            cycleFirst = i + 1
+            cycle = [cycleFirst]
             l[i], next = False, l[i]
             while next != cycleFirst:
                 cycle.append( next )
                 l[next - 1], next  = False, l[next - 1]
-            #Add the cycle to the list of cycles
+            # Add the cycle to the list of cycles
             if singletons or len(cycle) > 1:
                 cycles.append(tuple(cycle))
         return cycles

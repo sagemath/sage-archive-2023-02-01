@@ -153,8 +153,8 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  over Integer Ring(i))_{i in Partitions}
 
             Checking this method on a filtered algebra. Note that this
-            will typically raise an ``AttributeError`` when this feature
-            is not implemented. ::
+            will typically raise a ``NotImplementedError`` when this
+            feature is not implemented. ::
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
                 sage: A.basis(4)

@@ -4936,7 +4936,11 @@ Other
 Help
 ^^^^^^^^^^^
 
-Documentation for each method is available through the Sage online help system::
+Documentation for each method is available through the Sage online help system:
+
+.. skip
+
+::
 
     sage: SandpileConfig.fire_vertex?
     Base Class:     <type 'instancemethod'>

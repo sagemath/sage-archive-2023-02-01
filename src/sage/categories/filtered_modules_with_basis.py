@@ -160,7 +160,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: A.basis(4)
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'list'
+                NotImplementedError: infinite list
 
             Without arguments, the full basis is returned::
 

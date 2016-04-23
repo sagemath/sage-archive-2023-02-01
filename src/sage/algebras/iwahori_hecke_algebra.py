@@ -1891,6 +1891,61 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             """
             return (-1)**w.length()*self( self.realization_of().Cp().monomial(w) )
 
+    class A(_Basis):
+        r"""
+        The A-basis of an Iwahori-Hecke algebra.
+
+        """
+        _basis_name = "A"
+
+        def __init__(self, IHAlgebra, prefix=None):
+            r"""
+            Returns the A basis of the Iwahori-Hecke algebra ``IHAlgebra``.
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(QQ)
+                sage: H = IwahoriHeckeAlgebra('A3', v**2)
+                sage: A = H.A()
+            """
+            super(Abasis, self).__init__(IHAlgebra, prefix)
+
+            # Define coercions from the A basis to the T basis and back again
+            from_A_to_T = self.module_morphism(self.to_T_basis, codomain=IHAlgebra.T(), category=self.category())
+            from_T_to_A = -from_A_to_T
+
+            # register the coercions
+            # ...and from the T_basis to the KL-basis.
+            from_A_to_T.register_as_coercion()
+            from_T_to_A.register_as_coercion()
+
+        def to_T_basis(self, w):
+            T=self.realization_of().T()
+            return (T.monomial(w)+(-1)**w.length()*T.hash_involution_on_basis(w))/2
+
+    class B(_Basis):
+        r"""
+        The B-basis of an Iwahori-Hecke algebra.
+
+        """
+        _basis_name = "B"
+
+        @cached_method
+        def to_B_basis(self, w):
+            T=self.realization_of().T()
+            Bw=(T.monomial(w)+(-1)**w.length()*T.hash_involution_on_basis(w))/2
+
+            T0 = self.zero()
+            inp = self.monomial(w)
+            result = Cp.zero()
+            while inp != T0:
+                (x,c) = inp.trailing_item(index_cmp)
+                inp = inp - c * A._root**x.length() * Cp.to_T_basis(x)
+                result = result + c * A._root**x.length() * Cp.monomial(x)
+
+            return result
+
+
 # This **must** have the same basis classes as the IwahoriHeckeAlgebra class
 #   with the same name and they should inherit from the respecitive basis class
 class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):

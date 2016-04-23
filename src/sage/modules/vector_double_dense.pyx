@@ -754,9 +754,9 @@ cdef class Vector_double_dense(FreeModuleElement):
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
-            sage: v.stats_kurtosis()
+            sage: v.stats_kurtosis()  # rel tol 5e-16
             -1.2300000000000002
-            sage: w.stats_kurtosis()
+            sage: w.stats_kurtosis()  # rel tol 5e-16
             -1.2300000000000002
         """
         import scipy.stats

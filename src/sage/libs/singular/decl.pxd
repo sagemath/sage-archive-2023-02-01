@@ -368,6 +368,7 @@ cdef extern from "libsingular.h":
 
     cdef ring *currRing
     cdef ideal *currQuotient
+
     # omalloc bin for numbers
 
     cdef omBin *rnumber_bin

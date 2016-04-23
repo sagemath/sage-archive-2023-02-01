@@ -871,7 +871,8 @@ ext_modules = [
     Extension("sage.matrix.matrix_complex_ball_dense",
               ["sage/matrix/matrix_complex_ball_dense.pyx"],
               libraries=['arb', 'mpfi', 'mpfr'],
-              include_dirs=[SAGE_INC + '/flint']),
+              include_dirs=[SAGE_INC + '/flint'],
+              language = "c++"),
 
     Extension('sage.matrix.matrix_complex_double_dense',
               sources = ['sage/matrix/matrix_complex_double_dense.pyx']),
@@ -1260,7 +1261,8 @@ ext_modules = [
 
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"],
-              libraries=['mpfi', 'mpfr', 'gmp']),
+              libraries=['mpfi', 'mpfr', 'gmp'],
+              language = 'c++'),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1331,7 +1333,8 @@ ext_modules = [
 
     Extension("sage.rings.real_arb",
               ["sage/rings/real_arb.pyx"],
-              libraries = ['mpfi', 'mpfr']),
+              libraries = ['mpfi', 'mpfr'],
+              language = 'c++'),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

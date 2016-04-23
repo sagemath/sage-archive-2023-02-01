@@ -19,7 +19,7 @@ cdef class CPLEXBackend(GenericBackend):
     cdef c_cpxlp * lp
     cdef current_sol
     cdef str _logfilename
-    cpdef CPLEXBackend copy(self)
+    cpdef __copy__(self)
 
 cdef extern from "cplex.h":
 

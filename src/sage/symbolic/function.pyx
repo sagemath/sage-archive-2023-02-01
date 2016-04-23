@@ -986,7 +986,7 @@ cdef class BuiltinFunction(Function):
                 if (isinstance(arg_parent, PolynomialRing_commutative)
                     or isinstance(arg_parent, MPolynomialRing_polydict_domain)):
                     try:
-                        return res.polynomial(ring=arg_parent)
+                        return SR(res).polynomial(ring=arg_parent)
                     except TypeError:
                         return res
                 else:

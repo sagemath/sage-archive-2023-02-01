@@ -36,12 +36,6 @@ if not title:
     title = name.capitalize()
 title = title.replace(u'`', u'$')
 
-# Fails on broken links for specific documents. Ideally, all documents
-# should raise those exceptions.
-if title == 'Graph Theory':
-    nitpicky = True
-nitpick_ignore = [('py:class', 'object')] # ignore links toward the 'object' class
-
 # General information about the project.
 project = u'Sage Reference Manual: ' + title
 
@@ -71,5 +65,3 @@ latex_documents = [
 exclude_trees = exclude_trees + ['_sage']
 
 multidocs_is_master = False
-
-print multidoc_first_pass, "Heyyyyyyyyyyy"

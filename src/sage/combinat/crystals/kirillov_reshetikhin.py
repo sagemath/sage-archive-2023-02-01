@@ -20,6 +20,8 @@ Kirillov-Reshetikhin Crystals
 # Acknowledgment: most of the design and implementation of this
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -539,7 +541,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         Lambda = R.fundamental_weights()
         r = self.r()
         s = self.s()
-        weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
+        weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() // Lambda[0].level()
         return [ b for b in self.module_generators if b.weight() == weight][0]
 
     def r(self):
@@ -2244,7 +2246,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
                 raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight() // 2
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
@@ -2690,7 +2692,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
                 raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight() // 2
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
@@ -3371,7 +3373,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             """
             coords = self.coordinates()
             z = [coords[-1] - coords[0], coords[-2] - coords[-3],
-                 coords[2] - coords[1], (coords[-3] - coords[2]) / 2]
+                 coords[2] - coords[1], (coords[-3] - coords[2]) // 2]
             return (0, z[0], z[0] + z[1], z[0] + z[1] + 3*z[3],
                     sum(z) + 2*z[3], sum(z) + z[0] + 2*z[3])
 
@@ -3389,7 +3391,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             c = list(self.coordinates())
             M = max(A)
             if A[5] == M:
-                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == self.parent()._s:
                     return None
                 c[5] += 1
                 return self.parent().from_coordinates(c)
@@ -3429,7 +3431,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             c = list(self.coordinates())
             M = max(A)
             if A[0] == M:
-                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == self.parent()._s:
                     return None
                 c[0] += 1
                 return self.parent().from_coordinates(c)
@@ -3466,8 +3468,8 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                 [5, 6, 7, 8, 9, 10]
             """
             c = self.coordinates()
-            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) / 2]
-            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) // 2]
+            s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A) - (2*z[0] + z[1] + z[2] + 3*z[3])
 
         def phi0(self):
@@ -3481,7 +3483,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                 [5, 4, 3, 2, 1, 0]
             """
             c = self.coordinates()
-            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A)
 
 #####################################################################

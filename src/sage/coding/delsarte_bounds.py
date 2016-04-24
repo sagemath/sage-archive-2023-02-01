@@ -19,6 +19,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 
 def Krawtchouk(n,q,l,x,check=True):
     """
@@ -56,7 +59,7 @@ def Krawtchouk(n,q,l,x,check=True):
         sage: Krawtchouk(int(3),int(2),int(3),int(3))
         -1
         sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False)
-        -5
+        -1.0
         sage: Kravchuk(24,2,5,4)
         2224
 

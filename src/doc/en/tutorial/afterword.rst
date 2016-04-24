@@ -107,11 +107,10 @@ behaves differently from Python in several ways.
        10
 
 -  **Integer division:** The Python expression ``2/3`` does not
-   behave the way mathematicians might expect. In Python, if ``m`` and
+   behave the way mathematicians might expect. In Python2, if ``m`` and
    ``n`` are ints, then ``m/n`` is also an int, namely the quotient of ``m``
-   divided by ``n``. Therefore ``2/3=0``. There has been talk in the
-   Python community about changing Python so ``2/3`` returns the
-   floating point number ``0.6666...``, and making ``2//3`` return ``0``.
+   divided by ``n``. Therefore ``2/3=0``. In Python3, ``2/3`` returns the
+   floating point number ``0.6666...`` and ``2//3`` return ``0``.
 
    We deal with this in the Sage interpreter, by wrapping integer
    literals in ``Integer( )`` and making division a constructor for rational
@@ -125,7 +124,7 @@ behaves differently from Python in several ways.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)
+       sage: int(2)//int(3)
        0
 
 -  **Long integers:** Python has native support for arbitrary

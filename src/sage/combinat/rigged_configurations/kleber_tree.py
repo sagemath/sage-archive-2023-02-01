@@ -847,7 +847,7 @@ class KleberTree(UniqueRepresentation, Parent):
         L = [range(val + 1) for val in node.up_root.to_vector()]
 
         it = itertools.product(*L)
-        it.next() # First element is the zero element
+        next(it)  # First element is the zero element
         for root in it:
             # Convert the list to an honest root in the root space
             converted_root = RS.sum_of_terms([[I[i], val] for i, val in enumerate(root)])

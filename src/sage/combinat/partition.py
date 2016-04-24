@@ -76,8 +76,8 @@ number::
     sage: Partitions(4).first()
     [4]
 
-Using the method ``.next()``, we can calculate the 'next' partition.
-When we are at the last partition, ``None`` will be returned::
+Using the method ``.next(p)``, we can calculate the 'next' partition
+after `p`. When we are at the last partition, ``None`` will be returned::
 
     sage: Partitions(4).next([4])
     [3, 1]
@@ -6818,7 +6818,7 @@ class RegularPartitions_all(RegularPartitions):
 
             sage: P = Partitions(regular=3)
             sage: it = P.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
         """
         n = 0
@@ -6896,7 +6896,7 @@ class RegularPartitions_truncated(RegularPartitions):
 
             sage: P = Partitions(regular=3, max_length=2)
             sage: it = P.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [5]]
         """
         n = 0

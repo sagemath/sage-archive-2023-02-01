@@ -531,7 +531,7 @@ class Link(object):
 
         # Get a simple path from a source to a sink in the digraph
         it = G.all_paths_iterator(starting_vertices=G.sources(), ending_vertices=G.sinks(), simple=True)
-        ordered_cycles = it.next()
+        ordered_cycles = next(it)
 
         B = BraidGroup(len(ordered_cycles))
         available_crossings = copy(pd_code)

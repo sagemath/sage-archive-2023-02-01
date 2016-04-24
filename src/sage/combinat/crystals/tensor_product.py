@@ -954,9 +954,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         if len(self) != len(other):
             return False
         for i in range(len(self)):
-            if (self[i] < other[i]) == True:
+            if (self[i] < other[i]):
                 return True
-            if (other[i] < self[i]) == True:
+            if (other[i] < self[i]):
                 return False
         return False
 
@@ -1360,9 +1360,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         """
         unmatched_plus = []
         height = 0
-        if reverse == True:
+        if reverse:
             self = self.reversed()
-        if dual == False:
+        if not dual:
             for j in range(len(self)):
                 minus = self[j].phi(i)
                 plus = self[j].epsilon(i)

@@ -65,20 +65,18 @@ def gamma__exact(n):
         TypeError: you must give an integer or half-integer argument
     """
     from sage.all import sqrt
-    # SANITY CHECK
-    if (not n in QQ) or (denominator(n) > 2):
-        raise TypeError("you must give an integer or half-integer argument")
+    n = QQ(n)
 
     if denominator(n) == 1:
         if n <= 0:
             return infinity
         if n > 0:
             return factorial(n-1)
-    else:
+    elif denominator(n) == 2:
         ans = QQ.one()
         while n != QQ((1, 2)):
             if n < 0:
-                ans *= QQ((1, n))
+                ans /= n
                 n += 1
             elif n > 0:
                 n += -1
@@ -86,6 +84,8 @@ def gamma__exact(n):
 
         ans *= sqrt(pi)
         return ans
+    else:
+        raise TypeError("you must give an integer or half-integer argument")
 
 # ------------- The Riemann Zeta Function  --------------
 

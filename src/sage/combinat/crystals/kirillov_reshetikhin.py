@@ -2246,7 +2246,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
                 raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() // 2
+            wt = to_hw[0].classical_weight() / 2
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
@@ -2692,7 +2692,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
                 raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() // 2
+            wt = to_hw[0].classical_weight() / 2
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:

@@ -1512,7 +1512,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = int(s/2)
+        m = s // 2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -1769,7 +1769,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = int(s/2)
+        m = s // 2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -2716,7 +2716,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         """
         s = self.s()
         if is_even(s):
-            s = int(s/2)
+            s = s // 2
         else:
             s = s/2
         return CrystalOfTableaux(self.cartan_type().classical(), shape = [s]*self.r() )
@@ -2938,7 +2938,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
         l4 = pm.pm_diagram[n][0]
-        return l1+l4/2
+        return l1 + l4 // 2
 
     def phi0(self):
         r"""
@@ -2971,7 +2971,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l2 = pm.pm_diagram[n-1][1]
         l4 = pm.pm_diagram[n][0]
-        return l2+l4/2
+        return l2 + l4 // 2
 
 KR_type_Dn_twisted.Element = KR_type_Dn_twistedElement
 
@@ -3556,7 +3556,7 @@ class PMDiagram(CombinatorialObject):
             intermediate = [s]+list(pm_diagram[3])+[0 for i in range(n)]
             inner = [s]+list(pm_diagram[4])+[0 for i in range(n)]
             pm = [[inner[n]]]
-            for i in range(int((n+1)/2)):
+            for i in range((n+1)//2):
                 pm.append([intermediate[n-2*i]-inner[n-2*i], inner[n-2*i-1]-intermediate[n-2*i]])
                 pm.append([outer[n-2*i]-inner[n-2*i-1], inner[n-2*i-2]-outer[n-2*i]])
             if is_odd(n):
@@ -3741,7 +3741,7 @@ class PMDiagram(CombinatorialObject):
         """
         n = self.n
         heights = []
-        for i in range(int((n+1)/2)):
+        for i in range((n+1)//2):
             heights += [n-2*i]*((self.outer_shape()+[0]*n)[n-2*i-1]-(self.intermediate_shape()+[0]*n)[n-2*i-1])
         return heights
 
@@ -3822,8 +3822,8 @@ def horizontal_dominoes_removed(r, s):
         sage: sage.combinat.crystals.kirillov_reshetikhin.horizontal_dominoes_removed(3,2)
         [[], [2], [2, 2], [2, 2, 2]]
     """
-    list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, int(s/2)) ]
-    two = lambda x : 2*(x-int(s/2)) + s
+    list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, s//2) ]
+    two = lambda x : 2*(x-s//2) + s
     return [Partition([two(y) for y in x]) for x in list]
 
 #####################################################################

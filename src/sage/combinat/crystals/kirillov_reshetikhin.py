@@ -541,7 +541,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         Lambda = R.fundamental_weights()
         r = self.r()
         s = self.s()
-        weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() // Lambda[0].level()
+        weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
         return [ b for b in self.module_generators if b.weight() == weight][0]
 
     def r(self):

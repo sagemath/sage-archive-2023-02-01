@@ -84,7 +84,14 @@ real space::
     sage: Q = I + W.w0.coxeter_sorting_word(I)
     sage: S = SubwordComplex(Q,W.w0)
     sage: S.brick_polytope()
-    A 3-dimensional polyhedron in (Universal Cyclotomic Field)^3 defined as the convex hull of 14 vertices
+    A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
+
+    sage: W = CoxeterGroup(['H',3]); I = list(W.index_set())
+    sage: Q = I + W.w0.coxeter_sorting_word(I)
+    sage: S = SubwordComplex(Q,W.w0)
+    sage: S.brick_polytope()
+    Caution: the polytope is build with rational vertices.
+    A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 32 vertices
 
 AUTHORS:
 
@@ -1434,8 +1441,11 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         BV = self.brick_vectors(coefficients=coefficients)
         # TODO: this fails so far for CoxeterGroup:
         G = self.group()
-        if hasattr(G,"is_crystallographic") and not G.is_crystallographic():
-            from sage.rings.all import CC, QQ
+        from sage.rings.all import QQ
+        if G.coxeter_matrix().is_crystallographic():
+            BV = [[QQ(v) for v in V] for V in BV]
+        else:
+            from sage.rings.all import CC
             print "Caution: the polytope is build with rational vertices."
             BV = [[QQ(CC(v).real()) for v in V] for V in BV]
         return Polyhedron(BV)

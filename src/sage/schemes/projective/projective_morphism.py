@@ -677,10 +677,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Hutz] B. Hutz. Determination of all rational preperiodic points
+        .. [Hutz] \B. Hutz. Determination of all rational preperiodic points
            for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
-        .. [MoPa] P. Morton and P. Patel. The Galois theory of periodic points
+        .. [MoPa] \P. Morton and P. Patel. The Galois theory of periodic points
            of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
         INPUT:

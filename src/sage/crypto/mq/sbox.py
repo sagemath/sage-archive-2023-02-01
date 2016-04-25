@@ -62,11 +62,11 @@ class SBox(SageObject):
 
     REFERENCES:
 
-    .. [Heys02] H. Heys *A Tutorial on Linear and Differential
+    .. [Heys02] \H. Heys *A Tutorial on Linear and Differential
       Cryptanalysis* ; 2002' available at
       http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
 
-    .. [PRESENT07] A. Bogdanov, L. Knudsen, G. Leander, C. Paar,
+    .. [PRESENT07] \A. Bogdanov, L. Knudsen, G. Leander, C. Paar,
       A. Poschmann, M. Robshaw, Y. Seurin, C. Vikkelsoe *PRESENT: An
       Ultra-Lightweight Block Cipher*; in Proceedings of CHES 2007;
       LNCS 7427; pp. 450-466; Springer Verlag 2007; available at
@@ -664,7 +664,7 @@ class SBox(SageObject):
 
         REFERENCES:
 
-        .. [BC03] A. Biryukov and C. D. Canniere *Block Ciphers and
+        .. [BC03] \A. Biryukov and C. D. Canniere *Block Ciphers and
           Systems of Quadratic Equations*; in Proceedings of Fast
           Software Encryption 2003; LNCS 2887; pp. 274-289,
           Springer-Verlag 2003.

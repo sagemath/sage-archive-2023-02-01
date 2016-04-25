@@ -178,7 +178,7 @@ def MOLS_14_4():
 
     REFERENCE:
 
-    .. [Todorov12] D.T. Todorov,
+    .. [Todorov12] \D.T. Todorov,
       Four mutually orthogonal Latin squares of order 14,
       Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
@@ -4152,7 +4152,7 @@ def BIBD_45_9_8(from_code=False):
 
     REFERENCE:
 
-    .. [HT95] W. Huffman and V. Tonchev,
+    .. [HT95] \W. Huffman and V. Tonchev,
        The existence of extremal self-dual `[50, 25, 10]` codes and
        quasi-symmetric `2-(49, 9, 6)` designs,
        Designs, Codes and Cryptography
@@ -4469,7 +4469,7 @@ def HigmanSimsDesign():
 
     REFERENCE:
 
-    .. [KY04] S. Klee and L. Yates,
+    .. [KY04] \S. Klee and L. Yates,
        Tight Subdesigns of the Higman-Sims Design,
        Rose-Hulman Undergraduate Math. J 5.2 (2004).
        https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf

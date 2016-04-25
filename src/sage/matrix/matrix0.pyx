@@ -4202,7 +4202,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        .. [MulSto] T. Mulders, A. Storjohann, "On lattice reduction
+        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
           for polynomial matrices", J. Symbolic Comput. 35 (2003),
           no. 4, 377--401
 

@@ -1416,7 +1416,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
 
         REFERENCES:
 
-        .. [SchillingTingley2011] A. Schilling, P. Tingley.
+        .. [SchillingTingley2011] \A. Schilling, P. Tingley.
            Demazure crystals, Kirillov-Reshetikhin crystals, and the energy
            function. Electronic Journal of Combinatorics. **19(2)**. 2012.
            :arXiv:`1104.2359`

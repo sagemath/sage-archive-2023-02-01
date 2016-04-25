@@ -1772,7 +1772,7 @@ def AffinePermutationGroup(cartan_type):
     REFERENCES:
 
     .. [BjBr] Bjorner and Brenti. Combinatorics of Coxeter Groups. Springer, 2005.
-    .. [Erik] H. Erikson.  Computational and Combinatorial Aspects of Coxeter
+    .. [Erik] \H. Erikson.  Computational and Combinatorial Aspects of Coxeter
        Groups.  Thesis, 1995.
 
     EXAMPLES::

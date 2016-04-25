@@ -5040,7 +5040,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [Tarjan72] R.E. Tarjan. Depth-First Search and Linear Graph
+        .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
         if not self: # empty graph
@@ -5187,9 +5187,9 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCES:
 
-        .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
+        .. [HarPri] \F. Harary and G. Prins. The block-cutpoint-tree of
            a graph. Publ. Math. Debrecen 13 1966 103-107.
-        .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
+        .. [Gallai] \T. Gallai, Elementare Relationen bezueglich der
            Glieder und trennenden Punkte von Graphen, Magyar
            Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
         """
@@ -15848,7 +15848,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [GYLL93] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+        .. [GYLL93] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 

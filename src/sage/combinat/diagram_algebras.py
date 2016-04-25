@@ -965,7 +965,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
         REFERENCES:
 
-        .. [GL1996] J.J. Graham and G.I. Lehrer, Cellular algebras.
+        .. [GL1996] \J.J. Graham and G.I. Lehrer, Cellular algebras.
            Inventiones mathematicae 123 (1996), 1--34.
 
         EXAMPLES::

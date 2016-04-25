@@ -213,7 +213,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+    .. [HKOTT2002] \G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
        Paths, Crystals and Fermionic Formulae.
        Prog. Math. Phys. **23** (2002) Pages 205-272.
 

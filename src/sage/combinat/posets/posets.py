@@ -3858,6 +3858,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             constructor = Poset
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
+    _mul_ = product
+    
     def disjoint_union(self, other, labels='pairs'):
         """
         Return a poset isomorphic to disjoint union (also called direct

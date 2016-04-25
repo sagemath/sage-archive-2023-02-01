@@ -2,22 +2,23 @@
 Utility classes for multi-modular algorithms
 """
 
-######################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-######################################################################
+#*****************************************************************************
 
-
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer cimport Integer, smallInteger
 from sage.arith.all import random_prime
 from types import GeneratorType
+from sage.ext.stdsage cimport PY_NEW
 
 # should I have mod_int versions of these functions?
 # c_inverse_mod_longlong modular inverse used exactly once in _refresh_precomputations
@@ -31,21 +32,21 @@ ai = arith_llong()
 MAX_MODULUS = MOD_INT_MAX
 
 
-cdef class MultiModularBasis_base:
+cdef class MultiModularBasis_base(object):
     r"""
     This class stores a list of machine-sized prime numbers,
     and can do reduction and Chinese Remainder Theorem lifting
     modulo these primes.
 
     Lifting implemented via Garner's algorithm, which has the advantage
-    that all reductions are word-sized. For each $i$ precompute
-
-       $\prod_j=1^{i-1} m_j$ and $\prod_j=1^{i-1} m_j^{-1} (mod m_i)$
-
+    that all reductions are word-sized. For each `i`, precompute
+    `\prod_j=1^{i-1} m_j` and `\prod_j=1^{i-1} m_j^{-1} (mod m_i)`.
 
     This class can be initialized in two ways, either with a list of prime
     moduli or an upper bound for the product of the prime moduli. The prime
-    moduli is generated automatically in the second case::
+    moduli are generated automatically in the second case.
+
+    EXAMPLES::
 
         sage: from sage.ext.multi_modular import MultiModularBasis_base
         sage: mm = MultiModularBasis_base([3, 5, 7]); mm
@@ -69,7 +70,7 @@ cdef class MultiModularBasis_base:
         sage: mm = MultiModularBasis_base(primes(10,20)); mm
         MultiModularBasis with moduli [11, 13, 17, 19]
 
-    There is no overflow if the modulus is below ``MAX_MODULUS`` ::
+    There is no overflow if the modulus is below ``MAX_MODULUS``::
 
         sage: from sage.ext.multi_modular import MAX_MODULUS
         sage: p0 = previous_prime(MAX_MODULUS)
@@ -85,9 +86,8 @@ cdef class MultiModularBasis_base:
         sage: MultiModularBasis_base([p0, p1]).crt([p0-1, p1-1])
         Traceback (most recent call last):
         ...
-        ValueError: given modulus cannot be manipulated in a single machine word
+        OverflowError: given modulus 6074000981 is larger than 3037000498
     """
-
     def __cinit__(self):
         r"""
         Allocate the space for the moduli and precomputation lists
@@ -99,54 +99,48 @@ cdef class MultiModularBasis_base:
             sage: mm = MultiModularBasis_base([1099511627791])
             Traceback (most recent call last):
             ...
-            ValueError: given modulus cannot be manipulated in a single machine word
+            OverflowError: given modulus 1099511627791 is larger than 3037000498
         """
         mpz_init(self.product)
         mpz_init(self.half_product)
 
     cdef _realloc_to_new_count(self, new_count):
-        self.moduli = <mod_int*>sig_realloc(self.moduli, sizeof(mod_int)*new_count)
-        self.partial_products = <mpz_t*>sig_realloc(self.partial_products, sizeof(mpz_t)*new_count)
-        self.C = <mod_int*>sig_realloc(self.C, sizeof(mod_int)*new_count)
-        if self.moduli == NULL or self.partial_products == NULL or self.C == NULL:
-            raise MemoryError, "out of memory allocating multi-modular prime list"
+        self.moduli = <mod_int*>check_reallocarray(self.moduli, new_count, sizeof(mod_int))
+        self.partial_products = <mpz_t*>check_reallocarray(self.partial_products, new_count, sizeof(mpz_t))
+        self.C = <mod_int*>check_reallocarray(self.C, new_count, sizeof(mod_int))
 
     def __dealloc__(self):
         """
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
-            sage: mm = MultiModularBasis_base([1099511627791])
-            Traceback (most recent call last):
-            ...
-            ValueError: given modulus cannot be manipulated in a single machine word
+        TESTS::
 
+            sage: from sage.ext.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(1099511627791); mm
             MultiModularBasis with moduli [4561, 17351, 28499]
             sage: del mm
         """
         sig_free(self.moduli)
-        for i from 0 <= i < self.n:
+        for i in range(self.n):
            mpz_clear(self.partial_products[i])
         sig_free(self.partial_products)
         sig_free(self.C)
         mpz_clear(self.product)
         mpz_clear(self.half_product)
 
-    def __init__(self, val, l_bound=0, u_bound=0):
+    def __init__(self, val, unsigned long l_bound=2**10, unsigned long u_bound=2**15):
         r"""
         Initialize a multi-modular basis and perform precomputations.
 
         INPUT:
 
-        - ``val`` - as integer
+        - ``val`` -- as integer
                         determines how many primes are computed
                         (their product will be at least 2*val)
                     as list, tuple or generator
                         a list of prime moduli to start with
-        - ``l_bound`` - an integer
-                        lower bound for the random primes (default: 2^10)
-        - ``u_bound`` - an integer
-                        upper bound for the random primes (default: 2^15)
-
+        - ``l_bound`` -- an integer: lower bound for the random primes
+          (default: 2^10)
+        - ``u_bound`` -- an integer: upper bound for the random primes
+          (default: 2^15)
 
         EXAMPLES::
 
@@ -166,7 +160,7 @@ cdef class MultiModularBasis_base:
             sage: mm = MultiModularBasis_base([1000000000000000000000000000057])
             Traceback (most recent call last):
             ...
-            ValueError: given modulus cannot be manipulated in a single machine word
+            OverflowError: given modulus 1000000000000000000000000000057 is larger than 3037000498
 
             sage: mm = MultiModularBasis_base(0); mm
             MultiModularBasis with moduli [28499]
@@ -174,58 +168,47 @@ cdef class MultiModularBasis_base:
             sage: mm = MultiModularBasis_base([6, 10])
             Traceback (most recent call last):
             ...
-            ValueError: the values provided are not relatively prime
+            ArithmeticError: The inverse of 6 modulo 10 is not defined.
         """
-        if l_bound == 0:
-            self._l_bound = 2**10
-        elif l_bound < 2:
-            raise ValueError("minimum value for lower bound is 2, given: %s"%(l_bound))
-        else:
-            self._l_bound = l_bound
+        if l_bound < 2:
+            raise ValueError(f"minimum value for lower bound is 2, given: {l_bound}")
+        if u_bound > MAX_MODULUS:
+            raise ValueError(f"upper bound cannot be greater than {MAX_MODULUS}, given: {u_bound}")
 
-        if u_bound == 0:
-            self._u_bound = 2**15
-        elif u_bound > MAX_MODULUS:
-            raise ValueError("upper bound cannot be greater than MAX_MODULUS: %s, given: %s"%(MAX_MODULUS, u_bound))
-        else:
-            self._u_bound = u_bound
+        self._l_bound = l_bound
+        self._u_bound = u_bound
 
         from sage.functions.prime_pi import prime_pi  # must be here to avoid circular import
         self._num_primes = prime_pi(self._u_bound) - prime_pi(self._l_bound-1)
 
-        cdef int i
         if isinstance(val, (list, tuple, GeneratorType)):
-            try:
-                self.extend_with_primes(val, check=True)
-            except ArithmeticError:
-                # See trac #10217
-                raise ValueError("the values provided are not relatively prime")
+            self.extend_with_primes(val, check=True)
         else:
             self._extend_moduli_to_height(val)
 
     cdef mod_int _new_random_prime(self, set known_primes) except 1:
         """
         Choose a new random prime for inclusion in the list of moduli,
-        or raise a RuntimeError if there are no more primes.
+        or raise a ``RuntimeError`` if there are no more primes.
 
         INPUT:
 
-            - `known_primes` -- Python set of already known primes in
-              the allowed interval; we will not return a prime in
-              known_primes.
+        - ``known_primes`` -- Python set of already known primes in
+          the allowed interval; we will not return a prime in
+          known_primes.
         """
         cdef Py_ssize_t i
         cdef mod_int p
         while True:
             if len(known_primes) >= self._num_primes:
-                raise RuntimeError, "there are not enough primes in the interval [%s, %s] to complete this multimodular computation"%(self._l_bound, self._u_bound)
+                raise RuntimeError("there are not enough primes in the interval [%s, %s] to complete this multimodular computation"%(self._l_bound, self._u_bound))
             p = random_prime(self._u_bound, lbound =self._l_bound)
             if p not in known_primes:
                 return p
 
     def extend_with_primes(self, plist, partial_products = None, check=True):
         """
-        Extend the stored list of moduli with the given primes in `plist`.
+        Extend the stored list of moduli with the given primes in ``plist``.
 
         EXAMPLES::
 
@@ -236,12 +219,11 @@ cdef class MultiModularBasis_base:
             4
             sage: mm
             MultiModularBasis with moduli [1009, 10007, 10037, 10039]
-
         """
         if isinstance(plist, GeneratorType):
             plist = list(plist)
         elif not isinstance(plist, (tuple, list)):
-            raise ValueError, "plist should be a list, tuple or a generator, got: %s"%(str(type(plist)))
+            raise TypeError("plist should be a list, tuple or a generator, got: %s"%(str(type(plist))))
 
         cdef Py_ssize_t len_plist = len(plist)
 
@@ -250,7 +232,7 @@ cdef class MultiModularBasis_base:
         if check:
             for p in plist:
                 if p > MAX_MODULUS:
-                    raise ValueError, "given modulus cannot be manipulated in a single machine word"
+                    raise OverflowError(f"given modulus {p} is larger than {MAX_MODULUS}")
         self._realloc_to_new_count(self.n + len_plist)
 
         cdef Py_ssize_t i
@@ -291,8 +273,8 @@ cdef class MultiModularBasis_base:
 
     def __setstate__(self, state):
         """
-        Initialize a new MultiModularBasis_base object from a state stored
-        in a pickle.
+        Initialize a new :class:`MultiModularBasis_base` object from a
+        state stored in a pickle.
 
         TESTS::
 
@@ -306,10 +288,7 @@ cdef class MultiModularBasis_base:
 
             sage: mm
             MultiModularBasis with moduli [10007, 10009]
-
         """
-        if len(state) != 3:
-            raise ValueError, "cannot read state tuple"
         nmoduli, lbound, ubound = state
         self._realloc_to_new_count(len(nmoduli))
         self._l_bound = lbound
@@ -331,7 +310,6 @@ cdef class MultiModularBasis_base:
 
     def _extend_moduli_to_height(self, height):
         """
-
         EXAMPLES::
 
             sage: from sage.ext.multi_modular import MultiModularBasis_base
@@ -369,10 +347,9 @@ cdef class MultiModularBasis_base:
             sage: len(m)
             2438
         """
-        cdef Integer h
-        h = ZZ(height)
+        cdef Integer h = Integer(height)
         if h < self._l_bound:
-            h = ZZ(self._l_bound)
+            h = Integer(self._l_bound)
         self._extend_moduli_to_height_c(h.value)
 
     cdef int _extend_moduli_to_height_c(self, mpz_t height0) except -1:
@@ -381,7 +358,7 @@ cdef class MultiModularBasis_base:
 
         INPUT:
 
-        - ``height`` - determines how many primes are computed
+        - ``height`` -- determines how many primes are computed
                        (their product must be at least 2*height)
         """
         # real height we use is twice the given, set height to 2*height0
@@ -401,7 +378,7 @@ cdef class MultiModularBasis_base:
         cdef mod_int p # keeps current prime moduli
 
         if self.n == 0:
-            M = ZZ(1)
+            M = smallInteger(1)
         else:
             M = PY_NEW(Integer)
             mpz_set(M.value, self.partial_products[self.n-1])
@@ -423,7 +400,7 @@ cdef class MultiModularBasis_base:
 
         INPUT:
 
-        - ``count`` - the minimum number of moduli in the resulting list
+        - ``count`` -- the minimum number of moduli in the resulting list
 
         EXAMPLES::
 
@@ -442,7 +419,7 @@ cdef class MultiModularBasis_base:
         cdef int i
         cdef mod_int p
         known_primes = set(self)
-        for i from self.n <= i < count:
+        for i in range(self.n, count):
             p = self._new_random_prime(known_primes)
             known_primes.add(p)
             new_moduli.append(p)
@@ -465,14 +442,14 @@ cdef class MultiModularBasis_base:
 
     cdef void _refresh_products(self, int start):
         r"""
-        Compute and store $\prod_j=1^{i-1} m_j$ of i > start.
+        Compute and store `\prod_j=1^{i-1} m_j` for i > start.
         """
         cdef mpz_t z
         mpz_init(z)
         if start == 0:
             mpz_set_si(self.partial_products[0], self.moduli[0])
             start += 1
-        for i from start <= i < self.n:
+        for i in range(start, self.n):
             mpz_set_si(z, self.moduli[i])
             mpz_mul(self.partial_products[i], self.partial_products[i-1], z)
         mpz_clear(z)
@@ -485,12 +462,12 @@ cdef class MultiModularBasis_base:
 
     cdef void _refresh_precomputations(self, int start) except *:
         r"""
-        Compute and store $\prod_j=1^{i-1} m_j^{-1} (mod m_i)$ of i >= start.
+        Compute and store `\prod_j=1^{i-1} m_j^{-1} (mod m_i)` for i >= start.
         """
         if start == 0:
             start = 1 # first one is trivial, never used
             self.C[0] = 1
-        for i from start <= i < self.n:
+        for i in range(start, self.n):
             self.C[i] = ai.c_inverse_mod_longlong(mpz_fdiv_ui(self.partial_products[i-1], self.moduli[i]), self.moduli[i])
 
     cdef int min_moduli_count(self, mpz_t height) except -1:
@@ -515,9 +492,9 @@ cdef class MultiModularBasis_base:
 
     cdef int mpz_reduce_tail(self, mpz_t z, mod_int* b, int offset, int len) except -1:
         r"""
-        Performs reduction mod $m_i$ for offset <= i < len
+        Perform reduction mod `m_i` for offset <= i < len.
 
-        b[i] = z mod $m_{i+offset}$ for 0 <= i < len
+        `b[i] = z mod m_{i+offset}` for 0 <= i < len
 
         INPUT:
 
@@ -530,15 +507,15 @@ cdef class MultiModularBasis_base:
         cdef int i
         cdef mod_int* m
         m = self.moduli + offset
-        for i from 0 <= i < len:
+        for i in range(len):
             b[i] = mpz_fdiv_ui(z, m[i])
         return 0
 
     cdef int mpz_reduce_vec_tail(self, mpz_t* z, mod_int** b, int vn, int offset, int len) except -1:
         r"""
-        Performs reduction mod $m_i$ for offset <= i < len
+        Perform reduction mod `m_i` for offset <= i < len.
 
-        b[i][j] = z[j] mod $m_{i+offset}$ for 0 <= i < len
+        `b[i][j] = z[j] mod m_{i+offset}` for 0 <= i < len
 
         INPUT:
 
@@ -553,20 +530,20 @@ cdef class MultiModularBasis_base:
         cdef int i, j
         cdef mod_int* m
         m = self.moduli + offset
-        for i from 0 <= i < len:
+        for i in range(len):
             mi = m[i]
-            for j from 0 <= j < vn:
+            for j in range(vn):
                 b[i][j] = mpz_fdiv_ui(z[j], mi)
         return 0
 
     cdef int mpz_crt_tail(self, mpz_t z, mod_int* b, int offset, int len) except -1:
         r"""
-        Calculate lift mod $\prod_{i=0}^{offset+len-1} m_i$.
+        Calculate lift mod `\prod_{i=0}^{offset+len-1} m_i`.
 
-        z = b[i] mod $m_{i+offset}$ for 0 <= i < len
+        z = b[i] mod `m_{i+offset}` for 0 <= i < len
 
         In the case that offset > 0,
-        z remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+        z remains unchanged mod `\prod_{i=0}^{offset-1} m_i`
 
         INPUT:
 
@@ -590,7 +567,7 @@ cdef class MultiModularBasis_base:
                     s += 1
         else:
             s = 0
-        for i from s <= i < len:
+        for i in range(s, len):
             mpz_set_si(u, ((b[i] + m[i] - mpz_fdiv_ui(z, m[i])) * self.C[i]) % m[i])
             mpz_mul(u, u, self.partial_products[i-1])
             mpz_add(z, z, u)
@@ -603,12 +580,12 @@ cdef class MultiModularBasis_base:
 
     cdef int mpz_crt_vec_tail(self, mpz_t* z, mod_int** b, int vc, int offset, int len) except -1:
         r"""
-        Calculate lift mod $\prod_{i=0}^{offset+len-1} m_i$.
+        Calculate lift mod `\prod_{i=0}^{offset+len-1} m_i`.
 
-        z[j] = b[i][j] mod $m_{i+offset}$ for 0 <= i < len
+        `z[j] = b[i][j] mod m_{i+offset}` for 0 <= i < len
 
         In the case that offset > 0,
-        z[j] remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+        z[j] remains unchanged mod `\prod_{i=0}^{offset-1} m_i`
 
         INPUT:
 
@@ -632,7 +609,7 @@ cdef class MultiModularBasis_base:
         else:
             s = 0
 
-        for j from 0 <= j < vc:
+        for j in range(vc):
             i = s
             if offset == 0:
                 mpz_set_si(z[j], b[0][j])
@@ -659,10 +636,10 @@ cdef class MultiModularBasis_base:
 
     def crt(self, b):
         r"""
-        Calculate lift mod $\prod_{i=0}^{len(b)-1} m_i$.
+        Calculate lift mod `\prod_{i=0}^{len(b)-1} m_i`.
 
         In the case that offset > 0,
-        z[j] remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+        z[j] remains unchanged mod `\prod_{i=0}^{offset-1} m_i`
 
         INPUT:
 
@@ -670,7 +647,7 @@ cdef class MultiModularBasis_base:
 
         OUTPUT:
 
-            Integer z where z = b[i] mod $m_i$ for 0 <= i < len(b)
+            Integer z where `z = b[i] mod m_i` for 0 <= i < len(b)
 
         EXAMPLES::
 
@@ -691,12 +668,10 @@ cdef class MultiModularBasis_base:
         cdef int i, n
         n = len(b)
         if n > self.n:
-            raise IndexError, "beyond bound for multi-modular prime list"
+            raise IndexError("beyond bound for multi-modular prime list")
         cdef mod_int* bs
-        bs = <mod_int*>sig_malloc(sizeof(mod_int)*n)
-        if bs == NULL:
-            raise MemoryError, "out of memory allocating multi-modular prime list"
-        for i from 0 <= i < n:
+        bs = <mod_int*>check_allocarray(n, sizeof(mod_int))
+        for i in range(n):
             bs[i] = b[i]
         cdef Integer z
         z = PY_NEW(Integer)
@@ -706,8 +681,8 @@ cdef class MultiModularBasis_base:
 
     def precomputation_list(self):
         """
-        Returns a list of the precomputed coefficients
-        `$\prod_j=1^{i-1} m_j^{-1} (mod m_i)$`
+        Return a list of the precomputed coefficients
+        `\prod_j=1^{i-1} m_j^{-1} (mod m_i)`
         where `m_i` are the prime moduli.
 
         EXAMPLES::
@@ -717,14 +692,12 @@ cdef class MultiModularBasis_base:
             MultiModularBasis with moduli [46307, 10007]
             sage: mm.precomputation_list()
             [1, 4013]
-
         """
-        cdef int i
-        return [ZZ(self.C[i]) for i from 0 <= i < self.n]
+        return [Integer(self.C[i]) for i in range(self.n)]
 
     def partial_product(self, n):
         """
-        Returns a list containing precomputed partial products.
+        Return a list containing precomputed partial products.
 
         EXAMPLES::
 
@@ -749,9 +722,9 @@ cdef class MultiModularBasis_base:
 
         """
         if n >= self.n:
-            raise IndexError, "beyond bound for multi-modular prime list"
+            raise IndexError("beyond bound for multi-modular prime list")
         if n < 0:
-            raise IndexError, "negative index not valid"
+            raise IndexError("negative index not valid")
         cdef Integer z
         z = PY_NEW(Integer)
         mpz_set(z.value, self.partial_products[n])
@@ -759,7 +732,7 @@ cdef class MultiModularBasis_base:
 
     def prod(self):
         """
-        Returns the product of the prime moduli.
+        Return the product of the prime moduli.
 
         EXAMPLES::
 
@@ -800,8 +773,7 @@ cdef class MultiModularBasis_base:
             sage: mm.list()
             [46307, 10007]
         """
-        cdef Py_ssize_t i
-        return [ZZ(self.moduli[i]) for i in range(self.n)]
+        return [Integer(self.moduli[i]) for i in range(self.n)]
 
     def __len__(self):
         """
@@ -822,7 +794,7 @@ cdef class MultiModularBasis_base:
 
     def __iter__(self):
         """
-        Returns an iterator over the prime moduli.
+        Return an iterator over the prime moduli.
 
         EXAMPLES::
 
@@ -832,7 +804,6 @@ cdef class MultiModularBasis_base:
             <listiterator object at ...>
             sage: list(mm.__iter__())
             [10007, 10009]
-
         """
         return iter(self.list())
 
@@ -852,19 +823,18 @@ cdef class MultiModularBasis_base:
             ...
             IndexError: index out of range
 
-            #sage: mm[:1]
+            sage: mm[:1]
             MultiModularBasis with moduli [10007]
         """
         if isinstance(ix, slice):
             return self.__class__(self.list()[ix], l_bound = self._l_bound,
                     u_bound = self._u_bound)
 
-        cdef int i
-        i = ix
+        cdef Py_ssize_t i = ix
         if i != ix:
-            raise ValueError, "index must be an integer"
+            raise TypeError("index must be an integer")
         if i < 0 or i >= self.n:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         return self.moduli[i]
 
     def __repr__(self):
@@ -884,67 +854,65 @@ cdef class MultiModularBasis(MultiModularBasis_base):
     """
     Class used for storing a MultiModular bases of a fixed length.
     """
-
-
     cdef int mpz_reduce(self, mpz_t z, mod_int* b) except -1:
         r"""
-        Performs reduction mod $m_i$ for each modulus $m_i$
+        Perform reduction mod `m_i` for each modulus `m_i`.
 
-        b[i] = z mod $m_i$ for 0 <= i < len(self)
+        `b[i] = z mod m_i` for 0 <= i < len(self)
 
         INPUT:
 
-        - ``z`` - the integer being reduced
-        - ``b`` - array to hold the reductions mod each m_i.
+        - ``z`` -- the integer being reduced
+        - ``b`` -- array to hold the reductions mod each m_i.
                  It MUST be allocated and have length at least len
         """
         self.mpz_reduce_tail(z, b, 0, self.n)
 
     cdef int mpz_reduce_vec(self, mpz_t* z, mod_int** b, int vn) except -1:
         r"""
-        Performs reduction mod $m_i$ for each modulus $m_i$
+        Perform reduction mod `m_i` for each modulus `m_i`.
 
-        b[i][j] = z[j] mod $m_i$ for 0 <= i < len(self)
+        `b[i][j] = z[j] mod m_i` for 0 <= i < len(self)
 
         INPUT:
 
-        - ``z``  - an array of integers being reduced
-        - ``b``  - array to hold the reductions mod each m_i.
+        - ``z`` -- an array of integers being reduced
+        - ``b`` -- array to hold the reductions mod each m_i.
                  It MUST be fully allocated and each
                  have length at least len
-        - ``vn`` - length of z and each b[i]
+        - ``vn`` -- length of z and each b[i]
         """
         self.mpz_reduce_vec_tail(z, b, vn, 0, self.n)
 
     cdef int mpz_crt(self, mpz_t z, mod_int* b) except -1:
         r"""
-        Calculate lift mod $\prod m_i$.
+        Calculate lift mod `\prod m_i`.
 
-        z = b[i] mod $m_{i+offset}$ for 0 <= i < len(self)
+        `z = b[i] mod m_{i+offset}` for 0 <= i < len(self)
 
         INPUT:
 
-        - ``z`` - a placeholder for the constructed integer
+        - ``z`` -- a placeholder for the constructed integer
                    z MUST NOT be initialized
-        - ``b`` - array holding the reductions mod each $m_i$.
+        - ``b`` -- array holding the reductions mod each `m_i`.
                    It MUST have length at least len(self)
         """
         self.mpz_crt_tail(z, b, 0, self.n)
 
     cdef int mpz_crt_vec(self, mpz_t* z, mod_int** b, int vn) except -1:
         r"""
-        Calculate lift mod $\prod m_i$.
+        Calculate lift mod `\prod m_i`.
 
-        z[j] = b[i][j] mod $m_i$ for 0 <= i < len(self)
+        `z[j] = b[i][j] mod m_i` for 0 <= i < len(self)
 
         INPUT:
 
-        - ``z``  - a placeholder for the constructed integers
+        - ``z`` -- a placeholder for the constructed integers
                     z MUST be allocated and have length at least vn,
                     but each z[j] MUST NOT be initialized
-        - ``b``  - array holding the reductions mod each $m_i$.
+        - ``b`` -- array holding the reductions mod each `m_i`.
                     It MUST have length at least len(self)
-        - ``vn`` - length of z and each b[i]
+        - ``vn`` -- length of z and each b[i]
         """
         self.mpz_crt_vec_tail(z, b, vn, 0, self.n)
 
@@ -954,11 +922,11 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
     Class used for performing multi-modular methods,
     with the possibility of removing bad primes.
     """
-    def next_prime(self):
+    cpdef mod_int next_prime(self) except -1:
         """
-        Picks a new random prime between the bounds given during the
-        initialization of this object, updates the precomputed data,
-        and returns the new prime modulus.
+        Pick a new random prime between the bounds given during the
+        initialization of this object, update the precomputed data,
+        and return the new prime modulus.
 
         EXAMPLES::
 
@@ -969,18 +937,20 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             4561L            # 32-bit
             sage: mm
             MultiModularBasis with moduli [10007, 4561]
-
         """
-        return self.next_prime_c()
-
-    cdef mod_int next_prime_c(self) except -1:
         self._extend_moduli(1)
         return self.moduli[self.n-1]
 
-    def replace_prime(self, ix):
+    cpdef mod_int replace_prime(self, int ix) except -1:
         """
         Replace the prime moduli at the given index with a different one,
         update the precomputed data accordingly, and return the new prime.
+
+        INPUT:
+
+        - ``ix`` -- index into list of moduli
+
+        OUTPUT: the new prime modulus
 
         EXAMPLES::
 
@@ -1005,28 +975,11 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             [1, 2314, 3274, 3013]
             sage: mm.partial_product(2)
             458108021299
-
-        """
-        return self.replace_prime_c(ix)
-
-    cdef mod_int replace_prime_c(self, int ix) except -1:
-        r"""
-        Replace $m_{ix}$ in the list of moduli with a new
-        prime number greater than all others in the list,
-        and recompute all precomputations.
-
-        INPUT:
-
-        - ``ix`` - index into list of moduli
-
-        OUTPUT:
-
-            p -- the new prime modulus
         """
         cdef mod_int new_p
 
         if ix < 0 or ix >= self.n:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         new_p = self._new_random_prime(set(self))
         self.moduli[ix] = new_p

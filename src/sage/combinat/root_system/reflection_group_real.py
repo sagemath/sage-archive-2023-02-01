@@ -954,7 +954,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [4, 3, 5, 1, 0, 2]
             """
             W = self.parent()
-            return (~self)(wi + 1) - 1
+            return self(wi + 1) - 1
 
 class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexReflectionGroup):
 

@@ -41,10 +41,14 @@ Testing that the implementation also works with CoxeterGroup::
     sage: W = CoxeterGroup(['A',3]); I = list(W.index_set())
     sage: Q = I + W.w0.coxeter_sorting_word(I); Q
     [1, 2, 3, 1, 2, 3, 1, 2, 1]
+    sage: S = SubwordComplex(Q,W.w0); S
+    Subword complex of type ['A', 3] for Q = (1, 2, 3, 1, 2, 3, 1, 2, 1) and pi = [1, 2, 3, 1, 2, 1]
+    sage: P = S.increasing_flip_poset(); P; len(P.cover_relations())
+    Finite poset containing 14 elements
+    21
 
 The root configuration works::
 
-    sage: S = SubwordComplex(Q,W.w0)
     sage: for F in S: print F, F.root_configuration()
     (0, 1, 2) [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
     (0, 1, 8) [(1, 0, 0), (0, 1, 0), (0, 0, -1)]
@@ -63,7 +67,7 @@ The root configuration works::
 
 And the weight configuration also works::
 
-    sage: W = CoxeterGroup(['A',2], index_set=[1,2], base_ring=QQ)
+    sage: W = CoxeterGroup(['A',2])
     sage: w = W.from_reduced_word([1,2,1])
     sage: SC = SubwordComplex([1,2,1,2,1],w)
     sage: F = SC([1,2])
@@ -71,6 +75,16 @@ And the weight configuration also works::
     [(4/3, 2/3), (2/3, 4/3), (-2/3, 2/3), (2/3, 4/3), (-2/3, 2/3)]
     sage: F.extended_weight_configuration(coefficients=(1,2))
     [(4/3, 2/3), (4/3, 8/3), (-2/3, 2/3), (4/3, 8/3), (-2/3, 2/3)]
+
+One finally can compute the brick polytope, using all functionality
+on weight configurations, though it does not realize to live in
+real space::
+
+    sage: W = CoxeterGroup(['A',3]); I = list(W.index_set())
+    sage: Q = I + W.w0.coxeter_sorting_word(I)
+    sage: S = SubwordComplex(Q,W.w0)
+    sage: S.brick_polytope()
+    A 3-dimensional polyhedron in (Universal Cyclotomic Field)^3 defined as the convex hull of 14 vertices
 
 AUTHORS:
 

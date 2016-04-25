@@ -308,7 +308,7 @@ information. You can use the existing functions of Sage as templates.
 
        REFERENCES:
 
-       .. [Nat2000] \M.B. Nathanson. Elementary Methods in Number Theory.
+       .. [Nat2000] \M. B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
 
 -  A **NOTE** block for tips/tricks (optional). ::
@@ -369,6 +369,13 @@ information. You can use the existing functions of Sage as templates.
 
       .. [SC] Conventions for coding in sage.
          http://www.sagemath.org/doc/developer/conventions.html.
+
+  When abbreviating the first name of an author, be sure to put a
+  backslash in front of it. This ensures that the letter (``C.``
+  in the example below) will not be interpreted as a list
+  enumerator::
+
+      .. [Gauss] \C. F. Gauss, Disquisitiones Arithmeticae, 1801.
 
   See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
 

@@ -676,6 +676,7 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         Draw a 3D plot of this graphics object, which just returns this
         object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
         
         EXAMPLES::
 

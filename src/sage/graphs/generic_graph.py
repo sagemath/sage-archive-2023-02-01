@@ -9459,10 +9459,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({0:[1,2], 3:[0]})
             sage: D.vertex_boundary([0])
             [1, 2]
-        
+
+
+        TESTS:
+
         When vertices2 is None, then vertices2 is the complement of vertices 1.
         Corrected in ticket :trac:`20479`::
-         
+
             sage: P = graphs.PathGraph(3)
             sage: P.vertex_boundary([0,1])
             [2]

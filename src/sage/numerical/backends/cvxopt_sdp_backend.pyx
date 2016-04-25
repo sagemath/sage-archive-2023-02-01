@@ -30,7 +30,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
     cdef list row_name_var
     cdef list col_name_var
-    cdef dict answer
+    cpdef dict answer
     cdef dict param
     cdef str name
 
@@ -461,6 +461,9 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sum += v * float(self.answer['x'][i])
             i+=1
         return sum
+
+    cpdef get_answer(self):
+        return self.answer
 
     cpdef get_variable_value(self, int variable):
         """

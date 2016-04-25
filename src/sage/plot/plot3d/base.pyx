@@ -2002,7 +2002,8 @@ class Graphics3dGroup(Graphics3d):
                 all.append(g)
         return Graphics3dGroup(all)
 
-
+    def plot(self):
+        return self
 
 class TransformGroup(Graphics3dGroup):
     """

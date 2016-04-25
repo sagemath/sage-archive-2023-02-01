@@ -31,6 +31,7 @@ from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
+from external import external_software, available_software
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -78,7 +79,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(["sage"])
+        self.optional = set(['sage'])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -596,7 +597,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            10
+            11
             sage: DC.sources[0].options.optional
             True
 
@@ -697,6 +698,7 @@ class DocTestController(SageObject):
             sage.doctest.parsing
             sage.doctest.forker
             sage.doctest.fixtures
+            sage.doctest.external
             sage.doctest.control
             sage.doctest.all
             sage.doctest
@@ -1032,12 +1034,18 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software to be detected: " + ','.join(external_software))
 
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
             self.sort_sources()
             self.run_doctests()
+
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software detected for doctesting: "
+                         + ','.join(available_software.seen()))
             return self.reporter.error_status
 
 def run_doctests(module, options=None):

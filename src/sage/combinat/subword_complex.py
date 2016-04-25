@@ -1439,7 +1439,6 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 32 vertices
         """
         BV = self.brick_vectors(coefficients=coefficients)
-        # TODO: this fails so far for CoxeterGroup:
         G = self.group()
         from sage.rings.all import QQ
         if G.coxeter_matrix().is_crystallographic():

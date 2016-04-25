@@ -9461,6 +9461,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({0:[1,2], 3:[0]})
             sage: D.vertex_boundary([0])
             [1, 2]
+
+
+        TESTS:
+
+        When vertices2 is None, then vertices2 is the complement of vertices 1.
+        Corrected in ticket :trac:`20479`::
+
+            sage: P = graphs.PathGraph(3)
+            sage: P.vertex_boundary([0,1])
+            [2]
+            sage: P.vertex_boundary([0,1], set(P.vertices()).difference([0,1]))
+            [2]
+            sage: Q = DiGraph(P)
+            sage: Q.vertex_boundary([0,1])
+            [2]
+            sage: Q.vertex_boundary([0,1], set(Q.vertices()).difference([0,1]))
+            [2]
         """
         vertices1 = [v for v in vertices1 if v in self]
         output = set()
@@ -9470,7 +9487,9 @@ class GenericGraph(GenericGraph_pyx):
         else:
             for v in vertices1:
                 output.update(self.neighbor_iterator(v))
-        if vertices2 is not None:
+        if vertices2 is None:
+            output.difference_update(vertices1)
+        else:
             output.intersection_update(vertices2)
         return list(output)
 

@@ -1,0 +1,48 @@
+diff --git a/fflas-ffpack/fflas/fflas_simd/simd128_int64.inl b/fflas-ffpack/fflas/fflas_simd/simd128_int64.inl
+index d154c3b..09fb23b 100644
+--- a/fflas-ffpack/fflas/fflas_simd/simd128_int64.inl
++++ b/fflas-ffpack/fflas/fflas_simd/simd128_int64.inl
+@@ -218,17 +218,17 @@ template <> struct Simd128_impl<true, true, true, 8> {
+      */
+     static INLINE CONST vect_t mul(const vect_t a, const vect_t b) { return mullo(a, b); }
+ 
++#ifdef __x86_64__
+     static INLINE CONST vect_t mulhi(const vect_t a, const vect_t b) {
+ // #pragma warning "The simd mulhi function is emulate, it may impact the performances."
+-#ifdef __X86_64__
+         Converter c0, c1;
+         c0.v = a;
+         c1.v = b;
+         return set((scalar_t)((int128_t(c0.t[0]) * c1.t[0]) >> 64), (scalar_t)((int128_t(c0.t[1]) * c1.t[1]) >> 64));
++    }
+ #else
+-        return zero();
++        #warning "The SIMD mulhi function is disabled on 32 bit architectures"
+ #endif
+-    }
+ 
+     static INLINE CONST vect_t fmadd(const vect_t c, const vect_t a, const vect_t b) { return add(c, mul(a, b)); }
+ 
+diff --git a/fflas-ffpack/fflas/fflas_simd/simd256_int64.inl b/fflas-ffpack/fflas/fflas_simd/simd256_int64.inl
+index 6f5b829..7a0bf58 100644
+--- a/fflas-ffpack/fflas/fflas_simd/simd256_int64.inl
++++ b/fflas-ffpack/fflas/fflas_simd/simd256_int64.inl
+@@ -237,6 +237,7 @@ template <> struct Simd256_impl<true, true, true, 8> {
+      [b0, b1, b2, b3]  		 							 int64_t
+      * Return :
+      */
++#ifdef __x86_64__
+     static INLINE CONST vect_t mulhi(vect_t a, vect_t b) {
+         // ugly solution, but it works.
+         // tested with gcc, clang, icc
+@@ -246,6 +247,10 @@ template <> struct Simd256_impl<true, true, true, 8> {
+         return set((int128_t(ca.t[0]) * cb.t[0]) >> 64, (int128_t(ca.t[1]) * cb.t[1]) >> 64,
+                    (int128_t(ca.t[2]) * cb.t[2]) >> 64, (int128_t(ca.t[3]) * cb.t[3]) >> 64);
+     }
++#else
++        #warning "The SIMD mulhi function is disabled on 32 bit architectures"
++#endif
++
+ 
+     /*
+      * Multiply packed 64-bit integers in a and b, producing intermediate 128-bit integers, and add the low 64-bits of

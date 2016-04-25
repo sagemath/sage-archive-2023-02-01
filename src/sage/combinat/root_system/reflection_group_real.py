@@ -937,9 +937,21 @@ class RealReflectionGroup(ComplexReflectionGroup):
             """
             return [ (~w) for w in self.right_coset_representatives() ]
 
-        def action_on_root_indices(self, wi):
+        def action_on_root_indices(self, wi, side="right"):
             """
             Return the action on the set of roots.
+
+            INPUT:
+
+
+            - ``side`` -- optional (default: ``"right"``) whether the
+              action is on the left or on the right.
+
+            TODO:
+
+            - This action is a right action on default, in contrary to
+              the rest of this implementation. This is done for
+              compatibility with subword complexes.
 
             EXAMPLES::
 
@@ -953,8 +965,14 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]
                 [4, 3, 5, 1, 0, 2]
             """
-            W = self.parent()
-            return self(wi + 1) - 1
+            if side == "right":
+                w = ~self
+            elif side == "left":
+                w = self
+            else:
+                raise ValueError('side must be "left" or "right"')
+            W = w.parent()
+            return w(wi + 1) - 1
 
 class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexReflectionGroup):
 
@@ -964,7 +982,7 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
         EXAMPLES::
 
-            sage: for i in [2..7]: ReflectionGroup(["I", i])             # optional - gap3
+            sage: for i in [2..7]: ReflectionGroup(["I", i])            # optional - gap3
             Reducible real reflection group of rank 2 and type A1 x A1
             Irreducible real reflection group of rank 2 and type A2
             Irreducible real reflection group of rank 2 and type C2

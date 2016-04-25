@@ -995,7 +995,7 @@ def RandomTriangulation(n, set_position=False):
     .. SEEALSO::
 
         :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`,
-        :meth:`~sage.homology.examples.RandomTwoSphere`.
+        :func:`~sage.homology.examples.RandomTwoSphere`.
 
     EXAMPLES::
 

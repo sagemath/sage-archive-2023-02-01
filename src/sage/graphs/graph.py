@@ -4829,20 +4829,23 @@ class Graph(GenericGraph):
         r"""
         Returns the Seidel adjacency matrix of ``self``.
 
-        Returns `J-I-2A`, for `A` the (ordinary)
-        :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
-        `I` the identity matrix, and `J` the all-1 matrix.
+        Returns `J-I-2A`, for `A` the (ordinary) :meth:`adjacency
+        matrix
+        <sage.graphs.generic_graph.GenericGraph.adjacency_matrix>` of
+        ``self``, `I` the identity matrix, and `J` the all-1 matrix.
         It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or :func:`matrix` function.
+        method or :class:`matrix <sage.matrix.constructor.MatrixFactory>` function.
 
         INPUT:
 
-        - ``vertices`` (list) -- the ordering of the vertices defining how they
-          should appear in the matrix. By default, the ordering given by
-          :meth:`GenericGraph.vertices` is used.
+        - ``vertices`` (list) -- the ordering of the vertices defining
+          how they should appear in the matrix. By default, the
+          ordering given by
+          :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is
+          used.
 
         EXAMPLES::
 

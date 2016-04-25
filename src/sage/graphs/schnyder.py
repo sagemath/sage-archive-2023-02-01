@@ -525,8 +525,8 @@ def _compute_coordinates(g, x):
 
 class TreeNode():
     """
-    A class to represent each node in the trees used by :func:`_realizer` and
-    :func:`_compute_coordinates` when finding a planar geometric embedding in
+    A class to represent each node in the trees used by ``_realizer`` and
+    ``_compute_coordinates`` when finding a planar geometric embedding in
     the grid.
 
     Each tree node is doubly linked to its parent and children.

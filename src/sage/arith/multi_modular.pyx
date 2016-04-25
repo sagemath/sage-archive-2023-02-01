@@ -48,7 +48,7 @@ cdef class MultiModularBasis_base(object):
 
     EXAMPLES::
 
-        sage: from sage.ext.multi_modular import MultiModularBasis_base
+        sage: from sage.arith.multi_modular import MultiModularBasis_base
         sage: mm = MultiModularBasis_base([3, 5, 7]); mm
         MultiModularBasis with moduli [3, 5, 7]
 
@@ -72,7 +72,7 @@ cdef class MultiModularBasis_base(object):
 
     There is no overflow if the modulus is below ``MAX_MODULUS``::
 
-        sage: from sage.ext.multi_modular import MAX_MODULUS
+        sage: from sage.arith.multi_modular import MAX_MODULUS
         sage: p0 = previous_prime(MAX_MODULUS)
         sage: p1 = previous_prime(p0)
         sage: MultiModularBasis_base([p0, p1]).crt([p0-1, p1-1])
@@ -95,7 +95,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([1099511627791])
             Traceback (most recent call last):
             ...
@@ -113,7 +113,7 @@ cdef class MultiModularBasis_base(object):
         """
         TESTS::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(1099511627791); mm
             MultiModularBasis with moduli [4561, 17351, 28499]
             sage: del mm
@@ -144,7 +144,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([1009, 10007]); mm
             MultiModularBasis with moduli [1009, 10007]
             sage: mm.prod()
@@ -212,7 +212,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([1009, 10007]); mm
             MultiModularBasis with moduli [1009, 10007]
             sage: mm.extend_with_primes([10037, 10039])
@@ -256,7 +256,7 @@ cdef class MultiModularBasis_base(object):
         """
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007])
             sage: nn = MultiModularBasis_base([10007])
             sage: mm == nn
@@ -278,7 +278,7 @@ cdef class MultiModularBasis_base(object):
 
         TESTS::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm == loads(dumps(mm))
             True
@@ -301,7 +301,7 @@ cdef class MultiModularBasis_base(object):
 
         TESTS::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm.__getstate__()
             ([10007, 10009], 1024L, 32768L)
@@ -312,7 +312,7 @@ cdef class MultiModularBasis_base(object):
         """
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(0); mm
             MultiModularBasis with moduli [4561]
 
@@ -330,9 +330,9 @@ cdef class MultiModularBasis_base(object):
 
         Verify that :trac:`11358` is fixed::
 
-            sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0)
+            sage: set_random_seed(0); m = sage.arith.multi_modular.MultiModularBasis_base(0)
             sage: m._extend_moduli_to_height(prod(prime_range(50)))
-            sage: m = sage.ext.multi_modular.MultiModularBasis_base([],2,100)
+            sage: m = sage.arith.multi_modular.MultiModularBasis_base([],2,100)
             sage: m._extend_moduli_to_height(prod(prime_range(90)))
             sage: m._extend_moduli_to_height(prod(prime_range(150)))
             Traceback (most recent call last):
@@ -341,7 +341,7 @@ cdef class MultiModularBasis_base(object):
 
         Another check (which fails horribly before :trac:`11358` is fixed)::
 
-            sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0); m._extend_moduli_to_height(10**10000)
+            sage: set_random_seed(0); m = sage.arith.multi_modular.MultiModularBasis_base(0); m._extend_moduli_to_height(10**10000)
             sage: len(set(m)) == len(m)
             True
             sage: len(m)
@@ -404,7 +404,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
             sage: mm._extend_moduli_to_count(3)
@@ -432,7 +432,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
             sage: mm._extend_moduli(2); mm
@@ -651,7 +651,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009, 10037, 10039, 17351])
             sage: res = mm.crt([3,5,7,9]); res
             8474803647063985
@@ -687,7 +687,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307, 10007]); mm
             MultiModularBasis with moduli [46307, 10007]
             sage: mm.precomputation_list()
@@ -701,7 +701,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307, 10007]); mm
             MultiModularBasis with moduli [46307, 10007]
             sage: mm.partial_product(0)
@@ -736,7 +736,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
             sage: mm.prod()
@@ -768,7 +768,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([46307, 10007])
             sage: mm.list()
             [46307, 10007]
@@ -781,7 +781,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007])
             sage: len(mm)
             1
@@ -798,7 +798,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: t = iter(mm); t
             <listiterator object at ...>
@@ -813,7 +813,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm[1]
             10009             # 64-bit
@@ -843,7 +843,7 @@ cdef class MultiModularBasis_base(object):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MultiModularBasis_base
+            sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: MultiModularBasis_base([10007])
             MultiModularBasis with moduli [10007]
         """
@@ -930,7 +930,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MutableMultiModularBasis
+            sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: mm.next_prime()
             4561             # 64-bit
@@ -954,7 +954,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
 
         EXAMPLES::
 
-            sage: from sage.ext.multi_modular import MutableMultiModularBasis
+            sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007, 10009, 10037, 10039])
             sage: mm
             MultiModularBasis with moduli [10007, 10009, 10037, 10039]

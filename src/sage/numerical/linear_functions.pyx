@@ -523,8 +523,19 @@ cdef class LinearFunctionsParent_class(Parent):
         <type 'sage.numerical.linear_functions.LinearFunctionsParent_class'>
     """
     def __cinit__(self):
+        """
+        Cython initializer
+
+        TESTS::
+
+            sage: from sage.numerical.linear_functions import LinearFunctionsParent_class
+            sage: LF = LinearFunctionsParent_class.__new__(LinearFunctionsParent_class)
+            sage: LF._multiplication_symbol
+            '*'
+        """
         # Do not use coercion framework for __richcmp__
         self.flags |= Parent_richcmp_element_without_coercion
+        self._multiplication_symbol = '*'
 
     def __init__(self, base_ring):
         """
@@ -538,7 +549,6 @@ cdef class LinearFunctionsParent_class(Parent):
         """
         from sage.categories.modules_with_basis import ModulesWithBasis
         Parent.__init__(self, base=base_ring, category=ModulesWithBasis(base_ring))
-        self._multiplication_symbol = '*'
 
     def set_multiplication_symbol(self, symbol='*'):
         """
@@ -568,7 +578,7 @@ cdef class LinearFunctionsParent_class(Parent):
         """
         self._multiplication_symbol = symbol
 
-    cpdef _get_multiplication_symbol(self):
+    def _get_multiplication_symbol(self):
         """
         Return the multiplication symbol.
 
@@ -1074,7 +1084,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         if constant_term:
             return str(coeff)
         else:
-            return str(coeff) + self.parent()._get_multiplication_symbol()
+            return str(coeff) + self.parent()._multiplication_symbol
 
     def _repr_(self):
         r"""
@@ -1187,7 +1197,23 @@ cdef class LinearConstraintsParent_class(Parent):
         sage: LinearConstraintsParent(p.linear_functions_parent()) is LC
         True
     """
-    def __cinit__(self):
+    def __cinit__(self, linear_functions_parent):
+        """
+        Cython initializer
+
+        TESTS::
+
+            sage: from sage.numerical.linear_functions import LinearConstraintsParent_class
+            sage: from sage.numerical.linear_functions import LinearFunctionsParent
+            sage: LF = LinearFunctionsParent(RDF)
+            sage: LinearConstraintsParent_class.__new__(LinearConstraintsParent_class, LF)
+            Linear constraints over Real Double Field
+            sage: LinearConstraintsParent_class.__new__(LinearConstraintsParent_class, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert NoneType to sage.numerical.linear_functions.LinearFunctionsParent_class
+        """
+        self._LF = <LinearFunctionsParent_class?>linear_functions_parent
         # Do not use coercion framework for __richcmp__
         self.flags |= Parent_richcmp_element_without_coercion
 
@@ -1212,7 +1238,6 @@ cdef class LinearConstraintsParent_class(Parent):
             TypeError: Cannot convert NoneType to sage.numerical.linear_functions.LinearFunctionsParent_class
         """
         Parent.__init__(self)
-        self._LF = <LinearFunctionsParent_class?>linear_functions_parent
 
     def linear_functions_parent(self):
         """

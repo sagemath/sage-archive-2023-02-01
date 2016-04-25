@@ -1,6 +1,6 @@
 cpdef int _flip_c(W, set positions, list extended_root_conf_indices,
                   int i, side="both"):
-    """
+    r"""
     Flip a facet.
 
     INPUT:

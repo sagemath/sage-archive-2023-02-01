@@ -98,7 +98,7 @@ class SymmetricIdeal( Ideal_generic ):
     Buchberger type that computes a Groebner basis `G` for `I` that
     allows for computation of a unique normal form, that is zero
     precisely for the elements of `I` -- see [AB2008]_. See
-    :meth:`.groebner_basis` for more details.
+    :meth:`groebner_basis` for more details.
 
     Our implementation allows more than one generator and also
     provides degree lexicographic and degree reverse lexicographic

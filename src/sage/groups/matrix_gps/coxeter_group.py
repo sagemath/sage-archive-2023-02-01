@@ -791,7 +791,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             return self.matrix()
 
         @cached_method
-        def action_on_root_indices(self, i):
+        def act_on_root_indices(self, i):
             """
             Return the action on the set of roots.
 

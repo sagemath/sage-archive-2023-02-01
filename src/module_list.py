@@ -1128,6 +1128,9 @@ ext_modules = [
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"]),
 
+    Extension("sage.numerical.backends.glpk_exact_backend",
+              ["sage/numerical/backends/glpk_exact_backend.pyx"]),
+
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],
               libraries=["stdc++"]),

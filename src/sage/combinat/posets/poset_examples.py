@@ -39,6 +39,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
     :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
     :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
+    :meth:`~Posets.UpDownPoset` | Return the up-down poset on `n` elements.
     :meth:`~Posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
     :meth:`~Posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~Posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
@@ -955,6 +956,57 @@ class Posets(object):
                               for s in W}
 
         return Poset({s: s.absolute_covers() for s in W}, element_labels)
+
+    @staticmethod
+    def UpDownPoset(n, m=1):
+        r"""
+        Return the up-down poset on ``n`` elements where every ``(m+1)st`` 
+        step is down and the rest are up.
+    
+        The case where ``m=1`` is sometimes referred to as the zig-zag poset
+        or the fence.
+    
+        INPUT:
+    
+        - ``n`` - nonnegative integer, number of elements in the poset
+        - ``m`` - nonnegative integer (default 1), how frequently down steps occur
+    
+        OUTPUT:
+    
+        The partially ordered set on \{ 0, 1, ... , ``n-1`` \}
+        where ``i>i+1`` if ``i+1`` is 0 ``mod m``, and ``i<i+1`` otherwise.
+        
+        EXAMPLES::
+    
+            sage: P = UpDownPoset(2, 7); P
+            Finite poset containing 7 elements
+            sage: sorted(P.cover_relations())
+            [[0, 1], [1, 2], [3, 2], [3, 4], [4, 5], [6, 5]]
+    
+        Fibonacci numbers as the number of antichains of a poset::
+    
+            sage: [len(Posets.UpDownPoset(n).antichains().list()) for n in range(0, 6)]
+            [1, 2, 3, 5, 8, 13]
+    
+        TESTS:
+    
+            sage: P = Posets.UpDownPoset(0); P
+            Finite poset containing 0 elements
+        """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        try:
+            m = Integer(m)
+        except TypeError:
+            raise TypeError("parameter m must be an integer, not {0}".format(m))
+        if m < 1:
+            raise ValueError("parameter m must be positive, not {0}".format(m))
+    
+        return Poset( (range(0,n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]) )
 
     @staticmethod
     def YoungDiagramPoset(lam):

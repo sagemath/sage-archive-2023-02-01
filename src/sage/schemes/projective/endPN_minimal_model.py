@@ -15,7 +15,7 @@ REFERENCES:
    functions in a dynamical setting*, 
    LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
 
-.. [Molnar] A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
+.. [Molnar] \A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
    M.Sc. Thesis.
 """
 

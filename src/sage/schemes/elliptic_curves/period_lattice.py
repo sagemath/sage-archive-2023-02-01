@@ -79,7 +79,7 @@ We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
 
 REFERENCES:
 
-.. [CT] J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
+.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
    elliptic curves over $\CC$ and complex elliptic logarithms.
    Journal of Number Theory Volume 133, Issue 8, August 2013, pages
    2813-2841.

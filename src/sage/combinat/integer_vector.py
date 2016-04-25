@@ -299,9 +299,9 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
         REFERENCES:
 
-        ..  [Ryser63] H. J. Ryser, Combinatorial Mathematics,
+        ..  [Ryser63] \H. J. Ryser, Combinatorial Mathematics,
             Carus Monographs, MAA, 1963.
-        ..  [Gale57] D. Gale, A theorem on flows in networks, Pacific J. Math.
+        ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
             7(1957)1073-1082.
         """
         from sage.combinat.partition import Partition

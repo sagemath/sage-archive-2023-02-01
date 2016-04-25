@@ -131,7 +131,7 @@ class MiniAES(SageObject):
 
     REFERENCES:
 
-    .. [P02] R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
+    .. [P02] \R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
       testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
     """
 

@@ -2280,7 +2280,7 @@ v            EXAMPLES::
 
             REFERENCES:
 
-                .. [Deodhar] V. Deodhar,  A splitting criterion for the Bruhat orderings on Coxeter groups. Comm. Algebra, 15:1889-1894, 1987.
+                .. [Deodhar] \V. Deodhar,  A splitting criterion for the Bruhat orderings on Coxeter groups. Comm. Algebra, 15:1889-1894, 1987.
 
             """
 

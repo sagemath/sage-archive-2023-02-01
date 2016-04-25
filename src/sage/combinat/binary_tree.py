@@ -1458,7 +1458,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         REFERENCES:
 
-        .. [DG94] S. Dulucq and O. Guibert. Mots de piles, tableaux
+        .. [DG94] \S. Dulucq and O. Guibert. Mots de piles, tableaux
            standards et permutations de Baxter, proceedings of
            Formal Power Series and Algebraic Combinatorics, 1994.
         """

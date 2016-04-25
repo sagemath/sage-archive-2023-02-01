@@ -308,7 +308,7 @@ information. You can use the existing functions of Sage as templates.
 
        REFERENCES:
 
-       .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
+       .. [Nat2000] \M.B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
 
 -  A **NOTE** block for tips/tricks (optional). ::

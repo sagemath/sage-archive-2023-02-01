@@ -38,7 +38,7 @@ REFERENCES:
    Computer Vision, and Applications, Lecture Notes in Computer
    Science, volume 5856, pp 272-278, Springer, Berlin (2009).
 
-.. [PR] P. Pilarczyk and P. Réal, *Computation of cubical homology,
+.. [PR] \P. Pilarczyk and P. Réal, *Computation of cubical homology,
    cohomology, and (co)homological operations via chain contraction*,
    Adv. Comput. Math. 41 (2015), pp 253--275.
 

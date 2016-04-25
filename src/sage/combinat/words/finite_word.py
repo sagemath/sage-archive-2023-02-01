@@ -2963,21 +2963,21 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+        .. [BBGL08] \A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
            Combinatorial properties of f -palindromes in the Thue-Morse
            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+        .. [BHNR04] \S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
            Palindromic Complexity of Infinite Words, in J. Berstel, J.
            Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
            International Journal of Foundation of Computer Science, Vol. 15,
            No. 2 (2004) 293--306.
 
-        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+        .. [DJP01] \X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
            (2001), no. 1--2, 539--553.
 
-        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        .. [Sta11] \Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
            Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -5695,12 +5695,12 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+        .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
            Intelligencer, 7(3):20–29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
@@ -5760,7 +5760,7 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+        .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
            at LaCIM2010.
 
         AUTHOR:
@@ -6868,7 +6868,7 @@ class FiniteWord_class(Word_class):
             some recent results). In S. Bozapalidis and G. Rahonis, editors,
             CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
             pages 23-47. Springer-Verlag, 2007.
-        .. [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+        .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
             words: Christoffel words and repetitions in words, CRM Monograph 
             Series, 27. American Mathematical Society, Providence, RI, 2009. 
             xii+147 pp. ISBN: 978-0-8218-4480-9

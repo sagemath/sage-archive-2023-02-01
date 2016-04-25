@@ -312,27 +312,27 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
 
     REFERENCES:
 
-    .. [Shimozono02] M. Shimozono
+    .. [Shimozono02] \M. Shimozono
        *Affine type A crystal structure on tensor products of rectangles,
        Demazure characters, and nilpotent varieties*,
        J. Algebraic Combin. **15** (2002). no. 2. 151-187.
        :arxiv:`math.QA/9804039`.
 
-    .. [Schilling08] A. Schilling. "Combinatorial structure of
+    .. [Schilling08] \A. Schilling. "Combinatorial structure of
        Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`".
        J. Algebra. **319** (2008). 2938-2962. :arxiv:`0704.2046`.
 
-    .. [JS2010] B. Jones, A. Schilling.
+    .. [JS2010] \B. Jones, A. Schilling.
        "Affine structures and a tableau model for `E_6` crystals",
        J. Algebra. **324** (2010). 2512-2542.
        :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
 
-    .. [FOS09] G. Fourier, M. Okado, A. Schilling.
+    .. [FOS09] \G. Fourier, M. Okado, A. Schilling.
        *Kirillov-Reshetikhin crystals for nonexceptional types*.
        Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
        :arxiv:`0810.5067`.
 
-    .. [LOS12] C. Lecouvey, M. Okado, M. Shimozono.
+    .. [LOS12] \C. Lecouvey, M. Okado, M. Shimozono.
        "Affine crystals, one-dimensional sums and parabolic Lusztig
        `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
        819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
@@ -576,7 +576,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
         REFERENCES:
 
-            .. [FOS2010] G. Fourier, M. Okado, A. Schilling.
+            .. [FOS2010] \G. Fourier, M. Okado, A. Schilling.
                Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types
                Contemp. Math. 506 (2010) 127-143 ( arXiv:0811.1604 [math.RT] )
 
@@ -3250,7 +3250,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
 
     REFERENCES:
 
-    .. [KMOY07] M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
+    .. [KMOY07] \M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
        *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
     """
     def __init__(self, ct, s):

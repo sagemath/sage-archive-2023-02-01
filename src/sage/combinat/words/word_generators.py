@@ -18,18 +18,18 @@ word, which provides a useful reference.
 
 REFERENCES:
 
-.. [AC03] B. Adamczewski, J. Cassaigne, On the transcendence of real
+.. [AC03] \B. Adamczewski, J. Cassaigne, On the transcendence of real
    numbers with a regular expansion, J. Number Theory 103 (2003)
    27--37.
 
-.. [BmBGL07] A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
+.. [BmBGL07] \A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
    critical exponent of generalized Thue-Morse words. *Discrete Math.
    Theor. Comput.  Sci.* 9 (1):293--304, 2007.
 
-.. [BmBGL09] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+.. [BmBGL09] \A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
    and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
 
-.. [Loth02] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+.. [Loth02] \M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
    Encyclopedia of Mathematics and its Applications, Cambridge
    University Press, U.K., 2002.
 
@@ -1257,10 +1257,10 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        .. [JP02] J. Justin, G. Pirillo, Episturmian words and episturmian
+        .. [JP02] \J. Justin, G. Pirillo, Episturmian words and episturmian
            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
 
-        .. [GJ07] A. Glen, J. Justin, Episturmian words: a survey, Preprint,
+        .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
            2007, arXiv:0801.1655.
         """
         if not isinstance(directive_word, Word_class):
@@ -1335,7 +1335,7 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        .. [BMP07] S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
+        .. [BMP07] \S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
            infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
            33--49.
         """

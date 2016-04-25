@@ -595,7 +595,7 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCE:
 
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
+        .. [Cremona] \J. E. Cremona, Algorithms for Modular Elliptic
            Curves.  Cambridge University Press, 1997.
 
         TESTS::

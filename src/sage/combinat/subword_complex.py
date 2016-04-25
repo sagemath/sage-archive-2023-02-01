@@ -468,13 +468,7 @@ class SubwordComplexFacet(Simplex, Element):
             pi = W.one()
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
-                # TODO: little hack to distinguish the implementations
-                #       for ReflectionGroups and CoxeterGroup
-                from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-                if isinstance(pi,PermutationGroupElement):
-                    V_weights.append( sum(fund_weight[j]*Phi[ (~pi)(j+1)-1 ] for j in range(len(fund_weight)) ) )
-                else:
-                    V_weights.append(pi * fund_weight)
+                V_weights.append(pi.act(fund_weight, side="right"))
                 if i not in self:
                     pi = pi.apply_simple_reflection_right(wi)
             if self._extended_weight_conf is None:

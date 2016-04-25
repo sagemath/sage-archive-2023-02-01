@@ -925,10 +925,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             TESTS::
 
-                sage: W = ReflectionGroup(['B',3])
-                sage: all( w.act(alpha,side="right") == w.act_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )
+                sage: W = ReflectionGroup(['B',3])                      # optional - gap3
+                sage: all( w.act(alpha,side="right") == w.act_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
                 True
-                sage: all( w.act(alpha,side="left") == w.act_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )
+                sage: all( w.act(alpha,side="left") == w.act_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )      # optional - gap3
                 True
             """
             W = self.parent()

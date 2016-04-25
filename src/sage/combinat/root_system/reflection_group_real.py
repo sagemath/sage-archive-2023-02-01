@@ -690,8 +690,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3])
-            sage: [W.simple_root_index(i) for i in W.index_set()]
+            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+            sage: [W.simple_root_index(i) for i in W.index_set()]       # optional - gap3
             [0, 1, 2]
         """
         return self._index_set_inverse[i]
@@ -955,14 +955,13 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',3])
-                sage: w = W.w0
-                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]
+                sage: W = ReflectionGroup(['A',3]); w = W.w0            # optional - gap3
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]    # optional - gap3
                 [8, 7, 6, 10, 9, 11, 2, 1, 0, 4, 3, 5]
 
-                sage: W = ReflectionGroup(['A',2],reflection_index_set=['A','B','C'])
-                sage: w = W.w0
-                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]
+                sage: W = ReflectionGroup(['A',2],reflection_index_set=['A','B','C'])   # optional - gap3
+                sage: w = W.w0                                          # optional - gap3
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]    # optional - gap3
                 [4, 3, 5, 1, 0, 2]
             """
             if side == "right":

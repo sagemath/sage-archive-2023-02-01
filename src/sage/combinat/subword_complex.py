@@ -145,7 +145,7 @@ class SubwordComplexFacet(Simplex, Element):
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)                # optional - gap3
-            sage: TestSuite(SC).run()
+            sage: TestSuite(SC).run()                                   # optional - gap3
         """
         if facet_test and positions not in parent:
             raise ValueError("The given iterable %s is not a facet of the %s" % (positions, parent))
@@ -1195,14 +1195,14 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3])       # optional - gap3
-            sage: w = W.from_reduced_word([2,3,2])
-            sage: SC = SubwordComplex([3,2,3,2,3], w)
-            sage: SC.is_ball()
+            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+            sage: w = W.from_reduced_word([2,3,2])                      # optional - gap3
+            sage: SC = SubwordComplex([3,2,3,2,3], w)                   # optional - gap3
+            sage: SC.is_ball()                                          # optional - gap3
             False
 
-            sage: SC = SubwordComplex([3,2,1,3,2,3], w)
-            sage: SC.is_ball()
+            sage: SC = SubwordComplex([3,2,1,3,2,3], w)                 # optional - gap3
+            sage: SC.is_ball()                                          # optional - gap3
             True
         """
         return not self.is_sphere()

@@ -56,23 +56,27 @@ The following example shows all these steps::
     sage: b1 = matrix([[1, 1.], [1., 1.]])
     sage: b2 = matrix([[2, 2.], [2., 2.]])
     sage: b3 = matrix([[3, 3.], [3., 3.]])
+    sage: c1 = matrix([[1.0, 0],[0,0]],sparse=True)
+    sage: c2 = matrix([[0.0, 0],[0,1]],sparse=True)
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+    sage: p.add_constraint(c1*x[0] + c2*x[1] >= matrix.zero(2,2,sparse=True))
     sage: p.solver_parameter("show_progress", True)
     sage: print 'Objective Value:', round(p.solve(),3)
     Objective Value:      pcost       dcost       gap    pres   dres   k/t
-    0: -3.00...
+    0: -1.24...
     ...
     Optimal solution found.
-    -3.0
+    -1.0
     sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
-    [-1.0, 2.0]
+    [0.0, 1.0]
     sage: p.show()
     Minimization:
       x_0 - x_1
     Constraints:
       constraint_0: [1.0 2.0][2.0 3.0]x_0 + [3.0 4.0][4.0 5.0]x_1 <=  [5.0 6.0][6.0 7.0]
       constraint_1: [1.0 1.0][1.0 1.0]x_0 + [2.0 2.0][2.0 2.0]x_1 <=  [3.0 3.0][3.0 3.0]
+      constraint_2: [-1.0  0.0][ 0.0  0.0]x_0 + [ 0.0  0.0][ 0.0 -1.0]x_1 <=  [0 0][0 0]
     Variables:
        x_0,  x_1
 

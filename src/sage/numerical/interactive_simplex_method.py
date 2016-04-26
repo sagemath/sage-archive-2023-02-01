@@ -3229,12 +3229,40 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
-    def row_coefficients(self):
+    def row_coefficients(self, v):
         r"""
-        Return the coefficients of a given row of the matrix A
+        Return the coefficients of a basic variable
 
-        See :meth:`add_row` in :class:`LPDictionary`
-        and :class:`LPRevisedDictionary` for reference.
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_dictionary()
+            sage: D.row_coefficients("x1")
+            (1/10, -1/5)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(1)
+            (1/10, -1/5)
+
+        Or use variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x1)
+            (1/10, -1/5)
         """
         raise NotImplementedError
 
@@ -3843,7 +3871,7 @@ class LPDictionary(LPAbstractDictionary):
         if v is not None:
             v = variable(self.coordinate_ring(), v)
             if v not in self.basic_variables():
-                raise ValueError("leaving variable must be basic")
+                raise ValueError("variable must be basic")
         i = tuple(self.basic_variables()).index(v)
         return self._AbcvBNz[0][i]
 
@@ -4807,7 +4835,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         if v is not None:
             v = variable(self.coordinate_ring(), v)
             if v not in self.basic_variables():
-                raise ValueError("leaving variable must be basic")
+                raise ValueError("variable must be basic")
         i = tuple(self.basic_variables()).index(v)
         return self.B_inverse()[i] * self.A_N()
 

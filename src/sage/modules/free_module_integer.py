@@ -457,7 +457,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         .. NOTE::
 
-            If ``block_size == L.rank()`` where ``L`` is this latice, then
+            If ``block_size == L.rank()`` where ``L`` is this lattice, then
             this function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
         """
         basis = self.reduced_basis
@@ -624,7 +624,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()
 
-            count, length, vectors = qf._pari_().qfminim(0, None)
+            count, length, vectors = qf._pari_().qfminim()
             v = vectors.python().columns()[0]
             w = v*B
         elif algorithm == "fplll":

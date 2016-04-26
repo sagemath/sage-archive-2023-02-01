@@ -111,8 +111,8 @@ class GaloisGroup_v1(SageObject):
             PARI group [6, -1, 2, "S3"] of degree 3
             sage: P = H.permutation_group(); P  # optional - database_gap
             Transitive group number 2 of degree 3
-            sage: list(P)                       # optional
-            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+            sage: list(P)                       # optional - database_gap
+            [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
         """
         return self.__group
 
@@ -210,7 +210,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
 
         We test that a method inherited from PermutationGroup_generic returns
-        the right type of element (see trac #133)::
+        the right type of element (see :trac:`133`)::
 
             sage: phi = G.random_element()
             sage: type(phi)
@@ -562,9 +562,23 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: GaloisGroup_subgroup( G, [ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
             Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+
+        TESTS:
+
+        Check that :trac:`17664` is fixed::
+
+            sage: L.<c> = QuadraticField(-1)
+            sage: P = L.primes_above(5)[0]
+            sage: G = L.galois_group()
+            sage: H = G.decomposition_group(P)
+            sage: H.domain()
+            {1, 2}
+            sage: G.artin_symbol(P)
+            ()
         """
         #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
-        PermutationGroup_generic.__init__(self, elts, canonicalize = True)
+        PermutationGroup_generic.__init__(self, elts, canonicalize=True,
+                                          domain=ambient.domain())
         self._ambient = ambient
         self._number_field = ambient.number_field()
         self._galois_closure = ambient._galois_closure
@@ -635,7 +649,6 @@ class GaloisGroupElement(PermutationGroupElement):
         sage: G[4](G[4](G[4](v)))
         1/18*y^4
     """
-
     @cached_method
     def as_hom(self):
         r"""
@@ -648,9 +661,31 @@ class GaloisGroupElement(PermutationGroupElement):
             sage: G[1].as_hom()
             Ring endomorphism of Number Field in w with defining polynomial x^2 + 7
             Defn: w |--> -w
+
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: R.<x> = QQ[]
+            sage: f = 7/9*x^3 + 7/3*x^2 - 56*x + 123
+            sage: K.<a> = NumberField(f)
+            sage: G = K.galois_group()
+            sage: G[1].as_hom()
+            Ring endomorphism of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+              Defn: a |--> -7/15*a^2 - 18/5*a + 96/5
+            sage: prod(x - sigma(a) for sigma in G) == f.monic()
+            True
         """
-        L = self.parent().splitting_field()
-        a = L(self.parent()._pari_data.galoispermtopol(pari(self.domain()).Vecsmall()))
+        G = self.parent()
+        L = G.splitting_field()
+        # First compute the image of the standard generator of the
+        # PARI number field.
+        a = G._pari_data.galoispermtopol(pari(self.domain()).Vecsmall())
+        # Now convert this to a conjugate of the standard generator of
+        # the Sage number field.
+        P = L._pari_absolute_structure()[1].lift()
+        a = L(P(a.Mod(L.pari_polynomial('y'))))
         return L.hom(a, L)
 
     def __call__(self, x):
@@ -689,21 +724,6 @@ class GaloisGroupElement(PermutationGroupElement):
         gens = self.parent().number_field().ring_of_integers().ring_generators()
         w = [ (self(g) - g).valuation(P) for g in gens]
         return min(w)
-
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. For some bizarre reason, if you just let it
-        inherit the cmp routine from PermutationGroupElement, cmp(x, y) works
-        but sorting lists doesn't.
-
-        TEST::
-
-            sage: K.<a> = NumberField(x^6 + 40*x^3 + 1372);G = K.galois_group()
-            sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
-            [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
-        """
-        return PermutationGroupElement.__cmp__(self, other)
-
 
 
 # For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.

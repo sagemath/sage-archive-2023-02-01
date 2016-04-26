@@ -40,7 +40,7 @@ Reduction to finite field::
 
 Map from single variable polynomial ring::
 
-    sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+    sage: R.<x> = ZZ[]
     sage: phi = R.hom([2], GF(5))
     sage: phi
     Ring morphism:
@@ -346,15 +346,14 @@ TESTS::
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
-
 import ideal
-
 import homset
 
 def is_RingHomomorphism(phi):
@@ -416,7 +415,7 @@ cdef class RingMap_lift(RingMap):
 
     EXAMPLES::
 
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+        sage: R.<x,y> = QQ[]
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
@@ -1138,21 +1137,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    def __richcmp__(left, right, int op):
-        """
-        Used internally by the cmp method.
-
-        TESTS::
-
-            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: cmp(f,g)             # indirect doctest
-            1
-            sage: cmp(g,f)
-            -1
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -1175,6 +1160,14 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
 
             sage: loads(dumps(f2)) == f2
             True
+
+        ::
+
+            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
+            sage: cmp(f,g)             # indirect doctest
+            1
+            sage: cmp(g,f)
+            -1
 
         EXAMPLES:
 
@@ -1442,23 +1435,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
-    def __richcmp__(left, right, int op):
-        """
-        Used internally by the cmp method.
-
-        TESTS::
-
-            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: S.<z> = R[]
-            sage: fS = S.hom(f,S); gS = S.hom(g,S)
-            sage: cmp(fS,gS)   # indirect doctest
-            1
-            sage: cmp(gS,fS)   # indirect doctest
-            -1
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -1480,6 +1457,14 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
 
             sage: f1P == loads(dumps(f1P))
             True
+
+            sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
+            sage: S.<z> = R[]
+            sage: fS = S.hom(f,S); gS = S.hom(g,S)
+            sage: cmp(fS,gS)   # indirect doctest
+            1
+            sage: cmp(gS,fS)   # indirect doctest
+            -1
 
         EXAMPLES:
 
@@ -1616,12 +1601,12 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f(-5)                 # indirect doctest
             1
 
-        TESTS::
+        TESTS:
 
         We verify that calling directly raises the expected error
         (just coercing into the codomain), but calling with __call__
         (the second call below) gives a TypeError since 1/2 can't be
-        coerced into the domain.
+        coerced into the domain. ::
 
             sage: f._call_(1/2)
             Traceback (most recent call last):
@@ -1948,9 +1933,9 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             sage: FrobeniusEndomorphism_generic(K, 2)
             Frobenius endomorphism x |--> x^(5^2) of Power Series Ring in u over Finite Field of size 5
         """
-        from commutative_ring import is_CommutativeRing
+        from .ring import CommutativeRing
         from sage.categories.homset import Hom
-        if not is_CommutativeRing(domain):
+        if not isinstance(domain, CommutativeRing):
             raise TypeError("The base ring must be a commutative ring")
         self._p = domain.characteristic()
         if not self._p.is_prime():
@@ -2110,10 +2095,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

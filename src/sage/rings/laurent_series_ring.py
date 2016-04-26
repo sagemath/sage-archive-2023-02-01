@@ -23,14 +23,9 @@ import weakref
 import laurent_series_ring_element
 import power_series_ring
 import polynomial
-import commutative_ring
-import integral_domain
-import ring
+from . import ring
 
-from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
-
-from sage.structure.category_object import check_default_category
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
@@ -113,9 +108,9 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
 
     if isinstance(base_ring, ring.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
+    elif isinstance(base_ring, ring.IntegralDomain):
         R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, commutative_ring.CommutativeRing):
+    elif isinstance(base_ring, ring.CommutativeRing):
         R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
         raise TypeError("base_ring must be a commutative ring")
@@ -133,13 +128,14 @@ def is_LaurentSeriesRing(x):
     """
     return isinstance(x, LaurentSeriesRing_generic)
 
-class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
+class LaurentSeriesRing_generic(ring.CommutativeRing):
     """
     Univariate Laurent Series Ring
 
     EXAMPLES::
 
-        sage: K, q = LaurentSeriesRing(CC, 'q').objgen(); K
+        sage: K = LaurentSeriesRing(CC, 'q')
+        sage: K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
         True
@@ -170,7 +166,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: 1 / (q-q^2)
             q^-1 + 1 + q + q^2 + O(q^3)
         """
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, 
+        ring.CommutativeRing.__init__(self, base_ring, names=name,
                                                   category=getattr(self, '_default_category', Fields()))
         self._polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing(self.base_ring(),
                                                                                       self.variable_name(),
@@ -330,19 +326,19 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             See http://trac.sagemath.org/16201 for details.
             sage: L(pari('1/x'))
             q^-1
-            sage: L(pari('poltchebi(5)'))
+            sage: L(pari('polchebyshev(5)'))
             5*q - 20*q^3 + 16*q^5
-            sage: L(pari('poltchebi(5) - 1/x^4'))
+            sage: L(pari('polchebyshev(5) - 1/x^4'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5
-            sage: L(pari('1/poltchebi(5)'))
+            sage: L(pari('1/polchebyshev(5)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + O(q^9)
-            sage: L(pari('poltchebi(5) + O(x^40)'))
+            sage: L(pari('polchebyshev(5) + O(x^40)'))
             5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('poltchebi(5) - 1/x^4 + O(x^40)'))
+            sage: L(pari('polchebyshev(5) - 1/x^4 + O(x^40)'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'))
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + 8192/125*q^9 + O(q^10)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'), -10)  # Multiply by q^-10
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'), -10)  # Multiply by q^-10
             1/5*q^-11 + 4/5*q^-9 + 64/25*q^-7 + 192/25*q^-5 + 2816/125*q^-3 + 8192/125*q^-1 + O(1)
             sage: L(pari('O(x^-10)'))
             O(q^-10)
@@ -594,13 +590,13 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         Return a uniformizer of this Laurent series field if it is
         a discrete valuation field (i.e. if the base ring is actually
         a field). Otherwise, an error is raised.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: R.uniformizer()
             t
-                 
+
             sage: R.<t> = LaurentSeriesRing(ZZ)
             sage: R.uniformizer()
             Traceback (most recent call last):
@@ -668,7 +664,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         return self._power_series_ring
 
-class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
+class LaurentSeriesRing_domain(LaurentSeriesRing_generic, ring.IntegralDomain):
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
@@ -691,4 +687,3 @@ class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
             sage: TestSuite(LaurentSeriesRing(QQ,'t')).run()
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
-

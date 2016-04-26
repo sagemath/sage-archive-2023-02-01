@@ -18,12 +18,13 @@ REFERENCES:
 cdef extern from "limits.h":
     cdef int INT_MAX
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 # from networkx import MultiGraph
 
 from sage.graphs.graph import Graph
 from sage.graphs.base.sparse_graph cimport SparseGraph
+from sage.graphs.base.sparse_graph cimport SparseGraphBackend
 
 cdef class TreeIterator:
     r"""
@@ -84,10 +85,10 @@ cdef class TreeIterator:
             sage: t = None # indirect doctest
         """
         if self.l != NULL:
-            sage_free(self.l)
+            sig_free(self.l)
             self.l = NULL
         if self.current_level_sequence != NULL:
-            sage_free(self.current_level_sequence)
+            sig_free(self.current_level_sequence)
             self.current_level_sequence = NULL
 
     def __str__(self):
@@ -145,8 +146,8 @@ cdef class TreeIterator:
                 self.first_time = 0
                 self.q = 0
             else:
-                self.l = <int *>sage_malloc(self.vertices * sizeof(int))
-                self.current_level_sequence = <int *>sage_malloc(self.vertices * sizeof(int))
+                self.l = <int *>sig_malloc(self.vertices * sizeof(int))
+                self.current_level_sequence = <int *>sig_malloc(self.vertices * sizeof(int))
 
                 if self.l == NULL or self.current_level_sequence == NULL:
                     raise MemoryError
@@ -177,7 +178,7 @@ cdef class TreeIterator:
         # though it is twice as fast (for our purposes) as networkx.
 
         G = Graph(self.vertices, implementation='c_graph', sparse=True)
-        cdef SparseGraph SG = <SparseGraph> G._backend._cg
+        cdef SparseGraph SG = (<SparseGraphBackend?> G._backend)._cg
 
         for i from 2 <= i <= self.vertices:
             vertex1 = i - 1

@@ -119,8 +119,8 @@ from weakref import KeyedRef
 from copy import deepcopy
 
 from cpython.dict cimport *
-from cpython.weakref cimport *
-from cpython.list cimport *
+from cpython.weakref cimport PyWeakref_NewRef
+from cpython.list cimport PyList_New
 from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
 
@@ -490,11 +490,6 @@ cdef class WeakValueDictionary(dict):
         ....:     assert D1 == D2
 
     """
-    cdef __weakref__
-    cdef callback
-    cdef int _guard_level
-    cdef list _pending_removals
-
     def __init__(self, data=()):
         """
         Create a :class:`WeakValueDictionary` with given initial data.
@@ -1236,7 +1231,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k
@@ -1263,7 +1258,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k

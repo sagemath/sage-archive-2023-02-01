@@ -35,7 +35,6 @@ import sage.rings.integer_ring as integer_ring
 from sage.rings.integer import Integer
 from sage.libs.pari.all import pari, pari_gen
 from sage.rings.finite_rings.element_base import FinitePolyExtElement
-import sage.rings.field_element as field_element
 import sage.rings.finite_rings.integer_mod as integer_mod
 from element_base import is_FiniteFieldElement
 from sage.modules.free_module_element import FreeModuleElement
@@ -221,7 +220,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: K(0)._pari_().type()
             't_POLMOD'
         """
-        field_element.FieldElement.__init__(self, parent)
+        element.FieldElement.__init__(self, parent)
         self.__class__ = dynamic_FiniteField_ext_pariElement
 
         # If value_from_pari is True, directly set self.__value to value.

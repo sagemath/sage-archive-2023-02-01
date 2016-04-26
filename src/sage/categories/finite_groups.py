@@ -9,6 +9,8 @@ FiniteGroups
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class FiniteGroups(CategoryWithAxiom):
     r"""
@@ -115,9 +117,9 @@ class FiniteGroups(CategoryWithAxiom):
 
                 sage: A = AlternatingGroup(4)
                 sage: A.some_elements()
-                [(2,3,4), (1,2,3)]
+                Family ((2,3,4), (1,2,3))
             """
-            return self.gens()
+            return self.group_generators()
 
         # TODO: merge with that of finite semigroups
         def cayley_graph_disabled(self, connecting_set=None):
@@ -130,7 +132,7 @@ class FiniteGroups(CategoryWithAxiom):
             - Robert Miller (2008-05-01): editing
             """
             if connecting_set is None:
-                connecting_set = self.gens()
+                connecting_set = self.group_generators()
             else:
                 for g in connecting_set:
                     if not g in self:
@@ -183,3 +185,29 @@ class FiniteGroups(CategoryWithAxiom):
     class ElementMethods:
         pass
 
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            r"""
+            Implement Maschke's theorem.
+
+            In characteristic 0 all finite group algebras are semisimple.
+
+            EXAMPLES::
+
+                sage: FiniteGroups().Algebras(QQ).is_subcategory(Algebras(QQ).Semisimple())
+                True
+                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(Algebras(QQ).Semisimple())
+                False
+                sage: FiniteGroups().Algebras(ZZ).is_subcategory(Algebras(ZZ).Semisimple())
+                False
+                sage: FiniteGroups().Algebras(Fields()).is_subcategory(Algebras(Fields()).Semisimple())
+                False
+            """
+            from sage.categories.fields import Fields
+            K = self.base_ring()
+            if (K in Fields) and K.characteristic() == 0:
+                from sage.categories.algebras import Algebras
+                return [Algebras(self.base_ring()).Semisimple()]
+            else:
+                return []

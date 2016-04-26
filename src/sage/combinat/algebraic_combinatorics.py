@@ -34,8 +34,7 @@ Combinatorial Hopf Algebras
 Groups and Algebras
 -------------------
 
-.. TODO:: add link to the catalog of algebras when it exists
-
+- :ref:`Catalog of algebras <sage.algebras.catalog>`
 - :ref:`Groups <sage.groups.groups_catalog>`
 - :class:`SymmetricGroup`, :class:`CoxeterGroup`, :class:`WeylGroup`
 - :class:`~sage.combinat.diagram_algebras.PartitionAlgebra`
@@ -57,4 +56,9 @@ Combinatorial Representation Theory
 - :class:`~sage.combinat.symmetric_group_representations.SymmetricGroupRepresentation`
 - :ref:`sage.combinat.yang_baxter_graph`
 - :ref:`sage.combinat.hall_polynomial`
+
+Operads and their algebras
+--------------------------
+
+- :ref:`sage.combinat.free_prelie_algebra`
 """

@@ -9,17 +9,12 @@ quaternion algebras and quaternion algebras over number fields.
 
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -27,7 +22,6 @@ from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, 
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
-from sage.rings.arith import lcm
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
@@ -36,7 +30,7 @@ from sage.matrix.all import matrix
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.libs.ntl.ntl_ZZ_decl cimport mpz_to_ZZ, ZZ_to_mpz
+from sage.libs.ntl.convert cimport mpz_to_ZZ, ZZ_to_mpz
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *
@@ -219,7 +213,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: int(A(-3))
             -3
             sage: int(A(-3/2))
-            -2
+            -1
             sage: int(-3 + i)
             Traceback (most recent call last):
             ...
@@ -240,7 +234,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: long(A(-3))
             -3L
             sage: long(A(-3/2))
-            -2L
+            -1L
             sage: long(-3 + i)
             Traceback (most recent call last):
             ...
@@ -371,7 +365,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-    cdef int _cmp_c_impl(self, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(self, sage.structure.element.Element right) except -2:
         """
         Comparing elements.
 
@@ -491,7 +485,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/theta == theta.conjugate()/theta.reduced_norm()
             True
         """
-        return self.reduced_norm().__invert__() * self.conjugate()
+        return ~self.reduced_norm() * self.conjugate()
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -536,7 +530,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: theta._div_(theta) == 1
             True
         """
-        return self * right.__invert__()
+        return self * ~right
 
     def reduced_characteristic_polynomial(self, var='x'):
         """
@@ -623,7 +617,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             v = [(self*a).coefficient_tuple() for a in self._parent.basis()]
         else:
             raise ValueError, "action must be either 'left' or 'right'"
-        return matrix(self.base_ring(), 4, v, check=False)
+        return matrix(self.base_ring(), 4, v)
 
     def coefficient_tuple(self):
         """
@@ -924,7 +918,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
         return bool(mpz_sgn(self.x) or mpz_sgn(self.y) or mpz_sgn(self.z) or mpz_sgn(self.w))
 
-    cdef int _cmp_c_impl(self, sage.structure.element.Element _right) except -2:
+    cpdef int _cmp_(self, sage.structure.element.Element _right) except -2:
         """
         Compare two quaternions.  The comparison is fairly arbitrary
         -- first the denominators are compared and if equal then each

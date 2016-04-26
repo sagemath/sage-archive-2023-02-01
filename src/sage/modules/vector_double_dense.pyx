@@ -1,6 +1,8 @@
 r"""
-Dense vectors using a NumPy backend.  This serves as a base class for
-dense vectors over Real Double Field and Complex Double Field
+Dense vectors using a NumPy backend.
+
+This serves as a base class for dense vectors over Real Double Field and
+Complex Double Field
 
 EXAMPLES::
 
@@ -24,7 +26,7 @@ EXAMPLES::
 AUTHORS:
 
 - Jason Grout, Oct 2008: switch to numpy backend, factored out
-       Vector_double_dense class
+  ``Vector_double_dense`` class
 - Josh Kantor
 - William Stein
 """
@@ -752,9 +754,9 @@ cdef class Vector_double_dense(FreeModuleElement):
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
-            sage: v.stats_kurtosis()
+            sage: v.stats_kurtosis()  # rel tol 5e-16
             -1.2300000000000002
-            sage: w.stats_kurtosis()
+            sage: w.stats_kurtosis()  # rel tol 5e-16
             -1.2300000000000002
         """
         import scipy.stats

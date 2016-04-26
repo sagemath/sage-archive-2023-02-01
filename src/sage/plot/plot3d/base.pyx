@@ -29,8 +29,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from cpython.list cimport *
+from cpython.object cimport PyObject
 
 import os
 from functools import reduce
@@ -41,6 +41,8 @@ from cStringIO import StringIO
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL
 from sage.doctest import DOCTEST_MODE
+
+from sage.misc.fast_methods cimport hash_by_id
 
 from sage.modules.free_module_element import vector
 
@@ -70,7 +72,7 @@ cdef class Graphics3d(SageObject):
     def __cinit__(self):
         """
         The Cython constructor
-        
+
         EXAMPLES::
 
             sage: gfx = sage.plot.plot3d.base.Graphics3d()
@@ -78,7 +80,17 @@ cdef class Graphics3d(SageObject):
             {}
         """
         self._extra_kwds = dict()
-    
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import Graphics3d
+            sage: hash(Graphics3d()) # random
+            140658972348064
+        """
+        return hash_by_id(<void *> self)
+
     def _repr_(self):
         """
         Return a string representation.
@@ -116,9 +128,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -133,7 +142,7 @@ cdef class Graphics3d(SageObject):
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            return self._rich_repr_jmol(**kwds)
+            return self._rich_repr_jmol(**opts)
         elif viewer == 'tachyon':
             preferred = (
                 types.OutputImagePng,
@@ -142,11 +151,11 @@ cdef class Graphics3d(SageObject):
             )
             for output_container in preferred:
                 if output_container in display_manager.supported_output():
-                    return self._rich_repr_tachyon(output_container, **kwds)
+                    return self._rich_repr_tachyon(output_container, **opts)
         elif viewer == 'canvas3d':
-            return self._rich_repr_canvas3d(**kwds)            
+            return self._rich_repr_canvas3d(**opts)
         elif viewer == 'wavefront':
-            return self._rich_repr_wavefront(**kwds)            
+            return self._rich_repr_wavefront(**opts)
         else:
             assert False   # unreachable
 
@@ -167,7 +176,7 @@ cdef class Graphics3d(SageObject):
 
         Instance of
         :class:`~sage.repl.rich_output.output_graphics.OutputImagePng`,
-        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or 
+        :class:`~sage.repl.rich_output.output_graphics.OutputImageGif`, or
         :class:`~sage.repl.rich_output.output_graphics.OutputImageJpg`.
 
         EXAMPLES::
@@ -238,20 +247,27 @@ cdef class Graphics3d(SageObject):
             opts['aspect_ratio'],
             zoom,
         )
-        T.export_jmol(scene_zip, zoom=zoom*100, **kwds)
+        T.export_jmol(scene_zip, **opts)
         from sage.interfaces.jmoldata import JmolData
         jdata = JmolData()
         if not jdata.is_jvm_available():
             # We can only use JMol to generate preview if a jvm is installed
             from sage.repl.rich_output.output_graphics import OutputImagePng
-            tachyon = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            tachyon = self._rich_repr_tachyon(OutputImagePng, **opts)
             tachyon.png.save_as(preview_png)
         else:
             # Java needs absolute paths
-            script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip
+            # On cygwin, they should be native ones
+            scene_native = scene_zip
+            import sys
+            if sys.platform == 'cygwin':
+                from subprocess import check_output, STDOUT
+                scene_native = check_output(['cygpath', '-w', scene_native],
+                                            stderr=STDOUT).rstrip()
+            script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
-                               figsize=opts['figsize'])
+                               figsize=opts['figsize'][0])
         from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
         from sage.repl.rich_output.buffer import OutputBuffer
         scene_zip     = OutputBuffer.from_file(scene_zip)
@@ -821,7 +837,7 @@ end_scene""" % (render_params.antialiasing,
         return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
-                    zoom=100, spin=False, background=(1,1,1), stereo=False,
+                    zoom=1, spin=False, background=(1,1,1), stereo=False,
                     mesh=False, dots=False,
                     perspective_depth = True,
                     orientation = (-764,-346,-545,76.39), **ignored_kwds):
@@ -916,7 +932,7 @@ end_scene""" % (render_params.antialiasing,
             f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
         f.write('centerAt absolute {0 0 0}\n')
-        f.write('zoom %s\n'%zoom)
+        f.write('zoom {0}\n'.format(zoom * 100))
         f.write('frank OFF\n') # jmol logo
 
         if perspective_depth:
@@ -1278,8 +1294,6 @@ end_scene""" % (render_params.antialiasing,
 
            * 'tachyon': Ray tracer generates a static PNG image
 
-           * 'java3d': Interactive OpenGL based 3D
-
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
 
@@ -1367,7 +1381,7 @@ end_scene""" % (render_params.antialiasing,
     def _save_image_png(self, filename, **kwds):
         r"""
         Save a PNG rendering.
-        
+
         This private method is only for use by :meth:`save_image`.
 
         EXAMPLES::
@@ -1388,10 +1402,10 @@ end_scene""" % (render_params.antialiasing,
         viewer = opts['viewer']
         if viewer == 'tachyon':
             from sage.repl.rich_output.output_catalog import OutputImagePng
-            render = self._rich_repr_tachyon(OutputImagePng, **kwds)
+            render = self._rich_repr_tachyon(OutputImagePng, **opts)
             render.png.save_as(filename)
         elif viewer == 'jmol':
-            scene = self._rich_repr_jmol(**kwds)
+            scene = self._rich_repr_jmol(**opts)
             scene.preview_png.save_as(filename)
         else:
             raise ValueError('cannot use viewer={0} to render image'.format(viewer))
@@ -1423,7 +1437,8 @@ end_scene""" % (render_params.antialiasing,
             sage: assert open(gif).read().startswith('GIF')
         """
         ext = os.path.splitext(filename)[1].lower()
-        if ext not in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
+        if ext not in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
+                       '.jpg', '.jpeg']:
             raise ValueError('unknown image file type: {0}'.format(ext))
         if ext == '.png':
             self._save_image_png(filename, **kwds)
@@ -1435,11 +1450,22 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
-        Save to file.
+        Save the graphic in a file.
 
-        Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
-        rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
-        later) depending on the file extension you give the filename.
+        The file type depends on the file extension you give in the
+        filename. This can be either:
+
+        - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered
+          using Tachyon,
+
+        - a Sage object file (of type ``.sobj``) that you can load back later
+          (a pickle),
+
+        - a data file (of type: X3D, STL, AMF, PLY) for export and use in
+          other software.
+
+        For data files, the support is only partial. For instance STL and
+        AMF only works for triangulated surfaces. The prefered format is X3D.
 
         INPUT:
 
@@ -1454,7 +1480,7 @@ end_scene""" % (render_params.antialiasing,
 
         EXAMPLES::
 
-            sage: f = tmp_filename() + '.png'
+            sage: f = tmp_filename(ext='.png')
             sage: G = sphere()
             sage: G.save(f)
 
@@ -1472,28 +1498,253 @@ end_scene""" % (render_params.antialiasing,
         alternate formats::
 
             sage: cube().save(tmp_filename(ext='.gif'))
+
+        Here is how to save in one of the data formats::
+
+            sage: f = tmp_filename(ext='.x3d')
+            sage: cube().save(f)
+
+            sage: open(f).read().splitlines()[7]
+            "<Shape><Box size='0.5 0.5 0.5'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>"
         """
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
-        elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
+        elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
+                     '.jpg', '.jpeg']:
             self.save_image(filename)
         elif filename.endswith('.spt.zip'):
             scene = self._rich_repr_jmol(**kwds)
             scene.jmol.save(filename)
+        elif ext == '.x3d':
+            outfile = file(filename, 'w')
+            outfile.write(self.x3d())
+            outfile.close()
+        elif ext == '.stl':
+            outfile = file(filename, 'w')
+            outfile.write(self.stl_ascii_string())
+            outfile.close()
+        elif ext == '.amf':
+            # todo : zip the output file ?
+            outfile = file(filename, 'w')
+            outfile.write(self.amf_ascii_string())
+            outfile.close()
+        elif ext == '.ply':
+            outfile = file(filename, 'w')
+            outfile.write(self.ply_ascii_string())
+            outfile.close()
         else:
-            raise ValueError('filetype not supported by save()')
+            raise ValueError('filetype {} not supported by save()'.format(ext))
+
+    def stl_ascii_string(self, name="surface"):
+        """
+        Return an STL (STereoLithography) representation of the surface.
+
+        .. WARNING::
+
+            This only works for triangulated surfaces!
+
+        INPUT:
+
+        - ``name`` (string, default: "surface") -- name of the surface.
+
+        OUTPUT:
+
+        A string that represents the surface in the STL format.
+
+        See :wikipedia:`STL_(file_format)`
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: astl = a.stl_ascii_string()
+            sage: astl.splitlines()[:7]
+            ['solid surface',
+            'facet normal 0.973328526785 -0.162221421131 -0.162221421131',
+            '    outer loop',
+            '        vertex 2.94871794872 -0.384615384615 -0.39358974359',
+            '        vertex 2.95021367521 -0.384615384615 -0.384615384615',
+            '        vertex 2.94871794872 -0.39358974359 -0.384615384615',
+            '    endloop']
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.stl_ascii_string(name='triangle')
+            solid triangle
+            facet normal 0.0 0.832050294338 -0.554700196225
+                outer loop
+                    vertex 0.0 0.0 0.0
+                    vertex 1.0 2.0 3.0
+                    vertex 3.0 0.0 0.0
+                endloop
+            endfacet
+            endsolid triangle
+        """
+        from sage.modules.free_module import FreeModule
+        RR3 = FreeModule(RDF, 3)
+
+        faces = self.face_list()
+        if not faces:
+            self.triangulate()
+            faces = self.face_list()
+
+        if len(faces[0]) > 3:
+            raise ValueError('not made of triangles')
+
+        code = ("facet normal {} {} {}\n"
+                "    outer loop\n"
+                "        vertex {} {} {}\n"
+                "        vertex {} {} {}\n"
+                "        vertex {} {} {}\n"
+                "    endloop\n"
+                "endfacet\n")
+
+        string_list = ["solid {}\n".format(name)]
+        for i, j, k in faces:
+            ij = RR3(j) - RR3(i)
+            ik = RR3(k) - RR3(i)
+            n = ij.cross_product(ik)
+            n = n / n.norm()
+            string_list += [code.format(n[0], n[1], n[2],
+                                        i[0], i[1], i[2],
+                                        j[0], j[1], j[2],
+                                        k[0], k[1], k[2])]
+        string_list += ["endsolid {}".format(name)]
+        return "".join(string_list)
+
+    def ply_ascii_string(self, name="surface"):
+        """
+        Return a PLY (Polygon File Format) representation of the surface.
+
+        INPUT:
+
+        - ``name`` (string, default: "surface") -- name of the surface.
+
+        OUTPUT:
+
+        A string that represents the surface in the PLY format.
+
+        See :wikipedia:`PLY_(file_format)`
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: astl = a.ply_ascii_string()
+            sage: astl.splitlines()[:10]
+            ['ply',
+            'format ascii 1.0',
+            'comment surface',
+            'element vertex 15540',
+            'property float x',
+            'property float y',
+            'property float z',
+            'element face 5180',
+            'property list uchar int vertex_indices',
+            'end_header']
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.ply_ascii_string(name='triangle')
+            ply
+            format ascii 1.0
+            comment triangle
+            element vertex 3
+            property float x
+            property float y
+            property float z
+            element face 1
+            property list uchar int vertex_indices
+            end_header
+            0.0 0.0 0.0
+            1.0 2.0 3.0
+            3.0 0.0 0.0
+            3 0 1 2
+        """
+        faces = self.index_faces()
+        if not faces:
+            self.triangulate()
+            faces = self.index_faces()
+
+        string_list = ["ply\nformat ascii 1.0\ncomment {}\nelement vertex {}\nproperty float x\nproperty float y\nproperty float z\nelement face {}\nproperty list uchar int vertex_indices\nend_header\n".format(name, len(self.vertex_list()), len(faces))]
+
+        vertex_template = '{} {} {}\n'
+        for v in self.vertices():
+            string_list += [vertex_template.format(*v)]
+
+        for f in faces:
+            string_list += [str(len(f))
+                            + ''.join(' {}'.format(k) for k in f) + '\n']
+
+        return "".join(string_list)
+
+    def amf_ascii_string(self, name="surface"):
+        """
+        Return an AMF (Additive Manufacturing File Format) representation of
+        the surface.
+
+        .. WARNING::
+
+            This only works for triangulated surfaces!
+
+        INPUT:
+
+        - ``name`` (string, default: "surface") -- name of the surface.
+
+        OUTPUT:
+
+        A string that represents the surface in the AMF format.
+
+        See :wikipedia:`Additive_Manufacturing_File_Format`
+
+        .. TODO::
+
+            This should rather be saved as a ZIP archive to save space.
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: a_amf = a.amf_ascii_string()
+            sage: a_amf[:160]
+            '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.94871794872</x><y>-0.384615384615</y><z>-0.39358974359'
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.amf_ascii_string(name='triangle')
+            <?xml version="1.0" encoding="utf-8"?><amf><object id="triangle"><mesh><vertices><vertex><coordinates><x>0.0</x><y>0.0</y><z>0.0</z></coordinates></vertex><vertex><coordinates><x>1.0</x><y>2.0</y><z>3.0</z></coordinates></vertex><vertex><coordinates><x>3.0</x><y>0.0</y><z>0.0</z></coordinates></vertex></vertices><volume><triangle><v1>0</v1><v2>1</v2><v3>2</v3></triangle></volume></mesh></object></amf>
+        """
+        faces = self.index_faces()
+        if not faces:
+            self.triangulate()
+            faces = self.index_faces()
+
+        if len(faces[0]) > 3:
+            raise ValueError('not made of triangles')
+
+        string_list = ['<?xml version="1.0" encoding="utf-8"?><amf><object id="{}"><mesh>'.format(name)]
+
+        string_list += ['<vertices>']
+        vertex_template = '<vertex><coordinates><x>{}</x><y>{}</y><z>{}</z></coordinates></vertex>'
+        for v in self.vertices():
+            string_list += [vertex_template.format(*v)]
+        string_list += ['</vertices><volume>']
+
+        face_template = '<triangle><v1>{}</v1><v2>{}</v2><v3>{}</v3></triangle>'
+        for i, j, k in faces:
+            string_list += face_template.format(i, j, k)
+
+        string_list += ['</volume></mesh></object></amf>']
+        return "".join(string_list)
 
 
 # if you add any default parameters you must update some code below
-SHOW_DEFAULTS = {'viewer':'jmol',
-                 'verbosity':0,
-                 'figsize':5,
-                 'aspect_ratio':"automatic",
-                 'frame_aspect_ratio':"automatic",
-                 'zoom':1,
-                 'frame':True,
-                 'axes':False}
+SHOW_DEFAULTS = {'viewer': 'jmol',
+                 'verbosity': 0,
+                 'figsize': 5,
+                 'aspect_ratio': "automatic",
+                 'frame_aspect_ratio': "automatic",
+                 'zoom': 1,
+                 'frame': True,
+                 'axes': False}
 
 
 class Graphics3dGroup(Graphics3d):
@@ -2321,7 +2572,7 @@ def flatten_list(L):
         sage: flatten_list([['a'], [[['b'], 'c'], ['d'], [[['e', 'f', 'g']]]]])
         ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     """
-    if not PyList_CheckExact(L):
+    if type(L) is not list:
         return [L]
     flat = []
     L_stack = []; L_pop = L_stack.pop
@@ -2330,7 +2581,7 @@ def flatten_list(L):
     while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
         while i < PyList_GET_SIZE(L):
             tmp = <object>PyList_GET_ITEM(L, i)
-            if PyList_CheckExact(tmp):
+            if type(tmp) is list:
                 PyList_Append(L_stack, L)
                 L = tmp
                 PyList_Append(i_stack, i)

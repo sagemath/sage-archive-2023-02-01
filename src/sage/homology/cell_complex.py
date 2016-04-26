@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Generic cell complexes
 
@@ -37,6 +38,8 @@ by developers producing new classes, not casual users.
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.misc.abstract_method import abstract_method
 
 class GenericCellComplex(SageObject):
     r"""
@@ -67,7 +70,7 @@ class GenericCellComplex(SageObject):
         sage: from sage.homology.cell_complex import GenericCellComplex
         sage: A = GenericCellComplex()
     """
-    def __cmp__(self,right):
+    def __eq__(self,right):
         """
         Comparisons of cell complexes are not implemented.
 
@@ -82,10 +85,26 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
+    def __ne__(self,right):
+        """
+        Comparisons of cell complexes are not implemented.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex(); B = GenericCellComplex()
+            sage: A != B # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
     ############################################################
     # self.cells() and related methods
     ############################################################
 
+    @abstract_method
     def cells(self, subcomplex=None):
         """
         The cells of this cell complex, in the form of a dictionary:
@@ -112,9 +131,8 @@ class GenericCellComplex(SageObject):
             sage: A.cells()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method cells at ...>
         """
-        raise NotImplementedError
 
     def dimension(self):
         """
@@ -229,6 +247,7 @@ class GenericCellComplex(SageObject):
     # end of methods using self.cells()
     ############################################################
 
+    @abstract_method
     def product(self, right, rename_vertices=True):
         """
         The (Cartesian) product of this cell complex with another one.
@@ -244,15 +263,15 @@ class GenericCellComplex(SageObject):
             sage: A.product(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method product at ...>
         """
-        raise NotImplementedError
 
+    @abstract_method
     def disjoint_union(self, right):
         """
-        The disjoint union of this simplicial complex with another one.
+        The disjoint union of this cell complex with another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Disjoint unions are not implemented for general cell complexes.
 
@@ -263,16 +282,16 @@ class GenericCellComplex(SageObject):
             sage: A.disjoint_union(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method disjoint_union at ...>
         """
-        raise NotImplementedError
 
+    @abstract_method
     def wedge(self, right):
         """
-        The wedge (one-point union) of this simplicial complex with
+        The wedge (one-point union) of this cell complex with
         another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Wedges are not implemented for general cell complexes.
 
@@ -283,19 +302,19 @@ class GenericCellComplex(SageObject):
             sage: A.wedge(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method wedge at ...>
         """
-        raise NotImplementedError
 
     ############################################################
     # self.join() and related methods
     ############################################################
 
+    @abstract_method
     def join(self, right, **kwds):
         """
         The join of this cell complex with another one.
 
-        :param right: the other simplicial complex (the right-hand factor)
+        :param right: the other cell complex (the right-hand factor)
 
         Joins are not implemented for general cell complexes.  They
         may be implemented in some derived classes (like simplicial
@@ -308,9 +327,8 @@ class GenericCellComplex(SageObject):
             sage: A.join(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method join at ...>
         """
-        raise NotImplementedError
 
     # for some classes, you may want * to mean join:
     ###
@@ -344,6 +362,7 @@ class GenericCellComplex(SageObject):
     # chain complexes, homology
     ############################################################
 
+    @abstract_method
     def chain_complex(self, **kwds):
         """
         This is not implemented for general cell complexes.
@@ -373,13 +392,12 @@ class GenericCellComplex(SageObject):
             sage: A.chain_complex()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method chain_complex at ...>
         """
-        raise NotImplementedError
 
     def homology(self, dim=None, **kwds):
         r"""
-        The reduced homology of this cell complex.
+        The (reduced) homology of this cell complex.
 
         :param dim: If None, then return the homology in every
            dimension.  If ``dim`` is an integer or list, return the
@@ -406,11 +424,13 @@ class GenericCellComplex(SageObject):
         :param verbose: If True, print some messages as the homology is
            computed.
         :type verbose: boolean; optional, default False
+        :param reduced: If ``True``, return the reduced homology.
+        :type reduced: boolean; optional, default ``True``
 
         .. note::
 
             The keyword arguments to this function get passed on to
-            :meth:``chain_complex`` and its homology.
+            :meth:`chain_complex` and its homology.
 
         ALGORITHM:
 
@@ -422,14 +442,14 @@ class GenericCellComplex(SageObject):
         CHomP computes homology, not cohomology, and only works over
         the integers or finite prime fields.  Therefore if any of
         these conditions fails, or if CHomP is not present, or if
-        ``algorithm`` is set to 'no_chomp', go to plan B: if ``self``
+        ``algorithm`` is set to 'no_chomp', go to plan B: if this complex
         has a ``_homology`` method -- each simplicial complex has
         this, for example -- then call that.  Such a method implements
         specialized algorithms for the particular type of cell
         complex.
 
         Otherwise, move on to plan C: compute the chain complex of
-        ``self`` and compute its homology groups.  To do this: over a
+        this complex and compute its homology groups.  To do this: over a
         field, just compute ranks and nullities, thus obtaining
         dimensions of the homology groups as vector spaces.  Over the
         integers, compute Smith normal form of the boundary matrices
@@ -455,6 +475,8 @@ class GenericCellComplex(SageObject):
             sage: P = delta_complexes.RealProjectivePlane()
             sage: P.homology()
             {0: 0, 1: C2, 2: 0}
+            sage: P.homology(reduced=False)
+            {0: Z, 1: C2, 2: 0}
             sage: P.homology(base_ring=GF(2))
             {0: Vector space of dimension 0 over Finite Field of size 2,
              1: Vector space of dimension 1 over Finite Field of size 2,
@@ -493,6 +515,7 @@ class GenericCellComplex(SageObject):
         subcomplex = kwds.pop('subcomplex', None)
         verbose = kwds.get('verbose', False)
         algorithm = kwds.get('algorithm', 'auto')
+        reduced = kwds.get('reduced', True)
 
         if dim is not None:
             if isinstance(dim, (list, tuple)):
@@ -536,7 +559,7 @@ class GenericCellComplex(SageObject):
         if hasattr(self, '_homology_'):
             return self._homology_(dim, subcomplex=subcomplex, **kwds)
 
-        C = self.chain_complex(cochain=cohomology, augmented=True,
+        C = self.chain_complex(cochain=cohomology, augmented=reduced,
                                dimensions=dims, subcomplex=subcomplex, **kwds)
         answer = C.homology(**kwds)
         if dim is None:
@@ -561,6 +584,7 @@ class GenericCellComplex(SageObject):
         :param subcomplex:
         :param algorithm:
         :param verbose:
+        :param reduced:
 
         EXAMPLES::
 
@@ -650,6 +674,313 @@ class GenericCellComplex(SageObject):
         except AttributeError:
             return H.dimension()
 
+    def is_acyclic(self, base_ring=ZZ):
+        """
+        True if the reduced homology with coefficients in ``base_ring`` of
+        this cell complex is zero.
+
+        INPUT:
+
+        - ``base_ring`` -- optional, default ``ZZ``. Compute homology
+          with coefficients in this ring.
+
+        EXAMPLES::
+
+            sage: RP2 = simplicial_complexes.RealProjectivePlane()
+            sage: RP2.is_acyclic()
+            False
+            sage: RP2.is_acyclic(QQ)
+            True
+
+        This first computes the Euler characteristic: if it is not 1,
+        the complex cannot be acyclic. So this should return ``False``
+        reasonably quickly on complexes with Euler characteristic not
+        equal to 1::
+
+            sage: K = cubical_complexes.KleinBottle()
+            sage: C = cubical_complexes.Cube(2)
+            sage: P = K.product(C)
+            sage: P
+            Cubical complex with 168 vertices and 1512 cubes
+            sage: P.euler_characteristic()
+            0
+            sage: P.is_acyclic()
+            False
+        """
+        if self.euler_characteristic() != 1:
+            return False
+        H = self.homology(base_ring=base_ring)
+        if base_ring == ZZ:
+            return all(len(x.invariants()) == 0 for x in H.values())
+        else:
+            # base_ring is a field.
+            return all(x.dimension() == 0 for x in H.values())
+
+    def n_chains(self, n, base_ring=None, cochains=False):
+        r"""
+        Return the free module of chains in degree ``n`` over ``base_ring``.
+
+        INPUT:
+
+        - ``n`` -- integer
+        - ``base_ring`` -- ring (optional, default `\ZZ`)
+        - ``cochains`` -- boolean (optional, default ``False``); if
+          ``True``, return cochains instead
+
+        The only difference between chains and cochains is
+        notation. In a simplicial complex, for example, a simplex
+        ``(0,1,2)`` is written as "(0,1,2)" in the group of chains but
+        as "\chi_(0,1,2)" in the group of cochains.
+
+        EXAMPLES::
+
+            sage: S2 = simplicial_complexes.Sphere(2)
+            sage: S2.n_chains(1, QQ)
+            Free module generated by {(2, 3), (0, 2), (1, 3), (1, 2), (0, 3), (0, 1)} over Rational Field
+            sage: list(simplicial_complexes.Sphere(2).n_chains(1, QQ, cochains=False).basis())
+            [(2, 3), (0, 2), (1, 3), (1, 2), (0, 3), (0, 1)]
+            sage: list(simplicial_complexes.Sphere(2).n_chains(1, QQ, cochains=True).basis())
+            [\chi_(2, 3), \chi_(0, 2), \chi_(1, 3), \chi_(1, 2), \chi_(0, 3), \chi_(0, 1)]
+        """
+        return Chains(tuple(self.n_cells(n)), base_ring, cochains)
+
+    def algebraic_topological_model(self, base_ring=None):
+        r"""
+        Algebraic topological model for this cell complex with
+        coefficients in ``base_ring``.
+
+        The term "algebraic topological model" is defined by Pilarczyk
+        and Réal [PR]_.
+
+        This is not implemented for generic cell complexes. For any
+        classes deriving from this one, when this method is
+        implemented, it should essentially just call either
+        :func:`~sage.homology.algebraic_topological_model.algebraic_topological_model`
+        or
+        :func:`~sage.homology.algebraic_topological_model.algebraic_topological_model_delta_complex`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex()
+            sage: A.algebraic_topological_model(QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def homology_with_basis(self, base_ring=None, cohomology=False):
+        r"""
+        Return the unreduced homology of this complex with
+        coefficients in ``base_ring`` with a chosen basis.
+
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
+
+        INPUT:
+
+        - ``base_ring`` -- coefficient ring (optional, default
+          ``QQ``); must be a field
+        - ``cohomology`` -- boolean (optional, default ``False``); if
+          ``True``, return cohomology instead of homology
+
+        Homology basis elements are named 'h_{dim,i}' where i ranges
+        between 0 and `r-1`, if `r` is the rank of the homology
+        group. Cohomology basis elements are denoted `h^{dim,i}`
+        instead.
+
+        .. SEEALSO::
+
+            If ``cohomology`` is ``True``, this returns the cohomology
+            as a graded module. For the ring structure, use
+            :meth:`cohomology_ring`.
+
+        EXAMPLES::
+
+            sage: K = simplicial_complexes.KleinBottle()
+            sage: H = K.homology_with_basis(QQ); H
+            Homology module of Minimal triangulation of the Klein bottle
+             over Rational Field
+            sage: sorted(H.basis(), key=str)
+            [h_{0,0}, h_{1,0}]
+            sage: H = K.homology_with_basis(GF(2)); H
+            Homology module of Minimal triangulation of the Klein bottle
+             over Finite Field of size 2
+            sage: sorted(H.basis(), key=str)
+            [h_{0,0}, h_{1,0}, h_{1,1}, h_{2,0}]
+
+        The homology is constructed as a graded object, so for
+        example, you can ask for the basis in a single degree::
+
+            sage: H.basis(1)
+            Finite family {(1, 0): h_{1,0}, (1, 1): h_{1,1}}
+            sage: S3 = delta_complexes.Sphere(3)
+            sage: H = S3.homology_with_basis(QQ, cohomology=True)
+            sage: list(H.basis(3))
+            [h^{3,0}]
+        """
+        from homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
+        if base_ring is None:
+            base_ring = QQ
+        return HomologyVectorSpaceWithBasis(base_ring, self, cohomology)
+
+    def cohomology_ring(self, base_ring=None):
+        r"""
+        Return the unreduced cohomology with coefficients in
+        ``base_ring`` with a chosen basis.
+
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
+        The resulting elements are suitable for computing cup
+        products. For simplicial complexes, they should be suitable
+        for computing cohomology operations; so far, only mod 2
+        cohomology operations have been implemented.
+
+        INPUT:
+
+        - ``base_ring`` -- coefficient ring (optional, default
+          ``QQ``); must be a field
+
+        The basis elements in dimension ``dim`` are named 'h^{dim,i}'
+        where `i` ranges between 0 and `r-1`, if `r` is the rank of
+        the cohomology group.
+
+        .. NOTE::
+
+            For all but the smallest complexes, this is likely to be
+            slower than :meth:`cohomology` (with field coefficients),
+            possibly by several orders of magnitute. This and its
+            companion :meth:`homology_with_basis` carry extra
+            information which allows computation of cup products, for
+            example, but because of speed issues, you may only wish to
+            use these if you need that extra information.
+
+        EXAMPLES::
+
+            sage: K = simplicial_complexes.KleinBottle()
+            sage: H = K.cohomology_ring(QQ); H
+            Cohomology ring of Minimal triangulation of the Klein bottle
+             over Rational Field
+            sage: sorted(H.basis(), key=str)
+            [h^{0,0}, h^{1,0}]
+            sage: H = K.cohomology_ring(GF(2)); H
+            Cohomology ring of Minimal triangulation of the Klein bottle
+             over Finite Field of size 2
+            sage: sorted(H.basis(), key=str)
+            [h^{0,0}, h^{1,0}, h^{1,1}, h^{2,0}]
+
+            sage: X = delta_complexes.SurfaceOfGenus(2)
+            sage: H = X.cohomology_ring(QQ); H
+            Cohomology ring of Delta complex with 3 vertices and 29 simplices
+             over Rational Field
+            sage: sorted(H.basis(1), key=str)
+            [h^{1,0}, h^{1,1}, h^{1,2}, h^{1,3}]
+
+            sage: H = simplicial_complexes.Torus().cohomology_ring(QQ); H
+            Cohomology ring of Minimal triangulation of the torus
+             over Rational Field
+            sage: x = H.basis()[1,0]; x
+            h^{1,0}
+            sage: y = H.basis()[1,1]; y
+            h^{1,1}
+
+        You can compute cup products of cohomology classes::
+
+            sage: x.cup_product(y)
+            h^{2,0}
+            sage: x * y # alternate notation
+            h^{2,0}
+            sage: y.cup_product(x)
+            -h^{2,0}
+            sage: x.cup_product(x)
+            0
+
+        Cohomology operations::
+
+            sage: RP2 = simplicial_complexes.RealProjectivePlane()
+            sage: K = RP2.suspension()
+            sage: K.set_immutable()
+            sage: y = K.cohomology_ring(GF(2)).basis()[2,0]; y
+            h^{2,0}
+            sage: y.Sq(1)
+            h^{3,0}
+
+        To compute the cohomology ring, the complex must be
+        "immutable". This is only relevant for simplicial complexes,
+        and most simplicial complexes are immutable, but certain
+        constructions make them mutable. The suspension is one
+        example, and this is the reason for calling
+        ``K.set_immutable()`` above. Another example::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: T = S1.product(S1)
+            sage: T.is_immutable()
+            False
+            sage: T.cohomology_ring()
+            Traceback (most recent call last):
+            ...
+            ValueError: This simplicial complex must be immutable. Call set_immutable().
+            sage: T.set_immutable()
+            sage: T.cohomology_ring()
+            Cohomology ring of Simplicial complex with 9 vertices and
+            18 facets over Rational Field
+        """
+        from homology_vector_space_with_basis import CohomologyRing
+        if base_ring is None:
+            base_ring = QQ
+        return CohomologyRing(base_ring, self)
+
+    @abstract_method
+    def alexander_whitney(self, cell, dim_left):
+        r"""
+        The decomposition of ``cell`` in this complex into left and right
+        factors, suitable for computing cup products. This should
+        provide a cellular approximation for the diagonal map `K \to K
+        \times K`.
+
+        This method is not implemented for generic cell complexes, but
+        must be implemented for any derived class to make cup products
+        work in ``self.cohomology_ring()``.
+
+        INPUT:
+
+        - ``cell`` -- a cell in this complex
+        - ``dim_left`` -- the dimension of the left-hand factors in
+          the decomposition
+
+        OUTPUT: a list containing triples ``(c, left, right)``.
+        ``left`` and ``right`` should be cells in this complex, and
+        ``c`` an integer. In the cellular approximation of the
+        diagonal map, the chain represented by ``cell`` should get
+        sent to the sum of terms `c (left \otimes right)` in the
+        tensor product `C(K) \otimes C(K)` of the chain complex for
+        this complex with itself.
+
+        This gets used in the method
+        :meth:`~sage.homology.homology_vector_space_with_basis.CohomologyRing.product_on_basis`
+        for the class of cohomology rings.
+
+        For simplicial and cubical complexes, the decomposition can be
+        done at the level of individual cells: see
+        :meth:`~sage.homology.simplicial_complex.Simplex.alexander_whitney`
+        and
+        :meth:`~sage.homology.cubical_complex.Cube.alexander_whitney`. Then
+        the method for simplicial complexes just calls the method for
+        individual simplices, and similarly for cubical complexes. For
+        `\Delta`-complexes, the method is instead defined at the level
+        of the cell complex.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex()
+            sage: A.alexander_whitney(None, 2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method alexander_whitney at ...>
+        """
+
     ############################################################
     # end of chain complexes, homology
     ############################################################
@@ -709,6 +1040,7 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
+    @abstract_method
     def n_skeleton(self, n):
         """
         The `n`-skeleton of this cell complex: the cell
@@ -726,9 +1058,8 @@ class GenericCellComplex(SageObject):
             sage: A.n_skeleton(3)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method n_skeleton at ...>
         """
-        raise NotImplementedError
 
     def _string_constants(self):
         """
@@ -784,3 +1115,133 @@ class GenericCellComplex(SageObject):
         else:
             cells_string = " and 1 %s" % cell_name
         return Name + " complex " + vertex_string + cells_string
+
+
+class Chains(CombinatorialFreeModule):
+    r"""
+    Class for the free module of chains and/or cochains in a given
+    degree.
+
+    INPUT:
+
+    - ``n_cells`` -- tuple of `n`-cells, which thus forms a basis for
+      this module
+    - ``base_ring`` -- optional (default `\ZZ`)
+    - ``cochains`` -- boolean (optional, default ``False``); if
+      ``True``, return cochains instead
+
+    One difference between chains and cochains is notation. In a
+    simplicial complex, for example, a simplex ``(0,1,2)`` is written
+    as "(0,1,2)" in the group of chains but as "\chi_(0,1,2)" in the
+    group of cochains.
+
+    Also, since the free modules of chains and cochains are dual,
+    there is a pairing `\langle c, z \rangle`, sending a cochain `c`
+    and a chain `z` to a scalar.
+
+    EXAMPLES::
+
+        sage: S2 = simplicial_complexes.Sphere(2)
+        sage: C_2 = S2.n_chains(1)
+        sage: C_2_co = S2.n_chains(1, cochains=True)
+        sage: x = C_2.basis()[Simplex((0,2))]
+        sage: y = C_2.basis()[Simplex((1,3))]
+        sage: z = x+2*y
+        sage: a = C_2_co.basis()[Simplex((1,3))]
+        sage: b = C_2_co.basis()[Simplex((0,3))]
+        sage: c = 3*a-2*b
+        sage: z
+        (0, 2) + 2*(1, 3)
+        sage: c
+        -2*\chi_(0, 3) + 3*\chi_(1, 3)
+        sage: c.eval(z)
+        6
+    """
+    def __init__(self, n_cells, base_ring=None, cochains=False):
+        """
+        EXAMPLES::
+
+            sage: T = cubical_complexes.Torus()
+            sage: T.n_chains(2, QQ)
+            Free module generated by {[1,1] x [0,1] x [1,1] x [0,1],
+             [0,0] x [0,1] x [0,1] x [1,1], [0,0] x [0,1] x [1,1] x [0,1],
+             [0,0] x [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1] x [0,0],
+             [0,1] x [0,0] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [0,0],
+             [0,1] x [1,1] x [0,0] x [0,1], [0,0] x [0,1] x [0,1] x [0,0],
+             [0,1] x [0,0] x [0,1] x [0,0], [0,1] x [0,0] x [1,1] x [0,1],
+             [0,1] x [1,1] x [1,1] x [0,1], [0,1] x [0,0] x [0,1] x [1,1],
+             [1,1] x [0,1] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [1,1],
+             [0,1] x [1,1] x [0,1] x [1,1]} over Rational Field
+            sage: T.n_chains(2).dimension()
+            16
+
+        TESTS::
+
+            sage: T.n_chains(2).base_ring()
+            Integer Ring
+            sage: T.n_chains(8).dimension()
+            0
+            sage: T.n_chains(-3).dimension()
+            0
+        """
+        if base_ring is None:
+            base_ring=ZZ
+        self._cochains = cochains
+        if cochains:
+            CombinatorialFreeModule.__init__(self, base_ring, n_cells,
+                                             prefix='\\chi', bracket=['_', ''])
+        else:
+            CombinatorialFreeModule.__init__(self, base_ring, n_cells,
+                                             prefix='', bracket=False)
+
+    class Element(CombinatorialFreeModuleElement):
+
+        def eval(self, other):
+            """
+            Evaluate this cochain on the chain ``other``.
+
+            INPUT:
+
+            - ``other`` -- a chain for the same cell complex in the
+              same dimension with the same base ring
+
+            OUTPUT: scalar
+
+            EXAMPLES::
+
+                sage: S2 = simplicial_complexes.Sphere(2)
+                sage: C_2 = S2.n_chains(1)
+                sage: C_2_co = S2.n_chains(1, cochains=True)
+                sage: x = C_2.basis()[Simplex((0,2))]
+                sage: y = C_2.basis()[Simplex((1,3))]
+                sage: z = x+2*y
+                sage: a = C_2_co.basis()[Simplex((1,3))]
+                sage: b = C_2_co.basis()[Simplex((0,3))]
+                sage: c = 3*a-2*b
+                sage: z
+                (0, 2) + 2*(1, 3)
+                sage: c
+                -2*\chi_(0, 3) + 3*\chi_(1, 3)
+                sage: c.eval(z)
+                6
+
+            TESTS::
+
+                sage: z.eval(c) # z is not a cochain
+                Traceback (most recent call last):
+                ...
+                ValueError: this element is not a cochain
+                sage: c.eval(c) # can't evaluate a cochain on a cochain
+                Traceback (most recent call last):
+                ...
+                ValueError: the elements are not compatible
+            """
+            if not self.parent()._cochains:
+                raise ValueError('this element is not a cochain')
+            if not (other.parent().indices() == self.parent().indices()
+                    and other.base_ring() == self.base_ring()
+                    and not other.parent()._cochains):
+                raise ValueError('the elements are not compatible')
+            result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
+            return result
+

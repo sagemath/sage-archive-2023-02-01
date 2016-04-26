@@ -47,7 +47,7 @@ def pari_share():
     return os.path.join(SAGE_LOCAL, "share", "pari")
 
 paren_re = re.compile(r"[(](.*)[)]")
-argname_re = re.compile(r"[ {]*([A-Za-z0-9_]+)")
+argname_re = re.compile(r"[ {]*([A-Za-z_][A-Za-z0-9_]*)")
 
 def read_pari_desc():
     """
@@ -101,7 +101,7 @@ decl_re = re.compile(" ([A-Za-z][A-Za-z0-9_]*)[(]")
 
 def read_decl():
     """
-    Read the files ``decl.pxi`` and ``declinl.pxi`` and return a set
+    Read the files ``paridecl.pxd`` and ``declinl.pxi`` and return a set
     of all declared PARI library functions.
 
     We do a simple regexp search, so there might be false positives.
@@ -111,10 +111,10 @@ def read_decl():
 
         sage: from sage_setup.autogen.pari.parser import read_decl
         sage: read_decl()
-        {'ABC_to_bnr', ..., 'zx_to_ZX'}
+        {'ABC_to_bnr', ..., 'zx_to_zv'}
     """
     s = set()
-    with open(os.path.join(sage_src_pari(), "decl.pxi")) as f:
+    with open(os.path.join(sage_src_pari(), "paridecl.pxd")) as f:
         s.update(decl_re.findall(f.read()))
     with open(os.path.join(sage_src_pari(), "declinl.pxi")) as f:
         s.update(decl_re.findall(f.read()))

@@ -1,4 +1,6 @@
-cdef extern from 'interrupt.h':
-    int pari_catch_sig_on "sig_on"() except 0
-    int pari_catch_sig_str "sig_str"(char *) except 0
-    void pari_catch_sig_off "sig_off"()
+from sage.misc.superseded import deprecation
+deprecation(20213, '''the file "pari_err.pxi" is deprecated, use sig_on instead of pari_catch_sig_on''')
+
+from cysignals.signals cimport sig_on as pari_catch_sig_on
+from cysignals.signals cimport sig_str as pari_catch_sig_str
+from cysignals.signals cimport sig_off as pari_catch_sig_off

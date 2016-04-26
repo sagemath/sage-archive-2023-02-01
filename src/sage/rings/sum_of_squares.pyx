@@ -1,4 +1,6 @@
 r"""
+Fast decomposition of small integers into sums of squares
+
 Implement fast version of decomposition of (small) integers into sum of squares
 by direct method not relying on factorisation.
 
@@ -16,9 +18,9 @@ AUTHORS:
 #*****************************************************************************
 
 from libc.math cimport sqrt
-from libc.stdint cimport uint_fast32_t, uint32_t
 
-include "sage/ext/interrupt.pxi"
+
+include "cysignals/signals.pxi"
 
 cimport integer
 import integer
@@ -135,7 +137,7 @@ def two_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.two_squares` is much more suited for large inputs
+        :func:`~sage.arith.all.two_squares` is much more suited for large inputs
 
     EXAMPLES::
 
@@ -273,7 +275,7 @@ def four_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.four_squares` is much more suited for large input
+        :func:`~sage.arith.all.four_squares` is much more suited for large input
 
     EXAMPLES::
 

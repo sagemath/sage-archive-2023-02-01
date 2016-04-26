@@ -215,7 +215,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         except AttributeError:
             return cmp(PL, PR)
         # Now use the real comparison of vectors
-        return self._cmp_c_impl(right)
+        return self._cmp_(right)
 
     # For some reason, vectors work just fine without redefining this function
     # from the base class, but if it is not here, we get "unhashable type"...

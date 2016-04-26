@@ -34,11 +34,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
 import sage.combinat.subset as subset
@@ -110,7 +109,7 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
@@ -233,7 +232,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) < map(sorted, y)
+        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
     def __gt__(self, y):
         """
@@ -261,7 +260,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) > map(sorted, y)
+        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 
     def __le__(self, y):
         """
@@ -287,7 +286,7 @@ class SetPartition(ClonableArray):
             sage: A <= A
             True
         """
-        return self.__eq__(y) or self.__lt__(y)
+        return self == y or self < y
 
     def __ge__(self, y):
         """
@@ -313,9 +312,9 @@ class SetPartition(ClonableArray):
             sage: B >= B
             True
         """
-        return self.__eq__(y) or self.__gt__(y)
+        return self == y or self > y
 
-    def __cmp__(self, y):
+    def _cmp_(self, y):
         """
         Return the result of ``cmp``.
 
@@ -336,6 +335,8 @@ class SetPartition(ClonableArray):
         if self > y:
             return 1
         return 0
+
+    __cmp__ = _cmp_
 
     def __mul__(self, other):
         r"""
@@ -405,7 +406,7 @@ class SetPartition(ClonableArray):
             sage: S([[1,3],[2,4]])
             {{1, 3}, {2, 4}}
         """
-        return '{' + ', '.join(map(lambda x: '{' + repr(sorted(x))[1:-1] + '}', self)) + '}'
+        return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
     def _latex_(self):
         r"""
@@ -516,21 +517,28 @@ class SetPartition(ClonableArray):
 
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
-        """
-        Convert ``self`` to a permutation by considering the partitions as
-        cycles.
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a permutation by considering
+        the blocks of the partition as cycles.
+
+        The cycles are such that the number of excedences is maximised, that is,
+        each cycle is of the form `(a_1,a_2, ...,a_k)` with `a_1<a_2<...<a_k`.
 
         EXAMPLES::
 
             sage: s = SetPartition([[1,3],[2,4]])
             sage: s.to_permutation()
             [3, 4, 1, 2]
+
         """
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 
     def standard_form(self):
         r"""
         Return ``self`` as a list of lists.
+
+        When the ground set is totally ordered, the elements of each
+        block are listed in increasing order.
 
         This is not related to standard set partitions (which simply
         means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
@@ -540,8 +548,13 @@ class SetPartition(ClonableArray):
 
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
             [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
+
+        TESTS::
+
+            sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
+            [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
         """
-        return list(map(list, self))
+        return [sorted(_) for _ in self]
 
     def apply_permutation(self, p):
         r"""
@@ -579,8 +592,8 @@ class SetPartition(ClonableArray):
         AUTHOR: Florent Hivert
         """
         l = list(self)
-        mins = map(min, l)
-        maxs = map(max, l)
+        mins = [min(_) for _ in l]
+        maxs = [max(_) for _ in l]
 
         for i in range(1, len(l)):
             for j in range(i):
@@ -690,7 +703,7 @@ class SetPartition(ClonableArray):
         """
         if len(self) == 0:
             return self
-        temp = map(list, self)
+        temp = [list(_) for _ in self]
         mins = [min(p) for p in temp]
         over_max = max([max(p) for p in temp]) + 1
         ret = [[] for i in range(len(temp))]
@@ -810,7 +823,7 @@ class SetPartition(ClonableArray):
             sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
-            mins = map(min, sub_parts)
+            mins = [min(_) for _ in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:
@@ -843,7 +856,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum(map(list, x), [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum(map(list, x), [])) for x in itertools.product(*L)]
 
     def coarsenings(self):
         """
@@ -903,7 +916,7 @@ class SetPartition(ClonableArray):
         todo = [self]
         visited = set([self])
         ret = [self]
-        while len(todo) != 0:
+        while todo:
             A = todo.pop()
             for i, part in enumerate(A):
                 for j, other in enumerate(A[i+1:]):
@@ -918,7 +931,31 @@ class SetPartition(ClonableArray):
                             ret.append(next)
         return ret
 
-class SetPartitions(Parent, UniqueRepresentation):
+    def arcs(self):
+        r"""
+        Return ``self`` as a list of arcs.
+
+        Consider a set partition `X = \{X_1, X_2, \ldots, X_n\}`,
+        then the arcs are the pairs `i - j` such that `i,j \in X_k`
+        for some `k`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.arcs()
+            [(2, 3)]
+            sage: B = SetPartition([[1,3,6,7],[2,5],[4]])
+            sage: B.arcs()
+            [(1, 3), (3, 6), (6, 7), (2, 5)]
+        """
+        arcs = []
+        for p in self:
+            p = sorted(p)
+            for i in range(len(p)-1):
+                arcs.append((p[i], p[i+1]))
+        return arcs
+
+class SetPartitions(UniqueRepresentation, Parent):
     r"""
     An (unordered) partition of a set `S` is a set of pairwise
     disjoint nonempty subsets with union `S`, and is represented
@@ -1086,13 +1123,13 @@ class SetPartitions(Parent, UniqueRepresentation):
             if expo[i] != 0:
                 nonzero.append([i, expo[i]])
 
-        taillesblocs = map(lambda x: (x[0])*(x[1]), nonzero)
+        taillesblocs = [(x[0])*(x[1]) for x in nonzero]
 
         blocs = OrderedSetPartitions(self._set, taillesblocs)
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), CartesianProduct( *lb )):
+            for x in itertools.imap(lambda x: _union(x), itertools.product( *lb )):
                 yield x
 
     def is_less_than(self, s, t):
@@ -1133,8 +1170,13 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in s:
-            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-                return False
+            x = p[0]
+            for t_ in t:
+                if x in t_:
+                    break
+            for p_ in p:
+                if p_ not in t_:
+                    return False
         return True
 
     lt = is_less_than
@@ -1617,88 +1659,6 @@ def _set_union(s):
     for ss in s:
         result = result.union(ss)
     return Set([result])
-
-def inf(s,t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.inf()` instead.
-
-    EXAMPLES::
-
-        sage: sp1 = Set([Set([2,3,4]),Set([1])])
-        sage: sp2 = Set([Set([1,3]), Set([2,4])])
-        sage: s = Set([ Set([2,4]), Set([3]), Set([1])]) #{{2, 4}, {3}, {1}}
-        sage: sage.combinat.set_partition.inf(sp1, sp2) == s
-        doctest:...: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'inf(s, t) is deprecated. Use s.inf(t) instead.')
-    temp = [ss.intersection(ts) for ss in s for ts in t]
-    temp = [x for x in temp if x != Set([])]
-    return Set(temp)
-
-def sup(s,t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.sup()` instead.
-
-    EXAMPLES::
-
-        sage: sp1 = Set([Set([2,3,4]),Set([1])])
-        sage: sp2 = Set([Set([1,3]), Set([2,4])])
-        sage: s = Set([ Set([1,2,3,4]) ])
-        sage: sage.combinat.set_partition.sup(sp1, sp2) == s
-        doctest:...: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'sup(s, t) is deprecated. Use s.sup(t) instead.')
-    res = s
-    for p in t:
-        inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
-        res = res.difference(inters).union(_set_union(inters))
-    return res
-
-def standard_form(sp):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartition.standard_form()`
-    instead.
-
-    EXAMPLES::
-
-        sage: map(sage.combinat.set_partition.standard_form, SetPartitions(4, [2,2]))
-        doctest:...: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
-        See http://trac.sagemath.org/14140 for details.
-        [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'standard_form(sp) is deprecated. Use sp.standard_form() instead.')
-    return [list(x) for x in sp]
-
-def less(s, t):
-    """
-    Deprecated in :trac:`14140`. Use :meth:`SetPartitions.is_less_than()`
-    instead.
-
-    EXAMPLES::
-
-        sage: z = SetPartitions(3).list()
-        sage: sage.combinat.set_partition.less(z[0], z[1])
-        doctest:...: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
-        See http://trac.sagemath.org/14140 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14140, 'less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.')
-    if _union(s) != _union(t):
-        raise ValueError("cannot compare partitions of different sets")
-    if s == t:
-        return False
-    for p in s:
-        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-            return False
-    return True
 
 def cyclic_permutations_of_set_partition(set_part):
     """

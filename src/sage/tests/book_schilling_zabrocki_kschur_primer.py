@@ -163,7 +163,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1082::
     sage: ord = lambda x,y: x.weak_le(y)
     sage: P = Poset([C, ord], cover_relations = False)  # long time (3.99 s, 2013)
     sage: H = P.hasse_diagram()                         # long time
-    sage: view(H)                                       #optional
+    sage: view(H)  # not tested
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 1253::
 
@@ -475,7 +475,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2799::
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 2810::
 
     sage: c = Partition([3,2,1]).to_core(3)
-    sage: for p in f.support():
+    sage: for p in sorted(f.support()):   # Sorted for consistant doctest ordering
     ....:   print p, SkewPartition([p.to_core(3).to_partition(),c.to_partition()])
     ....:
     [3, 1, 1, 1, 1] [[5, 2, 1, 1, 1], [5, 2, 1]]

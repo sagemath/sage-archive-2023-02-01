@@ -149,7 +149,7 @@ class FGP_Morphism(Morphism):
         self.__im_gens = tuple([self(x) for x in self.domain().gens()])
         return self.__im_gens
 
-    def __cmp__(self, right):
+    def _cmp_(self, right):
         """
         EXAMPLES::
 
@@ -173,13 +173,13 @@ class FGP_Morphism(Morphism):
             sage: phi == psi
             True
         """
-        if not isinstance(right, FGP_Morphism):
-            raise TypeError
         a = (self.domain(), self.codomain())
         b = (right.domain(), right.codomain())
         c = cmp(a,b)
         if c: return c
         return cmp(self.im_gens(), right.im_gens())
+
+    __cmp__ = _cmp_
 
     def __add__(self, right):
         """
@@ -217,7 +217,7 @@ class FGP_Morphism(Morphism):
             sage: -phi
             Morphism from module over Integer Ring with invariants (4, 12) to module with invariants (4, 12) that sends the generators to [(2, 0), (0, 11)]
         """
-        return FGP_Morphism(self.parent(), self._phi.__neg__(), check=fgp_module.DEBUG)
+        return FGP_Morphism(self.parent(), -self._phi, check=fgp_module.DEBUG)
 
     def __call__(self, x):
         """

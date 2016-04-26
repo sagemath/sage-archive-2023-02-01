@@ -52,6 +52,31 @@ class BackendEmacs(BackendIPythonCommandline):
         """
         return 'Emacs sage-mode'
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        Override this method to change the default preferences when
+        using your backend.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_emacs import BackendEmacs
+            sage: backend = BackendEmacs()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot is not specified
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences()
+
     def displayhook(self, plain_text, rich_output):
         """
         Backend implementation of the displayhook

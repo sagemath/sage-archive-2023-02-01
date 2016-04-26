@@ -89,8 +89,8 @@ def data_to_degseq(data, graph6=None):
     degseq = Integer(data).digits(10)
     if not degseq:
         # compute number of 0's in list from graph6 string
-        from sage.graphs.generic_graph_pyx import N_inverse
-        return N_inverse(str(graph6))[0]*[0]
+        from sage.graphs.generic_graph_pyx import length_and_string_from_graph6
+        return length_and_string_from_graph6(str(graph6))[0]*[0]
     else:
         return degseq
 

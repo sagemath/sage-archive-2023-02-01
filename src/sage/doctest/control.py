@@ -20,10 +20,12 @@ AUTHORS:
 #*****************************************************************************
 
 import random, os, sys, time, json, re, types
+import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
-from sage.ext.interrupt import AlarmInterrupt, init_interrupts
+from sage.misc.temporary_file import tmp_dir
+from cysignals.signals import AlarmInterrupt, init_cysignals
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -168,7 +170,7 @@ def skipfile(filename):
         True
     """
     base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
         return True
     with open(filename) as F:
         line_count = 0
@@ -235,16 +237,32 @@ class DocTestController(SageObject):
         if options.verbose:
             options.show_skipped = True
 
-        if isinstance(options.optional, basestring):
+        if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
-            if s in ['all', 'true']:
+            if s == 'true':
+                sage.misc.superseded.deprecation(18558, "Use --optional=all instead of --optional=true")
+                s = "all"
+            options.optional = set(s.split(','))
+            if "all" in options.optional:
+                # Special case to run all optional tests
                 options.optional = True
             else:
-                options.optional = set(s.split(','))
+                # We replace the 'optional' tag by all optional
+                # packages for which the installed version matches the
+                # latest available version (this implies in particular
+                # that the package is actually installed).
+                if 'optional' in options.optional:
+                    options.optional.discard('optional')
+                    from sage.misc.package import package_versions
+                    optional_pkgs = package_versions("optional", local=True)
+                    for pkg, versions in optional_pkgs.items():
+                        if versions[0] == versions[1]:
+                            options.optional.add(pkg)
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
-                        raise ValueError('invalid optional tag %s'%repr(o))
+                        raise ValueError('invalid optional tag {!r}'.format(o))
 
         self.options = options
         self.files = args
@@ -524,13 +542,12 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_ROOT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
         def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
-            self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
+            self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)
@@ -803,6 +820,37 @@ class DocTestController(SageObject):
             self.logfile.close()
             self.logfile = None
 
+    def _optional_tags_string(self):
+        """
+        Return a string describing the optional tags used.
+
+        OUTPUT: a string with comma-separated tags (without spaces, so
+        it can be used to build a command-line)
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC._optional_tags_string()
+            'sage'
+            sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
+            sage: DC._optional_tags_string()
+            'all'
+            sage: DC = DocTestController(DocTestDefaults(optional="true"), [])
+            doctest:...: DeprecationWarning: Use --optional=all instead of --optional=true
+            See http://trac.sagemath.org/18558 for details.
+            sage: DC._optional_tags_string()
+            'all'
+            sage: DC = DocTestController(DocTestDefaults(optional="sage,openssl"), [])
+            sage: DC._optional_tags_string()
+            'openssl,sage'
+        """
+        tags = self.options.optional
+        if tags is True:
+            return "all"
+        else:
+            return ",".join(sorted(tags))
+
     def _assemble_cmd(self):
         """
         Assembles a shell command used in running tests under gdb or valgrind.
@@ -822,9 +870,11 @@ class DocTestController(SageObject):
         for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "optional", "randorder", "stats_path"):
+        for o in ("timeout", "randorder", "stats_path"):
             if o in opt:
                 cmd += "--%s=%s "%(o, opt[o])
+        if "optional" in opt:
+            cmd += "--optional={} ".format(self._optional_tags_string())
         return cmd + " ".join(self.files)
 
     def run_val_gdb(self, testing=False):
@@ -853,7 +903,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=True hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -910,8 +960,10 @@ class DocTestController(SageObject):
         if testing:
             return
 
-        # Setup Sage signal handler
-        init_interrupts()
+        # Setup signal handlers.
+        # Save crash logs in temporary directory.
+        os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
+        init_cysignals()
 
         import signal, subprocess
         p = subprocess.Popen(cmd, shell=True)
@@ -978,6 +1030,9 @@ class DocTestController(SageObject):
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass
+
+            self.log("Using --optional=" + self._optional_tags_string())
+
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
@@ -989,7 +1044,7 @@ def run_doctests(module, options=None):
     """
     Runs the doctests in a given file.
 
-    INPUTS:
+    INPUT:
 
     - ``module`` -- a Sage module, a string, or a list of such.
 
@@ -1027,7 +1082,7 @@ def run_doctests(module, options=None):
                 return [base]
             else:
                 return [os.path.join(base, file) + ext]
-        elif isinstance(x, basestring):
+        elif isinstance(x, six.string_types):
             return [os.path.abspath(x)]
     F = stringify(module)
     if options is None:

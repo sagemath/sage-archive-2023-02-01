@@ -143,7 +143,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_reallocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *
@@ -172,7 +172,7 @@ cdef class ClonableElement(Element):
 
     - ``obj.__copy__()`` -- returns a fresh copy of obj
     - ``obj.check()`` -- returns nothing, raise an exception if ``obj``
-      doesn't satisfies the data structure invariants
+      doesn't satisfy the data structure invariants
 
     and ensure to call ``obj._require_mutable()`` at the beginning of any
     modifying method.
@@ -744,7 +744,7 @@ cdef class ClonableArray(ClonableElement):
             sage: list(iter(IncreasingArrays()([])))
             []
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def __contains__(self, item):
         """
@@ -757,7 +757,7 @@ cdef class ClonableArray(ClonableElement):
             sage: 5 in c
             False
         """
-        return self._list.__contains__(item)
+        return item in self._list
 
     cpdef int index(self, x, start=None, stop=None) except -1:
         """
@@ -800,8 +800,6 @@ cdef class ClonableArray(ClonableElement):
         """
         return self._list.count(key)
 
-    # __hash__ is not properly inherited if comparison is changed
-    # see <http://groups.google.com/group/cython-users/t/e89a9bd2ff20fd5a>
     def __hash__(self):
         """
         Returns the hash value of ``self``.
@@ -824,7 +822,8 @@ cdef class ClonableArray(ClonableElement):
                 self._hash = self._hash_()
         return self._hash
 
-    def __richcmp__(left, right, int op):
+    # See protocol in comment in sage/structure/element.pyx
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TESTS::
 
@@ -833,13 +832,8 @@ cdef class ClonableArray(ClonableElement):
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
             True
-        """
-        return (<Element>left)._richcmp(right, op)
 
-    # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        TEST::
+        ::
 
             sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el1 = IncreasingArrays()([1,2,4])
@@ -1321,7 +1315,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __dealloc__(self):
         if self._list is not NULL:
-            sage_free(self._list)
+            sig_free(self._list)
             self._len = -1
             self._list = NULL
 
@@ -1372,7 +1366,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: list(I) == range(5)  # indirect doctest
             True
         """
-        return self.list().__iter__()
+        return iter(self.list())
 
     cpdef list list(self):
         """
@@ -1427,7 +1421,7 @@ cdef class ClonableIntArray(ClonableElement):
             <type 'list'>
             sage: list(el)
             [1, 2, 3]
-            sage: it = iter(el); it.next(), it.next()
+            sage: it = iter(el); next(it), next(it)
             (1, 2)
         """
         cdef int start, stop, step, keyi
@@ -1580,7 +1574,8 @@ cdef class ClonableIntArray(ClonableElement):
                 self._hash = self._hash_()
         return self._hash
 
-    def __richcmp__(left, right, int op):
+    # See protocol in comment in sage/structure/element.pyx
+    cpdef int _cmp_(left, Element right) except -2:
         """
         TESTS::
 
@@ -1589,13 +1584,8 @@ cdef class ClonableIntArray(ClonableElement):
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
             True
-        """
-        return (<Element>left)._richcmp(right, op)
 
-    # See protocol in comment in sage/structure/element.pyx
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        """
-        TEST::
+        ::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el1 = IncreasingIntArrays()([1,2,4])

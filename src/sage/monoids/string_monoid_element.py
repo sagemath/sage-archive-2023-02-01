@@ -285,7 +285,7 @@ class StringMonoidElement(FreeMonoidElement):
         S = self.parent()
         if isinstance(S, string_monoid.AlphabeticStringMonoid):
             return ''.join([ chr(65+i) for i in self._element_list ])
-        n = self.__len__()
+        n = len(self)
         if isinstance(S, string_monoid.HexadecimalStringMonoid):
             if not n % 2 == 0:
                 "String %s must have even length to determine a byte character string." % str(self)

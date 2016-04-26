@@ -43,8 +43,6 @@ abstract base classes.
                         CommutativeAlgebra ??? (should be removed from element.pxd)
                         Matrix
                     InfinityElement
-                        PlusInfinityElement
-                        MinusInfinityElement
                 AdditiveGroupElement
                 Vector
 
@@ -100,7 +98,7 @@ underscores).
    module to work out how to make them have the same parent. After any
    necessary coercions have been performed, it calls ``_add_`` to dispatch to
    the correct underlying addition implementation.
-   
+
    Note that although this function is declared as ``def``, it doesn't have the
    usual overheads associated with Python functions (either for the caller or
    for ``__add__`` itself). This is because Python has optimised calling
@@ -121,24 +119,6 @@ underscores).
 
    When implementing ``_add_`` in a Cython extension class, use
    ``cpdef _add_`` instead of ``def _add_``.
-
-For speed, there are also *inplace* versions of the arithmetic commands.
-**Do not** call them directly, they may mutate the object and will be called
-when and only when it has been determined that the old object will no longer
-be accessible from the calling function after this operation.
-
--  **def RingElement._iadd_**
-
-   This is the function you should override to implement inplace
-   addition in a Python subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the **same
-   parent**. Its return value **must** have the **same parent** as its
-   arguments.
-
-   The default implementation of this function is to call ``_add_``,
-   so if no one has defined a Python implementation, the correct Cython
-   implementation will get called.
 """
 
 ##################################################################
@@ -146,25 +126,33 @@ be accessible from the calling function after this operation.
 # by any element.  Derived class must call __init__
 ##################################################################
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/python.pxi"
-include "coerce.pxi"
+from libc.limits cimport LONG_MAX, LONG_MIN
+
+from cpython cimport *
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
+from cpython.number cimport PyNumber_TrueDivide
 
 import types
-cdef add, sub, mul, div, iadd, isub, imul, idiv
-from operator import add, sub, mul, div, iadd, isub, imul, idiv
+cdef add, sub, mul, div, truediv, floordiv
+cdef iadd, isub, imul, idiv, itruediv, ifloordiv
+from operator import (add, sub, mul, div, truediv, floordiv,
+        iadd, isub, imul, idiv, itruediv, ifloordiv)
+cdef dict _coerce_op_symbols = dict(
+        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//',
+        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//')
 
 cdef MethodType
 from types import MethodType
 
+from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
+from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -278,8 +266,6 @@ def have_same_parent(left, right):
     return have_same_parent_c(left, right)
 
 
-cdef dict _coerce_op_symbols = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/', 'imul': '*', 'iadd': '+', 'isub':'-', 'idiv':'/'}
-
 cdef str arith_error_message(x, y, op):
     name = op.__name__
     try:
@@ -303,6 +289,7 @@ def is_Element(x):
     """
     return isinstance(x, Element)
 
+
 cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
@@ -310,7 +297,13 @@ cdef class Element(SageObject):
 
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
+
+    .. automethod:: _cmp_
+    .. automethod:: _richcmp_
     """
+    def __getmetaclass__(_):
+        from sage.misc.inherit_comparison import InheritComparisonMetaclass
+        return InheritComparisonMetaclass
 
     def __init__(self, parent):
         r"""
@@ -318,8 +311,6 @@ cdef class Element(SageObject):
 
         - ``parent`` - a SageObject
         """
-        #if parent is None:
-        #    raise RuntimeError, "bug -- can't set parent to None"
         self._parent = parent
 
     def _set_parent(self, parent):
@@ -329,14 +320,6 @@ cdef class Element(SageObject):
         - ``parent`` - a SageObject
         """
         self._parent = parent
-
-    cdef _set_parent_c(self, Parent parent):
-        self._parent = parent
-
-    def _make_new_with_parent_c(self, Parent parent):
-        self._parent = parent
-        return self
-
 
     def __getattr__(self, str name):
         """
@@ -536,9 +519,6 @@ cdef class Element(SageObject):
                 pass
         return res
 
-    def __hash__(self):
-        return hash(str(self))
-
     def _im_gens_(self, codomain, im_gens):
         """
         Return the image of ``self`` in codomain under the map that sends
@@ -694,15 +674,9 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self,'__call__'):
+        if not hasattr(self, '__call__'):
             return self
-        parent=self._parent
-        # We should better not test for ParentWIthGens,
-        # as this is essentially deprecated.
-        #from sage.structure.parent_gens import is_ParentWithGens
-        #if not is_ParentWithGens(parent):
-        #    return self
-        # Better: Duck typing!
+        parent = self._parent
         try:
             ngens = parent.ngens()
         except (AttributeError, NotImplementedError, TypeError):
@@ -744,8 +718,8 @@ cdef class Element(SageObject):
         from sage.misc.functional import numerical_approx
         return numerical_approx(self, prec=prec, digits=digits,
                                 algorithm=algorithm)
-    n = numerical_approx 
-    N = n 
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -806,7 +780,7 @@ cdef class Element(SageObject):
 
     cpdef _act_on_(self, x, bint self_on_left):
         """
-        Use this method to implement ``self`` acting on x. 
+        Use this method to implement ``self`` acting on ``x``.
 
         Return None or raise a CoercionException if no
         such action is defined here.
@@ -905,153 +879,183 @@ cdef class Element(SageObject):
         """
         return not self
 
-    def _cmp_(left, right):
-        return left._cmp_c_impl(right)
+    def __cmp__(self, other):
+        """
+        Compare ``left`` and ``right`` using the coercion framework.
 
-    cdef _cmp(left, right):
+        ``self`` and ``other`` are coerced to a common parent and then
+        ``_cmp_`` and ``_richcmp_`` are tried.
+
+        EXAMPLES:
+
+        We create an ``Element`` class where we define ``_richcmp_``
+        and check that comparison works::
+
+            sage: cython('''
+            ....: from sage.structure.sage_object cimport rich_to_bool
+            ....: from sage.structure.element cimport Element
+            ....: cdef class FloatCmp(Element):
+            ....:     cdef float x
+            ....:     def __init__(self, float v):
+            ....:         self.x = v
+            ....:     cpdef _richcmp_(self, Element other, int op):
+            ....:         cdef float x1 = (<FloatCmp>self).x
+            ....:         cdef float x2 = (<FloatCmp>other).x
+            ....:         return rich_to_bool(op, (x1 > x2) - (x1 < x2) )
+            ....: ''')
+            sage: a = FloatCmp(1)
+            sage: b = FloatCmp(2)
+            sage: cmp(a, b)
+            -1
+            sage: b.__cmp__(a)
+            1
+            sage: a <= b, b <= a
+            (True, False)
+
+        This works despite ``_cmp_`` not being implemented::
+
+            sage: a._cmp_(b)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
         """
-        Compare left and right.
-        """
-        global coercion_model
-        cdef int r
-        if not have_same_parent_c(left, right):
-            if left is None or left is Ellipsis:
-                return -1
-            elif right is None or right is Ellipsis:
-                return 1
-            try:
-                _left, _right = coercion_model.canonical_coercion(left, right)
-                if isinstance(_left, Element):
-                    return (<Element>_left)._cmp_(_right)
-                return cmp(_left, _right)
-            except TypeError:
-                r = cmp(type(left), type(right))
-                if r == 0:
-                    r = -1
-                return r
+        if have_same_parent_c(self, other):
+            left = self
+            right = other
         else:
-            if HAS_DICTIONARY(left):
-                left_cmp = left._cmp_
-                if isinstance(left_cmp, MethodType):
-                    # it must have been overridden
-                    return left_cmp(right)
-
-            return left._cmp_c_impl(right)
-
-    def _richcmp_(left, right, op):
-        return left._richcmp(right, op)
-
-    cdef _richcmp(left, right, int op):
-        """
-        Compare left and right, according to the comparison operator op.
-        """
-        global coercion_model
-        cdef int r
-        if not have_same_parent_c(left, right):
-            if left is None or left is Ellipsis:
-                return _rich_to_bool(op, -1)
-            elif right is None or right is Ellipsis:
-                return _rich_to_bool(op, 1)
             try:
-                _left, _right = coercion_model.canonical_coercion(left, right)
-                if isinstance(_left, Element):
-                    return (<Element>_left)._richcmp_(_right, op)
-                return _rich_to_bool(op, cmp(_left, _right))
-            except (TypeError, NotImplementedError):
-                r = cmp(type(left), type(right))
-                if r == 0:
-                    r = -1
-                # Often things are compared against 0 (or 1), even when there
-                # is not a canonical coercion ZZ -> other
-                # Things should implement and/or use __nonzero__ and is_one()
-                # but we can't do that here as that calls this.
-                # The old coercion model would declare a coercion if 0 went in.
-                # (Though would fail with a TypeError for other values, thus
-                # contaminating the _has_coerce_map_from cache.)
-                from sage.rings.integer import Integer
-                try:
-                    if isinstance(left, Element) and isinstance(right, (int, float, Integer)) and not right:
-                        right = (<Element>left)._parent(right)
-                    elif isinstance(right, Element) and isinstance(left, (int, float, Integer)) and not left:
-                        left = (<Element>right)._parent(left)
-                    else:
-                        return _rich_to_bool(op, r)
-                except TypeError:
-                    return _rich_to_bool(op, r)
+                left, right = coercion_model.canonical_coercion(self, other)
+            except TypeError:
+                # Compare by id()
+                if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
+                    # It cannot happen that self is other, since they don't
+                    # have the same parent.
+                    return 1
+                else:
+                    return -1
 
-        if HAS_DICTIONARY(left):   # fast check
-            left_cmp = left.__cmp__
-            if isinstance(left_cmp, MethodType):
-                # it must have been overridden
-                return _rich_to_bool(op, left_cmp(right))
+            if not isinstance(left, Element):
+                assert type(left) is type(right)
+                return cmp(left, right)
 
-        return left._richcmp_c_impl(right, op)
+        # Now we have two Sage Elements with the same parent
+        try:
+            # First attempt: use _cmp_()
+            return (<Element>left)._cmp_(<Element>right)
+        except NotImplementedError:
+            # Second attempt: use _richcmp_()
+            if (<Element>left)._richcmp_(<Element>right, Py_EQ):
+                return 0
+            if (<Element>left)._richcmp_(<Element>right, Py_LT):
+                return -1
+            if (<Element>left)._richcmp_(<Element>right, Py_GT):
+                return 1
+            raise
 
-    cdef _rich_to_bool(self, int op, int r):
-        return _rich_to_bool(op, r)
-
-    ####################################################################
-    # For a derived Cython class, you **must** put the following in
-    # your subclasses, in order for it to take advantage of the
-    # above generic comparison code.  You must also define
-    # either _cmp_c_impl (if your subclass is totally ordered),
-    # _richcmp_c_impl (if your subclass is partially ordered), or both
-    # (if your class has both a total order and a partial order;
-    # then the total order will be available with cmp(), and the partial
-    # order will be available with the relation operators; in this case
-    # you must also define __cmp__ in your subclass).
-    # This is simply how Python works.
-    #
-    # For a *Python* class just define __cmp__ as always.
-    # But note that when this gets called you can assume that
-    # both inputs have identical parents.
-    #
-    # If your __cmp__ methods are not getting called, verify that the
-    # canonical_coercion(x,y) is not throwing errors.
-    #
-    ####################################################################
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
+    def _cache_key(self):
+        """
+        Provide a hashable key for an element if it is not hashable
+        
+        EXAMPLES::
+        
+            sage: a=sage.structure.element.Element(ZZ)
+            sage: a._cache_key()
+            (Integer Ring, 'Generic element of a structure')
+        """
+        return(self.parent(),str(self))
 
     ####################################################################
-    # If your subclass has both a partial order (available with the
-    # relation operators) and a total order (available with cmp()),
-    # you **must** put the following in your subclass.
+    # In a Cython or a Python class, you must define either _cmp_
+    # (if your subclass is totally ordered), _richcmp_ (if your subclass
+    # is partially ordered), or both (if your class has both a total order
+    # and a partial order, or if that gives better performance).
     #
-    # Note that in this case the total order defined by cmp() will
-    # not properly respect coercions.
+    # Rich comparisons (like a < b) will default to using _richcmp_,
+    # three-way comparisons (like cmp(a,b)) will default to using
+    # _cmp_. But if you define just one of _richcmp_ and _cmp_, it will
+    # be used for all kinds of comparisons.
+    #
+    # In the _cmp_ and _richcmp_ methods, you can assume that both
+    # arguments have identical parents.
     ####################################################################
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
+    def __richcmp__(self, other, int op):
+        """
+        Compare ``self`` and ``other`` using the coercion framework,
+        comparing according to the comparison operator ``op``.
 
-    cdef _richcmp_c_impl(left, Element right, int op):
-        if (<Element>left)._richcmp_c_impl == Element._richcmp_c_impl and \
-               (<Element>left)._cmp_c_impl == Element._cmp_c_impl:
-            # Not implemented, try some basic defaults
-            if op == Py_EQ:
-                 return left is right
-            elif op == Py_NE:
-                return left is not right
-        return left._rich_to_bool(op, left._cmp_c_impl(right))
+        Normally, a class will not redefine ``__richcmp__`` but rely on
+        this ``Element.__richcmp__`` method which uses coercion if
+        needed to compare elements. After coercion (or if no coercion
+        is needed), ``_richcmp_`` is called.
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        ### For derived Cython code, you *MUST* ALSO COPY the __richcmp__ above
-        ### into your class!!!  For Python code just use __cmp__.
-        raise NotImplementedError("BUG: sort algorithm for elements of '%s' not implemented"%right.parent())
+        If a class wants to implement rich comparison without coercion,
+        then ``__richcmp__`` should be defined.
+        See :class:`sage.numerical.linear_functions.LinearConstraint`
+        for such an example.
 
-cdef inline bint _rich_to_bool(int op, int r):
-    if op == Py_LT:  #<
-        return (r  < 0)
-    elif op == Py_EQ: #==
-        return (r == 0)
-    elif op == Py_GT: #>
-        return (r  > 0)
-    elif op == Py_LE: #<=
-        return (r <= 0)
-    elif op == Py_NE: #!=
-        return (r != 0)
-    elif op == Py_GE: #>=
-        return (r >= 0)
+        For efficiency reasons, a class can do certain "manual"
+        coercions directly in ``__richcmp__``, using
+        ``coercion_model.richcmp()`` for the remaining cases.
+        This is done for example in :class:`Integer`.
+        """
+        if have_same_parent_c(self, other):
+            # Same parents, in particular self and other must both be
+            # an instance of Element. The explicit casts below make
+            # Cython generate optimized code for this call.
+            return (<Element>self)._richcmp_(<Element>other, op)
+        else:
+            return coercion_model.richcmp(self, other, op)
+
+    cpdef _richcmp_(left, Element right, int op):
+        r"""
+        Default implementation of rich comparisons for elements with
+        equal parents.
+
+        It tries to see if ``_cmp_`` is implemented. Otherwise it does a
+        comparison by id for ``==`` and ``!=``. Calling this default method
+        with ``<``, ``<=``, ``>`` or ``>=`` will raise a
+        ``NotImplementedError``.
+
+        EXAMPLES::
+
+            sage: from sage.structure.parent import Parent
+            sage: from sage.structure.element import Element
+            sage: P = Parent()
+            sage: e1 = Element(P); e2 = Element(P)
+            sage: e1 == e1    # indirect doctest
+            True
+            sage: e1 == e2    # indirect doctest
+            False
+            sage: e1 < e2     # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+        """
+        # Obvious case
+        if left is right:
+            return rich_to_bool(op, 0)
+
+        cdef int c
+        try:
+            c = left._cmp_(right)
+        except NotImplementedError:
+            # Check equality by id(), knowing that left is not right
+            if op == Py_EQ: return False
+            if op == Py_NE: return True
+            raise
+        assert -1 <= c <= 1
+        return rich_to_bool(op, c)
+
+    cpdef int _cmp_(left, Element right) except -2:
+        """
+        Default three-way comparison method which only checks for a
+        Python class defining ``__cmp__``.
+        """
+        left_cmp = left.__cmp__
+        if isinstance(left_cmp, MethodType):
+            return left_cmp(right)
+        msg = LazyFormat("comparison not implemented for %r")%type(left)
+        raise NotImplementedError(msg)
 
 
 def is_ModuleElement(x):
@@ -1109,68 +1113,60 @@ cdef class ElementWithCachedMethod(Element):
     ::
 
         sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
-        ... "cdef class MyBrokenElement(Element):",
-        ... "    cdef public object x",
-        ... "    def __init__(self,P,x):",
-        ... "        self.x=x",
-        ... "        Element.__init__(self,P)",
-        ... "    def __neg__(self):",
-        ... "        return MyBrokenElement(self.parent(),-self.x)",
-        ... "    def _repr_(self):",
-        ... "        return '<%s>'%self.x",
-        ... "    def __hash__(self):",
-        ... "        return hash(self.x)",
-        ... "    def __cmp__(left, right):",
-        ... "        return (<Element>left)._cmp(right)",
-        ... "    def __richcmp__(left, right, op):",
-        ... "        return (<Element>left)._richcmp(right,op)",
-        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
-        ... "        return cmp(left.x,right.x)",
-        ... "    def raw_test(self):",
-        ... "        return -self",
-        ... "cdef class MyElement(ElementWithCachedMethod):",
-        ... "    cdef public object x",
-        ... "    def __init__(self,P,x):",
-        ... "        self.x=x",
-        ... "        Element.__init__(self,P)",
-        ... "    def __neg__(self):",
-        ... "        return MyElement(self.parent(),-self.x)",
-        ... "    def _repr_(self):",
-        ... "        return '<%s>'%self.x",
-        ... "    def __hash__(self):",
-        ... "        return hash(self.x)",
-        ... "    def __cmp__(left, right):",
-        ... "        return (<Element>left)._cmp(right)",
-        ... "    def __richcmp__(left, right, op):",
-        ... "        return (<Element>left)._richcmp(right,op)",
-        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
-        ... "        return cmp(left.x,right.x)",
-        ... "    def raw_test(self):",
-        ... "        return -self",
-        ... "class MyPythonElement(MyBrokenElement): pass",
-        ... "from sage.structure.parent cimport Parent",
-        ... "cdef class MyParent(Parent):",
-        ... "    Element = MyElement"]
+        ....:     "cdef class MyBrokenElement(Element):",
+        ....:     "    cdef public object x",
+        ....:     "    def __init__(self,P,x):",
+        ....:     "        self.x=x",
+        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __neg__(self):",
+        ....:     "        return MyBrokenElement(self.parent(),-self.x)",
+        ....:     "    def _repr_(self):",
+        ....:     "        return '<%s>'%self.x",
+        ....:     "    def __hash__(self):",
+        ....:     "        return hash(self.x)",
+        ....:     "    cpdef int _cmp_(left, Element right) except -2:",
+        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    def raw_test(self):",
+        ....:     "        return -self",
+        ....:     "cdef class MyElement(ElementWithCachedMethod):",
+        ....:     "    cdef public object x",
+        ....:     "    def __init__(self,P,x):",
+        ....:     "        self.x=x",
+        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __neg__(self):",
+        ....:     "        return MyElement(self.parent(),-self.x)",
+        ....:     "    def _repr_(self):",
+        ....:     "        return '<%s>'%self.x",
+        ....:     "    def __hash__(self):",
+        ....:     "        return hash(self.x)",
+        ....:     "    cpdef int _cmp_(left, Element right) except -2:",
+        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    def raw_test(self):",
+        ....:     "        return -self",
+        ....:     "class MyPythonElement(MyBrokenElement): pass",
+        ....:     "from sage.structure.parent cimport Parent",
+        ....:     "cdef class MyParent(Parent):",
+        ....:     "    Element = MyElement"]
         sage: cython('\n'.join(cython_code))
         sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category, Objects",
-        ... "class MyCategory(Category):",
-        ... "    @cached_method",
-        ... "    def super_categories(self):",
-        ... "        return [Objects()]",
-        ... "    class ElementMethods:",
-        ... "        @cached_method",
-        ... "        def element_cache_test(self):",
-        ... "            return -self",
-        ... "        @cached_in_parent_method",
-        ... "        def element_via_parent_test(self):",
-        ... "            return -self",
-        ... "    class ParentMethods:",
-        ... "        @cached_method",
-        ... "        def one(self):",
-        ... "            return self.element_class(self,1)",
-        ... "        @cached_method",
-        ... "        def invert(self, x):",
-        ... "            return -x"]
+        ....:     "class MyCategory(Category):",
+        ....:     "    @cached_method",
+        ....:     "    def super_categories(self):",
+        ....:     "        return [Objects()]",
+        ....:     "    class ElementMethods:",
+        ....:     "        @cached_method",
+        ....:     "        def element_cache_test(self):",
+        ....:     "            return -self",
+        ....:     "        @cached_in_parent_method",
+        ....:     "        def element_via_parent_test(self):",
+        ....:     "            return -self",
+        ....:     "    class ParentMethods:",
+        ....:     "        @cached_method",
+        ....:     "        def one(self):",
+        ....:     "            return self.element_class(self,1)",
+        ....:     "        @cached_method",
+        ....:     "        def invert(self, x):",
+        ....:     "            return -x"]
         sage: cython('\n'.join(cython_code))
         sage: C = MyCategory()
         sage: P = MyParent(category=C)
@@ -1309,15 +1305,7 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            # If we hold the only references to this object, we can
-            # safely mutate it. NOTE the threshold is different by one
-            # for __add__ and __iadd__.
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
-
-        global coercion_model
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, add)
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -1325,16 +1313,8 @@ cdef class ModuleElement(Element):
 
     def __iadd__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._iadd_(<ModuleElement>right)
-            else:
-                return self._add_(<ModuleElement>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(self, right, iadd)
-
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        return self._add_(right)
+            return self._add_(<ModuleElement>right)
+        return coercion_model.bin_op(self, right, iadd)
 
     ##################################################
     # Subtraction
@@ -1346,11 +1326,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
-        global coercion_model
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, sub)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
@@ -1360,16 +1336,8 @@ cdef class ModuleElement(Element):
 
     def __isub__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._isub_(<ModuleElement>right)
-            else:
-                return self._sub_(<ModuleElement>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(self, right, isub)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        return self._sub_(right)
+            return self._sub_(<ModuleElement>right)
+        return coercion_model.bin_op(self, right, isub)
 
     ##################################################
     # Negation
@@ -1385,7 +1353,6 @@ cdef class ModuleElement(Element):
 
     cpdef ModuleElement _neg_(self):
         # default implementation is to try multiplying by -1.
-        global coercion_model
         if self._parent._base is None:
             return coercion_model.bin_op(-1, self, mul)
         else:
@@ -1395,21 +1362,17 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        if PyInt_CheckExact(left):
+        if type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
              raise TypeError
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, imul)
 
     # rmul -- left * self
@@ -1440,9 +1403,6 @@ cdef class ModuleElement(Element):
         Generic path for multiplying by a C long, assumed to commute.
         """
         return coercion_model.bin_op(self, n, mul)
-
-    cpdef ModuleElement _ilmul_(self, RingElement right):
-        return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
         if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -1490,7 +1450,6 @@ cdef class MonoidElement(Element):
         Top-level multiplication operator for monoid elements.
         See extensive documentation at the top of element.pyx.
         """
-        global coercion_model
         if have_same_parent_c(left, right):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
@@ -1610,10 +1569,33 @@ cdef class MultiplicativeGroupElement(MonoidElement):
     def _add_(self, x):
         raise ArithmeticError("addition not defined in a multiplicative group")
 
-    def __div__(left, right):
+    def __truediv__(left, right):
+        """
+        Top-level true division operator for multiplicative group
+        elements. See extensive documentation at the top of
+        element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: operator.truediv(2, K.ideal(i+1))
+            Fractional ideal (-i + 1)
+        """
         if have_same_parent_c(left, right):
-            return left._div_(right)
-        global coercion_model
+            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
+        return coercion_model.bin_op(left, right, truediv)
+
+    def __div__(left, right):
+        """
+        Top-level division operator for multiplicative group elements.
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent_c(left, right):
+            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
         return coercion_model.bin_op(left, right, div)
 
     cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right):
@@ -1654,13 +1636,10 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
+        if type(right) is int:
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, add)
 
@@ -1678,11 +1657,8 @@ cdef class RingElement(ModuleElement):
         """
         cdef long n
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
+        if type(right) is int:
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
             if (n == 0) | (<unsigned long>n != 0 - <unsigned long>n):
@@ -1814,13 +1790,10 @@ cdef class RingElement(ModuleElement):
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
-        if PyInt_CheckExact(right):
+            return (<RingElement>left)._mul_(<RingElement>right)
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, mul)
 
@@ -1833,16 +1806,8 @@ cdef class RingElement(ModuleElement):
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt <= inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
-
-        global coercion_model
+            return (<RingElement>left)._mul_(<RingElement>right)
         return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _imul_(RingElement self, RingElement right):
-        return self._mul_(right)
 
     def __pow__(self, n, dummy):
         """
@@ -1938,22 +1903,52 @@ cdef class RingElement(ModuleElement):
     ##################################
 
     def __truediv__(self, right):
-        # in sage all divs are true
-        if not isinstance(self, Element):
-            return coercion_model.bin_op(self, right, div)
-        return self.__div__(right)
+        """
+        Top-level true division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            sage: operator.truediv(2, 3)
+            2/3
+            sage: operator.truediv(pi, 3)
+            1/3*pi
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._div_(<RingElement>right)
+        return coercion_model.bin_op(self, right, truediv)
+
+    def __itruediv__(self, right):
+        """
+        Top-level in-place true division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            sage: operator.itruediv(2, 3)
+            2/3
+            sage: operator.itruediv(pi, 3)
+            1/3*pi
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._div_(<RingElement>right)
+        return coercion_model.bin_op(self, right, itruediv)
 
     def __div__(self, right):
         """
-        Top-level multiplication operator for ring elements.
+        Top-level division operator for ring elements.
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt < inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
-        global coercion_model
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, div)
 
     cpdef RingElement _div_(self, RingElement right):
@@ -1975,15 +1970,60 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
-        global coercion_model
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, idiv)
 
-    cpdef RingElement _idiv_(RingElement self, RingElement right):
-        return self._div_(right)
+    def __floordiv__(self, right):
+        """
+        Top-level floor division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 7 // 3
+            2
+            sage: 7 // int(3)
+            2
+            sage: int(7) // 3
+            2
+            sage: p = Parent()
+            sage: e = RingElement(p)
+            sage: e // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._floordiv_(<RingElement>right)
+        return coercion_model.bin_op(self, right, floordiv)
+
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Cython classes should override this function to implement floor
+        division. See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 23._floordiv_(5)
+            4
+        """
+        raise TypeError(arith_error_message(self, right, floordiv))
+
+    def __ifloordiv__(self, right):
+        """
+        Top-level in-place floor division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: x = 23
+            sage: x //= 7
+            sage: x
+            3
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._floordiv_(<RingElement>right)
+        return coercion_model.bin_op(self, right, ifloordiv)
 
     def __invert__(self):
         if self.is_one():
@@ -2048,7 +2088,7 @@ cdef class RingElement(ModuleElement):
             ...
             ArithmeticError: absolute valued not defined on integers modulo n.
         """
-        return self.__abs__()
+        return abs(self)
 
     def is_prime(self):
         """
@@ -2114,7 +2154,7 @@ def is_CommutativeRingElement(x):
 
     TESTS::
 
-        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
+        sage: from sage.structure.element import is_CommutativeRingElement
         sage: is_CommutativeRingElement(oo)
         False
 
@@ -2231,7 +2271,6 @@ cdef class CommutativeRingElement(RingElement):
 
         else:
             #Different parents, use coercion
-            global coercion_model
             a, b = coercion_model.canonical_coercion(self, x)
             return a.divides(b)
 
@@ -2447,12 +2486,12 @@ cdef class CommutativeRingElement(RingElement):
         #This code is very general, it works for all integral domains that have the
         #is_square(root = True) option
 
-        from sage.rings.integral_domain import is_IntegralDomain
+        from sage.rings.ring import IntegralDomain
         P=self._parent
         is_sqr, sq_rt = self.is_square( root = True )
         if is_sqr:
             if all:
-                if not is_IntegralDomain(P):
+                if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
                     #0 has only one square root, and in charasteristic 2 everything also has only 1 root
@@ -2460,7 +2499,7 @@ cdef class CommutativeRingElement(RingElement):
                 return [ sq_rt, -sq_rt ]
             return sq_rt
         #from now on we know that self is not a square
-        if not is_IntegralDomain(P):
+        if not isinstance(P, IntegralDomain):
             raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
         if not extend:
             #all square roots of a non-square should be an empty list
@@ -2492,10 +2531,7 @@ cdef class Vector(ModuleElement):
     def __imul__(left, right):
         if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, imul)
-
 
     def __mul__(left, right):
         """
@@ -2659,8 +2695,6 @@ cdef class Vector(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     cpdef Element _dot_product_(Vector left, Vector right):
@@ -2672,14 +2706,14 @@ cdef class Vector(ModuleElement):
     cpdef Vector _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
-    def __div__(self, right):
+    def __truediv__(self, right):
         right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
-            return self.__mul__(~right)
+            return self * ~right
         if isinstance(right, Vector):
             try:
-                W = right.parent().submodule([right])
+                W = (<Vector>right)._parent.submodule([right])
                 return W.coordinates(self)[0] / W.coordinates(right)[0]
             except ArithmeticError:
                 if right.is_zero():
@@ -2687,6 +2721,9 @@ cdef class Vector(ModuleElement):
                 else:
                     raise ArithmeticError("vector is not in free module")
         raise TypeError(arith_error_message(self, right, div))
+
+    def __div__(self, right):
+        return PyNumber_TrueDivide(self, right)
 
     def _magma_init_(self, magma):
         """
@@ -2740,9 +2777,7 @@ cdef class Matrix(ModuleElement):
     def __imul__(left, right):
         if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
     def __mul__(left, right):
         """
@@ -2927,9 +2962,32 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
+        return coercion_model.bin_op(left, right, mul)
+
+    def __truediv__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar
+        ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: operator.truediv(a, 5)
+            [ 0 1/5]
+            [2/5 3/5]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: b = matrix(ZZ, 2, [1,1,0,5])
+            sage: operator.truediv(a, b)
+            [  0 1/5]
+            [  2 1/5]
+            sage: c = matrix(QQ, 2, [3,2,5,7])
+            sage: operator.truediv(c, a)
+            [-5/2  3/2]
+            [-1/2  5/2]
+        """
+        if have_same_parent_c(left, right):
+            return left * ~right
+        return coercion_model.bin_op(left, right, truediv)
 
     def __div__(left, right):
         """
@@ -2980,16 +3038,9 @@ cdef class Matrix(ModuleElement):
             [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
-        cdef Matrix rightinv
         if have_same_parent_c(left, right):
-            rightinv = ~<Matrix>right
-            if have_same_parent_c(left,rightinv):
-                return (<Matrix>left)._matrix_times_matrix_(rightinv)
-            else:
-                return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, div)
+            return left * ~right
+        return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
@@ -3034,10 +3085,10 @@ def is_PrincipalIdealDomainElement(x):
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
         """
-        Return the least common multiple of ``self`` and right. 
+        Return the least common multiple of ``self`` and ``right``.
         """
         if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
-            from sage.rings.arith import lcm
+            from sage.arith.all import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
@@ -3084,9 +3135,24 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             x, y = canonical_coercion(self, other)
             return x.quo_rem(y)
 
-    def __floordiv__(self,right):
+    cpdef RingElement _floordiv_(self, RingElement right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
+
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
+        EXAMPLES::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e // e
+            quo
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -3095,13 +3161,28 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         Remainder of division of ``self`` by other.
 
+        This default implementation assumes that ``quo_rem`` has been
+        implemented.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
-            sage: (x**3 + x - 1) % (x**2 - 1)
+            sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
+
+        ::
+
+            sage: cython('''
+            ....: from sage.structure.element cimport EuclideanDomainElement
+            ....: cdef class MyElt(EuclideanDomainElement):
+            ....:     def quo_rem(self, other):
+            ....:         return self._parent.var('quo,rem')
+            ....: ''')
+            sage: e = MyElt(SR)
+            sage: e % e
+            rem
         """
         _, R = self.quo_rem(other)
         return R
@@ -3113,9 +3194,22 @@ def is_FieldElement(x):
     return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
+    cpdef RingElement _floordiv_(self, RingElement right):
+        """
+        Return the quotient of self and other. Since these are field
+        elements, the floor division is exactly the same as usual division.
 
-    def __floordiv__(self, other):
-        return self / other
+        EXAMPLES::
+
+            sage: K.<b> = NumberField(x^4 + x^2 + 2/3)
+            sage: c = (1+b) // (1-b); c
+            3/4*b^3 + 3/4*b^2 + 3/2*b + 1/2
+            sage: (1+b) / (1-b) == c
+            True
+            sage: c * (1-b)
+            b + 1
+        """
+        return self._div_(right)
 
     def is_unit(self):
         r"""
@@ -3243,12 +3337,6 @@ cdef class InfinityElement(RingElement):
         from sage.rings.all import ZZ
         return ZZ(0)
 
-cdef class PlusInfinityElement(InfinityElement):
-    pass
-
-cdef class MinusInfinityElement(InfinityElement):
-    pass
-
 
 #################################################################################
 #
@@ -3272,11 +3360,9 @@ cpdef canonical_coercion(x, y):
         [1 0], [0 1]
         )
     """
-    global coercion_model
     return coercion_model.canonical_coercion(x,y)
 
 cpdef bin_op(x, y, op):
-    global coercion_model
     return coercion_model.bin_op(x,y,op)
 
 
@@ -3287,7 +3373,8 @@ def coerce(Parent p, x):
         return p(x)
 
 def coerce_cmp(x,y):
-    global coercion_model
+    from sage.misc.superseded import deprecation
+    deprecation(18322, 'the global coerce_cmp() function is deprecated')
     cdef int c
     try:
         x, y = coercion_model.canonical_coercion(x, y)
@@ -3296,6 +3383,7 @@ def coerce_cmp(x,y):
         c = cmp(type(x), type(y))
         if c == 0: c = -1
         return c
+
 
 # We define this base class here to avoid circular cimports.
 cdef class CoercionModel:
@@ -3312,8 +3400,14 @@ cdef class CoercionModel:
             return op(x,y)
         raise TypeError(arith_error_message(x,y,op))
 
+    cpdef richcmp(self, x, y, int op):
+        x, y = self.canonical_coercion(x, y)
+        return PyObject_RichCompare(x, y, op)
+
+
 import coerce
 cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
+
 
 def get_coercion_model():
     """
@@ -3533,7 +3627,7 @@ coerce_binop = NamedBinopMethod
 ###############################################################################
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.arith', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
+lazy_import('sage.arith.all', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
 
 
 ######################

@@ -189,12 +189,13 @@ class DocTestSource(object):
         """
         docstring = "".join(doc)
         new_doctests = self.parse_docstring(docstring, namespace, start)
+        sig_on_count_doc_doctest = "sig_on_count() # check sig_on/off pairings (virtual doctest)\n"
         for dt in new_doctests:
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
-                                             and dt.examples[-1].sage_source == "sig_on_count()\n"):
+                                             and dt.examples[-1].sage_source == sig_on_count_doc_doctest):
                 # Line number refers to the end of the docstring
-                sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=docstring.count("\n"))
-                sigon.sage_source = "sig_on_count()\n"
+                sigon = doctest.Example(sig_on_count_doc_doctest, "0\n", lineno=docstring.count("\n"))
+                sigon.sage_source = sig_on_count_doc_doctest
                 dt.examples.append(sigon)
             doctests.append(dt)
 
@@ -483,12 +484,14 @@ class FileDocTestSource(DocTestSource):
         self.path = path
         DocTestSource.__init__(self, options)
         base, ext = os.path.splitext(path)
-        if ext in ('.py', '.pyx', '.pxi', '.sage', '.spyx'):
+        if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
         elif ext == '.tex':
             self.__class__ = dynamic_class('TexFileSource',(FileDocTestSource,TexSource))
         elif ext == '.rst':
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
+        else:
+            raise ValueError("unknown file extension %r"%ext)
 
     def __iter__(self):
         r"""
@@ -593,6 +596,7 @@ class FileDocTestSource(DocTestSource):
         return (self.options.force_lib or
                 self.basename.startswith('sage.') or
                 self.basename.startswith('doc.') or
+                self.basename.startswith('sage_setup.docbuild') or
                 self.basename.startswith('sagenb.'))
 
     def create_doctests(self, namespace):
@@ -694,12 +698,13 @@ class FileDocTestSource(DocTestSource):
             ....:     dirs.sort(); files.sort()
             ....:     for F in files:
             ....:         _, ext = os.path.splitext(F)
-            ....:         if ext in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst'):
+            ....:         if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst'):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
+            There are 7 tests in sage/combinat/diagram_algebras.py that are not being run
             There are 7 tests in sage/combinat/dyck_word.py that are not being run
-            There are 4 tests in sage/combinat/finite_state_machine.py that are not being run
+            There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 6 tests in sage/combinat/interval_posets.py that are not being run
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 15 tests in sage/combinat/permutation.py that are not being run
@@ -712,7 +717,6 @@ class FileDocTestSource(DocTestSource):
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 9 tests in sage/graphs/graph_plot.py that are not being run
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
@@ -1456,7 +1460,7 @@ class RestSource(SourceLanguage):
             ....:     print ex.sage_source,
             test1()
             test2()
-            sig_on_count()
+            sig_on_count() # check sig_on/off pairings (virtual doctest)
         """
         PythonStringSource = dynamic_class("sage.doctest.sources.PythonStringSource",
                                            (StringDocTestSource, PythonSource))

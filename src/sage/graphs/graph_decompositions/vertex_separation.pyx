@@ -96,7 +96,7 @@ knows that having `S` in a sequence means a total cost of at least `c'(S) +
 5`. For this reason, for each set `S` we store the value of `c'(S)`, and replace
 it by `\max (c'(S), \min_{\text{next}})` (where `\min_{\text{next}}` is the
 minimum of the costs of the out-neighbors of `S`) once the costs of these
-out-neighbors have been evaluated by the algrithm.
+out-neighbors have been evaluated by the algorithm.
 
 .. NOTE::
 
@@ -269,10 +269,10 @@ Methods
 -------
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'fast_digraph.pyx'
+from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
 include "sage/data_structures/binary_matrix.pxi"
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
@@ -347,7 +347,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sage_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -370,7 +370,7 @@ def lower_bound(G):
 
     cdef int min = minimums[0]
 
-    sage_free(minimums)
+    sig_free(minimums)
 
     return min
 
@@ -738,16 +738,16 @@ def vertex_separation_exp(G, verbose = False):
     sig_on()
 
     cdef unsigned int mem = 1 << g.n
-    cdef int8_t * neighborhoods = <int8_t *> sage_malloc(mem)
+    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
 
     if neighborhoods == NULL:
         sig_off()
         raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
 
-    memset(neighborhoods, <int8_t> -1, mem)
+    memset(neighborhoods, <uint8_t> -1, mem)
 
     cdef int i,j , k
-    for 0 <= k <g.n:
+    for k in range(g.n):
         if verbose:
             print "Looking for a strategy of cost", str(k)
 
@@ -760,15 +760,10 @@ def vertex_separation_exp(G, verbose = False):
 
     cdef list order = find_order(g, neighborhoods, k)
 
-    # Relabelling the vertices
-    cdef list vertices = G.vertices()
-    for i, j in enumerate(order):
-        order[i] = vertices[j]
-
-    sage_free(neighborhoods)
+    sig_free(neighborhoods)
     sig_off()
 
-    return k, order
+    return k, list( g.int_to_vertices[i] for i in order )
 
 ##############################################################################
 # Actual algorithm, breadh-first search and updates of the costs of the sets #
@@ -777,10 +772,10 @@ def vertex_separation_exp(G, verbose = False):
 # Check whether an ordering with the given cost exists, and updates data in the
 # neighborhoods array at the same time. See the module's documentation
 
-cdef inline int exists(FastDigraph g, int8_t * neighborhoods, int current, int cost):
+cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int cost):
 
     # If this is true, it means the set has not been evaluated yet
-    if neighborhoods[current] < 0:
+    if neighborhoods[current] == <uint8_t>-1:
         neighborhoods[current] = compute_out_neighborhood_cardinality(g, current)
 
     # If the cost of this set is too high, there is no point in going further.
@@ -795,12 +790,11 @@ cdef inline int exists(FastDigraph g, int8_t * neighborhoods, int current, int c
     cdef int next_set
 
 
-    for 0<= i<g.n:
+    for i in range(g.n):
         if (current >> i)&1:
             continue
 
         # For each of the out-neighbors next_set of current
-
         next_set = current | 1<<i
 
         # Check whether there exists a cheap path toward {1..n}, and updated the
@@ -818,7 +812,7 @@ cdef inline int exists(FastDigraph g, int8_t * neighborhoods, int current, int c
     return neighborhoods[current]
 
 # Returns the ordering once we are sure it exists
-cdef list find_order(FastDigraph g, int8_t * neighborhoods, int cost):
+cdef list find_order(FastDigraph g, uint8_t * neighborhoods, int cost):
     cdef list ordering = []
     cdef int current = 0
     cdef int n = g.n
@@ -827,7 +821,7 @@ cdef list find_order(FastDigraph g, int8_t * neighborhoods, int cost):
     while n:
         # We look for n vertices
 
-        for 0<= i<g.n:
+        for i in range(g.n):
             if (current >> i)&1:
                 continue
 
@@ -880,7 +874,7 @@ def is_valid_ordering(G, L):
     OUTPUT:
 
     Returns ``True`` if `L` is a valid vertex ordering for `G`, and ``False``
-    oterwise.
+    otherwise.
 
 
     EXAMPLE:
@@ -1390,11 +1384,11 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3*n+2, n)
 
-    cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
-    cdef int * positions = <int *>sage_malloc(n * sizeof(int))
+    cdef int * prefix    = <int *>sig_malloc(n * sizeof(int))
+    cdef int * positions = <int *>sig_malloc(n * sizeof(int))
     if prefix==NULL or positions==NULL:
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
@@ -1436,8 +1430,8 @@ def vertex_separation_BAB(G,
     finally:
         if verbose:
             print 'Stored prefixes: {}'.format(len(prefix_storage))
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
 

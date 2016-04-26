@@ -153,9 +153,19 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return " \\times ".join(x._latex_() for x in self.component_types())
 
+    def __hash__(self):
+        r"""
+        EXAMPLES::
+
+            sage: hash(CartanType(['A',1],['B',2]))
+            1110723648           # 32-bit
+            -6896789355307447232 # 64-bit
+        """
+        return hash(repr(self._types))
+
     def __cmp__(self, other):
         """
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: ct1 = CartanType(['A',1],['B',2])
             sage: ct2 = CartanType(['B',2],['A',1])
@@ -166,9 +176,19 @@ class CartanType(SageObject, CartanType_abstract):
             False
             sage: ct1 == ct3
             False
+
+        TESTS:
+
+        Check that :trac:`20418` is fixed::
+
+            sage: ct = CartanType(["A2", "B2"])
+            sage: ct == (1, 2, 1)
+            False
         """
         if isinstance(other, CartanType_simple):
             return 1
+        if other.__class__ != self.__class__:
+            return cmp(self.__class__, other.__class__)
         return cmp(self._types, other._types)
 
     def component_types(self):
@@ -399,8 +419,35 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return False
 
+    @cached_method
+    def coxeter_diagram(self):
+        """
+        Return the Coxeter diagram for ``self``.
 
+        EXAMPLES::
 
+            sage: cd = CartanType("A2xB2xF4").coxeter_diagram()
+            sage: cd
+            Graph on 8 vertices
+            sage: cd.edges()
+            [(1, 2, 3), (3, 4, 4), (5, 6, 3), (6, 7, 4), (7, 8, 3)]
+
+            sage: CartanType("F4xA2").coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 4), (3, 4, 3), (5, 6, 3)]
+
+            sage: cd = CartanType("A1xH3").coxeter_diagram(); cd
+            Graph on 4 vertices
+            sage: cd.edges()
+            [(2, 3, 3), (3, 4, 5)]
+        """
+        from sage.graphs.graph import Graph
+        relabelling = self._index_relabelling
+        g = Graph(multiedges=False)
+        g.add_vertices(self.index_set())
+        for i,t in enumerate(self._types):
+            for [e1, e2, l] in t.coxeter_diagram().edges():
+                g.add_edge(relabelling[i,e1], relabelling[i,e2], label=l)
+        return g
 
 class AmbientSpace(ambient_space.AmbientSpace):
     """

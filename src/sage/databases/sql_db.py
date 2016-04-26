@@ -1,5 +1,5 @@
 """
-Relational (sqlite) Databases Module.
+Relational (sqlite) Databases Module
 
 INFO:
 
@@ -8,22 +8,18 @@ INFO:
     that wrap the basic functionality of sqlite.
 
     Databases are constructed via a triple indexed dictionary called a
-    skeleton. A skeleton should be constructed to fit the following format:
+    skeleton. A skeleton should be constructed to fit the following format::
 
-    - skeleton -- a triple-indexed dictionary
-
-        - outer key -- table name
-
-            - inner key -- column name
-
-                - inner inner key -- one of the following:
-
-                    - primary_key -- boolean, whether column has been set as
-                      primary key
-                    - index -- boolean, whether column has been set as index
-                    - unique -- boolean, whether column has been set as unique
-                    - sql -- one of 'TEXT', 'BOOLEAN', 'INTEGER', 'REAL', or
-                      other user defined type
+        | - skeleton -- a triple-indexed dictionary
+        |     - outer key -- table name
+        |         - inner key -- column name
+        |             - inner inner key -- one of the following:
+        |                 - ``primary_key`` -- boolean, whether column has been set as
+                            primary key
+        |                 - ``index`` -- boolean, whether column has been set as index
+        |                 - ``unique`` -- boolean, whether column has been set as unique
+        |                 - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                            ``'REAL'``, or other user defined type
 
     An example skeleton of a database with one table, that table with one
     column::
@@ -48,16 +44,15 @@ INFO:
     interface.
 
 AUTHORS:
-    -- R. Andrew Ohana (2011-07-16):  refactored and rewrote most of the code;
-                                      merged the Generic classes into the
-                                      non-Generic versions; changed the
-                                      skeleton format to include a boolean
-                                      indicating whether the column stores
-                                      unique keys; changed the index names so
-                                      as to avoid potential ambiguity
-    -- Emily A. Kirkman (2008-09-20): added functionality to generate plots and
-                                      reformat output in show
-    -- Emily A. Kirkman and Robert L. Miller (2007-06-17): initial version
+
+- R. Andrew Ohana (2011-07-16):  refactored and rewrote most of the code;
+  merged the Generic classes into the non-Generic versions; changed the
+  skeleton format to include a boolean indicating whether the column stores
+  unique keys; changed the index names so as to avoid potential ambiguity
+- Emily A. Kirkman (2008-09-20): added functionality to generate plots and
+  reformat output in show
+- Emily A. Kirkman and Robert L. Miller (2007-06-17): initial version
+
 """
 # FUTURE TODOs (Ignore for now):
 #    - order by clause in query strings
@@ -217,24 +212,18 @@ def verify_operator(operator):
 def construct_skeleton(database):
     """
     Constructs a database skeleton from the sql data.  The skeleton data
-    structure is a triple indexed dictionary of the following format:
+    structure is a triple indexed dictionary of the following format::
 
-    - skeleton -- a triple-indexed dictionary
-
-        - outer key -- table name
-
-            - inner key -- column name
-
-                - inner inner key -- one of the following:
-
-                    - ``primary_key`` -- boolean, whether column has been set
-                      as primary key
-                    - ``index`` -- boolean, whether column has been set as
-                      index
-                    - ``unique`` -- boolean, whether column has been set as
-                      unique
-                    - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                      ``'INTEGER'``, ``'REAL'``, or other user defined type
+        | - skeleton -- a triple-indexed dictionary
+        |   - outer key -- table name
+        |     - inner key -- column name
+        |       - inner inner key -- one of the following:
+        |         - ``primary_key`` -- boolean, whether column has been set as
+                    primary key
+        |         - ``index`` -- boolean, whether column has been set as index
+        |         - ``unique`` -- boolean, whether column has been set as unique
+        |         - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                    ``'REAL'``, or other user defined type
 
     An example skeleton of a database with one table, that table with one
     column::
@@ -879,22 +868,19 @@ class SQLDatabase(SageObject):
         INPUT:
 
         - ``filename`` -- a string
-        - ``skeleton`` -- a triple-indexed dictionary
+        - ``skeleton`` -- a triple-indexed dictionary::
 
-            - outer key -- table name
-
-                - inner key -- column name
-
-                    - inner inner key -- one of the following:
-
-                        - ``primary_key`` -- boolean, whether column has been
-                          set as primary key
-                        - ``index`` -- boolean, whether column has been set as
-                          index
-                        - ``unique`` -- boolean, whether column has been set as
-                          unique
-                        - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                          ``'INTEGER'``, ``'REAL'``, or other user defined type
+            | - outer key -- table name
+            |   - inner key -- column name
+            |     - inner inner key -- one of the following:
+            |       - ``primary_key`` -- boolean, whether column has been set
+                      as primary key
+            |       - ``index`` -- boolean, whether column has been set as
+                      index
+            |       - ``unique`` -- boolean, whether column has been set as
+                      unique
+            |       - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
+                      ``'INTEGER'``, ``'REAL'``, or other user defined type
 
         TUTORIAL:
 
@@ -965,7 +951,7 @@ class SQLDatabase(SageObject):
             ...           if g not in labels[i]:
             ...               labels[i].append(g)
             ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
-            sage: D.show('simon')
+            sage: D.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0
@@ -995,7 +981,9 @@ class SQLDatabase(SageObject):
             sage: Q = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['vertices','=',4]})
             sage: Q2 = SQLQuery(D, {'table_name':'simon', 'display_cols':['graph6'], 'expression':['edges','=',3]})
             sage: Q = Q.intersect(Q2)
-            sage: Q.query_results()
+            sage: len(Q.query_results())
+            3
+            sage: Q.query_results() # random
             [(u'CF', u'CF'), (u'CJ', u'CJ'), (u'CL', u'CL')]
 
         NOTE: The values of ``display_cols`` are always concatenated in
@@ -1011,7 +999,7 @@ class SQLDatabase(SageObject):
         instance. We can load the file as an immutable database::
 
             sage: E = SQLDatabase(replace_with_your_own_filepath + 'simon.db')
-            sage: E.show('simon')
+            sage: E.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
             0                    ?                    0
@@ -1186,24 +1174,18 @@ class SQLDatabase(SageObject):
     def get_skeleton(self, check=False):
         """
         Returns a dictionary representing the hierarchical structure of the
-        database, in the following format.
+        database, in the following format::
 
-        - skeleton -- a triple-indexed dictionary
-
-            - outer key -- table name
-
-                - inner key -- column name
-
-                    - inner inner key -- one of the following:
-
-                        - ``primary_key`` -- boolean, whether column has been
-                          set as primary key
-                        - ``index`` -- boolean, whether column has been set as
-                          index
-                        - ``unique`` -- boolean, whether column has been set as
-                          unique
-                        - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
-                          ``'INTEGER'``, ``'REAL'``, or other user defined type
+            | - skeleton -- a triple-indexed dictionary
+            |   - outer key -- table name
+            |     - inner key -- column name
+            |       - inner inner key -- one of the following:
+            |         - ``primary_key`` -- boolean, whether column has been set as
+                        primary key
+            |         - ``index`` -- boolean, whether column has been set as index
+            |         - ``unique`` -- boolean, whether column has been set as unique
+            |         - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``, ``'INTEGER'``,
+                        ``'REAL'``, or other user defined type
 
         For example::
 

@@ -50,7 +50,7 @@ from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
     infinity, RealField, ComplexField)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
-from sage.rings.arith import lcm, factor, factorial
+from sage.arith.all import lcm, factor, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
@@ -518,8 +518,7 @@ def nonneg_region(f):
         sage: nonneg_region(-x^4-1)
         ()
     """
-    roots = f.roots()
-    roots.sort()
+    roots = sorted(f.roots())
     sign_changes = [r for r,e in roots if e%2 == 1]
     if (f.leading_coefficient() * (-1)**f.degree()) > 0:
         sign_changes = [-infinity] + sign_changes
@@ -1204,7 +1203,7 @@ class EllipticCurveCanonicalHeight:
         OUTPUT:
 
         The union of intervals `S^{(v)}(\xi_1,\xi_2)` defined in [TT]_
-        sectoin 6.1.
+        section 6.1.
 
         EXAMPLES:
 

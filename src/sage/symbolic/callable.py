@@ -61,7 +61,8 @@ The arguments in the definition must be symbolic variables #10747::
     SyntaxError: can't assign to function call
 """
 
-from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase
+from sage.structure.parent_base import ParentWithBase
+from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 
 #########################################################################################
@@ -239,7 +240,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
         b = x.arguments()
 
         # Rule #1
-        if [str(x) for x in a] == [str(x) for x in b]:
+        if [str(y) for y in a] == [str(z) for z in b]:
             return a
 
         # Rule #2
@@ -283,6 +284,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         self._arguments = arguments
         ParentWithBase.__init__(self, SR)
         self._populate_coercion_lists_(coerce_list=[SR])
+        self.symbols = SR.symbols  # Use the same list of symbols as SR
 
     def __hash__(self):
         """
@@ -480,7 +482,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         if any([type(arg).__module__ == 'numpy' and type(arg).__name__ == "ndarray" for arg in args]): # avoid importing
             raise NotImplementedError("Numpy arrays are not supported as arguments for symbolic expressions")
 
-        d = dict(zip(map(repr, self.arguments()), args))
+        d = dict(zip([repr(_) for _ in self.arguments()], args))
         d.update(kwds)
         return SR(_the_element.substitute(**d))
 

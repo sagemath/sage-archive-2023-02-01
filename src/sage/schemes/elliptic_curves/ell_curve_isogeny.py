@@ -566,8 +566,8 @@ class EllipticCurveIsogeny(Morphism):
 
     - ``model`` -- a string (default:``None``).  Only supported
       variable is ``minimal``, in which case if ``E`` is a curve over
-      the rationals, then the codomain is set to be the unique global
-      minimum model.
+      the rationals or over a number field, then the codomain is a
+      global minimum model where this exists.
 
     - ``check`` (default: ``True``) checks if the input is valid to
       define an isogeny
@@ -845,12 +845,12 @@ class EllipticCurveIsogeny(Morphism):
         sage: isogs[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field
         sage: isogs[0].rational_maps()
-        ((x^2 - t^2)/x, (x^3*y + t^2*x*y)/x^3)
+        ((x^2 - t^2)/x, (x^2*y + t^2*y)/x^2)
         sage: duals = [phi.dual() for phi in isogs]
         sage: duals[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field
         sage: duals[0].rational_maps()
-        ((1/4*x^2 + t^2)/x, (1/8*x^3*y + (-1/2*t^2)*x*y)/x^3)
+        ((1/4*x^2 + t^2)/x, (1/8*x^2*y + (-1/2*t^2)*y)/x^2)
         sage: duals[0]
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 4*t^2*x over Rational function field in t over Rational Field to Elliptic Curve defined by y^2 = x^3 + (-t^2)*x over Rational function field in t over Rational Field
     """
@@ -986,7 +986,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, type([1,1])) and kernel in E :
+        if not isinstance(kernel, list) and kernel in E :
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -1224,18 +1224,17 @@ class EllipticCurveIsogeny(Morphism):
         this_hash = 0
 
         for a in ker_poly_list:
-            this_hash = this_hash.__xor__(hash(a))
+            this_hash ^= hash(a)
 
-        this_hash = this_hash.__xor__(hash(self.__E1))
-        this_hash = this_hash.__xor__(hash(self.__E2))
-        this_hash = this_hash.__xor__(hash(self.__base_field))
+        this_hash ^= hash(self.__E1)
+        this_hash ^= hash(self.__E2)
+        this_hash ^= hash(self.__base_field)
 
         self.__this_hash = this_hash
 
         return self.__this_hash
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Function that implements comparisons between isogeny objects.
 
@@ -1265,14 +1264,11 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual() == psi.dual()
             True
         """
-        if (not isinstance(other, EllipticCurveIsogeny)):
-            return -1
-
         if (self.__kernel_polynomial is None):
             self.__init_kernel_polynomial()
 
         # We cannot just compare kernel polynomials, as was done until
-        # :trac:`11327`, as then phi and -phi compare equal, and
+        # Trac #11327, as then phi and -phi compare equal, and
         # similarly with phi and any composition of phi with an
         # automorphism of its codomain, or any post-isomorphism.
         # Comparing domains, codomains and rational maps seems much
@@ -1282,7 +1278,9 @@ class EllipticCurveIsogeny(Morphism):
         if t: return t
         t = cmp(self.codomain(), other.codomain())
         if t: return t
-        return  cmp(self.rational_maps(), other.rational_maps())
+        return cmp(self.rational_maps(), other.rational_maps())
+
+    __cmp__ = _cmp_
 
     def __neg__(self):
         r"""
@@ -1357,9 +1355,8 @@ class EllipticCurveIsogeny(Morphism):
             'Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y = x^3 + x + 9 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - 59*x + 165 over Rational Field'
 
         """
-        return 'Isogeny of degree ' + self.__degree.__repr__() + ' from ' + \
-                 self.__E1.__repr__() + ' to ' + self.__E2.__repr__()
-
+        return 'Isogeny of degree %r from %r to %r' % (
+                self.__degree, self.__E1, self.__E2)
 
     def _latex_(self):
         r"""
@@ -1808,10 +1805,10 @@ class EllipticCurveIsogeny(Morphism):
 
             if ('minimal' == model):
 
-                if (not is_RationalField(oldE2.base_field())):
-                    raise ValueError("specifying minimal for model flag only valid with curves over the rational numbers.")
+                if (not is_NumberField(oldE2.base_field())):
+                    raise ValueError("specifying minimal for model flag only valid with curves over number fields.")
 
-                newE2 = oldE2.minimal_model()
+                newE2 = oldE2.global_minimal_model(semi_global=True)
                 post_isom = oldE2.isomorphism_to(newE2)
 
             else:
@@ -2567,7 +2564,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi._EllipticCurveIsogeny__compute_omega_general(E, psi, psi_pr, fi, fi_pr)
             x^3*y + (alpha^2 + 1)*x^2*y + (alpha^2 + alpha + 1)*x^2 + (alpha^2 + 1)*x*y + (alpha^2 + alpha)*x + (alpha)*y + (alpha)
 
-        A bug fixed in ticket #7907::
+        A bug fixed in :trac:`7907`::
 
             sage: F = GF(128,'a')
             sage: a = F.gen()
@@ -2605,7 +2602,7 @@ class EllipticCurveIsogeny(Morphism):
         # thesis are wrong, the correct formulas
         # are coded below
 
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
 
         for j  in xrange(0,n-1):
             psi_prpr = psi_prpr + \
@@ -3361,7 +3358,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
-        Test (for trac ticket 7096)::
+        Test (for :trac:`7096`)::
 
             sage: E = EllipticCurve('11a1')
             sage: phi = E.isogeny(E(5,5))

@@ -204,11 +204,12 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
+            sage: import six
             sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: try:
             ....:     pp = prof._pprof()
-            ....:     assert isinstance(pp, basestring)
+            ....:     assert isinstance(pp, six.string_types)
             ....: except OSError:
             ....:     pass    # not installed
         """
@@ -365,8 +366,10 @@ def crun(s, evaluator):
     from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
-    evaluator(py_s)
-    prof.stop()
+    try:
+        evaluator(py_s)
+    finally:
+        prof.stop()
     prof.top()
 
 

@@ -64,7 +64,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
-from sage.rings.arith import binomial, integer_ceil as ceil
+from sage.arith.all import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
@@ -119,9 +119,10 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     Create elements directly from polynomials::
 
-        sage: A, z = R.poly_ring().objgen()
+        sage: A = R.poly_ring()
         sage: A
         Univariate Polynomial Ring in T over Ring of integers modulo 125
+        sage: z = A.gen()
         sage: R.create_element(z^2, z+1, 3)
         (T^2) + (T + 1)*x + (3)*x^2
 
@@ -1730,10 +1731,9 @@ import weakref
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ
+from sage.rings.all import QQ, IntegralDomain
 
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-from sage.rings.integral_domain import is_IntegralDomain
 
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -2910,7 +2910,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
         for i in range(n):
             L.append((y*x**i).diff().extract_pow_y(0))
         A = matrix(L).transpose()
-        if not is_IntegralDomain(A.base_ring()):
+        if not isinstance(A.base_ring(), IntegralDomain):
             # must be using integer_mod or something to approximate
             self._helper_matrix = (~A.change_ring(QQ)).change_ring(A.base_ring())
         else:

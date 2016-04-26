@@ -209,7 +209,7 @@ This example illustrates using the optional dot2tex module::
     sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: latex(g) # optional - dot2tex
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -220,7 +220,7 @@ here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
     sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
-    sage: latex(g) # optional - dot2tex
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -523,6 +523,7 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
+            'rankdir': 'down'
             }
 
     def __init__(self, graph, **options):
@@ -595,7 +596,7 @@ class GraphLatex(SageObject):
         :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options` method
         is the easiest way to set options, and allows several to be set at once.
 
-        INPUTS:
+        INPUT:
 
         - ``option_name`` - a string for a latex option contained in the list
           ``sage.graphs.graph_latex.GraphLatex.__graphlatex_options``. A
@@ -853,7 +854,7 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
-        OUTPUTS:
+        OUTPUT:
 
         There are none.  Success happens silently.
 
@@ -1197,7 +1198,7 @@ class GraphLatex(SageObject):
         r"""
         Set several LaTeX options for a graph all at once.
 
-        INPUTS:
+        INPUT:
 
          - kwds - any number of option/value pairs to se many graph latex
            options at once (a variable number, in any order). Existing

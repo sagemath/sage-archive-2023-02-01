@@ -64,12 +64,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         valuation map on K in the image of the valuation map on self
         (both normalized so that the valuation of p is 1).
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The ramification index of the extension self/K
 
@@ -97,12 +97,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         fields induced by this extensions.  Since Eisenstein
         extensions are totally ramified, this will be 1 for K=None.
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The degree of the induced extensions of residue fields.
 

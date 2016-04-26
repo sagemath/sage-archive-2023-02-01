@@ -1,9 +1,9 @@
-
+"Univariate rational functions over prime fields"
 
 import sys
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
@@ -341,19 +341,7 @@ cdef class FpTElement(RingElement):
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: K = Frac(GF(5)['t']); t = K.gen()
-            sage: t == 1
-            False
-            sage: t + 1 < t^2
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
         but it is an ordering, and it is consistent between runs.  It has
@@ -387,6 +375,14 @@ cdef class FpTElement(RingElement):
             True
             sage: b < 1/a
             False
+
+        ::
+
+            sage: K = Frac(GF(5)['t']); t = K.gen()
+            sage: t == 1
+            False
+            sage: t + 1 < t^2
+            True
         """
         # They are normalized.
         cdef int j = sage_cmp_nmod_poly_t(self._numer, (<FpTElement>other)._numer)
@@ -855,7 +851,7 @@ cdef class FpT_iter:
     """
     def __init__(self, parent, degree=None, FpTElement start=None):
         """
-        INPUTS:
+        INPUT:
 
         - parent -- The FpT that we're iterating over.
 
@@ -974,31 +970,28 @@ cdef class FpT_iter:
             sage: L[-1]
             (4*t^3 + 4*t^2 + 4*t + 4)/(t^3 + 4*t^2 + 4*t + 4)
         """
-        cdef FpTElement next
+        cdef FpTElement next_
         if self.cur is None:
             self.cur = self.parent(0)
         elif self.degree == -2:
-            self.cur = self.cur.next()
+            self.cur = next(self.cur)
         else:
-            next = self.cur._copy_c()
+            next_ = self.cur._copy_c()
             sig_on()
             while True:
-                nmod_poly_inc(next._numer, False)
-                if nmod_poly_degree(next._numer) > self.degree:
-                    nmod_poly_inc(next._denom, True)
-                    if nmod_poly_degree(next._denom) > self.degree:
+                nmod_poly_inc(next_._numer, False)
+                if nmod_poly_degree(next_._numer) > self.degree:
+                    nmod_poly_inc(next_._denom, True)
+                    if nmod_poly_degree(next_._denom) > self.degree:
                         sig_off()
                         raise StopIteration
-                    nmod_poly_zero(next._numer)
-                    nmod_poly_set_coeff_ui(next._numer, 0, 1)
-                nmod_poly_gcd(self.g, next._numer, next._denom)
+                    nmod_poly_zero(next_._numer)
+                    nmod_poly_set_coeff_ui(next_._numer, 0, 1)
+                nmod_poly_gcd(self.g, next_._numer, next_._denom)
                 if nmod_poly_is_one(self.g):
                     break
             sig_off()
-            self.cur = next
-#            self.cur = self.cur.next()
-#            if nmod_poly_degree(self.cur._numer) > self.degree:
-#                raise StopIteration
+            self.cur = next_
         return self.cur
 
 cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
@@ -1020,7 +1013,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1203,7 +1196,7 @@ cdef class FpT_Polyring_section(Section):
 
     def __init__(self, Polyring_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- A Polyring_FpT_coerce homomorphism
 
@@ -1314,7 +1307,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1481,7 +1474,7 @@ cdef class FpT_Fp_section(Section):
 
     def __init__(self, Fp_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- An Fp_FpT_coerce homomorphism
 
@@ -1611,7 +1604,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 

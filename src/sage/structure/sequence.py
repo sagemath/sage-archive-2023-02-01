@@ -38,7 +38,7 @@ to be preserved::
     sage: w[0] = 'hi'
     Traceback (most recent call last):
     ...
-    TypeError: unable to convert hi to a rational
+    TypeError: unable to convert 'hi' to a rational
 
 However, if you do ``w = Sequence(v)`` and the resulting universe
 is ``Objects()``, the elements are not guaranteed to have any
@@ -541,6 +541,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
     def append(self, x):
         """
         EXAMPLES::
+
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: v.append(34)
             Traceback (most recent call last):

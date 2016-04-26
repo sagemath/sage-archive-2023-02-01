@@ -174,7 +174,7 @@ Polynome, usw.:
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *

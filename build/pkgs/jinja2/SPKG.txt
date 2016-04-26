@@ -15,12 +15,6 @@ environments.
 
 Modified BSD License
 
-== SPKG Maintainers ==
-
- * Tim Dumol <tim@timdumol.com>
- * John Palmieri <palmieri@math.washington.edu>
- * Mike Hansen <mhansen@gmail.com>
-
 == Upstream Contact ==
 
 Author: Pocoo Team <http://pocoo.org>

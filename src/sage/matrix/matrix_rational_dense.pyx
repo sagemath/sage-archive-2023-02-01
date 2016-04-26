@@ -41,21 +41,25 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
 
-from sage.libs.gmp.types cimport mpq_t
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.randomize cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
@@ -68,10 +72,10 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
@@ -86,9 +90,7 @@ from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
-include "sage/libs/pari/decl.pxi"
-include "sage/libs/pari/pari_err.pxi"
-
+from sage.libs.pari.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
@@ -134,14 +136,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, k
 
         sig_on()
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        self._entries = <mpq_t *> sig_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         if self._entries == NULL:
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
-        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
+        self._matrix =  <mpq_t **> sig_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
-            sage_free(self._entries)
+            sig_free(self._entries)
             self._entries = NULL
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
@@ -162,8 +164,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])
-        sage_free(self._entries)
-        sage_free(self._matrix)
+        sig_free(self._entries)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
 
@@ -264,7 +266,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -276,9 +278,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> sage_malloc(n * sizeof(char))
+                        tmp = <char*> sig_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        sage_free(s)
+                        sig_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -291,7 +293,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t = t + 1
             sig_off()
             data = str(s)[:-1]
-            sage_free(s)
+            sig_free(s)
         return data
 
     cdef _unpickle_version0(self, data):
@@ -305,8 +307,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if mpq_set_str(self._entries[i], s, 32):
                 raise RuntimeError("invalid pickle data")
 
-    def __richcmp__(Matrix self, right, int op):
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -315,7 +315,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * cdef _add_
     # x * cdef _mul_
     # x * cdef _vector_times_matrix_
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -410,7 +410,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         cdef mpq_t *a
         cdef mpq_t *b
         cdef Py_ssize_t i, j
@@ -589,7 +589,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return M
 
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __invert__(self):
     # def _list(self):
     # def _dict(self):
@@ -1516,7 +1516,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The result is an immutable matrix, so if you want to
         modify the result then you need to make a copy.  This
-        checks that Trac #10543 is fixed. ::
+        checks that :trac:`10543` is fixed. ::
 
             sage: A = matrix(QQ, 2, range(6))
             sage: E = A.echelon_form()
@@ -2514,7 +2514,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
         cdef Rational e = <Rational>Rational.__new__(Rational)
@@ -2531,7 +2531,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -2560,7 +2560,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         pari.clear_stack()
@@ -2578,13 +2578,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: impossible inverse in ginv: 0
+            PariError: impossible inverse in ginv: [1, 2; 2, 4]
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
         cdef GEN M, d
 
-        pari_catch_sig_on()
+        sig_on()
         M = pari_GEN(self)
         d = ginv(M)
 

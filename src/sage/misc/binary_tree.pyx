@@ -1,4 +1,6 @@
 """
+Binary trees
+
 Implements a binary tree in Cython.
 
 AUTHORS:
@@ -6,12 +8,12 @@ AUTHORS:
 - Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
+include "cysignals/memory.pxi"
+from cpython.ref cimport PyObject, Py_INCREF, Py_XDECREF
 
 cdef binary_tree_node *BinaryTreeNode(int key, object value):
     cdef binary_tree_node *t
-    t = <binary_tree_node *>sage_malloc(sizeof(binary_tree_node))
+    t = <binary_tree_node *>sig_malloc(sizeof(binary_tree_node))
     t.key = key
     t.left = NULL
     t.right = NULL
@@ -20,17 +22,14 @@ cdef binary_tree_node *BinaryTreeNode(int key, object value):
     return t
 
 cdef void free_binary_tree_node(binary_tree_node *self):
-    if self.value != NULL:
-        Py_DECREF(<object>self.value)
-    sage_free(self)
+    Py_XDECREF(<PyObject *>self.value)
+    sig_free(self)
 
-cdef void binary_tree_dealloc(binary_tree_node *self):
-    if self.left != NULL:
+cdef inline void binary_tree_dealloc(binary_tree_node *self):
+    if self != NULL:
         binary_tree_dealloc(self.left)
-        free_binary_tree_node(self.left)
-    if self.right != NULL:
         binary_tree_dealloc(self.right)
-        free_binary_tree_node(self.right)
+        free_binary_tree_node(self)
 
 
 cdef void binary_tree_insert(binary_tree_node *self, int key, object value):
@@ -185,12 +184,31 @@ cdef class BinaryTree:
     """
     A simple binary tree with integer keys.
     """
-    def __init__(BinaryTree self):
+    def __cinit__(BinaryTree self):
         self.head = NULL
     def __dealloc__(BinaryTree self):
-        if self.head != NULL:
-            binary_tree_dealloc(self.head)
-            sage_free(self.head)
+        """
+        TESTS:
+
+        We test that :trac:`18897` is fixed::
+
+            sage: def test():
+            ....:     from sage.rings.polynomial.polynomial_compiled import CompiledPolynomialFunction
+            ....:     import gc
+            ....:     from collections import Counter
+            ....:     gc.collect()
+            ....:     pre={id(c) for c in gc.get_objects()}
+            ....:     L = [-1, 9, -22, 21, -8, 1]
+            ....:     for _ in range(100):
+            ....:         CompiledPolynomialFunction(L)  # this creates and deallocs a binary tree
+            ....:     gc.collect()
+            ....:     post=Counter(type(o) for o in gc.get_objects() if id(o) not in pre)
+            ....:     return [(k,v) for (k,v) in post.iteritems() if v>10]
+            sage: test()   # indirect doctest
+            []
+
+        """
+        binary_tree_dealloc(self.head)
 
     def insert(BinaryTree self, object key, object value = None):
         """

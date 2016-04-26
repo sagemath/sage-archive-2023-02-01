@@ -251,7 +251,7 @@ class PlainPythonRepr(ObjectReprABC):
         a custom representer. Note that it is undesirable to have a
         trailing newline, and if we don't display it you can't fix
         it::
-    
+
             sage: class Newline(object):
             ....:     def __repr__(self):
             ....:         return 'newline\n'
@@ -287,82 +287,6 @@ class PlainPythonRepr(ObjectReprABC):
         return True
 
 
-class AsciiArtRepr(ObjectReprABC):
-    """
-    Ascii Art representation
-
-    .. automethod:: __call__
-    """
-
-    def __call__(self, obj, p, cycle):
-        r"""
-        Return ascii art format.
-
-        INPUT:
-
-        - ``obj`` -- anything. Object to format.
-
-        - ``p`` -- PrettyPrinter instance.
-
-        - ``cycle`` -- boolean. Whether there is a cycle.
-
-        OUTPUT:
-
-        Boolean. Whether the representer is applicable to ``obj``. If
-        ``True``, the string representation is appended to ``p``.
-
-        EXAMPLES::
-
-            sage: from sage.repl.display.fancy_repr import AsciiArtRepr
-            sage: pp = AsciiArtRepr()
-            sage: pp.format_string(x/2)
-            'x\n-\n2'
-        """
-        from sage.misc.ascii_art import ascii_art
-        output = ascii_art(obj)
-        p.text(output)
-        return True
-
-
-class TypesetRepr(ObjectReprABC):
-    """
-    Typeset representation
-
-    .. automethod:: __call__
-    """
-
-    def __call__(self, obj, p, cycle):
-        r"""
-        Return typeset format.
-
-        INPUT:
-
-        - ``obj`` -- anything. Object to format.
-
-        - ``p`` -- PrettyPrinter instance.
-
-        - ``cycle`` -- boolean. Whether there is a cycle.
-
-        OUTPUT:
-
-        Boolean. Whether the representer is applicable to ``obj``. If
-        ``True``, the string representation is appended to ``p``.
-
-        EXAMPLES::
-
-            sage: from sage.repl.display.fancy_repr import TypesetRepr
-            sage: pp = TypesetRepr()
-            sage: pp.format_string(x/2)
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, x</script></html>
-            ''
-        """
-        # We should probably return that as string, but
-        # latex.pretty_print doesn't give us a useful interface
-        from sage.misc.latex import pretty_print
-        pretty_print(obj)
-        return True
-
-
 class TallListRepr(ObjectReprABC):
     """
     Special representation for lists with tall entries (e.g. matrices)
@@ -393,11 +317,36 @@ class TallListRepr(ObjectReprABC):
             sage: format_list = TallListRepr().format_string
             sage: format_list([1, 2, identity_matrix(2)])
             '[\n      [1 0]\n1, 2, [0 1]\n]'
+
+        Check that :trac:`18743` is fixed::
+
+            sage: class Foo(object):
+            ....:     def __repr__(self):
+            ....:         return '''BBB    AA   RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   AAAA  RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   A  A  R   R'''
+            ....:     def _repr_option(self, key):
+            ....:         return key == 'ascii_art'
+            sage: F = Foo()
+            sage: [F, F]
+            [
+            BBB    AA   RRR    BBB    AA   RRR  
+            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB   AAAA  RRR    BBB   AAAA  RRR  
+            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB   A  A  R   R, BBB   A  A  R   R
+            ]
         """
         if not (isinstance(obj, (tuple, list)) and len(obj) > 0):
             return False
         ascii_art_repr = False
         for o in obj:
+            try:
+                ascii_art_repr = ascii_art_repr or o._repr_option('ascii_art')
+            except (AttributeError, TypeError):
+                pass
             try:
                 ascii_art_repr = ascii_art_repr or o.parent()._repr_option('element_ascii_art')
             except (AttributeError, TypeError):

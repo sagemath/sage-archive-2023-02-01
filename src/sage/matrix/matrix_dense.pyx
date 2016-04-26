@@ -10,11 +10,9 @@ TESTS::
 
 cimport matrix
 
-from   sage.structure.element    cimport Element
+from   sage.structure.element    cimport Element, RingElement
 import sage.matrix.matrix_space
 import sage.structure.sequence
-
-include 'sage/ext/cdefs.pxi'
 
 cdef class Matrix_dense(matrix.Matrix):
     cdef bint is_sparse_c(self):
@@ -102,7 +100,7 @@ cdef class Matrix_dense(matrix.Matrix):
         else:
             raise RuntimeError, "unknown matrix version (=%s)"%version
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         EXAMPLES::
 
@@ -236,7 +234,7 @@ cdef class Matrix_dense(matrix.Matrix):
         raised.
 
         This routine is meant to be called from the
-        meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
+        :meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
         method, which will ensure that this routine receives
         proper input.  More thorough documentation is provided
         there.
@@ -297,3 +295,45 @@ cdef class Matrix_dense(matrix.Matrix):
             image.subdivide(*self.subdivisions())
         return image
 
+    def _multiply_classical(left, matrix.Matrix right):
+        """
+        Multiply the matrices left and right using the classical `O(n^3)`
+        algorithm.
+
+        This method will almost always be overridden either by the
+        implementation in :class:`~sage.matrix.Matrix_generic_dense`) or by
+        more specialized versions, but having it here makes it possible to
+        implement specialized dense matrix types with their own data structure
+        without necessarily implementing ``_multiply_classical``, as described
+        in :mod:`sage.matrix.docs`.
+
+        TESTS::
+
+            sage: from sage.matrix.matrix_dense import Matrix_dense
+            sage: mats = [
+            ....:     matrix(2, 2, [1, 2, 3, 4]),
+            ....:     matrix(2, 1, [1, 2]),
+            ....:     matrix(3, 2, [1, 2, 3, 4, 5, 6]),
+            ....:     matrix(ZZ, 0, 2),
+            ....:     matrix(ZZ, 2, 0)
+            ....: ]
+            sage: all(Matrix_dense._multiply_classical(a, b) == a*b
+            ....:     for a in mats for b in mats if a.ncols() == b.nrows())
+            True
+            sage: Matrix_dense._multiply_classical(matrix(2, 1), matrix(2, 0))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: number of columns of left must equal number of rows of right
+        """
+        cdef Py_ssize_t i, j
+        if left._ncols != right._nrows:
+            raise ArithmeticError("number of columns of left must equal number of rows of right")
+        cdef RingElement zero = left.base_ring().zero()
+        cdef matrix.Matrix res = left.new_matrix(nrows=left._nrows, ncols=right._ncols)
+        for i in range(left._nrows):
+            for j in range(right._ncols):
+                dotp = zero
+                for k in range(left._ncols):
+                    dotp += left.get_unsafe(i, k) * right.get_unsafe(k, j)
+                res.set_unsafe(i, j, dotp)
+        return res

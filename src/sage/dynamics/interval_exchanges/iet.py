@@ -91,7 +91,7 @@ class IntervalExchangeTransformation(SageObject):
         sage: iet.IntervalExchangeTransformation(('a b','b a'),['e','f'])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (='e') into a real number
+        TypeError: unable to convert 'e' to a float
 
     The value for the lengths must be positive::
 
@@ -203,7 +203,7 @@ class IntervalExchangeTransformation(SageObject):
            sage: s = t.normalize('bla')
            Traceback (most recent call last):
            ...
-           TypeError: unable to convert total (='bla') into a real number
+           TypeError: unable to convert 'bla' to a float
            sage: s = t.normalize(-691)
            Traceback (most recent call last):
            ...
@@ -212,8 +212,7 @@ class IntervalExchangeTransformation(SageObject):
         try:
             float(total)
         except ValueError:
-            raise TypeError("unable to convert total (='%s') into a real number"
-                            % (str(total)))
+            raise TypeError("unable to convert {!r} to a float".format(total))
 
         if total <= 0:
             raise ValueError("the total length must be positive")
@@ -240,7 +239,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t.lengths()
             [2]
         """
-        self._lengths = map(lambda t: t*x, self._lengths)
+        self._lengths = [t*x for t in self._lengths]
 
     def _repr_(self):
         r"""
@@ -489,7 +488,7 @@ class IntervalExchangeTransformation(SageObject):
             True
         """
         return (
-            isinstance(self, type(other)) and
+            type(self) is type(other) and
             self._permutation == other._permutation and
             self._lengths == other._lengths)
 
@@ -504,7 +503,7 @@ class IntervalExchangeTransformation(SageObject):
             False
         """
         return (
-            not isinstance(self, type(other)) or
+            type(self) is not type(other) or
             self._permutation != other._permutation or
             self._lengths != other._lengths)
 
@@ -823,9 +822,9 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``position`` - a 2-uple of the position
 
-        - ``horizontal_alignment`` - left (defaut), center or right
+        - ``horizontal_alignment`` - left (default), center or right
 
-        - ``labels`` - boolean (defaut: True)
+        - ``labels`` - boolean (default: True)
 
         - ``fontsize`` - the size of the label
 
@@ -847,7 +846,7 @@ class IntervalExchangeTransformation(SageObject):
 
         G = Graphics()
 
-        lengths = map(float,self._lengths)
+        lengths = [float(_) for _ in self._lengths]
         total_length = sum(lengths)
 
         if colors is None:

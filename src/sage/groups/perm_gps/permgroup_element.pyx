@@ -59,7 +59,6 @@ import random
 import sage.groups.old as group
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer
@@ -461,9 +460,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         self.n = max(parent.degree(), 1)
 
         if self.perm is NULL or self.perm is self.perm_buf:
-            self.perm = <int *>sage_malloc(sizeof(int) * self.n)
+            self.perm = <int *>sig_malloc(sizeof(int) * self.n)
         else:
-            self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
+            self.perm = <int *>sig_realloc(self.perm, sizeof(int) * self.n)
 
 
         cdef int i, vn = len(v)
@@ -480,12 +479,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if not is_valid_permutation(self.perm, vn):
             raise ValueError, "Invalid permutation vector: %s" % v
 
-    def __cinit__(self, g = None, parent = None, check = True):
-        self.perm = NULL
-
     def __dealloc__(self):
         if self.perm is not NULL and self.perm is not self.perm_buf:
-            sage_free(self.perm)
+            sig_free(self.perm)
 
     def __reduce__(self):
         """
@@ -512,7 +508,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if other.n <= sizeof(other.perm_buf) / sizeof(int):
             other.perm = other.perm_buf
         else:
-            other.perm = <int *>sage_malloc(sizeof(int) * other.n)
+            other.perm = <int *>sig_malloc(sizeof(int) * other.n)
         return other
 
     def _gap_(self, gap=None):
@@ -622,9 +618,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    def __cmp__(PermutationGroupElement self, PermutationGroupElement right):
+    cpdef int _cmp_(self, Element other) except -2:
         """
-        Compare group elements self and right.
+        Compare group elements ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -650,7 +646,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         TESTS:
 
-        Verify that we fixed bug #5537::
+        Verify that we fixed bug :trac:`5537`::
 
             sage: h = PermutationGroupElement('(1,3,2)')
             sage: k = PermutationGroupElement('(1,2,3),(4,5)')
@@ -660,20 +656,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             True
         """
         cdef int i
-        cdef int swap = 1
-        if right.n < self.n:
-            self, right = right, self
-            swap = -1
-        for i from 0 <= i < self.n:
+        cdef PermutationGroupElement right = <PermutationGroupElement>other
+        for i in range(self.n):  # Equal parents, so self.n == other.n
             if self.perm[i] < right.perm[i]:
-                return -swap
+                return -1
             elif self.perm[i] > right.perm[i]:
-                return swap
-        for i from self.n <= i < right.n:
-            if i < right.perm[i]:
-                return -swap
-            elif i > right.perm[i]:
-                return swap
+                return 1
         return 0
 
     def __call__(self, i):
@@ -975,22 +963,33 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def __hash__(self):
         """
-        Return hash of this permutation.
+        Return a hash for this permutation.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
-            sage: s = G([2,1,5,3,4])
-            sage: s.tuple()
-            (2, 1, 5, 3, 4)
-            sage: hash(s)
-            1592966088          # 32-bit
-            2865702456085625800 # 64-bit
-            sage: hash(s.tuple())
-            1592966088          # 32-bit
-            2865702456085625800 # 64-bit
+            sage: hash(G([2,1,5,3,4]))
+            -1203337681           # 32-bit
+            -1527414595000039889  # 64-bit
+
+        Check that the hash looks reasonable::
+
+            sage: s = set()
+            sage: s.update(map(hash,SymmetricGroup(1)))
+            sage: s.update(map(hash,SymmetricGroup(2)))
+            sage: s.update(map(hash,SymmetricGroup(3)))
+            sage: s.update(map(hash,SymmetricGroup(4)))
+            sage: s.update(map(hash,SymmetricGroup(5)))
+            sage: len(s) == 1 + 2 + 6 + 24 + 120
+            True
         """
-        return hash(tuple(self._gap_list()))
+        cdef size_t i
+        cdef long ans = self.n
+        for i in range(self.n):
+            ans = (ans ^ (self.perm[i])) * 1000003L
+        if ans == -1:
+            ans = -2
+        return ans
 
     def tuple(self):
         """
@@ -1060,7 +1059,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef long long order_c = 1
         cdef int cycle_len
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1077,7 +1076,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 order_c = (order_c * cycle_len) / arith.c_gcd_longlong(order_c, cycle_len)
                 if order_c > LONG_LONG_MAX / (self.n - i):
                     order = Integer(order_c)
-        sage_free(seen)
+        sig_free(seen)
         return Integer(order_c) if order is None else order
 
     def inverse(self):
@@ -1134,7 +1133,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         cdef int cycle_len_sum = 0
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1144,7 +1143,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 seen[k] = 1
                 k = self.perm[k]
                 cycle_len_sum += 1
-        sage_free(seen)
+        sig_free(seen)
         return 1 - 2*(cycle_len_sum % 2) # == (-1)^cycle_len
 
 
@@ -1209,7 +1208,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         L = []
         cdef PermutationGroupElement cycle
         cdef int i, j, k, next_k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i] or self.perm[i] == i:
@@ -1222,7 +1221,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 next_k = cycle.perm[k] = self.perm[k]
                 k = next_k
             PyList_Append(L, cycle)
-        sage_free(seen)
+        sig_free(seen)
         return L
 
     def cycle_tuples(self, singletons=False):
@@ -1260,7 +1259,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         from_gap = self._parent._domain_from_gap
         L = []
         cdef int i, k
-        cdef bint* seen = <bint *>sage_malloc(sizeof(bint) * self.n)
+        cdef bint* seen = <bint *>sig_malloc(sizeof(bint) * self.n)
         for i from 0 <= i < self.n: seen[i] = 0
         for i from 0 <= i < self.n:
             if seen[i]:
@@ -1280,7 +1279,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                     seen[k] = 1
                     k = self.perm[k]
                 PyList_Append(L, tuple(cycle))
-        sage_free(seen)
+        sig_free(seen)
         return L
 
     def cycle_string(self, singletons=False):
@@ -1439,6 +1438,31 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
+
+cdef class SymmetricGroupElement(PermutationGroupElement):
+    """
+    An element of the symmetric group.
+    """
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``.
+
+        The absolute length is the size minus the number of its disjoint
+        cycles. Alternatively, it is the length of the shortest
+        expression of the element as a product of reflections.
+
+        .. SEEALSO::
+
+            :meth:`absolute_le`
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(3)
+            sage: [x.absolute_length() for x in S]
+            [0, 1, 2, 2, 1, 1]
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self).absolute_length()
 
 cdef bint is_valid_permutation(int* perm, int n):
     """

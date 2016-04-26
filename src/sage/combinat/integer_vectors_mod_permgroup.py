@@ -284,7 +284,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         """
@@ -293,7 +293,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
             Integer vectors of length 3 enumerated up to the action of Permutation Group with generators [(1,2,3)]
         """
-        return "Integer vectors of length %s enumerated up to the action of %s"%(str(self.n), self._permgroup.__repr__())
+        return "Integer vectors of length %s enumerated up to the action of %r"%(self.n, self._permgroup)
 
     def ambient(self):
         r"""
@@ -305,9 +305,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: S.ambient()
             Integer vectors
         """
-        # TODO: Fix me once 'IntegerVectors(length=bla)' will return
-        # the integer vectors of length bla
-        return IntegerVectors(length=self.n)
+        ## TODO: Fix me once 'IntegerVectors(length=bla)' will return
+        ## the integer vectors of length bla
+        #return IntegerVectors(length=self.n)
+
+        # (#17927) The previous line was replaced by the following, as
+        # IntegerVectors(length=k) is invalid at the moment.
+        return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -338,15 +342,15 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
         EXAMPLES::
 
-            sage: [0,0,0,0] in IntegerVectors(length=4)
+            sage: [0,0,0,0] in IntegerVectors(0,4)
             True
-            sage: [1,0,0,0] in IntegerVectors(length=4)
+            sage: [1,0,0,0] in IntegerVectors(1,4)
             True
-            sage: [0,1,0,0] in IntegerVectors(length=4)
+            sage: [0,1,0,0] in IntegerVectors(1,4)
             True
-            sage: [1,0,1,0] in IntegerVectors(length=4)
+            sage: [1,0,1,0] in IntegerVectors(2,4)
             True
-            sage: [0,1,0,1] in IntegerVectors(length=4)
+            sage: [0,1,0,1] in IntegerVectors(2,4)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
             sage: S.retract([0,0,0,0])
@@ -585,8 +589,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     Here is the enumeration of unlabeled graphs over 5 vertices::
 
-        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional
-        sage: G.cardinality() # optional
+        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional - database_gap
+        sage: G.cardinality()  # optional - database_gap
         34
 
     TESTS::
@@ -613,7 +617,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         r"""
@@ -754,7 +758,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             return self.elements_of_depth_iterator(self._sum)
         else:
             SF = SearchForest((self([0]*(self.n), check=False),),
-                              lambda x : map(lambda y : self(y, check=False), canonical_children(self._sgs, x, self._max_part)),
+                              lambda x : [self(y, check=False) for y in canonical_children(self._sgs, x, self._max_part)],
                               algorithm = 'breadth')
             if self._sum is None:
                 return iter(SF)
@@ -814,9 +818,13 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             else:
                 return IntegerVectors(n=self._sum, max_part=self._max_part)
         else:
-            # Fix me once max_part should be accepted as a single
-            # argument for integer vectors
-            return IntegerVectors(max_part=self._max_part)
+            ## Fix me once max_part should be accepted as a single
+            ## argument for integer vectors
+            #return IntegerVectors(max_part=self._max_part)
+
+            # (#17927) The previous line was replaced by the following, as
+            # IntegerVectors(max_part=k) is invalid at the moment.
+            return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -827,7 +835,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), max_part=1)
             sage: v = S.lift([1,0,1,0]); v
             [1, 0, 1, 0]
-            sage: v in IntegerVectors(max_part=1)
+            sage: v in IntegerVectors(2,4,max_part=1)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=6)
             sage: v = S.lift(S.list()[5]); v

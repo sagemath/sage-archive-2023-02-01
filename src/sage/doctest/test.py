@@ -232,10 +232,10 @@ Test a doctest failing with ``abort()``::
     Tests run before process (pid=...) failed:
     ...
     ------------------------------------------------------------------------
-    Unhandled SIGABRT: An abort() occurred in Sage.
-    This probably occurred because a *compiled* component of Sage has a bug
+    Unhandled SIGABRT: An abort() occurred.
+    This probably occurred because a *compiled* module has a bug
     in it and is not properly wrapped with sig_on(), sig_off().
-    Sage will now terminate.
+    Python will now terminate.
     ------------------------------------------------------------------------
     ...
     ----------------------------------------------------------------------
@@ -275,17 +275,17 @@ Test that ``sig_on_count`` is checked correctly::
     Doctesting 1 file.
     sage -t --warn-long 0.0 sig_on.rst
     **********************************************************************
-    File "sig_on.rst", line 5, in sage.doctest.tests.sig_on
+    File "sig_on.rst", line 6, in sage.doctest.tests.sig_on
     Failed example:
-        sig_on_count()
+        sig_on_count() # check sig_on/off pairings (virtual doctest)
     Expected:
         0
     Got:
         1
     **********************************************************************
     1 item had failures:
-       1 of   4 in sage.doctest.tests.sig_on
-        [2 tests, 1 failure, ...]
+       1 of   5 in sage.doctest.tests.sig_on
+        [3 tests, 1 failure, ...]
     ----------------------------------------------------------------------
     sage -t --warn-long 0.0 sig_on.rst  # 1 doctest failed
     ----------------------------------------------------------------------
@@ -331,14 +331,17 @@ Test running under gdb, without and with a timeout::
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
-    sage -t --warn-long 0.0 1second.rst
+    sage -t... 1second.rst
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
     ----------------------------------------------------------------------
     ...
     0
-    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
+
+gdb might need a long time to start up, so we allow 30 seconds::
+
+    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T30", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
         Timed out

@@ -168,13 +168,12 @@ class Matlab(Expect):
            122
            505
     """
-    def __init__(self, maxread=100, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'matlab',
                         prompt = '>> ',
                         command = "sage-native-execute matlab -nodisplay",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -348,7 +347,7 @@ class MatlabElement(ExpectElement):
         matlab = self.parent()
         entries = matlab.strip_answer(matlab.eval("mat2str({0})".format(self.name())))
         entries = entries.strip()[1:-1].replace(';', ' ')
-        entries = map(R, entries.split(' '))
+        entries = [R(_) for _ in entries.split(' ')]
         nrows, ncols = map(int, str(self.size()).strip().split())
         m = matrix(R, nrows, ncols, entries)
         return m
@@ -365,7 +364,6 @@ def reduce_load_Matlab():
     return matlab
 
 
-import os
 def matlab_console():
     """
     This requires that the optional matlab program be installed and in
@@ -389,6 +387,9 @@ def matlab_console():
     matlab, like Sage, remembers its history from one session to
     another.
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%matlab magics instead.')
     os.system('matlab -nodisplay')
 
 

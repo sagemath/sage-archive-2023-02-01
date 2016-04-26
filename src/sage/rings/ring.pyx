@@ -68,8 +68,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 
-from sage.structure.element import get_coercion_model
-from sage.structure.parent_gens cimport ParentWithGens
+from sage.structure.element cimport coercion_model
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
 from sage.misc.prandom import randint
@@ -100,6 +99,7 @@ cdef class Ring(ParentWithGens):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -133,11 +133,14 @@ cdef class Ring(ParentWithGens):
     Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
-        Join of Category of euclidean domains and Category of commutative algebras over quotient fields
+        Join of Category of euclidean domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: QQ['x','y'].category()
-        Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+        Join of Category of unique factorization domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over algebras over quotient fields
+        Category of algebras over (algebras over
+         (quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 
@@ -193,7 +196,7 @@ cdef class Ring(ParentWithGens):
     def __len__(self):
         r"""
         Return the cardinality of this ring if it is finite, else raise
-        a ``TypeError``.
+        a ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -202,23 +205,25 @@ cdef class Ring(ParentWithGens):
             sage: len(RR)
             Traceback (most recent call last):
             ...
-            TypeError: len() of unsized object
+            NotImplementedError: len() of an infinite set
         """
         if self.is_finite():
             return self.cardinality()
-        raise TypeError, 'len() of unsized object'
+        raise NotImplementedError, 'len() of an infinite set'
 
     def __xor__(self, n):
         r"""
-        Trap the operation ``^``. It's next to impossible to test this since
-        ``^`` is intercepted first by the preparser.
+        Trap the operation ``^``.
 
         EXAMPLES::
 
-            sage: RR^3 # not tested
+            sage: eval('RR^3')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: use ** for exponentiation, not '^', which means xor in Python, and has the wrong precedence
         """
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
+        raise RuntimeError("use ** for exponentiation, not '^', which means xor "
+              "in Python, and has the wrong precedence")
 
     def base_extend(self, R):
         """
@@ -629,7 +634,7 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names=names)
 
-    def __div__(self, I):
+    def __truediv__(self, I):
         """
         Dividing one ring by another is not supported because there is no good
         way to specify generator names.
@@ -641,8 +646,7 @@ cdef class Ring(ParentWithGens):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
         """
-        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
-        #return self.quotient(I, names=None)
+        raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
     def quotient_ring(self, I, names=None):
         """
@@ -830,7 +834,26 @@ cdef class Ring(ParentWithGens):
             True
             sage: ZZ.is_subring(GF(19))
             False
+
+        TESTS:
+
+        Every ring is a subring of itself, :trac:`17287`::
+
+            sage: QQbar.is_subring(QQbar)
+            True
+            sage: RR.is_subring(RR)
+            True
+            sage: CC.is_subring(CC)
+            True
+            sage: K.<a> = NumberField(x^3-x+1/10)
+            sage: K.is_subring(K)
+            True
+            sage: R.<x> = RR[]
+            sage: R.is_subring(R)
+            True
         """
+        if self is other:
+            return True
         try:
             return self.Hom(other).natural_map().is_injective()
         except TypeError:
@@ -1013,14 +1036,15 @@ cdef class Ring(ParentWithGens):
 
     def zeta(self, n=2, all=False):
         """
-        Return an ``n``-th root of unity in ``self`` if there is one,
-        or raise an ``ArithmeticError`` otherwise.
+        Return a primitive ``n``-th root of unity in ``self`` if there
+        is one, or raise a ``ValueError`` otherwise.
 
         INPUT:
 
         - ``n`` -- positive integer
-        - ``all`` -- bool, default: False.  If True, return a list of all n-th
-          roots of 1.
+
+        - ``all`` -- bool (default: False) - whether to return
+          a list of all primitive `n`-th roots of unity.
 
         OUTPUT:
 
@@ -1032,11 +1056,11 @@ cdef class Ring(ParentWithGens):
             -1
             sage: QQ.zeta(1)
             1
-            sage: CyclotomicField(6).zeta()
+            sage: CyclotomicField(6).zeta(6)
             zeta6
-            sage: CyclotomicField(3).zeta()
+            sage: CyclotomicField(3).zeta(3)
             zeta3
-            sage: CyclotomicField(3).zeta().multiplicative_order()
+            sage: CyclotomicField(3).zeta(3).multiplicative_order()
             3
             sage: a = GF(7).zeta(); a
             3
@@ -1056,6 +1080,18 @@ cdef class Ring(ParentWithGens):
             ValueError: no n-th root of unity in rational field
             sage: Zp(7, prec=8).zeta()
             3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + 6*7^6 + 2*7^7 + O(7^8)
+
+        TESTS::
+
+            sage: from sage.rings.ring import Ring
+            sage: Ring.zeta(QQ, 1)
+            1
+            sage: Ring.zeta(QQ, 2)
+            -1
+            sage: Ring.zeta(QQ, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no 3rd root of unity in Rational Field
         """
         if n == 2:
             if all:
@@ -1074,7 +1110,8 @@ cdef class Ring(ParentWithGens):
             for P, e in f.factor():
                 if P.degree() == 1:
                     return -P[0]
-            raise ArithmeticError, "no %s-th root of unity in self"%n
+            from sage.rings.all import ZZ
+            raise ValueError("no %s root of unity in %r" % (ZZ(n).ordinal_str(), self))
 
     def zeta_order(self):
         """
@@ -1305,7 +1342,7 @@ cdef class CommutativeRing(Ring):
         try:
             return self.fraction_field()
         except (NotImplementedError,TypeError):
-            return get_coercion_model().division_parent(self)
+            return coercion_model.division_parent(self)
 
     def __pow__(self, n, _):
         """
@@ -1380,7 +1417,7 @@ cdef class CommutativeRing(Ring):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
@@ -1765,7 +1802,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.integral_closure()
-            Maximal Order in Number Field in s with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in s with defining polynomial x^2 + 1
             sage: OK.integral_closure() == OK
             True
 
@@ -2160,7 +2197,7 @@ cdef class Field(PrincipalIdealDomain):
             import sage.rings.rational_field
             return sage.rings.rational_field.RationalField()
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return GF(self.characteristic())
 
     def algebraic_closure(self):
@@ -2181,6 +2218,115 @@ cdef class Field(PrincipalIdealDomain):
             NotImplementedError: Algebraic closures of general fields not implemented.
         """
         raise NotImplementedError, "Algebraic closures of general fields not implemented."
+
+    def _gcd_univariate_polynomial(self, a, b):
+        """
+        Return the gcd of ``a`` and ``b`` as a monic polynomial.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._gcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z = R.zero()
+            ....:     assert(g(2*x, 2*x^2) == x and
+            ....:            g(z, 2*x) == x and
+            ....:            g(2*x, z) == x and
+            ....:            g(z, z) == z)
+
+            sage: R.<x> = RR[]
+            sage: (x^3).gcd(x^5+1)
+            1.00000000000000
+            sage: (x^3).gcd(x^5+x^2)
+            x^2
+            sage: f = (x+3)^2 * (x-1)
+            sage: g = (x+3)^5
+            sage: f.gcd(g)
+            x^2 + 6.00000000000000*x + 9.00000000000000
+
+        The following example illustrates the fact that for inexact
+        base rings, the returned gcd is often 1 due to rounding::
+
+            sage: f = (x+RR.pi())^2 * (x-1)
+            sage: g = (x+RR.pi())^5
+            sage: f.gcd(g)
+            1.00000000000000
+
+        """
+        while b:
+            q, r = a.quo_rem(b)
+            a, b = b, r
+        if a:
+            a = a.monic()
+        return a
+
+    def _xgcd_univariate_polynomial(self, a, b):
+        """
+        Return an extended gcd of ``a`` and ``b``.
+
+        INPUT:
+
+        - ``a``, ``b`` -- two univariate polynomials
+
+        OUTPUT:
+
+        A tuple ``(d, u, v)`` of polynomials such that ``d`` is the
+        greatest common divisor (monic or zero) of ``a`` and ``b``,
+        and ``u``, ``v`` satisfy ``d = u*a + v*b``.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        ALGORITHM:
+
+        This uses the extended Euclidean algorithm; see for example
+        [Cohen1996]_, Algorithm 3.2.2.
+
+        REFERENCES:
+
+        .. [Cohen1996] H. Cohen, A Course in Computational Algebraic
+           Number Theory.  Graduate Texts in Mathematics 138.
+           Springer-Verlag, 1996.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._xgcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z, h = R(0), R(1/2)
+            ....:     assert(g(2*x, 2*x^2) == (x, h, z) and
+            ....:            g(z, 2*x) == (x, z, h) and
+            ....:            g(2*x, z) == (x, h, z) and
+            ....:            g(z, z) == (z, z, z))
+
+        """
+        R = a.parent()
+        zero = R.zero()
+        if not b:
+            if not a:
+                return (zero, zero, zero)
+            c = ~a.leading_coefficient()
+            return (c*a, R(c), zero)
+        elif not a:
+            c = ~b.leading_coefficient()
+            return (c*b, zero, R(c))
+        (u, d, v1, v3) = (R.one(), a, zero, b)
+        while v3:
+            q, r = d.quo_rem(v3)
+            (u, d, v1, v3) = (v1, v3, u - v1*q, r)
+        v = (d - a*u) // b
+        if d:
+            c = ~d.leading_coefficient()
+            d, u, v = c*d, c*u, c*v
+        return d, u, v
+
 
 cdef class Algebra(Ring):
     """

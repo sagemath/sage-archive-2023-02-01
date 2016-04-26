@@ -9,18 +9,20 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 
 import sage.modules.free_module
+from sage.structure.element cimport coercion_model
 
 
 cdef class Matrix(matrix0.Matrix):
@@ -104,19 +106,17 @@ cdef class Matrix(matrix0.Matrix):
             x_1^3-12*x_1^2-18*x_1
             sage: A.characteristic_polynomial()
             x^3 - 12*x^2 - 18*x
-            sage: matrix(g,QQ) == A
+            sage: matrix(QQ, g) == A
             True
 
-        Particularly difficult is the case of matrices over
-        cyclotomic fields and general number fields. See
-        tickets #5618 and #8909.
-        ::
+        Particularly difficult is the case of matrices over cyclotomic
+        fields and general number fields. See :trac:`5618` and :trac:`8909`::
 
             sage: K.<zeta> = CyclotomicField(8)
             sage: A = MatrixSpace(K,2,2)([0,1+zeta,2*zeta,3])
             sage: g = gap(A); g
             [ [ 0, 1+E(8) ], [ 2*E(8), 3 ] ]
-            sage: matrix(g,K) == A
+            sage: matrix(K, g) == A
             True
             sage: g.IsMatrix()
             true
@@ -125,9 +125,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: A = MatrixSpace(L,2,2)([0,1+tau,2*tau,3])
             sage: g = gap(A); g
             [ [ !0, tau+1 ], [ 2*tau, !3 ] ]
-            sage: matrix(g,L) == A
+            sage: matrix(L, g) == A
             True
-
         """
         cdef Py_ssize_t i, j
         v = []
@@ -169,21 +168,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: giac(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))
+            sage: giac(M)                              # optional - giac
             [[0,1],[2,3]]
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: giac(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: giac(M)                                      # optional - giac
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: giac(M)                             #optional
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: giac(M)                             # optional - giac
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -224,7 +223,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
             sage: A._mathematica_init_()
             '{{1/1, 2/1, 3/1}, {4/3, 5/3, 3/2}, {7/1, 8/1, 9/1}}'
@@ -232,7 +231,7 @@ cdef class Matrix(matrix0.Matrix):
         ::
 
             sage: A = matrix([[1,2],[3,4]])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2}, {3, 4}}
 
         ::
@@ -324,21 +323,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: maple(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: maple(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: maple(M)  # optional - maple
             Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: maple(M)                             #optional
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -363,7 +362,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: m = matrix(ZZ, [[1,2],[3,4]])
-            sage: macaulay2(m)                  #optional (indirect doctest)
+            sage: macaulay2(m)                  #optional - macaulay2 (indirect doctest)
             | 1 2 |
             | 3 4 |
 
@@ -371,7 +370,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: R.<x,y> = QQ[]
             sage: m = matrix([[x,y],[1+x,1+y]])
-            sage: macaulay2(m)                  #optional
+            sage: macaulay2(m)                  #optional - macaulay2
             | x   y   |
             | x+1 y+1 |
         """
@@ -386,11 +385,11 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
-            sage: a._scilab_init_()         # optional - scilab
+            sage: a._scilab_init_()
             '[1,2,3;4,5,6;7,8,9]'
 
         AUTHORS:
@@ -415,7 +414,7 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
@@ -601,6 +600,58 @@ cdef class Matrix(matrix0.Matrix):
             S = self._base_ring.cover_ring()
             if S is not self._base_ring:
                 return self.change_ring(S)
+        return self
+
+    def lift_centered(self):
+        """
+        Apply the lift_centered method to every entry of self.
+
+        OUTPUT:
+
+        If self is a matrix over the Integers mod `n`, this method returns the
+        unique matrix `m` such that `m` is congruent to self mod `n` and for
+        every entry `m[i,j]` we have `-n/2 < m[i,j] \\leq n/2`. If the
+        coefficient ring does not have a cover_ring method, return self.
+
+        EXAMPLES::
+
+            sage: M = Matrix(Integers(8), 2, 4, range(8)) ; M
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: L = M.lift_centered(); L
+            [ 0  1  2  3]
+            [ 4 -3 -2 -1]
+            sage: parent(L)
+            Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+
+        The returned matrix is congruent to M modulo 8.::
+
+            sage: L.mod(8)
+            [0 1 2 3]
+            [4 5 6 7]
+
+        The field QQ doesn't have a cover_ring method::
+
+            sage: hasattr(QQ, 'cover_ring')
+            False
+
+        So lifting a matrix over QQ gives back the same exact matrix.
+
+        ::
+
+            sage: B = matrix(QQ, 2, [1..4])
+            sage: B.lift_centered()
+            [1 2]
+            [3 4]
+            sage: B.lift_centered() is B
+            True
+        """
+        try:
+            S = self._base_ring.cover_ring()
+            if S is not self._base_ring:
+                return self.parent().change_ring(S)([v.lift_centered() for v in self])
+        except AttributeError:
+            pass
         return self
 
     #############################################################################################
@@ -1363,14 +1414,12 @@ cdef class Matrix(matrix0.Matrix):
         top_ring = self._base_ring
         bottom_ring = other._base_ring
         if top_ring is not bottom_ring:
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             R = coercion_model.common_parent(top_ring, bottom_ring)
             if top_ring is not R:
                 self = self.change_ring(R)
             if bottom_ring is not R:
                 other = other.change_ring(R)
-        
+       
         if type(self) is not type(other):
             # If one of the matrices is sparse, return a sparse matrix
             if self.is_sparse_c() and not other.is_sparse_c():
@@ -1386,7 +1435,7 @@ cdef class Matrix(matrix0.Matrix):
     cdef _stack_impl(self, bottom):
         """
         Implementation of :meth:`stack`.
-        
+       
         Assume that ``self`` and ``other`` are compatible in the sense
         that they have the same base ring and that both are either
         dense or sparse.

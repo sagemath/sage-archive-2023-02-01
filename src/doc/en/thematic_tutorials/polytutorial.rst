@@ -295,9 +295,9 @@ list of pre\-built polytopes.
 
 ::
 
-    sage: P5 = polytopes.n_cube(5)
+    sage: P5 = polytopes.hypercube(5)
     sage: P6 = polytopes.cross_polytope(3)
-    sage: P7 = polytopes.n_simplex(7)
+    sage: P7 = polytopes.simplex(7)
 
 
 .. end of output
@@ -307,7 +307,7 @@ Let's look at a 4\-dimensional polytope.
 
 ::
 
-    sage: P8 = polytopes.n_cube(4)
+    sage: P8 = polytopes.hypercube(4)
     sage: P8.plot()
     Graphics3d Object
 

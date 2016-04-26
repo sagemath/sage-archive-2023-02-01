@@ -5,9 +5,12 @@ AUTHORS:
 
 - Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
 
+- Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
+
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
+from sage.symbolic.constants import pi as const_pi
 
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.structure.all import parent as s_parent
@@ -39,6 +42,8 @@ class Function_exp(GinacFunction):
             12.182493960703473
             sage: exp(RDF('2.5'))
             12.182493960703473
+            sage: exp(I*pi/12)
+            1/12*sqrt(6)*(sqrt(3) + 3) - 1/12*I*sqrt(6)*(sqrt(3) - 3)
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -117,6 +122,13 @@ class Function_exp(GinacFunction):
 
             sage: 2*sqrt(e)
             2*sqrt(e)
+
+        Check that :trac:`19918` is fixed::
+
+            sage: exp(-x^2).subs(x=oo)
+            0
+            sage: exp(-x).subs(x=-oo)
+            +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
@@ -374,7 +386,7 @@ class Function_polylog(GinacFunction):
 
         TESTS:
 
-        Check if #8459 is fixed::
+        Check if :trac:`8459` is fixed::
 
             sage: t = maxima(polylog(5,x)).sage(); t
             polylog(5, x)
@@ -565,8 +577,10 @@ class Function_lambert_w(BuiltinFunction):
             0.567143290409784
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
-                                 conversions={'mathematica':'ProductLog',
-                                              'maple':'LambertW'})
+                                 conversions={'mathematica': 'ProductLog',
+                                              'maple': 'LambertW',
+                                              'matlab': 'lambertw',
+                                              'maxima': 'generalized_lambert_w'})
 
     def __call__(self, *args, **kwds):
         r"""
@@ -718,21 +732,25 @@ class Function_lambert_w(BuiltinFunction):
             sage: lambert_w(0, x)._maxima_()
             lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
+            generalized_lambert_w(1,_SAGE_VAR_x)
+
+        TESTS::
+
+            sage: lambert_w(x)._maxima_()._sage_()
+            lambert_w(x)
+            sage: lambert_w(2, x)._maxima_()._sage_()
+            lambert_w(2, x)
         """
+        if isinstance(z, str):
+            maxima_z = z
+        elif hasattr(z, '_maxima_init_'):
+            maxima_z = z._maxima_init_()
+        else:
+            maxima_z = str(z)
         if n == 0:
-            if isinstance(z,str):
-                maxima_z=z
-            elif hasattr(z,'_maxima_init_'):
-                maxima_z=z._maxima_init_()
-            else:
-                maxima_z=str(z)
             return "lambert_w(%s)" % maxima_z
         else:
-            raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
-
+            return "generalized_lambert_w(%s,%s)" % (n, maxima_z)
 
     def _print_(self, n, z):
         """
@@ -759,15 +777,121 @@ class Function_lambert_w(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(lambert_w(1))
-            \operatorname{W_0}(1)
+            \operatorname{W}({1})
             sage: latex(lambert_w(0,x))
-            \operatorname{W_0}(x)
+            \operatorname{W}({x})
             sage: latex(lambert_w(1,x))
-            \operatorname{W_{1}}(x)
+            \operatorname{W_{1}}({x})
+            sage: latex(lambert_w(1,x+exp(x)))
+            \operatorname{W_{1}}({x + e^{x}})
         """
         if n == 0:
-            return r"\operatorname{W_0}(%s)" % z
+            return r"\operatorname{W}({%s})" % z._latex_()
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n, z)
+            return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
 
 lambert_w = Function_lambert_w()
+
+class Function_exp_polar(BuiltinFunction):
+    def __init__(self):
+        r"""
+        Representation of a complex number in a polar form.
+
+        INPUT:
+
+        - ``z`` - a complex number `z = a + ib`.
+
+        OUTPUT:
+
+        A complex number with modulus `\exp(a)` and argument `b`.
+
+        If `-\pi < b \leq \pi` then `\operatorname{exp\_polar}(z)=\exp(z)`.
+        For other values of `b` the function is left unevaluated.
+
+        EXAMPLES:
+
+        The following expressions are evaluated using the exponential
+        function::
+
+            sage: exp_polar(pi*I/2)
+            I       
+            sage: x = var('x', domain='real')
+            sage: exp_polar(-1/2*I*pi + x)
+            e^(-1/2*I*pi + x)
+
+        The function is left unevaluated when the imaginary part of the
+        input `z` does not satisfy `-\pi < \Im(z) \leq \pi`::
+
+            sage: exp_polar(2*pi*I)
+            exp_polar(2*I*pi)
+            sage: exp_polar(-4*pi*I)
+            exp_polar(-4*I*pi)
+
+        This fixes :trac:`18085`::
+
+            sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
+            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+
+        SEEALSO:
+
+            `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
+            `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_
+
+        REFERENCES:
+
+            :wikipedia:`Complex_number#Polar_form`
+        """
+        BuiltinFunction.__init__(self, "exp_polar",
+                                latex_name=r"\operatorname{exp\_polar}",
+                                conversions=dict(sympy='exp_polar'))
+
+    def _evalf_(self, z, parent=None, algorithm=None):
+        r"""
+        EXAMPLES:
+
+        If the imaginary part of `z` obeys `-\pi < z \leq \pi`, then
+        `\operatorname{exp\_polar}(z)` is evaluated as `\exp(z)`::
+
+            sage: exp_polar(1.0 + 2.0*I)
+            -1.13120438375681 + 2.47172667200482*I
+
+        If the imaginary part of `z` is outside of that interval the
+        expression is left unevaluated::
+
+            sage: exp_polar(-5.0 + 8.0*I)
+            exp_polar(-5.00000000000000 + 8.00000000000000*I)
+
+        An attempt to numerically evaluate such an expression raises an error::
+
+            sage: exp_polar(-5.0 + 8.0*I).n()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
+
+        """
+        from sage.functions.other import imag
+
+        if (not isinstance(z, Expression)
+            and bool(-const_pi < imag(z) <= const_pi)):
+            return exp(z)
+        else:
+            return exp_polar(z)
+
+    def _eval_(self, z):
+        """
+        EXAMPLES::
+
+            sage: exp_polar(3*I*pi)
+            exp_polar(3*I*pi)
+            sage: x = var('x', domain='real')
+            sage: exp_polar(4*I*pi + x)
+            exp_polar(4*I*pi + x)
+
+        """
+        if (isinstance(z, Expression)
+            and bool(-const_pi < z.imag_part() <= const_pi)):
+            return exp(z)
+        else:
+            return None
+
+exp_polar = Function_exp_polar()

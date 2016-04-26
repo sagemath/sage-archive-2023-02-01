@@ -24,12 +24,13 @@ fi
 cd src
 
 # Apply patches.
-patches=""
+patches="../patches/*.patch"
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching numpy/linalg/setup.py"
     patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
 fi
 for patch in $patches; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
@@ -39,18 +40,16 @@ done
 
 set -e
 
-echo "[DEFAULT]" > site.cfg
-echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
-echo "include_dirs = $SAGE_LOCAL/include" >> site.cfg
-echo "" >> site.cfg
-
 if [ `uname` = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
 else
+    export {ATLAS,PTATLAS,OPENBLAS,MKL}=None
     export LDFLAGS="${LDFLAGS} -shared"
 fi
+
+python "${CUR}"/lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"

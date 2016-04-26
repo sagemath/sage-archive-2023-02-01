@@ -38,8 +38,7 @@ element contains the following data:
   Then the modulus of unit is given by `p^{ceil(r/e)}`.  Note that all
   kinds of problems arise if you try to mix moduli.
   ``ZZ_pX_conv_modulus`` gives a semi-safe way to convert between
-  different moduli without having to pass through ``ZZX`` (see
-  ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntl_wrap.cpp``)
+  different moduli without having to pass through ``ZZX``.
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common
@@ -183,11 +182,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "cysignals/signals.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
@@ -511,7 +513,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: hash(a)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
 
         However, we want to cache computations which depend on them. Therefore
         they define a ``_cache_key`` which is hashable and uniquely identifies
@@ -529,7 +531,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: K.zero()._cache_key()
             (..., 0)
             sage: K(0,1)._cache_key()
-            (..., 0, 1)
+            (..., 1, 0)
 
         """
         if self._is_exact_zero():
@@ -1233,11 +1235,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         if self.relprec == relprec:
             return False
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
         if relprec != 0:
             self.prime_pow.restore_context_capdiv(relprec)
-            ZZ_pX_construct(&self.unit)
+            self.unit = ZZ_pX_c()
         self.relprec = relprec
         return True
 
@@ -1275,8 +1275,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(70, 8) # indirect doctest
             4*w^5 + 3*w^7 + O(w^8)
         """
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
         self.relprec = absprec - self.ordp
         cdef long arelprec
         if relprec < 0:
@@ -1290,7 +1288,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self.relprec = arelprec
             if self.relprec != 0:
                 self.prime_pow.restore_context_capdiv(self.relprec)
-                ZZ_pX_construct(&self.unit)
+                self.unit = ZZ_pX_c()
                 if relprec < 0:
                     self.relprec = -self.relprec
         return self.relprec == 0
@@ -1320,7 +1318,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             if ZZ_pX_IsZero(self.unit):
                 self.ordp -= self.relprec # note that self.relprec < 0
                 self.relprec = 0
-                ZZ_pX_destruct(&self.unit)
             else:
                 ZZ_pX_min_val_coeff(minval, mini, self.unit, self.prime_pow.pow_ZZ_tmp(1)[0])
                 if self.prime_pow.e == 1:
@@ -1330,7 +1327,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 if shift >= -self.relprec:
                     self.ordp -= self.relprec # note that self.relprec < 0
                     self.relprec = 0
-                    ZZ_pX_destruct(&self.unit)
                 elif shift > 0:
                     self.relprec = -self.relprec - shift
                     self.ordp += shift
@@ -1344,11 +1340,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCR(125); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
+            sage: R.<a> = ZqCR(125,implementation="NTL"); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
             sage: d._is_normalized()
             False
-            sage: d
-            (2*a^2 + a + 2)*5 + O(5^20)
+            sage: d.valuation()
+            1
             sage: d._is_normalized()
             True
         """
@@ -1475,23 +1471,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     shift = shift >> 1
                     i += 1
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.unit`` if needed.
-
-        EXAMPLES::
-
-            sage: R = Qp(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(3/25, relprec = 6); z
-            3*w^-10 + 3*w^-8 + 2*w^-6 + O(w^-4)
-            sage: del z #indirect doctest
-        """
-        if self.relprec != 0:
-            ZZ_pX_destruct(&self.unit)
-
     cdef pAdicZZpXCRElement _new_c(self, long relprec):
         """
         Returns a new element with the same parent as ``self`` and
@@ -1516,13 +1495,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if relprec > 0:
             self.prime_pow.restore_context_capdiv(relprec)
             ans.relprec = relprec
-            ZZ_pX_construct(&ans.unit)
         elif relprec == 0:
             ans._set_exact_zero()
         else:
             self.prime_pow.restore_context_capdiv(-relprec)
             ans.relprec = relprec
-            ZZ_pX_construct(&ans.unit)
         return ans
 
     def __reduce__(self):
@@ -1582,27 +1559,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         return 1
 
     def __invert__(self):
-        """
-        Returns the inverse of ``self``.
-
-        EXAMPLES::
-
-            sage: R = Zp(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = (1 + w)^5
-            sage: y = ~z; y # indirect doctest
-            1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
-            sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
-            sage: z = z - 1
-            sage: ~z
-            w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
-        """
-        return self._invert_c_impl()
-
-    cpdef RingElement _invert_c_impl(self):
         """
         Returns the inverse of ``self``.
 
@@ -2738,7 +2694,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(0,4).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXCRElement zero
         cdef Integer ordp
@@ -2966,7 +2922,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS:
 
-        We check that #8239 is resolved::
+        We check that :trac:`8239` is resolved::
 
             sage: K.<a> = Qq(25)
             sage: K.teichmuller(K(2/5))

@@ -18,7 +18,7 @@ AUTHORS:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists import IntegerListsLex
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 

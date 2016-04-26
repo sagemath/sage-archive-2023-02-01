@@ -1,4 +1,6 @@
 """
+Finite field morphisms
+
 This file provides several classes implementing:
 
 - embeddings between finite fields
@@ -107,7 +109,7 @@ from sage.structure.element cimport Element
 
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.morphism cimport RingHomomorphism, RingHomomorphism_im_gens, FrobeniusEndomorphism_generic
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 from sage.categories.map cimport Section
 from sage.categories.morphism cimport Morphism
@@ -339,14 +341,8 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         """
         return self._section_class(self)
 
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-
     def __hash__(self):
         return Morphism.__hash__(self)
-
 
 
 cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
@@ -667,11 +663,6 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             True
         """
         return self.power() == 0
-
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     def __hash__(self):
         return Morphism.__hash__(self)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 q-Analogues
 """
@@ -18,6 +19,7 @@ q-Analogues
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
+from sage.structure.element import parent
 from sage.rings.all import ZZ
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.partition import Partition
@@ -215,7 +217,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(1/2,1)
         Traceback (most recent call last):
         ...
-        ValueError: arguments (1/2, 1) must be integers
+        TypeError: no conversion of this rational to integer
 
     One checks that `n` is nonnegative::
 
@@ -232,8 +234,13 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
     This also works for complex roots of unity::
 
-        sage: q_binomial(6,1,I)
-        1 + I
+        sage: q_binomial(6, 1, QQbar(I))
+        I + 1
+
+    Note that the symbolic computation works (see :trac:`14982`)::
+
+        sage: q_binomial(6, 1, I)
+        I + 1
 
     Check that the algorithm does not matter::
 
@@ -256,14 +263,10 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     - Frederic Chapoton, David Joyner and William Stein
     """
     # sanity checks
-    if not( n in ZZ and k in ZZ ):
-        raise ValueError("arguments (%s, %s) must be integers" % (n, k))
+    n = ZZ(n)
+    k = ZZ(k)
     if n < 0:
         raise ValueError('n must be nonnegative')
-    if not(0 <= k and k <= n):
-        return 0
-
-    k = min(n-k,k) # Pick the smallest k
 
     # polynomiality test
     if q is None:
@@ -273,10 +276,19 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     else:
         from sage.rings.polynomial.polynomial_element import Polynomial
         is_polynomial = isinstance(q, Polynomial)
-    from sage.symbolic.ring import SR
+
+    R = parent(q)
+    zero = R(0)
+    one = R(1)
+
+    if not(0 <= k and k <= n):
+        return zero
+
+    k = min(n-k,k) # Pick the smallest k
 
     # heuristic choice of the fastest algorithm
     if algorithm == 'auto':
+        from sage.symbolic.ring import SR
         if is_polynomial:
             if n <= 70 or k <= n/4:
                 algorithm = 'naive'
@@ -295,31 +307,29 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         raise ValueError("invalid algorithm choice")
 
     # the algorithms
-    try:
-        if algorithm == 'naive':
-            denomin = prod([1 - q**i for i in range(1, k+1)])
-            if denomin == 0: # q is a root of unity, use the cyclotomic algorithm
-                algorithm = 'cyclo_generic'
-            else:
-                numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
+    if algorithm == 'naive':
+        denom = prod(one - q**i for i in range(1, k+1))
+        if not denom: # q is a root of unity, use the cyclotomic algorithm
+            return cyclotomic_value(n, k, q, algorithm='cyclotomic')
+        else:
+            num = prod(one - q**i for i in range(n-k+1, n+1))
+            try:
                 try:
-                    return numerat//denomin
+                    return num // denom
                 except TypeError:
-                    return numerat/denomin
-        from sage.functions.all import floor
-        if algorithm == 'cyclo_generic':
-            from sage.rings.polynomial.cyclotomic import cyclotomic_value
-            return prod(cyclotomic_value(d,q)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
-        if algorithm == 'cyclo_polynomial':
-            R = q.parent()
-            return prod(R.cyclotomic_polynomial(d)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
-    except (ZeroDivisionError, TypeError):
-        # As a last attempt, do the computation formally and then substitute
-        return q_binomial(n, k)(q)
+                    return num / denom
+            except (TypeError, ZeroDivisionError):
+                # use substitution instead
+                return q_binomial(n,k)(q)
+    elif algorithm == 'cyclo_generic':
+        from sage.rings.polynomial.cyclotomic import cyclotomic_value
+        return prod(cyclotomic_value(d,q)
+                    for d in range(2,n+1)
+                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+    elif algorithm == 'cyclo_polynomial':
+        return prod(R.cyclotomic_polynomial(d)
+                    for d in range(2,n+1)
+                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
     r"""
@@ -648,7 +658,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
        Mathematical Society 101, no. 4 (1987): 771-775.
        :doi:`10.1090/S0002-9939-1987-0911049-8`
 
-    .. [Delsarte48] S. Delsarte, *Fonctions de Mobius Sur Les Groupes Abeliens
+    .. [Delsarte48] S. Delsarte, *Fonctions de Möbius Sur Les Groupes Abeliens
        Finis*, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
        pp. 600-609. http://www.jstor.org/stable/1969047
 

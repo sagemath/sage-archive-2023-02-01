@@ -58,7 +58,7 @@ from sage.structure.element import RingElement, parent
 
 class Lisp(Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  server_tmpdir=None):
@@ -81,7 +81,6 @@ class Lisp(Expect):
                         # This is the command that starts up your program
                         command = "ecl",
 
-                        maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -258,18 +257,6 @@ class Lisp(Expect):
         """
         raise NotImplementedError
 
-    def trait_names(self):
-        """
-        EXAMPLES::
-
-            sage: lisp.trait_names()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        raise NotImplementedError
-
     def kill(self, var):
         """
         EXAMPLES::
@@ -322,15 +309,6 @@ class Lisp(Expect):
             <class 'sage.interfaces.lisp.LispElement'>
         """
         return LispElement
-
-    def _function_class(self):
-        """
-        EXAMPLES::
-
-            sage: lisp._function_class()
-            <class 'sage.interfaces.lisp.LispFunction'>
-        """
-        return LispFunction
 
     def _function_element_class(self):
         """
@@ -571,4 +549,7 @@ def lisp_console():
         Type :h for Help.  Top level.
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%lisp magics instead.')
     os.system('ecl')

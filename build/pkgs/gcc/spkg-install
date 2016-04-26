@@ -81,9 +81,15 @@ if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
     fi
 fi
 
-# On OSX: isl/cloog libraries are almost certainly from Homebrew and won't work
+# On OSX:
 if [ "$UNAME" = "Darwin" ]; then
+    # isl/cloog libraries are almost certainly from Homebrew and won't work
     GCC_CONFIGURE="--without-isl --without-cloog $GCC_CONFIGURE"
+
+    # Use 'bootstrap-debug' build configuration to force stripping of object
+    # files prior to comparison during bootstrap (broken by Xcode 6.3).
+    # See #18156
+    GCC_CONFIGURE="--with-build-config=bootstrap-debug $GCC_CONFIGURE"
 fi
 
 # Let GCC build on Raspberry Pi using hard floats.
@@ -123,11 +129,15 @@ fi
     --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
-$MAKE
+$MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
 $MAKE install
 
 
-# Force re-installation of mpir, mpfr and mpc with the GCC we just built.
+# Force re-installation of gmp, mpir, mpfr and mpc with the GCC we just built.
 cd "$SAGE_SPKG_INST"
-rm -f mpir-* mpfr-* mpc-*
+rm -f gmp-* mpir-* mpfr-* mpc-*
+
+# Force re-configuration: the next time that "make" is run, we don't
+# want GCC to be built again, see Trac #19324
+touch "$SAGE_ROOT/configure"

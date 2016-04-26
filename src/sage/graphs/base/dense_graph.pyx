@@ -1,6 +1,9 @@
 r"""
 Fast dense graphs
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Usage Introduction
 ------------------
 
@@ -16,21 +19,19 @@ This example initializes a dense graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: D.add_vertex(9)
     9
-    sage: D._num_verts()
-    10
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: D._num_verts()
-    10
     sage: D.add_vertex(10)
     10
-    sage: D._num_verts()
-    11
+    sage: D.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working right away as follows::
 
@@ -53,10 +54,6 @@ You can begin working right away as follows::
     sage: D.del_vertex(7)
     sage: D.has_arc(7,3)
     False
-    sage: D._num_verts()
-    10
-    sage: D._num_arcs()
-    2
 
 Dense graphs do not support multiple or labeled edges.
 
@@ -99,18 +96,16 @@ from ``CGraph`` (for explanation, refer to the documentation there)::
 
 It also contains the following variables::
 
-        cdef int radix_div_shift
-        cdef int radix_mod_mask
         cdef int num_longs
         cdef unsigned long *edges
 
 The array ``edges`` is a series of bits which are turned on or off, and due to
 this, dense graphs only support graphs without edge labels and with no multiple
-edges. The ints ``radix_div_shift`` and ``radix_mod_mask`` are simply for doing
-efficient division by powers of two, and ``num_longs`` stores the length of the
-``edges`` array. Recall that this length reflects the number of available
-vertices, not the number of "actual" vertices. For more details about this,
-refer to the documentation for ``CGraph``.
+edges. ``num_longs`` stores the length of the ``edges`` array. Recall that this
+length reflects the number of available vertices, not the number of "actual"
+vertices. For more details about this, refer to the documentation for
+``CGraph``.
+
 """
 
 #*******************************************************************************
@@ -121,6 +116,11 @@ refer to the documentation for ``CGraph``.
 #*******************************************************************************
 
 include 'sage/data_structures/bitset.pxi'
+
+from libc.string cimport memcpy
+
+cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
+cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)
 
 cdef class DenseGraph(CGraph):
     """
@@ -148,7 +148,6 @@ cdef class DenseGraph(CGraph):
     for use in pickling.
 
     """
-
     def __cinit__(self, int nverts, int extra_vertices = 10, verts = None, arcs = None):
         """
         Allocation and initialization happen in one place.
@@ -164,35 +163,24 @@ cdef class DenseGraph(CGraph):
         """
         if nverts == 0 and extra_vertices == 0:
             raise RuntimeError('Dense graphs must allocate space for vertices!')
-        cdef int radix = sizeof(unsigned long) << 3
-        self.radix_mod_mask = radix - 1
-        cdef int i = 0
-        while ((<unsigned long>1)<<i) & self.radix_mod_mask:
-            i += 1
-        self.radix_div_shift = i
+
         self.num_verts = nverts
+        self.num_arcs  = 0
         cdef int total_verts = nverts + extra_vertices
-        self.num_arcs = 0
 
-        i = total_verts >> self.radix_div_shift
-        if total_verts & self.radix_mod_mask:
-            i += 1
-        self.num_longs = i
+        # self.num_longs = "ceil(total_verts/radix)"
+        self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
 
-        self.edges = <unsigned long *> sage_malloc(total_verts * self.num_longs * sizeof(unsigned long))
-        self.in_degrees = <int *> sage_malloc(total_verts * sizeof(int))
-        self.out_degrees = <int *> sage_malloc(total_verts * sizeof(int))
+        self.edges = <unsigned long *> sig_calloc(total_verts * self.num_longs, sizeof(unsigned long))
+        self.in_degrees  = <int *> sig_calloc(total_verts, sizeof(int))
+        self.out_degrees = <int *> sig_calloc(total_verts, sizeof(int))
 
         if not self.edges or not self.in_degrees or not self.out_degrees:
-            if self.edges: sage_free(self.edges)
-            if self.in_degrees: sage_free(self.in_degrees)
-            if self.out_degrees: sage_free(self.out_degrees)
+            sig_free(self.edges)
+            sig_free(self.in_degrees)
+            sig_free(self.out_degrees)
             raise MemoryError
-        for i from 0 <= i < self.num_longs * total_verts:
-            self.edges[i] = 0
-        for i from 0 <= i < total_verts:
-            self.in_degrees[i] = 0
-            self.out_degrees[i] = 0
+
         bitset_init(self.active_vertices, total_verts)
         bitset_set_first_n(self.active_vertices, self.num_verts)
 
@@ -207,41 +195,10 @@ cdef class DenseGraph(CGraph):
         """
         New and dealloc are both tested at class level.
         """
-        sage_free(self.edges)
-        sage_free(self.in_degrees)
-        sage_free(self.out_degrees)
+        sig_free(self.edges)
+        sig_free(self.in_degrees)
+        sig_free(self.out_degrees)
         bitset_free(self.active_vertices)
-
-    def __reduce__(self):
-        """
-        Return a tuple used for pickling this graph.
-
-        TESTS::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: D = DenseGraph(nverts = 10, extra_vertices = 10)
-            sage: D.add_arc(0,1)
-            sage: D.has_arc(0,1)
-            1
-            sage: D.has_arc(1,2)
-            0
-            sage: LD = loads(dumps(D))
-            sage: LD.has_arc(0,1)
-            1
-            sage: LD.has_arc(1,2)
-            0
-
-        """
-        from sage.graphs.all import DiGraph
-        D = DiGraph(implementation='c_graph', sparse=False)
-        D._backend._cg = self
-        cdef int i
-        D._backend.vertex_labels = {}
-        for i from 0 <= i < self.active_vertices.size:
-            if bitset_in(self.active_vertices, i):
-                D._backend.vertex_labels[i] = i
-        D._backend.vertex_ints = D._backend.vertex_labels
-        return (DenseGraph, (0, self.active_vertices.size, self.verts(), D.edges(labels=False)))
 
     cpdef realloc(self, int total_verts):
         """
@@ -289,6 +246,7 @@ cdef class DenseGraph(CGraph):
         cdef int i, j
         if total_verts == 0:
             raise RuntimeError('Dense graphs must allocate space for vertices!')
+
         cdef bitset_t bits
         cdef int min_verts, min_longs, old_longs = self.num_longs
         if total_verts < self.active_vertices.size:
@@ -304,42 +262,27 @@ cdef class DenseGraph(CGraph):
             min_verts = self.active_vertices.size
             min_longs = self.num_longs
 
-        i = total_verts >> self.radix_div_shift
-        if total_verts & self.radix_mod_mask:
-            i += 1
-        self.num_longs = i
-        if min_longs == -1: min_longs = self.num_longs
+        # self.num_longs = "ceil(total_verts/radix)"
+        self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
 
-        cdef unsigned long *new_edges = <unsigned long *> sage_malloc(total_verts * self.num_longs * sizeof(unsigned long))
+        if min_longs == -1:
+            min_longs = self.num_longs
 
+        # Resize of self.edges
+        cdef unsigned long *new_edges = <unsigned long *> sig_calloc(total_verts * self.num_longs, sizeof(unsigned long))
         for i from 0 <= i < min_verts:
-            for j from 0 <= j < min_longs:
-                new_edges[i*self.num_longs + j] = self.edges[i*old_longs + j]
-            for j from min_longs <= j < self.num_longs:
-                new_edges[i*self.num_longs + j] = 0
-        for i from min_verts <= i < total_verts:
-            for j from 0 <= j < self.num_longs:
-                new_edges[i*self.num_longs + j] = 0
-        sage_free(self.edges)
+            memcpy(new_edges+i*self.num_longs, self.edges+i*old_longs, min_longs*sizeof(unsigned long))
+
+        sig_free(self.edges)
         self.edges = new_edges
 
-        self.in_degrees = <int *> sage_realloc(self.in_degrees, total_verts * sizeof(int))
-        self.out_degrees = <int *> sage_realloc(self.out_degrees, total_verts * sizeof(int))
+        self.in_degrees  = <int *> sig_realloc(self.in_degrees , total_verts * sizeof(int))
+        self.out_degrees = <int *> sig_realloc(self.out_degrees, total_verts * sizeof(int))
 
-        cdef int first_limb
-        cdef unsigned long zero_gate
-        if total_verts > self.active_vertices.size:
-            first_limb = (self.active_vertices.size >> self.radix_div_shift)
-            zero_gate = (<unsigned long>1) << (self.active_vertices.size & self.radix_mod_mask)
-            zero_gate -= 1
-            for i from 0 <= i < total_verts:
-                self.edges[first_limb] &= zero_gate
-                for j from first_limb < j < self.num_longs:
-                    self.edges[j] = 0
+        for i in range(self.active_vertices.size, total_verts):
+            self.in_degrees[i]  = 0
+            self.out_degrees[i] = 0
 
-            for i from self.active_vertices.size <= i < total_verts:
-                self.in_degrees[i] = 0
-                self.out_degrees[i] = 0
         bitset_realloc(self.active_vertices, total_verts)
 
     ###################################
@@ -354,8 +297,8 @@ cdef class DenseGraph(CGraph):
             u, v -- non-negative integers
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         if not self.edges[place] & word:
             self.in_degrees[v] += 1
             self.out_degrees[u] += 1
@@ -401,9 +344,9 @@ cdef class DenseGraph(CGraph):
             1 -- True
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
-        return (self.edges[place] & word) >> (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
+        return (self.edges[place] & word) >> (v & radix_mod_mask)
 
     cpdef bint has_arc(self, int u, int v) except -1:
         """
@@ -437,8 +380,8 @@ cdef class DenseGraph(CGraph):
             u, v -- non-negative integers, must be in self
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         if self.edges[place] & word:
             self.in_degrees[v] -= 1
             self.out_degrees[u] -= 1
@@ -471,6 +414,43 @@ cdef class DenseGraph(CGraph):
         self.check_vertex(u)
         self.check_vertex(v)
         self.del_arc_unsafe(u,v)
+
+    def complement(self):
+        r"""
+        Replaces the graph with its complement
+
+        .. NOTE::
+
+            Assumes that the graph has no loop.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.has_arc(0,1)
+            True
+            sage: G.complement()
+            sage: G.has_arc(0,1)
+            False
+        """
+        cdef int num_arcs_old = self.num_arcs
+
+        # The following cast assumes that mp_limb_t is an unsigned long.
+        # (this assumption is already made in bitset.pxi)
+        cdef unsigned long * active_vertices_bitset
+        active_vertices_bitset = <unsigned long *> self.active_vertices.bits
+
+        cdef int i,j
+        for i in range(self.active_vertices.size):
+            if bitset_in(self.active_vertices,i):
+                self.add_arc_unsafe(i,i)
+                for j in range(self.num_longs): # the actual job
+                    self.edges[i*self.num_longs+j] ^= active_vertices_bitset[j]
+                self.in_degrees[i]  = self.num_verts-self.in_degrees[i]
+                self.out_degrees[i] = self.num_verts-self.out_degrees[i]
+
+        self.num_arcs = self.num_verts*(self.num_verts-1) - num_arcs_old
 
     ###################################
     # Neighbor functions
@@ -532,12 +512,12 @@ cdef class DenseGraph(CGraph):
         if self.out_degrees[u] == 0:
             return []
         cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise MemoryError
         num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
@@ -555,8 +535,8 @@ cdef class DenseGraph(CGraph):
         there were more
 
         """
-        cdef int place = v >> self.radix_div_shift
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = v / radix
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         cdef int i, num_nbrs = 0
         for i from 0 <= i < self.active_vertices.size:
             if self.edges[place + i*self.num_longs] & word:
@@ -591,58 +571,17 @@ cdef class DenseGraph(CGraph):
         if self.in_degrees[v] == 0:
             return []
         cdef int size = self.in_degrees[v]
-        cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
+        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
         if not neighbors:
             raise MemoryError
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
-        sage_free(neighbors)
+        sig_free(neighbors)
         return output
 
 ##############################
 # Further tests. Unit tests for methods, functions, classes defined with cdef.
 ##############################
-
-def random_stress():
-    """
-    Randomly search for mistakes in the code.
-
-    DOCTEST (No output indicates that no errors were found)::
-
-        sage: from sage.graphs.base.dense_graph import random_stress
-        sage: for _ in xrange(400):
-        ...    random_stress()
-
-    """
-    cdef int i, j, k, l, n
-    cdef DenseGraph Gnew
-    num_verts = 10
-    # This code deliberately uses random instead of sage.misc.prandom,
-    # so that every time it is run it does different tests, instead of
-    # doing the same random stress test every time.  (Maybe it should
-    # use sage.misc.random_testing?)
-    from random import randint
-    from sage.graphs.all import DiGraph
-    from sage.misc.misc import uniq
-    Gnew = DenseGraph(num_verts)
-    Gold = DiGraph(num_verts, loops=True, implementation='networkx')
-    for n from 0 <= n < 100:
-        i = randint(0,num_verts-1)
-        j = randint(0,num_verts-1)
-        k = randint(0,num_verts-1)
-        if k != 0:
-            Gold.add_edge(i,j)
-            Gnew.add_arc_unsafe(i,j)
-        else:
-            Gold.delete_edge(i,j)
-            Gnew.del_arc_unsafe(i,j)
-    if Gnew.num_arcs != Gold.size():
-        raise RuntimeError( "NO" )
-    for i from 0 <= i < num_verts:
-        if Gnew.out_degrees[i] != Gold.out_degree(i):
-            raise RuntimeError( "NO" )
-        if Gnew.in_degrees[i] != Gold.in_degree(i):
-            raise RuntimeError( "NO" )
 
 def _test_adjacency_sequence_out():
     """
@@ -664,17 +603,17 @@ def _test_adjacency_sequence_out():
     cdef DenseGraph g = DenseGraph(n,
                                    verts=randg.vertices(),
                                    arcs=randg.edges(labels=False))
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
-    cdef int *V = <int *>sage_malloc(n * sizeof(int))
+    cdef int *V = <int *>sig_malloc(n * sizeof(int))
     cdef int i = 0
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq = <int *> sage_malloc(n * sizeof(int))
+    cdef int *seq = <int *> sig_malloc(n * sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
         g.adjacency_sequence_out(n, V, u, seq)
@@ -682,20 +621,19 @@ def _test_adjacency_sequence_out():
         try:
             assert A == list(M[u])
         except AssertionError:
-            sage_free(V)
-            sage_free(seq)
+            sig_free(V)
+            sig_free(seq)
             raise AssertionError("Graph adjacency mismatch")
-    sage_free(seq)
-    sage_free(V)
+    sig_free(seq)
+    sig_free(V)
 
 ###########################################
 # Dense Graph Backend
 ###########################################
 
-from c_graph import CGraphBackend
-from c_graph cimport check_vertex, vertex_label, get_vertex
+from c_graph cimport CGraphBackend
 
-class DenseGraphBackend(CGraphBackend):
+cdef class DenseGraphBackend(CGraphBackend):
     """
     Backend for Sage graphs using DenseGraphs.
 
@@ -774,10 +712,8 @@ class DenseGraphBackend(CGraphBackend):
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
 
-        cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
-        cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
 
         if directed or u_int == v_int:
             self._cg.add_arc(u_int, v_int)
@@ -845,10 +781,8 @@ class DenseGraphBackend(CGraphBackend):
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
-        cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
-        cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg, None, 0)
+        cdef int u_int = self.check_labelled_vertex(u, 0)
+        cdef int v_int = self.check_labelled_vertex(v, 0)
         if v is None:
             u, v = u[:2]
         if directed:
@@ -917,10 +851,8 @@ class DenseGraphBackend(CGraphBackend):
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return False
-        cdef int u_int = get_vertex(u, self.vertex_ints, self.vertex_labels,
-                      self._cg)
-        cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                      self._cg)
+        cdef int u_int = self.get_vertex(u)
+        cdef int v_int = self.get_vertex(v)
         return self._cg.has_arc(u_int, v_int)
 
     def iterator_edges(self, object vertices, bint labels):
@@ -943,21 +875,20 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([tuple(sorted(
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int)
             )))+(None,)
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)
                         if u_int >= v_int or u_int not in vertices])
         else:
             return iter([tuple(sorted(
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int)
             )))
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)
@@ -984,20 +915,19 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([
-            (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
+            (self.vertex_label(u_int),
+             self.vertex_label(v_int),
              None)
                 for v_int in vertices
                     for u_int in self._cg.in_neighbors(v_int)])
         else:
             return iter([
-            (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg))
+            (self.vertex_label(u_int),
+             self.vertex_label(v_int))
                 for v_int in vertices
                     for u_int in self._cg.in_neighbors(v_int)])
 
@@ -1022,20 +952,19 @@ class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object u, v
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        vertices = [self.get_vertex(v) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int
         if labels:
             return iter([
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int),
              None)
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)])
         else:
             return iter([
-            (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-             vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg))
+            (self.vertex_label(v_int),
+             self.vertex_label(u_int))
                 for v_int in vertices
                     for u_int in self._cg.out_neighbors(v_int)])
 

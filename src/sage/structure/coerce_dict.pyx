@@ -1,12 +1,3 @@
-#*****************************************************************************
-#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
-#                     2012 Simon King <simon.king@uni-jena.de>
-#                     2013 Nils Bruin <nbruin@sfu.ca>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
 """
 Containers for storing coercion data
 
@@ -38,10 +29,23 @@ parent (:trac:`12313`).
 
 By :trac:`14159`, :class:`MonoDict` and :class:`TripleDict` can be optionally
 used with weak references on the values.
-
 """
-from cpython.list cimport *
+
+#*****************************************************************************
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#                     2012 Simon King <simon.king@uni-jena.de>
+#                     2013 Nils Bruin <nbruin@sfu.ca>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from cpython.object cimport *
+from cpython.list cimport PyList_New
 from cpython.mem cimport *
+from cpython.weakref cimport PyWeakref_GetObject
 from cpython.string cimport PyString_FromString
 from cpython cimport Py_XINCREF, Py_XDECREF
 from libc.string cimport memset
@@ -60,37 +64,11 @@ cdef type fixed_ref = ref
 from cpython.pycapsule cimport PyCapsule_New, PyCapsule_GetPointer
 
 cdef extern from "Python.h":
-    PyObject* PyWeakref_GetObject(object r)
     PyObject* Py_None
-    int PyList_SetItem(object list, Py_ssize_t index,PyObject * item) except -1
+    int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 
-    ctypedef int (*visitproc)(PyObject* ob, void* arg)
-    ctypedef struct PyTypeObject:
-        void * tp_traverse
-        void * tp_clear
-
-#this serves no purpose here anymore. Perhaps elsewhere?
-cpdef inline Py_ssize_t signed_id(x):
-    """
-    A function like Python's :func:`id` returning *signed* integers,
-    which are guaranteed to fit in a ``Py_ssize_t``.
-
-    Theoretically, there is no guarantee that two different Python
-    objects have different ``signed_id()`` values. However, under the
-    mild assumption that a C pointer fits in a ``Py_ssize_t``, this
-    is guaranteed.
-
-    TESTS::
-
-        sage: a = 1.23e45  # some object
-        sage: from sage.structure.coerce_dict import signed_id
-        sage: s = signed_id(a)
-        sage: id(a) == s or id(a) == s + 2**32 or id(a) == s + 2**64
-        True
-        sage: signed_id(a) <= sys.maxsize
-        True
-    """
-    return <Py_ssize_t><void *>(x)
+cdef extern from "pyx_visit.h":
+    void Py_VISIT3(PyObject*, visitproc, void* arg)
 
 #it's important that this is not an interned string: this object
 #must be a unique sentinel. We could reuse the "dummy" sentinel
@@ -842,21 +820,15 @@ cdef class MonoDict:
 #on cyclic GC)
 
 cdef int MonoDict_traverse(MonoDict op, visitproc visit, void *arg):
-    cdef int r
     if op.table == NULL:
         return 0
-    table=op.table
-    cdef size_t i = 0
-    if (<void*>(op.eraser)):
-        r=visit(<PyObject*><void*>(op.eraser),arg)
-        if r: return r
-    for i in range(op.mask+1):
-        cursor = &table[i]
+    Py_VISIT3(<PyObject*>op.eraser, visit, arg)
+    cdef size_t i
+    for i in range(op.mask + 1):
+        cursor = &op.table[i]
         if cursor.key_id != NULL and cursor.key_id != dummy:
-            r=visit(cursor.key_weakref,arg)
-            if r: return r
-            r=visit(cursor.value,arg)
-            if r: return r
+            Py_VISIT3(cursor.key_weakref, visit, arg)
+            Py_VISIT3(cursor.value, visit, arg)
     return 0
 
 
@@ -893,8 +865,8 @@ cdef int MonoDict_clear(MonoDict op):
     PyMem_Free(table)
     return 0
 
-(<PyTypeObject *><void *>MonoDict).tp_traverse = &MonoDict_traverse
-(<PyTypeObject *><void *>MonoDict).tp_clear = &MonoDict_clear
+(<PyTypeObject*>MonoDict).tp_traverse = <traverseproc>(&MonoDict_traverse)
+(<PyTypeObject*>MonoDict).tp_clear = <inquiry>(&MonoDict_clear)
 
 cdef class TripleDictEraser:
     """
@@ -1560,25 +1532,17 @@ cdef class TripleDict:
 #on cyclic GC)
 
 cdef int TripleDict_traverse(TripleDict op, visitproc visit, void *arg):
-    cdef int r
     if op.table == NULL:
         return 0
-    table=op.table
-    cdef size_t i = 0
-    if (<void*>(op.eraser)):
-        r=visit(<PyObject*><void*>(op.eraser),arg)
-        if r: return r
-    for i in range(op.mask+1):
-        cursor = &table[i]
+    Py_VISIT3(<PyObject*>op.eraser, visit, arg)
+    cdef size_t i
+    for i in range(op.mask + 1):
+        cursor = &op.table[i]
         if cursor.key_id1 != NULL and cursor.key_id1 != dummy:
-            r=visit(cursor.key_weakref1,arg)
-            if r: return r
-            r=visit(cursor.key_weakref2,arg)
-            if r: return r
-            r=visit(cursor.key_weakref3,arg)
-            if r: return r
-            r=visit(cursor.value,arg)
-            if r: return r
+            Py_VISIT3(cursor.key_weakref1, visit, arg)
+            Py_VISIT3(cursor.key_weakref2, visit, arg)
+            Py_VISIT3(cursor.key_weakref3, visit, arg)
+            Py_VISIT3(cursor.value, visit, arg)
     return 0
 
 cdef int TripleDict_clear(TripleDict op):
@@ -1607,5 +1571,5 @@ cdef int TripleDict_clear(TripleDict op):
     PyMem_Free(table)
     return 0
 
-(<PyTypeObject *><void *>TripleDict).tp_traverse = &TripleDict_traverse
-(<PyTypeObject *><void *>TripleDict).tp_clear = &TripleDict_clear
+(<PyTypeObject*>TripleDict).tp_traverse = <traverseproc>(&TripleDict_traverse)
+(<PyTypeObject*>TripleDict).tp_clear = <inquiry>(&TripleDict_clear)

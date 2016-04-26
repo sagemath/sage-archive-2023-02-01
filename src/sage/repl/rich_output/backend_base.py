@@ -88,7 +88,7 @@ class BackendBase(SageObject):
         instance.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_base import BackendBase
             sage: backend = BackendBase()
             sage: backend.get_display_manager()
@@ -152,6 +152,7 @@ class BackendBase(SageObject):
             sage: backend.default_preferences()
             Display preferences:
             * graphics is not specified
+            * supplemental_plot is not specified
             * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences
@@ -185,6 +186,27 @@ class BackendBase(SageObject):
         """
         raise NotImplementedError('derived classes must implement this method')
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
+
+        OUTPUT:
+
+        Defaults to ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.is_in_terminal()
+            False
+        """
+        return False
+    
     def max_width(self):
         """
         Return the number of characters that fit into one output line
@@ -233,7 +255,7 @@ class BackendBase(SageObject):
         OUTPUT:
 
         String.
-        
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_base import BackendBase
@@ -250,7 +272,7 @@ class BackendBase(SageObject):
         printer.flush()
         return stream.getvalue()
 
-    def plain_text_formatter(self, obj):
+    def plain_text_formatter(self, obj, **kwds):
         r"""
         Hook to override how plain text is being formatted.
 
@@ -262,6 +284,14 @@ class BackendBase(SageObject):
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -279,23 +309,39 @@ class BackendBase(SageObject):
             sage: out.text
             buffer containing 139 bytes
             sage: out.text.get()
-            '[0,\n 1,\n 2,\n 3,\n 4,\n 5,\n 6,\n 7,\n 8,\n 9,\n 
-            10,\n 11,\n 12,\n 13,\n 14,\n 15,\n 16,\n 17,\n 18,\n 
-            19,\n 20,\n 21,\n 22,\n 23,\n 24,\n 25,\n 26,\n 27,\n 
+            '[0,\n 1,\n 2,\n 3,\n 4,\n 5,\n 6,\n 7,\n 8,\n 9,\n
+            10,\n 11,\n 12,\n 13,\n 14,\n 15,\n 16,\n 17,\n 18,\n
+            19,\n 20,\n 21,\n 22,\n 23,\n 24,\n 25,\n 26,\n 27,\n
             28,\n 29]'
-        """
+
+            sage: out = backend.plain_text_formatter(range(20), concatenate=True)
+            sage: out.text.get()
+            '0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19'
+       """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        plain_text = self._apply_pretty_printer(SagePrettyPrinter, obj)
+        if kwds.get('concatenate', False):
+            plain_text = ' '.join(
+                self._apply_pretty_printer(SagePrettyPrinter, o) for o in obj)
+        else:
+            plain_text = self._apply_pretty_printer(SagePrettyPrinter, obj)
         from sage.repl.rich_output.output_basic import OutputPlainText
         return OutputPlainText(plain_text)
 
-    def ascii_art_formatter(self, obj):
-        """
+    def ascii_art_formatter(self, obj, **kwds):
+        r"""
         Hook to override how ascii art is being formatted.
 
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -311,26 +357,88 @@ class BackendBase(SageObject):
             sage: out
             OutputAsciiArt container
             sage: out.ascii_art
-            buffer containing 228 bytes
+            buffer containing 114 bytes
             sage: print(out.ascii_art.get())
-            [                                                                              
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
             <BLANKLINE>
-                                            ]
              22, 23, 24, 25, 26, 27, 28, 29 ]
+            sage: backend.ascii_art_formatter([1,2,3], concatenate=False).ascii_art.get()
+            '[ 1, 2, 3 ]'
+            sage: backend.ascii_art_formatter([1,2,3], concatenate=True ).ascii_art.get()
+            '1 2 3'
         """
-        from sage.repl.display.pretty_print import AsciiArtPrettyPrinter
-        ascii_art = self._apply_pretty_printer(AsciiArtPrettyPrinter, obj)
+        from sage.typeset.ascii_art import ascii_art, empty_ascii_art
+        if kwds.get('concatenate', False):
+            result = ascii_art(*obj, sep=' ')
+        else:
+            result = ascii_art(obj)
         from sage.repl.rich_output.output_basic import OutputAsciiArt
-        return OutputAsciiArt(ascii_art)
+        return OutputAsciiArt(str(result))
 
-    def latex_formatter(self, obj):
+    def unicode_art_formatter(self, obj, **kwds):
+        r"""
+        Hook to override how unicode art is being formatted.
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`
+        containing the unicode art string representation of the object.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: out = backend.unicode_art_formatter(range(30))
+            sage: out
+            OutputUnicodeArt container
+            sage: out.unicode_art
+            buffer containing 114 bytes
+            sage: print(out.unicode_art.get())
+            [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+            <BLANKLINE>
+            22, 23, 24, 25, 26, 27, 28, 29 ]
+
+            sage: backend.unicode_art_formatter([1,2,3], concatenate=False).unicode_art.get()
+            '[ 1, 2, 3 ]'
+            sage: backend.unicode_art_formatter([1,2,3], concatenate=True ).unicode_art.get()
+            '1 2 3'
+        """
+        from sage.typeset.unicode_art import unicode_art, empty_unicode_art
+        if kwds.get('concatenate', False):
+            result = unicode_art(*obj, sep=' ')
+        else:
+            result = unicode_art(obj)
+        from sage.repl.rich_output.output_basic import OutputUnicodeArt
+        return OutputUnicodeArt(str(result))
+
+    def latex_formatter(self, obj, **kwds):
         r"""
         Hook to override how Latex is being formatted.
 
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -351,9 +459,28 @@ class BackendBase(SageObject):
             '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}'
             sage: out.mathjax()
             '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+
+            sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
+            sage: out.latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]'
+            sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=True)
+            sage: out.latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}'
+
+        TESTS::
+
+            sage: backend.latex_formatter([], concatenate=False).latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]'
+            sage: backend.latex_formatter([], concatenate=True).latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}'
         """
+        concatenate = kwds.get('concatenate', False)
         from sage.misc.latex import MathJax
-        mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
+        if concatenate:
+            obj = tuple(obj)    # MathJax treats tuples special
+            mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
+        else:
+            mathjax = MathJax().eval(obj, mode='plain', combine_all=False)
         from sage.repl.rich_output.output_basic import OutputLatex
         return OutputLatex(str(mathjax))
 
@@ -384,11 +511,11 @@ class BackendBase(SageObject):
         """
         import __builtin__
         __builtin__._ = obj
-    
+
     def displayhook(self, plain_text, rich_output):
         """
         Backend implementation of the displayhook
-        
+
         The value of the last statement on a REPL input line or
         notebook cell are usually handed to the Python displayhook and
         shown on screen.  By overriding this method you define how
@@ -397,7 +524,7 @@ class BackendBase(SageObject):
         most suitable rich output container.
 
         Derived classes must implement this method.
-        
+
         INPUT:
 
         - ``plain_text`` -- instance of
@@ -440,7 +567,7 @@ class BackendBase(SageObject):
         up being called by :meth:`sage.plot.graphics.Graphics.show`.
 
         Derived classes must implement this method.
-        
+
         INPUT:
 
         Same as :meth:`displayhook`.
@@ -472,14 +599,14 @@ class BackendSimple(BackendBase):
     Simple Backend
 
     This backend only supports plain text.
-    
+
     EXAMPLES::
 
         sage: from sage.repl.rich_output.backend_base import BackendSimple
         sage: BackendSimple()
         simple
     """
-    
+
     def _repr_(self):
         r"""
         Return string representation of the backend

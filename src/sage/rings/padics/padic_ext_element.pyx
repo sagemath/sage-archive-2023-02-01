@@ -299,7 +299,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS::
+        INPUT:
 
             - pos -- bint.  If True, all integers will be in the range [0,p-1],
               otherwise they will be in the range [(1-p)/2, p/2].
@@ -436,7 +436,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+            NotImplementedError: reduction modulo p^n with n>1.
 
         Eisenstein case::
 
@@ -472,7 +472,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(16)
             Traceback (most recent call last):
             ...
-            PrecisionError: not enough precision known in order to compute residue.
+            PrecisionError: insufficient precision to reduce modulo p^16.
 
         """
         if absprec < 0:

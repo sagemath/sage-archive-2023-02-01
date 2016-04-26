@@ -121,7 +121,8 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
@@ -192,7 +193,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         """
         pAdicZZpXElement.__init__(self, parent)
-        ZZ_pX_construct(&self.value)
         if empty:
             return
         cdef mpz_t tmp
@@ -410,21 +410,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         holder.x = self.value
         return make_ZZpXFMElement, (self.parent(), holder)
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(17)
-            sage: del z # indirect doctest
-        """
-        ZZ_pX_destruct(&self.value)
-
     cdef pAdicZZpXFMElement _new_c(self):
         """
         Returns a new element with the same parent as ``self``.
@@ -441,30 +426,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         cdef pAdicZZpXFMElement ans = pAdicZZpXFMElement.__new__(pAdicZZpXFMElement)
         ans._parent = self._parent
-        ZZ_pX_construct(&ans.value)
         ans.prime_pow = self.prime_pow
         return ans
 
-    def __richcmp__(left, right, op):
-        """
-        Compares ``left`` and ``right`` under the operation ``op``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: w == 1 # indirect doctest
-            False
-            sage: y = 1 + w
-            sage: z = 1 + w + w^27
-            sage: y == z
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare the values.
 
@@ -493,39 +458,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
                 return 0 # since both are zero
-            elif ZZ_pX_equal(_left.value, _right.value):
+            elif _left.value == _right.value:
                 return 0
             else:
                 # for now just return 1
                 return 1
 
     def __invert__(self):
-        """
-        Returns the inverse of ``self``, as long as ``self`` is a
-        unit.
-
-        If ``self`` is not a unit, raises a ``ValueError``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = (1 + w)^5
-            sage: y = ~z; y # indirect doctest
-            1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
-            sage: y.parent()
-            Eisenstein Extension of 5-adic Ring of fixed modulus 5^5 in w defined by (1 + O(5^5))*x^5 + (O(5^5))*x^4 + (3*5^2 + O(5^5))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x^2 + (5^3 + O(5^5))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))
-            sage: z = z - 1
-            sage: ~z
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot invert non-unit
-        """
-        return self._invert_c_impl()
-
-    cpdef RingElement _invert_c_impl(self):
         """
         Returns the inverse of ``self``, as long as ``self`` is a
         unit.
@@ -1316,7 +1255,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXFMElement zero
         if lift_mode == 'simple':

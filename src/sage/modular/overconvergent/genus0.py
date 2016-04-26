@@ -183,7 +183,7 @@ from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduc
 from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
-from sage.modules.module    import Module_old
+from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
@@ -260,7 +260,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
 # Main class definition #
 #########################
 
-class OverconvergentModularFormsSpace(Module_old):
+class OverconvergentModularFormsSpace(Module):
     r"""
     A space of overconvergent modular forms of level `\Gamma_0(p)`,
     where `p` is a prime such that `X_0(p)` has genus 0.
@@ -311,7 +311,7 @@ class OverconvergentModularFormsSpace(Module_old):
         if not self._wtchar.is_even():
             raise ValueError("Weight-character must be even")
 
-        Module_old.__init__(self, base_ring)
+        Module.__init__(self, base_ring)
 
         self._prec = prec
 
@@ -427,7 +427,7 @@ class OverconvergentModularFormsSpace(Module_old):
         else:
             raise TypeError("Base extension of self (over '%s') to ring '%s' not defined." % (self.base_ring(), ring))
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         r"""
         Return an element of this space (used by the coercion machinery).
 
@@ -471,7 +471,6 @@ class OverconvergentModularFormsSpace(Module_old):
             (3, 3, [-1])
         """
         return self._wtchar
-
 
     def normalising_factor(self):
         r"""
@@ -575,7 +574,6 @@ class OverconvergentModularFormsSpace(Module_old):
         """
         return self._p
 
-
     def radius(self):
         r"""
         The radius of overconvergence of this space.
@@ -622,11 +620,9 @@ class OverconvergentModularFormsSpace(Module_old):
 
     #####################################
     # Element construction and coercion #
-    #   (unfortunately not using        #
-    #    the new coercion model)        #
     #####################################
 
-    def __call__(self, input):
+    def _element_constructor_(self, input):
         r"""
         Create an element of this space. Allowable inputs are:
 
@@ -746,6 +742,7 @@ class OverconvergentModularFormsSpace(Module_old):
         obviously nonsense.
 
         EXAMPLES::
+
             sage: M = OverconvergentModularForms(3, 0, 1/2)
             sage: MM = M.base_extend(Qp(3))
             sage: R.<q> = Qp(3)[[]]; f = MM(q + O(q^2)); f
@@ -760,7 +757,7 @@ class OverconvergentModularFormsSpace(Module_old):
             raise TypeError("Cannot create an element of '%s' from element of incompatible space '%s'" % (self, input.parent()))
         return self(self._qsr(f.q_expansion()))
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, other):
         r"""
         Canonical coercion of x into self. Here the possibilities for x are
         more restricted.
@@ -778,11 +775,11 @@ class OverconvergentModularFormsSpace(Module_old):
             sage: M.coerce(1)
             3-adic overconvergent modular form of weight-character 0 with q-expansion 1 + O(q^20)
         """
-        if isinstance(x, OverconvergentModularFormElement) and self.base_ring().has_coerce_map_from(x.base_ring()):
-            return self._coerce_from_ocmf(x)
+        if (isinstance(other, OverconvergentModularFormsSpace) and
+            self.base_ring().has_coerce_map_from(other.base_ring())):
+            return True
         else:
-            return self.base_ring().coerce(x) * self.gen(0)
-
+            return self.base_ring().has_coerce_map_from(other)
 
     def coordinate_vector(self, x):
         r"""

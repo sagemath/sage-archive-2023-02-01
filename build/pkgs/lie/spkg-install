@@ -1,0 +1,35 @@
+#!/bin/sh
+
+die () {
+    echo "$@"
+    exit 1
+}
+
+# patching
+cd LiE/
+chmod -R a+rX .
+patch -p1 <../patches/00-string.h.patch &&
+patch -p1 <../patches/01-libs.patch &&
+patch -p1 <../patches/02-hashbang.patch ||
+    die "Error patching LiE."
+if [ $UNAME = "SunOS" ]; then
+    patch -p1 <../patches/03-solaris.patch ||
+        die "Error patching LiE."
+fi
+
+# Building LiE in parallel is broken
+export MAKE="$MAKE -j1"
+
+# building
+$MAKE CC="$CC" || die "Error building LiE. Did you install bison?"
+
+# "install" the LiE package by moving over the complete build
+# directory to $SAGE_LOCAL/lib/lie
+cd ..
+sed -e "s'$PWD/LiE'$SAGE_LOCAL/lib/LiE'" LiE/lie > LiE/lie~
+mv LiE/lie~ LiE/lie
+chmod +x LiE/lie
+rm -rf "$SAGE_LOCAL"/lib/lie # clean up old versions
+rm -rf "$SAGE_LOCAL"/bin/lie "$SAGE_LOCAL"/lib/LiE
+mv LiE/lie "$SAGE_LOCAL"/bin/
+mv LiE/ "$SAGE_LOCAL"/lib/LiE

@@ -663,7 +663,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             REFERENCES:
 
-            .. [SZ.2001] M. Shimozono, M. Zabrocki,
+            .. [SZ.2001] \M. Shimozono, M. Zabrocki,
                Hall-Littlewood vertex operators and generalized Kostka polynomials.
                Adv. Math. 158 (2001), no. 1, 66-85.
 

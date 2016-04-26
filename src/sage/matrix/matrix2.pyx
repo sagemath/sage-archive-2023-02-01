@@ -13996,12 +13996,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. rubric:: Citations
 
-        .. [STORJOHANN-THESIS] A. Storjohann, Algorithms
+        .. [STORJOHANN-THESIS] \A. Storjohann, Algorithms
            for Matrix Canonical Forms. PhD Thesis. Department
            of Computer Science, Swiss Federal Institute of
            Technology -- ETH, 2000.
 
-        .. [STORJOHANN-ISACC98] A. Storjohann, An O(n^3)
+        .. [STORJOHANN-ISACC98] \A. Storjohann, An O(n^3)
            algorithm for Frobenius normal form. Proceedings
            of the International Symposium on Symbolic and
            Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
@@ -14393,7 +14393,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. rubric:: Citations
 
-        .. [STORJOHANN-EMAIL] A. Storjohann, Email Communication. 30 May 2011.
+        .. [STORJOHANN-EMAIL] \A. Storjohann, Email Communication. 30 May 2011.
 
         AUTHOR:
 

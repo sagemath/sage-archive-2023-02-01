@@ -11,7 +11,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Bruin-Molnar] N. Bruin and A. Molnar, *Minimal models for rational
+.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
    functions in a dynamical setting*, 
    LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
 

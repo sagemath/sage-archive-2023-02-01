@@ -4824,7 +4824,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
+        .. [Gowda-Tao] \M.S. Gowda and J. Tao. On the bilinearity rank of
            a proper cone and Lyapunov-like transformations. Mathematical
            Programming, 147 (2014) 155-170.
 

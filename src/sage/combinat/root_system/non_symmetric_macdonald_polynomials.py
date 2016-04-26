@@ -342,7 +342,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     REFERENCES:
 
-    .. [Haiman ICM] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics,
+    .. [HaimanICM] \M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics,
        Proceedings of the International Congress of Mathematicians,
        Madrid 2006, Vol. III, 843-872.
 

@@ -4542,7 +4542,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         REFERENCES:
 
-        .. [Hutz-gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
+        .. [Hutz-gr] \B. Hutz. Good reduction of periodic points, Illinois Journal of
            Mathematics 53 (Winter 2009), no. 4, 1109-1126.
 
         ALGORITHM:

@@ -7,11 +7,11 @@ for computing cup products and cohomology operations.
 
 REFERENCES:
 
-.. [G-DR03] R. González-Díaz and P. Réal, *Computation of cohomology
+.. [G-DR03] \R. González-Díaz and P. Réal, *Computation of cohomology
    operations on finite simplicial complexes* in Homology,
    Homotopy and Applications 5 (2003), 83-93.
 
-.. [G-DR99] R. González-Díaz and P. Réal, *A combinatorial method for
+.. [G-DR99] \R. González-Díaz and P. Réal, *A combinatorial method for
    computing Steenrod squares* in J. Pure Appl. Algebra 139 (1999), 89-108.
 
 AUTHORS:

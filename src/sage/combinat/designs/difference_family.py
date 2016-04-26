@@ -13,11 +13,11 @@ It defines the following functions:
 
 REFERENCES:
 
-.. [BJL99-1] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
+.. [BJL99-1] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
    Second edition. Encyclopedia of Mathematics and its Applications, 69. Cambridge
    University Press, (1999).
 
-.. [BLJ99-2] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
+.. [BLJ99-2] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
    Second edition. Encyclopedia of Mathematics and its Applications, 78. Cambridge
    University Press, (1999).
 

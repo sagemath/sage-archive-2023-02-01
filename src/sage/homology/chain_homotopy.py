@@ -33,7 +33,7 @@ isomorphic.
 
 REFERENCES:
 
-.. [M-AR] H. Molina-Abril and P. Réal, *Homology computation using spanning
+.. [M-AR] \H. Molina-Abril and P. Réal, *Homology computation using spanning
    trees* in Progress in Pattern Recognition, Image Analysis,
    Computer Vision, and Applications, Lecture Notes in Computer
    Science, volume 5856, pp 272-278, Springer, Berlin (2009).
@@ -42,7 +42,7 @@ REFERENCES:
    cohomology, and (co)homological operations via chain contraction*,
    Adv. Comput. Math. 41 (2015), pp 253--275.
 
-.. [RM-A] P. Réal and H. Molina-Abril, *Cell AT-models for digital
+.. [RM-A] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
    volumes* in Torsello, Escolano, Brun (eds.), Graph-Based
    Representations in Pattern Recognition, Lecture Notes in
    Computer Science, volume 5534, pp. 314-3232, Springer, Berlin (2009).

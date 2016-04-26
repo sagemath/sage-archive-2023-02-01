@@ -73,7 +73,7 @@ class DescentAlgebra(UniqueRepresentation, Parent):
        Bull. London Math. Soc. 24 (1992) 545-551.
        http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
 
-    .. [MR-Desc] C. Malvenuto, C. Reutenauer, *Duality between
+    .. [MR-Desc] \C. Malvenuto, C. Reutenauer, *Duality between
        quasi-symmetric functions and the Solomon descent algebra*,
        Journal of Algebra 177 (1995), no. 3, 967-982.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf

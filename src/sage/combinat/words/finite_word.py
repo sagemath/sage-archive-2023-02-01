@@ -5698,9 +5698,9 @@ class FiniteWord_class(Word_class):
         .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
            Intelligencer, 7(3):20--29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:

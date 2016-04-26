@@ -787,7 +787,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             W = self.parent()
             return self(W._index_set_inverse[i]+1) > W._number_of_reflections
 
-        def has_descent(self, i, side='left', positive=False):
+        def has_descent(self, i, side="left", positive=False):
             r"""
             Return whether ``i`` is a descent (or ascent) of ``self``.
 
@@ -822,9 +822,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             elif side == 'right':
                 return self.has_right_descent(i) is negative
             else:
-                raise ValueError("the method 'has_descent' needs the input 'side' to be either 'left' or 'right'")
+                raise ValueError('side must be "left" or "right"')
 
-        def act_on_root_indices(self, i, side="right"):
+        def act_on_root_indices(self, i, side="left"):
             """
             Return the action on the set of roots.
 
@@ -832,14 +832,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``i`` -- index of the root to act on
 
-            - ``side`` -- optional (default: ``"right"``) whether the
+            - ``side`` -- optional (default: ``"left"``) whether the
               action is on the left or on the right
-
-            TODO:
-
-            - This action is a right action on default, in contrary to
-              the rest of this implementation. This is done for
-              compatibility with subword complexes.
 
             EXAMPLES::
 
@@ -853,15 +847,15 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [4, 3, 5, 1, 0, 2]
             """
             if side == "right":
-                w = ~self
-            elif side == "left":
                 w = self
+            elif side == "left":
+                w = ~self
             else:
                 raise ValueError('side must be "left" or "right"')
             W = w.parent()
             return w(i + 1) - 1
 
-        def act_on_root(self, root, side="right"):
+        def act_on_root(self, root, side="left"):
             r"""
             Return the root obtained by applying ``self`` to ``root``.
 
@@ -869,7 +863,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``root`` -- the root to act on
 
-            - ``side`` -- optional (default: ``"right"``) whether the
+            - ``side`` -- optional (default: ``"left"``) whether the
               action is on the left or on the right
 
             EXAMPLES::
@@ -899,7 +893,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             Phi = self.parent().roots()
             return Phi[ self.act_on_root_indices(Phi.index(root),side=side) ]
 
-        def act(self, vec, side="right"):
+        def act(self, vec, side="left"):
             r"""
             Return the image of ``vec`` under the action of ``self``.
 
@@ -907,8 +901,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``vec`` -- vector in the basis given by the simple root
 
-            - ``side`` -- optional (default: ``"right"``) whether the
-              action is on the left or on the right
+            - ``side`` -- optional (default: ``"left"``) whether the
+              action of ``self`` is on the ``"left"`` or on the ``"right"``
 
             EXAMPLES::
 
@@ -935,10 +929,31 @@ class RealReflectionGroup(ComplexReflectionGroup):
             n = W.rank()
             Phi = W.roots()
             if side == "right":
-                w = ~self
-            elif side == "left":
                 w = self
+            elif side == "left":
+                w = ~self
             return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
+
+        def _act_on_(self, vec, self_on_left):
+            r"""
+            Defines the action of ``self`` as a linear transformation
+            on the vector space, in the basis given by the simple
+            roots.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
+                sage: w = W.from_word([1,2])                            # optional - gap3
+                sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # optional - gap3
+                (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
+
+                sage: print(", ".join("%s -> %s"%(root,root*w) for root in W.positive_roots())) # optional - gap3
+                (1, 0) -> (-1, -1), (0, 1) -> (1, 0), (1, 1) -> (0, -1)
+            """
+            if self_on_left:
+                return self.act(vec,side="left")
+            else:
+                return self.act(vec,side="right")
 
         def inversion_set(self, side="right"):
             r"""

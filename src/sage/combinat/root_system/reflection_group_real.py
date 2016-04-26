@@ -882,7 +882,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
-                ....:           [w.act_on_root(beta,side="left") for beta in W.positive_roots()]))  # optional - gap3
+                ....:           [w.act_on_root(beta,side="right") for beta in W.positive_roots()]))  # optional - gap3
                 [] [(1, 0), (0, 1), (1, 1)]
                 [2] [(1, 1), (0, -1), (1, 0)]
                 [1] [(-1, 0), (1, 1), (0, 1)]
@@ -943,7 +943,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             EXAMPLES::
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: w = W.from_word([1,2])                            # optional - gap3
+                sage: w = W.from_reduced_word([1,2])                            # optional - gap3
                 sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # optional - gap3
                 (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
 

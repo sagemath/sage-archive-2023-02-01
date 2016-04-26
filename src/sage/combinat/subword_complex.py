@@ -468,7 +468,7 @@ class SubwordComplexFacet(Simplex, Element):
             pi = W.one()
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
-                V_weights.append(pi.act(fund_weight, side="right"))
+                V_weights.append(pi*fund_weight)
                 if i not in self:
                     pi = pi.apply_simple_reflection_right(wi)
             if self._extended_weight_conf is None:

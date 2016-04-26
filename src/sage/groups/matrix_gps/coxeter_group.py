@@ -808,37 +808,6 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             rt = self * roots[i]
             return roots.index(rt)
 
-        def act(self, vec, side = "right"):
-            r"""
-            Return the image of ``vec`` under the action of ``self``.
-
-            INPUT:
-
-            - ``vec`` -- vector in the basis given by the simple root
-
-            - ``side`` -- optional (default: ``"right"``) whether the
-              action is on the left or on the right
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroup(['A',2])
-                sage: Omega = W.fundamental_weights()
-                sage: for w in W:
-                ....:     print("%s %s"%(w.reduced_word(),
-                ....:           [w.act(Omega[i]) for i in W.index_set()]))
-                [] [(4/3, 2/3), (2/3, 4/3)]
-                [1] [(-2/3, 2/3), (2/3, 4/3)]
-                [2] [(4/3, 2/3), (2/3, -2/3)]
-                [1, 2] [(-2/3, 2/3), (-4/3, -2/3)]
-                [2, 1] [(-2/3, -4/3), (2/3, -2/3)]
-                [1, 2, 1] [(-2/3, -4/3), (-4/3, -2/3)]
-            """
-            if side == "right":
-                w = self
-            elif side == "left":
-                w = self.inverse()
-            return w*vec
-
 def _matrix_test_right_descent(M, i, n, zero):
     """
     Test if the matrix ``M`` has a right ``i``-descent.

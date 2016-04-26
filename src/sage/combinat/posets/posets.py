@@ -3831,6 +3831,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
 
+        One can also simply use `*`::
+
+            sage: P = Posets.ChainPoset(2)
+            sage: Q = Posets.ChainPoset(3)
+            sage: P*Q
+            Finite lattice containing 6 elements
+
         TESTS::
 
             sage: Poset({0:[1]}).product(Poset())  # Product with empty poset

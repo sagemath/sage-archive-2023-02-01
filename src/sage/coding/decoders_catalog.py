@@ -36,6 +36,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 from linear_code import (LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder,
                          LinearCodeInformationSetDecoder)
+
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,

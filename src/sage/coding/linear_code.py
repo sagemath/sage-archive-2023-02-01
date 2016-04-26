@@ -3759,16 +3759,16 @@ class LinearCode(AbstractLinearCode):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
-        
+
     Providing a code as the parameter in order to "forget" its structure (see
     :trac:`20198`)::
-    
+
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
         Linear code of length 23, dimension 12 over Finite Field of size 23
-        
+
     Another example::
-    
+
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
         [57, 54] Hamming Code over Finite Field of size 7
@@ -3831,19 +3831,19 @@ class LinearCode(AbstractLinearCode):
             ...
             ValueError: this linear code contains no non-zero vector
         """
-        
+
         base_ring = generator.base_ring()
         if not base_ring.is_field():
             raise ValueError("'generator' must be defined on a field (not a ring)")
-        
+
         try:
             basis = generator.row_space().basis() # generator matrix case
-            
+
             # if the matrix does not have full rank we replace it
             if len(basis) != generator.nrows():
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
-    
+
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:
@@ -4853,8 +4853,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         INPUT:
 
-        - ``r`` -- a received word, i.e. a vector in the ambient space of
-          :meth:`decoder.Decoder.code`.
+        - ``r`` -- a vector in the ambient space of :meth:`decoder.Decoder.code`.
 
         OUTPUT:
 
@@ -4926,4 +4925,4 @@ LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
 LinearCode._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
-LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}

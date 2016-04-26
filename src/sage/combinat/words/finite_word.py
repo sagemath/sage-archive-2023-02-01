@@ -3342,7 +3342,7 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Dejean] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))

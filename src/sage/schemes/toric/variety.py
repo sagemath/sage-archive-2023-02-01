@@ -2801,7 +2801,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         REFERENCES:
 
         ..  [Demazure]
-            M. Demazure
+            \M. Demazure
             Sous-groupes algébriques de rang maximum du groupe de Cremona.
             Ann. Sci. Ecole Norm. Sup. 1970, 3, 507--588.
 

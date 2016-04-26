@@ -877,7 +877,7 @@ def K3Surface():
 
     REFERENCES:
 
-    .. [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface
+    .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface
        with the minimum number of vertices", Topology 40 (2001),
        753--772.
 

@@ -20,7 +20,7 @@ Notice that squaring the relation squares both sides.
     sage: eqn.expand()
     x^2 - 2*x + 1 <= x^2 - 2*x + 3
 
-The can transform a true relational into a false one::
+This can transform a true relation into a false one::
 
     sage: eqn = SR(-5) < SR(-3); eqn
     -5 < -3
@@ -31,7 +31,7 @@ The can transform a true relational into a false one::
     sage: bool(eqn^2)
     False
 
-We can do arithmetic with relationals::
+We can do arithmetic with relations::
 
     sage: e = x+1 <= x-2
     sage: e + 2
@@ -53,7 +53,7 @@ We can do arithmetic with relationals::
     sage: -2/e
     -2/(x + 1) <= -2/(x - 2)
 
-We can even add together two relations, so long as the operators are
+We can even add together two relations, as long as the operators are
 the same::
 
     sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
@@ -123,27 +123,31 @@ Test if :trac:`9947` is fixed::
     2*sqrt(10)/(sqrt(3) + 5)
 """
 
-###############################################################################
-#   Sage: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 include "cysignals/signals.pxi"
-include "sage/ext/python.pxi"
 
 import operator
 import ring
 import sage.rings.integer
 import sage.rings.rational
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
+cimport sage.symbolic.comparison
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.misc.superseded import deprecated_function_alias
@@ -151,6 +155,7 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
+
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -3170,7 +3175,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (-1.0*x)*(1.0/x)
             -1.00000000000000
             sage: sin(1.0*pi)
-            sin(1.00000000000000*pi)
+            0
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3316,8 +3321,8 @@ cdef class Expression(CommutativeRingElement):
             1/x
             sage: ~SR(3)
             1/3
-            sage: v1=var('v1'); a = (2*erf(2*v1*arcsech(0))/v1); ~a
-            1/2*v1/erf(2*v1*arcsech(0))
+            sage: v1=var('v1'); a = (2*erf(2*v1*arcsech(1/2))/v1); ~a
+            1/2*v1/erf(2*v1*arcsech(1/2))
         """
         return 1/self
 
@@ -3456,8 +3461,25 @@ cdef class Expression(CommutativeRingElement):
             I*x - 1/2
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
+
+        Check if :trac:`16397` is fixed:
+
+            sage: cmp(1, sqrt(2))
+            -1
+            sage: cmp(SR(1), sqrt(2))
+            -1
+            sage: cmp(log(8), 3*log(2))
+            0
+            sage: RLF(1) < RLF(sqrt(2))
+            True
+            sage: RealSet((0, pi),[pi, pi],(pi,4))
+            (0, 4)
+            sage: RealSet((0, pi),[0, pi],(pi,4))
+            [0, 4)
+            sage: RealSet((0, pi),[0, 3.5],(pi,4))
+            [0, 4)
         """
-        return print_order_compare(left._gobj, (<Expression>right)._gobj)
+        return mixed_order(left, right)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:
         """
@@ -4211,7 +4233,15 @@ cdef class Expression(CommutativeRingElement):
             sage: expand((x-1)^3/(y-1))
             x^3/(y - 1) - 3*x^2/(y - 1) + 3*x/(y - 1) - 1/(y - 1)
             sage: expand((x+sin((x+y)^2))^2)
-            x^2 + 2*x*sin((x + y)^2) + sin((x + y)^2)^2
+            x^2 + 2*x*sin(x^2 + 2*x*y + y^2) + sin(x^2 + 2*x*y + y^2)^2
+
+        Observe that :meth:`expand` also expands function arguments::
+
+            sage: f(x) = function('f')(x)
+            sage: fx = f(x*(x+1)); fx
+            f((x + 1)*x)
+            sage: fx.expand()
+            f(x^2 + x)
 
         We can expand individual sides of a relation::
 
@@ -4516,6 +4546,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x^y)^z).find(w0^w1)
             [(x^y)^z]
         """
+        from sage.symbolic.comparison import print_sorted
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList found
         self._gobj.find(p._gobj, found)
@@ -4524,7 +4555,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(found.end()):
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
-        res.sort(cmp)
+        res = print_sorted(res)
         return res
 
     def has(self, pattern):
@@ -4694,10 +4725,22 @@ cdef class Expression(CommutativeRingElement):
             sage: cmd = '{} /. {} -> {}'                    # optional - mathematica
             sage: for s1,s2 in subs:                        # optional - mathematica
             ....:     mathematica.eval(cmd.format(E,s1,s2)) # optional - mathematica
-            'y^4+y^2+y'
-            'x^4+y+x'
-            'x^4+y'
-            'y'
+                 2    4
+            y + y  + y
+                 4
+            x + x  + y
+             4
+            x  + y
+            y
+
+        The same, with formatting more suitable for cut and paste::
+
+            sage: for s1,s2 in subs:                        # optional - mathematica
+            ....:     mathematica(cmd.format(E,s1,s2))      # optional - mathematica
+            y + y^2 + y^4
+            x + x^4 + y
+            x^4 + y
+            y
 
         TESTS:
 
@@ -4933,6 +4976,7 @@ cdef class Expression(CommutativeRingElement):
 
         """
         from sage.symbolic.ring import SR
+        from sage.symbolic.comparison import print_sorted
         cdef GExSet sym_set
         g_list_symbols(self._gobj, sym_set)
         res = []
@@ -4940,7 +4984,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(sym_set.end()):
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
-        res.sort(cmp=lambda x,y: -cmp(x,y))
+        res = print_sorted(res)[::-1]
         return tuple(res)
 
     def arguments(self):
@@ -10667,9 +10711,8 @@ cdef class Expression(CommutativeRingElement):
         Solve Brahmagupta-Pell equations::
 
             sage: sol = solve_diophantine(x^2 - 2*y^2 == 1); sol
-            (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
-             3/4*sqrt(2)*(2*sqrt(2) + 3)^t - 3/4*sqrt(2)*(-2*sqrt(2) + 3)^t + (2*sqrt(2) + 3)^t + (-2*sqrt(2) + 3)^t)
-            sage: print [(sol[0].subs(t=t).simplify_full(),sol[1].subs(t=t).simplify_full()) for t in range(-1,5)]
+            [(-sqrt(2)*(2*sqrt(2) + 3)^t + sqrt(2)*(-2*sqrt(2) + 3)^t - 3/2*(2*sqrt(2) + 3)^t - 3/2*(-2*sqrt(2) + 3)^t,...
+            sage: print [(sol[1][0].subs(t=t).simplify_full(),sol[1][1].subs(t=t).simplify_full()) for t in range(-1,5)]
             [(1, 0), (3, 2), (17, 12), (99, 70), (577, 408), (3363, 2378)]
 
         TESTS::
@@ -11646,8 +11689,10 @@ def solve_diophantine(f,  *args, **kwds):
         sage: solve_diophantine(a^2-3*b^2+1)
         []
         sage: solve_diophantine(a^2-3*b^2+2)
-        (1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
-         1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t)
+        [(1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
+          1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t),
+         (-1/2*sqrt(3)*(sqrt(3) + 2)^t + 1/2*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t,
+          -1/6*sqrt(3)*(sqrt(3) + 2)^t + 1/6*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t)]
     """
     from sage.symbolic.ring import SR
 

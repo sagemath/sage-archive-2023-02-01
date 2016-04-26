@@ -1115,6 +1115,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         of ``lseries()``, where the value is also divided by the
         number of connected components of `E(\RR)`). In particular the
         modular symbol depends on `E` and not only the isogeny class of `E`.
+        For the negative part the corresponding period is purely imaginary of
+        smallest positive imaginary part.
 
         INPUT:
 
@@ -1209,6 +1211,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
             sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
             1/25
+            sage: E.modular_symbol(sign=-1, use_eclib=False, normalize='L_ratio')(1/3)
+            1/2
+
 
         """
         typ = (sign, normalize, use_eclib)
@@ -4015,22 +4020,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             k += 1
         return bound
 
-
-    def torsion_subgroup(self, algorithm="pari"):
+    def torsion_subgroup(self, algorithm=None):
         """
         Returns the torsion subgroup of this elliptic curve.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-        -  ``"pari"`` - (default) use the PARI library
-
-        -  ``"doud"`` - use Doud's algorithm
-
-        -  ``"lutz_nagell"`` - use the Lutz-Nagell theorem
-
 
         OUTPUT: The EllipticCurveTorsionSubgroup instance associated to
         this elliptic curve.
@@ -4064,26 +4056,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__torsion_subgroup
         except AttributeError:
+            # algorithm is deprecated: if not None, this will give a warning.
+            # deprecation(20219)
             self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
             self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 
-    def torsion_points(self, algorithm="pari"):
+    def torsion_points(self, algorithm=None):
         """
         Returns the torsion points of this elliptic curve as a sorted
         list.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-           -  "pari" - (default) use the PARI library
-
-           -  "doud" - use Doud's algorithm
-
-           -  "lutz_nagell" - use the Lutz-Nagell theorem
-
 
         OUTPUT: A list of all the torsion points on this elliptic curve.
 
@@ -4153,6 +4135,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              (244 : -3902 : 1),
              (244 : 3658 : 1)]
         """
+        # algorithm is deprecated: if not None, this will give a warning.
+        # deprecation(20219)
         return sorted(self.torsion_subgroup(algorithm).points())
 
     @cached_method

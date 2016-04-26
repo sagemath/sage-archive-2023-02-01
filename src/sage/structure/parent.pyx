@@ -175,7 +175,6 @@ cdef object BuiltinMethodType = type(repr)
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include 'sage/ext/stdsage.pxi'
 
 
 def is_Parent(x):
@@ -1570,7 +1569,7 @@ cdef class Parent(category_object.CategoryObject):
 
         TESTS:
 
-        We test the workaround described in #12956 to let categories
+        We test the workaround described in :trac:`12956` to let categories
         override this default implementation::
 
             sage: class As(Category):

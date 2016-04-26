@@ -257,8 +257,8 @@ class CombinatorialMap(object):
         return "Combinatorial map: %s" %self.name()
 
     def _sage_src_lines_(self):
-        """
-        Returns the source code location for the wrapped function.
+        r"""
+        Return the source code location for the wrapped function.
 
         EXAMPLES::
 

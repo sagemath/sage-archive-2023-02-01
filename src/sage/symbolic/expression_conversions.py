@@ -840,7 +840,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -902,8 +902,8 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+            if (res - ex).is_trivial_zero():
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):

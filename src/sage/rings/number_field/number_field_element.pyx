@@ -37,15 +37,20 @@ include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
+from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.sage_object cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
+from sage.rings.polynomial.evaluation cimport ZZX_evaluation_mpfi
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
+
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 cimport number_field_base
 import number_field
@@ -768,22 +773,42 @@ cdef class NumberFieldElement(FieldElement):
             P = <number_field_base.NumberField?> left._parent
         except TypeError:
             P = left._parent.number_field()
-        cdef size_t i = 0
+        cdef size_t i = 0                # level of the approximation
+        cdef RealIntervalFieldElement v  # approximation of the nf generator
+        cdef mpfi_t la, ra               # left and right approximations
+        cdef mpz_t ld, rd                # left and right denominators
         if P._embedded_real:
-            # TODO: optimize this computation without any call to the method
-            # polynomial!
-            lp = left.polynomial()
-            rp = _right.polynomial()
-            la = lp(P._get_embedding_approx(0))
-            ra = rp(P._get_embedding_approx(0))
-            while la.overlaps(ra):
+            mpz_init(ld)
+            mpz_init(rd)
+            ZZ_to_mpz(ld, &left.__denominator)
+            ZZ_to_mpz(rd, &_right.__denominator)
+
+            v = <RealIntervalFieldElement> P._get_embedding_approx(0)
+            mpfi_init2(la, mpfi_get_prec(v.value))
+            mpfi_init2(ra, mpfi_get_prec(v.value))
+            ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+            mpfi_div_z(la, la, ld)
+            ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+            mpfi_div_z(ra, ra, rd)
+            while mpfr_greaterequal_p(&la.right, &ra.left) \
+                  and mpfr_greaterequal_p(&ra.right, &la.left):
                 i += 1
-                la = lp(P._get_embedding_approx(i))
-                ra = rp(P._get_embedding_approx(i))
+                v = <RealIntervalFieldElement> P._get_embedding_approx(i)
+                mpfi_set_prec(la, mpfi_get_prec(v.value))
+                mpfi_set_prec(ra, mpfi_get_prec(v.value))
+                ZZX_evaluation_mpfi(la, left.__numerator, v.value)
+                mpfi_div_z(la, la, ld)
+                ZZX_evaluation_mpfi(ra, _right.__numerator, v.value)
+                mpfi_div_z(ra, ra, rd)
             if op == Py_LT or op == Py_LE:
-                return la.upper() < ra.lower()
+                res = mpfr_less_p(&la.right, &ra.left)
             elif op == Py_GT or op == Py_GE:
-                return la.lower() > ra.upper()
+                res = mpfr_greater_p(&la.left, &ra.right)
+            mpfi_clear(la)
+            mpfi_clear(ra)
+            mpz_clear(ld)
+            mpz_clear(rd)
+            return bool(res)
         else:
             return rich_to_bool(op, 1)
 
@@ -1707,7 +1732,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS:
 
         Check that the output is correct even for numbers that are
-        very close to zero (ticket #9596)::
+        very close to zero (:trac:`9596`)::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: a = 30122754096401; b = 21300003689580
@@ -2316,6 +2341,43 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3, embedding=CC(0,1))
+            sage: QQbar(alpha)
+            -1.032202770009288? + 1.168103873894207?*I
+            sage: AA(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce algebraic number with non-zero imaginary
+            part to algebraic real
+
+            sage: NF.<alpha> = NumberField(x^5 + 7*x + 3)
+            sage: QQbar(alpha)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert number
+            field element to algebraic number
+
+        TESTS::
+
+            sage: C.<z> = CyclotomicField(7)
+            sage: a = 2*z^2 + 5*z^4
+            sage: E = C.algebraic_closure()
+            sage: E(a)
+            -4.949886207424724? - 0.2195628712241434?*I
+        """
+        emb = self._parent.coerce_embedding()
+        if emb is None:
+            raise ValueError("need a real or complex embedding to convert "
+                             "number field element to algebraic number")
+        emb = number_field.refine_embedding(emb, infinity)
+        return parent(emb(self))
+
     def _symbolic_(self, SR):
         """
         If an embedding into CC is specified, then a representation of this
@@ -2584,7 +2646,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return hash(self.polynomial())
 
-    def _coefficients(self):
+    cpdef list _coefficients(self):
         """
         Return the coefficients of the underlying polynomial corresponding
         to this number field element.
@@ -2592,7 +2654,7 @@ cdef class NumberFieldElement(FieldElement):
         OUTPUT:
 
         - a list whose length corresponding to the degree of this
-          element written in terms of a generator.
+          element written in terms of a generator
 
         EXAMPLES::
 
@@ -2600,7 +2662,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (b^2 + 1)._coefficients()
             [1, 0, 1]
         """
-        coeffs = []
+        cdef list coeffs = []
         cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
         cdef Integer numCoeff
         cdef int i
@@ -3146,9 +3208,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: F.<z> = CyclotomicField(5) ; t = 3*z**3 + 4*z**2 + 2
             sage: t.matrix(F)
             [3*z^3 + 4*z^2 + 2]
-            sage: x=QQ['x'].gen()
-            sage: K.<v>=NumberField(x^4 + 514*x^2 + 64321)
-            sage: R.<r>=NumberField(x^2 + 4*v*x + 5*v^2 + 514)
+            sage: x = QQ['x'].gen()
+            sage: K.<v> = NumberField(x^4 + 514*x^2 + 64321)
+            sage: R.<r> = NumberField(x^2 + 4*v*x + 5*v^2 + 514)
             sage: r.matrix()
             [           0            1]
             [-5*v^2 - 514         -4*v]
@@ -3157,13 +3219,13 @@ cdef class NumberFieldElement(FieldElement):
             [-5*v^2 - 514         -4*v]
             sage: r.matrix(R)
             [r]
-            sage: foo=R.random_element()
+            sage: foo = R.random_element()
             sage: foo.matrix(R) == matrix(1,1,[foo])
             True
         """
-        from sage.matrix.constructor import matrix
+        import sage.matrix.matrix_space
         if base is self.parent():
-            return matrix(1,1,[self])
+            return sage.matrix.matrix_space.MatrixSpace(base,1)([self])
         if base is not None and base is not self.base_ring():
             if number_field.is_NumberField(base):
                 return self._matrix_over_base(base)
@@ -3175,17 +3237,16 @@ cdef class NumberFieldElement(FieldElement):
         # and transpose.
         if self.__matrix is None:
             K = self.number_field()
-            v = []
-            x = K.gen()
-            a = K(1)
             d = K.relative_degree()
-            for n in range(d):
-                v += (a*self).list()
-                a *= x
-            k = K.base_ring()
-            import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(k, d)
+            cur = self.vector()
+            X = K._generator_matrix()
+            v = cur.list()
+            for n in range(d-1):
+                cur = cur * X
+                v += cur.list()
+            M = sage.matrix.matrix_space.MatrixSpace(K.base_ring(), d)
             self.__matrix = M(v)
+            self.__matrix.set_immutable()
         return self.__matrix
 
     def valuation(self, P):
@@ -3233,7 +3294,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "P must be prime"
         if self == 0:
             return infinity
-        return Integer_sage(self.number_field().pari_nf().elementval(self._pari_(), P.pari_prime()))
+        return Integer_sage(self.number_field().pari_nf().nfeltval(self, P.pari_prime()))
 
     ord = valuation
 
@@ -3246,7 +3307,7 @@ cdef class NumberFieldElement(FieldElement):
 
         -  ``P`` - a prime ideal of the parent of self
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
@@ -3416,7 +3477,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3443,7 +3504,7 @@ cdef class NumberFieldElement(FieldElement):
 
         INPUT:
 
-        - ``prec`` (int) -- desired floating point precision (defult:
+        - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
 
         OUTPUT:
@@ -3984,7 +4045,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES:
 
@@ -4331,7 +4392,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         otherwise 'sage' is used.  The constant TUNE_CHARPOLY_NF
         should give reasonable performance on all architectures;
         however, if you feel the need to customize it to your own
-        machine, see trac ticket 5213 for a tuning script.
+        machine, see :trac:`5213` for a tuning script.
 
         EXAMPLES::
 
@@ -4492,9 +4553,10 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent! This fixes trac #4190.
+        parent! This fixes :trac:`4190`.
 
         EXAMPLES::
 
@@ -4547,7 +4609,9 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     def __invert__(self):
         r"""
         Implement inversion, checking that the return value has the right
-        parent. See trac #4190.
+        parent.
+
+        See :trac:`4190`.
 
         EXAMPLE::
 
@@ -4617,9 +4681,10 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     cpdef RingElement _div_(self, RingElement other):
         r"""
         Implement division, checking that the result has the right parent.
+
         It's not so crucial what the parent actually is, but it is crucial
         that the returned value really is an element of its supposed
-        parent. This fixes trac #4190.
+        parent. This fixes trac :trac:`4190`.
 
         EXAMPLES::
 
@@ -4643,7 +4708,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     def __invert__(self):
         r"""
         Implement division, checking that the result has the right parent.
-        See trac #4190.
+
+        See :trac:`4190`.
 
         EXAMPLES::
 

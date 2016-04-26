@@ -1139,8 +1139,8 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         else:
             long_cycle = [ cycle, ['A',n-1,1] ]
     # if we haven't found a "long_cycle", we are in finite type A
-    if long_cycle == False:
-        long_cycle = [ [], QuiverMutationType(['A',n]) ]
+    if not long_cycle:
+        long_cycle = [[], QuiverMutationType(['A', n])]
 
     # The 'connected vertices' are now computed.
     # Attention: 0-1-2 in type A_3 has connecting vertices 0 and 2, while in type D_3 it has connecting vertex 1;
@@ -1227,14 +1227,47 @@ def load_data(n):
     containing all mutation equivalent quivers as dig6 data.
 
     We check
-     - if the data is stored by the user, and if this is not the case
-     - if the data is stored by the optional package install
+
+    - if the data is stored by the user, and if this is not the case
+    - if the data is stored by the optional package install.
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import load_data
-        sage: load_data(2) # random
+        sage: load_data(2) # random - depends on the data the user has stored
         {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
+
+    TESTS:
+
+    We test data from the ``database_mutation_class`` optional package::
+
+        sage: def test_database(n):
+        ....:     import os.path
+        ....:     import cPickle
+        ....:     from sage.env import SAGE_SHARE
+        ....:     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
+        ....:     filename = os.path.join(SAGE_SHARE, relative_filename)
+        ....:     f = open(filename,'r')
+        ....:     data = cPickle.load(f)
+        ....:     f.close()
+        ....:     return data
+        sage: test_database(2) # optional - database_mutation_class
+        {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
+        sage: sorted(test_database(3).items()) # optional - database_mutation_class
+        [(('G', 2, -1),
+          [('BH?', (((1, 2), (1, -3)),)),
+           ('BGO', (((2, 1), (3, -1)),)),
+           ('BW?', (((0, 1), (3, -1)),)),
+           ('BP?', (((0, 1), (1, -3)),)),
+           ('BP_', (((0, 1), (1, -3)), ((2, 0), (3, -1)))),
+           ('BP_', (((0, 1), (3, -1)), ((1, 2), (1, -3)), ((2, 0), (2, -2))))]),
+         (('G', 2, 1),
+          [('BH?', (((1, 2), (3, -1)),)),
+           ('BGO', (((2, 1), (1, -3)),)),
+           ('BW?', (((0, 1), (1, -3)),)),
+           ('BP?', (((0, 1), (3, -1)),)),
+           ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))),
+           ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))])]
     """
     import os.path
     import cPickle

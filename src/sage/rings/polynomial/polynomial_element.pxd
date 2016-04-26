@@ -30,4 +30,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     cdef list __coeffs
     cdef int __normalize(self) except -1
 
+cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
+    pass
+
 cpdef is_Polynomial(f)

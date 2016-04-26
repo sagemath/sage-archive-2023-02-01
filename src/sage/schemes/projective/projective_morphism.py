@@ -55,6 +55,7 @@ from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.rings.complex_field import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
+from sage.categories.finite_fields import FiniteFields
 from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field import FractionField
@@ -873,6 +874,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2-1*y^2, t*y^2])
             sage: f.dynatomic_polynomial([1, 2]).parent()
             Symbolic Ring
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quo(R.ideal(y^2-x+1))
+            sage: P.<u,v> = ProjectiveSpace(FractionField(S),1)
+            sage: H = End(P)
+            sage: f = H([u^2 + S(x^2)*v^2, v^2])
+            sage: f.dynatomic_polynomial([1,1])
+            v^3*xbar^2 + u^2*v + u*v^2
        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
@@ -904,7 +915,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:
                 return(QR[0])
-        except TypeError: # something Singular can't handle
+        except (TypeError, NotImplementedError): # something Singular can't handle
             pass
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
@@ -2716,7 +2727,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def critical_points(self, R=None):
         r"""
         Returns the critical points of this endomorphism defined over the ring ``R``
-        or its the base ring of this map.
+        or the base ring of this map.
 
         Must be dimension 1.
 
@@ -2766,7 +2777,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         crit_points = X.rational_points()
         return crit_points
 
-    def is_postcritically_finite(self, err=0.01):
+    def is_postcritically_finite(self, err=0.01, embedding=None):
         r"""
         Determine if this map is post-critically finite.
 
@@ -2777,6 +2788,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         INPUT:
 
             - ``err`` - positive real number (optional, Default: 0.01).
+
+            - ``embedding`` - embedding of base ring into `\QQbar`
 
         OUTPUT: Boolean
 
@@ -2803,7 +2816,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(PS)
             sage: f = H([x^3+v*y^3, y^3])
-            sage: f.is_postcritically_finite() # long time
+            sage: f.is_postcritically_finite(embedding=K.embeddings(QQbar)[0]) # long time
             True
 
         ::
@@ -2826,7 +2839,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not K in _NumberFields and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
-        F = self.change_ring(QQbar)
+        if embedding is None:
+            F = self.change_ring(QQbar)
+        else:
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         pcf = True
         i = 0
@@ -2836,7 +2852,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             i += 1
         return(pcf)
 
-    def critical_point_portrait(self, check=True):
+    def critical_point_portrait(self, check=True, embedding=None):
         r"""
         If this map is post-critically finite, return it's critical point portrait.
 
@@ -2848,6 +2864,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             - check - Boolean.
 
+            - ``embedding`` - embedding of base ring into `\QQbar`
+
         OUTPUT: a digraph.
 
         Examples::
@@ -2857,7 +2875,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: PS.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(PS)
             sage: f = H([x^2+v*y^2, y^2])
-            sage: f.critical_point_portrait(check=False) # long time
+            sage: f.critical_point_portrait(check=False, embedding=K.embeddings(QQbar)[0]) # long time
             Looped digraph on 6 vertices
 
         ::
@@ -2882,7 +2900,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if check:
             if not self.is_postcritically_finite():
                 raise TypeError("map be be post-critically finite")
-        F = self.change_ring(QQbar)
+        if embedding is None:
+            F = self.change_ring(QQbar)
+        else:
+            F = self.change_ring(embedding)
         crit_points = F.critical_points()
         N = len(crit_points)
         for i in range(N):
@@ -2917,6 +2938,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``error_bound`` - a positive real number. (optional)
 
+        - ``embedding`` - the embedding of the base field to `\QQbar` (optional)
+
         OUTPUT: Real number
 
         Examples::
@@ -2930,7 +2953,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ::
 
             sage: K.<w> = QuadraticField(2)
-            sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+w*y^2, y^2])
@@ -2954,7 +2976,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         K = FractionField(PS.base_ring())
         if not K in _NumberFields and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
-        F = self.change_ring(QQbar)
+        #doesn't really matter which we choose as Galois conjugates have the same height
+        emb = kwds.get("embedding", K.embeddings(QQbar)[0])
+        F = self.change_ring(K).change_ring(emb)
         crit_points = F.critical_points()
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
@@ -2965,11 +2989,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ch += P.canonical_height(F, **kwds)
         return(ch)
 
-    def periodic_points(self, n, minimal=True):
+    def periodic_points(self, n, minimal=True, R=None, algorithm='variety'):
         r"""
-        Computes the periodic points of period ``n`` of this map.
+        Computes the periodic points of period ``n`` of this map
+        defined over the ring ``R`` or the base ring of the map.
 
-        For now, this map must be a projective morphism over a number field.
+        This can be done either by finding the rational points on the variety
+        defining the points of period ``n``, or, for finite fields,
+        finding the cycle of appropriate length in the cyclegraph. For small
+        cardinality fields, the cyclegraph algorithm is effective for any
+        map and length cycle, but is slow when the cyclegraph is large.
+        The variety algorithm is good for small period, degree, and dimension,
+        but is slow as the defining equations of the variety get more
+        complicated.
+
+        The map must be a projective morphism.
 
         INPUT:
 
@@ -2977,6 +3011,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
             False specifies to find all periodic points of period ``n``. Default: True.
+
+        - ``R`` a commutative ring.
+
+        - ``algorithm`` - a string. Either ``variety`` to find the rational points
+          on the appropriate variety or ``cyclegraph`` to find the cycles from the
+          cycle graph. Default: ``variety``.
 
         OUTPUT:
 
@@ -3033,40 +3073,117 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: f.periodic_points(2, R=QQbar, minimal=False)
+            [(-0.500000000000000? - 1.322875655532296?*I : 1),
+             (-0.500000000000000? + 1.322875655532296?*I : 1),
+             (0.500000000000000? - 0.866025403784439?*I : 1),
+             (0.500000000000000? + 0.866025403784439?*I : 1),
+             (1 : 0)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(307), 1)
+            sage: H = End(P)
+            sage: f = H([x^10+y^10, y^10])
+            sage: f.periodic_points(16, minimal=True, algorithm='cyclegraph')
+            [(69 : 1), (185 : 1), (120 : 1), (136 : 1), (97 : 1), (183 : 1),
+             (170 : 1), (105 : 1), (274 : 1), (275 : 1), (154 : 1), (156 : 1),
+             (87 : 1), (95 : 1), (161 : 1), (128 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(13^2,'t'),1)
+            sage: H = End(P)
+            sage: f = H([x^3 + 3*y^3, x^2*y])
+            sage: f.periodic_points(30, minimal=True, algorithm='cyclegraph')
+            [(t + 3 : 1), (6*t + 6 : 1), (7*t + 1 : 1), (2*t + 8 : 1),
+             (3*t + 4 : 1), (10*t + 12 : 1), (8*t + 10 : 1), (5*t + 11 : 1),
+             (7*t + 4 : 1), (4*t + 8 : 1), (9*t + 1 : 1), (2*t + 2 : 1),
+             (11*t + 9 : 1), (5*t + 7 : 1), (t + 10 : 1), (12*t + 4 : 1),
+             (7*t + 12 : 1), (6*t + 8 : 1), (11*t + 10 : 1), (10*t + 7 : 1),
+             (3*t + 9 : 1), (5*t + 5 : 1), (8*t + 3 : 1), (6*t + 11 : 1),
+             (9*t + 12 : 1), (4*t + 10 : 1), (11*t + 4 : 1), (2*t + 7 : 1),
+             (8*t + 12 : 1), (12*t + 11 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([3*x^2+5*y^2,y^2])
+            sage: f.periodic_points(2, R=GF(3), minimal=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: must be a projective morphism
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
         if not self.is_endomorphism():
-            raise TypeError("self must be an endomorphism")
-        PS = self.domain().ambient_space()
-        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
-            raise NotImplementedError("self must be a map over a number field")
-        if not self.is_morphism():
-           raise TypeError("self must be a projective morphism")
-
-        N = PS.dimension_relative() + 1
-        R = PS.coordinate_ring()
-        F = self.nth_iterate_map(n)
-        L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
-        X = PS.subscheme(L)
-
-        points = X.rational_points()
-
-        if not minimal:
-            return points
+            raise TypeError("must be an endomorphism")
+        if R is None:
+            f = self
+            R = self.base_ring()
         else:
-            rem_indices = []
-            for i in range(len(points)-1,-1,-1):
-                # iterate points to check if minimal
-                P = points[i]
-                for j in range(1,n):
-                    P = self(P)
-                    if P == points[i]:
-                        points.pop(i)
-                        break
-            return points
+            f = self.change_ring(R)
+        if not f.is_morphism():
+            # if not, the variety is not dimension 0 and
+            # can cannot construct the cyclegraph due to
+            #indeterminancies
+            raise NotImplementedError("must be a projective morphism")
+        PS = f.codomain()
+        if algorithm == 'variety':
+            if R in NumberFields() or R is QQbar or R in FiniteFields():
+                N = PS.dimension_relative() + 1
+                R = PS.coordinate_ring()
+                F = f.nth_iterate_map(n)
+                L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
+                X = PS.subscheme(L)
+                points = X.rational_points()
 
-    def multiplier_spectra(self, n, formal=True):
+                if not minimal:
+                    return points
+                else:
+                    #we want only the points with minimal period n
+                    #so we go through the list and remove any that
+                    #have smaller period by checking the iterates
+                    rem_indices = []
+                    for i in range(len(points)-1,-1,-1):
+                        # iterate points to check if minimal
+                        P = points[i]
+                        for j in range(1,n):
+                            P = f(P)
+                            if P == points[i]:
+                                points.pop(i)
+                                break
+                    return points
+            else:
+                raise NotImplementedError("ring must a number field or finite field")
+        elif algorithm == 'cyclegraph':
+            if R in FiniteFields():
+                g = f.cyclegraph()
+                points = []
+                for cycle in g.all_simple_cycles():
+                    m = len(cycle)-1
+                    if minimal:
+                        if m == n:
+                            points = points + cycle[:-1]
+                    else:
+                        if n % m == 0:
+                            points = points + cycle[:-1]
+                return(points)
+            else:
+                raise TypeError("ring must be finite to generate cyclegraph")
+        else:
+            raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
+
+
+    def multiplier_spectra(self, n, formal=True, embedding=None):
         r"""
         Computes the formal ``n`` multiplier spectra of this map.
 
@@ -3083,6 +3200,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
             of this map. False specifies to find the ``n`` multiplier spectra
             of this map. Default: True
+
+        - ``embedding`` - embedding of the base field into `\QQbar`
 
         OUTPUT:
 
@@ -3108,9 +3227,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - w/4*y^2, y^2])
-            sage: f.multiplier_spectra(2, False)
-            [0, 5.931851652578137? + 0.?e-17*I, 0.0681483474218635? - 1.930649271699173?*I,
-            0.0681483474218635? + 1.930649271699173?*I]
+            sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
+            [0,
+             5.931851652578137? + 0.?e-49*I,
+             0.0681483474218635? - 1.930649271699173?*I,
+             0.0681483474218635? + 1.930649271699173?*I]
 
         ::
 
@@ -3143,7 +3264,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
             raise NotImplementedError("self must be a map over a number field")
 
-        f = self.change_ring(QQbar)
+        if embedding is None:
+            f = self.change_ring(QQbar)
+        else:
+            f = self.change_ring(embedding)
 
         PS = f.domain()
 
@@ -3192,7 +3316,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         return multipliers
 
-    def sigma_invariants(self,n,formal = True):
+    def sigma_invariants(self, n, formal=True, embedding=None):
         r"""
         Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra
         of this map.
@@ -3210,6 +3334,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             corresponding to the formal ``n`` multiplier spectra of this map. False specifies to instead find
             the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
             of all periodic points of period ``n`` of this map. Default: True
+
+        - ``embedding`` - embedding of the base field into `\QQbar`
 
         OUTPUT:
 
@@ -3235,12 +3361,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
-            sage: f.sigma_invariants(2, False)
+            sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
             [13.00000000000000?, 11.00000000000000?, -25.00000000000000?, 0]
         """
         polys = []
 
-        multipliers = self.multiplier_spectra(n, formal)
+        multipliers = self.multiplier_spectra(n, formal, embedding=embedding)
 
         e = SymmetricFunctions(QQbar).e()
 
@@ -3456,7 +3582,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Determine the set of rational periodic points for an endomorphism of projective space.
 
-        Must be defined over `\QQ`.
+        The map must be defined over `\QQ` and be an endomorphism of projective space.
+        If the map is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
+        ramified fixed point, then the base ring can be an absolute number field.
+        This is done by passing to the Weil restriction.
 
         The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
         trouble getting a particular map to finish, try first computing the possible periods, then
@@ -3486,6 +3615,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 
@@ -3518,53 +3650,126 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([-5*x^2 + 4*y^2, 4*x*y])
             sage: sorted(f.rational_periodic_points()) # long time
             [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2 + v^2,v^2])
+            sage: f.rational_periodic_points()
+            [(w : 1), (-w + 1 : 1), (1 : 0)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2+v^2,u*v])
+            sage: f.rational_periodic_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: rational periodic points for number fields only implemented for polynomials
         """
         if not self.is_endomorphism():
             raise NotImplementedError("must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("must be QQ") #for p-adic lifting
-
-        primebound = kwds.pop("prime_bound", [1, 20])
-        p = kwds.pop("lifting_prime", 23)
-        periods = kwds.pop("periods", None)
-        badprimes = kwds.pop("bad_primes", None)
-
-        if (isinstance(primebound, (list, tuple)) == False):
-            try:
-                primebound = [1, ZZ(primebound)]
-            except TypeError:
-                raise TypeError("bound on primes must be an integer")
-        else:
-            try:
-                primebound[0] = ZZ(primebound[0])
-                primebound[1] = ZZ(primebound[1])
-            except TypeError:
-                raise TypeError("prime bounds must be integers")
-
-        if badprimes is None:
-            badprimes = self.primes_of_bad_reduction()
-        if periods is None:
-            periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes)
         PS = self.domain()
-        R = PS.base_ring()
-        periodic = set()
-        while p in badprimes:
-            p = next_prime(p + 1)
-        B = e ** self.height_difference_bound()
+        K = PS.base_ring()
+        if K in _NumberFields:
+            if not K.is_absolute():
+                raise TypeError("base field must be an absolute field")
+            d = K.absolute_degree()
+            #check that we are not over QQ
+            if d > 1:
+                if PS.dimension_relative() != 1:
+                    raise NotImplementedError("rational periodic points for number fields only implemented in dimension 1")
+                w = K.absolute_generator()
+                #we need to dehomogenize for the Weil restriction and will check that point at infty
+                #separately. We also check here that we are working with a polynomial. If the map
+                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
+                #apply this algorithm.
+                g = self.dehomogenize(1)
+                inf = PS([1,0])
+                k = 1
+                if isinstance(g[0], FractionFieldElement):
+                    g = self.dehomogenize(0)
+                    inf = PS([0,1])
+                    k = 0
+                    if isinstance(g[0], FractionFieldElement):
+                        raise NotImplementedError("rational periodic points for number fields only implemented for polynomials")
+                #determine rational periodic points
+                #infinity is a totally ramified fixed point for a polynomial
+                periodic_points = set([inf])
+                #compute the weil resctriction
+                G = g.weil_restriction()
+                F = G.homogenize(d)
+                #find the QQ rational periodic points for the weil restriction
+                Fper = F.rational_periodic_points(**kwds)
+                for P in Fper:
+                    #take the 'good' points in the weil restriction and find the
+                    #associated number field points.
+                    if P[d] == 1:
+                        pt = [sum([P[i]*w**i for i in range(d)])]
+                        pt.insert(k,1)
+                        Q = PS(pt)
+                        #for each periodic point get the entire cycle
+                        if not Q in periodic_points:
+                            #check periodic not preperiodic and add all points in cycle
+                            orb = set([Q])
+                            Q2 = self(Q)
+                            while Q2 not in orb:
+                                orb.add(Q2)
+                                Q2 = self(Q2)
+                            if Q2 == Q:
+                                periodic_points = periodic_points.union(orb)
+                return list(periodic_points)
+            else:
+                primebound = kwds.pop("prime_bound", [1, 20])
+                p = kwds.pop("lifting_prime", 23)
+                periods = kwds.pop("periods", None)
+                badprimes = kwds.pop("bad_primes", None)
+                num_cpus = kwds.pop("ncpus", ncpus())
 
-        f = self.change_ring(GF(p))
-        all_points = f.possible_periods(True) #return the list of points and their periods.
-        pos_points = []
-        for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
-                pos_points.append(all_points[i])
-        periodic_points = self.lift_to_rational_periodic(pos_points,B)
-        for p,n in periodic_points:
-            for k in range(n):
-                p.normalize_coordinates()
-                periodic.add(p)
-                p = self(p)
-        return(list(periodic))
+                if (isinstance(primebound, (list, tuple)) == False):
+                    try:
+                        primebound = [1, ZZ(primebound)]
+                    except TypeError:
+                        raise TypeError("bound on primes must be an integer")
+                else:
+                    try:
+                        primebound[0] = ZZ(primebound[0])
+                        primebound[1] = ZZ(primebound[1])
+                    except TypeError:
+                        raise TypeError("prime bounds must be integers")
+
+                if badprimes is None:
+                    badprimes = self.primes_of_bad_reduction()
+                if periods is None:
+                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
+                PS = self.domain()
+                R = PS.base_ring()
+                periodic = set()
+                while p in badprimes:
+                    p = next_prime(p + 1)
+                B = e ** self.height_difference_bound()
+
+                f = self.change_ring(GF(p))
+                all_points = f.possible_periods(True) #return the list of points and their periods.
+                pos_points = []
+                for i in range(len(all_points)):
+                    if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
+                        pos_points.append(all_points[i])
+                periodic_points = self.lift_to_rational_periodic(pos_points,B)
+                for p,n in periodic_points:
+                    for k in range(n):
+                        p.normalize_coordinates()
+                        periodic.add(p)
+                        p = self(p)
+                return list(periodic)
+        else:
+            raise TypeError("base field must be an absolute number field")
 
     def rational_preimages(self, Q):
         r"""
@@ -3803,11 +4008,22 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             25/16 : 1), (w^2 - 29/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 25/16 : 1),
             (-w - 1/2 : 1), (w : 1), (-w : 1), (-w^2 + 29/16 : 1), (w^2 + w - 33/16
             : 1)]
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2+v^2, v^2])
+            sage: f.all_rational_preimages(P(4))
+            [(-w : 1), (w : 1)]
         """
         if not self.is_endomorphism():
             raise NotImplementedError("must be an endomorphism of projective space")
         if self.domain().base_ring() not in NumberFields():
             raise TypeError("field won't return finite list of elements")
+        if not isinstance(points, (list, tuple)):
+            points = [points]
 
         PS = self.domain()
         RPS = PS.base_ring()
@@ -3857,6 +4073,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 
@@ -3961,15 +4180,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 badprimes = kwds.pop("bad_primes", None)
                 periods = kwds.pop("periods", None)
                 primebound = kwds.pop("prime_bound", [1, 20])
+                num_cpus = kwds.pop("ncpus", ncpus())
                 if badprimes is None:
                     badprimes = self.primes_of_bad_reduction()
                 if periods is None:
-                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes) #determine the set of possible periods
+                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus) #determine the set of possible periods
                 if periods == []:
                     return([]) #no rational preperiodic points
                 else:
                     p = kwds.pop("lifting_prime", 23)
-                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes) #find the rational preperiodic points
+                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes, ncpus=num_cpus) #find the rational preperiodic points
                     preper = self.all_rational_preimages(T) #find the preperiodic points
                     preper = list(preper)
             return(preper)
@@ -4008,6 +4228,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
 
         OUTPUT:
 

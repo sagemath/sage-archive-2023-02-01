@@ -254,7 +254,7 @@ product `C\times C`).
 
 The founding idea of algebraic combinatorics, introduced by Euler in
 a letter to Goldbach of 1751 to treat a similar problem , is to
-manipuate all the numbers `c_n` simultaneously, by encoding them
+manipulate all the numbers `c_n` simultaneously, by encoding them
 as coefficients in a formal power series, called the *generating
 function* of the `c_n`’s:
 
@@ -531,7 +531,7 @@ found, based on the closed form:
 .. math:: c_{n+1}=\frac{(4n-2)}{n+1}c_n
 
 After fixing the correct initial conditions, it becomes possible to
-calculate the coefficents of `C(z)` recursively::
+calculate the coefficients of `C(z)` recursively::
 
     sage: def C(n): return 1 if n <= 1 else (4*n-6)/n * C(n-1)
     sage: [ C(i) for i in range(10) ]
@@ -1116,7 +1116,7 @@ Alternatively, we could construct an iterator on the counter-examples::
     sage: next(counter_examples)
     23
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     What do the following commands do?
 
@@ -1133,7 +1133,7 @@ Alternatively, we could construct an iterator on the counter-examples::
     Which of the last two is more economical in terms of time? In terms
     of memory? By how much?
 
-.. topic:: Exercice
+.. topic:: Exercise
 
     Try each of the following commands, and explain its result. If
     possible, hide the result first and try to guess it before
@@ -1342,7 +1342,7 @@ These words can then be counted by::
 
 Counting the words one by one is clearly not an efficient method in this
 case, since the formula `n^\ell` is also available; note,
-though, that this is not the stupidest possible approach — it does, at
+though, that this is not the stupidest possible approach - it does, at
 least, avoid constructing the entire list in memory.
 
 We now consider Dyck words, which are well-parenthesized words in the
@@ -1786,7 +1786,7 @@ graph* is then an equivalence class of labelled graphs.
 In general, testing if two labelled graphs are isomorphic is expensive.
 However, the number of graphs, even unlabelled, grows very
 rapidly.  Nonetheless, it is possible to list unlabelled graphs very efficiently
-considering their number. For example, the program Nauty can list the
+considering their number. For example, the program ``Nauty`` can list the
 `12005168` simple graphs with `10` vertices in
 `20` seconds.
 

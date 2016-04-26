@@ -27,7 +27,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -42,6 +42,8 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.real_mpfr import RealField
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
 from copy import copy
@@ -988,6 +990,159 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
+    def pseudoinverse(self, *, algorithm=None):
+        """
+        Return the Moore-Penrose pseudoinverse of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` (default: guess) -- one of the following:
+
+          - ``"numpy"`` -- Use numpy's ``linalg.pinv()`` which is
+            suitable over real or complex fields.
+
+          - ``"exact"`` -- Use a simple algorithm which is not
+            numerically stable but useful over exact fields. Assume that
+            no conjugation is needed, that the conjugate transpose is
+            just the transpose.
+
+          - ``"exactconj"`` -- Like ``exact`` but use the conjugate
+            transpose.
+
+        OUTPUT: a matrix
+
+        EXAMPLES::
+
+            sage: M = diagonal_matrix(CDF, [0, I, 1+I])
+            sage: M
+            [        0.0         0.0         0.0]
+            [        0.0       1.0*I         0.0]
+            [        0.0         0.0 1.0 + 1.0*I]
+            sage: M.pseudoinverse()  # tol 1e-15
+            [        0.0         0.0         0.0]
+            [        0.0      -1.0*I         0.0]
+            [        0.0         0.0 0.5 - 0.5*I]
+
+        We check the properties of the pseudoinverse over an exact
+        field::
+
+            sage: M = random_matrix(QQ, 6, 3) * random_matrix(QQ, 3, 5)
+            sage: Mx = M.pseudoinverse()
+            sage: M * Mx * M == M
+            True
+            sage: Mx * M * Mx == Mx
+            True
+            sage: (M * Mx).is_symmetric()
+            True
+            sage: (Mx * M).is_symmetric()
+            True
+
+        Beware that the ``exact`` algorithm is not numerically stable,
+        but the default ``numpy`` algorithm is::
+
+            sage: M = matrix(RR, 3, 3, [1,2,3,1/3,2/3,3/3,1/5,2/5,3/5])
+            sage: M.pseudoinverse()  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="numpy")  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="exact")
+            [ 0.125000000000000 0.0625000000000000 0.0312500000000000]
+            [ 0.250000000000000  0.125000000000000 0.0625000000000000]
+            [ 0.000000000000000  0.000000000000000 0.0625000000000000]
+
+        When multiplying the given matrix with the pseudoinverse, the
+        result is symmetric for the ``exact`` algorithm or hermitian
+        for the ``exactconj`` algorithm::
+
+            sage: M = matrix(QQbar, 2, 2, [1, sqrt(-3), -sqrt(-3), 3])
+            sage: M * M.pseudoinverse()
+            [   0.2500000000000000?  0.4330127018922193?*I]
+            [-0.4330127018922193?*I     0.750000000000000?]
+            sage: M * M.pseudoinverse(algorithm="exactconj")
+            [                   1/4  0.4330127018922193?*I]
+            [-0.4330127018922193?*I                    3/4]
+            sage: M * M.pseudoinverse(algorithm="exact")
+            [                -1/2 0.866025403784439?*I]
+            [0.866025403784439?*I                  3/2]
+
+        For an invertible matrix, the pseudoinverse is just the
+        inverse::
+
+            sage: M = matrix([[1,2], [3,4]])
+            sage: ~M
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        Numpy gives a strange answer due to rounding errors::
+
+            sage: M.pseudoinverse(algorithm="numpy")  # random
+            [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
+            [  519646110850445/346430740566963  -300239975158034/600479950316067]
+
+        TESTS::
+
+            sage: M.pseudoinverse(algorithm="exact")
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse(algorithm="whatever")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'whatever', valid values are ('numpy', 'exact', 'exactconj')
+            sage: M.change_ring(RealField(54)).pseudoinverse()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: pseudoinverse for real/complex field is only implemented for <= 53 bits of precision
+        """
+        ring = self.base_ring()
+        if algorithm is None:
+            # Choose algorithm depending on base ring
+            is_complex = ComplexField(2).has_coerce_map_from(ring)
+            if is_complex:
+                if ring.is_exact():
+                    is_real = RealField(2).has_coerce_map_from(ring)
+                    algorithm = "exact" if is_real else "exactconj"
+                else:
+                    if ring.precision() <= 53:
+                        algorithm = "numpy"
+                    else:
+                        raise NotImplementedError("pseudoinverse for real/complex field is only implemented for <= 53 bits of precision")
+            else:
+                algorithm = "exact"
+        else:
+            algos = ("numpy", "exact", "exactconj")
+            if algorithm not in algos:
+                raise ValueError("unknown algorithm {!r}, valid values are {}".format(algorithm, algos))
+
+        if algorithm == "numpy":
+            from numpy.linalg import pinv
+            from sage.matrix.constructor import matrix
+            ans = pinv(self.numpy())
+            return matrix(ring.fraction_field(), ans)
+
+        # We use a simple algorithm taken from
+        # https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Rank_decomposition
+        # Write self as A * B such that A and B both have full rank.
+        B = self.row_space().basis_matrix()
+        A = B.solve_left(self)
+
+        if algorithm.endswith("conj"):
+            At = A.conjugate_transpose()
+            Bt = B.conjugate_transpose()
+        else:
+            At = A.transpose()
+            Bt = B.transpose()
+
+        # Now the pseudoinverse is B^t (A^t A B B^t)^-1 A^t.
+        Q = (At * A) * (B * Bt)
+        return Bt * ~Q * At
+
     def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
@@ -1383,7 +1538,7 @@ cdef class Matrix(matrix1.Matrix):
           - Unknown: No author specified in the file from 2009-06-25
           - Sebastian Pancratz (2009-06-25): Use the division-free
             algorithm for charpoly
-          - Thierry Monteil (2010-10-05): Bugfix for trac ticket #10063,
+          - Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`,
             so that the determinant is computed even for rings for which
             the is_field method is not implemented.
         """
@@ -1741,7 +1896,7 @@ cdef class Matrix(matrix1.Matrix):
         # TypeError with the following kind of message:
         #   absolute value is not defined on matrices. If you want the
         #   L^1-norm use m.norm(1) and if you want the matrix obtained by
-        #   applying the absolute value to the coefficents use
+        #   applying the absolute value to the coefficients use
         #   m.apply_map(abs).
         from sage.misc.superseded import deprecation
         deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
@@ -4264,7 +4419,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: ker.0 * k
             (0, 0, 0, 0)
 
-        Test that trac ticket #9425 is fixed.
+        Test that :trac:`9425` is fixed.
 
         ::
 
@@ -6852,7 +7007,7 @@ cdef class Matrix(matrix1.Matrix):
           where `W` is the output matrix.
 
           Warning: the default of `transformation` will soon be set to ``False``,
-          see Ticket #16896. Until then, this function will print a deprecation
+          see :trac:`16896`. Until then, this function will print a deprecation
           warning as long as `transformation` was not explicitly set to ``True``
           or ``False``.
 
@@ -6934,7 +7089,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         We check that the output is the same for a matrix `M` if its entries are
         rational functions instead of polynomials. We also check that the type of
-        the output follows the documentation. See #9063
+        the output follows the documentation. See :trac:`9063`
 
         ::
 
@@ -6976,7 +7131,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
+            sage: M = matrix([[t,t,t],[0,0,t]])
             sage: M.row_reduced_form(transformation=False, old_call=False)
             [t t t]
             [0 0 t]
@@ -8124,7 +8279,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.is_one()
             False
         """
-        return self.is_scalar(1)
+        return self.is_scalar(self.base_ring().one())
 
     def is_scalar(self, a = None):
         """
@@ -8164,11 +8319,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             a = self.get_unsafe(0,0)
         else:
             a = self.base_ring()(a)
-        zero = self.base_ring()(0)
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
+        for i in range(self._nrows):
+            for j in range(self._ncols):
                 if i != j:
-                    if self.get_unsafe(i,j) != zero:
+                    if not self.get_unsafe(i,j).is_zero():
                         return False
                 else:
                     if self.get_unsafe(i, i) != a:
@@ -8504,10 +8658,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')
             True
+
+        TESTS:
+
+        Test :trac:`17341`::
+
+            sage: random_matrix(GF(2), 8, 586, sparse=True).visualize_structure()
+            512x6px 24-bit RGB image
         """
-        cdef int x, y, _x, _y, v, bi, bisq
-        cdef int ir,ic
-        cdef float b, fct
+        cdef Py_ssize_t x, y, _x, _y, v, bi, bisq
+        cdef Py_ssize_t ir, ic
+        cdef double b, fct
         mr, mc = self.nrows(), self.ncols()
         if maxsize is None:
             ir = mc
@@ -8522,20 +8683,20 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ir = mc
             ic = mr
             b = 1.0
-        bi = round(b)
+        bi = int(round(b))
         bisq = bi*bi
         fct = 255.0/bisq
         from sage.repl.image import Image
         img = Image('RGB', (ir, ic))
         pixel = img.pixels()
-        for x from 0 <= x < ic:
-            for y from 0 <= y < ir:
+        for x in range(ic):
+            for y in range(ir):
                 v = bisq
-                for _x from 0 <= _x < bi:
-                    for _y from 0 <= _y < bi:
-                        if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
-                            v-=1 #increase darkness
-                v = round(v*fct)
+                for _x in range(bi):
+                    for _y in range(bi):
+                        if not self.get_unsafe(<Py_ssize_t>(x*b + _x), <Py_ssize_t>(y*b + _y)).is_zero():
+                            v -= 1 #increase darkness
+                v = <Py_ssize_t>(v * fct + 0.5)
                 pixel[y, x] = (v, v, v)
         return img
 
@@ -8883,23 +9044,23 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...                      [-1, 1, -6, -6, 5]])
             sage: Q, R = A.QR()
             sage: Q
-            [ -0.4588314677411235?  -0.1260506983326509?   0.3812120831224489?   -0.394573711338418?      -0.687440062597?]
-            [ -0.4588314677411235?   0.4726901187474409? -0.05198346588033394?    0.717294125164660?      -0.220962877263?]
-            [  0.2294157338705618?   0.6617661662464172?   0.6619227988762521?   -0.180872093737548?      0.1964114464561?]
-            [  0.6882472016116853?   0.1890760474989764?  -0.2044682991293135?    0.096630296654307?      -0.662888631790?]
+            [ -0.4588314677411235?  -0.1260506983326509?   0.3812120831224489?   -0.394573711338418?     -0.6874400625964?]
+            [ -0.4588314677411235?   0.4726901187474409? -0.05198346588033394?   0.7172941251646595?     -0.2209628772631?]
+            [  0.2294157338705618?   0.6617661662464172?   0.6619227988762521?  -0.1808720937375480?      0.1964114464561?]
+            [  0.6882472016116853?   0.1890760474989764?  -0.2044682991293135?   0.0966302966543065?     -0.6628886317894?]
             [ -0.2294157338705618?   0.5357154679137663?   -0.609939332995919?   -0.536422031427112?      0.0245514308070?]
             sage: R
             [  4.358898943540674? -0.4588314677411235?   13.07669683062202?   6.194224814505168?   2.982404540317303?]
             [                   0   1.670171752907625?  0.5987408170800917?  -1.292019657909672?   6.207996892883057?]
-            [                   0                    0   5.444401659866974?   5.468660610611130?  -0.682716185228386?]
-            [                   0                    0                    0   1.027626039419836?   -3.61930014968662?]
-            [                   0                    0                    0                    0    0.02455143080702?]
+            [                   0                    0   5.444401659866974?   5.468660610611130? -0.6827161852283857?]
+            [                   0                    0                    0   1.027626039419836?  -3.619300149686620?]
+            [                   0                    0                    0                    0   0.024551430807012?]
             sage: Q.conjugate_transpose()*Q
-            [1.000000000000000?            0.?e-18            0.?e-17            0.?e-15            0.?e-12]
-            [           0.?e-18 1.000000000000000?            0.?e-16            0.?e-15            0.?e-12]
-            [           0.?e-17            0.?e-16 1.000000000000000?            0.?e-15            0.?e-12]
-            [           0.?e-15            0.?e-15            0.?e-15 1.000000000000000?            0.?e-12]
-            [           0.?e-12            0.?e-12            0.?e-12            0.?e-12    1.000000000000?]
+            [1.000000000000000?            0.?e-18            0.?e-17            0.?e-16            0.?e-13]
+            [           0.?e-18 1.000000000000000?            0.?e-17            0.?e-16            0.?e-13]
+            [           0.?e-17            0.?e-17 1.000000000000000?            0.?e-16            0.?e-13]
+            [           0.?e-16            0.?e-16            0.?e-16 1.000000000000000?            0.?e-13]
+            [           0.?e-13            0.?e-13            0.?e-13            0.?e-13   1.0000000000000?]
             sage: Q*R == A
             True
 
@@ -8914,24 +9075,24 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: Q, R = A.QR()
             sage: Q
             [                          -0.7302967433402215?    0.2070566455055649? + 0.5383472783144687?*I    0.2463049809998642? - 0.0764456358723292?*I    0.2381617683194332? - 0.1036596032779695?*I]
-            [                           0.0912870929175277?   -0.2070566455055649? - 0.3778783780476559?*I    0.3786559533863032? - 0.1952221495524667?*I      0.701244450214469? - 0.364371165098660?*I]
-            [   0.6390096504226938? + 0.0912870929175277?*I    0.1708217325420910? + 0.6677576817554466?*I -0.03411475806452072? + 0.04090198741767143?*I    0.3140171085506763? - 0.0825191718705412?*I]
+            [                           0.0912870929175277?   -0.2070566455055649? - 0.3778783780476559?*I    0.3786559533863033? - 0.1952221495524667?*I     0.701244450214469? - 0.3643711650986595?*I]
+            [   0.6390096504226938? + 0.0912870929175277?*I    0.1708217325420910? + 0.6677576817554466?*I -0.03411475806452072? + 0.04090198741767143?*I    0.3140171085506764? - 0.0825191718705412?*I]
             [   0.1825741858350554? + 0.0912870929175277?*I  -0.03623491296347385? + 0.0724698259269477?*I   0.8632284069415110? + 0.06322839976356195?*I   -0.4499694867611521? - 0.0116119181208918?*I]
             sage: R
             [                          10.95445115010333?               0.?e-18 - 1.917028951268082?*I    5.385938482134133? - 2.190890230020665?*I  -0.2738612787525831? - 2.190890230020665?*I]
-            [                                           0               4.829596256417300? + 0.?e-17*I   -0.869637911123373? - 5.864879483945125?*I   0.993871898426712? - 0.3054085521207082?*I]
+            [                                           0               4.829596256417300? + 0.?e-18*I   -0.869637911123373? - 5.864879483945125?*I   0.993871898426712? - 0.3054085521207082?*I]
             [                                           0                                            0               12.00160760935814? + 0.?e-16*I -0.2709533402297273? + 0.4420629644486323?*I]
             [                                           0                                            0                                            0               1.942963944258992? + 0.?e-16*I]
             sage: Q.conjugate_transpose()*Q
             [1.000000000000000? + 0.?e-19*I            0.?e-18 + 0.?e-17*I            0.?e-17 + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
             [           0.?e-18 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I            0.?e-17 + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
-            [           0.?e-17 + 0.?e-17*I            0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-16*I            0.?e-16 + 0.?e-16*I]
-            [           0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I 1.000000000000000? + 0.?e-15*I]
+            [           0.?e-17 + 0.?e-17*I            0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
+            [           0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I 1.000000000000000? + 0.?e-16*I]
             sage: Q*R - A
             [            0.?e-17 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
-            [            0.?e-18 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-15 + 0.?e-15*I]
+            [            0.?e-18 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
             [0.?e-17 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-15 + 0.?e-16*I]
+            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
 
         A rank-deficient rectangular matrix, with both values of the ``full`` keyword.  ::
 
@@ -8984,12 +9145,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [                        7.211102550927979?  3.328201177351375? - 5.269651864139676?*I   7.904477796209515? + 8.45917799243475?*I  4.021576422632911? - 2.634825932069838?*I]
             [                                         0                         1.074172311059150?  -1.611258466588724? - 9.13046464400277?*I 1.611258466588724? + 0.5370861555295747?*I]
             sage: Q.conjugate_transpose()*Q
-            [1.000000000000000? + 0.?e-18*I            0.?e-18 + 0.?e-18*I]
-            [           0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I]
+            [1 0]
+            [0 1]
             sage: Q*R-A
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
 
         Results of full decompositions are cached and thus returned
         immutable.  ::
@@ -9765,7 +9926,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: jf == ~P*m*P
             True
 
-        We verify that the bug from trac ticket #6942 is fixed::
+        We verify that the bug from :trac:`6942` is fixed::
 
             sage: M = Matrix(GF(2),[[1,0,1,0,0,0,1],[1,0,0,1,1,1,0],[1,1,0,1,1,1,1],[1,1,1,0,1,1,1],[1,1,1,0,0,1,0],[1,1,1,0,1,0,0],[1,1,1,1,1,1,0]])
             sage: J, T = M.jordan_form(transformation=True)
@@ -9787,7 +9948,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: M.rank()
             7
 
-        We verify that the bug from trac ticket #6932 is fixed::
+        We verify that the bug from :trac:`6932` is fixed::
 
             sage: M=Matrix(1,1,[1])
             sage: M.jordan_form(transformation=True)
@@ -10334,9 +10495,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
             sage: _, T = A.is_similar(B, transformation=True)
             sage: T
-            [ 1.0000000000000? + 0.?e-13*I           0.?e-13 + 0.?e-13*I           0.?e-13 + 0.?e-13*I]
-            [-0.6666666666667? + 0.?e-13*I 0.16666666666667? + 0.?e-14*I -0.8333333333334? + 0.?e-13*I]
-            [ 0.6666666666667? + 0.?e-13*I           0.?e-13 + 0.?e-13*I  -0.333333333334? + 0.?e-13*I]
+            [ 1.00000000000000? + 0.?e-14*I            0.?e-14 + 0.?e-14*I            0.?e-14 + 0.?e-14*I]
+            [-0.66666666666667? + 0.?e-15*I 0.166666666666667? + 0.?e-15*I -0.83333333333334? + 0.?e-14*I]
+            [ 0.66666666666667? + 0.?e-14*I            0.?e-14 + 0.?e-14*I -0.33333333333333? + 0.?e-14*I]
             sage: T.change_ring(QQ)
             [   1    0    0]
             [-2/3  1/6 -5/6]
@@ -11681,7 +11842,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
 
         Partial pivoting is based on the absolute values of entries
-        of a column.  Trac #12208 shows that the return value of the
+        of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
         situation in the case of cylotomic fields.  ::
 
@@ -13219,7 +13380,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         - David Loeffler (2009-06-01)
 
         - Moritz Minzlaff (2011-03-17): corrected code for matrices of one row;
-          this fixed trac 9053
+          this fixed :trac:`9053`
 
         EXAMPLES::
 
@@ -13267,7 +13428,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: r * m == s and r.det() == 1
             True
 
-        We verify that trac 9053 is resolved::
+        We verify that :trac:`9053` is resolved::
 
             sage: R.<x> = GF(7)[]
             sage: A = R^3

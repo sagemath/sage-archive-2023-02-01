@@ -267,6 +267,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - If ``solver=None`` (default), the default solver is used (see
         :func:`default_mip_solver`)
 
+      - ``solver`` can also be a callable,
+        see :func:`sage.numerical.backends.generic_backend.get_solver` for
+        examples.
+
     - ``maximization``
 
       - When set to ``True`` (default), the ``MixedIntegerLinearProgram``
@@ -331,7 +335,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def __init__(self, solver=None, maximization=True,
                  constraint_generation=False, check_redundant=False,
-                 names=tuple()):
+                 names=tuple(), base_ring=None):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -358,8 +362,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - PPL (``solver="PPL"``). See the `PPL
             <http://bugseng.com/products/ppl>`_ web site.
 
-          -If ``solver=None`` (default), the default solver is used (see
-           ``default_mip_solver`` method.
+          - If ``solver=None`` (default), the default solver is used, see
+            :func:`default_mip_solver`.
+
+          - ``solver`` can also be a callable,
+            see :func:`sage.numerical.backends.generic_backend.get_solver` for
+            examples.
 
         - ``maximization``
 
@@ -431,7 +439,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self._first_variable_names = list(names)
         from sage.numerical.backends.generic_backend import get_solver
         self._backend = get_solver(solver=solver,
-                                   constraint_generation=constraint_generation)
+                                   constraint_generation=constraint_generation,
+                                   base_ring=base_ring)
         if not maximization:
             self._backend.set_sense(-1)
 
@@ -535,8 +544,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: q.number_of_constraints()
             1
         """
+        def copying_solver(**kwdargs):
+            return (<GenericBackend> self._backend).copy()
+
         cdef MixedIntegerLinearProgram p = \
-            MixedIntegerLinearProgram(solver="GLPK")
+            MixedIntegerLinearProgram(solver=copying_solver)
         try:
             p._variables = copy(self._variables)
         except AttributeError:
@@ -553,8 +565,36 @@ cdef class MixedIntegerLinearProgram(SageObject):
         except AttributeError:
             pass
 
-        p._backend = (<GenericBackend> self._backend).copy()
         return p
+
+    def __deepcopy__(self, memo={}):
+        """
+        Return a deep copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = deepcopy(p)
+            sage: cp.solve()
+            6.0
+
+        TEST:
+
+        Test that `deepcopy` makes actual copies but preserves identities::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: ll = [mip, mip]
+            sage: dcll=deepcopy(ll)
+            sage: ll[0] is dcll[0]
+            False
+            sage: dcll[0] is dcll[1]
+            True
+
+        """
+        return self.__copy__()
 
     def __getitem__(self, v):
         r"""
@@ -597,6 +637,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
+            sage: from sage.rings.all import AA
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', base_ring=AA)
+            sage: p.base_ring()
+            Algebraic Real Field
+            sage: d = polytopes.dodecahedron()
+            sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
+            sage: p.base_ring()
+            Number Field in sqrt5 with defining polynomial x^2 - 5
         """
         return self._backend.base_ring()
 
@@ -780,7 +828,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the linear variable `x_i`.
         
-        OUTPUT:
+        EXAMPLE::
 
             sage: mip = MixedIntegerLinearProgram()
             sage: mip.gen(0)
@@ -935,7 +983,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Weird Input
         else:
-          raise ValueError, "constraints() requires a list of integers, though it will accommodate None or an integer."
+          raise ValueError("constraints() requires a list of integers, though it will accommodate None or an integer.")
 
     def polyhedron(self, **kwds):
         r"""
@@ -1121,6 +1169,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Variables:
               x_0 is a continuous variable (min=0, max=+oo)
               x_1 is a continuous variable (min=0, max=+oo)
+
+        With a constant term in the objective::
+
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + 42)
+            sage: p.show()
+            Maximization:
+              x_0 + 42
+            Constraints:
+            Variables:
+              x_0 is a continuous variable (min=0, max=+oo)
         """
         cdef int i, j
         cdef GenericBackend b = self._backend
@@ -1148,8 +1208,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" "))+varid_name[i]
                    ),
             first = False
-        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
-        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
+        d = b.objective_constant_term()
+        if d > self._backend.zero(): print "+", d,
+        elif d < self._backend.zero(): print "-", -d,
         print
 
         ##### Constraints
@@ -1283,7 +1344,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             6.0
 
-        To return  the optimal value of ``y[2,9]``::
+        To return the optimal value of ``y[2,9]``::
 
             sage: p.get_values(y[2,9])
             2.0
@@ -1306,10 +1367,42 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        TESTS:
+
+        Test that an error is reported when we try to get the value
+        of something that is not a variable in this problem::
+
+            sage: p.get_values("Something strange")
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: p.get_values("Something stranger", 4711)
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: M1 = MixedIntegerLinearProgram()
+            sage: M2 = MixedIntegerLinearProgram()
+            sage: x = M1.new_variable()
+            sage: y = M1.new_variable()
+            sage: z = M2.new_variable()
+            sage: M2.add_constraint(z[0] <= 5)
+            sage: M2.solve()
+            0.0
+            sage: M2.get_values(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+            sage: M2.get_values(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):
+                if self != l.mip():
+                    raise ValueError("Variable {!r} is a variable from a different problem".format(l))
                 c = {}
                 for (k,v) in l.items():
                     c[k] = self._backend.get_variable_value(self._variables[v])
@@ -1323,6 +1416,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     val.append(c)
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
+            else:
+                raise TypeError("Not a MIPVariable: {!r}".format(l))
 
         if len(lists) == 1:
             return val[0]
@@ -1336,7 +1431,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         INPUT:
 
         - ``obj`` -- A linear function to be optimized.
-          ( can also be set to ``None`` or ``0`` when just
+          ( can also be set to ``None`` or ``0`` or any number when just
           looking for a feasible solution )
 
         EXAMPLE:
@@ -1363,6 +1458,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
             6.66667
             sage: p.set_objective(None)
             sage: _ = p.solve()
+
+        TESTS:
+
+        Test whether numbers as constant objective functions are accepted::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(42)
+            sage: p.solve() # tol 1e-8
+            42
+
         """
         cdef list values = []
 
@@ -1372,10 +1478,16 @@ cdef class MixedIntegerLinearProgram(SageObject):
         # and do not care about any function being optimal.
         cdef int i
 
-        if obj is not None:
-            f = obj.dict()
-        else:
+        if obj is None:
             f = {-1 : 0}
+        else:
+            # See if it is a constant
+            R = self.base_ring()
+            try:
+                f = {-1: R(obj)}
+            except TypeError:
+                # Should be a linear function
+                f = obj.dict()
         d = f.pop(-1,self._backend.zero())
 
         for i in range(self._backend.ncols()):
@@ -2346,7 +2458,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLE:
 
-        This example uses the simplex algorthm and prints information::
+        This example uses the simplex algorithm and prints information::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x, y = p[0], p[1]
@@ -2462,71 +2574,193 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend.get_relative_objective_gap()
 
+    def interactive_lp_problem(self,form='standard'):
+        r"""
+        Returns an InteractiveLPProblem and, if available, a basis.
+
+        INPUT:
+
+        - ``form`` -- (default: ``"standard"``) a string specifying return type: either
+          ``None``, or ``"std"`` or ``"standard"``, respectively returns an instance of
+          :class:`InteractiveLPProblem` or of :class:`InteractiveLPProblemStandardForm`
+
+        OUTPUT:
+
+        A 2-tuple consists of an instance of class :class:`InteractiveLPProblem` or
+        :class:`InteractiveLPProblemStandardForm` that is constructed based on a given
+        :class:`MixedIntegerLinearProgram`, and a list of basic
+        variables (the basis) if standard form is chosen (by default), otherwise ``None``.
+
+        All variables must have 0 as lower bound and no upper bound.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(names=['m'], solver="GLPK")
+            sage: x = p.new_variable(nonnegative=True)
+            sage: y = p.new_variable(nonnegative=True, name='n')
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p.add_constraint( x[0] + x[1] - 7*y[0] + v[0]<= 2, name='K' )
+            sage: p.add_constraint( x[1] + 2*y[0] - v[0] <= 3 )
+            sage: p.add_constraint( 5*x[0] + y[0] <= 21, name='L' )
+            sage: p.set_objective( 2*x[0] + 3*x[1] + 4*y[0] + 5*v[0])
+            sage: lp, basis = p.interactive_lp_problem()
+            sage: basis
+            ['K', 'w_1', 'L']
+            sage: lp.constraint_coefficients()
+            [ 1.0  1.0 -7.0  1.0]
+            [ 0.0  1.0  2.0 -1.0]
+            [ 5.0  0.0  1.0  0.0]
+            sage: lp.b()
+            (2.0, 3.0, 21.0)
+            sage: lp.objective_coefficients()
+            (2.0, 3.0, 4.0, 5.0)
+            sage: lp.decision_variables()
+            (m_0, m_1, n_0, x_3)
+            sage: view(lp) #not tested
+            sage: d = lp.dictionary(*basis)
+            sage: view(d) #not tested
+
+        TESTS::
+
+            sage: b = p.get_backend()
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: b.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: b.solve()
+            0
+            sage: lp2, basis2 = p.interactive_lp_problem()
+            sage: set(basis2)
+            {'n_0', 'w_1', 'x_3'}
+            sage: d2 = lp2.dictionary(*basis2)
+            sage: d2.is_optimal()
+            True
+            sage: view(d2) #not tested
+
+            sage: lp3, _ = p.interactive_lp_problem(form=None)
+            sage: lp3.constraint_coefficients()
+            [ 1.0  1.0 -7.0  1.0]
+            [ 0.0  1.0  2.0 -1.0]
+            [ 5.0  0.0  1.0  0.0]
+            sage: lp3.b()
+            (2.0, 3.0, 21.0)
+            sage: lp3.objective_coefficients()
+            (2.0, 3.0, 4.0, 5.0)
+            sage: lp3.decision_variables()
+            (m_0, m_1, n_0, x_3)
+            sage: view(lp3) #not tested
+        """
+        back_end = self.get_backend()
+        for i in range(self.number_of_variables()):
+            if back_end.variable_lower_bound(i) != 0:
+                raise ValueError('Problem variables must have 0 as lower bound')
+            if back_end.variable_upper_bound(i) is not None:
+                raise ValueError('Problem variables must not have upper bound') 
+
+        # Construct 'A'
+        coef_matrix = []
+        for constraint in self.constraints():
+            coef_row = [0] * self.number_of_variables()
+            for index, value in zip(constraint[1][0],constraint[1][1]):
+                coef_row[index] = value
+            coef_matrix.append(coef_row)
+
+        # Construct 'b'
+        upper_bound_vector = [c[2] for c in self.constraints()]
+
+        # Raise exception if exist lower bound
+        for constraint in self.constraints():
+            if constraint[0] != None:
+                raise ValueError('Problem constraints cannot have lower bounds')
+
+        # Construct 'c'
+        def get_obj_coef(i):
+            return back_end.objective_coefficient(i)
+        objective_coefs_vector = [get_obj_coef(i) for i in range(self.number_of_variables())]
+
+        def format(name, prefix, index):
+            if name:
+                return name.replace('[','_').strip(']')
+            else:
+                return prefix + '_' + str(index)
+
+        # Construct 'x'
+        var_names = [format(back_end.col_name(i), 'x', i) for i in range(back_end.ncols())]
+
+        A = coef_matrix
+        b = upper_bound_vector
+        c = objective_coefs_vector
+        x = var_names
+
+        if form is None:
+            from sage.numerical.interactive_simplex_method import InteractiveLPProblem
+            return InteractiveLPProblem(A, b, c, x), None
+        elif form == 'standard' or form == 'std':
+            # Construct slack names
+            slack_names = [format(back_end.row_name(i), 'w', i) for i in range(back_end.nrows())]
+            w = slack_names
+            from sage.numerical.interactive_simplex_method import InteractiveLPProblemStandardForm
+            lp = InteractiveLPProblemStandardForm(A, b, c, x, slack_variables=w)
+            basic_variables = []
+            for i, e in enumerate(lp.x()):
+                if back_end.is_variable_basic(i):
+                    basic_variables.append(str(e))
+                elif not back_end.is_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid column status')
+            for i, e in enumerate(lp.slack_variables()):
+                if back_end.is_slack_variable_basic(i):
+                    basic_variables.append(str(e))
+                elif not back_end.is_slack_variable_nonbasic_at_lower_bound(i):
+                    raise ValueError('Invalid row status')
+            return lp, basic_variables
+        else:
+            raise ValueError('Form of interactive_lp_problem must be either None or \'standard\'')
 
 class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
+
+    EXAMPLE::
+
+        sage: from sage.numerical.mip import MIPSolverException
+        sage: e = MIPSolverException("Error")
+        sage: e
+        MIPSolverException('Error',)
+        sage: print e
+        Error
+
+    TESTS:
+
+    No continuous solution::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: v = p.new_variable(nonnegative=True)
+        sage: p.add_constraint(v[0],max=5.5)
+        sage: p.add_constraint(v[0],min=7.6)
+        sage: p.set_objective(v[0])
+
+    Tests of GLPK's Exceptions::
+
+        sage: p.solve()
+        Traceback (most recent call last):
+        ...
+        MIPSolverException: GLPK: Problem has no feasible solution
+
+    No integer solution::
+
+        sage: p = MixedIntegerLinearProgram(solver="GLPK")
+        sage: v = p.new_variable(nonnegative=True)
+        sage: p.add_constraint(v[0],max=5.6)
+        sage: p.add_constraint(v[0],min=5.2)
+        sage: p.set_objective(v[0])
+        sage: p.set_integer(v)
+
+    Tests of GLPK's Exceptions::
+
+        sage: p.solve()
+        Traceback (most recent call last):
+        ...
+        MIPSolverException: GLPK: Problem has no feasible solution
     """
-
-    def __init__(self, value):
-        r"""
-        Constructor for ``MIPSolverException``.
-
-        ``MIPSolverException`` is the exception raised when the solver fails.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import MIPSolverException
-            sage: MIPSolverException("Error")
-            MIPSolverException()
-
-        TESTS:
-
-        No continuous solution::
-
-            sage: p=MixedIntegerLinearProgram(solver="GLPK")
-            sage: v=p.new_variable(nonnegative=True)
-            sage: p.add_constraint(v[0],max=5.5)
-            sage: p.add_constraint(v[0],min=7.6)
-            sage: p.set_objective(v[0])
-
-        Tests of GLPK's Exceptions::
-
-            sage: p.solve()
-            Traceback (most recent call last):
-            ...
-            MIPSolverException: 'GLPK : Problem has no feasible solution'
-
-        No integer solution::
-
-            sage: p=MixedIntegerLinearProgram(solver="GLPK")
-            sage: v=p.new_variable(nonnegative=True)
-            sage: p.add_constraint(v[0],max=5.6)
-            sage: p.add_constraint(v[0],min=5.2)
-            sage: p.set_objective(v[0])
-            sage: p.set_integer(v)
-
-        Tests of GLPK's Exceptions::
-
-            sage: p.solve()
-            Traceback (most recent call last):
-            ...
-            MIPSolverException: 'GLPK : Problem has no feasible solution'
-        """
-        self.value = value
-
-    def __str__(self):
-        r"""
-        Returns the value of the instance of ``MIPSolverException``.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import MIPSolverException
-            sage: e = MIPSolverException("Error")
-            sage: print e
-            'Error'
-        """
-        return repr(self.value)
+    pass
 
 
 cdef class MIPVariable(Element):
@@ -2717,6 +2951,19 @@ cdef class MIPVariable(Element):
             [x_0, x_1]
         """
         return self._dict.values()
+
+    def mip(self):
+        r"""
+        Returns the :class:`MixedIntegerLinearProgram` in which ``self`` is a variable.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable(nonnegative=True)
+            sage: p == v.mip()
+            True
+        """
+        return self._p
 
     cdef _matrix_rmul_impl(self, m):
         """

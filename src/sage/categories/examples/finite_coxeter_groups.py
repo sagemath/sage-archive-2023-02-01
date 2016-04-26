@@ -181,7 +181,18 @@ class DihedralGroup(UniqueRepresentation, Parent):
             sage: D4.index_set()
             [1, 2]
         """
-        return [1,2]
+        return [1, 2]
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: FiniteCoxeterGroups().example(6).degrees()
+            (2, 6)
+        """
+        return (2, self.n)
 
     class Element(ElementWrapper):
         wrapped_class = tuple

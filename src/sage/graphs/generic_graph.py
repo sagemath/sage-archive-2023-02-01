@@ -4829,6 +4829,28 @@ class GenericGraph(GenericGraph_pyx):
         if (len(path) != 0): faces.append(path)
         return faces
 
+    def num_faces(self,embedding=None):
+        """
+        Returns the number of faces of an embedded graph.
+
+        EXAMPLES::
+
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.num_faces()
+            4
+
+        TESTS::
+
+            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G.num_faces()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+        """
+
+        return len(self.faces(embedding))
+
+
     ### Connectivity
 
     def is_connected(self):
@@ -15649,7 +15671,9 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Returns the Wiener index of the graph.
+        Return the Wiener index of the graph.
+
+        The graph is expected to have no cycles of negative weight.
 
         The Wiener index of a graph `G` is
         `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
@@ -15666,28 +15690,32 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` (string) - the algorithm to use:
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+          - For ``by_weight==False`` only:
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+            - ``'BFS'`` - the computation is done through a BFS centered on
+              each vertex successively.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+            - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+              the Floyd-Warshall algorithm. Usually slower than ``'BFS'``.
 
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
+          - For graphs without negative weights:
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
+            - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in
+              Boost.
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
+            - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+              NetworkX. Usually slower than ``'Dijkstra_Boost'``.
+
+          - For graphs with negative weights:
+
+            - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+              Boost.
+
+            - ``'Floyd-Warshall-Python'`` - the Python implementation of
+              the Floyd-Warshall algorithm. Usually slower than
+              ``'Johnson_Boost'``.
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
@@ -19092,6 +19120,11 @@ class GenericGraph(GenericGraph_pyx):
         A list of the eigenvalues, including multiplicities, sorted
         with the largest eigenvalue first.
 
+        .. SEEALSO::
+
+            The method :meth:`spectral_radius` returns floating point
+            approximation of the maximum eigenvalue.
+
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
@@ -20964,6 +20997,9 @@ GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all
 from sage.graphs.base.boost_graph import dominator_tree
 GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
+from sage.graphs.base.static_sparse_graph import spectral_radius
+GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
+
 # From Python modules
 import sage.graphs.line_graph
 GenericGraph.line_graph = sage.graphs.line_graph.line_graph
@@ -21067,8 +21103,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     - ``g`` -- Graph or DiGraph
     - ``partition`` -- (default:None) if given, the partition of the vertices is as well relabeled
     - ``standard_label`` -- (default:None) the standard label is not considered to be changed
-    - ``return_relabeling`` -- (defaut:False) if True, a dictionary containing the relabeling is returned
-    - ``return_edge_labels`` -- (defaut:False) if True, the different edge_labels are returned (useful if inplace is True)
+    - ``return_relabeling`` -- (default: False) if True, a dictionary containing the relabeling is returned
+    - ``return_edge_labels`` -- (default: False) if True, the different edge_labels are returned (useful if inplace is True)
     - ``inplace`` -- (default:False) if True, g is modified, otherwise the result is returned. Note that attributes of g are *not* copied for speed issues, only edges and vertices.
 
     OUTPUT:

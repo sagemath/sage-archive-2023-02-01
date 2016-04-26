@@ -316,7 +316,8 @@ class Dokchitser(SageObject):
             sage: sum(a[n]/float(n)^14 for n in range(1,1000))
             0.9985830631627459
 
-        Illustrate that one can give a list of complex numbers for v (see trac 10937)::
+        Illustrate that one can give a list of complex numbers for v
+        (see :trac:`10937`)::
 
             sage: L2 = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:])
@@ -326,7 +327,7 @@ class Dokchitser(SageObject):
         TESTS:
 
         Verify that setting the `w` parameter does not raise an error
-        (see trac 10937).  Note that the meaning of `w` does not seem to
+        (see :trac:`10937`).  Note that the meaning of `w` does not seem to
         be documented anywhere in Dokchitser's package yet, so there is
         no claim that the example below is meaningful! ::
 

@@ -985,6 +985,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
             sage: type(matrix(GF(16007), 2, range(4)))
             <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+            sage: type(matrix(CBF, 2, range(4)))
+            <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
             sage: type(matrix(GF(2), 2, range(4)))
             <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
             sage: type(matrix(GF(64,'z'), 2, range(4)))
@@ -1032,11 +1034,18 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
-            # the default
+
             from sage.symbolic.ring import SR   # causes circular imports
             if R is SR:
                 import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
+
+            # ComplexBallField might become a lazy import,
+            # thus do not import it here too early.
+            from sage.rings.complex_arb import ComplexBallField
+            if isinstance(R, ComplexBallField):
+                import matrix_complex_ball_dense
+                return matrix_complex_ball_dense.Matrix_complex_ball_dense
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
@@ -1127,7 +1136,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: Er = MS2.identity_matrix()
             Traceback (most recent call last):
             ...
-            TypeError: self must be a space of square matrices
+            TypeError: identity matrix must be square
 
         TESTS::
 
@@ -1137,7 +1146,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         if self.__nrows != self.__ncols:
-            raise TypeError("self must be a space of square matrices")
+            raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
         for i in xrange(self.__nrows):
             A[i,i] = 1
@@ -1331,7 +1340,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         TESTS:
 
-        The following corner cases were problematic while working on #10628::
+        The following corner cases were problematic while working on
+        :trac:`10628`::
 
             sage: MS = MatrixSpace(ZZ,2,1)
             sage: MS([[1],[2]])
@@ -1343,7 +1353,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ 1.00000000000000]
             [0.000000000000000]
 
-        Trac ticket #10628 allowed to provide the data be lists of matrices, but
+        :trac:`10628` allowed to provide the data as lists of matrices, but
         :trac:`13012` prohibited it::
 
             sage: MS = MatrixSpace(ZZ,4,2)
@@ -1445,7 +1455,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                                       copy=False, coerce=coerce)
                         else:
                             return MC(self, new_x, copy=False, coerce=coerce)
-                    except TypeError:
+                    except (TypeError, ValueError):
                         pass
             if len(x) != m * n:
                 raise TypeError("cannot construct an element of {} from {}!"
@@ -1703,7 +1713,10 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
     If ``checkrank`` is ``False`` then the rank is not checked. This is used
     the check matrix over ring where echelon form is not implemented.
 
-    TODO: must be adapted to category check framework when ready (see trac \#5274).
+    .. TODO::
+
+        This must be adapted to category check framework when ready
+        (see :trac:`5274`).
 
     TESTS::
 
@@ -1789,11 +1802,16 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
 from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.structure.sage_object import register_unpickle_override
+def _MatrixSpace_ZZ_2x2():
+    from sage.rings.integer_ring import ZZ
+    return MatrixSpace(ZZ,2)
 register_unpickle_override('sage.matrix.matrix_modn_dense',
     'Matrix_modn_dense', Matrix_modn_dense_double)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'Matrix_integer_2x2', Matrix_integer_dense)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'MatrixSpace_ZZ_2x2_class', MatrixSpace)
+register_unpickle_override('sage.matrix.matrix_integer_2x2',
+    'MatrixSpace_ZZ_2x2', _MatrixSpace_ZZ_2x2)
 register_unpickle_override('sage.matrix.matrix_mod2e_dense',
     'unpickle_matrix_mod2e_dense_v0', matrix_gf2e_dense.unpickle_matrix_gf2e_dense_v0)

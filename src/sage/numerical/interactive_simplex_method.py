@@ -2924,6 +2924,30 @@ class LPAbstractDictionary(SageObject):
         """
         return self._entering
 
+    def entering_coefficients(self):
+        r"""
+        Return coefficients of the entering variable.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.enter(1)
+            sage: D.entering_coefficients()
+            (1, 3)
+        """
+        if self._entering is None:
+            raise ValueError("entering variable must be chosen to compute "
+                             "its coefficients")
+        return self.column_coefficients(self._entering)
+
     def is_dual_feasible(self):
         r"""
         Check if ``self`` is dual feasible.
@@ -3873,6 +3897,32 @@ class LPDictionary(LPAbstractDictionary):
         """
         return self._AbcvBNz[4]
 
+    def column_coefficients(self, v):
+        r"""
+        Return coefficients of the entering variable.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.enter(1)
+            sage: D.entering_coefficients()
+            (1, 3)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        k = tuple(self.nonbasic_variables()).index(v)
+        return self._AbcvBNz[0].column(k)
+
     def constant_terms(self):
         r"""
         Return the constant terms of relations of ``self``.
@@ -3892,31 +3942,6 @@ class LPDictionary(LPAbstractDictionary):
             (1000, 1500)
         """
         return self._AbcvBNz[1]
-
-    def entering_coefficients(self):
-        r"""
-        Return coefficients of the entering variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.initial_dictionary()
-            sage: D.enter(1)
-            sage: D.entering_coefficients()
-            (1, 3)
-        """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-        k = tuple(self.nonbasic_variables()).index(self._entering)
-        return self._AbcvBNz[0].column(k)
 
     def nonbasic_variables(self):
         r"""
@@ -4755,6 +4780,30 @@ class LPRevisedDictionary(LPAbstractDictionary):
             return vector(R, (c_D[k - 1] if k <= n else 0
                               for k in self.nonbasic_indices()))
 
+    def column_coefficients(self, v):
+        r"""
+        Return coefficients of the entering variable.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.column_coefficients(1)
+            (1, 3)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        return self.B_inverse() * self.A(v)
+
     def constant_terms(self):
         r"""
         Return constant terms in the relations of ``self``.
@@ -4803,30 +4852,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
         D._entering = self._entering
         D._leaving = self._leaving
         return D
-
-    def entering_coefficients(self):
-        r"""
-        Return coefficients of the entering variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.revised_dictionary()
-            sage: D.enter(1)
-            sage: D.entering_coefficients()
-            (1, 3)
-        """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-        return self.B_inverse() * self.A(self._entering)
 
     def nonbasic_indices(self):
         r"""

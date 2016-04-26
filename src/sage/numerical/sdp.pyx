@@ -905,6 +905,96 @@ cdef class SemidefiniteProgram(SageObject):
         return self._backend.get_objective_value()
 
 
+    cpdef dual_variable(self, int i, sparse=False):
+        """
+        The `i`-th dual variable
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the `i`-th dual variable
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False)
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()
+            -2.9999999...
+            sage: x=p.get_values(x).values()
+            sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()
+            -3.0000000...
+            sage: g = sum((p.slack(j)*p.dual_variable(j)).trace() for j in range(2)); g
+            1.1457...e-08
+
+        TESTS::
+
+            sage: p.dual_variable(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return self._backend.dual_variable(i, sparse=sparse)
+
+    cpdef slack(self, int i, sparse=False):
+        """
+        Slack of the `i`-th constraint
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the slack of the `i`-th constraint
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False)
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()
+            -2.9999999...
+            sage: B1 = p.slack(1); B1
+            [8.02448...e-09 7.10444...e-09]
+            [7.10444...e-09 8.02448...e-09]
+            sage: B1.is_positive_definite()
+            True
+            sage: x = p.get_values(x).values()
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1
+            [ 9.2004...e-10 -6.0200...e-16]
+            [-6.0200...e-16  9.2004...e-10]
+
+        TESTS::
+
+            sage: p.slack(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return self._backend.slack(i, sparse=sparse)
+
     def solver_parameter(self, name, value = None):
         """
         Return or define a solver parameter

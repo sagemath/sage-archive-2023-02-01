@@ -1551,9 +1551,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         S = self.simple_reflections()
         n = self.rank()
 
-        def act_on_root(w,beta):
+        def action_on_root(w,beta):
             if basis_is_Delta:
-                return w.act_on_root(beta)
+                return w.action_on_root(beta)
             else:
                 return beta * w.to_matrix()
 
@@ -1561,7 +1561,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         def invariant_value(i,j):
             if i > j:
                 return invariant_value(j,i).conjugate()
-            val = sum((act_on_root(w,Delta[i])) * (act_on_root(w,Delta[j])).conjugate() for w in self)
+            val = sum((action_on_root(w,Delta[i])) * (action_on_root(w,Delta[j])).conjugate() for w in self)
             if val in QQ:
                 val = QQ(val)
             return val

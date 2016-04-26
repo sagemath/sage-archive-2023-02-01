@@ -791,7 +791,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             return self.matrix()
 
         @cached_method
-        def act_on_root_indices(self, i):
+        def action_on_root_indices(self, i):
             """
             Return the action on the set of roots.
 
@@ -801,7 +801,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
                 sage: W = CoxeterGroup(['A',3], implementation="reflection")
                 sage: w = W.w0
-                sage: w.act_on_root_indices(0)
+                sage: w.action_on_root_indices(0)
                 11
             """
             roots = self.parent().roots()

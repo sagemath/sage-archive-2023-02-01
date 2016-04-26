@@ -3005,6 +3005,42 @@ class LPAbstractDictionary(SageObject):
         """
         return self._leaving
 
+    def leaving_coefficients(self):
+        r"""
+        Return coefficients of a leaving variable
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a leaving variable
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+
+        The same works for revised dictionaries as well::
+
+            sage: D = P.revised_dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+        """
+        if self._leaving is None:
+            raise ValueError("leaving variable must be chosen to compute "
+                             "its coefficients")
+        return self.row_coefficients(self._leaving)
+
     def possible_dual_simplex_method_steps(self):
         r"""
         Return possible dual simplex method steps for ``self``.
@@ -3192,6 +3228,15 @@ class LPAbstractDictionary(SageObject):
         return [(b / a, x) for b, a, x in zip(self.constant_terms(),
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
+
+    def row_coefficients(self):
+        r"""
+        Return the coefficients of a given row of the matrix A
+
+        See :meth:`add_row` in :class:`LPDictionary`
+        and :class:`LPRevisedDictionary` for reference.
+        """
+        raise NotImplementedError
 
     def run_dual_simplex_method(self):
         r"""
@@ -3699,31 +3744,6 @@ class LPDictionary(LPAbstractDictionary):
         k = tuple(self.nonbasic_variables()).index(self._entering)
         return self._AbcvBNz[0].column(k)
 
-    def leaving_coefficients(self):
-        r"""
-        Return coefficients of the leaving variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.dictionary(2, 3)
-            sage: D.leave(3)
-            sage: D.leaving_coefficients()
-            (-2, -1)
-        """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
-        i = tuple(self.basic_variables()).index(self._leaving)
-        return self._AbcvBNz[0][i]
-
     def nonbasic_variables(self):
         r"""
         Return non-basic variables of ``self``.
@@ -3784,6 +3804,48 @@ class LPDictionary(LPAbstractDictionary):
             0
         """
         return self._AbcvBNz[3]
+
+    def row_coefficients(self, v):
+        r"""
+        Return the coefficients of a basic variable
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_dictionary()
+            sage: D.row_coefficients("x1")
+            (1/10, -1/5)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(1)
+            (1/10, -1/5)
+
+        Or use variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x1)
+            (1/10, -1/5)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("leaving variable must be basic")
+        i = tuple(self.basic_variables()).index(v)
+        return self._AbcvBNz[0][i]
 
     def update(self):
         r"""
@@ -4592,31 +4654,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
                              "its coefficients")
         return self.B_inverse() * self.A(self._entering)
 
-    def leaving_coefficients(self):
-        r"""
-        Return coefficients of the leaving variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.revised_dictionary(2, 3)
-            sage: D.leave(3)
-            sage: D.leaving_coefficients()
-            (-2, -1)
-        """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
-        i = self.basic_variables().list().index(self._leaving)
-        return self.B_inverse()[i] * self.A_N()
-
     def nonbasic_indices(self):
         r"""
         Return the non-basic indices of ``self``.
@@ -4731,6 +4768,48 @@ class LPRevisedDictionary(LPAbstractDictionary):
             True
         """
         return self._problem
+
+    def row_coefficients(self, v):
+        r"""
+        Return the coefficients of a basic variable.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.row_coefficients("x3")
+            (-1, 1)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(3)
+            (-1, 1)
+
+        Or variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x3)
+            (-1, 1)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("leaving variable must be basic")
+        i = tuple(self.basic_variables()).index(v)
+        return self.B_inverse()[i] * self.A_N()
 
     def update(self):
         r"""

@@ -3,6 +3,8 @@
 from libcpp.vector cimport vector
 ctypedef vector[int] intvec
 
+from libc.stdint cimport int64_t
+
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 from sage.structure.parent cimport Parent
 from sage.structure.sage_object cimport SageObject
@@ -35,10 +37,10 @@ cdef extern from "givaro/gfq.h":
         unsigned int (* cardinality)()
         int (* exponent)()
         int (* random)(GivRandom gen, int res)
-        int (* initi "init")(int res, int e)
+        int (* initi "init")(int res, int64_t e)
         int (* initd "init")(int res, double e)
         int (* indeterminate)()
-        int (* convert)(int r, int p)
+        int (* convert)(int64_t r, int p)
         int (* read)(int r, int p)
         int (* axpyin)(int r, int a, int x)
         int (* axpy)(int r, int a, int b, int c)

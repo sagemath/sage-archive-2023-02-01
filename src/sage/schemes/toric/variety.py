@@ -2803,7 +2803,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         ..  [Demazure]
             M. Demazure
             Sous-groupes algébriques de rang maximum du groupe de Cremona.
-            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507--588.
 
         ..  [Bazhov]
             Ivan Bazhov:

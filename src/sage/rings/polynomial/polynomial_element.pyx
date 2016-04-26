@@ -7585,7 +7585,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         REFERENCES:
 
-        .. [BD89] R. J. Bradford and J. H. Davenport, Effective tests
+        .. [BD89] \R. J. Bradford and J. H. Davenport, Effective tests
            for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
            pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """

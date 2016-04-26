@@ -889,7 +889,7 @@ class FullyPackedLoop(Element):
 
         REFERENCES:
 
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
+        .. [Wieland00] \B. Wieland. *A large dihedral symmetry of the set of
            alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::

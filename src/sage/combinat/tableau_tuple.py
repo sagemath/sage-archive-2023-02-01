@@ -189,10 +189,10 @@ subsequent papers on the representation theory of these algebras.
 
 REFERENCES:
 
-.. [DJM] R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra",
+.. [DJM] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra",
    Math. Z, 229 (1999), 385-416.
 
-.. [BK] J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
+.. [BK] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
    Adv. Math., 222 (2009), 1883-1942"
 
 """

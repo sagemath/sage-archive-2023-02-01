@@ -67,7 +67,7 @@ class AlternatingSignMatrix(Element):
 
     REFERENCES:
 
-    .. [MiRoRu] W. H. Mills, David P Robbins, Howard Rumsey Jr.,
+    .. [MiRoRu] \W. H. Mills, David P Robbins, Howard Rumsey Jr.,
        *Alternating sign matrices and descending plane partitions*,
        Journal of Combinatorial Theory, Series A,
        Volume 34, Issue 3, May 1983, Pages 340--359.
@@ -671,7 +671,7 @@ class AlternatingSignMatrix(Element):
 
         REFERENCES:
 
-        .. [EKLP92]  N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
+        .. [EKLP92] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
            *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
            Combinatorics, volume 1 (1992), p. 111-132.
 
@@ -982,10 +982,10 @@ class AlternatingSignMatrix(Element):
 
         REFERENCES:
 
-        .. [Aval07] J.-C. Aval. *Keys and alternating sign matrices*.
+        .. [Aval07] \J.-C. Aval. *Keys and alternating sign matrices*.
            Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
 
-        .. [LascouxPreprint] A. Lascoux. *Chern and Yang through ice*.
+        .. [LascouxPreprint] \A. Lascoux. *Chern and Yang through ice*.
            Preprint.
 
         EXAMPLES::

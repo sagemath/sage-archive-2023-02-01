@@ -2550,11 +2550,11 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     REFERENCES:
 
-    .. [Mat78] R. A. Mathon,
+    .. [Mat78] \R. A. Mathon,
        Symmetric conference matrices of order `pq^2 + 1`,
        Canad. J. Math. 30 (1978) 321-331
 
-    .. [ST78] J. J. Seidel and D. E. Taylor,
+    .. [ST78] \J. J. Seidel and D. E. Taylor,
        Two-graphs, a second survey.
        Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
        Colloq. Math. Soc. János Bolyai, 25,

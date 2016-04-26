@@ -85,9 +85,9 @@ tuples. Four different classes of tuples of partitions are currently supported:
 
 REFERENCES:
 
-.. [DJM99] R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra", Math. Z,
+.. [DJM99] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra", Math. Z,
       229 (1999), 385-416.
-.. [BK09] J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
+.. [BK09] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
       Adv. Math., 222 (2009), 1883-1942"
 
 AUTHORS:
@@ -1178,7 +1178,7 @@ class PartitionTuple(CombinatorialElement):
 
         REFERENCE:
 
-        .. [KMR] A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
+        .. [KMR] \A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
            modules for cyclotomic Hecke algebras*,
            Proc. London Math. Soc. (2012) 105 (6): 1245-1289.
            :arxiv:`1102.3519v1`

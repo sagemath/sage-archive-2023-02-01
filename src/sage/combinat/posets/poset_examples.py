@@ -659,10 +659,10 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Rosen] K. Rosen *Handbook of Discrete and Combinatorial
+        .. [Rosen] \K. Rosen *Handbook of Discrete and Combinatorial
            Mathematics* (1999), Chapman and Hall.
 
-        .. [Garg] V. Garg *Introduction to Lattice Theory with Computer
+        .. [Garg] \V. Garg *Introduction to Lattice Theory with Computer
            Science Applications* (2015), Wiley.
 
         TESTS::
@@ -836,7 +836,7 @@ class Posets(object):
         
         REFERENCES:
 
-        .. [Striker2011] J. Striker. *A unifying poset perpective on 
+        .. [Striker2011] \J. Striker. *A unifying poset perpective on 
            alternating sign matrices, plane partitions, Catalan objects, 
            tournaments, and tableaux*, Advances in Applied Mathematics 46 
            (2011), no. 4, 583-609. :arXiv:`1408.5391`

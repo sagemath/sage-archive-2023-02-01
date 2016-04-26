@@ -1169,11 +1169,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         REFERENCES:
 
-        .. [GW14] G. Gratzer and F. Wehrung,
+        .. [GW14] \G. Gratzer and F. Wehrung,
            Lattice Theory: Special Topics and Applications Vol. 1,
            Springer, 2014.
 
-        .. [Platt76] C. R. Platt,
+        .. [Platt76] \C. R. Platt,
            Planar lattices and planar graphs,
            Journal of Combinatorial Theory Series B,
            Vol 21, no. 1 (1976): 30-39.

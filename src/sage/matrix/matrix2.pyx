@@ -1291,10 +1291,10 @@ cdef class Matrix(matrix1.Matrix):
 
         REFERENCES:
 
-        .. [Riordan] J. Riordan, "An Introduction to Combinatorial Analysis",
+        .. [Riordan] \J. Riordan, "An Introduction to Combinatorial Analysis",
            Dover Publ. (1958)
 
-        .. [Allenby] R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
+        .. [Allenby] \R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
 
         AUTHORS:
 
@@ -7180,11 +7180,11 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         REFERENCES:
 
-        .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
+        .. [H] \F. Hess, "Computing Riemann-Roch spaces in algebraic function
           fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
           425--445.
 
-        .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
+        .. [K] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
@@ -13996,12 +13996,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. rubric:: Citations
 
-        .. [STORJOHANN-THESIS] A. Storjohann, Algorithms
+        .. [STORJOHANN-THESIS] \A. Storjohann, Algorithms
            for Matrix Canonical Forms. PhD Thesis. Department
            of Computer Science, Swiss Federal Institute of
            Technology -- ETH, 2000.
 
-        .. [STORJOHANN-ISACC98] A. Storjohann, An O(n^3)
+        .. [STORJOHANN-ISACC98] \A. Storjohann, An O(n^3)
            algorithm for Frobenius normal form. Proceedings
            of the International Symposium on Symbolic and
            Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
@@ -14393,7 +14393,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. rubric:: Citations
 
-        .. [STORJOHANN-EMAIL] A. Storjohann, Email Communication. 30 May 2011.
+        .. [STORJOHANN-EMAIL] \A. Storjohann, Email Communication. 30 May 2011.
 
         AUTHOR:
 

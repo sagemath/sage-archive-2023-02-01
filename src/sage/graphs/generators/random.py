@@ -49,13 +49,13 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
 
     REFERENCES:
 
-    .. [ErdRen1959] P. Erdos and A. Renyi. On Random Graphs, Publ.
+    .. [ErdRen1959] \P. Erdos and A. Renyi. On Random Graphs, Publ.
        Math. 6, 290 (1959).
 
-    .. [Gilbert1959] E. N. Gilbert. Random Graphs, Ann. Math. Stat.,
+    .. [Gilbert1959] \E. N. Gilbert. Random Graphs, Ann. Math. Stat.,
        30, 1141 (1959).
 
-    .. [BatBra2005] V. Batagelj and U. Brandes. Efficient generation of
+    .. [BatBra2005] \V. Batagelj and U. Brandes. Efficient generation of
        large random networks. Phys. Rev. E, 71, 036113, 2005.
 
     PLOTTING: When plotting, this graph will use the default spring-layout

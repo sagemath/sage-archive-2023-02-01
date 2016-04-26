@@ -2754,11 +2754,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [SH95] C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
+        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
            Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology
            - EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
 
-        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*.
+        .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
            3rd edition, Johns Hopkins Univ. Press, 1996.
 
         """

@@ -3803,8 +3803,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             False
             sage: RR('inf').__nonzero__()
             True
+
+        TESTS:
+
+        Check that :trac:`20502` is fixed::
+
+            sage: RR('nan').__nonzero__()
+            True
+            sage: RR('nan').is_zero()
+            False
         """
-        return mpfr_sgn(self.value) != 0
+        return not mpfr_zero_p(self.value)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

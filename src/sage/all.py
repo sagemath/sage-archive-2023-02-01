@@ -33,7 +33,7 @@ We exclude the known files and check to see that there are no others::
     ....:         if nm in filename:
     ....:             break
     ....:     else:
-    ....:         print filename
+    ....:         print(filename)
     ....:
 
 Check that the Sage Notebook is not imported at startup (see
@@ -62,6 +62,7 @@ Check lazy import of ``interacts``::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from __future__ import print_function
 
 import os, sys
 import operator
@@ -70,7 +71,7 @@ import math
 from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "Sage requires Python 2.5 or newer"
+    print("Sage requires Python 2.5 or newer", file=sys.stderr)
     sys.exit(1)
 
 ###################################################################
@@ -233,11 +234,13 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1/60); t1s=t1-t1m*60
+        t1m = int(t1 / 60)
+        t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
-               t1m,t1s,t2m,t2s)
+        t2m = int(t2 / 60)
+        t2s = t2 - t2m * 60
+        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
+              (t1m, t1s, t2m, t2s))
 
     import gc
     gc.collect()
@@ -315,7 +318,7 @@ def _write_started_file():
     t = datetime.datetime.now().replace(microsecond=0)
 
     O = open(started_file, 'w')
-    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
     O.close()
 
 

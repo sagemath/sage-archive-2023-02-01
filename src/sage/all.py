@@ -62,7 +62,7 @@ Check lazy import of ``interacts``::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 
 import os, sys
 import operator
@@ -70,9 +70,6 @@ import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-if sys.version_info[:2] < (2, 5):
-    print("Sage requires Python 2.5 or newer", file=sys.stderr)
-    sys.exit(1)
 
 ###################################################################
 
@@ -234,10 +231,10 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1 / 60)
+        t1m = int(t1) // 60
         t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2 / 60)
+        t2m = int(t2) // 60
         t2s = t2 - t2m * 60
         print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
               (t1m, t1s, t2m, t2s))

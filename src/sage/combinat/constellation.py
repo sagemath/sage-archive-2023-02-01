@@ -1680,7 +1680,7 @@ def perm_conjugate(p, s):
 
         sage: from sage.combinat.constellation import perm_conjugate
         sage: perm_conjugate([3,1,2,0], [3,2,0,1])
-        [0, 3, 2, 1]?
+        [0, 3, 2, 1]
     """
     q = [None] * len(p)
     for i in range(len(p)):

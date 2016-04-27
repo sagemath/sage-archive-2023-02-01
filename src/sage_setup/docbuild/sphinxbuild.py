@@ -53,6 +53,8 @@ class SageSphinxLogger(object):
             re.compile('^loading cross citations... done \([0-9]* citations\).'),
             re.compile('WARNING: favicon file \'favicon.ico\' does not exist'),
             re.compile('WARNING: html_static_path entry .* does not exist'),
+            re.compile('WARNING: while setting up extension'),
+            re.compile('WARNING: Any IDs not assiend for figure node'),
             )
 
         # replacements: pairs of regular expressions and their replacements,

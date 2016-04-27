@@ -1654,7 +1654,7 @@ def perm_invert(p):
 
     EXAMPLES::
 
-        sage: from sage.combinat.constellation.py import perm_invert
+        sage: from sage.combinat.constellation import perm_invert
         sage: perm_invert([3,2,0,1])
         [2, 3, 1, 0]
     """
@@ -1678,7 +1678,7 @@ def perm_conjugate(p, s):
 
     EXAMPLES::
 
-        sage: from sage.combinat.constellation.py import perm_conjugate
+        sage: from sage.combinat.constellation import perm_conjugate
         sage: perm_conjugate([3,1,2,0], [3,2,0,1])
         [0, 3, 2, 1]?
     """

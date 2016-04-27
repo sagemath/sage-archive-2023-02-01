@@ -11287,9 +11287,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
             sage: L = A.cholesky()
             sage: L
-            [                       1.414213562373095?         0                     0]
-            [2.828427124746190? - 1.414213562373095?*I         1                     0]
-            [4.242640687119285? + 2.828427124746190?*I   2 - 2*I    1.732050807568878?]
+            [                       1.414213562373095?          0                    0]
+            [2.828427124746190? - 1.414213562373095?*I          1                    0]
+            [4.242640687119285? + 2.828427124746190?*I   -2*I + 2   1.732050807568878?]
             sage: L.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Algebraic Field
             sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10

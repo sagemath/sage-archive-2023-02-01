@@ -62,9 +62,9 @@ Check lazy import of ``interacts``::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
-from __future__ import print_function, division
 
-import os, sys
+import os
+import sys
 import operator
 import math
 

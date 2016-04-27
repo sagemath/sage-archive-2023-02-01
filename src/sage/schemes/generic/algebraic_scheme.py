@@ -1272,6 +1272,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
+        
+        This example addresses ticket #20512.
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian()
+            Ideal (1) of Multivariate Polynomial Ring in w, x, y, z over Rational Field
         """
         d = self.codimension()
         minors = self.Jacobian_matrix().minors(d)

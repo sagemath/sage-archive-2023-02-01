@@ -1419,8 +1419,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(P,2,3,[x0*x1, x0, x1, x2, x2 + 16, x2 + 5*x1 ])
             sage: A.minors(2)
             [x0*x1*x2 + 16*x0*x1 - x0*x2, 5*x0*x1^2 + x0*x1*x2 - x1*x2, 5*x0*x1 + x0*x2 - x1*x2 - 16*x1]
+            
+        This test addresses an issue raised at #20512.
+            sage: A.minors(0)[0].parent() == P
+            True
         """
         from sage.combinat.combination import Combinations
+        if k == 0:
+            return [self.base_ring()(1)]
         all_rows = range(self.nrows())
         all_cols = range(self.ncols())
         m = []

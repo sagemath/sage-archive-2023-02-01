@@ -40,6 +40,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
+from sage.manifolds.coord_func_symb import CoordFunctionSymb
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -309,6 +310,24 @@ class Chart(UniqueRepresentation, SageObject):
         self._dom_restrict = {} # dict. of the restrictions of self to
                                 # subsets of self._domain, with the
                                 # subsets as keys
+        # The null and one functions of the coordinates:
+        base_field_type = self._domain.base_field_type()
+        if base_field_type in ['real', 'complex']:
+            self._zero_function = CoordFunctionSymb(self, 0)
+            self._one_function = CoordFunctionSymb(self, 1)
+        else:
+            base_field = self._domain.base_field()
+            self._zero_function = CoordFunctionSymb(self, base_field.zero())
+            self._one_function = CoordFunctionSymb(self, base_field.one())
+        # Expression in self of the zero and one scalar fields of open sets
+        # containing the domain of self:
+        for dom in self._domain._supersets:
+            if hasattr(dom, '_zero_scalar_field'):
+                # dom is an open set
+                dom._zero_scalar_field._express[self] = self._zero_function
+            if hasattr(dom, '_one_scalar_field'):
+                # dom is an open set
+                dom._one_scalar_field._express[self] = self._one_function
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -824,6 +843,234 @@ class Chart(UniqueRepresentation, SageObject):
         if not isinstance(transformations, (tuple, list)):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
+
+    def function(self, expression):
+        r"""
+        Define a coordinate function to the base field.
+
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
+        over a topological field `K`, a *coordinate function* is a map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & f(x^1,\ldots, x^n),
+            \end{array}
+
+        where `V` is the chart codomain and `(x^1,\ldots, x^n)` are the
+        chart coordinates.
+
+        The coordinate function can be either a symbolic one or a numerical
+        one, depending on the parameter ``expression`` (see below).
+
+        See :class:`~sage.manifolds.coord_func.CoordFunction`
+        and :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``expression`` -- material defining the coordinate function; it can
+          be either:
+
+          - a symbolic expression involving the chart coordinates, to represent
+            `f(x^1,\ldots, x^n)`
+          - a string representing the name of a file where the data
+            to construct a numerical coordinate function is stored
+
+        OUTPUT:
+
+        - instance of a subclass of the base class
+          :class:`~sage.manifolds.coord_func.CoordFunction`
+          representing the coordinate function `f`; this is
+          :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` if
+          if  ``expression`` is a symbolic expression.
+
+        EXAMPLES:
+
+        A symbolic coordinate function::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(sin(x*y))
+            sage: f
+            sin(x*y)
+            sage: type(f)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: f.display()
+            (x, y) |--> sin(x*y)
+            sage: f(2,3)
+            sin(6)
+
+        """
+        if isinstance(expression, str):
+            raise NotImplementedError("numerical coordinate function not " +
+                                      "implemented yet")
+        else:
+            return CoordFunctionSymb(self, expression)
+
+    def zero_function(self):
+        r"""
+        Return the zero function of the coordinates.
+
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
+        over a topological field `K`, the zero coordinate function is the map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & 0,
+            \end{array}
+
+        where `V` is the chart codomain.
+
+        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        for a complete documentation.
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+          representing the zero coordinate function `f`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.zero_function()
+            0
+            sage: X.zero_function().display()
+            (x, y) |--> 0
+            sage: type(X.zero_function())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+
+        The result is cached::
+
+            sage: X.zero_function() is X.zero_function()
+            True
+
+        Zero function on a p-adic manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological', field=Qp(5)); M
+            2-dimensional topological manifold M over the 5-adic Field with
+             capped relative precision 20
+            sage: X.<x,y> = M.chart()
+            sage: X.zero_function()
+            0
+            sage: X.zero_function().display()
+            (x, y) |--> 0
+
+        """
+        return self._zero_function
+
+    def one_function(self):
+        r"""
+        Return the constant function of the coordinates equal to one.
+
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
+        over a topological field `K`, the "one" coordinate function is the map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & 1,
+            \end{array}
+
+        where `V` is the chart codomain.
+
+        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        for a complete documentation.
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+          representing the one coordinate function `f`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.one_function()
+            1
+            sage: X.one_function().display()
+            (x, y) |--> 1
+            sage: type(X.one_function())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+
+        The result is cached::
+
+            sage: X.one_function() is X.one_function()
+            True
+
+        One function on a p-adic manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological', field=Qp(5)); M
+            2-dimensional topological manifold M over the 5-adic Field with
+             capped relative precision 20
+            sage: X.<x,y> = M.chart()
+            sage: X.one_function()
+            1 + O(5^20)
+            sage: X.one_function().display()
+            (x, y) |--> 1 + O(5^20)
+
+        """
+        return self._one_function
+
+
+    def multifunction(self, *expressions):
+        r"""
+        Define a coordinate function to some Cartesian power of the base field.
+
+        If `n` and `m` are two positive integers and `(U,\varphi)` is a chart on
+        a topological manifold `M` of dimension `n` over a topological field `K`,
+        a *multi-coordinate function* associated to `(U,\varphi)` is a map
+
+        .. MATH::
+
+            \begin{array}{llcl}
+            f:& V \subset K^n & \longrightarrow & K^m \\
+              & (x^1,\ldots,x^n) & \longmapsto & (f_1(x^1,\ldots,x^n),\ldots,
+                f_m(x^1,\ldots,x^n)) ,
+            \end{array}
+
+        where `V` is the codomain of `\varphi`. In other words, `f` is a
+        `K^m`-valued function of the coordinates associated to the chart
+        `(U,\varphi)`.
+
+        See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``expressions`` -- list (or tuple) of `m` elements to construct the
+          coordinate functions `f_i` (`1\leq i \leq m`); for
+          symbolic coordinate functions, this must be symbolic expressions
+          involving the chart coordinates, while for numerical coordinate
+          functions, this must be data file names
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+          representing `f`
+
+        EXAMPLE:
+
+        Function of two coordinates with values in `\RR^3`::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x+y, sin(x*y), x^2 + 3*y); f
+            Coordinate functions (x + y, sin(x*y), x^2 + 3*y) on the Chart (M, (x, y))
+            sage: type(f)
+            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            sage: f(2,3)
+            (5, sin(6), 13)
+
+        """
+        from sage.manifolds.coord_func import MultiCoordFunction
+        return MultiCoordFunction(self, expressions)
+
 
 #*****************************************************************************
 
@@ -1412,6 +1659,7 @@ class RealChart(Chart):
         self._bounds = tuple(bounds)
         self._restrictions = new_restrictions
 
+
     def restrict(self, subset, restrictions=None):
         r"""
         Return the restriction of the chart to some open subset of its domain.
@@ -1599,7 +1847,6 @@ class RealChart(Chart):
         # All tests have been passed:
         return True
 
-
 #*****************************************************************************
 
 class CoordChange(SageObject):
@@ -1669,10 +1916,9 @@ class CoordChange(SageObject):
                              + "must be provided")
         self._chart1 = chart1
         self._chart2 = chart2
-        #*# when MultiCoordFunction will be implemented (trac #18640):
-        # self._transf = chart1.multifunction(*transformations)
-        #*# for now:
-        self._transf = transformations
+        # The coordinate transformations are implemented via the class
+        # MultiCoordFunction:
+        self._transf = chart1.multifunction(*transformations)
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
         # is added to the subset (and supersets) dictionary:
@@ -1791,12 +2037,7 @@ class CoordChange(SageObject):
             (3, -1)
 
         """
-        #*# When MultiCoordFunction is implemented (trac #18640):
-        # return self._transf(*coords)
-        #*# for now:
-        substitutions = {self._chart1._xx[j]: coords[j] for j in range(self._n1)}
-        return tuple([self._transf[i].subs(substitutions).simplify_full()
-                      for i in range(self._n2)])
+        return self._transf(*coords)
 
     def inverse(self):
         r"""
@@ -1832,6 +2073,8 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
+        from sage.manifolds.utilities import simplify_chain_real, \
+                                             simplify_chain_generic
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -1857,10 +2100,7 @@ class CoordChange(SageObject):
                 coord_domain[i] = 'positive'
         xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
                 for i in range(n2) ]
-        #*# when MultiCoordFunction will be implemented (trac #18640):
-        # xx2 = self._transf.expr()
-        #*# for now:
-        xx2 = self._transf
+        xx2 = self._transf.expr()
         equations = [xp2[i] == xx2[i] for i in range(n2)]
         try:
             solutions = solve(equations, *x1, solution_dict=True)
@@ -1871,6 +2111,14 @@ class CoordChange(SageObject):
         if len(solutions) == 1:
             x2_to_x1 = [solutions[0][x1[i]].subs(substitutions)
                                                             for i in range(n1)]
+            for transf in x2_to_x1:
+                try:
+                    if self._domain.base_field_type() == 'real':
+                        transf = simplify_chain_real(transf)
+                    else:
+                        transf = simplify_chain_generic(transf)
+                except AttributeError:
+                    pass
         else:
             list_x2_to_x1 = []
             for sol in solutions:
@@ -1879,6 +2127,14 @@ class CoordChange(SageObject):
                                      "set_inverse() to set the inverse " +
                                      "manually")
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
+                for transf in x2_to_x1:
+                    try:
+                        if self._domain.base_field_type() == 'real':
+                            transf = simplify_chain_real(transf)
+                        else:
+                            transf = simplify_chain_generic(transf)
+                    except AttributeError:
+                        pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)
             if len(list_x2_to_x1) == 0:
@@ -1938,7 +2194,7 @@ class CoordChange(SageObject):
 
             sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x), verbose=True)
             Check of the inverse coordinate transformation:
-               r == sqrt(r^3*cos(ph)^3 + r^2*sin(ph)^2)
+               r == sqrt(r*cos(ph)^3 + sin(ph)^2)*r
                ph == arctan2(r*sin(ph), r*cos(ph))
                x == sqrt(x^3 + y^2)*x/sqrt(x^2 + y^2)
                y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
@@ -1992,10 +2248,7 @@ class CoordChange(SageObject):
             raise ValueError("composition not possible: " +
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
-        #*# when MultiCoordFunction will be implemented (trac #18640):
-        # transf = self._transf(*(other._transf.expr()))
-        #*# for now:
-        transf = self(*(other._transf))
+        transf = self._transf(*(other._transf.expr()))
         return type(self)(other._chart1, self._chart2, *transf)
 
     def restrict(self, dom1, dom2=None):
@@ -2038,12 +2291,8 @@ class CoordChange(SageObject):
         ch2 = self._chart2.restrict(dom2)
         if (ch1, ch2) in dom1.coord_changes():
             return dom1.coord_changes()[(ch1,ch2)]
-        #*# when MultiCoordFunction will be implemented (trac #18640):
-        # return type(self)(self._chart1.restrict(dom1),
-        #                   self._chart2.restrict(dom2), *(self._transf.expr()))
-        #*# for now:
         return type(self)(self._chart1.restrict(dom1),
-                           self._chart2.restrict(dom2), *(self._transf))
+                          self._chart2.restrict(dom2), *(self._transf.expr()))
 
     def display(self):
         r"""
@@ -2079,10 +2328,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        #*# when MultiCoordFunction will be implemented (trac #18640):
-        # expr = self._transf.expr()
-        #*# for now:
-        expr = self._transf
+        expr = self._transf.expr()
         rtxt = ""
         if n2 == 1:
             rlatex = r"\begin{array}{lcl}"

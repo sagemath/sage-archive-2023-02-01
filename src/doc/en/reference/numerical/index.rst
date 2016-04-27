@@ -38,6 +38,13 @@ how to use them in Sage, please refer to the `Thematic Tutorial on Linear
 Programming
 <http://www.sagemath.org/doc/thematic_tutorials/linear_programming.html>`_.
 
+The following backend is used for debugging and testing purposes.
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/numerical/backends/logging_backend
+
 Semidefinite Optimization (SDP) Solver backends
 -----------------------------------------------
 

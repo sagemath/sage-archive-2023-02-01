@@ -27,7 +27,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
-    :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
+    :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
@@ -275,7 +275,7 @@ class Posets(object):
 
         INPUT:
 
-        - ``n`` -- number of vertices, an integer at least 3
+        - ``n`` -- number of elements, an integer at least 3
 
         - ``facade`` (boolean) -- whether to make the returned poset a
           facade poset (see :mod:`sage.categories.facade_sets`); the
@@ -479,31 +479,28 @@ class Posets(object):
     @staticmethod
     def RandomPoset(n, p):
         r"""
-        Generate a random poset on ``n`` vertices according to a
+        Generate a random poset on ``n`` elements according to a
         probability ``p``.
 
         INPUT:
 
-        - ``n`` - number of vertices, a non-negative integer
+        - ``n`` - number of elements, a non-negative integer
 
         - ``p`` - a probability, a real number between 0 and 1 (inclusive)
 
         OUTPUT:
 
-        A poset on ``n`` vertices.  The construction decides to make an
-        ordered pair of vertices comparable in the poset with probability
-        ``p``, however a pair is not made comparable if it would violate
-        the defining properties of a poset, such as transitivity.
-
-        So in practice, once the probability exceeds a small number the
-        generated posets may be very similar to a chain.  So to create
-        interesting examples, keep the probability small, perhaps on the
-        order of `1/n`.
+        A poset on `n` elements. The probability `p` roughly measures
+        width/height of the output: `p=0` always generates an antichain,
+        `p=1` will return a chain. To create interesting examples,
+        keep the probability small, perhaps on the order of `1/n`.
 
         EXAMPLES::
 
-            sage: Posets.RandomPoset(17,.15)
-            Finite poset containing 17 elements
+            sage: set_random_seed(0)  # Results are reproducible
+            sage: P = Posets.RandomPoset(5, 0.3)
+            sage: P.cover_relations()
+            [[5, 4], [4, 2], [1, 2]]
 
         TESTS::
 
@@ -526,8 +523,12 @@ class Posets(object):
             Traceback (most recent call last):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
+
+            sage: Posets.RandomPoset(0, 0.5)
+            Finite poset containing 0 elements
         """
         from sage.misc.prandom import random
+
         try:
             n = Integer(n)
         except TypeError:
@@ -541,15 +542,14 @@ class Posets(object):
         if p < 0 or p> 1:
             raise ValueError("probability must be between 0 and 1, not {0}".format(p))
 
-        D = DiGraph(loops=False,multiedges=False)
+        D = DiGraph(loops=False, multiedges=False)
         D.add_vertices(range(n))
         for i in range(n):
-            for j in range(n):
+            for j in range(i+1, n):
                 if random() < p:
-                    D.add_edge(i,j)
-                    if not D.is_directed_acyclic():
-                        D.delete_edge(i,j)
-        return Poset(D,cover_relations=False)
+                    D.add_edge(i, j)
+        D.relabel(list(Permutations(n).random_element()))
+        return Poset(D, cover_relations=False)
 
     @staticmethod
     def SetPartitions(n):

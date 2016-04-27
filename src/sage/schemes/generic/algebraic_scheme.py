@@ -3757,6 +3757,16 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: Y.is_smooth()
             False
+
+         This example is from Hamm, arXiv:1106.1826v1. It addresses an issue raised at #15239.
+            sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')
+            sage: X.inject_variables()
+            Defining z0, z1, z2, z3
+            sage: g0 =z1^3 + z2^6 +z3^4
+            sage: g = g0-2*z3^2*z0^6+z2*z0^10+z0^12
+            sage: Y = X.subscheme([g])
+            sage: Y.is_nondegenerate()
+            False
         """
         X = self.ambient_space()
         fan = X.fan()

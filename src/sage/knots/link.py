@@ -65,6 +65,9 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 
+from sage.homology.chain_complex import ChainComplex
+from sage.sets.set import Set
+from sage.combinat.subset import Subsets
 
 class Link(object):
     r"""
@@ -366,6 +369,8 @@ class Link(object):
 
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
+        self._smoothings = None
+        self._enhanced_states = None
 
     def __repr__(self):
         """
@@ -669,6 +674,130 @@ class Link(object):
                 if a in unassigned:
                     unassigned.remove(a)
         return tails, heads
+    
+    @cached_method
+    def khovanov_homology(self, ring = ZZ, height = None, degree = None):
+        r"""
+        Return the Khovanov homology of the link.
+
+        INPUT:
+
+        - ``ring`` -- the coefficient ring (default: ``ZZ``).
+
+        - ``height`` -- the height of the homology to compute. If none is specified,
+            all the heights are computed.
+
+        - ``degree`` -- the degree of the homology to compute. If none is specified,
+            all the degrees are computed.
+
+        OUTPUT: 
+
+        The Khovanov homology of the Link. It is given as a dictionary, whose keys
+        are the different heights, and for each height the homology is given
+        as a dictionary whose keys are the degrees.
+
+        EXAMPLES::
+
+            sage: K = Link([[[1, -2, 3, -1, 2, -3]],[-1, -1, -1]])
+            sage: K.khovanov_homology()
+            {-9: {-3: Z},
+            -7: {-3: 0, -2: C2},
+            -5: {-3: 0, -2: Z, -1: 0, 0: 0},
+            -3: {-3: 0, -2: 0, -1: 0, 0: Z},
+            -1: {0: Z}}
+
+        The figure eight knot::
+
+            sage: L = Link([[1, 6, 2, 7], [5, 2, 6, 3], [3, 1, 4, 8], [7, 5, 8, 4]])
+            sage: L.khovanov_homology(height=-1)
+            {-1: {-2: 0, -1: Z, 0: Z, 1: 0, 2: 0}}
+
+        And the Hopf link::
+
+            ::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([1, 1])
+            sage: K = Link(b)
+            sage: K.khovanov_homology(degree = 2)
+            {2: {2: 0}, 4: {2: Z}, 6: {2: Z}}
+
+        """
+        writhe = self.writhe()
+        crossings = self.pd_code()
+        ncross = len(crossings)
+        if self._smoothings:
+            smoothings = self._smoothings
+        else:
+            smoothings = []
+            nmax = max(flatten(crossings)) + 1
+            for i in range(2** ncross):
+                v = Integer(i).bits()
+                v = v + (ncross - len(v))*[0]
+                G = Graph()
+                for j, cr in enumerate(crossings):
+                    n = nmax + j
+                    if not v[j]: # For negative crossings, we go from undercrossings to the left
+                        G.add_edge((cr[3], cr[0], n), cr[0])
+                        G.add_edge((cr[3], cr[0], n), cr[3])
+                        G.add_edge((cr[1], cr[2], n), cr[2])
+                        G.add_edge((cr[1], cr[2], n), cr[1])
+                    else:  # positive crossings, from undercrossing to the right
+                        G.add_edge((cr[0], cr[1], n), cr[0])
+                        G.add_edge((cr[0], cr[1], n), cr[1])
+                        G.add_edge((cr[2], cr[3], n), cr[2])
+                        G.add_edge((cr[2], cr[3], n), cr[3])
+                sm = set(tuple(sorted([_ for _ in b if type(_) == tuple])) for b in G.connected_components())
+                iindex = (writhe - ncross + 2 * sum(v)) / 2
+                jmin = writhe + iindex - len(sm)
+                jmax = writhe + iindex + len(sm)
+                smoothings.append((tuple(v), sm, iindex, jmin, jmax))
+            self._smoothings = smoothings
+        if self._enhanced_states:
+            bases = self._enhanced_states
+        else:
+            states = [] # we got all the smoothings, now find all the states
+            for sm in smoothings:
+                for circpos in Subsets(sm[1]):  # Add each state
+                    circneg = Set(sm[1].difference(circpos))
+                    j = writhe + sm[2] +  len(circpos) - len(circneg)
+                    states.append((sm[0], circneg, circpos, sm[2], j))
+            bases = {} # arrange them by (i,j)
+            for st in states:
+                i, j = st[3], st[4]
+                if (i,j) in bases.keys():
+                    bases[i,j].append(st)
+                else:
+                    bases[i,j] = [st]
+            self._enhanced_states = bases
+        complexes = {}
+        for (i, j) in bases.keys():
+            if height is not None and j!= height:
+                continue
+            elif degree is not None and abs(degree - i) > 1:
+                continue
+            if (i+1, j) in bases.keys():
+                m = matrix(ZZ, len(bases[(i,j)]), len(bases[(i+1,j)]))
+                for ii in range(m.nrows()):
+                    V1 = bases[(i,j)][ii]
+                    for jj in range(m.ncols()):
+                        V2 = bases[(i+1, j)][jj]
+                        difs = [_ for _ in range(len(V1[0])) if V1[0][_] != V2[0][_] ]
+                        if len(difs) == 1:
+                            if not (V2[2].intersection(V1[1]) or V2[1].intersection(V1[2])):
+                                m[ii,jj] = (-1)**sum([V2[0][_] for _ in range(difs[0]+1, ncross)]) 
+                                #Here we have the matrix constructed, now we have to put it in the dictionary of complexes
+            else:
+                m = matrix(ZZ, len(bases[(i,j)]), 0)
+            if not j in complexes.keys():
+                complexes[j] = {}
+            complexes[j][i] = m.transpose()
+            if not (i-1, j) in bases.keys():
+                    complexes[j][i-1] = matrix(ZZ,  len(bases[(i,j)]), 0)
+        homologies = {j: ChainComplex(complexes[j]).homology() for j in complexes}
+        if degree is not None:
+            return {b:{a:homologies[b][a] for a in homologies[b] if a == degree} for b in homologies}
+        return homologies
 
     def oriented_gauss_code(self):
         """

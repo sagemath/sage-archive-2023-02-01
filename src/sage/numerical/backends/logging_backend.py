@@ -17,6 +17,8 @@ See :class:`LoggingBackendFactory` for more information.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
+
 from sage.numerical.backends.generic_backend import GenericBackend
 
 def format_function_call(fn_name, *v, **k):
@@ -28,14 +30,14 @@ def _make_wrapper(attr):
         funcall = format_function_call("p." + attr, *args, **kwdargs)
         a = getattr(self._backend, attr)
         if self._printing:
-            print "# {}".format(funcall)
+            print("# {}".format(funcall))
         if self._doctest:
             self._doctest.write("        sage: {}\n".format(funcall))
         try:
             result = a(*args, **kwdargs)
         except Exception as e:
             if self._printing:
-                print "# exception: {}".format(e)
+                print("# exception: {}".format(e))
             if self._doctest:
                 self._doctest.write("        Traceback (most recent call last):\n"
                                     "        ...\n"
@@ -46,7 +48,7 @@ def _make_wrapper(attr):
             raise
         else:
             if self._printing:
-                print "# result: {}".format(result)
+                print("# result: {}".format(result))
             if self._doctest:
                 self._doctest.write("        {}\n".format(result))
             if self._test_method:
@@ -139,7 +141,11 @@ r'''
 def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None, method_name='CHANGE'):
 
     """
-    The result of this can be passed as the solver argument of `get_solver`.
+    Factory that constructs a :class:`LoggingBackend` for debugging and testing.
+
+    An instance of it can be passed as the solver argument of
+    :func:`sage.numerical.backends.generic_backend.get_solver` and
+    :class:`MixedIntegerLinearProgram`.
 
     EXAMPLES:
 
@@ -167,6 +173,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         sage: import sage.numerical.backends.logging_backend
         sage: from sage.numerical.backends.logging_backend import LoggingBackendFactory
         sage: compute_something(solver = LoggingBackendFactory(solver='GLPK'))
+        # p = get_solver(solver='GLPK')
         # p.add_variable(obj=42, name='Helloooooo')
         # result: 0
         # p.add_variable(obj=1789)
@@ -192,6 +199,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         4711
         sage: with open(fname) as f:
         ....:     for line in f.readlines(): print '|{}'.format(line),
+        |        sage: p = get_solver(solver='GLPK')
         |        sage: p.add_variable(obj=42, name='Helloooooo')
         |        0
         |        sage: p.add_variable(obj=1789)
@@ -256,10 +264,15 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         test_method = None
 
     def logging_solver(**kwds):
+        construct = "p = {}".format(format_function_call('get_solver', solver=solver, **kwds))
+        if printing:
+            print("# {}".format(construct))
+        if doctest is not None:
+            doctest.write("        sage: {}\n".format(construct))
         if test_method is not None:
             test_method.write(test_method_template.format(name=method_name))
         from sage.numerical.backends.generic_backend import get_solver
-        return LoggingBackend(backend=get_solver(solver),
+        return LoggingBackend(backend=get_solver(solver=solver, **kwds),
                               printing=printing, doctest=doctest, test_method=test_method)
 
     return logging_solver

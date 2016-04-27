@@ -10,35 +10,42 @@
 # stdout. (This option is present only for backwards compatibility:
 # printing the SPKG.txt file from an old-style spkg.)
 
+import copy
+import os
 import sys
 import tarfile
 import zipfile
 
 
-class IgnoreDirModeTarFile(tarfile.TarFile):
+class UmaskExtractTarFile(tarfile.TarFile):
     """
-    Sage as tarfile.TarFile, but ignores directory permissions stored in the
-    tar file.
+    Sage as tarfile.TarFile, but applies the user's current umask to the
+    permissions of al extracted files and directories.
 
-    This preserves file permissions stored in tarballs, but creates all
-    directories with mode 700.
+    This mimics the default behavior of the ``tar`` utility.
+
+    See http://trac.sagemath.org/ticket/20218#comment:16 for more background.
     """
+
+    def __init__(self, *args, **kwargs):
+        super(UmaskExtractTarFile, self).__init__(*args, **kwargs)
+
+        # Unfortunately the only way to get the current umask is to set it
+        # and then restore it
+        self.umask = os.umask(0777)
+        os.umask(self.umask)
 
     def chmod(self, tarinfo, target):
-        # The method TarFile uses to apply permissions stored in tar files to
-        # the extracted paths. Changing it to a no-op for directories preserves
-        # the behavior that directories are created with 700 by default.
-        #
-        # See http://trac.sagemath.org/ticket/20218#comment:16
-        if not tarinfo.isdir():
-            return super(IgnoreDirModeTarFile, self).chmod(tarinfo, target)
+        tarinfo = copy.copy(tarinfo)
+        tarinfo.mode &= ~self.umask
+        return super(UmaskExtractTarFile, self).chmod(tarinfo, target)
 
 
 if __name__ == '__main__':
     filename = sys.argv[1]
     if tarfile.is_tarfile(filename):
         # tar file, possibly compressed:
-        archive = IgnoreDirModeTarFile.open(filename, 'r:*')
+        archive = UmaskExtractTarFile.open(filename, 'r:*')
         if len(sys.argv) == 2:
             archive.extractall()
         else:

@@ -528,7 +528,6 @@ class Posets(object):
             Finite poset containing 0 elements
         """
         from sage.misc.prandom import random
-        from random import shuffle
 
         try:
             n = Integer(n)

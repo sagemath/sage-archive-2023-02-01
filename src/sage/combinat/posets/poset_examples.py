@@ -490,7 +490,7 @@ class Posets(object):
 
         OUTPUT:
 
-        A poset on `n` elements. The propability `p` roughly measures
+        A poset on `n` elements. The probability `p` roughly measures
         width/height of the output: `p=0` always generates an antichain,
         `p=1` will return a chain. To create interesting examples,
         keep the probability small, perhaps on the order of `1/n`.

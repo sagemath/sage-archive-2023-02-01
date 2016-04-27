@@ -3730,6 +3730,62 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         self._smooth = all(self.affine_patch(i).is_smooth() for i in range(0,npatches))
         return self._smooth
 
+    def is_nondegenerate(self):
+        r"""
+        Check if ``self`` is nondegenerate.
+
+        OUTPUT:
+
+        Whether the variety is nondegenerate, that is, the restriction
+        to every open torus orbit is smooth. This means that the only
+        singularities are the ones coming from the ambient space.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([x^3 + y^3 + z^3]).is_nondegenerate()
+            True
+            sage: P2.subscheme([x*y*z]).is_nondegenerate()
+            False
+
+            sage: P1 = toric_varieties.P1()
+            sage: X = toric_varieties.P2_112().cartesian_product(P1)
+            sage: X.inject_variables()
+            Defining z0, z1, z2, z3, z4
+            sage: Y = X.subscheme([z4])    # = P2_112 x {point}
+            sage: Y.is_nondegenerate()
+            True
+            sage: Y.is_smooth()
+            False
+        """
+        X = self.ambient_space()
+        fan = X.fan()
+        SR = X.Stanley_Reisner_ideal()
+        Jac = self.Jacobian()
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(X.base_ring(), fan.nrays() + SR.ngens(), 't')
+        slack = R.gens()[fan.nrays():]
+        SR = SR.change_ring(R)
+        Jac = Jac.change_ring(R)
+
+        def restrict(cone):
+            patch = dict()
+            divide = dict()
+            for i in cone.ambient_ray_indices():
+                patch[R.gen(i)] = R.zero()   # restrict to torus orbit
+                divide[R.gen(i)] = R.one()   # divide out highest power of R.gen(i)
+            Jac_patch = Jac.subs(patch)
+            SR_patch = R.ideal([monomial * slack[i] - R.one()
+                                for i, monomial in enumerate(SR.subs(divide).gens())])
+            return Jac_patch + SR_patch
+
+        for dim in range(0, fan.dim() + 1):
+            for cone in fan(dim):
+                ideal = restrict(cone)
+                if ideal.dimension() != -1:
+                    return False
+        return True
+
 
 class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
     r"""

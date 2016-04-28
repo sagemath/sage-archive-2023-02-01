@@ -367,7 +367,7 @@ class Semigroups(CategoryWithAxiom):
             the semigroup, and the right Cayley graph relations
             between them, and uses the latter as an automaton.
 
-            See :class:`sage.sets.monoids.AutomaticSemigroup` for details.
+            See :class:`~sage.sets.monoids.AutomaticSemigroup` for details.
 
             EXAMPLES::
 
@@ -517,16 +517,16 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the full subcategory of the `L`-trivial objects of ``self``.
 
-            Let `S` be (multiplicative) :class:`semigroup Semigroups`.
-            The *`L`-preorder* `\leq_L` on `S` is defined by:
+            Let `S` be (multiplicative) :class:`semigroup <Semigroups>`.
+            The `L`-*preorder* `\leq_L` on `S` is defined by:
 
             .. MATH::
 
                 x\leq_L y \qquad \Longleftrightarrow \qquad x \in Sy
 
-            The *`L`-classes* are the equivalence classes for the
+            The `L`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
-            *`L`-trivial* if all its `L`-classes are trivial (that is
+            `L`-*trivial* if all its `L`-classes are trivial (that is
             of cardinality `1`), or equivalently if the `L`-preoder is
             in fact a partial order.
 
@@ -562,16 +562,16 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the full subcategory of the `R`-trivial objects of ``self``.
 
-            Let `S` be (multiplicative) :class:`semigroup Semigroups`.
-            The *`R`-preorder* `\leq_R` on `S` is defined by:
+            Let `S` be (multiplicative) :class:`semigroup <Semigroups>`.
+            The `R`-*preorder* `\leq_R` on `S` is defined by:
 
             .. MATH::
 
                 x\leq_R y \qquad \Longleftrightarrow \qquad x \in yS
 
-            The *`R`-classes* are the equivalence classes for the
+            The `R`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
-            *`R`-trivial* if all its `R`-classes are trivial (that is
+            `R`-*trivial* if all its `R`-classes are trivial (that is
             of cardinality `1`), or equivalently if the `R`-preoder is
             in fact a partial order.
 
@@ -607,16 +607,16 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the full subcategory of the `J`-trivial objects of ``self``.
 
-            Let `S` be (multiplicative) :class:`semigroup Semigroups`.
-            The *`J`-preorder* `\leq_J` on `S` is defined by:
+            Let `S` be (multiplicative) :class:`semigroup <Semigroups>`.
+            The `J`-*preorder* `\leq_J` on `S` is defined by:
 
             .. MATH::
 
                 x\leq_J y \qquad \Longleftrightarrow \qquad x \in SyS
 
-            The *`J`-classes* are the equivalence classes for the
+            The `J`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
-            *`J`-trivial* if all its `J`-classes are trivial (that is
+            `J`-*trivial* if all its `J`-classes are trivial (that is
             of cardinality `1`), or equivalently if the `J`-preoder is
             in fact a partial order.
 
@@ -663,11 +663,11 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the full subcategory of the `H`-trivial objects of ``self``.
 
-            Let `S` be (multiplicative) :class:`semigroup Semigroups`.
+            Let `S` be (multiplicative) :class:`semigroup <Semigroups>`.
             Two elements of `S` are in the same `H`-class if they are
             in the same `L`-class and in the same `R`-class.
 
-            The semigroup `S` is *`H`-trivial* if all its `H`-classes
+            The semigroup `S` is `H`-*trivial* if all its `H`-classes
             are trivial (that is of cardinality `1`).
 
             EXAMPLES::
@@ -700,7 +700,7 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the full subcategory of the aperiodic objects of ``self``.
 
-            A (multiplicative) :class:`semigroup Semigroups` `S` is
+            A (multiplicative) :class:`semigroup <Semigroups>` `S` is
             *aperiodic* if for any element `s\in S`, the sequence
             `s,s^2,s^3,...` eventually stabilizes.
 

@@ -1838,10 +1838,18 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 return w.reflection_length(in_unitary_group=in_unitary_group)
 
         #@cached_in_parent_method
-        def to_matrix(self):
+        def to_matrix(self, side="left", on_space="primal"):
             r"""
             Return ``self`` as a matrix acting on the underlying vector
             space.
+
+            - ``side`` -- optional (default: ``"left"``) whether the
+              action of ``self`` is on the ``"left"`` or on the ``"right"``
+
+            - ``on_space`` -- optional (default: ``"primal"``) whether
+              to act as the reflection representation on the given
+              basis, or to act on the dual reflection representation
+              on the dual basis
 
             EXAMPLES::
 
@@ -1870,16 +1878,201 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             W = self.parent()
             if W._reflection_representation is None:
+                is_well_generated = W.is_well_generated()
+                if side == "left":
+                    if not is_well_generated:
+                        w = W.from_reduced_word(reversed(self.reduced_word()))
+                    else:
+                        w = self
+                elif side == "right":
+                    w = self
+                else:
+                    raise ValueError('side must be "left" or "right"')
+
                 Delta = W.independent_roots()
                 Phi = W.roots()
-                M = Matrix([Phi[self(Phi.index(alpha)+1)-1] for alpha in Delta])
-                return W.base_change_matrix() * M
+                M = Matrix([Phi[w(Phi.index(alpha)+1)-1] for alpha in Delta])
+                mat = W.base_change_matrix() * M
+
+                if side == "left":
+                    if not is_well_generated:
+                        mat = mat.transpose()
+                    else:
+                        mat = mat.inverse().conjugate_transpose()
             else:
                 refl_repr = W._reflection_representation
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
-                return prod([refl_repr[i] for i in self.reduced_word()], id_mat)
+                mat = prod([refl_repr[i] for i in self.reduced_word()], id_mat)
+
+            if on_space == "primal":
+                pass
+            elif on_space == "dual":
+                mat = mat.inverse().transpose()
+            else:
+                raise ValueError('on_space must be "primal" or "dual"')
+
+            mat.set_immutable()
+            return mat
 
         matrix = to_matrix
+
+        def action(self, vec, side="left", on_space="primal"):
+            r"""
+            Return the image of ``vec`` under the action of ``self``.
+
+            INPUT:
+
+            - ``vec`` -- vector in the basis given by the simple root
+
+            - ``side`` -- optional (default: ``"left"``) whether the
+              action of ``self`` is on the ``"left"`` or on the ``"right"``
+
+            - ``on_space`` -- optional (default: ``"primal"``) whether
+              to act as the reflection representation on the given
+              basis, or to act on the dual reflection representation
+              on the dual basis
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
+                sage: for w in W:                                       # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
+                ....:           [w.action(weight) for weight in W.fundamental_weights()]))  # optional - gap3
+                [] [(2/3, 1/3), (1/3, 2/3)]
+                [2] [(2/3, 1/3), (1/3, -1/3)]
+                [1] [(-1/3, 1/3), (1/3, 2/3)]
+                [1, 2] [(-1/3, 1/3), (-2/3, -1/3)]
+                [2, 1] [(-1/3, -2/3), (1/3, -1/3)]
+                [1, 2, 1] [(-1/3, -2/3), (-2/3, -1/3)]
+
+            TESTS::
+
+                sage: W = ReflectionGroup(['B',3])                      # optional - gap3
+                sage: all( w.action(alpha,side="right") == w.action_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
+                True
+                sage: all( w.action(alpha,side="left") == w.action_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )      # optional - gap3
+                True
+
+                sage: W = ReflectionGroup(4)                            # optional - gap3
+                sage: all( w.action(alpha,side="right") == w.action_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
+                True
+                sage: W = ReflectionGroup(4)                            # optional - gap3
+                sage: all( w.action(alpha,side="left") == w.action_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )    # optional - gap3
+                True
+            """
+            mat = self.matrix(side=side, on_space=on_space)
+            if side == "right":
+                return vec*mat
+            elif side == "left":
+                return mat*vec
+            else:
+                raise ValueError('side must be "left" or "right"')
+            # todo: the following could be implemented directly in
+            # cython to avoid creating the matrix
+            # direct speedup factor would be 10
+            #if side == "right":
+                #w = self
+            #elif side == "left":
+                #w = ~self
+            #else:
+                #raise ValueError('side must be "left" or "right"')
+            #W = self.parent()
+            #n = W.rank()
+            #Phi = W.roots()
+            # return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
+
+        def _act_on_(self, vec, self_on_left):
+            r"""
+            Defines the action of ``self`` as a linear transformation
+            on the vector space, in the basis given by the simple
+            roots.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
+                sage: w = W.from_reduced_word([1,2])                            # optional - gap3
+                sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # optional - gap3
+                (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
+
+                sage: print(", ".join("%s -> %s"%(root,root*w) for root in W.positive_roots())) # optional - gap3
+                (1, 0) -> (-1, -1), (0, 1) -> (1, 0), (1, 1) -> (0, -1)
+            """
+            if self_on_left:
+                return self.action(vec,side="left")
+            else:
+                return self.action(vec,side="right")
+
+        def action_on_root_indices(self, i):
+            """
+            Return the right action on the set of roots.
+
+            INPUT:
+
+            - ``i`` -- index of the root to act on
+
+            TODO:
+
+            - implement the left action
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',3]); w = W.w0            # optional - gap3
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]    # optional - gap3
+                [8, 7, 6, 10, 9, 11, 2, 1, 0, 4, 3, 5]
+
+                sage: W = ReflectionGroup(['A',2],reflection_index_set=['A','B','C'])   # optional - gap3
+                sage: w = W.w0                                          # optional - gap3
+                sage: [ w.action_on_root_indices(i) for i in range(len(W.roots())) ]    # optional - gap3
+                [4, 3, 5, 1, 0, 2]
+
+            TESTS::
+
+                sage: W = ReflectionGroup(4); N = len(W.roots())        # optional - gap3
+                sage: all(sorted([w.action_on_root_indices(i) for i in range(N)]) == range(N) for w in W)   # optional - gap3
+                True
+            """
+            #if side == "right":
+                #w = self
+            #elif side == "left":
+                #w = ~self
+            #else:
+                #raise ValueError('side must be "left" or "right"')
+            return w(i + 1) - 1
+
+        def action_on_root(self, root):
+            r"""
+            Return the root obtained by applying ``self`` to ``root``
+            on the right.
+
+            INPUT:
+
+            - ``root`` -- the root to act on
+
+            TODO:
+
+            - implement the left action
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
+                sage: for w in W:                                       # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
+                ....:           [w.action_on_root(beta) for beta in W.positive_roots()]))  # optional - gap3
+                [] [(1, 0), (0, 1), (1, 1)]
+                [2] [(1, 1), (0, -1), (1, 0)]
+                [1] [(-1, 0), (1, 1), (0, 1)]
+                [1, 2] [(0, 1), (-1, -1), (-1, 0)]
+                [2, 1] [(-1, -1), (1, 0), (0, -1)]
+                [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
+
+            TESTS::
+
+                sage: W = ReflectionGroup(4); Phi = sorted(W.roots())   # optional - gap3
+                sage: all(sorted([w.action_on_root(beta) for beta in Phi]) == Phi for w in W)   # optional - gap3
+                True
+            """
+            Phi = self.parent().roots()
+            return Phi[ self.action_on_root_indices(Phi.index(root)) ]
 
         def to_permutation_of_roots(self):
             r"""

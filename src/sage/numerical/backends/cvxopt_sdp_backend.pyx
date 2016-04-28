@@ -435,8 +435,6 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_sdp_backend import get_solver
-            sage: p = get_solver(solver = "cvxopt")
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)
             sage: x = p.new_variable()
             sage: p.set_objective(x[0] - x[1] + x[2])
@@ -467,6 +465,24 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         return the complete output dict of the solver
 
         Mainly for testing purposes
+
+        TESTS::
+
+            sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve();                                     # tol 1e-08
+            -3.0
+            sage: p.get_backend()._get_answer()
+            {...}
         """
         return self.answer
 

@@ -656,8 +656,8 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: x=p.get_values(x).values()
             sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()
             -3.0000000...
-            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g
-            1.1457...e-08
+            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # tol 1.5e-08
+            0.0
 
 
         TESTS::
@@ -667,8 +667,8 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
-            sage: abs(g - B._get_answer()['gap']) < 4e-23
-            True
+            sage: abs(g - B._get_answer()['gap'])   # tol 1e-22
+            0.0
 
         """
         cdef int n
@@ -704,15 +704,15 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.solve()
             -2.9999999...
             sage: B = p.get_backend()
-            sage: B1 = B.slack(1); B1
-            [8.02448...e-09 7.10444...e-09]
-            [7.10444...e-09 8.02448...e-09]
+            sage: B1 = B.slack(1); B1               # tol 1e-08
+            [0.0 0.0]
+            [0.0 0.0]
             sage: B1.is_positive_definite()
             True
             sage: x = p.get_values(x).values()
-            sage: x[0]*b1 + x[1]*b2 - b3 + B1
-            [ 9.2004...e-10 -6.0200...e-16]
-            [-6.0200...e-16  9.2004...e-10]
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-09
+            [0.0 0.0]
+            [0.0 0.0]
 
         TESTS::
 

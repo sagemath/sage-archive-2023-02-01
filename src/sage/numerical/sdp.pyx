@@ -72,7 +72,7 @@ The following example shows all these steps::
     sage: p.solver_parameter("show_progress", True)
     sage: opt = p.solve()
         pcost       dcost       gap    pres   dres   k/t
-    0: -1.24...
+    0: ...
     ...
     Optimal solution found.
     sage: print 'Objective Value:', round(opt,3)
@@ -100,15 +100,15 @@ E.g.::
 
 We can see that the optimal value of the dual is equal (up to numerical noise) to `opt`.::
 
-    sage: opt-((p.dual_variable(0)*a3).trace()+(p.dual_variable(1)*b3).trace())
-    6.2...e-08
+    sage: opt-((p.dual_variable(0)*a3).trace()+(p.dual_variable(1)*b3).trace())  # tol 8e-08
+    0.0
 
 Dual variable blocks at optimality are orthogonal to "slack variables", that is,
 matrices `C-\sum_k x_k A_k`, cf. (Primal problem) above, available via
 :meth:`~SemidefiniteProgram.slack`. E.g.::
 
-    sage: (p.slack(0)*p.dual_variable(0)).trace()
-    1.71...e-07
+    sage: (p.slack(0)*p.dual_variable(0)).trace()       # tol 2e-07
+    0.0
 
 
 More interesting example, the :func:`Lovasz theta <sage.graphs.lovasz_theta.lovasz_theta>` of the 7-gon::
@@ -954,7 +954,9 @@ cdef class SemidefiniteProgram(SageObject):
 
         The matrix of the `i`-th dual variable
 
-        EXAMPLE::
+        EXAMPLES:
+
+        Dual objective value is the same as the primal one ::
 
             sage: p = SemidefiniteProgram(maximization = False)
             sage: x = p.new_variable()
@@ -972,8 +974,11 @@ cdef class SemidefiniteProgram(SageObject):
             sage: x=p.get_values(x).values()
             sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()
             -3.0000000...
-            sage: g = sum((p.slack(j)*p.dual_variable(j)).trace() for j in range(2)); g
-            1.1457...e-08
+
+        Dual variable is orthogonal to the slack ::
+
+            sage: g = sum((p.slack(j)*p.dual_variable(j)).trace() for j in range(2)); g # tol 1.2e-08
+            0.0
 
         TESTS::
 
@@ -1012,15 +1017,15 @@ cdef class SemidefiniteProgram(SageObject):
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
             sage: p.solve()
             -2.9999999...
-            sage: B1 = p.slack(1); B1
-            [8.02448...e-09 7.10444...e-09]
-            [7.10444...e-09 8.02448...e-09]
+            sage: B1 = p.slack(1); B1               # tol 1e-8
+            [0.0 0.0]
+            [0.0 0.0]
             sage: B1.is_positive_definite()
             True
             sage: x = p.get_values(x).values()
-            sage: x[0]*b1 + x[1]*b2 - b3 + B1
-            [ 9.2004...e-10 -6.0200...e-16]
-            [-6.0200...e-16  9.2004...e-10]
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-9
+            [0.0 0.0]
+            [0.0 0.0]
 
         TESTS::
 

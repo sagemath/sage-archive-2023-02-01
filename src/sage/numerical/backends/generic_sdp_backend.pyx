@@ -513,8 +513,8 @@ cdef class GenericSDPBackend:
             sage: x=p.get_values(x).values()  # optional - Nonexistent_LP_solver
             sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # optional - Nonexistent_LP_solver
             -3.0000000...
-            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # optional - Nonexistent_LP_solver
-            1.1457...e-08
+            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # optional - Nonexistent_LP_solver # tol ???
+            0.0
 
         TESTS::
 
@@ -523,8 +523,8 @@ cdef class GenericSDPBackend:
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
-            sage: abs(g - B._get_answer()['gap']) < 4e-23  # optional - Nonexistent_LP_solver
-            True
+            sage: abs(g - B._get_answer()['gap'])  # optional - Nonexistent_LP_solver # tol 1e-22
+            0.0
         """
         raise NotImplementedError()
 
@@ -556,15 +556,15 @@ cdef class GenericSDPBackend:
             sage: p.solve()  # optional - Nonexistent_LP_solver
             -2.9999999...
             sage: B=p.get_backend()             # optional - Nonexistent_LP_solver
-            sage: B1 = B.slack(1); B1           # optional - Nonexistent_LP_solver
-            [8.02448...e-09 7.10444...e-09]
-            [7.10444...e-09 8.02448...e-09]
+            sage: B1 = B.slack(1); B1           # optional - Nonexistent_LP_solver # tol ???
+            [0.0 0.0]
+            [0.0 0.0]
             sage: B1.is_positive_definite()     # optional - Nonexistent_LP_solver
             True
             sage: x = p.get_values(x).values()  # optional - Nonexistent_LP_solver
-            sage: x[0]*b1 + x[1]*b2 - b3 + B1   # optional - Nonexistent_LP_solver
-            [ 9.2004...e-10 -6.0200...e-16]
-            [-6.0200...e-16  9.2004...e-10]
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1   # optional - Nonexistent_LP_solver # tol ???
+            [0.0 0.0]
+            [0.0 0.0]
 
         TESTS::
 

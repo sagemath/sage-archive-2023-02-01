@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-J-Trivial Semigroups
+J-trivial semigroups
 """
 #*****************************************************************************
 #  Copyright (C) 2016 Nicolas M. Thiéry <nthiery at users.sf.net>

@@ -974,11 +974,11 @@ cdef class SemidefiniteProgram(SageObject):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: p.solve()
-            -2.9999999...
+            sage: p.solve()                                                         # tol 1e-08
+            -3.0
             sage: x=p.get_values(x).values()
-            sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()
-            -3.0000000...
+            sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()  # tol 1e-07
+            -3.0
 
         Dual variable is orthogonal to the slack ::
 
@@ -1020,15 +1020,15 @@ cdef class SemidefiniteProgram(SageObject):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: p.solve()
-            -2.9999999...
-            sage: B1 = p.slack(1); B1               # tol 1e-8
+            sage: p.solve()                         # tol 1e-08
+            -3.0
+            sage: B1 = p.slack(1); B1               # tol 1e-08
             [0.0 0.0]
             [0.0 0.0]
             sage: B1.is_positive_definite()
             True
             sage: x = p.get_values(x).values()
-            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-9
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-09
             [0.0 0.0]
             [0.0 0.0]
 

@@ -650,12 +650,12 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: p.solve()
-            -2.9999999...
+            sage: p.solve()                                     # tol 1e-08
+            -3.0
             sage: B=p.get_backend()
             sage: x=p.get_values(x).values()
-            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()
-            -3.0000000...
+            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # tol 1e-07
+            -3.0
             sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # tol 1.5e-08
             0.0
 
@@ -701,8 +701,8 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: p.solve()
-            -2.9999999...
+            sage: p.solve()                         # tol 1e-08
+            -3.0
             sage: B = p.get_backend()
             sage: B1 = B.slack(1); B1               # tol 1e-08
             [0.0 0.0]

@@ -507,12 +507,12 @@ cdef class GenericSDPBackend:
             sage: b3 = matrix([[3, 3.], [3., 3.]])  # optional - Nonexistent_LP_solver
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)  # optional - Nonexistent_LP_solver
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)  # optional - Nonexistent_LP_solver
-            sage: p.solve()  # optional - Nonexistent_LP_solver
-            -2.9999999...
+            sage: p.solve()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
             sage: B=p.get_backend()  # optional - Nonexistent_LP_solver
             sage: x=p.get_values(x).values()  # optional - Nonexistent_LP_solver
-            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # optional - Nonexistent_LP_solver
-            -3.0000000...
+            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
             sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # optional - Nonexistent_LP_solver # tol ???
             0.0
 
@@ -553,8 +553,8 @@ cdef class GenericSDPBackend:
             sage: b3 = matrix([[3, 3.], [3., 3.]])  # optional - Nonexistent_LP_solver
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)  # optional - Nonexistent_LP_solver
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)  # optional - Nonexistent_LP_solver
-            sage: p.solve()  # optional - Nonexistent_LP_solver
-            -2.9999999...
+            sage: p.solve()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
             sage: B=p.get_backend()             # optional - Nonexistent_LP_solver
             sage: B1 = B.slack(1); B1           # optional - Nonexistent_LP_solver # tol ???
             [0.0 0.0]

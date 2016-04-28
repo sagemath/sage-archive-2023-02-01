@@ -122,6 +122,11 @@ More interesting example, the :func:`Lovasz theta <sage.graphs.lovasz_theta.lova
     sage: x=p.solve(); x+1
     3.31766...
 
+Unlike in the previous example, the slack variable is very far from 0::
+
+    sage: p.slack(0).trace()        # tol 1e-14
+    1.0
+
 The default CVXOPT backend computes with the Real Double Field, for example::
 
     sage: p = SemidefiniteProgram(solver='cvxopt')

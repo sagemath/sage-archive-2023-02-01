@@ -542,7 +542,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`LTrivialSemigroup`
+                - :wikipedia:`Green's_relations`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -587,7 +587,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`RTrivialSemigroup`
+                - :wikipedia:`Green's_relations`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -643,7 +643,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`JTrivialSemigroup`
+                - :wikipedia:`Green's_relations`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -679,7 +679,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`HTrivialSemigroup`
+                - :wikipedia:`Green's_relations`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
@@ -729,7 +729,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`AperiodicSemigroup`
+                - :wikipedia:`Aperiodic_semigroup`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`

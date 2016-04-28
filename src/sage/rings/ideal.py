@@ -940,8 +940,9 @@ class Ideal_generic(MonoidElement):
             sage: I = CC['x'].ideal(0)
             sage: I.is_trivial()
             True
-            
+
         This test addresses ticket :trac:`20514`::
+        
             sage: R = QQ['x', 'y']
             sage: I = R.ideal(R.gens())
             sage: I.is_trivial()

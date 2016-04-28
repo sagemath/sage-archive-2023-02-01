@@ -40,6 +40,7 @@ Individual Categories
    sage/categories/algebra_modules
    sage/categories/algebras
    sage/categories/algebras_with_basis
+   sage/categories/aperiodic_semigroups
    sage/categories/associative_algebras
    sage/categories/bialgebras
    sage/categories/bialgebras_with_basis
@@ -111,11 +112,14 @@ Individual Categories
    sage/categories/highest_weight_crystals
    sage/categories/hopf_algebras
    sage/categories/hopf_algebras_with_basis
+   sage/categories/h_trivial_semigroups
    sage/categories/infinite_enumerated_sets
    sage/categories/integral_domains
+   sage/categories/j_trivial_semigroups
    sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/lie_groups
+   sage/categories/l_trivial_semigroups
    sage/categories/magmas
    sage/categories/magmas_and_additive_magmas
    sage/categories/magmatic_algebras
@@ -141,6 +145,7 @@ Individual Categories
    sage/categories/ring_ideals
    sage/categories/rings
    sage/categories/rngs
+   sage/categories/r_trivial_semigroups
    sage/categories/schemes
    sage/categories/semigroups
    sage/categories/semirings

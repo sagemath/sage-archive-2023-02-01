@@ -940,17 +940,14 @@ class Ideal_generic(MonoidElement):
             sage: I = CC['x'].ideal(0)
             sage: I.is_trivial()
             True
+            
+        This test addresses ticket :trac:`20514`::
+            sage: R = QQ['x', 'y']
+            sage: I = R.ideal(R.gens())
+            sage: I.is_trivial()
+            False
         """
-        if self.is_zero():
-            return True
-        # If self is principal, can give a complete answer
-        if self.is_principal():
-            return self.gens()[0].is_unit()
-        # If self is not principal, can only give an affirmative answer
-        for g in self.gens():
-            if g.is_unit():
-                return True
-        raise NotImplementedError
+        return self.is_zero() or self == self.ring().unit_ideal()
 
     def category(self):
         """

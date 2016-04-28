@@ -535,7 +535,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: C = Semigroups().LTrivial(); C
                 Category of ltrivial semigroups
 
-            A `L`-trivial monoid is `H`-trivial::
+            A `L`-trivial semigroup is `H`-trivial::
 
                 sage: sorted(C.axioms())
                 ['Associative', 'HTrivial', 'LTrivial']
@@ -580,7 +580,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: C = Semigroups().RTrivial(); C
                 Category of rtrivial semigroups
 
-            An `R`-trivial monoid is `H`-trivial::
+            An `R`-trivial semigroup is `H`-trivial::
 
                 sage: sorted(C.axioms())
                 ['Associative', 'HTrivial', 'RTrivial']
@@ -712,7 +712,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: Semigroups().Aperiodic()
                 Category of aperiodic semigroups
 
-            An aperiodic monoid is `H`-trivial::
+            An aperiodic semigroup is `H`-trivial::
 
                 sage: Semigroups().Aperiodic().axioms()
                 frozenset({'Aperiodic', 'Associative', 'HTrivial'})

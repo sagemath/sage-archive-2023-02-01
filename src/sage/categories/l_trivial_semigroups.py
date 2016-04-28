@@ -30,7 +30,7 @@ class LTrivialSemigroups(CategoryWithAxiom):
 
     def RTrivial_extra_super_categories(self):
         r"""
-        Implement the fact that an `L`-trivial and `R`-trivial monoid
+        Implement the fact that an `L`-trivial and `R`-trivial semigroup
         is `J`-trivial.
 
         EXAMPLES::

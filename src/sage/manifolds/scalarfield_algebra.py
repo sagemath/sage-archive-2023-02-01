@@ -4,7 +4,7 @@ Algebra of Scalar Fields
 The class :class:`ScalarFieldAlgebra` implements the commutative algebra
 `C^0(M)` of scalar fields on a topological manifold `M` over a topological
 field `K`. By *scalar field*, it
-is meant a continuous function `M\rightarrow K`. The set
+is meant a continuous function `M \to K`. The set
 `C^0(M)` is an algebra over `K`, whose ring product is the pointwise
 multiplication of `K`-valued functions, which is clearly commutative.
 
@@ -14,9 +14,9 @@ AUTHORS:
 
 REFERENCES:
 
-- J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
+- [Lee11]_ : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+- [KN63]_ : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
 
 """
@@ -33,6 +33,7 @@ REFERENCES:
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.symbolic.ring import SR
 from sage.manifolds.scalarfield import ScalarField
@@ -44,49 +45,44 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     If `M` is a topological manifold over a topological field `K`, the
     commutative algebra of scalar fields on `M` is the set `C^0(M)` of all
     continuous maps `M\rightarrow K`. The set `C^0(M)` is an algebra over `K`,
-    whose ring product is the pointwise multiplication of `K`-valued functions,
-    which is clearly commutative.
+    whose ring product is the pointwise multiplication of `K`-valued
+    functions, which is clearly commutative.
 
     If `K = \RR` or `K = \CC`, the field `K` over which the
-    algebra `C^0(M)` is constructed is represented by Sage's Symbolic Ring
-    ``SR``, since there is no exact representation of `\RR` nor `\CC` in Sage.
-
-    The class :class:`ScalarFieldAlgebra` inherits from
-    :class:`~sage.structure.parent.Parent`, with the category set to
-    :class:`~sage.categories.commutative_algebras.CommutativeAlgebras`.
-    The corresponding *element* class is
-    :class:`~sage.manifolds.scalarfield.ScalarField`.
+    algebra `C^0(M)` is constructed is represented by the :class:`Symbolic
+    Ring <sage.symbolic.ring.SymbolicRing>` ``SR``, since there is no exact
+    representation of `\RR` nor `\CC`.
 
     INPUT:
 
-    - ``domain`` -- the topological manifold `M` on which the scalar fields are
-      defined (must be an instance of class
-      :class:`~sage.manifolds.manifold.TopologicalManifold`)
+    - ``domain`` -- the topological manifold `M` on which the scalar fields
+      are defined
 
     EXAMPLES:
 
-    Algebras of scalar fields on the sphere `S^2` and on some open subsets of
-    it::
+    Algebras of scalar fields on the sphere `S^2` and on some open
+    subsets of it::
 
         sage: M = Manifold(2, 'M', structure='topological') # the 2-dimensional sphere S^2
-        sage: U = M.open_subset('U') # complement of the North pole
-        sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-        sage: V = M.open_subset('V') # complement of the South pole
-        sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-        sage: M.declare_union(U,V)   # S^2 is the union of U and V
+        sage: U = M.open_subset('U')  # complement of the North pole
+        sage: c_xy.<x,y> = U.chart()  # stereographic coordinates from the North pole
+        sage: V = M.open_subset('V')  # complement of the South pole
+        sage: c_uv.<u,v> = V.chart()  # stereographic coordinates from the South pole
+        sage: M.declare_union(U,V)    # S^2 is the union of U and V
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                 restrictions2= u^2+v^2!=0)
+        ....:                                intersection_name='W',
+        ....:                                restrictions1= x^2+y^2!=0,
+        ....:                                restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
-        sage: CM = M.scalar_field_algebra() ; CM
+        sage: CM = M.scalar_field_algebra(); CM
         Algebra of scalar fields on the 2-dimensional topological manifold M
         sage: W = U.intersection(V)  # S^2 minus the two poles
-        sage: CW = W.scalar_field_algebra() ; CW
-        Algebra of scalar fields on the Open subset W of the 2-dimensional
-         topological manifold M
+        sage: CW = W.scalar_field_algebra(); CW
+        Algebra of scalar fields on the Open subset W of the
+         2-dimensional topological manifold M
 
     `C^0(M)` and `C^0(W)` belong to the category of commutative
-    algebras over `\RR` (represented here by Sage's
+    algebras over `\RR` (represented here by
     :class:`~sage.symbolic.ring.SymbolicRing`)::
 
         sage: CM.category()
@@ -152,12 +148,11 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
          manifold M
         sage: CW.one().display()
         1: W --> R
-        (x, y) |--> 1
-        (u, v) |--> 1
+          (x, y) |--> 1
+          (u, v) |--> 1
 
-    A generic element can be constructed as for any parent in Sage, namely
-    by means of the ``__call__`` operator on the parent (here with the
-    dictionary of the coordinate expressions defining the scalar field)::
+    A generic element can be constructed by using a dictionary of
+    the coordinate expressions defining the scalar field::
 
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional topological manifold M
@@ -181,8 +176,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         True
 
     Elements can also be constructed by means of the method
-    :meth:`~sage.manifolds.manifold.TopologicalManifold.scalar_field` acting on
-    the domain (this allows one to set the name of the scalar field at the
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.scalar_field` acting
+    on the domain (this allows one to set the name of the scalar field at the
     construction)::
 
         sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)},
@@ -209,12 +204,12 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     on `M`::
 
         sage: fW = CW(f) ; fW
-        Scalar field on the Open subset W of the 2-dimensional topological
-         manifold M
+        Scalar field on the Open subset W of the
+         2-dimensional topological manifold M
         sage: fW.display()
         W --> R
-        (x, y) |--> arctan(x^2 + y^2)
-        (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+          (x, y) |--> arctan(x^2 + y^2)
+          (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
 
     ::
 
@@ -227,21 +222,19 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         sage: s = fW + f
         sage: s.parent()
-        Algebra of scalar fields on the Open subset W of the 2-dimensional
-         topological manifold M
+        Algebra of scalar fields on the Open subset W of the
+         2-dimensional topological manifold M
         sage: s.display()
         W --> R
-        (x, y) |--> 2*arctan(x^2 + y^2)
-        (u, v) |--> pi - 2*arctan(u^2 + v^2)
+          (x, y) |--> 2*arctan(x^2 + y^2)
+          (u, v) |--> pi - 2*arctan(u^2 + v^2)
 
-    Another coercion is that from the Symbolic Ring, the parent of all
-    symbolic expressions (cf. :class:`~sage.symbolic.ring.SymbolicRing`).
+    Another coercion is that from the Symbolic Ring.
     Since the Symbolic Ring is the base ring for the algebra ``CM``, the
     coercion of a symbolic expression ``s`` is performed by the operation
-    ``s*CM.one()``, which invokes the reflected multiplication operator
-    :meth:`sage.manifolds.scalarfield.ScalarField._rmul_`. If the symbolic
-    expression does not involve any chart coordinate, the outcome is a
-    constant scalar field::
+    ``s*CM.one()``, which invokes the (reflected) multiplication operator.
+    If the symbolic expression does not involve any chart coordinate,
+    the outcome is a constant scalar field::
 
         sage: h = CM(pi*sqrt(2)) ; h
         Scalar field on the 2-dimensional topological manifold M
@@ -272,7 +265,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: h = CM(x+u); h.display()
         M --> R
 
-    .. RUBRIC:: TESTS OF THE ALGEBRA LAWS:
+    TESTS:
 
     Ring laws::
 
@@ -391,8 +384,6 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                         category=CommutativeAlgebras(base_field))
         self._domain = domain
         self._populate_coercion_lists_()
-        self._zero = None # zero element (to be set by method zero())
-        self._one = None  # unit element (to be set by method one())
 
     #### Methods required for any Parent
     def _element_constructor_(self, coord_expression=None, chart=None,
@@ -409,26 +400,29 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             then ``_element_constructor_`` return the restriction of
             the scalar field to ``self._domain``
           - a dictionary of coordinate expressions in various charts on the
-            domain, with the charts as keys;
+            domain, with the charts as keys
           - a single coordinate expression; if the argument ``chart`` is
             ``'all'``, this expression is set to all the charts defined
             on the open set; otherwise, the expression is set in the
             specific chart provided by the argument ``chart``
 
-          NB: If ``coord_expression`` is ``None`` or incomplete, coordinate
-          expressions can be added after the creation of the object, by means
-          of the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
-          :meth:`set_expr`
         - ``chart`` -- (default: ``None``) chart defining the coordinates used
           in ``coord_expression`` when the latter is a single coordinate
           expression; if none is provided (default), the default chart of the
           open set is assumed. If ``chart=='all'``, ``coord_expression`` is
           assumed to be independent of the chart (constant scalar field).
+
         - ``name`` -- (default: ``None``) string; name (symbol) given to the
           scalar field
+
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the scalar field; if none is provided, the LaTeX symbol is set to
           ``name``
+
+        If ``coord_expression`` is ``None`` or incomplete, coordinate
+        expressions can be added after the creation of the object, by means
+        of the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
+        :meth:`set_expr`
 
         TESTS::
 
@@ -448,8 +442,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
             sage: fU = CU(f); fU
-            Scalar field on the Open subset U of the 2-dimensional topological
-             manifold M
+            Scalar field on the Open subset U of the
+             2-dimensional topological manifold M
             sage: fU.display()
             U --> R
             (x, y) |--> y^2 + x
@@ -467,9 +461,9 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                                           coord_expression=sexpress, name=name,
                                           latex_name=latex_name)
             else:
-                raise TypeError("cannot convert the " +
+                raise TypeError("cannot convert " +
                                 "{} to a scalar ".format(coord_expression) +
-                                "field on the {}".format(self._domain))
+                                "field on {}".format(self._domain))
         else:
             # generic constructor:
             resu = self.element_class(self,
@@ -498,7 +492,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent
+        Determine whether coercion to ``self`` exists from ``other``.
 
         TESTS::
 
@@ -529,7 +523,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -537,8 +531,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: CM = M.scalar_field_algebra()
             sage: CM._repr_()
             'Algebra of scalar fields on the 2-dimensional topological manifold M'
-            sage: repr(CM)  # indirect doctest
-            'Algebra of scalar fields on the 2-dimensional topological manifold M'
+            sage: CM
+            Algebra of scalar fields on the 2-dimensional topological manifold M
 
         """
         return "Algebra of scalar fields on the {}".format(self._domain)
@@ -553,12 +547,13 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: CM = M.scalar_field_algebra()
             sage: CM._latex_()
             'C^0 \\left(M\\right)'
-            sage: latex(CM)  # indirect doctest
+            sage: latex(CM)
             C^0 \left(M\right)
 
          """
         return r"C^0 \left("  + self._domain._latex_() + r"\right)"
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero element of the algebra.
@@ -583,15 +578,15 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             True
 
         """
-        if self._zero is None:
-            coord_express = dict([(chart, chart.zero_function()) for chart
-                                                      in self._domain.atlas()])
-            self._zero = self.element_class(self,
-                                            coord_expression=coord_express,
-                                            name='zero', latex_name='0')
-            self._zero._is_zero = True
-        return self._zero
+        coord_express = {chart: chart.zero_function()
+                         for chart in self._domain.atlas()}
+        zero = self.element_class(self,
+                                  coord_expression=coord_express,
+                                  name='zero', latex_name='0')
+        zero._is_zero = True
+        return zero
 
+    @cached_method
     def one(self):
         r"""
         Return the unit element of the algebra.
@@ -599,7 +594,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         This is nothing but the constant scalar field `1` on the manifold,
         where `1` is the unit element of the base field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -616,10 +611,9 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             True
 
         """
-        if self._one is None:
-            coord_express = dict([(chart, chart.one_function()) for chart
-                                                      in self._domain.atlas()])
-            self._one = self.element_class(self,
-                                           coord_expression=coord_express,
-                                           name='1', latex_name='1')
-        return self._one
+        coord_express = {chart: chart.one_function()
+                         for chart in self._domain.atlas()}
+        return self.element_class(self,
+                                  coord_expression=coord_express,
+                                  name='1', latex_name='1')
+

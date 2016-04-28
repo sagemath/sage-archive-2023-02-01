@@ -6,16 +6,16 @@ a *coordinate function*  is a function from a chart codomain
 to `K`. In other words, a coordinate function is a `K`-valued function of
 the coordinates associated to some chart.
 
-More precisely, let `(U,\varphi)` be a chart on `M`, i.e. `U` is an open
-subset of `M` and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism
+More precisely, let `(U, \varphi)` be a chart on `M`, i.e. `U` is an open
+subset of `M` and `\varphi: U \to V \subset K^n` is a homeomorphism
 from `U` to an open subset `V` of `K^n`. A *coordinate function associated
-to the chart* `(U,\varphi)` is a function
+to the chart* `(U, \varphi)` is a function
 
 .. MATH::
 
     \begin{array}{cccc}
-        f:&  V\subset K^n & \longrightarrow & K \\
-          &  (x^1,\ldots, x^n) & \longmapsto & f(x^1,\ldots, x^n)
+        f:&  V \subset K^n & \longrightarrow & K \\
+          &  (x^1, \ldots, x^n) & \longmapsto & f(x^1, \ldots, x^n)
     \end{array}
 
 This module implements symbolic coordinate functions via the class
@@ -40,34 +40,35 @@ from sage.symbolic.ring import SR
 from sage.structure.element import RingElement
 from sage.misc.latex import latex
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
-from sage.manifolds.utilities import ExpressionNice, simplify_chain_real, \
-                                     simplify_chain_generic
+from sage.manifolds.utilities import (ExpressionNice, simplify_chain_real,
+                                      simplify_chain_generic)
 
 class CoordFunctionSymb(CoordFunction):
     r"""
     Coordinate function with symbolic representation.
 
-    If `(U,\varphi)` is a chart on a topological manifold `M` of dimension `n`
-    over a topological field `K`,  a *coordinate function* associated to
-    `(U,\varphi)` is a map
+    If `(U, \varphi)` is a chart on a topological manifold `M` of
+    dimension `n` over a topological field `K`,  a *coordinate function*
+    associated to `(U, \varphi)` is a map
 
     .. MATH::
 
         \begin{array}{llcl}
         f:& V \subset K^n & \longrightarrow & K \\
-          & (x^1,\ldots,x^n) & \longmapsto & f(x^1,\ldots,x^n),
+          & (x^1, \ldots, x^n) & \longmapsto & f(x^1, \ldots, x^n),
         \end{array}
 
     where `V` is the codomain of `\varphi`. In other words, `f` is a
     `K`-valued function of the
-    coordinates associated to the chart `(U,\varphi)`.
+    coordinates associated to the chart `(U, \varphi)`.
 
     INPUT:
 
-    - ``chart`` -- the chart `(U, \varphi)`, as an instance of class
-      :class:`~sage.manifolds.chart.Chart`
-    - ``expression`` -- a symbolic expression representing `f(x^1,\ldots,x^n)`,
-      where `(x^1,\ldots,x^n)` are the coordinates of the chart `(U, \varphi)`
+    - ``chart`` -- :class:`~sage.manifolds.chart.Chart`;
+      the chart `(U, \varphi)`
+    - ``expression`` -- a symbolic expression representing
+      `f(x^1, \ldots, x^n)`, where `(x^1, \ldots, x^n)` are the
+      coordinates of the chart `(U, \varphi)`
 
     EXAMPLES:
 
@@ -132,8 +133,8 @@ class CoordFunctionSymb(CoordFunction):
         sage: f == h
         True
 
-    .. RUBRIC:: Differences between ``CoordFunctionSymb`` and callable symbolic
-      expressions
+    .. RUBRIC:: Differences between ``CoordFunctionSymb`` and callable
+      symbolic expressions
 
     Callable symbolic expressions are defined directly from symbolic
     expressions of the coordinates::
@@ -175,15 +176,16 @@ class CoordFunctionSymb(CoordFunction):
 
     On the contrary, the sum of the corresponding :class:`CoordFunctionSymb`
     instances is automatically simplified (see
-    :func:`~sage.manifolds.utilities.simplify_chain_real`
-    and :func:`~sage.manifolds.utilities.simplify_chain_generic` for details)::
+    :func:`~sage.manifolds.utilities.simplify_chain_real` and
+    :func:`~sage.manifolds.utilities.simplify_chain_generic` for details)::
 
         sage: f = X.function(cos(x)^2) ; g = X.function(sin(x)^2)
         sage: f + g
         1
 
-    Another difference regards the display of partial derivatives: for callable
-    symbolic functions, it relies on Pynac notation ``D[0]``, ``D[1]``, etc.::
+    Another difference regards the display of partial derivatives:
+    for callable symbolic functions, it relies on Pynac notation
+    ``D[0]``, ``D[1]``, etc.::
 
         sage: g = function('g')(x, y)
         sage: f0(x,y) = diff(g, x) + diff(g, y)
@@ -199,13 +201,14 @@ class CoordFunctionSymb(CoordFunction):
     The difference is even more dramatic on LaTeX outputs::
 
         sage: latex(f0)
-        \left( x, y \right) \ {\mapsto} \ D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+        \left( x, y \right) \ {\mapsto} \ D[0]\left(g\right)\left(x, y\right)
+         + D[1]\left(g\right)\left(x, y\right)
         sage: latex(f)
         \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
     Note that this regards only the display of coordinate functions:
     internally, the Pynac notation is still used, as we can check by asking
-    for the symbolic expression stored in `f`::
+    for the symbolic expression stored in ``f``::
 
         sage: f.expr()
         D[0](g)(x, y) + D[1](g)(x, y)
@@ -349,8 +352,8 @@ class CoordFunctionSymb(CoordFunction):
         r"""
         Display the function in arrow notation.
 
-        The output is either text-formatted (console mode) or LaTeX-formatted
-        (notebook mode).
+        The output is either text-formatted (console mode) or
+        LaTeX-formatted (notebook mode).
 
         EXAMPLES:
 
@@ -386,13 +389,13 @@ class CoordFunctionSymb(CoordFunction):
 
     def expr(self):
         r"""
-        Return the symbolic expression representing the image of the coordinate
-        function.
+        Return the symbolic expression representing the image of
+        the coordinate function.
 
         OUTPUT:
 
-        - symbolic expression, involving the chart coordinates (instance of
-          :class:`sage.symbolic.expression.Expression`)
+        - :class:`symbolic expression <sage.symbolic.expression.Expression>`
+          involving the chart coordinates
 
         EXAMPLES:
 
@@ -423,8 +426,8 @@ class CoordFunctionSymb(CoordFunction):
             sage: f.expr().subs(a=2)
             2*x*y
 
-        Note that for substituting the value of a coordinate, the function call
-        can be used as well::
+        Note that for substituting the value of a coordinate, the function
+        call can be used as well::
 
             sage: f(x,3)
             3*a*x
@@ -440,15 +443,15 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``*coords`` -- list of coordinates `(x^1,...,x^n)` where the
-          function `f` is to be evaluated
+        - ``*coords`` -- list of coordinates `(x^1, \ldots, x^n)`,
+          where the function `f` is to be evaluated
         - ``**options`` -- allows to pass ``simplify=False`` to disable the
           call of the simplification chain on the result
 
         OUTPUT:
 
-        - the value `f(x^1,...,x^n)`, where `f` is the current coordinate
-          function.
+        - the value `f(x^1, \ldots, x^n)`, where `f` is the current
+          coordinate function
 
         TESTS::
 
@@ -517,9 +520,9 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - an instance of :class:`CoordFunctionSymb`
+        - a :class:`CoordFunctionSymb`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -542,7 +545,6 @@ class CoordFunctionSymb(CoordFunction):
         """
         return CoordFunctionSymb(self._chart, self._express)
 
-
     def diff(self, coord):
         r"""
         Partial derivative with respect to a coordinate.
@@ -557,7 +559,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - instance of :class:`CoordFunctionSymb` representing the partial
+        - a :class:`CoordFunctionSymb` representing the partial
           derivative `\frac{\partial f}{\partial x^i}`
 
         EXAMPLES:
@@ -625,7 +627,7 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``other`` -- another instance of :class:`CoordFunction` or a value
+        - ``other`` -- a :class:`CoordFunction` or a value
 
         OUTPUT:
 
@@ -665,33 +667,6 @@ class CoordFunctionSymb(CoordFunction):
                 return bool(other._express == self._express)
         else:
             return bool(self._express == other)
-
-    def __pos__(self):
-        r"""
-        Unary plus operator.
-
-        This method is identical to :meth:`copy`.
-
-        OUTPUT:
-
-        - an exact copy of ``self``
-
-        TESTS:
-
-        Coordinate functions associated to a 2-dimensional chart::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y^2)
-            sage: g = +f; g
-            y^2 + x
-            sage: type(g)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: g == f
-            True
-
-        """
-        return CoordFunctionSymb(self._chart, self._express)
 
     def __neg__(self):
         r"""
@@ -760,12 +735,12 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``other`` -- another instance of :class:`CoordFunction` or a value
+        - ``other`` -- a :class:`CoordFunction` or a value
 
         OUTPUT:
 
-        - coordinate function resulting from the addition of ``self`` and
-          ``other``
+        - coordinate function resulting from the addition of ``self``
+          and ``other``
 
         TESTS::
 
@@ -814,12 +789,12 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``other`` -- another instance of :class:`CoordFunction` or a value
+        - ``other`` -- a :class:`CoordFunction` or a value
 
         OUTPUT:
 
-        - coordinate function resulting from the subtraction of ``other`` from
-          ``self``
+        - coordinate function resulting from the subtraction of ``other``
+          from ``self``
 
         TESTS::
 
@@ -871,12 +846,12 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``other`` -- another instance of :class:`CoordFunction` or a value
+        - ``other`` -- a :class:`CoordFunction` or a value
 
         OUTPUT:
 
-        - coordinate function resulting from the multiplication of ``self`` by
-          ``other``
+        - coordinate function resulting from the multiplication of ``self``
+          by ``other``
 
         TESTS::
 
@@ -926,12 +901,12 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``other`` -- another instance of :class:`CoordFunction` or a value
+        - ``other`` -- a :class:`CoordFunction` or a value
 
         OUTPUT:
 
-        - coordinate function resulting from the division of ``self`` by
-          ``other``
+        - coordinate function resulting from the division of ``self``
+          by ``other``
 
         TESTS::
 
@@ -988,8 +963,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\exp(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\exp(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1015,8 +990,8 @@ class CoordFunctionSymb(CoordFunction):
 
         INPUT:
 
-        - ``base`` -- (default: ``None``) base of the logarithm; if None, the
-          natural logarithm (i.e. logarithm to base e) is returned
+        - ``base`` -- (default: ``None``) base of the logarithm; if ``None``,
+          the natural logarithm (i.e. logarithm to base `e`) is returned
 
         OUTPUT:
 
@@ -1084,8 +1059,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\sqrt{f}`, where `f` is the current coordinate
-          function.
+        - coordinate function `\sqrt{f}`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1111,8 +1086,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\cos(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\cos(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1138,8 +1113,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\sin(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\sin(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1165,8 +1140,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\tan(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\tan(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1192,8 +1167,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\arccos(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\arccos(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1221,8 +1196,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\arcsin(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\arcsin(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1250,8 +1225,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\arctan(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\arctan(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1279,8 +1254,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\cosh(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\cosh(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1306,8 +1281,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\sinh(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\sinh(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1333,8 +1308,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\tanh(f)`, where `f` is the current coordinate
-          function.
+        - coordinate function `\tanh(f)`, where `f` is the current
+          coordinate function
 
         EXAMPLES::
 
@@ -1361,7 +1336,7 @@ class CoordFunctionSymb(CoordFunction):
         OUTPUT:
 
         - coordinate function `\mathrm{arcosh}(f)`, where `f` is the current
-          coordinate function.
+          coordinate function
 
         EXAMPLES::
 
@@ -1390,7 +1365,7 @@ class CoordFunctionSymb(CoordFunction):
         OUTPUT:
 
         - coordinate function `\mathrm{arsinh}(f)`, where `f` is the current
-          coordinate function.
+          coordinate function
 
         EXAMPLES::
 
@@ -1418,8 +1393,8 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - coordinate function `\mathrm{artanh}(f)`, where `f` is the current
-          coordinate function.
+        - coordinate function `\mathrm{artanh}(f)`, where `f` is the
+          current coordinate function
 
         EXAMPLES::
 
@@ -1447,7 +1422,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def _del_derived(self):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         TESTS::
 
@@ -1477,7 +1452,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the coordinate function, with its expression simplified.
+        - the coordinate function, with its expression simplified
 
         EXAMPLES:
 
@@ -1536,7 +1511,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the coordinate function, with its expression factorized.
+        - the coordinate function, with its expression factorized
 
         EXAMPLES:
 
@@ -1566,7 +1541,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the coordinate function, with its expression expanded.
+        - the coordinate function, with its expression expanded
 
         EXAMPLES:
 
@@ -1602,7 +1577,7 @@ class CoordFunctionSymb(CoordFunction):
         OUTPUT:
 
         - the coordinate function, with the coefficients of ``s`` grouped in
-          its expression.
+          its expression
 
         EXAMPLES:
 
@@ -1637,7 +1612,7 @@ class CoordFunctionSymb(CoordFunction):
         OUTPUT:
 
         - the coordinate function, with the common factors collected in
-          its expression.
+          its expression
 
         EXAMPLES:
 
@@ -1662,3 +1637,4 @@ class CoordFunctionSymb(CoordFunction):
         self._express = self._express.collect_common_factors()
         self._del_derived()
         return self
+

@@ -26,7 +26,7 @@ from sage.symbolic.expression import Expression
 
 def simplify_sqrt_real(expr):
     r"""
-    Simplify sqrt in symbolic expressions in the real domain.
+    Simplify ``sqrt`` in symbolic expressions in the real domain.
 
     EXAMPLES:
 
@@ -44,8 +44,8 @@ def simplify_sqrt_real(expr):
         -2*x + 1
 
     This improves over Sage's
-    :meth:`~sage.symbolic.expression.Expression.canonicalize_radical` which yields
-    incorrect results when x<0::
+    :meth:`~sage.symbolic.expression.Expression.canonicalize_radical`,
+    which yields incorrect results when ``x < 0``::
 
         sage: forget()  # removes the assumption x<0
         sage: sqrt(x^2).canonicalize_radical()
@@ -58,7 +58,7 @@ def simplify_sqrt_real(expr):
         sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).canonicalize_radical() # wrong output
         2*x - 1
 
-    Simplification of nested sqrt's::
+    Simplification of nested ``sqrt``'s::
 
         sage: forget()  # removes the assumption x<0
         sage: simplify_sqrt_real( sqrt(1 + sqrt(x^2)) )
@@ -148,7 +148,7 @@ def simplify_sqrt_real(expr):
 
 def simplify_abs_trig(expr):
     r"""
-    Simplify abs(sin(...)) in symbolic expressions.
+    Simplify ``abs(sin(...))`` in symbolic expressions.
 
     EXAMPLES::
 
@@ -417,7 +417,7 @@ def simplify_chain_generic(expr):
 class ExpressionNice(Expression):
     r"""
     Subclass of :class:`~sage.symbolic.expression.Expression` for a
-    ''human-friendly'' display of partial derivatives and the possibility to
+    "human-friendly" display of partial derivatives and the possibility to
     shorten the display by skipping the arguments of symbolic functions.
 
     INPUT:
@@ -464,7 +464,10 @@ class ExpressionNice(Expression):
         sage: ExpressionNice(fun)
         -x^2*d^2(f)/dxdy + (d(f)/dx*d(g)/d(f(x, y)) + d(g)/dx)*x
         sage: latex(ExpressionNice(fun))
-        -x^{2} \frac{\partial^2\,f}{\partial x\partial y} + {\left(\frac{\partial\,f}{\partial x} \frac{\partial\,g}{\partial \left( f\left(x, y\right) \right)} + \frac{\partial\,g}{\partial x}\right)} x
+        -x^{2} \frac{\partial^2\,f}{\partial x\partial y}
+         + {\left(\frac{\partial\,f}{\partial x}
+           \frac{\partial\,g}{\partial \left( f\left(x, y\right) \right)}
+         + \frac{\partial\,g}{\partial x}\right)} x
 
     Note that ``D[1](g)(x, f(x,y))`` is rendered as ``d(g)/d(f(x, y))``.
 
@@ -507,10 +510,9 @@ class ExpressionNice(Expression):
         f\left(x, y\right) \left(\frac{\partial\,f}{\partial y}\right)^{2}
 
     """
-
     def __init__(self, ex):
         r"""
-        Construct an instance of ExpressionNice using expression.
+        Initialize ``self``.
 
         TESTS::
 
@@ -532,7 +534,7 @@ class ExpressionNice(Expression):
         r"""
         String representation of the object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('x y z')
             (x, y, z)
@@ -548,13 +550,9 @@ class ExpressionNice(Expression):
             y*(z - d(h)/dz)^2 + x*d^2(f)/dxdy
 
         """
-
         d = self._parent._repr_element_(self)
 
         import re
-        # Fix for proper coercion of types:
-        # http://www.sagemath.org/doc/faq/faq-usage.html#i-have-type-issues-using-scipy-cvxopt-or-numpy-from-sage
-        Integer = int
 
         # find all occurences of diff
         list_d = []
@@ -562,7 +560,6 @@ class ExpressionNice(Expression):
 
         # process the list
         for m in list_d:
-
             funcname = m[1]
             diffargs = m[3]
             numargs = len(diffargs)
@@ -602,7 +599,6 @@ class ExpressionNice(Expression):
 
         from sage.manifolds.coord_func_symb import CoordFunctionSymb
         if CoordFunctionSymb._omit_fargs:
-
             list_f = []
             _list_functions(self, list_f)
 
@@ -610,7 +606,6 @@ class ExpressionNice(Expression):
                 d = d.replace(m[1] + m[2], m[1])
 
         return d
-
 
     def _latex_(self):
         r"""
@@ -648,21 +643,16 @@ class ExpressionNice(Expression):
             \frac{\partial\,{\cal F}}{\partial y}
 
         """
-
         d = self._parent._latex_element_(self)
 
         import re
-        # Fix for proper coercion of types:
-        # http://www.sagemath.org/doc/faq/faq-usage.html#i-have-type-issues-using-scipy-cvxopt-or-numpy-from-sage
-        Integer = int
 
         # find all occurences of diff
         list_d = []
         _list_derivatives(self, list_d)
 
         for m in list_d:
-
-            if str(m[1])==str(m[2]):
+            if str(m[1]) == str(m[2]):
                 funcname = str(m[1])
             else:
                 funcname = str(m[2])
@@ -678,21 +668,21 @@ class ExpressionNice(Expression):
             variables = m[4]
 
             from sage.misc.latex import latex
-            strv = list(str(v) for v in variables)
-            latv = list(latex(v) for v in variables)
+            strv = [str(v) for v in variables]
+            latv = [latex(v) for v in variables]
 
             # checking if the variable is composite
-            for i in range(len(strv)):
-                if bool(re.search(r'[+|-|/|*|^|(|)]', strv[i])):
+            for i, val in enumerate(strv):
+                if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
                     latv[i] = "\left(" + latv[i] + "\\right)"
 
             # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
-            occ = dict((i, latv[i] + "^" + latex(diffargs.count(i))
-                       if (diffargs.count(i)>1) else latv[i])
-                       for i in diffargs)
+            occ = {i: (latv[i] + "^" + latex(diffargs.count(i))
+                       if diffargs.count(i) > 1 else latv[i])
+                   for i in diffargs}
 
             res = "\\frac{\partial" + numargs + "\," + funcname + \
-                  "}{\partial " + "\partial ".join([i for i in occ.values()]) + "}"
+                  "}{\partial " + "\partial ".join(i for i in occ.values()) + "}"
 
             # representation of the operator
             s = self._parent._latex_element_(m[0])
@@ -709,7 +699,6 @@ class ExpressionNice(Expression):
         # if omit_function_args(True):
         from sage.manifolds.coord_func_symb import CoordFunctionSymb
         if CoordFunctionSymb._omit_fargs:
-
             list_f = []
             _list_functions(self, list_f)
 
@@ -721,19 +710,20 @@ class ExpressionNice(Expression):
 
 def _list_derivatives(ex, list_d, exponent=0):
     r"""
-    Function to find the occurrences of FDerivativeOperator in a symbolic
-    expression; inspired by http://ask.sagemath.org/question/10256/how-can-extract-different-terms-from-a-symbolic-expression/?answer=26136#post-id-26136
+    Function to find the occurrences of ``FDerivativeOperator`` in a symbolic
+    expression; inspired by
+    http://ask.sagemath.org/question/10256/how-can-extract-different-terms-from-a-symbolic-expression/?answer=26136#post-id-26136
 
     INPUT:
 
     - ``ex`` -- symbolic expression to be analyzed
-    - ``exponent`` -- (optional) exponent of FDerivativeOperator, passed to a
-      next level in the expression tree
+    - ``exponent`` -- (optional) exponent of ``FDerivativeOperator``,
+      passed to a next level in the expression tree
 
     OUTPUT:
 
-    - ``list_d`` -- tuple containing the details of FDerivativeOperator found,
-      in the following order:
+    - ``list_d`` -- tuple containing the details of ``FDerivativeOperator``
+      found, in the following order:
 
       1. operator
       2. function name
@@ -751,8 +741,8 @@ def _list_derivatives(ex, list_d, exponent=0):
         sage: _list_derivatives(df, list_d)
         sage: list_d
         [(D[0](f_x)(x), 'f_x', {\cal F}, [0], [x], 2)]
-    """
 
+    """
     op = ex.operator()
     operands = ex.operands()
 
@@ -761,13 +751,11 @@ def _list_derivatives(ex, list_d, exponent=0):
     from sage.symbolic.operators import FDerivativeOperator
 
     if op:
-
         if op is operator.pow:
             if isinstance(operands[0].operator(), FDerivativeOperator):
                 exponent = operands[1]
 
         if isinstance(op, FDerivativeOperator):
-
             parameter_set = op.parameter_set()
             function = repr(op.function())
             latex_function = latex(op.function())
@@ -814,17 +802,18 @@ def _list_functions(ex, list_f):
         sage: list_f = []
         sage: _list_functions(d, list_f)
         sage: list_f
-        [(f, 'f', '(x, y)', {\cal F}, \left(x, y\right)), (g_x, 'g_x', '(x, y)', 'g_{x}', \left(x, y\right))]
+        [(f, 'f', '(x, y)', {\cal F}, \left(x, y\right)),
+         (g_x, 'g_x', '(x, y)', 'g_{x}', \left(x, y\right))]
 
-   """
-
+    """
     op = ex.operator()
     operands = ex.operands()
 
     from sage.misc.latex import latex, latex_variable_name
 
     if op:
-
+        # FIXME: This hack is needed because the NewSymbolicFunction is
+        #   a class defined inside of the *function* function_factory().
         if str(type(op)) == "<class 'sage.symbolic.function_factory.NewSymbolicFunction'>":
             repr_function = repr(op)
             latex_function = latex(op)
@@ -835,7 +824,7 @@ def _list_functions(ex, list_f):
 
             repr_args = repr(ex.arguments())
             # remove comma in case of singleton
-            if len(ex.arguments())==1:
+            if len(ex.arguments()) == 1:
                 repr_args = repr_args.replace(",","")
 
             latex_args = latex(ex.arguments())
@@ -854,8 +843,8 @@ def nice_derivatives(status):
 
     - ``status`` -- boolean specifying the type of display:
 
-      - ``True``: nice (textbook) display
-      - ``False``: standard Pynac notation
+      * ``True`` - nice (textbook) display
+      * ``False`` - standard Pynac notation
 
     EXAMPLES::
 
@@ -899,8 +888,8 @@ def omit_function_args(status):
 
     - ``status`` -- boolean specifying the type of display:
 
-        - ``True``: arguments are not printed
-        - ``False``: standard Pynac notation
+        * ``True`` - arguments are not printed
+        * ``False`` - standard Pynac notation
 
     TESTS::
 
@@ -924,3 +913,4 @@ def omit_function_args(status):
     if not isinstance(status, bool):
         raise TypeError("the argument must be a boolean")
     CoordFunctionSymb._omit_fargs = status
+

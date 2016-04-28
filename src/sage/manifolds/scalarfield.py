@@ -17,9 +17,9 @@ AUTHORS:
 
 REFERENCES:
 
-- J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
+- [Lee11]_ : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+- [KN63]_ : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
 
 """
@@ -49,10 +49,10 @@ class ScalarField(CommutativeAlgebraElement):
 
     .. MATH::
 
-        f: M \longrightarrow K .
+        f: M \longrightarrow K.
 
-    The class :class:`ScalarField`  inherits from the class  :class:`~sage.structure.element.CommutativeAlgebraElement`, a scalar field
-    on `M` being an element of the commutative algebra `C^0(M)` (see
+    A scalar field on `M` is an element of the commutative algebra
+    `C^0(M)` (see
     :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`).
 
     INPUT:
@@ -60,29 +60,33 @@ class ScalarField(CommutativeAlgebraElement):
     - ``parent`` -- the algebra of scalar fields containing the scalar field
       (must be an instance of class
       :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)
+
     - ``coord_expression`` -- (default: ``None``) coordinate expression(s) of
       the scalar field; this can be either
 
-      - a dictionary of coordinate expressions in various charts on the domain,
-        with the charts as keys;
-      - a single coordinate expression; if the argument ``chart`` is
+      * a dictionary of coordinate expressions in various charts on
+        the domain, with the charts as keys;
+      * a single coordinate expression; if the argument ``chart`` is
         ``'all'``, this expression is set to all the charts defined
         on the open set; otherwise, the expression is set in the
         specific chart provided by the argument ``chart``
 
-      NB: If ``coord_expression`` is ``None`` or incomplete, coordinate
-      expressions can be added after the creation of the object, by means of
-      the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
-      :meth:`set_expr`
     - ``chart`` -- (default: ``None``) chart defining the coordinates used
       in ``coord_expression`` when the latter is a single coordinate
       expression; if none is provided (default), the default chart of the
       open set is assumed. If ``chart=='all'``, ``coord_expression`` is
       assumed to be independent of the chart (constant scalar field).
+
     - ``name`` -- (default: ``None``) string; name (symbol) given to the
       scalar field
+
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
       scalar field; if none is provided, the LaTeX symbol is set to ``name``
+
+    If ``coord_expression`` is ``None`` or incomplete, coordinate
+    expressions can be added after the creation of the object, by means of
+    the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
+    :meth:`set_expr`.
 
     EXAMPLES:
 
@@ -468,8 +472,8 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
         on V: (u, v) |--> (a*u^2 + a*v^2)/(u^2 + v^2 + 1)
 
-    However, if the symbolic variable is a chart coordinate, the multiplication
-    is performed only in the corresponding chart::
+    However, if the symbolic variable is a chart coordinate, the
+    multiplication is performed only in the corresponding chart::
 
         sage: s = x*f; s
         Scalar field on the 2-dimensional topological manifold M
@@ -511,10 +515,10 @@ class ScalarField(CommutativeAlgebraElement):
            (x, y) |--> x*y*H(x, y)
         on W: (u, v) |--> u*v*H(u/(u^2 + v^2), v/(u^2 + v^2))/(u^4 + 2*u^2*v^2 + v^4)
 
-    Thanks to the coercion `C^0(M)\rightarrow C^0(U)` mentionned
-    above, it is possible to multiply a scalar field defined on `M` by a
-    scalar field defined on `U`, the result being a scalar field defined on
-    `U`::
+    Thanks to the coercion `C^0(M) \to C^0(U)` mentioned above,
+    it is possible to multiply a scalar field defined on `M` by a
+    scalar field defined on `U`, the result being a scalar field
+    defined on `U`::
 
         sage: f.domain(), g.domain()
         (2-dimensional topological manifold M,
@@ -603,7 +607,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Construct a scalar field.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -656,9 +660,9 @@ class ScalarField(CommutativeAlgebraElement):
 
     def __nonzero__(self):
         r"""
-        Return True if ``self`` is nonzero and False otherwise.
+        Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
-        This method is called by self.is_zero().
+        This method is called by :meth:`is_zero()`.
 
         EXAMPLES:
 
@@ -773,31 +777,6 @@ class ScalarField(CommutativeAlgebraElement):
         """
         return not (self == other)
 
-    def __cmp__(self, other):
-        r"""
-        Old-style (Python 2) comparison operator.
-
-        This is provisory, until migration to Python 3 is achieved.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = M.scalar_field({X: x+y})
-            sage: f.__cmp__(1)
-            -1
-            sage: f.__cmp__(M.zero_scalar_field())
-            -1
-            sage: g = M.scalar_field({X: x+y})
-            sage: f.__cmp__(g)
-            0
-
-        """
-        if self == other:
-            return 0
-        else:
-            return -1
-
     ####### End of required methods for an algebra element (beside arithmetic) #######
 
     def _init_derived(self):
@@ -853,8 +832,8 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f = M.scalar_field({X: x+y}, name='f')
             sage: f._repr_()
             'Scalar field f on the 2-dimensional topological manifold M'
-            sage: repr(f)  # indirect doctest
-            'Scalar field f on the 2-dimensional topological manifold M'
+            sage: f
+            Scalar field f on the 2-dimensional topological manifold M
 
         """
         description = "Scalar field"
@@ -880,7 +859,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f = M.scalar_field({X: x+y}, name='f', latex_name=r'\Phi')
             sage: f._latex_()
             '\\Phi'
-            sage: latex(f)  # indirect doctest
+            sage: latex(f)
             \Phi
 
         """
@@ -899,7 +878,7 @@ class ScalarField(CommutativeAlgebraElement):
           field
         - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
           the scalar field; if ``None`` while ``name`` is provided, the LaTeX
-          symbol is set to ``name``.
+          symbol is set to ``name``
 
         EXAMPLES::
 
@@ -931,9 +910,10 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - instance of class :class:`~sage.manifolds.manifold.TopologicalManifold`
-          representing the manifold's open subset on which the scalar field
-          is defined.
+        - instance of class
+          :class:`~sage.manifolds.manifold.TopologicalManifold`
+          representing the manifold's open subset on which the
+          scalar field is defined
 
         EXAMPLES::
 
@@ -991,13 +971,13 @@ class ScalarField(CommutativeAlgebraElement):
         - ``from_chart`` -- (default: ``None``) chart from which the
           required expression is computed if it is not known already in the
           chart ``chart``; if ``None``, a chart is picked in the known
-          expressions.
+          expressions
 
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.coord_func.CoordFunction`
           representing the coordinate function of the scalar field in the
-          given chart.
+          given chart
 
         EXAMPLES:
 
@@ -1028,7 +1008,8 @@ class ScalarField(CommutativeAlgebraElement):
             {Chart (M, (x, y)): x*y^2, Chart (M, (u, v)): u^3 - u^2*v - u*v^2 + v^3}
 
         Usage in a physical context (simple Lorentz transformation - boost in
-        x direction, with relative velocity v between o1 and o2 frames)::
+        ``x`` direction, with relative velocity ``v`` between ``o1``
+        and ``o2`` frames)::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: o1.<t,x> = M.chart()
@@ -1078,7 +1059,7 @@ class ScalarField(CommutativeAlgebraElement):
                         break
                 if not found:
                     raise ValueError("no starting chart could be found to " +
-                              "compute the expression in the {}".format(chart))
+                                     "compute the expression in the {}".format(chart))
             change = self._domain._coord_changes[(chart, from_chart)]
             # old coordinates expressed in terms of the new ones:
             coords = [ change._transf._functions[i]._express
@@ -1263,7 +1244,7 @@ class ScalarField(CommutativeAlgebraElement):
           in terms of the restriction of the coordinate chart `(U,(x^i))` to
           `V` is already known or can be evaluated by a change of coordinates.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Scalar field on the sphere `S^2`::
 
@@ -1279,13 +1260,13 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f = M.scalar_field(atan(x^2+y^2), chart=c_xy, name='f')
 
         The scalar field has been defined only on the domain covered by the
-        chart c_xy, i.e. `U`::
+        chart ``c_xy``, i.e. `U`::
 
             sage: f.display()
             f: S^2 --> R
             on U: (x, y) |--> arctan(x^2 + y^2)
 
-        We note that on `W = U\cap V`, the expression of `f` in terms of
+        We note that on `W = U \cap V`, the expression of `f` in terms of
         coordinates `(u,v)` can be deduced from that in the coordinates
         `(x,y)` thanks to the transition map between the two charts::
 
@@ -1293,8 +1274,8 @@ class ScalarField(CommutativeAlgebraElement):
             f: S^2 --> R
             on W: (u, v) |--> arctan(1/(u^2 + v^2))
 
-        We use this fact to extend the definition of `f` to the open subset `V`,
-        covered by the chart c_uv::
+        We use this fact to extend the definition of `f` to the open
+        subset `V`, covered by the chart ``c_uv``::
 
             sage: f.add_expr_by_continuation(c_uv, W)
 
@@ -1325,10 +1306,10 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``chart`` -- (default: ``None``) chart with respect to which the
-          coordinate expression is to be displayed; if ``None``, the display is
-          performed in all the top charts in which the coordinate expression is
-          known.
+        - ``chart`` -- (default: ``None``) chart with respect to which
+          the coordinate expression is to be displayed; if ``None``, the
+          display is performed in all the top charts in which the
+          coordinate expression is known
 
         The output is either text-formatted (console mode) or LaTeX-formatted
         (notebook mode).
@@ -1429,18 +1410,17 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``subdomain`` -- an open subset of the scalar field's domain (must
-          be an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
+        - ``subdomain`` -- an open subset of the scalar field's domain
 
         OUTPUT:
 
         - instance of :class:`ScalarField` representing the restriction of
-          the scalar field to ``subdomain``.
+          the scalar field to ``subdomain``
 
-        EXAMPLE:
+        EXAMPLES:
 
-        Restriction of a scalar field defined on `\RR^2` to the unit open
-        disc::
+        Restriction of a scalar field defined on `\RR^2` to the
+        unit open disc::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()  # Cartesian coordinates
@@ -1508,8 +1488,8 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUPUT:
 
-        - list of common charts; if no common chart is found, None is
-          returned (instead of an empty list).
+        - list of common charts; if no common chart is found, ``None`` is
+          returned (instead of an empty list)
 
         EXAMPLES:
 
@@ -1638,16 +1618,16 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``p`` -- point in the scalar field's domain (type:
-          :class:`~sage.manifolds.point.TopologicalManifoldPoint`)
-        - ``chart`` -- (default: ``None``) chart in which the coordinates of p
-          are to be considered; if none is provided, a chart in which both p's
-          coordinates and the expression of the scalar field are known is
-          searched, starting from the default chart of self._domain
+        - ``p`` -- point in the scalar field's domain
+        - ``chart`` -- (default: ``None``) chart in which the coordinates
+          of ``p`` are to be considered; if ``None``, a chart in which
+          both ``p``'s coordinates and the expression of the scalar field
+          are known is searched, starting from the default chart
+          of ``self._domain``
 
         OUTPUT:
 
-        - value at p
+        - value at ``p``
 
         EXAMPLES::
 
@@ -1786,7 +1766,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a scalar field (in the same algebra as self)
+        - ``other`` -- a scalar field (in the same algebra as ``self``)
 
         OUPUT:
 
@@ -1837,7 +1817,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a scalar field (in the same algebra as self)
+        - ``other`` -- a scalar field (in the same algebra as ``self``)
 
         OUPUT:
 
@@ -1889,7 +1869,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a scalar field (in the same algebra as self)
+        - ``other`` -- a scalar field (in the same algebra as ``self``)
 
         OUPUT:
 
@@ -1987,7 +1967,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     def _rmul_(self, number):
         r"""
-        Reflected multiplication operator: performs ``number * self``
+        Reflected multiplication operator: performs ``number * self``.
 
         This implements the multiplication of a scalar field on the left
         by a number.
@@ -2077,7 +2057,7 @@ class ScalarField(CommutativeAlgebraElement):
         is not assumed to be a scalar field defined on the same domain as
         ``self``, contrary to ``other`` in ``_mul_(self, other)``. In
         practice, ``number`` is a an element of the field on which the
-        scalar field algebra is defined
+        scalar field algebra is defined.
 
         INPUT:
 
@@ -2148,7 +2128,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\exp f`, where `f` is the current scalar field.
+        - the scalar field `\exp f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2191,7 +2171,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     def log(self):
         r"""
-        Natural logarithm of the scalar field
+        Natural logarithm of the scalar field.
 
         OUTPUT:
 
@@ -2287,7 +2267,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\sqrt f`, where `f` is the current scalar field.
+        - the scalar field `\sqrt f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2324,7 +2304,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\cos f`, where `f` is the current scalar field.
+        - the scalar field `\cos f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2359,7 +2339,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\sin f`, where `f` is the current scalar field.
+        - the scalar field `\sin f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2394,7 +2374,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\tan f`, where `f` is the current scalar field.
+        - the scalar field `\tan f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2431,7 +2411,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\arccos f`, where `f` is the current scalar field.
+        - the scalar field `\arccos f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2475,7 +2455,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\arcsin f`, where `f` is the current scalar field.
+        - the scalar field `\arcsin f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2519,7 +2499,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\arctan f`, where `f` is the current scalar field.
+        - the scalar field `\arctan f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2563,7 +2543,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\cosh f`, where `f` is the current scalar field.
+        - the scalar field `\cosh f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2596,7 +2576,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\sinh f`, where `f` is the current scalar field.
+        - the scalar field `\sinh f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2629,7 +2609,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\tanh f`, where `f` is the current scalar field.
+        - the scalar field `\tanh f`, where `f` is the current scalar field
 
         EXAMPLES::
 
@@ -2665,7 +2645,7 @@ class ScalarField(CommutativeAlgebraElement):
         OUTPUT:
 
         - the scalar field `\mathrm{arcosh}\, f`, where `f` is the current
-          scalar field.
+          scalar field
 
         EXAMPLES::
 
@@ -2708,7 +2688,7 @@ class ScalarField(CommutativeAlgebraElement):
         OUTPUT:
 
         - the scalar field `\mathrm{arsinh}\, f`, where `f` is the current
-          scalar field.
+          scalar field
 
         EXAMPLES::
 
@@ -2751,7 +2731,7 @@ class ScalarField(CommutativeAlgebraElement):
         OUTPUT:
 
         - the scalar field `\mathrm{artanh}\, f`, where `f` is the current
-          scalar field.
+          scalar field
 
         EXAMPLES::
 
@@ -2788,3 +2768,4 @@ class ScalarField(CommutativeAlgebraElement):
         for chart, func in self._express.iteritems():
             resu._express[chart] = func.arctanh()
         return resu
+

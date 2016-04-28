@@ -169,7 +169,7 @@ Similarly::
     sage: stereoN(S)
     (0, 0)
 
-A continuous map `S^2\rightarrow \RR` (scalar field)::
+A continuous map `S^2 \to \RR` (scalar field)::
 
     sage: f = M.scalar_field({stereoN: atan(x^2+y^2), stereoS: pi/2-atan(u^2+v^2)},
     ....:                    name='f')
@@ -1546,9 +1546,9 @@ class TopologicalManifold(ManifoldSubset):
         - instance of
           :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
           representing the algebra `C^0(U)` of all scalar fields defined
-          on `U` = ``self``.
+          on `U` = ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Scalar algebra of a 3-dimensional open subset::
 
@@ -1582,31 +1582,34 @@ class TopologicalManifold(ManifoldSubset):
         - ``coord_expression`` -- (default: ``None``) coordinate expression(s)
           of the scalar field; this can be either
 
-          - a single coordinate expression; if the argument ``chart`` is
+          * a single coordinate expression; if the argument ``chart`` is
             ``'all'``, this expression is set to all the charts defined
             on the open set; otherwise, the expression is set in the
             specific chart provided by the argument ``chart``
-          - a dictionary of coordinate expressions, with the charts as keys.
+          * a dictionary of coordinate expressions, with the charts as keys
 
-          If ``coord_expression`` is ``None`` or does not fully specified the
-          scalar field, other coordinate expressions can be added subsequently
-          by means of the methods
-          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
-          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`,
-          or :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
-        - ``chart`` -- (default: ``None``) chart defining the coordinates used
-          in ``coord_expression`` when the latter is a single coordinate
-          expression; if none is provided (default), the default chart of the
-          open set is assumed. If ``chart=='all'``, ``coord_expression`` is
-          assumed to be independent of the chart (constant scalar field).
+        - ``chart`` -- (default: ``None``) chart defining the coordinates
+          used in ``coord_expression`` when the latter is a single
+          coordinate expression; if ``None``, the default chart of the
+          open set is assumed; if ``chart=='all'``, ``coord_expression`` is
+          assumed to be independent of the chart (constant scalar field)
+
         - ``name`` -- (default: ``None``) name given to the scalar field
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
-          field; if none is provided, the LaTeX symbol is set to ``name``
+
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          scalar field; if ``None``, the LaTeX symbol is set to ``name``
+
+        If ``coord_expression`` is ``None`` or does not fully specified the
+        scalar field, other coordinate expressions can be added subsequently
+        by means of the methods
+        :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
+        :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`,
+        or :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
 
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the defined scalar field.
+          representing the defined scalar field
 
         EXAMPLES:
 
@@ -1670,7 +1673,7 @@ class TopologicalManifold(ManifoldSubset):
           value or a symbolic expression not involving any chart coordinates
         - ``name`` -- (default: ``None``) name given to the scalar field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          scalar field; if none is provided, the LaTeX symbol is set to ``name``
+          scalar field; if ``None``, the LaTeX symbol is set to ``name``
 
         OUTPUT:
 
@@ -1723,7 +1726,7 @@ class TopologicalManifold(ManifoldSubset):
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the constant scalar field with value 0.
+          representing the constant scalar field with value 0
 
         EXAMPLE::
 
@@ -1751,7 +1754,7 @@ class TopologicalManifold(ManifoldSubset):
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
           representing the constant scalar field with value the unit element
-          of the manifold's base field.
+          of the manifold's base field
 
         EXAMPLE::
 

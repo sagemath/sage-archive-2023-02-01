@@ -626,7 +626,7 @@ class Semigroups(CategoryWithAxiom):
                 Category of jtrivial semigroups
 
             A semigroup is `J`-trivial if and only if it is
-            `L`-trivial, `R`-trivial::
+            `L`-trivial and `R`-trivial::
 
                 sage: sorted(C.axioms())
                 ['Associative', 'HTrivial', 'JTrivial', 'LTrivial', 'RTrivial']
@@ -675,7 +675,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: C = Semigroups().HTrivial(); C
                 Category of htrivial semigroups
                 sage: Semigroups().HTrivial().Finite().example()
-                The finite H-trivial monoid of order preserving maps on {1, .., 3}
+                NotImplemented
 
             .. SEEALSO::
 
@@ -715,6 +715,7 @@ class Semigroups(CategoryWithAxiom):
             An aperiodic monoid is `H`-trivial::
 
                 sage: Semigroups().Aperiodic().axioms()
+                frozenset({'Aperiodic', 'Associative', 'HTrivial'})
 
             In the finite case, the two notions coincide::
 
@@ -723,11 +724,8 @@ class Semigroups(CategoryWithAxiom):
 
             TESTS::
 
-                sage: C = AperiodicMonoids().Finite()
-                sage: TestSuite(C).run(verbose = True)
-                running ._test_category() . . . pass
-                running ._test_not_implemented_methods() . . . pass
-                running ._test_pickling() . . . pass
+                sage: C = Monoids().Aperiodic().Finite()
+                sage: TestSuite(C).run()
 
             .. SEEALSO::
 

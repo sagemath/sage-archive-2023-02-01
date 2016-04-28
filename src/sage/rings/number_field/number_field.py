@@ -9171,7 +9171,7 @@ class NumberField_cyclotomic(NumberField_absolute):
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> zeta15^5 + 1
 
-        Check that #12632 is fixed::
+        Check that :trac:`12632` is fixed::
 
             sage: K1 = CyclotomicField(1); K2 = CyclotomicField(2)
             sage: K1.coerce_map_from(K2)
@@ -9207,6 +9207,19 @@ class NumberField_cyclotomic(NumberField_absolute):
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> -zeta15^5
+
+        Check transitivity of coercion embeddings (:trac:`20513`)::
+
+            sage: K60.<zeta60> = CyclotomicField(60)
+            sage: K30.<zeta30> = CyclotomicField(30, embedding=zeta60**14)
+            sage: K15.<zeta15> = CyclotomicField(15, embedding=zeta30**26)
+            sage: K5.<zeta5> = CyclotomicField(5, embedding=zeta15**12)
+            sage: K60.has_coerce_map_from(K5)
+            True
+            sage: K60(zeta5)
+            -zeta60^14 - zeta60^12 + zeta60^6 + zeta60^4 - 1
+            sage: _ == zeta60**(14*26*12)
+            True
         """
         if isinstance(K, NumberField_cyclotomic):
             if (self.coerce_embedding() is None or K.coerce_embedding() is None):

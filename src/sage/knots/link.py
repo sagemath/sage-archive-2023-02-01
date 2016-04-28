@@ -369,8 +369,6 @@ class Link(object):
 
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
-        self._smoothings = None
-        self._enhanced_states = None
 
     def __repr__(self):
         """
@@ -676,6 +674,218 @@ class Link(object):
         return tails, heads
     
     @cached_method
+    def _enhanced_states(self):
+        r"""
+        Return the enhanced states of the diagram.
+        
+        Each enhanced state is represented as a tuple containing:
+        
+        - A tuple with the type of smoothing made at each crossing (0 represents
+            a A-type smoothing, and 1 represents B-type)
+        
+        - A tuple with the circles marked as negative. Each circle is represented
+            by the smoothings it goes through. Each smoothing is represented by
+            the indices of the two strands, and the index of the chord, counted clockwise.
+            
+        - A tuple with the circles marked as negative.
+        
+        - The i-index (degree) corresponding to the state.
+        
+        - the j-index (height) corresponding to the state.
+        
+        EXAMPLES::
+            
+            sage: K = Link([[[1,-2,3,-1,2,-3]],[-1,-1,-1]])
+            sage: K.pd_code()
+            [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
+            sage: K._enhanced_states()
+            (((0, 0, 0),
+            (((2, 5, 7), (5, 2, 8)), ((1, 4, 7), (4, 1, 9)), ((3, 6, 9), (6, 3, 8))),
+            (),
+            -3,
+            -9),
+            ((0, 0, 0),
+            (((1, 4, 7), (4, 1, 9)), ((3, 6, 9), (6, 3, 8))),
+            (((2, 5, 7), (5, 2, 8)),),
+            -3,
+            -7),
+            ((0, 0, 0),
+            (((2, 5, 7), (5, 2, 8)), ((3, 6, 9), (6, 3, 8))),
+            (((1, 4, 7), (4, 1, 9)),),
+            -3,
+            -7),
+            ((0, 0, 0),
+            (((2, 5, 7), (5, 2, 8)), ((1, 4, 7), (4, 1, 9))),
+            (((3, 6, 9), (6, 3, 8)),),
+            -3,
+            -7),
+            ((0, 0, 0),
+            (((3, 6, 9), (6, 3, 8)),),
+            (((2, 5, 7), (5, 2, 8)), ((1, 4, 7), (4, 1, 9))),
+            -3,
+            -5),
+            ((0, 0, 0),
+            (((1, 4, 7), (4, 1, 9)),),
+            (((2, 5, 7), (5, 2, 8)), ((3, 6, 9), (6, 3, 8))),
+            -3,
+            -5),
+            ((0, 0, 0),
+            (((2, 5, 7), (5, 2, 8)),),
+            (((1, 4, 7), (4, 1, 9)), ((3, 6, 9), (6, 3, 8))),
+            -3,
+            -5),
+            ((0, 0, 0),
+            (),
+            (((2, 5, 7), (5, 2, 8)), ((1, 4, 7), (4, 1, 9)), ((3, 6, 9), (6, 3, 8))),
+            -3,
+            -3),
+            ((1, 0, 0),
+            (((3, 6, 9), (6, 3, 8)), ((4, 1, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8))),
+            (),
+            -2,
+            -7),
+            ((1, 0, 0),
+            (((4, 1, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8)),),
+            (((3, 6, 9), (6, 3, 8)),),
+            -2,
+            -5),
+            ((1, 0, 0),
+            (((3, 6, 9), (6, 3, 8)),),
+            (((4, 1, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8)),),
+            -2,
+            -5),
+            ((1, 0, 0),
+            (),
+            (((3, 6, 9), (6, 3, 8)), ((4, 1, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8))),
+            -2,
+            -3),
+            ((0, 1, 0),
+            (((1, 4, 7), (4, 1, 9)), ((2, 5, 7), (2, 6, 8), (3, 5, 8), (3, 6, 9))),
+            (),
+            -2,
+            -7),
+            ((0, 1, 0),
+            (((2, 5, 7), (2, 6, 8), (3, 5, 8), (3, 6, 9)),),
+            (((1, 4, 7), (4, 1, 9)),),
+            -2,
+            -5),
+            ((0, 1, 0),
+            (((1, 4, 7), (4, 1, 9)),),
+            (((2, 5, 7), (2, 6, 8), (3, 5, 8), (3, 6, 9)),),
+            -2,
+            -5),
+            ((0, 1, 0),
+            (),
+            (((1, 4, 7), (4, 1, 9)), ((2, 5, 7), (2, 6, 8), (3, 5, 8), (3, 6, 9))),
+            -2,
+            -3),
+            ((1, 1, 0),
+            (((2, 6, 8), (3, 5, 8), (3, 6, 9), (4, 1, 9), (4, 2, 7), (5, 1, 7)),),
+            (),
+            -1,
+            -5),
+            ((1, 1, 0),
+            (),
+            (((2, 6, 8), (3, 5, 8), (3, 6, 9), (4, 1, 9), (4, 2, 7), (5, 1, 7)),),
+            -1,
+            -3),
+            ((0, 0, 1),
+            (((2, 5, 7), (5, 2, 8)), ((1, 3, 9), (1, 4, 7), (6, 3, 8), (6, 4, 9))),
+            (),
+            -2,
+            -7),
+            ((0, 0, 1),
+            (((1, 3, 9), (1, 4, 7), (6, 3, 8), (6, 4, 9)),),
+            (((2, 5, 7), (5, 2, 8)),),
+            -2,
+            -5),
+            ((0, 0, 1),
+            (((2, 5, 7), (5, 2, 8)),),
+            (((1, 3, 9), (1, 4, 7), (6, 3, 8), (6, 4, 9)),),
+            -2,
+            -5),
+            ((0, 0, 1),
+            (),
+            (((2, 5, 7), (5, 2, 8)), ((1, 3, 9), (1, 4, 7), (6, 3, 8), (6, 4, 9))),
+            -2,
+            -3),
+            ((1, 0, 1),
+            (((1, 3, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8), (6, 3, 8), (6, 4, 9)),),
+            (),
+            -1,
+            -5),
+            ((1, 0, 1),
+            (),
+            (((1, 3, 9), (4, 2, 7), (5, 1, 7), (5, 2, 8), (6, 3, 8), (6, 4, 9)),),
+            -1,
+            -3),
+            ((0, 1, 1),
+            (((1, 3, 9), (1, 4, 7), (2, 5, 7), (2, 6, 8), (3, 5, 8), (6, 4, 9)),),
+            (),
+            -1,
+            -5),
+            ((0, 1, 1),
+            (),
+            (((1, 3, 9), (1, 4, 7), (2, 5, 7), (2, 6, 8), (3, 5, 8), (6, 4, 9)),),
+            -1,
+            -3),
+            ((1, 1, 1),
+            (((1, 3, 9), (3, 5, 8), (5, 1, 7)), ((2, 6, 8), (4, 2, 7), (6, 4, 9))),
+            (),
+            0,
+            -5),
+            ((1, 1, 1),
+            (((2, 6, 8), (4, 2, 7), (6, 4, 9)),),
+            (((1, 3, 9), (3, 5, 8), (5, 1, 7)),),
+            0,
+            -3),
+            ((1, 1, 1),
+            (((1, 3, 9), (3, 5, 8), (5, 1, 7)),),
+            (((2, 6, 8), (4, 2, 7), (6, 4, 9)),),
+            0,
+            -3),
+            ((1, 1, 1),
+            (),
+            (((1, 3, 9), (3, 5, 8), (5, 1, 7)), ((2, 6, 8), (4, 2, 7), (6, 4, 9))),
+            0,
+            -1))
+        
+        """
+        writhe = self.writhe()
+        crossings = self.pd_code()
+        ncross = len(crossings)
+        smoothings = []
+        nmax = max(flatten(crossings)) + 1
+        for i in range(2** ncross):
+            v = Integer(i).bits()
+            v = v + (ncross - len(v))*[0]
+            G = Graph()
+            for j, cr in enumerate(crossings):
+                n = nmax + j
+                if not v[j]: # For negative crossings, we go from undercrossings to the left
+                    G.add_edge((cr[3], cr[0], n), cr[0])
+                    G.add_edge((cr[3], cr[0], n), cr[3])
+                    G.add_edge((cr[1], cr[2], n), cr[2])
+                    G.add_edge((cr[1], cr[2], n), cr[1])
+                else:  # positive crossings, from undercrossing to the right
+                    G.add_edge((cr[0], cr[1], n), cr[0])
+                    G.add_edge((cr[0], cr[1], n), cr[1])
+                    G.add_edge((cr[2], cr[3], n), cr[2])
+                    G.add_edge((cr[2], cr[3], n), cr[3])
+            sm = set(tuple(sorted([_ for _ in b if isinstance(_, tuple)])) for b in G.connected_components())
+            iindex = (writhe - ncross + 2 * sum(v)) / 2
+            jmin = writhe + iindex - len(sm)
+            jmax = writhe + iindex + len(sm)
+            smoothings.append((tuple(v), sm, iindex, jmin, jmax))
+        states = [] # we got all the smoothings, now find all the states
+        for sm in smoothings:
+            for circpos in Subsets(sm[1]):  # Add each state
+                circneg = Set(sm[1].difference(circpos))
+                j = writhe + sm[2] +  len(circpos) - len(circneg)
+                states.append((sm[0], tuple(circneg), tuple(circpos), sm[2], j))
+        return tuple(states)
+    
+    @cached_method
     def khovanov_homology(self, ring = ZZ, height = None, degree = None):
         r"""
         Return the Khovanov homology of the link.
@@ -692,25 +902,26 @@ class Link(object):
 
         OUTPUT: 
 
-        The Khovanov homology of the Link. It is given as a dictionary, whose keys
-        are the different heights, and for each height the homology is given
-        as a dictionary whose keys are the degrees.
+        The Khovanov homology of the Link. It is given as a tuple of key-value pairs_top_sugar
+        the keys are the different heights, and for each height the homology is given
+        as another tuple of key-value pairs whose keys are the degrees.
 
         EXAMPLES::
 
             sage: K = Link([[[1, -2, 3, -1, 2, -3]],[-1, -1, -1]])
             sage: K.khovanov_homology()
-            {-9: {-3: Z},
-            -7: {-3: 0, -2: C2},
-            -5: {-3: 0, -2: Z, -1: 0, 0: 0},
-            -3: {-3: 0, -2: 0, -1: 0, 0: Z},
-            -1: {0: Z}}
+            ((-9, ((-3, Z),)),
+             (-7, ((-3, 0), (-2, C2))),
+             (-5, ((-3, 0), (-2, Z), (-1, 0), (0, 0))),
+             (-3, ((-3, 0), (-2, 0), (-1, 0), (0, Z))),
+             (-1, ((0, Z),)))
+
 
         The figure eight knot::
 
             sage: L = Link([[1, 6, 2, 7], [5, 2, 6, 3], [3, 1, 4, 8], [7, 5, 8, 4]])
             sage: L.khovanov_homology(height=-1)
-            {-1: {-2: 0, -1: Z, 0: Z, 1: 0, 2: 0}}
+            ((-1, ((-2, 0), (-1, Z), (0, Z), (1, 0), (2, 0))),)
 
         And the Hopf link::
 
@@ -720,56 +931,20 @@ class Link(object):
             sage: b = B([1, 1])
             sage: K = Link(b)
             sage: K.khovanov_homology(degree = 2)
-            {2: {2: 0}, 4: {2: Z}, 6: {2: Z}}
+            ((2, ((2, 0),)), (4, ((2, Z),)), (6, ((2, Z),)))
 
         """
         writhe = self.writhe()
         crossings = self.pd_code()
         ncross = len(crossings)
-        if self._smoothings:
-            smoothings = self._smoothings
-        else:
-            smoothings = []
-            nmax = max(flatten(crossings)) + 1
-            for i in range(2** ncross):
-                v = Integer(i).bits()
-                v = v + (ncross - len(v))*[0]
-                G = Graph()
-                for j, cr in enumerate(crossings):
-                    n = nmax + j
-                    if not v[j]: # For negative crossings, we go from undercrossings to the left
-                        G.add_edge((cr[3], cr[0], n), cr[0])
-                        G.add_edge((cr[3], cr[0], n), cr[3])
-                        G.add_edge((cr[1], cr[2], n), cr[2])
-                        G.add_edge((cr[1], cr[2], n), cr[1])
-                    else:  # positive crossings, from undercrossing to the right
-                        G.add_edge((cr[0], cr[1], n), cr[0])
-                        G.add_edge((cr[0], cr[1], n), cr[1])
-                        G.add_edge((cr[2], cr[3], n), cr[2])
-                        G.add_edge((cr[2], cr[3], n), cr[3])
-                sm = set(tuple(sorted([_ for _ in b if type(_) == tuple])) for b in G.connected_components())
-                iindex = (writhe - ncross + 2 * sum(v)) / 2
-                jmin = writhe + iindex - len(sm)
-                jmax = writhe + iindex + len(sm)
-                smoothings.append((tuple(v), sm, iindex, jmin, jmax))
-            self._smoothings = smoothings
-        if self._enhanced_states:
-            bases = self._enhanced_states
-        else:
-            states = [] # we got all the smoothings, now find all the states
-            for sm in smoothings:
-                for circpos in Subsets(sm[1]):  # Add each state
-                    circneg = Set(sm[1].difference(circpos))
-                    j = writhe + sm[2] +  len(circpos) - len(circneg)
-                    states.append((sm[0], circneg, circpos, sm[2], j))
-            bases = {} # arrange them by (i,j)
-            for st in states:
-                i, j = st[3], st[4]
-                if (i,j) in bases.keys():
-                    bases[i,j].append(st)
-                else:
-                    bases[i,j] = [st]
-            self._enhanced_states = bases
+        states = [(_0, Set(_1), Set(_2), _3, _4) for (_0, _1, _2, _3, _4) in self._enhanced_states() ]
+        bases = {} # arrange them by (i,j)
+        for st in states:
+            i, j = st[3], st[4]
+            if (i,j) in bases.keys():
+                bases[i,j].append(st)
+            else:
+                bases[i,j] = [st]
         complexes = {}
         for (i, j) in bases.keys():
             if height is not None and j!= height:
@@ -782,7 +957,8 @@ class Link(object):
                     V1 = bases[(i,j)][ii]
                     for jj in range(m.ncols()):
                         V2 = bases[(i+1, j)][jj]
-                        difs = [_ for _ in range(len(V1[0])) if V1[0][_] != V2[0][_] ]
+                        V20 = V2[0]
+                        difs = [index for index,value in enumerate(V1[0]) if value != V20[index] ]
                         if len(difs) == 1:
                             if not (V2[2].intersection(V1[1]) or V2[1].intersection(V1[2])):
                                 m[ii,jj] = (-1)**sum([V2[0][_] for _ in range(difs[0]+1, ncross)]) 
@@ -796,8 +972,8 @@ class Link(object):
                     complexes[j][i-1] = matrix(ZZ,  len(bases[(i,j)]), 0)
         homologies = {j: ChainComplex(complexes[j]).homology() for j in complexes}
         if degree is not None:
-            return {b:{a:homologies[b][a] for a in homologies[b] if a == degree} for b in homologies}
-        return homologies
+            return tuple((j, tuple((a, b) for (a, b) in v.items() if a == degree)) for (j, v) in sorted(homologies.items()))
+        return tuple((j, tuple(sorted(v.items()))) for (j, v) in sorted(homologies.items()))
 
     def oriented_gauss_code(self):
         """

@@ -3831,6 +3831,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
 
+        One can also simply use `*`::
+
+            sage: P = Posets.ChainPoset(2)
+            sage: Q = Posets.ChainPoset(3)
+            sage: P*Q
+            Finite lattice containing 6 elements
+
         TESTS::
 
             sage: Poset({0:[1]}).product(Poset())  # Product with empty poset
@@ -3858,6 +3865,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             constructor = Poset
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
+    _mul_ = product
+    
     def disjoint_union(self, other, labels='pairs'):
         """
         Return a poset isomorphic to disjoint union (also called direct

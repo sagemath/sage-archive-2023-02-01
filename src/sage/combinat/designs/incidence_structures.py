@@ -12,7 +12,7 @@ REFERENCES:
   :wikipedia:`Block_design`
   :wikipedia:`Incidence_structure`
 
-.. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
+.. [2] \E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
 AUTHORS:
 

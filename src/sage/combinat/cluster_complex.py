@@ -163,7 +163,7 @@ class ClusterComplex(SubwordComplex):
 
     REFERENCES:
 
-    .. [CLS] C. Ceballos, J.-P. Labbe, C. Stump, *Subword complexes,
+    .. [CLS] \C. Ceballos, J.-P. Labbe, C. Stump, *Subword complexes,
        cluster complexes, and generalized multi-associahedra*,
        J. Algebr. Comb. **39** (2014) pp. 17-51.
        :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.

@@ -198,6 +198,9 @@ AUTHORS:
 - Vincent Delecroix (2014): cleaning, refactorisation, documentation from the
   old implementation in ``contfrac`` (:trac:`14567`).
 """
+# python3
+from __future__ import division
+
 from sage.structure.sage_object import SageObject
 from integer import Integer
 from infinity import Infinity
@@ -2057,7 +2060,7 @@ def check_and_reduce_pair(x1,x2=None):
 
     # check that y2 is not a pure power (in a very naive way!!)
     n2 = len(y2)
-    for i in xrange(1,(n2+2)/2):
+    for i in xrange(1, (n2 + 2) // 2):
         if n2 % i == 0 and y2[:-i] == y2[i:]:
             y2 = y2[:i]
             break

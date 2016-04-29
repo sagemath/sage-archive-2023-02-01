@@ -3847,7 +3847,7 @@ def lucas_q1(mm, IntegerMod_abstract P):
 
     REFERENCES:
 
-    .. [Pos88] H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
+    .. [Pos88] \H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
        General Algebra, Vol. 6 (1988) pp. 223-225
 
     AUTHORS:

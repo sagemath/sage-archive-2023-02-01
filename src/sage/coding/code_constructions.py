@@ -120,7 +120,7 @@ defined using properties of the zeros of `C`.
 
 REFERENCES:
 
-.. [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
    Codes, Cambridge Univ. Press, 2003.
 
 AUTHOR:
@@ -1273,7 +1273,7 @@ def ToricCode(P,F):
 
     REFERENCES:
 
-    .. [J] D. Joyner, Toric codes over finite fields, Applicable
+    .. [J] \D. Joyner, Toric codes over finite fields, Applicable
        Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples

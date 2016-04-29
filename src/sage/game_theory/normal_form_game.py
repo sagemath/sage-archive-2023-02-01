@@ -2002,12 +2002,12 @@ class NormalFormGame(SageObject, MutableMapping):
            *Enumeration of Nash equilibria for two-player games.*
            http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf (2010)
 
-        .. [AH2002] R. J. Aumann and S. Hart, Elsevier, eds.
+        .. [AH2002] \R. J. Aumann and S. Hart, Elsevier, eds.
            *Computing equilibria for two-person games*
            http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
            (2002)
 
-        .. [CK2015] J. Campbell and V. Knight.
+        .. [CK2015] \J. Campbell and V. Knight.
            *On testing degeneracy of bi-matrix games*
            http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/
            (2015)

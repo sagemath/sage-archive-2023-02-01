@@ -281,15 +281,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [I64] N. Iwahori, On the structure of a Hecke ring of a
+    .. [I64] \N. Iwahori, On the structure of a Hecke ring of a
        Chevalley group over a finite field,  J. Fac. Sci. Univ. Tokyo Sect.
        I, 10 (1964), 215--236 (1964). :mathscinet:`MR0165016`
 
-    .. [HKP] T. J. Haines, R. E. Kottwitz, A. Prasad,
+    .. [HKP] \T. J. Haines, R. E. Kottwitz, A. Prasad,
        Iwahori-Hecke Algebras, J. Ramanujan Math. Soc., 25 (2010), 113--145.
        :arxiv:`0309168v3` :mathscinet:`MR2642451`
 
-    .. [J87] V. Jones, Hecke algebra representations of braid groups and
+    .. [J87] \V. Jones, Hecke algebra representations of braid groups and
        link polynomials.  Ann. of Math. (2) 126 (1987), no. 2, 335--388.
        :doi:`10.2307/1971403` :mathscinet:`MR0908150`
 

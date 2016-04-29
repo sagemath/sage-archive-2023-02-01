@@ -62,6 +62,8 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer

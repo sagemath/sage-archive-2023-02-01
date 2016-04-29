@@ -2929,7 +2929,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [GarStan1984] A. M. Garsia, Dennis Stanton.
+        .. [GarStan1984] \A. M. Garsia, Dennis Stanton.
            *Group actions on Stanley-Reisner rings and invariants of
            permutation groups*. Adv. in Math. **51** (1984), 107-201.
            http://www.sciencedirect.com/science/article/pii/0001870884900057
@@ -4635,7 +4635,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov.
+        .. [OkounkovVershik2] \A. M. Vershik, A. Yu. Okounkov.
            *A New Approach to the Representation Theory of the Symmetric
            Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
 
@@ -4727,7 +4727,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [Mcd] I. G. Macdonald. Symmetric functions and Hall
+        .. [Mcd] \I. G. Macdonald. Symmetric functions and Hall
            polynomials. Oxford University Press, second edition, 1995.
         """
         from sage.combinat.perfect_matching import PerfectMatchings
@@ -5989,7 +5989,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: TestSuite(P).run()
             sage: P.global_options.reset()
         """
-        cat = FiniteWeylGroups() & FinitePermutationGroups()
+        cat = FiniteWeylGroups().Irreducible() & FinitePermutationGroups()
         StandardPermutations_n_abstract.__init__(self, n, category=cat)
 
     def _repr_(self):
@@ -6100,9 +6100,19 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         else:
             return from_rank(self.n, r)
 
-    def rank(self, p):
+    def rank(self, p=None):
         """
+        Return the rank of ``self`` or ``p`` depending on input.
+
+        If a permutation ``p`` is given, return the rank of ``p``
+        in ``self``. Otherwise return the dimension of the
+        underlying vector space spanned by the (simple) roots.
+
         EXAMPLES::
+
+            sage: P = Permutations(5)
+            sage: P.rank()
+            4
 
             sage: SP3 = Permutations(3)
             sage: map(SP3.rank, SP3)
@@ -6111,6 +6121,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: map(SP0.rank, SP0)
             [0]
         """
+        if p is None:
+            return self.n - 1
         if p in self:
             return Permutation(p).rank()
         raise ValueError("x not in self")
@@ -6138,6 +6150,35 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             24
         """
         return factorial(self.n)
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        These are the degrees of the fundamental invariants of the
+        ring of polynomial invariants.
+
+        EXAMPLES::
+
+            sage: Permutations(3).degrees()
+            (2, 3)
+            sage: Permutations(7).degrees()
+            (2, 3, 4, 5, 6, 7)
+        """
+        return tuple(Integer(i) for i in range(2, self.n+1))
+
+    def codegrees(self):
+        """
+        Return the codegrees of ``self``.
+
+        EXAMPLES::
+
+            sage: Permutations(3).codegrees()
+            (0, 1)
+            sage: Permutations(7).codegrees()
+            (0, 1, 2, 3, 4, 5)
+        """
+        return tuple(Integer(i) for i in range(self.n-1))
 
     def element_in_conjugacy_classes(self, nu):
         r"""

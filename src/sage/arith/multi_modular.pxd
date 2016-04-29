@@ -2,9 +2,8 @@
 
 from sage.ext.mod_int cimport *
 from sage.libs.gmp.types cimport mpz_t
-from sage.rings.integer cimport Integer
 
-cdef class MultiModularBasis_base:
+cdef class MultiModularBasis_base(object):
     cdef int      n
     cdef mod_int* moduli
     cdef mpz_t*   partial_products
@@ -37,6 +36,5 @@ cdef class MultiModularBasis(MultiModularBasis_base):
 
 cdef class MutableMultiModularBasis(MultiModularBasis):
     cdef mod_int __last_prime
-    cdef mod_int next_prime_c(self) except -1
-    cdef mod_int replace_prime_c(self, int i) except -1
-
+    cpdef mod_int next_prime(self) except -1
+    cpdef mod_int replace_prime(self, int ix) except -1

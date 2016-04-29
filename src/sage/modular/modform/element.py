@@ -595,7 +595,7 @@ class ModularForm_abstract(ModuleElement):
 
         REFERENCE:
 
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
+        .. [Cremona] \J. E. Cremona, Algorithms for Modular Elliptic
            Curves.  Cambridge University Press, 1997.
 
         TESTS::
@@ -1722,7 +1722,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
+        .. [Atkin-Li] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
            of newforms and pseudo-eigenvalues of `W`-operators.
            Inventiones math. 48 (1978), 221-243.
 

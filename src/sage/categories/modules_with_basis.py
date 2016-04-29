@@ -655,7 +655,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return [self.from_vector(vec) for vec in mat if vec]
 
         def submodule(self, gens, check=True, already_echelonized=False,
-                      unitriangular=False, category=None):
+                      unitriangular=False, support_order=None, category=None,
+                      *args, **opts):
             r"""
             The submodule spanned by a finite set of elements.
 
@@ -672,6 +673,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``unitrangular`` -- (default: ``False``) whether
               the lift morphism is unitrangular
+
+            - ``support_order`` -- (optional) either an instance of class
+              with an ``index`` method (ex. a list), which returns an index
+              of an element in `\ZZ`, or a comparison function
 
             If ``already_echelonized`` is ``False``, then the
             generators are put in reduced echelon form using
@@ -801,6 +806,20 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [ 0  1]
                 [-1 -1]
 
+            We now construct a (finite-dimensional) submodule of an
+            infinite-dimensional free module. Due to current implementation
+            limitations, we must pass an echelonized basis::
+
+                sage: R.<a,b> = QQ[]
+                sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
+                sage: x = C.basis()
+                sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
+                sage: Y = C.submodule(gens, unitriangular=True)
+                sage: Y.lift.matrix()
+                [ 1  0]
+                [ 0  1]
+                [-1 -1]
+
             TESTS::
 
                 sage: TestSuite(Y).run()
@@ -808,10 +827,20 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if not already_echelonized:
                 gens = self.echelon_form(gens, unitriangular)
+            if support_order is None:
+                try:
+                    support_order = self.get_order()
+                except NotImplementedError:
+                    support_order = list(reduce( lambda x,y: x.union(y.support()),
+                                                 gens, set() ))
+            elif not hasattr(support_order, 'index') and callable(support_order):
+                support_order = sorted(gens, cmp=support_order)
+
             from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             return SubmoduleWithBasis(gens, ambient=self,
+                                      support_order=support_order,
                                       unitriangular=unitriangular,
-                                      category=category)
+                                      category=category, *args, **opts)
 
         def tensor(*parents):
             """

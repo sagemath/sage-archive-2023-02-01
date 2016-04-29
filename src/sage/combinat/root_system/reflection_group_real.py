@@ -63,6 +63,7 @@ from sage.combinat.root_system.coxeter_group import is_chevie_available
 from sage.misc.sage_eval import sage_eval
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from sage.combinat.root_system.reflection_group_c import reduced_word_c
+from sage.matrix.all import Matrix
 
 def ReflectionGroup(*args,**kwds):
     r"""
@@ -839,7 +840,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print(w.reduced_word())                       # optional - gap3
                 ....:     print(w.to_matrix())                          # optional - gap3
@@ -861,6 +862,14 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [1, 2, 1]
                 [ 0 -1]
                 [-1  0]
+
+            TESTS::
+
+                sage: W = ReflectionGroup(['F',4])                      # optional - gap3
+                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
+                True
+                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
+                True
             """
             W = self.parent()
             if W._reflection_representation is None:
@@ -875,16 +884,19 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 Phi = W.roots()
                 M = Matrix([Phi[w(Phi.index(alpha)+1)-1] for alpha in Delta])
                 mat = W.base_change_matrix() * M
-
             else:
                 refl_repr = W._reflection_representation
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
                 mat = prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
             if on_space == "primal":
-                pass
+                if side == "left":
+                    mat = mat.transpose()
             elif on_space == "dual":
-                mat = mat.inverse().transpose()
+                if side == "left":
+                    mat = mat.inverse()
+                else:
+                    mat = mat.inverse().transpose()
             else:
                 raise ValueError('on_space must be "primal" or "dual"')
 

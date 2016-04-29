@@ -1875,6 +1875,20 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [1, 2, 1]
                 [ 0 -1]
                 [-1  0]
+
+            TESTS::
+
+                sage: W = ReflectionGroup(4)                            # optional - gap3
+                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
+                True
+                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
+                True
+
+                sage: W = ReflectionGroup(7)                            # optional - gap3
+                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
+                True
+                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
+                True
             """
             W = self.parent()
             if W._reflection_representation is None:

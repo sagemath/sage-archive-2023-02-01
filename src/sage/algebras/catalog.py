@@ -33,6 +33,10 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
+- :class:`algebras.QuantumMatrixCoordinate
+  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumMatrixCoordinateAlgebra>`
+- :class:`algebras.QuantumGL
+  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumGL>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
 - :func:`algebras.Quaternion
@@ -73,5 +77,8 @@ lazy_import('sage.combinat.diagram_algebras', 'PlanarAlgebra', 'PlanarPartition'
 lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'TemperleyLieb')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
+lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
+            'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
+lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

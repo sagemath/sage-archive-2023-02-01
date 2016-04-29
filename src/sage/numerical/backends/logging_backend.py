@@ -22,10 +22,36 @@ from __future__ import print_function
 from sage.numerical.backends.generic_backend import GenericBackend
 
 def _format_function_call(fn_name, *v, **k):
+    """
+    Return a Python function call as a string.
+
+    EXAMPLES::
+
+        sage: from sage.numerical.backends.logging_backend import _format_function_call
+        sage: _format_function_call('foo', 17, hellooooo='goodbyeeee')
+        "foo(17, hellooooo='goodbyeeee')"
+    """
     args = [ repr(a) for a in v ] + [ "%s=%r" % (arg,val) for arg, val in k.items() ]
     return "{}({})".format(fn_name, ", ".join(args))
 
 def _make_wrapper(backend, attr):
+    """
+    Return a wrapper for the backend method named by ``attr`` that does the logging.
+
+    Documentation and other metadata is copied from the `backend` method named ``attr``.
+
+    EXAMPLES::
+
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: from sage.numerical.backends.logging_backend import _make_wrapper, LoggingBackend
+        sage: backend = get_solver(solver='GLPK')
+        sage: w = _make_wrapper(backend, 'ncols')
+        sage: logging_backend = LoggingBackend(backend)
+        sage: w(logging_backend)
+        # p.ncols()
+        # result: 0
+        0
+    """
     def m(self, *args, **kwdargs):
         funcall = _format_function_call("p." + attr, *args, **kwdargs)
         a = getattr(self._backend, attr)
@@ -90,14 +116,40 @@ class LoggingBackend (GenericBackend):
     """
 
     def __init__(self, backend, printing=True, doctest=None, test_method=None):
+        """
+        See :class:`LoggingBackendFactory` for documentation.
+
+        EXAMPLES::
+
+            sage: import sage.numerical.backends.logging_backend
+            sage: from sage.numerical.backends.logging_backend import LoggingBackend
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: b = get_solver(solver = "GLPK")
+            sage: lb = LoggingBackend(backend=b)
+        """
         self._backend = backend
         self._printing = printing
         self._doctest = doctest
         self._test_method = test_method
 
-    # This getattr is there to create delegating method for all methods
-    # that are not part of the GenericBackend interface
     def __getattr__(self, attr):
+        """
+        Look up an attribute in the instance.
+
+        It is provided to dynamically create delegating methods for all methods of
+        the backend that are not part of the :class:`GenericBackend` interface,
+        from which :class:`LoggingBackend` inherits.
+
+        EXAMPLES::
+
+            sage: import sage.numerical.backends.logging_backend
+            sage: from sage.numerical.backends.logging_backend import LoggingBackend
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: b = get_solver(solver = "GLPK")
+            sage: lb = LoggingBackend(backend=b)
+            sage: lb.print_ranges
+            <bound method ...>
+        """
         _a = getattr(self._backend, attr)
         if callable(_a):
             # make a bound method
@@ -112,6 +164,13 @@ class LoggingBackend (GenericBackend):
 # Override all methods that we inherited from GenericBackend
 # by delegating methods
 def _override_attr(attr):
+    """
+    Override a method by a delegating method.
+
+    TESTS::
+
+        sage: from sage.numerical.backends.logging_backend import _override_attr
+    """
     a = getattr(LoggingBackend, attr)
     if callable(a):
         # make an unbound method
@@ -271,6 +330,9 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         test_method = None
 
     def logging_solver(**kwds):
+        """
+        Create an instance of :class:`LoggingBackend`.
+        """
         construct = "p = {}".format(_format_function_call('get_solver', solver=solver, **kwds))
         if printing:
             print("# {}".format(construct))

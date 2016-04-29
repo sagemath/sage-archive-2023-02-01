@@ -25,7 +25,7 @@ def _format_function_call(fn_name, *v, **k):
     args = [ repr(a) for a in v ] + [ "%s=%r" % (arg,val) for arg, val in k.items() ]
     return "{}({})".format(fn_name, ", ".join(args))
 
-def _make_wrapper(attr):
+def _make_wrapper(backend, attr):
     def m(self, *args, **kwdargs):
         funcall = _format_function_call("p." + attr, *args, **kwdargs)
         a = getattr(self._backend, attr)
@@ -61,6 +61,8 @@ def _make_wrapper(attr):
                 else:
                     self._test_method.write("        tester.assertEqual({}, {})\n".format(funcall, result))
         return result
+    from functools import update_wrapper
+    update_wrapper(m, getattr(backend, attr))
     return m
 
 class LoggingBackend (GenericBackend):
@@ -83,6 +85,8 @@ class LoggingBackend (GenericBackend):
         # p.add_variable(obj=1789)
         # result: 1
         1
+
+    .. :no-undoc-members:
     """
 
     def __init__(self, backend, printing=True, doctest=None, test_method=None):
@@ -94,27 +98,30 @@ class LoggingBackend (GenericBackend):
     # This getattr is there to create delegating method for all methods
     # that are not part of the GenericBackend interface
     def __getattr__(self, attr):
-        a = getattr(self._backend, attr)
-        if callable(a):
+        _a = getattr(self._backend, attr)
+        if callable(_a):
             # make a bound method
             import types
-            mm = types.MethodType(_make_wrapper(attr), self)
+            _mm = types.MethodType(_make_wrapper(self._backend, attr), self)
             # cache it
-            setattr(self, attr, mm)
-            return mm
+            setattr(self, attr, _mm)
+            return _mm
         else:
-            return a
+            return _a
 
 # Override all methods that we inherited from GenericBackend
 # by delegating methods
+def _override_attr(attr):
+    a = getattr(LoggingBackend, attr)
+    if callable(a):
+        # make an unbound method
+        import types
+        _mm = types.MethodType(_make_wrapper(GenericBackend(), attr), None, LoggingBackend)
+        setattr(LoggingBackend, attr, _mm)
+
 for attr in dir(LoggingBackend):
     if not attr.startswith("_") and attr not in ("zero", "base_ring"):
-        a = getattr(LoggingBackend, attr)
-        if callable(a):
-            # make an unbound method
-            import types
-            mm = types.MethodType(_make_wrapper(attr), None, LoggingBackend)
-            setattr(LoggingBackend, attr, mm)
+        _override_attr(attr)
 
 test_method_template = \
 r'''

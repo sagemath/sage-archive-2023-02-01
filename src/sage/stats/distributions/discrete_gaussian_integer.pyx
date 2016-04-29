@@ -107,6 +107,7 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
@@ -365,21 +366,21 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
             sage: for i in range(16):
-            ....:     print D(),
+            ....:     print(D(), end=" ")
             ....:
             21 23 37 6 -64 29 8 -22 -3 -10 7 -43 1 -29 25 38
 
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
             sage: for i in range(16):
-            ....:     f(); print D(),
+            ....:     f(); print(D(), end=" ")
             ....:
             21 21 21 21 -21 21 21 -21 -21 -21 21 -21 21 -21 21 21
 
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
             sage: for i in range(16):
-            ....:     f(); D._flush_cache(); print D(),
+            ....:     f(); D._flush_cache(); print(D(), end=" ")
             ....:
             21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21
         """

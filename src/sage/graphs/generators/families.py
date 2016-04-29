@@ -2556,7 +2556,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     .. [ST78] \J. J. Seidel and D. E. Taylor,
        Two-graphs, a second survey.
-       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
+       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689--711,
        Colloq. Math. Soc. János Bolyai, 25,
        North-Holland, Amsterdam-New York, 1981.
     """

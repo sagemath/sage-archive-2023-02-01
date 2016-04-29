@@ -879,7 +879,7 @@ def K3Surface():
 
     .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface
        with the minimum number of vertices", Topology 40 (2001),
-       753–772.
+       753--772.
 
     .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties
        of the K3 surface: Simplicial blowups and slicings", Experimental

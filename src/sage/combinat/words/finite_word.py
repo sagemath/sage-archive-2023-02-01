@@ -3342,8 +3342,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
-            Ser. A 13:90–99, 1972.
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+           Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))
 
@@ -5699,7 +5699,7 @@ class FiniteWord_class(Word_class):
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
         .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
-           Intelligencer, 7(3):20–29, 1985.
+           Intelligencer, 7(3):20--29, 1985.
         .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 

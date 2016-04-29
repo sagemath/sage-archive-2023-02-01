@@ -694,7 +694,7 @@ class Braid(FinitelyPresentedGroupElement):
         REFERENCES:
 
         .. [Big99] Stephen J. Bigelow. The Burau representation is
-           not faithful for `n = 5`. Geom. Topol., 3:397–404, 1999.
+           not faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
         .. [JonesNotes] Vaughan Jones. The Jones Polynomial.
            https://math.berkeley.edu/~vfr/jones.pdf
         """

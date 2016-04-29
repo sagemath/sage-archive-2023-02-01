@@ -15,6 +15,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import prod
 
@@ -25,9 +26,9 @@ cpdef julia(ff_j, z, int iterations):
 
     INPUT:
 
-        - `ff_j` -- fast callable for the inner iteration
-        - `z` -- complex number
-        - `iterations` -- number of loops
+    - `ff_j` -- fast callable for the inner iteration
+    - `z` -- complex number
+    - `iterations` -- number of loops
 
     TESTS::
 
@@ -50,9 +51,9 @@ cpdef mandel(ff_m, z, int iterations):
 
     INPUT:
 
-        - `ff_m` -- fast callable for the inner iteration
-        - `z` -- complex number
-        - `iterations` -- number of loops
+    - `ff_m` -- fast callable for the inner iteration
+    - `z` -- complex number
+    - `iterations` -- number of loops
 
     TESTS::
 
@@ -80,15 +81,15 @@ cpdef cellular(rule, int N):
 
     INPUT:
 
-        - `rule` -- determines how a cell's value is updated, depending on its neighbors
-        - `N` -- number of iterations
+    - `rule` -- determines how a cell's value is updated, depending on its neighbors
+    - `N` -- number of iterations
 
     TESTS::
 
         sage: from sage.interacts.library_cython import cellular
         sage: rule = [1, 0, 1, 0, 0, 1, 1, 0]
         sage: N = 3
-        sage: print cellular(rule, N)
+        sage: print(cellular(rule, N))
         [[0 0 0 1 0 0 0 0]
          [1 1 0 1 0 1 0 0]
          [0 1 1 1 1 1 0 0]]

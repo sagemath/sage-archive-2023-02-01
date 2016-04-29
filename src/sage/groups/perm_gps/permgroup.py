@@ -728,6 +728,18 @@ class PermutationGroup_generic(group.FiniteGroup):
             Permutation Group with generators [('a','b')]
             sage: G.list()
             [(), ('a','b')]
+
+        TESTS:
+
+        Test :trac:`9155`::
+
+            sage: G = SymmetricGroup(2)
+            sage: elements = G.list()
+            sage: elements.remove(G("()"))
+            sage: elements
+            [(1,2)]
+            sage: G.list()
+            [(), (1,2)]
         """
         return [x for x in self]
 

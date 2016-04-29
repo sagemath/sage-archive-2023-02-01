@@ -115,7 +115,8 @@ class LoggingBackend (GenericBackend):
     .. :no-undoc-members:
     """
 
-    def __init__(self, backend, printing=True, doctest=None, test_method=None):
+    def __init__(self, backend, printing=True, doctest=None, test_method=None,
+                 base_ring=None):
         """
         See :class:`LoggingBackendFactory` for documentation.
 
@@ -131,6 +132,7 @@ class LoggingBackend (GenericBackend):
         self._printing = printing
         self._doctest = doctest
         self._test_method = test_method
+        self._base_ring = base_ring
 
     def __getattr__(self, attr):
         """
@@ -160,6 +162,37 @@ class LoggingBackend (GenericBackend):
             return _mm
         else:
             return _a
+
+    def base_ring(self):
+        """
+        Return the base ring.
+
+        The backend's base ring can be overridden.  It is best to run
+        the tests with GLPK and override the base ring to ``QQ``.  Then
+        default input to backend methods, prepared by
+        :class:`MixedIntegerLinearProgram`, depends on the base ring.
+        This way input will be rational and so suitable for both exact
+        and inexact methods; whereas output will be float and will thus
+        trigger :func:`assertAlmostEqual` tests.
+
+        EXAMPLES::
+
+            sage: import sage.numerical.backends.logging_backend
+            sage: from sage.numerical.backends.logging_backend import LoggingBackend
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: b = get_solver(solver = "GLPK")
+            sage: lb = LoggingBackend(backend=b)
+            sage: lb.base_ring()
+            Real Double Field
+            sage: from sage.rings.all import QQ
+            sage: lb = LoggingBackend(backend=b, base_ring=QQ)
+            sage: lb.base_ring()
+            Rational Field
+        """
+        if self._base_ring is not None:
+            return self._base_ring
+        else:
+            return self._backend.base_ring()
 
 # Override all methods that we inherited from GenericBackend
 # by delegating methods
@@ -204,8 +237,10 @@ r'''
             tester = p._tester(**options)
 '''.replace("SAGE:", "sage:") # so that the above test does not get picked up by the doctester
 
-def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None, method_name='CHANGE'):
+from sage.rings.all import QQ
 
+def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None,
+                          method_name='CHANGE', base_ring=QQ):
     """
     Factory that constructs a :class:`LoggingBackend` for debugging and testing.
 
@@ -342,6 +377,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
             test_method.write(test_method_template.format(name=method_name))
         from sage.numerical.backends.generic_backend import get_solver
         return LoggingBackend(backend=get_solver(solver=solver, **kwds),
-                              printing=printing, doctest=doctest, test_method=test_method)
+                              printing=printing, doctest=doctest, test_method=test_method,
+                              base_ring=base_ring)
 
     return logging_solver

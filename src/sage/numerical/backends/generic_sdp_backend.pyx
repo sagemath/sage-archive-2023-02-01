@@ -482,6 +482,99 @@ cdef class GenericSDPBackend:
         """
         raise NotImplementedError()
 
+    cpdef dual_variable(self, int i, sparse=False):
+        """
+        The `i`-th dual variable
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the `i`-th dual variable
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False,solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable()              # optional - Nonexistent_LP_solver
+            sage: p.set_objective(x[0] - x[1])      # optional - Nonexistent_LP_solver
+            sage: a1 = matrix([[1, 2.], [2., 3.]])  # optional - Nonexistent_LP_solver
+            sage: a2 = matrix([[3, 4.], [4., 5.]])  # optional - Nonexistent_LP_solver
+            sage: a3 = matrix([[5, 6.], [6., 7.]])  # optional - Nonexistent_LP_solver
+            sage: b1 = matrix([[1, 1.], [1., 1.]])  # optional - Nonexistent_LP_solver
+            sage: b2 = matrix([[2, 2.], [2., 2.]])  # optional - Nonexistent_LP_solver
+            sage: b3 = matrix([[3, 3.], [3., 3.]])  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)  # optional - Nonexistent_LP_solver
+            sage: p.solve()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
+            sage: B=p.get_backend()  # optional - Nonexistent_LP_solver
+            sage: x=p.get_values(x).values()  # optional - Nonexistent_LP_solver
+            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
+            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # optional - Nonexistent_LP_solver # tol ???
+            0.0
+
+        TESTS::
+
+            sage: B.dual_variable(7)  # optional - Nonexistent_LP_solver
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: abs(g - B._get_answer()['gap'])  # optional - Nonexistent_LP_solver # tol 1e-22
+            0.0
+        """
+        raise NotImplementedError()
+
+    cpdef slack(self, int i, sparse=False):
+        """
+        Slack of the `i`-th constraint
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the slack of the `i`-th constraint
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False,solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: x = p.new_variable()              # optional - Nonexistent_LP_solver
+            sage: p.set_objective(x[0] - x[1])      # optional - Nonexistent_LP_solver
+            sage: a1 = matrix([[1, 2.], [2., 3.]])  # optional - Nonexistent_LP_solver
+            sage: a2 = matrix([[3, 4.], [4., 5.]])  # optional - Nonexistent_LP_solver
+            sage: a3 = matrix([[5, 6.], [6., 7.]])  # optional - Nonexistent_LP_solver
+            sage: b1 = matrix([[1, 1.], [1., 1.]])  # optional - Nonexistent_LP_solver
+            sage: b2 = matrix([[2, 2.], [2., 2.]])  # optional - Nonexistent_LP_solver
+            sage: b3 = matrix([[3, 3.], [3., 3.]])  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)  # optional - Nonexistent_LP_solver
+            sage: p.solve()  # optional - Nonexistent_LP_solver # tol ???
+            -3.0
+            sage: B=p.get_backend()             # optional - Nonexistent_LP_solver
+            sage: B1 = B.slack(1); B1           # optional - Nonexistent_LP_solver # tol ???
+            [0.0 0.0]
+            [0.0 0.0]
+            sage: B1.is_positive_definite()     # optional - Nonexistent_LP_solver
+            True
+            sage: x = p.get_values(x).values()  # optional - Nonexistent_LP_solver
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1   # optional - Nonexistent_LP_solver # tol ???
+            [0.0 0.0]
+            [0.0 0.0]
+
+        TESTS::
+
+            sage: B.slack(7)  # optional - Nonexistent_LP_solver
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        raise NotImplementedError()
 
     cpdef solver_parameter(self, name, value = None):
         """

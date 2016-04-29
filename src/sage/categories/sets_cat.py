@@ -10,6 +10,7 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -2050,7 +2051,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
-                    ....:     print x,y
+                    ....:     print(x, y)
                     1 a
                     1 b
                     2 a
@@ -2552,7 +2553,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 for shorthand in self._shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:
-                        print 'Injecting {} as shorthand for {}'.format(shorthand, realization)
+                        print('Injecting {} as shorthand for {}'.format(shorthand, realization))
                     inject_variable(shorthand, realization)
 
             @abstract_method(optional=True)

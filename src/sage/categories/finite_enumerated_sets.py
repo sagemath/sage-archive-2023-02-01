@@ -7,6 +7,7 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 import itertools
 
@@ -274,7 +275,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     ...       def __init__(self):
                     ...           Parent.__init__(self, category = FiniteEnumeratedSets())
                     ...       def __iter__(self):
-                    ...           print "hello!"
+                    ...           print("hello!")
                     ...           for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
@@ -539,7 +540,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C.rank(C((0,0,0)))
                     0
 
-                    sage: for c in C: print C.rank(c)
+                    sage: for c in C: print(C.rank(c))
                     0
                     1
                     2

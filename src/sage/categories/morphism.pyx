@@ -465,8 +465,8 @@ cdef class SetMorphism(Morphism):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x,*args,**kwds):
-            ....:  print('foo called with {} {}'.format(args, kwds))
-            ....:  return x
+            ....:     print('foo called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: f = SetMorphism(Hom(R,R,Rings()), foo)
             sage: f(2,'hello world',test=1)     # indirect doctest
             foo called with ('hello world',) {'test': 1}

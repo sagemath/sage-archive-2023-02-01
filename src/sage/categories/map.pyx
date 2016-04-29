@@ -718,15 +718,14 @@ cdef class Map(Element):
 
             sage: class FOO(Map):
             ....:   def _call_(self, x):
-            ....:       print("_call_", parent(x))
+            ....:       print("_call_ {}".format(parent(x)))
             ....:       return self.codomain()(x)
             ....:   def _call_with_args(self, x, args=(), kwds={}):
-            ....:       print("_call_with_args", parent(x))
+            ....:       print("_call_with_args {}".format(parent(x)))
             ....:       return self.codomain()(x)^kwds.get('exponent', 1)
             ....:   def pushforward(self, x, exponent=1):
-            ....:       print("pushforward", parent(x))
+            ....:       print("pushforward {}".format(parent(x)))
             ....:       return self.codomain()(1/x)^exponent
-            ...
             sage: f = FOO(ZZ, QQ)
             sage: f(1/1)   #indirect doctest
             pushforward Rational Field
@@ -1701,11 +1700,11 @@ cdef class FormalCompositeMap(Map):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x, *args, **kwds):
-            ....:  print('foo called with {} {}'.format(args, kwds))
-            ....:  return x
+            ....:     print('foo called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: def bar(x, *args, **kwds):
-            ....:  print('bar called with {} {}'.format(args, kwds))
-            ....:  return x
+            ....:     print('bar called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: f = SetMorphism(Hom(R, R, Rings()), foo)
             sage: b = SetMorphism(Hom(R, R, Rings()), bar)
             sage: c = b*f
@@ -1910,8 +1909,8 @@ cdef class FormalCompositeMap(Map):
         Otherwise, surjectivity of the composition cannot be determined::
 
             sage: FormalCompositeMap(Hom(V2, V1, phi32.category_for()),
-            ....:   V2.hom(Matrix([[1, 1], [1, 1]]), V2),
-            ....:   V2.hom(Matrix([[1], [1]]), V1)).is_surjective()
+            ....:     V2.hom(Matrix([[1, 1], [1, 1]]), V2),
+            ....:     V2.hom(Matrix([[1], [1]]), V1)).is_surjective()
             Traceback (most recent call last):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.

@@ -272,11 +272,11 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 Let's take an example::
 
                     sage: class Example(Parent):
-                    ...       def __init__(self):
-                    ...           Parent.__init__(self, category = FiniteEnumeratedSets())
-                    ...       def __iter__(self):
-                    ...           print("hello!")
-                    ...           for x in [1,2,3]: yield x
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
                     hello!

@@ -26,9 +26,9 @@ cpdef julia(ff_j, z, int iterations):
 
     INPUT:
 
-    - `ff_j` -- fast callable for the inner iteration
-    - `z` -- complex number
-    - `iterations` -- number of loops
+    - ``ff_j`` -- fast callable for the inner iteration
+    - ``z`` -- complex number
+    - ``iterations`` -- number of loops
 
     TESTS::
 
@@ -51,9 +51,9 @@ cpdef mandel(ff_m, z, int iterations):
 
     INPUT:
 
-    - `ff_m` -- fast callable for the inner iteration
-    - `z` -- complex number
-    - `iterations` -- number of loops
+    - ``ff_m`` -- fast callable for the inner iteration
+    - ``z`` -- complex number
+    - ``iterations`` -- number of loops
 
     TESTS::
 
@@ -75,14 +75,16 @@ cpdef mandel(ff_m, z, int iterations):
 cpdef cellular(rule, int N):
     """
     Cythonized helper function for the cellular_automata fractal.
+
     Yields a matrix showing the evolution of a Wolfram's cellular automaton.
     Based on work by Pablo Angulo.
     http://wiki.sagemath.org/interact/misc#CellularAutomata
 
     INPUT:
 
-    - `rule` -- determines how a cell's value is updated, depending on its neighbors
-    - `N` -- number of iterations
+    - ``rule`` -- determines how a cell's value is updated, depending
+      on its neighbors
+    - ``N`` -- number of iterations
 
     TESTS::
 

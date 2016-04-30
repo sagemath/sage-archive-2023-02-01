@@ -1950,7 +1950,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if W._reflection_representation is None:
                 Delta = W.independent_roots()
                 Phi = W.roots()
-                M = Matrix([Phi[self(Phi.index(alpha)+1)-1] for alpha in Delta])
+                inds = [ W._index_set_inverse[i] for i in W.independent_roots().keys() ]
+                M = Matrix([Phi[self(i+1)-1] for i in inds])
                 mat = W.base_change_matrix() * M
             else:
                 refl_repr = W._reflection_representation
@@ -1986,25 +1987,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
                 sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
                 sage: w = W.from_reduced_word([1, 2, 1, 1, 2])          # optional - gap3
-                sage: for alpha in W.simple_roots():                    # optional - gap3
+                sage: for alpha in W.independent_roots():               # optional - gap3
                 ....:     print("%s -> %s"%(alpha,w.action(alpha)))     # optional - gap3
                 (1, 0) -> (E(3), 0)
                 (-1, 1) -> (-E(3), E(3)^2)
             """
             mat = self.matrix(on_space=on_space)
             return vec * mat
-            # TODO: the following could be implemented directly in cython to
-            #   avoid creating the matrix direct speedup factor would be 10
-            #if side == "right":
-                #w = self
-            #elif side == "left":
-                #w = ~self
-            #else:
-                #raise ValueError('side must be "left" or "right"')
-            #W = self.parent()
-            #n = W.rank()
-            #Phi = W.roots()
-            #return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
 
         def _act_on_(self, vec, self_on_left):
             r"""

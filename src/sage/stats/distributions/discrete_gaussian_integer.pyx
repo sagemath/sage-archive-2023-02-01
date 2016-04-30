@@ -373,7 +373,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: l = []
             sage: for i in range(16):
             ....:     f(); l.append(D())
-            ....: l
+            sage: l
             [21, 21, 21, 21, -21, 21, 21, -21, -21, -21, 21, -21, 21, -21, 21, 21]
 
             sage: f()
@@ -381,7 +381,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: l = []
             sage: for i in range(16):
             ....:     f(); D._flush_cache(); l.append(D())
-            ....: l
+            sage: l
             [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
         """
         if self._gen_mp:

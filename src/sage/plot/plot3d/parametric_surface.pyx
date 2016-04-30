@@ -518,7 +518,6 @@ cdef class ParametricSurface(IndexFaceSet):
 
         self.render_grid = urange, vrange
 
-
     def get_grid(self, ds):
         """
         TEST::
@@ -673,6 +672,20 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         raise NotImplementedError
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+        
+        EXAMPLES::
+
+            sage: S = parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+            sage: S.plot() is S
+            True
+
+        """
+        return self
 
 class MoebiusStrip(ParametricSurface):
     """

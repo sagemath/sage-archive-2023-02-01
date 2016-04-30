@@ -225,7 +225,7 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Kumar1987] S. Kumar, Demazure character formula in arbitrary Kac-Moody setting,
+            .. [Kumar1987] \S. Kumar, Demazure character formula in arbitrary Kac-Moody setting,
                Invent. Math. 89 (1987), no. 2, 395-423.
 
             EXAMPLES:
@@ -425,11 +425,11 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Lusztig1985] G. Lusztig,
+            .. [Lusztig1985] \G. Lusztig,
                *Equivariant K-theory and representations of Hecke algebras*,
                Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
 
-            .. [Cherednik1995] I. Cherednik,
+            .. [Cherednik1995] \I. Cherednik,
                *Nonsymmetric Macdonald polynomials*. IMRN 10, 483-515 (1995).
 
             EXAMPLES::
@@ -752,7 +752,7 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Haiman06] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
+            .. [Haiman06] \M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
 
             .. WARNING::
 

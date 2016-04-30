@@ -13,21 +13,21 @@ It defines the following functions:
 
 REFERENCES:
 
-.. [BJL99-1] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
+.. [BJL99-1] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
    Second edition. Encyclopedia of Mathematics and its Applications, 69. Cambridge
    University Press, (1999).
 
-.. [BLJ99-2] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
+.. [BLJ99-2] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
    Second edition. Encyclopedia of Mathematics and its Applications, 78. Cambridge
    University Press, (1999).
 
-.. [Bo39] R. C. Bose, "On the construction of balanced incomplete block
+.. [Bo39] \R. C. Bose, "On the construction of balanced incomplete block
    designs", Ann. Eugenics, vol. 9, (1939), 353--399.
 
-.. [Bu95] M. Buratti "On simple radical difference families", J. of
+.. [Bu95] \M. Buratti "On simple radical difference families", J. of
    Combinatorial Designs, vol. 3, no. 2 (1995)
 
-.. [Wi72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
+.. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.
 
 Functions

@@ -70,7 +70,7 @@ from sage.misc.misc import verbose
 import math
 
 from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double
-from sage.ext.multi_modular import MAX_MODULUS as MAX_MODULUS_multi_modular
+from sage.arith.multi_modular import MAX_MODULUS as MAX_MODULUS_multi_modular
 MAX_MODULUS = min(MAX_MODULUS_modn_dense_double, MAX_MODULUS_multi_modular)
 
 # parameters for tuning

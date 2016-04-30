@@ -55,6 +55,7 @@ Individual Categories
    sage/categories/commutative_ring_ideals
    sage/categories/commutative_rings
    sage/categories/complete_discrete_valuation
+   sage/categories/complex_reflection_groups
    sage/categories/coxeter_group_algebras
    sage/categories/coxeter_groups
    sage/categories/crystals
@@ -70,6 +71,7 @@ Individual Categories
    sage/categories/filtered_algebras_with_basis
    sage/categories/filtered_modules
    sage/categories/filtered_modules_with_basis
+   sage/categories/finite_complex_reflection_groups
    sage/categories/finite_coxeter_groups
    sage/categories/finite_crystals
    sage/categories/finite_dimensional_algebras_with_basis
@@ -93,6 +95,7 @@ Individual Categories
    sage/categories/function_fields
    sage/categories/g_sets
    sage/categories/gcd_domains
+   sage/categories/generalized_coxeter_groups
    sage/categories/graded_algebras
    sage/categories/graded_algebras_with_basis
    sage/categories/graded_bialgebras
@@ -148,6 +151,7 @@ Individual Categories
    sage/categories/sets_cat
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps
+   sage/categories/shephard_groups
    sage/categories/simplicial_complexes
    sage/categories/super_algebras
    sage/categories/super_algebras_with_basis

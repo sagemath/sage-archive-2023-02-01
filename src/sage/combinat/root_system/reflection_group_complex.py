@@ -1838,13 +1838,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 return w.reflection_length(in_unitary_group=in_unitary_group)
 
         #@cached_in_parent_method
-        def to_matrix(self, side="left", on_space="primal"):
+        def to_matrix(self, on_space="primal"):
             r"""
             Return ``self`` as a matrix acting on the underlying vector
             space.
-
-            - ``side`` -- optional (default: ``"left"``) whether the
-              action of ``self`` is on the ``"left"`` or on the ``"right"``
 
             - ``on_space`` -- optional (default: ``"primal"``) whether
               to act as the reflection representation on the given
@@ -1875,44 +1872,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [1, 2, 1]
                 [ 0 -1]
                 [-1  0]
-
-            TESTS::
-
-                sage: W = ReflectionGroup(4)                            # optional - gap3
-                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
-                True
-                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
-                True
-
-                sage: W = ReflectionGroup(7)                            # optional - gap3
-                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
-                True
-                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
-                True
             """
             W = self.parent()
             if W._reflection_representation is None:
-                is_well_generated = W.is_well_generated()
-                if side == "left":
-                    if not is_well_generated:
-                        w = W.from_reduced_word(reversed(self.reduced_word()))
-                    else:
-                        w = self
-                elif side == "right":
-                    w = self
-                else:
-                    raise ValueError('side must be "left" or "right"')
-
                 Delta = W.independent_roots()
                 Phi = W.roots()
-                M = Matrix([Phi[w(Phi.index(alpha)+1)-1] for alpha in Delta])
+                M = Matrix([Phi[self(Phi.index(alpha)+1)-1] for alpha in Delta])
                 mat = W.base_change_matrix() * M
-
-                if side == "left":
-                    if not is_well_generated:
-                        mat = mat.transpose()
-                    else:
-                        mat = mat.inverse().conjugate_transpose()
             else:
                 refl_repr = W._reflection_representation
                 id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
@@ -1930,16 +1896,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         matrix = to_matrix
 
-        def action(self, vec, side="left", on_space="primal"):
+        def action(self, vec, on_space="primal"):
             r"""
             Return the image of ``vec`` under the action of ``self``.
 
             INPUT:
 
             - ``vec`` -- vector in the basis given by the simple root
-
-            - ``side`` -- optional (default: ``"left"``) whether the
-              action of ``self`` is on the ``"left"`` or on the ``"right"``
 
             - ``on_space`` -- optional (default: ``"primal"``) whether
               to act as the reflection representation on the given
@@ -1951,36 +1914,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
-                ....:           [w.action(weight) for weight in W.fundamental_weights()]))  # optional - gap3
+                ....:           [w.action(weight,side="left") for weight in W.fundamental_weights()]))  # optional - gap3
                 [] [(2/3, 1/3), (1/3, 2/3)]
                 [2] [(2/3, 1/3), (1/3, -1/3)]
                 [1] [(-1/3, 1/3), (1/3, 2/3)]
                 [1, 2] [(-1/3, 1/3), (-2/3, -1/3)]
                 [2, 1] [(-1/3, -2/3), (1/3, -1/3)]
                 [1, 2, 1] [(-1/3, -2/3), (-2/3, -1/3)]
-
-            TESTS::
-
-                sage: W = ReflectionGroup(['B',3])                      # optional - gap3
-                sage: all( w.action(alpha,side="right") == w.action_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
-                True
-                sage: all( w.action(alpha,side="left") == w.action_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )      # optional - gap3
-                True
-
-                sage: W = ReflectionGroup(4)                            # optional - gap3
-                sage: all( w.action(alpha,side="right") == w.action_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
-                True
-                sage: W = ReflectionGroup(4)                            # optional - gap3
-                sage: all( w.action(alpha,side="left") == w.action_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )    # optional - gap3
-                True
             """
-            mat = self.matrix(side=side, on_space=on_space)
-            if side == "right":
-                return vec*mat
-            elif side == "left":
-                return mat*vec
-            else:
-                raise ValueError('side must be "left" or "right"')
+            mat = self.matrix(on_space=on_space)
+            return vec*mat
             # todo: the following could be implemented directly in
             # cython to avoid creating the matrix
             # direct speedup factor would be 10
@@ -2012,7 +1955,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 (1, 0) -> (-1, -1), (0, 1) -> (1, 0), (1, 1) -> (0, -1)
             """
             if self_on_left:
-                return self.action(vec,side="left")
+                pass
             else:
                 return self.action(vec,side="right")
 
@@ -2045,13 +1988,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: all(sorted([w.action_on_root_indices(i) for i in range(N)]) == range(N) for w in W)   # optional - gap3
                 True
             """
-            #if side == "right":
-                #w = self
-            #elif side == "left":
-                #w = ~self
-            #else:
-                #raise ValueError('side must be "left" or "right"')
-            return w(i + 1) - 1
+            return self(i + 1) - 1
 
         def action_on_root(self, root):
             r"""
@@ -2071,7 +2008,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
-                ....:           [w.action_on_root(beta) for beta in W.positive_roots()]))  # optional - gap3
+                ....:           [w.action_on_root(beta,side="left") for beta in W.positive_roots()]))  # optional - gap3
                 [] [(1, 0), (0, 1), (1, 1)]
                 [2] [(1, 1), (0, -1), (1, 0)]
                 [1] [(-1, 0), (1, 1), (0, 1)]

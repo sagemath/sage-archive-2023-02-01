@@ -791,7 +791,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             return self.matrix()
 
         @cached_method
-        def action_on_root_indices(self, i):
+        def action_on_root_indices(self, i, side="left"):
             """
             Return the action on the set of roots.
 
@@ -804,6 +804,12 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 sage: w.action_on_root_indices(0)
                 11
             """
+            if side == "left":
+                w = self
+            elif side == "right":
+                w = ~self
+            else:
+                raise ValueError('side must be "left" or "right"')
             roots = self.parent().roots()
             rt = self * roots[i]
             return roots.index(rt)

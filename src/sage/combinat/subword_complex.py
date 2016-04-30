@@ -389,7 +389,7 @@ class SubwordComplexFacet(Simplex, Element):
         W = self.parent().group()
         N = len(W.long_element(as_word=True))
         root_conf = self._root_configuration_indices()
-        return [~w for w in W if all(w.action_on_root_indices(i) < N
+        return [~w for w in W if all(w.action_on_root_indices(i,side="left") < N
                                      for i in root_conf)]
 
     def is_vertex(self):
@@ -2018,7 +2018,7 @@ def _extended_root_configuration_indices(W, Q, F):
     V_roots = []
     pi = W.one()
     for i, wi in enumerate(Q):
-        V_roots.append(pi.action_on_root_indices(W.simple_root_index(wi)))
+        V_roots.append(pi.action_on_root_indices(W.simple_root_index(wi),side="left"))
         if i not in F:
             pi = pi.apply_simple_reflection_right(wi)
     return V_roots

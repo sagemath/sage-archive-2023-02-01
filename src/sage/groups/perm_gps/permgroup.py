@@ -2215,7 +2215,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         REFERENCES:
 
-        .. [THOMAS-WOODS] A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
+        .. [THOMAS-WOODS] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
         AUTHOR:
 

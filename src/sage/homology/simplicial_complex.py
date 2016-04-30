@@ -3277,11 +3277,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BP2000] V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
+        .. [BP2000] \V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
            and combinatorics of simplicial manifolds," *Uspekhi
            Mat. Nauk* 55 (2000), 171--172.
 
-        .. [SS1992] M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+        .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
            manifolds and complexes into a cubic lattice", *Uspekhi
            Mat. Nauk* 47 (1992), 219-220.
 

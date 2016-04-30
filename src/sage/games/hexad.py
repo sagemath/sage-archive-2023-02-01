@@ -53,17 +53,17 @@ David Joyner (2006-05)
 
 REFERENCES:
 
-.. [Cur84] R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
+.. [Cur84] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
    group `M_{12}`, and the kitten. *Computational group theory*,
    ed. M. Atkinson, Academic Press, 1984.
 
-.. [Con84] J. Conway, Hexacode and tetracode - MINIMOG and MOG.
+.. [Con84] \J. Conway, Hexacode and tetracode - MINIMOG and MOG.
    *Computational group theory*, ed. M. Atkinson, Academic Press, 1984.
 
-.. [ConSlo86] J. Conway and N. Sloane. *Lexicographic codes: error-correcting
+.. [ConSlo86] \J. Conway and N. Sloane. *Lexicographic codes: error-correcting
    codes from game theory*, IEEE Trans. Infor. Theory **32** (1986) 337-348.
 
-.. [KahRyb01] J. Kahane and A. Ryba. *The hexad game*,
+.. [KahRyb01] \J. Kahane and A. Ryba. *The hexad game*,
    Electronic Journal of Combinatorics, **8** (2001)
    http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
 

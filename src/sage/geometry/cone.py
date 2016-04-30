@@ -4482,7 +4482,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Rockafellar] R.T. Rockafellar. Convex Analysis. Princeton
+        .. [Rockafellar] \R.T. Rockafellar. Convex Analysis. Princeton
            University Press, Princeton, 1970.
 
         EXAMPLES:
@@ -4564,7 +4564,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Orlitzky] M. Orlitzky. The Lyapunov rank of an improper cone.
+        .. [Orlitzky] \M. Orlitzky. The Lyapunov rank of an improper cone.
            http://www.optimization-online.org/DB_HTML/2015/10/5135.html
 
         EXAMPLES:
@@ -4655,7 +4655,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M. Orlitzky. The Lyapunov rank of an improper cone.
         http://www.optimization-online.org/DB_HTML/2015/10/5135.html
 
-        .. [Rudolf] G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
+        .. [Rudolf] \G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
            Bilinear optimality constraints for the cone of positive
            polynomials. Mathematical Programming, Series B, 129 (2011) 5-31.
 
@@ -4824,7 +4824,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
+        .. [Gowda-Tao] \M.S. Gowda and J. Tao. On the bilinearity rank of
            a proper cone and Lyapunov-like transformations. Mathematical
            Programming, 147 (2014) 155-170.
 

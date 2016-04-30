@@ -7,11 +7,11 @@ for computing cup products and cohomology operations.
 
 REFERENCES:
 
-.. [G-DR03] R. González-Díaz and P. Réal, *Computation of cohomology
+.. [G-DR03] \R. González-Díaz and P. Réal, *Computation of cohomology
    operations on finite simplicial complexes* in Homology,
    Homotopy and Applications 5 (2003), 83-93.
 
-.. [G-DR99] R. González-Díaz and P. Réal, *A combinatorial method for
+.. [G-DR99] \R. González-Díaz and P. Réal, *A combinatorial method for
    computing Steenrod squares* in J. Pure Appl. Algebra 139 (1999), 89-108.
 
 AUTHORS:
@@ -144,7 +144,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: b.cup_product(b)
         h^{2,0}
     """
-    def __init__(self, base_ring, cell_complex, cohomology=False, cat=None):
+    def __init__(self, base_ring, cell_complex, cohomology=False, category=None):
         """
         Initialize ``self``.
 
@@ -170,7 +170,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             # We only need the rank of M in each degree, and since
             # we're working over a field, we don't need to dualize M
             # if working with cohomology.
-        cat = Modules(base_ring).WithBasis().Graded().or_subcategory(cat)
+        category = Modules(base_ring).WithBasis().Graded().FiniteDimensional().or_subcategory(category)
         self._contraction = phi
         self._complex = cell_complex
         self._cohomology = cohomology
@@ -178,7 +178,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                                 for deg in range(cell_complex.dimension()+1)}
         indices = [(deg, i) for deg in self._graded_indices
                    for i in self._graded_indices[deg]]
-        CombinatorialFreeModule.__init__(self, base_ring, indices, category=cat)
+        CombinatorialFreeModule.__init__(self, base_ring, indices, category=category)
 
     def basis(self, d=None):
         """
@@ -435,7 +435,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: H = RP2.cohomology_ring(GF(5))
             sage: TestSuite(H).run()
         """
-        cat = Algebras(base_ring).WithBasis().Graded()
+        cat = Algebras(base_ring).WithBasis().Graded().FiniteDimensional()
         HomologyVectorSpaceWithBasis.__init__(self, base_ring, cell_complex, True, cat)
 
     def _repr_(self):

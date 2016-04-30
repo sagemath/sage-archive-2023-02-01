@@ -33,15 +33,15 @@ All the code here was first available on Mathematica [ZS]_.
 
 REFERENCES:
 
-.. [KonZor03] M. Kontsevich, A. Zorich "Connected components of the moduli space
+.. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
    of Abelian differentials with prescripebd singularities" Invent. math. 153,
    631-678 (2003)
 
-.. [Lan08] E. Lanneau "Connected components of the strata of the moduli spaces
+.. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces
    of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
    41, 1-56 (2008)
 
-.. [Zor08] A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
+.. [Zor08] \A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
    Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
    no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
 

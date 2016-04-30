@@ -1394,6 +1394,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MatrixSpace(h,2,1)([h[1], h[2]])
             [h[1]]
             [h[2]]
+
+        Converting sparse to dense matrices used to be too slow
+        (:trac:`20470`). Check that this is fixed::
+
+            sage: m = identity_matrix(GF(2), 2000, sparse=True)
+            sage: MS = MatrixSpace(GF(2), 2000, sparse=False)
+            sage: md = MS(m) # used to be slow
+            sage: md.parent() is MS
+            True
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             if self._copy_zero: # faster to copy than to create a new one.
@@ -1411,6 +1420,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return x.__copy__()
             else:
                 if x.nrows() == m and x.ncols() == n:
+                    if (x.base_ring() == self.base_ring()
+                        and x.is_sparse() and not sparse):
+                        # If x is sparse and large, calling x.dense_matrix()
+                        # is much faster than calling x.list(). See #20470.
+                        return x.dense_matrix()
                     x = x.list()
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "

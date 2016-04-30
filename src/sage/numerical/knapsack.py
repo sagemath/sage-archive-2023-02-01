@@ -522,7 +522,7 @@ class Superincreasing(SageObject):
 
         REFERENCES:
 
-        .. [HPS08] J. Hoffstein, J. Pipher, and J.H. Silverman. *An
+        .. [HPS08] \J. Hoffstein, J. Pipher, and J.H. Silverman. *An
           Introduction to Mathematical Cryptography*. Springer, 2008.
         """
         # input error handling

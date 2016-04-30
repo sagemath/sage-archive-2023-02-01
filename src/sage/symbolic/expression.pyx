@@ -5374,22 +5374,44 @@ cdef class Expression(CommutativeRingElement):
             sage: all(len(str(e.n(digits=k)))-1 >= k for k in ks)
             True
 
+        Symbolic sums with definite endpoints are expanded (:trac:`9424`)::
+
+            sage: (k,n) = var('k,n')
+            sage: f(n) = sum(abs(-k*k+n),k,1,n)
+            sage: ex = f(n=8); ex
+            sum(abs(-k^2 + 8), k, 1, 8)
+            sage: ex.n()
+            162.000000000000
+            sage: (ex+1).n()
+            163.000000000000
         """
         if prec is None:
             if digits is None:
                 prec = 53
             else:
                 prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+
+        from sage.symbolic.expression_conversions import ExpressionTreeWalker
+        class DefiniteSumExpander(ExpressionTreeWalker):
+            def composition(self, ex, operator):
+                if hasattr(operator, 'name') and operator.name() == 'sum' and (
+                    is_a_numeric((<Expression>ex.operands()[2])._gobj)
+                and is_a_numeric((<Expression>ex.operands()[3])._gobj)):
+                    from sage.calculus.calculus import symbolic_sum
+                    return symbolic_sum(*(ex.operands()))
+                return super(DefiniteSumExpander, self).composition(ex, operator)
+
+        s = DefiniteSumExpander(self)
+        cdef Expression x = self._parent(s())
         from sage.rings.real_mpfr import RealField
         R = RealField(prec)
         kwds = {'parent': R, 'algorithm': algorithm}
-        cdef Expression x
         try:
-            x = self._convert(kwds)
+            x = x._convert(kwds)
         except TypeError: # numerical approximation for real number failed
             pass          # try again with complex
             kwds['parent'] = R.complex_field()
-            x = self._convert(kwds)
+            x = x._convert(kwds)
 
         # we have to consider constants as well, since infinity is a constant
         # in pynac
@@ -9390,9 +9412,7 @@ cdef class Expression(CommutativeRingElement):
         an error::
 
             sage: f(8).n()
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot evaluate symbolic expression numerically
+            31.7752256945384
         """
         return self.parent()(self._maxima_().simplify_sum())
 

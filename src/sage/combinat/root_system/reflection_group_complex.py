@@ -1989,11 +1989,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: w = W.from_reduced_word([1,2])                            # optional - gap3
-                sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # optional - gap3
+                sage: w = W.from_reduced_word([1,2])                    # optional - gap3
+                sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # indirect doctest # optional - gap3
                 (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
 
-                sage: print(", ".join("%s -> %s"%(root,root*w) for root in W.positive_roots())) # optional - gap3
+                sage: print(", ".join("%s -> %s"%(root,root*w) for root in W.positive_roots())) # indirect doctest # optional - gap3
                 (1, 0) -> (-1, -1), (0, 1) -> (1, 0), (1, 1) -> (0, -1)
             """
             if self_on_left:

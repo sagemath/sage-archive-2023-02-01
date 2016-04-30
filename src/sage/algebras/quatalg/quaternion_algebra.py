@@ -1936,7 +1936,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         We do a consistency check::
 
             sage: B = BrandtModule(11,19); R = B.right_ideals()
-            sage: print([r.left_order().discriminant() for r in R])
+            sage: [r.left_order().discriminant() for r in R]
             [209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209]
         """
         if self.__left_order is None:

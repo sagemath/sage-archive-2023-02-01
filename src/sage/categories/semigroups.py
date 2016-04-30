@@ -527,7 +527,7 @@ class Semigroups(CategoryWithAxiom):
             The `L`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
             `L`-*trivial* if all its `L`-classes are trivial (that is
-            of cardinality `1`), or equivalently if the `L`-preoder is
+            of cardinality `1`), or equivalently if the `L`-preorder is
             in fact a partial order.
 
             EXAMPLES::
@@ -572,7 +572,7 @@ class Semigroups(CategoryWithAxiom):
             The `R`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
             `R`-*trivial* if all its `R`-classes are trivial (that is
-            of cardinality `1`), or equivalently if the `R`-preoder is
+            of cardinality `1`), or equivalently if the `R`-preorder is
             in fact a partial order.
 
             EXAMPLES::
@@ -617,7 +617,7 @@ class Semigroups(CategoryWithAxiom):
             The `J`-*classes* are the equivalence classes for the
             associated equivalence relation. The semigroup `S` is
             `J`-*trivial* if all its `J`-classes are trivial (that is
-            of cardinality `1`), or equivalently if the `J`-preoder is
+            of cardinality `1`), or equivalently if the `J`-preorder is
             in fact a partial order.
 
             EXAMPLES::

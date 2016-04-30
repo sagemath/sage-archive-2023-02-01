@@ -831,7 +831,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             Return ``self`` as a matrix acting on the underlying vector
             space.
 
-            - ``side`` -- optional (default: ``"left"``) whether the
+            - ``side`` -- optional (default: ``"right"``) whether the
               action of ``self`` is on the ``"left"`` or on the ``"right"``
 
             - ``on_space`` -- optional (default: ``"primal"``) whether
@@ -845,22 +845,41 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: for w in W:                                       # optional - gap3
                 ....:     print(w.reduced_word())                       # optional - gap3
                 ....:     print(w.to_matrix())                          # optional - gap3
+                ....:     print(w.to_matrix(on_space="dual"))           # optional - gap3
+                ....:     print                                         # optional - gap3
                 []
                 [1 0]
                 [0 1]
+                [1 0]
+                [0 1]
+
                 [2]
                 [ 1  1]
                 [ 0 -1]
+                [ 1  0]
+                [ 1 -1]
+
                 [1]
                 [-1  0]
                 [ 1  1]
+                [-1  1]
+                [ 0  1]
+
                 [1, 2]
                 [-1 -1]
                 [ 1  0]
+                [ 0 -1]
+                [ 1 -1]
+
                 [2, 1]
                 [ 0  1]
                 [-1 -1]
+                [-1  1]
+                [-1  0]
+
                 [1, 2, 1]
+                [ 0 -1]
+                [-1  0]
                 [ 0 -1]
                 [-1  0]
 
@@ -914,7 +933,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``vec`` -- vector in the basis given by the simple root
 
-            - ``side`` -- optional (default: ``"left"``) whether the
+            - ``side`` -- optional (default: ``"right"``) whether the
               action of ``self`` is on the ``"left"`` or on the ``"right"``
 
             - ``on_space`` -- optional (default: ``"primal"``) whether
@@ -966,10 +985,17 @@ class RealReflectionGroup(ComplexReflectionGroup):
             on the vector space, in the basis given by the simple
             roots.
 
+            INPUT:
+
+            - ``vec`` -- the vector (an iterable) to act on
+
+            - ``self_on_left`` -- whether the action of ``self`` is on
+              the left or on the right
+
             EXAMPLES::
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: w = W.from_reduced_word([1,2])                            # optional - gap3
+                sage: w = W.from_reduced_word([1,2])                    # optional - gap3
                 sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # optional - gap3
                 (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
 
@@ -989,7 +1015,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``i`` -- index of the root to act on
 
-            - ``side`` -- optional (default: ``"left"``) whether the
+            - ``side`` -- optional (default: ``"right"``) whether the
               action is on the left or on the right
 
             EXAMPLES::
@@ -1020,7 +1046,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             - ``root`` -- the root to act on
 
-            - ``side`` -- optional (default: ``"left"``) whether the
+            - ``side`` -- optional (default: ``"right"``) whether the
               action is on the left or on the right
 
             EXAMPLES::

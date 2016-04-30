@@ -240,7 +240,7 @@ r'''
 from sage.rings.all import QQ
 
 def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_method_file=None,
-                          method_name='CHANGE', base_ring=QQ):
+                          test_method=None, base_ring=QQ):
     """
     Factory that constructs a :class:`LoggingBackend` for debugging and testing.
 
@@ -323,7 +323,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         sage: fname = tmp_filename()
         sage: compute_something(solver= LoggingBackendFactory(solver='GLPK', printing=False,
         ....:                                                 test_method_file=fname,
-        ....:                                                 method_name='something'))
+        ....:                                                 test_method='something'))
         4711
         sage: with open(fname) as f:
         ....:     for line in f.readlines(): print '|{}'.format(line),
@@ -353,16 +353,28 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
 
     We then copy from the generated file and paste into the source
     code of the generic backend, where all test methods are defined.
+
+    If ``test_method_file`` is not provided, a default output file name
+    will be computed from ``test_method``.
+
     """
+
+    if test_method is not None:
+        if test_method_file is None:
+            # Construct output file name from method name.
+            test_method_file = "test_{}.py".format(test_method)
+    else:
+        test_method = 'CHANGE'  # Will have to be edited by user in
+                                # generated file.
 
     if doctest_file is not None:
         doctest = open(doctest_file, "w", 1) #line-buffered
     else:
         doctest = None
     if test_method_file is not None:
-        test_method = open(test_method_file, "w", 1) #line-buffered
+        test_method_output = open(test_method_file, "w", 1) #line-buffered
     else:
-        test_method = None
+        test_method_output = None
 
     def logging_solver(**kwds):
         """
@@ -373,11 +385,11 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
             print("# {}".format(construct))
         if doctest is not None:
             doctest.write("        sage: {}\n".format(construct))
-        if test_method is not None:
-            test_method.write(test_method_template.format(name=method_name))
+        if test_method_output is not None:
+            test_method_output.write(test_method_template.format(name=test_method))
         from sage.numerical.backends.generic_backend import get_solver
         return LoggingBackend(backend=get_solver(solver=solver, **kwds),
-                              printing=printing, doctest=doctest, test_method=test_method,
+                              printing=printing, doctest=doctest, test_method=test_method_output,
                               base_ring=base_ring)
 
     return logging_solver

@@ -287,6 +287,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -1004,13 +1005,17 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: M = Manifold(4, 'M', structure='topological')
             sage: for i in M.irange():
-            ....:     print i,
+            ....:     print(i)
             ....:
-            0 1 2 3
+            0
+            1
+            2
+            3
             sage: for i in M.irange(2):
-            ....:     print i,
+            ....:     print(i)
             ....:
-            2 3
+            2
+            3
             sage: list(M.irange())
             [0, 1, 2, 3]
 
@@ -1018,13 +1023,18 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: M = Manifold(4, 'M', structure='topological', start_index=1)
             sage: for i in M.irange():
-            ....:     print i,
+            ....:     print(i)
             ....:
-            1 2 3 4
+            1
+            2
+            3
+            4
             sage: for i in M.irange(2):
-            ....:    print i,
+            ....:    print(i)
             ....:
-            2 3 4
+            2
+            3
+            4
 
         In general, one has always::
 
@@ -1061,7 +1071,7 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: M = Manifold(2, 'M', structure='topological', start_index=1)
             sage: for ind in M.index_generator(2):
-            ....:     print ind
+            ....:     print(ind)
             ....:
             (1, 1)
             (1, 2)
@@ -1071,16 +1081,30 @@ class TopologicalManifold(ManifoldSubset):
         Loops can be nested::
 
             sage: for ind1 in M.index_generator(2):
-            ....:     print ind1, " : ",
+            ....:     print ("{} : ".format(ind1))
             ....:     for ind2 in M.index_generator(2):
-            ....:         print ind2,
-            ....:     print ""
+            ....:         print(ind2)
             ....:
-            (1, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (1, 2)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (2, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (2, 2)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-
+            (1, 1) : 
+            (1, 1)
+            (1, 2)
+            (2, 1)
+            (2, 2)
+            (1, 2) : 
+            (1, 1)
+            (1, 2)
+            (2, 1)
+            (2, 2)
+            (2, 1) : 
+            (1, 1)
+            (1, 2)
+            (2, 1)
+            (2, 2)
+            (2, 2) : 
+            (1, 1)
+            (1, 2)
+            (2, 1)
+            (2, 2)
         """
         si = self._sindex
         imax = self._dim - 1 + si

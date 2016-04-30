@@ -653,11 +653,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         REFERENCES:
 
-        .. [Cohen-II] H. Cohen, Number Theory and Diophantine
+        .. [Cohen-II] \H. Cohen, Number Theory and Diophantine
            Equations, Volume II.  Graduate Texts in Mathematics 240.
            Springer, 2007.
 
-        .. [Diamond-Im] F. Diamond and J. Im, Modular forms and
+        .. [Diamond-Im] \F. Diamond and J. Im, Modular forms and
            modular curves.  In: V. Kumar Murty (ed.), Seminar on
            Fermat's Last Theorem (Toronto, 1993-1994), 39-133.  CMS
            Conference Proceedings 17.  American Mathematical Society,
@@ -1143,7 +1143,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         TESTS:
 
-        This shows that ticket #6393 has been fixed::
+        This shows that :trac:`6393` has been fixed::
 
             sage: G = DirichletGroup(5); X = G.list(); Y = X[0]; Z = X[1]
             sage: # Y is trivial and Z is quartic

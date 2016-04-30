@@ -396,7 +396,7 @@ def small_integer_to_graph6(n):
 
 def length_and_string_from_graph6(s):
     r"""
-    Returns a pair `(length,graph6_string)` from a graph6 string of unknown length.
+    Returns a pair ``(length,graph6_string)`` from a graph6 string of unknown length.
 
     This helper function is the inverse of `N` from [McK]_.
 

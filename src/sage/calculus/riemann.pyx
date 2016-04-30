@@ -70,8 +70,7 @@ cdef FLOAT_T TWOPI = 2*PI
 cdef COMPLEX_T I = complex(0,1)
 
 cdef class Riemann_Map:
-    """
-
+    r"""
     The ``Riemann_Map`` class computes an interior or exterior Riemann map,
     or an Ahlfors map of a region given by the supplied boundary curve(s)
     and center point. The class also provides various methods to
@@ -196,14 +195,13 @@ cdef class Riemann_Map:
 
     REFERENCES:
 
-    .. [KT] N. Kerzman and M. R. Trummer. "Numerical Conformal Mapping via
+    .. [KT] \N. Kerzman and M. R. Trummer. "Numerical Conformal Mapping via
       the Szego kernel". Journal of Computational and Applied Mathematics,
       14(1-2): 111--123, 1986.
 
-    .. [BSV] M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
+    .. [BSV] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
       the Riemann map and Ahlfors map via the Kerzman-Stein equation".
       Involve 3-4 (2010), 405-420.
-
     """
     cdef int N, B, ncorners
     cdef f

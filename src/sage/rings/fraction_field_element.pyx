@@ -10,7 +10,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Ho72] E. Horowitz, "Algorithms for Rational Function Arithmetic
+.. [Ho72] \E. Horowitz, "Algorithms for Rational Function Arithmetic
    Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
    the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
 

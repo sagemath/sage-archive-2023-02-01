@@ -1301,7 +1301,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
     REFERENCES:
 
-    .. [1] A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
+    .. [1] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
     AUTHOR:
 

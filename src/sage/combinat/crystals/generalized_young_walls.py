@@ -15,12 +15,12 @@ introduced in [KS10]_ and designed to be a realization of the crystals
 
 REFERENCES:
 
-.. [KS10] J.-A. Kim and D.-U. Shin.
+.. [KS10] \J.-A. Kim and D.-U. Shin.
    Generalized Young walls and crystal bases for quantum affine algebra
    of type `A`.
    Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
 
-.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+.. [KLRS] \S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
    A combinatorial description of the affine Gindikin-Karpelevich formula of
    type `A_n^{(1)}`.
    :arXiv:`1203.1640`.

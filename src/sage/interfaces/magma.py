@@ -230,7 +230,7 @@ INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 
 
 EXTCODE_DIR = None
-def extcode_dir():
+def extcode_dir(iface = None):
     """
     Return directory that contains all the Magma extcode.  This is put
     in a writable directory owned by the user, since when attached,
@@ -243,10 +243,25 @@ def extcode_dir():
     """
     global EXTCODE_DIR
     if not EXTCODE_DIR:
-        import shutil
-        tmp = sage.misc.temporary_file.tmp_dir()
-        shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
-        EXTCODE_DIR = "%s/data/"%tmp
+        if iface is None or iface._server is None:
+            import shutil
+            tmp = sage.misc.temporary_file.tmp_dir()
+            shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
+            EXTCODE_DIR = "%s/data/"%tmp
+        else:
+            import os
+            tmp = iface._remote_tmpdir()
+            command = 'scp -q -r "%s/magma/" "%s:%s/data" 1>&2 2>/dev/null'%(SAGE_EXTCODE,iface._server,tmp)
+            try:
+                ans = os.system(command)
+                EXTCODE_DIR = "%s/data/"%tmp
+                if ans != 0:
+                    raise IOError
+            except (OSError,IOError):
+                out_str = 'Tried to copy the file structure in "%s/magma/" to "%s:%s/data" and failed (possibly because scp is not installed in the system).\nFor the remote Magma to work you should populate the remote directory by some other method, or install scp in the system and retry.'%(SAGE_EXTCODE, iface._server, tmp)
+                from warnings import warn, resetwarnings
+                resetwarnings()
+                warn(out_str)
     return EXTCODE_DIR
 
 
@@ -267,6 +282,9 @@ class Magma(ExtraTabCompletion, Expect):
        ``magma_free`` command instead, which uses the free demo web
        interface to Magma.
 
+       If you have ssh access to a remote installation of Magma, you can
+       also set the ``server`` parameter to use it.
+
     EXAMPLES:
 
     You must use nvals = 0 to call a function that doesn't return
@@ -280,9 +298,9 @@ class Magma(ExtraTabCompletion, Expect):
         '1.1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         sage: magma.SetDefaultRealFieldPrecision(30, nvals=0)  # optional - magma
     """
-    def __init__(self, maxread=None, script_subdirectory=None,
+    def __init__(self, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
-                 user_config=False, seed=None):
+                 user_config=False, seed=None, command=None):
         """
         INPUT:
 
@@ -293,24 +311,35 @@ class Magma(ExtraTabCompletion, Expect):
 
         -  ``server`` - address of remote server
 
+        - ``server_tmpdir`` - temporary directory to use in remote server
+
         -  ``user_config`` - if True, then local user
            configuration files will be read by Magma. If False (the default),
            then Magma is started with the -n option which suppresses user
            configuration files.
 
+        - ``seed`` - Seed to use in the random number generator.
+
+        -  ``command`` - (Default: 'magma') The command to execute to start Magma.
 
         EXAMPLES::
 
             sage: Magma(logfile=tmp_filename())
             Magma
         """
-        # If the -b argument is given to Magma, the opening banner and all other
-        # introductory messages are suppressed. The final "total time" message is
-        # also suppressed.
-        #command = 'sage-native-execute magma -b '
-        command = 'sage-native-execute magma'
+        if command is None:
+            import os
+            command = os.getenv('SAGE_MAGMA_COMMAND') or 'magma'
+
         if not user_config:
             command += ' -n'
+
+        # Obtain the parameters from the environment, to allow the magma = Magma() phrase
+        # to work with non-default parameters.
+        if seed is None:
+            import os
+            seed = os.getenv('SAGE_MAGMA_SEED')
+
         Expect.__init__(self,
                         name = "magma",
                         prompt = ">>SAGE>>",
@@ -567,7 +596,7 @@ class Magma(ExtraTabCompletion, Expect):
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
-        self.attach_spec(extcode_dir() + '/spec')
+        self.attach_spec(extcode_dir(self) + '/spec')
         # set random seed
         self.set_seed(self._seed)
 
@@ -1380,7 +1409,8 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.version()       # random, optional - magma
             ((2, 14, 9), 'V2.14-9')
         """
-        return magma_version()
+        t = tuple([int(n) for n in self.eval('GetVersion()').split()])
+        return t, 'V%s.%s-%s'%t
 
     def help(self, s):
         """
@@ -2757,8 +2787,9 @@ def magma_version():
         sage: magma_version()       # random, optional - magma
         ((2, 14, 9), 'V2.14-9')
     """
-    t = tuple([int(n) for n in magma.eval('GetVersion()').split()])
-    return t, 'V%s.%s-%s'%t
+    from sage.misc.superseded import deprecation
+    deprecation(20388, 'This function has been deprecated. Use magma.version() instead.')
+    return magma.version()
 
 class MagmaGBLogPrettyPrinter:
     """

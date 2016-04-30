@@ -89,7 +89,7 @@ class StarCrystal(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [Kash95] M. Kashiwara.
+    .. [Kash95] \M. Kashiwara.
        The crystal base and Littelmann's refined Demazure character formula.
        Duke Math. J. **71** (1993), no. 3, 839-858.
     """

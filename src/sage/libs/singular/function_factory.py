@@ -1,5 +1,5 @@
 """
-libSingular: Function Factory.
+libSingular: Function Factory
 
 AUTHORS:
 

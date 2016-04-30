@@ -21,7 +21,9 @@ AUTHORS:
 
 from sage.functions.other import ceil, binomial
 from sage.matrix.constructor import matrix
+from sage.misc.misc_c import prod
 
+####################### Linear algebra system solving ###############################
 def _flatten_once(lstlst):
     r"""
     Flattens a list of list into a list, but only flattening one layer and
@@ -247,7 +249,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
     EXAMPLES:
 
     The following parameters arise from Guruswami-Sudan decoding of an [6,2,5]
-    GRS code over F(11) with multiplicity 2 and list size 4.
+    GRS code over F(11) with multiplicity 2 and list size 4::
 
         sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg
         sage: F = GF(11)
@@ -258,7 +260,7 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
         sage: Q = gs_interpolation_linalg(points, tau, params, wy); Q
         4*x^5 - 4*x^4*y - 2*x^2*y^3 - x*y^4 + 3*x^4 - 4*x^2*y^2 + 5*y^4 - x^3 + x^2*y + 5*x*y^2 - 5*y^3 + 3*x*y - 2*y^2 + x - 4*y + 1
 
-    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point:
+    We verify that the interpolation polynomial has a zero of multiplicity at least 2 in each point::
 
         sage: all( Q(x=a, y=b).is_zero() for (a,b) in points )
         True
@@ -278,4 +280,118 @@ def gs_interpolation_linalg(points, tau, parameters, wy):
     PF = M.base_ring()['x', 'y'] #make that ring a ring in <x>
     x, y = PF.gens()
     Q = sum([x**monomials[i][0] * y**monomials[i][1] * sol[i] for i in range(0, len(monomials))])
+    return Q
+
+####################### Lee-O'Sullivan's method ###############################
+
+def lee_osullivan_module(points, parameters, wy):
+    r"""
+    Returns the analytically straight-forward basis for the `\GF q[x]` module
+    containing all interpolation polynomials, as according to Lee and
+    O'Sullivan.
+
+    The module is constructed in the following way: Let `R(x)` be the Lagrange
+    interpolation polynomial through the sought interpolation points `(x_i,
+    y_i)`, i.e. `R(x_i) = y_i`. Let `G(x) = \prod_{i=1}^n (x-x_i)`. Then the
+    `i`'th row of the basis matrix of the module is the coefficient-vector of
+    the following polynomial in `\GF q[x][y]`:
+
+        `P_i(x,y) = G(x)^{[i-s]} (y - R(x))^{i - [i-s]} y^{[i-s]}` ,
+
+    where `[a]` for real `a` is `a` when `a > 0` and 0 otherwise. It is easily
+    seen that `P_i(x,y)` is an interpolation polynomial, i.e. it is zero with
+    multiplicity at least `s` on each of the points `(x_i, y_i)`.
+
+
+    INPUT:
+
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
+      ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
+
+    - ``parameters`` -- (default: ``None``) a pair of integers, where:
+        - the first integer is the multiplicity parameter `s` of Guruswami-Sudan algorithm and
+        - the second integer is the list size parameter.
+
+    - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
+      ``(1,wy)`` weighted degree.
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.interpolation import lee_osullivan_module
+        sage: F = GF(11)
+        sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
+                , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
+        sage: params = (1, 1)
+        sage: wy = 1
+        sage: lee_osullivan_module(points, params, wy)
+        [x^8 + 5*x^7 + 3*x^6 + 9*x^5 + 4*x^4 + 2*x^3 + 9*x   0]
+        [ 10*x^7 + 4*x^6 + 9*x^4 + 7*x^3 + 2*x^2 + 9*x + 9   1]
+    """
+    s, l = parameters[0], parameters[1]
+    F = points[0][0].parent()
+    PF = F['x']
+    x = PF.gens()[0]
+    R = PF.lagrange_polynomial(points)
+    G = prod(x - points[i][0] for i in range(0, len(points)))
+    PFy = PF['y']
+    y = PFy.gens()[0]
+    ybasis = [(y-R)**i * G**(s-i) for i in range(0, s+1)] \
+            + [y**(i-s) * (y-R)**s for i in range(s+1, l+1)]
+    def pad(lst):
+        return lst + [0]*(l+1-len(lst))
+    modbasis = [pad(yb.coefficients(sparse=False)) for yb in ybasis]
+    return matrix(PF, modbasis)
+
+def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
+    r"""
+    Returns an interpolation polynomial Q(x,y) for the given input using the
+    module-based algorithm of Lee and O'Sullivan.
+
+    This algorithm constructs an explicit `(\ell+1) \times (\ell+1)` polynomial
+    matrix whose rows span the `\GF q[x]` module of all interpolation
+    polynomials. It then runs a row reduction algorithm to find a low-shifted
+    degree vector in this row space, corresponding to a low weighted-degree
+    interpolation polynomial.
+
+    INPUT:
+
+    - ``points`` -- a list of tuples ``(xi, yi)`` such that we seek ``Q`` with
+      ``(xi,yi)`` being a root of ``Q`` with multiplicity ``s``.
+
+    - ``tau`` -- an integer, the number of errors one wants to decode.
+
+    - ``parameters`` -- (default: ``None``) a pair of integers, where:
+        - the first integer is the multiplicity parameter of Guruswami-Sudan algorithm and
+        - the second integer is the list size parameter.
+
+    - ``wy`` -- an integer, the `y`-weight, where we seek ``Q`` of low
+      ``(1,wy)`` weighted degree.
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.interpolation import gs_interpolation_lee_osullivan
+        sage: F = GF(11)
+        sage: points = [(F(0), F(2)), (F(1), F(5)), (F(2), F(0)), (F(3), F(4)), (F(4), F(9))\
+                , (F(5), F(1)), (F(6), F(9)), (F(7), F(10))]
+        sage: tau = 1
+        sage: params = (1, 1)
+        sage: wy = 1
+        sage: gs_interpolation_lee_osullivan(points, tau, params, wy)
+        x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
+    """
+    from utils import apply_shifts, remove_shifts, leading_term
+    s, l = parameters[0], parameters[1]
+    F = points[0][0].parent()
+    M = lee_osullivan_module(points, (s,l), wy)
+    shifts = [i * wy for i in range(0,l+1)]
+    apply_shifts(M, shifts)
+    Mnew = M.row_reduced_form(transformation=False, old_call=False)
+    # Construct Q as the element of the row with the lowest weighted degree
+    degs = [(i, leading_term(Mnew.row(i)).degree()) for i in range(0,l+1)]
+    best = min(degs, key=lambda (i,d): d)[0]
+    remove_shifts(Mnew, shifts)
+    Qlist = Mnew.row(best)
+    PFxy = F['x,y']
+    xx, yy = PFxy.gens()
+    Q = sum(yy**i * PFxy(Qlist[i]) for i in range(0,l+1))
     return Q

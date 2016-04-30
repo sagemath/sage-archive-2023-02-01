@@ -640,7 +640,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         .. TODO::
 
-        This could be improved.
+            This could be improved.
 
         INPUT:
 

@@ -755,11 +755,11 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [RPK80] S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
+        .. [RPK80] \S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
           minimal diameter and maximal connectivity, School Eng., Oakland Univ.,
           Rochester MI, Tech. Rep., July 1980.
 
-        .. [RPK83] S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
+        .. [RPK83] \S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
           Processor Interconnection. *IEEE International Conference on Parallel
           Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
         """
@@ -828,7 +828,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [II83] M. Imase and M. Itoh. A design for directed graphs with
+        .. [II83] \M. Imase and M. Itoh. A design for directed graphs with
           minimum diameter, *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
         """
         if n < 2:
@@ -932,7 +932,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [Kautz68] W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
+        .. [Kautz68] \W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
           cellular logic networks and machines, AFCRL-68-0668, SRI Project 7258,
           Final Rep., pp. 20-28, 1968.
         """
@@ -1062,10 +1062,10 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [1] P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
+        .. [1] \P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
                (1959).
 
-        .. [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+        .. [2] \E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
 
         PLOTTING: When plotting, this graph will use the default spring-layout

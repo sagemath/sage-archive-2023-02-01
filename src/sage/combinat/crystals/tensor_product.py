@@ -436,10 +436,9 @@ class TensorProductOfCrystals(CrystalOfWords):
 
     .. MATH::
 
-        e_i(b \otimes b^{\prime}) = \begin{cases}
-        e_i(b) \otimes b^{\prime} & \text{if } \varepsilon_i(b) >
-        \varphi_i(b^{\prime}) \\
-        b \otimes e_i(b^{\prime}) & \text{otherwise.}
+        e_i(b \otimes b') = \begin{cases}
+        e_i(b) \otimes b' & \text{if } \varepsilon_i(b) >
+        \varphi_i(b') \\ b \otimes e_i(b') & \text{otherwise.}
         \end{cases}
 
     We also define:
@@ -447,11 +446,12 @@ class TensorProductOfCrystals(CrystalOfWords):
     .. MATH::
 
         \begin{aligned}
-        \varphi_i(b \otimes b^{\prime}) & = \max\left( \varphi_i(b),
-        \varphi_i(b) + \varphi_i(b^{\prime}) - \varepsilon_i(b) \right)
-        \\ \varepsilon_i(b \otimes b^{\prime}) & = \max\left(
-        \varepsilon_i(b^{\prime}), \varepsilon_i(b^{\prime}) +
-        \varepsilon_i(b) - \varphi_i(b^{\prime}) \right).
+        \varphi_i(b \otimes b') & = \max\left( \varphi_i(b),
+        \varphi_i(b') + \langle \alpha_i^{\vee}, \mathrm{wt}(b) \rangle
+        \right),
+        \\ \varepsilon_i(b \otimes b') & = \max\left( \varepsilon_i(b'),
+        \varepsilon_i(b) - \langle \alpha_i^{\vee}, \mathrm{wt}(b') \rangle
+        \right).
         \end{aligned}
 
     .. NOTE::
@@ -954,9 +954,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         if len(self) != len(other):
             return False
         for i in range(len(self)):
-            if (self[i] < other[i]) == True:
+            if (self[i] < other[i]):
                 return True
-            if (other[i] < self[i]) == True:
+            if (other[i] < self[i]):
                 return False
         return False
 
@@ -1360,9 +1360,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         """
         unmatched_plus = []
         height = 0
-        if reverse == True:
+        if reverse:
             self = self.reversed()
-        if dual == False:
+        if not dual:
             for j in range(len(self)):
                 minus = self[j].phi(i)
                 plus = self[j].epsilon(i)
@@ -1416,7 +1416,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
 
         REFERENCES:
 
-        .. [SchillingTingley2011] A. Schilling, P. Tingley.
+        .. [SchillingTingley2011] \A. Schilling, P. Tingley.
            Demazure crystals, Kirillov-Reshetikhin crystals, and the energy
            function. Electronic Journal of Combinatorics. **19(2)**. 2012.
            :arXiv:`1104.2359`

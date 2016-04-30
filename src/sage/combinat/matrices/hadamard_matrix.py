@@ -39,10 +39,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [HadaSloa] N.J.A. Sloane's Library of Hadamard Matrices, at
+.. [HadaSloa] \N.J.A. Sloane's Library of Hadamard Matrices, at
    http://neilsloane.com/hadamard/
 .. [HadaWiki] Hadamard matrices on Wikipedia, :wikipedia:`Hadamard_matrix`
-.. [Hora] K. J. Horadam, Hadamard Matrices and Their Applications,
+.. [Hora] \K. J. Horadam, Hadamard Matrices and Their Applications,
    Princeton University Press, 2006.
 """
 
@@ -567,12 +567,12 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     REFERENCE:
 
-    .. [BH12] A. Brouwer and W. Haemers,
+    .. [BH12] \A. Brouwer and W. Haemers,
       Spectra of graphs,
       Springer, 2012,
       http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
 
-    .. [HX10] W. Haemers and Q. Xiang,
+    .. [HX10] \W. Haemers and Q. Xiang,
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,
       European Journal of Combinatorics,
       Volume 31, Issue 6, August 2010, Pages 1553-1559,
@@ -704,7 +704,7 @@ def RSHCD_324(e):
 
     REFERENCE:
 
-    .. [CP16] N. Cohen, D. Pasechnik,
+    .. [CP16] \N. Cohen, D. Pasechnik,
        Implementing Brouwer's database of strongly regular graphs,
        http://arxiv.org/abs/1601.00181
     """
@@ -903,13 +903,13 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
 
     REFERENCES:
 
-    .. [GS70s] J.M. Goethals and J. J. Seidel,
+    .. [GS70s] \J.M. Goethals and J. J. Seidel,
       A skew Hadamard matrix of order 36,
       J. Aust. Math. Soc. 11(1970), 343-344
-    .. [Wall71] J. Wallis,
+    .. [Wall71] \J. Wallis,
       A skew-Hadamard matrix of order 92,
       Bull. Aust. Math. Soc. 5(1971), 203-204
-    .. [KoSt08] C. Koukouvinos, S. Stylianou
+    .. [KoSt08] \C. Koukouvinos, S. Stylianou
       On skew-Hadamard matrices,
       Discrete Math. 308(2008) 2723-2731
 
@@ -1063,7 +1063,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
 
     REFERENCES:
 
-    .. [Ha83] M. Hall,
+    .. [Ha83] \M. Hall,
       Combinatorial Theory,
       2nd edition,
       Wiley, 1983

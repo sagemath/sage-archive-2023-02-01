@@ -124,19 +124,19 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     REFERENCES:
 
-    .. [BN10] D. Bump and M. Nakasuji.
+    .. [BN10] \D. Bump and M. Nakasuji.
        Integration on `p`-adic groups and crystal bases.
        Proc. Amer. Math. Soc. 138(5), pp. 1595--1605.
 
-    .. [LS12] K.-H. Lee and B. Salisbury.
+    .. [LS12] \K.-H. Lee and B. Salisbury.
        Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
        :arXiv:`1205.6006`.
 
-    .. [HL08] J. Hong and H. Lee.
+    .. [HL08] \J. Hong and H. Lee.
        Young tableaux and crystal `B(\infty)` for finite simple Lie algebras.
        J. Algebra 320, pp. 3680--3693, 2008.
 
-    .. [KM94] S.-J. Kang and K. C. Misra.
+    .. [KM94] \S.-J. Kang and K. C. Misra.
        Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
        J. Algebra 163, pp. 675--691, 1994.
 

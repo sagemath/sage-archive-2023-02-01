@@ -3647,6 +3647,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              5*b*c + 156*c^2 + 112*b + 948*c,
              50*c^2 + 600*b + 650*c, a + 2*b + 2*c + 999, 125*b]
 
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(Zmod(2233497349584))
+            sage: I = R.ideal([z*(x-3*y), 3^2*x^2-y*z, z^2+y^2])
+            sage: I.groebner_basis()
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [2*z^4, y*z^2 + 81*z^3, 248166372176*z^3, 9*x^2 - y*z, y^2 + z^2, x*z +
+            2233497349581*y*z, 248166372176*y*z]
+
         Sage also supports local orderings::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3,order='negdegrevlex')
@@ -3724,7 +3733,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
                         ch = self.ring().base_ring().characteristic()
                         R = self.ring().change_ring(ZZ)
-                        I = R.ideal([R(f) for f in self.gens()+(ch,)])
+                        I = R.ideal([R(f) for f in self.gens()] + [R(ch)])
 
                         gb = toy_d_basis.d_basis(I, *args, **kwds)
 

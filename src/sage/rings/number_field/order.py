@@ -1460,7 +1460,7 @@ class RelativeOrder(Order):
             sage: OK([3, 4])
             4*a + 3
 
-        The following used to fail; see trac #5276::
+        The following used to fail; see :trac:`5276`::
 
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field

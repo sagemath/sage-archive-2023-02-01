@@ -25,6 +25,18 @@ from copy import copy
 
 cdef class CoinBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the COIN solver (CBC).
+
+    TESTS:
+
+    General backend testsuite::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                       # optional - cbc
+            sage: TestSuite(p).run(skip="_test_pickling")               # optional - cbc
+    """
+
     def __cinit__(self, maximization = True):
         """
         Cython constructor
@@ -179,10 +191,21 @@ cdef class CoinBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - cbc
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - cbc
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - cbc
             6
-            sage: p.col_name(5)                                                        # optional - cbc
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - cbc
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - cbc
+            True
+            sage: p.col_name(5)              # optional - cbc
             'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - cbc
+            42.0
         """
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
@@ -672,7 +695,7 @@ cdef class CoinBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -711,6 +734,9 @@ cdef class CoinBackend(GenericBackend):
             c_values[i] = coeffs[i]
 
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
+
+        self.col_names.append("")
+
 
     cpdef int solve(self) except -1:
         r"""
@@ -1183,7 +1209,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return ""
 
-    cpdef CoinBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -1198,7 +1224,7 @@ cdef class CoinBackend(GenericBackend):
             6.0
         """
         # create new backend
-        cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef CoinBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
 
         # replace solver with copy of self's solver
         del p.si

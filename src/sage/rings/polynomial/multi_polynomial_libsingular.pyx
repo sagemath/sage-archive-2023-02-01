@@ -179,7 +179,7 @@ from sage.libs.singular.decl cimport (
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
     pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
-    delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
+    idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
     pDiff, singclap_resultant, p_Normalize,
@@ -2948,7 +2948,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def __getitem__(self,x):
         """
-        Same as ``self.monomial_coefficent`` but for exponent vectors.
+        Same as ``self.monomial_coefficient`` but for exponent vectors.
 
         INPUT:
 
@@ -4198,7 +4198,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y> = K[]
             sage: f = (a + 1)*x^145*y^84 + (a + 1)*x^205*y^17 + x^32*y^112 + x^92*y^45
             sage: for i in range(100):
-            ...       assert len(f.factor()) == 4
+            ....:     assert len(f.factor()) == 4
+
+        Test for :trac:`20435`::
+
+            sage: x,y = polygen(ZZ,'x,y')
+            sage: p = x**2-y**2
+            sage: z = factor(p); z
+            (x - y) * (x + y)
+            sage: z[0][0].parent()
+            Multivariate Polynomial Ring in x, y over Integer Ring
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
@@ -4217,7 +4226,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             try:
                 frac_field = self._parent._base.fraction_field()
                 F = self.change_ring(frac_field).factor()
-                FF = [(f[0].change_ring(self._parent), f[1]) for f in F]
+                FF = [(self._parent(f[0]), f[1]) for f in F]
                 U = self._parent._base(F.unit()).factor()
                 return Factorization(list(U) + FF, unit=U.unit())
             except Exception:
@@ -4232,7 +4241,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         iv = NULL
         sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
-        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some pointa
+        I = singclap_factorize ( ptemp, &iv , 0)
         sig_off()
 
         ivv = iv.ivGetVec()
@@ -4243,7 +4252,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         F = Factorization(v,unit)
         F.sort()
 
-        delete(iv)
+        del iv
         id_Delete(&I,_ring)
 
         return F

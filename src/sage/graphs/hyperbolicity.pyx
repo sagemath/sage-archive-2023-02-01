@@ -127,23 +127,23 @@ At Python level :
 
 REFERENCES:
 
-.. [BCCM15] M. Borassi, D. Coudert, P. Crescenzi, and A. Marino.
+.. [BCCM15] \M. Borassi, D. Coudert, P. Crescenzi, and A. Marino.
    On Computing the Hyperbolicity of Real-World Graphs.
    Proceedings of the 23rd European Symposium on Algorithms (ESA 2015)
 
-.. [CCL15] N. Cohen, D. Coudert, and A. Lancin. On computing the Gromov
+.. [CCL15] \N. Cohen, D. Coudert, and A. Lancin. On computing the Gromov
    hyperbolicity. ACM Journal of Experimental Algorithmics, 20(1.6):1-18, 2015.
    [`<http://dx.doi.org/10.1145/2780652>`_] or
    [`<https://hal.inria.fr/hal-01182890>`_].
 
-.. [FIV12] H. Fournier, A. Ismail, and A. Vigneron. Computing the Gromov
+.. [FIV12] \H. Fournier, A. Ismail, and A. Vigneron. Computing the Gromov
    hyperbolicity of a discrete metric space. ArXiv, Tech. Rep. arXiv:1210.3323,
    Oct. 2012. [`<http://arxiv.org/abs/1210.3323>`_].
 
-.. [Gromov87] M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
+.. [Gromov87] \M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
    1987.
 
-.. [Soto11] M. A. Soto Gomez. 2011. Quelques proprietes topologiques des
+.. [Soto11] \M. A. Soto Gomez. 2011. Quelques proprietes topologiques des
    graphes et applications a internet et aux reseaux. Ph.D. Dissertation. Univ.
    Paris Diderot (Paris 7).
 

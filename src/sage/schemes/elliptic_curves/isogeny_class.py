@@ -402,7 +402,7 @@ class IsogenyClass_EC(SageObject):
 
         REFERENCES:
 
-        .. [M78] B. Mazur.  Rational Isogenies of Prime Degree.
+        .. [M78] \B. Mazur.  Rational Isogenies of Prime Degree.
           *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph

@@ -1850,28 +1850,64 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print(w.reduced_word())                       # optional - gap3
                 ....:     print(w.to_matrix())                          # optional - gap3
                 []
                 [1 0]
                 [0 1]
-                [2]
-                [ 1  1]
-                [ 0 -1]
                 [1]
-                [-1  0]
-                [ 1  1]
+                [E(3)    0]
+                [   0    1]
+                [2]
+                [0 1]
+                [1 0]
+                [1, 1]
+                [E(3)^2      0]
+                [     0      1]
                 [1, 2]
-                [-1 -1]
-                [ 1  0]
+                [   0 E(3)]
+                [   1    0]
                 [2, 1]
-                [ 0  1]
-                [-1 -1]
+                [   0    1]
+                [E(3)    0]
+                [1, 1, 2]
+                [     0 E(3)^2]
+                [     1      0]
                 [1, 2, 1]
-                [ 0 -1]
-                [-1  0]
+                [   0 E(3)]
+                [E(3)    0]
+                [2, 1, 1]
+                [     0      1]
+                [E(3)^2      0]
+                [2, 1, 2]
+                [   1    0]
+                [   0 E(3)]
+                [1, 1, 2, 1]
+                [     0 E(3)^2]
+                [  E(3)      0]
+                [1, 2, 1, 1]
+                [     0   E(3)]
+                [E(3)^2      0]
+                [1, 2, 1, 2]
+                [E(3)    0]
+                [   0 E(3)]
+                [2, 1, 1, 2]
+                [     1      0]
+                [     0 E(3)^2]
+                [1, 1, 2, 1, 1]
+                [     0 E(3)^2]
+                [E(3)^2      0]
+                [1, 1, 2, 1, 2]
+                [E(3)^2      0]
+                [     0   E(3)]
+                [1, 2, 1, 1, 2]
+                [  E(3)      0]
+                [     0 E(3)^2]
+                [1, 1, 2, 1, 1, 2]
+                [E(3)^2      0]
+                [     0 E(3)^2]
             """
             W = self.parent()
             if W._reflection_representation is None:
@@ -1911,16 +1947,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: for w in W:                                       # optional - gap3
-                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
-                ....:           [w.action(weight,side="left") for weight in W.fundamental_weights()]))  # optional - gap3
-                [] [(2/3, 1/3), (1/3, 2/3)]
-                [2] [(2/3, 1/3), (1/3, -1/3)]
-                [1] [(-1/3, 1/3), (1/3, 2/3)]
-                [1, 2] [(-1/3, 1/3), (-2/3, -1/3)]
-                [2, 1] [(-1/3, -2/3), (1/3, -1/3)]
-                [1, 2, 1] [(-1/3, -2/3), (-2/3, -1/3)]
+                sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
+                sage: w = W.from_reduced_word([1, 2, 1, 1, 2])          # optional - gap3
+                sage: for alpha in W.simple_roots():                    # optional - gap3
+                ....:     print("%s -> %s"%(alpha,w.action(alpha)))     # optional - gap3
+                (1, 0) -> (E(3), 0)
+                (-1, 1) -> (-E(3), E(3)^2)
             """
             mat = self.matrix(on_space=on_space)
             return vec*mat
@@ -1944,6 +1976,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             on the vector space, in the basis given by the simple
             roots.
 
+            - ``vec`` -- the vector (an iterable) to act on
+
+            - ``self_on_left`` -- whether the action of ``self`` is on
+              the left or on the right
+
+            .. WARNING::
+
+                This coercion is currently only defined for
+                ``self_on_left`` being ``False``.
+
             EXAMPLES::
 
                 sage: W = ReflectionGroup(['A',2])                      # optional - gap3
@@ -1966,10 +2008,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             INPUT:
 
             - ``i`` -- index of the root to act on
-
-            TODO:
-
-            - implement the left action
 
             EXAMPLES::
 
@@ -1998,10 +2036,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             INPUT:
 
             - ``root`` -- the root to act on
-
-            TODO:
-
-            - implement the left action
 
             EXAMPLES::
 

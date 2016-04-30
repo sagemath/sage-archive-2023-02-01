@@ -328,7 +328,7 @@ class Magmas(Category_singleton):
             TESTS::
 
                 sage: Magmas().JTrivial()
-                Category of jtrivial magmas
+                Category of j trivial magmas
                 sage: (Semigroups().RTrivial() & Semigroups().LTrivial()) is Semigroups().JTrivial()
                 True
             """

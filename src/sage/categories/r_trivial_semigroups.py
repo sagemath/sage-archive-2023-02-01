@@ -23,7 +23,7 @@ class RTrivialSemigroups(CategoryWithAxiom):
         EXAMPLES::
 
             sage: Semigroups().RTrivial().extra_super_categories()
-            [Category of htrivial semigroups]
+            [Category of h trivial semigroups]
         """
         return [Semigroups().HTrivial()]
 
@@ -34,7 +34,7 @@ class RTrivialSemigroups(CategoryWithAxiom):
         EXAMPLES::
 
             sage: Semigroups().RTrivial().Commutative_extra_super_categories()
-            [Category of jtrivial semigroups]
+            [Category of j trivial semigroups]
 
         TESTS::
 

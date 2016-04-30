@@ -533,7 +533,7 @@ class Semigroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = Semigroups().LTrivial(); C
-                Category of ltrivial semigroups
+                Category of l trivial semigroups
 
             A `L`-trivial semigroup is `H`-trivial::
 
@@ -578,7 +578,7 @@ class Semigroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = Semigroups().RTrivial(); C
-                Category of rtrivial semigroups
+                Category of r trivial semigroups
 
             An `R`-trivial semigroup is `H`-trivial::
 
@@ -623,7 +623,7 @@ class Semigroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = Semigroups().JTrivial(); C
-                Category of jtrivial semigroups
+                Category of j trivial semigroups
 
             A semigroup is `J`-trivial if and only if it is
             `L`-trivial and `R`-trivial::
@@ -631,15 +631,15 @@ class Semigroups(CategoryWithAxiom):
                 sage: sorted(C.axioms())
                 ['Associative', 'HTrivial', 'JTrivial', 'LTrivial', 'RTrivial']
                 sage: Semigroups().LTrivial().RTrivial()
-                Category of jtrivial semigroups
+                Category of j trivial semigroups
 
             For a commutative semigroup, all three axioms are
             equivalent::
 
                 sage: Semigroups().Commutative().LTrivial()
-                Category of commutative jtrivial semigroups
+                Category of commutative j trivial semigroups
                 sage: Semigroups().Commutative().RTrivial()
-                Category of commutative jtrivial semigroups
+                Category of commutative j trivial semigroups
 
             .. SEEALSO::
 
@@ -673,7 +673,7 @@ class Semigroups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = Semigroups().HTrivial(); C
-                Category of htrivial semigroups
+                Category of h trivial semigroups
                 sage: Semigroups().HTrivial().Finite().example()
                 NotImplemented
 

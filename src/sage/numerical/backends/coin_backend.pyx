@@ -1224,7 +1224,7 @@ cdef class CoinBackend(GenericBackend):
             6.0
         """
         # create new backend
-        cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef CoinBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
 
         # replace solver with copy of self's solver
         del p.si

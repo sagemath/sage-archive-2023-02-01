@@ -116,7 +116,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: cp.get_objective_value()
             6.0
         """
-        cp = CVXOPTBackend()
+        cdef CVXOPTBackend cp = type(self)()
         cp.objective_function = self.objective_function[:]
         cp.G_matrix = [row[:] for row in self.G_matrix]
         cp.prob_name = self.prob_name

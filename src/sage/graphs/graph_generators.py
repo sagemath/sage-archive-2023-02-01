@@ -1189,7 +1189,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
+        .. [buckygen] \G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
         from sage.misc.package import is_package_installed
@@ -1274,7 +1274,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
+        .. [benzene] \G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
         from sage.misc.package import is_package_installed
@@ -1427,7 +1427,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+        .. [plantri] \G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
         from sage.misc.package import is_package_installed

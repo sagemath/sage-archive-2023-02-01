@@ -346,6 +346,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - GLPK (``solver="GLPK"``). See the `GLPK
             <http://www.gnu.org/software/glpk/>`_ web site.
 
+          - GLPK's implementation of an exact rational simplex
+            method (``solver="GLPK/exact"``).
+
           - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
             <http://www.coin-or.org>`_ web site.
 

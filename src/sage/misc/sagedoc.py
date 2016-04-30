@@ -23,7 +23,7 @@ see :trac:`12849`::
     sage: for line in open(docfilename):
     ....:     if "#sage.symbolic.expression.Expression.N" in line:
     ....:         print line
-    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
+    <code class="descname">N</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 

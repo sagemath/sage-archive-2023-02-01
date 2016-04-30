@@ -307,13 +307,13 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Lee11] J.M. Lee : *Introduction to Topological Manifolds*,
+.. [Lee11] \J.M. Lee : *Introduction to Topological Manifolds*,
    2nd ed., Springer (New York) (2011).
-.. [Lee13] J.M. Lee : *Introduction to Smooth Manifolds*,
+.. [Lee13] \J.M. Lee : *Introduction to Smooth Manifolds*,
    2nd ed., Springer (New York) (2013)
-.. [KN63] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+.. [KN63] \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
    vol. 1, Interscience Publishers (New York) (1963).
-.. [Huybrechts05] D. Huybrechts : *Complex Geometry*,
+.. [Huybrechts05] \D. Huybrechts : *Complex Geometry*,
    Springer (Berlin) (2005).
 """
 

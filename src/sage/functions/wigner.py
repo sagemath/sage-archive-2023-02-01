@@ -11,7 +11,7 @@ details and examples.
 
 REFERENCES:
 
-.. [Rasch03] J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
+.. [Rasch03] \J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
   Pre-calculated Wigner 3j, 6j and Gaunt Coefficients', SIAM
   J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 

@@ -423,7 +423,7 @@ cdef class ConvexityProperties:
 
         REFERENCE:
 
-        .. [CHZ02] F. Harary, E. Loukakis, C. Tsouros
+        .. [CHZ02] \F. Harary, E. Loukakis, C. Tsouros
           The geodetic number of a graph
           Mathematical and computer modelling
           vol. 17 n11 pp.89--95, 1993

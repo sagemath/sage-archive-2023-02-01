@@ -19,7 +19,7 @@ cblas_include_dirs = list(cblas_pc['include_dirs'])
 
 # TODO: Remove Cygwin hack by installing a suitable cblas.pc
 if os.path.exists('/usr/lib/libblas.dll.a'):
-    cblas_libs = 'gslcblas'
+    cblas_libs = ['gslcblas']
 
 # LAPACK can be one of multiple implementations
 lapack_pc = pkgconfig.parse('lapack')
@@ -1127,6 +1127,9 @@ ext_modules = [
 
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"]),
+
+    Extension("sage.numerical.backends.glpk_exact_backend",
+              ["sage/numerical/backends/glpk_exact_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],

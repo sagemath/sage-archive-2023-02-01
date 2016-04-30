@@ -1408,7 +1408,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("PPL")
         sage: default_mip_solver()
         'Ppl'
-        sage: default_mip_solver("GUROBI")
+        sage: default_mip_solver("GUROBI") # random
         Traceback (most recent call last):
         ...
         ValueError: Gurobi is not available. Please refer to the documentation to install it.
@@ -1571,7 +1571,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
     Passing a callable as the 'solver'::
 
         sage: from sage.numerical.backends.glpk_backend import GLPKBackend
-        sage: p = get_solver(GLPKBackend); p
+        sage: p = get_solver(solver=GLPKBackend); p
         <...sage.numerical.backends.glpk_backend.GLPKBackend...>
 
     Passing a callable that customizes a backend::

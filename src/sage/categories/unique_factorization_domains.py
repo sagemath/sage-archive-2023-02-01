@@ -244,10 +244,16 @@ class UniqueFactorizationDomains(Category_singleton):
                 f = self.factor()
                 u = f.unit()
 
-                try:
-                    ans = u.nth_root(n)
-                except AttributeError:
-                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+                if u.is_one():
+                    ans = u.base_ring().one()
+                else:
+                    if u.parent() != u.base_ring():
+                        u = u.base_ring(u)
+
+                    try:
+                        ans = u.nth_root(n)
+                    except AttributeError:
+                        raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
 
                 for (v, exp) in f:
                     if exp % n:

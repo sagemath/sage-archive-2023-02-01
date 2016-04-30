@@ -841,54 +841,47 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: for w in W:                                       # optional - gap3
-                ....:     print(w.reduced_word())                       # optional - gap3
-                ....:     print(w.to_matrix())                          # optional - gap3
-                ....:     print(w.to_matrix(on_space="dual"))           # optional - gap3
-                ....:     print                                         # optional - gap3
+                sage: W = ReflectionGroup(['A',2])           # optional - gap3
+                sage: for w in W:                            # optional - gap3
+                ....:     w.reduced_word()                   # optional - gap3
+                ....:     [w.to_matrix(), w.to_matrix(on_space="dual")] # optional - gap3
                 []
-                [1 0]
-                [0 1]
-                [1 0]
-                [0 1]
-
+                [
+                [1 0]  [1 0]
+                [0 1], [0 1]
+                ]
                 [2]
-                [ 1  1]
-                [ 0 -1]
-                [ 1  0]
-                [ 1 -1]
-
+                [
+                [ 1  1]  [ 1  0]
+                [ 0 -1], [ 1 -1]
+                ]
                 [1]
-                [-1  0]
-                [ 1  1]
-                [-1  1]
-                [ 0  1]
-
+                [
+                [-1  0]  [-1  1]
+                [ 1  1], [ 0  1]
+                ]
                 [1, 2]
-                [-1 -1]
-                [ 1  0]
-                [ 0 -1]
-                [ 1 -1]
-
+                [
+                [-1 -1]  [ 0 -1]
+                [ 1  0], [ 1 -1]
+                ]
                 [2, 1]
-                [ 0  1]
-                [-1 -1]
-                [-1  1]
-                [-1  0]
-
+                [
+                [ 0  1]  [-1  1]
+                [-1 -1], [-1  0]
+                ]
                 [1, 2, 1]
-                [ 0 -1]
-                [-1  0]
-                [ 0 -1]
-                [-1  0]
+                [
+                [ 0 -1]  [ 0 -1]
+                [-1  0], [-1  0]
+                ]
 
             TESTS::
 
-                sage: W = ReflectionGroup(['F',4])                      # optional - gap3
-                sage: all( w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W ) # optional - gap3
+                sage: W = ReflectionGroup(['F',4])           # optional - gap3
+                sage: all(w.to_matrix(side="left") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="right").transpose() for w in W) # optional - gap3
                 True
-                sage: all( w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W ) # optional - gap3
+                sage: all(w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W) # optional - gap3
                 True
             """
             W = self.parent()
@@ -906,7 +899,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 mat = W.base_change_matrix() * M
             else:
                 refl_repr = W._reflection_representation
-                id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
+                id_mat = identity_matrix(QQ, refl_repr[W.index_set()[0]].nrows())
                 mat = prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
             if on_space == "primal":
@@ -957,9 +950,11 @@ class RealReflectionGroup(ComplexReflectionGroup):
             TESTS::
 
                 sage: W = ReflectionGroup(['B',3])                      # optional - gap3
-                sage: all( w.action(alpha,side="right") == w.action_on_root(alpha,side="right") for w in W for alpha in W.simple_roots() )    # optional - gap3
+                sage: all(w.action(alpha,side="right") == w.action_on_root(alpha,side="right")  # optional - gap3
+                ....:     for w in W for alpha in W.simple_roots())     # optional - gap3
                 True
-                sage: all( w.action(alpha,side="left") == w.action_on_root(alpha,side="left") for w in W for alpha in W.simple_roots() )      # optional - gap3
+                sage: all(w.action(alpha,side="left") == w.action_on_root(alpha,side="left")  #optional - gap3
+                ....:     for w in W for alpha in W.simple_roots())     # optional - gap3
                 True
             """
             W = self.parent()
@@ -981,9 +976,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         def _act_on_(self, vec, self_on_left):
             r"""
-            Defines the action of ``self`` as a linear transformation
-            on the vector space, in the basis given by the simple
-            roots.
+            Give the action of ``self`` as a linear transformation on
+            the vector space, in the basis given by the simple roots.
 
             INPUT:
 
@@ -994,13 +988,19 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: w = W.from_reduced_word([1,2])                    # optional - gap3
-                sage: print(", ".join("%s -> %s"%(root,w*root) for root in W.positive_roots())) # indirect doctest # optional - gap3
-                (1, 0) -> (0, 1), (0, 1) -> (-1, -1), (1, 1) -> (-1, 0)
+                sage: W = ReflectionGroup(['A',2])           # optional - gap3
+                sage: w = W.from_reduced_word([1,2])         # optional - gap3
+                sage: for root in W.positive_roots():        # optional - gap3
+                ....:     print("%s -> %s"%(root, w*root))   # optional - gap3
+                (1, 0) -> (0, 1)
+                (0, 1) -> (-1, -1)
+                (1, 1) -> (-1, 0)
 
-                sage: print(", ".join("%s -> %s"%(root,root*w) for root in W.positive_roots())) # indirect doctest # optional - gap3
-                (1, 0) -> (-1, -1), (0, 1) -> (1, 0), (1, 1) -> (0, -1)
+                sage: for root in W.positive_roots():        # optional - gap3
+                ....:     print("%s -> %s"%(root, root*w))   # optional - gap3
+                (1, 0) -> (-1, -1)
+                (0, 1) -> (1, 0)
+                (1, 1) -> (0, -1)
             """
             if self_on_left:
                 return self.action(vec,side="left")
@@ -1020,13 +1020,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',3]); w = W.w0            # optional - gap3
-                sage: [ w.action_on_root_indices(i,side="left") for i in range(len(W.roots())) ]    # optional - gap3
+                sage: W = ReflectionGroup(['A',3])           # optional - gap3
+                sage: w = W.w0                               # optional - gap3
+                sage: N = len(W.roots())                     # optional - gap3
+                sage: [w.action_on_root_indices(i,side="left") for i in range(N)]    # optional - gap3
                 [8, 7, 6, 10, 9, 11, 2, 1, 0, 4, 3, 5]
 
-                sage: W = ReflectionGroup(['A',2],reflection_index_set=['A','B','C'])   # optional - gap3
-                sage: w = W.w0                                          # optional - gap3
-                sage: [ w.action_on_root_indices(i,side="left") for i in range(len(W.roots())) ]    # optional - gap3
+                sage: W = ReflectionGroup(['A',2], reflection_index_set=['A','B','C'])   # optional - gap3
+                sage: w = W.w0                               # optional - gap3
+                sage: N = len(W.roots())                     # optional - gap3
+                sage: [w.action_on_root_indices(i,side="left") for i in range(N)]    # optional - gap3
                 [4, 3, 5, 1, 0, 2]
             """
             if side == "right":
@@ -1051,9 +1054,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: for w in W:                                       # optional - gap3
-                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
+                sage: W = ReflectionGroup(['A',2])           # optional - gap3
+                sage: for w in W:                            # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(),   # optional - gap3
                 ....:           [w.action_on_root(beta,side="left") for beta in W.positive_roots()]))  # optional - gap3
                 [] [(1, 0), (0, 1), (1, 1)]
                 [2] [(1, 1), (0, -1), (1, 0)]
@@ -1062,9 +1065,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [2, 1] [(-1, -1), (1, 0), (0, -1)]
                 [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
 
-                sage: W = ReflectionGroup(['A',2])                      # optional - gap3
-                sage: for w in W:                                       # optional - gap3
-                ....:     print("%s %s"%(w.reduced_word(),              # optional - gap3
+                sage: W = ReflectionGroup(['A',2])           # optional - gap3
+                sage: for w in W:                            # optional - gap3
+                ....:     print("%s %s"%(w.reduced_word(),   # optional - gap3
                 ....:           [w.action_on_root(beta,side="right") for beta in W.positive_roots()]))  # optional - gap3
                 [] [(1, 0), (0, 1), (1, 1)]
                 [2] [(1, 1), (0, -1), (1, 0)]
@@ -1074,7 +1077,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
             """
             Phi = self.parent().roots()
-            return Phi[ self.action_on_root_indices(Phi.index(root),side=side) ]
+            return Phi[self.action_on_root_indices(Phi.index(root), side=side)]
 
         def inversion_set(self, side="right"):
             r"""

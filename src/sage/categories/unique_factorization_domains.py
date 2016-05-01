@@ -253,20 +253,15 @@ class UniqueFactorizationDomains(Category_singleton):
                     if u.parent() == R:
                         try:
                             u = R.base_ring()(u)
-                        except (ValueError,TypeError):
+                        except (ValueError, TypeError):
                             pass
 
-                    if u.parent() == R:
+                    if u.parent() == R or not hasattr(u, 'nth_root'):
                         # we raise an error as otherwise calling nth_root will
-                        # lead to an infinite recursion
+                        # raise an AttributeError or lead to an infinite recursion
                         raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
 
-                    try:
-                        ans = u.nth_root(n)
-                    except AttributeError:
-                        raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
-
-                    ans = R(ans)
+                    ans = R(u.nth_root(n))
 
                 for (v, exp) in f:
                     if exp % n:

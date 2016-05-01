@@ -6945,20 +6945,21 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L, from_L, to_L = K.optimized_representation()
             sage: L    # your answer may different, since algorithm is random
-            Number Field in a14 with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
+            Number Field in b1 with defining polynomial x^8 + 4*x^6 + 7*x^4 +
+            36*x^2 + 81
             sage: to_L(K.0)   # random
-            4/189*a14^7 - 1/63*a14^6 + 1/27*a14^5 + 2/9*a14^4 - 5/27*a14^3 + 8/9*a14^2 + 3/7*a14 + 3/7
+            4/189*b1^7 + 1/63*b1^6 + 1/27*b1^5 - 2/9*b1^4 - 5/27*b1^3 - 8/9*b1^2 + 3/7*b1 - 3/7
             sage: from_L(L.0)   # random
-            1/1152*a1^7 + 1/192*a1^6 + 23/576*a1^5 + 17/96*a1^4 + 37/72*a1^3 + 5/6*a1^2 + 55/24*a1 + 3/4
+            1/1152*b^7 - 1/192*b^6 + 23/576*b^5 - 17/96*b^4 + 37/72*b^3 - 5/6*b^2 + 55/24*b - 3/4
 
         The transformation maps are mutually inverse isomorphisms.
 
         ::
 
-            sage: from_L(to_L(K.0))
-            b
-            sage: to_L(from_L(L.0))     # random
-            a14
+            sage: from_L(to_L(K.0)) == K.0
+            True
+            sage: to_L(from_L(L.0)) == L.0
+            True
 
         Number fields defined by non-monic and non-integral
         polynomials are supported (:trac:`252`)::
@@ -6979,12 +6980,7 @@ class NumberField_absolute(NumberField_generic):
         if name is None:
             name = self.variable_names()
         name = normalize_names(1, name)[0]
-        try:
-            return self.__subfields[name, self.degree, both_maps, True][0]
-        except AttributeError:
-            self.__subfields = {}
-        except KeyError:
-            pass
+
         f = self.absolute_polynomial()._pari_()
 
         g, alpha = f.polredbest(flag=1)
@@ -7003,16 +6999,15 @@ class NumberField_absolute(NumberField_generic):
             new_name = name + '1'
 
         K = NumberField(h, names=new_name, embedding=embedding)
-
+        from_K = K.hom([b])
 
         if both_maps == True:
             a = K(alpha)
             to_K = self.hom([a]) 
 
-            from_K = K.hom([b])
-            return (K, from_K, to_K)
+            return K, from_K, to_K
 
-        return K
+        return K, from_K
 
 
     def optimized_subfields(self, degree=0, name=None, both_maps=True):

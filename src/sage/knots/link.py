@@ -672,29 +672,29 @@ class Link(object):
                 if a in unassigned:
                     unassigned.remove(a)
         return tails, heads
-    
+
     @cached_method
     def _enhanced_states(self):
         r"""
         Return the enhanced states of the diagram.
-        
+
         Each enhanced state is represented as a tuple containing:
-        
+
         - A tuple with the type of smoothing made at each crossing (0 represents
             a A-type smoothing, and 1 represents B-type)
-        
+
         - A tuple with the circles marked as negative. Each circle is represented
             by the smoothings it goes through. Each smoothing is represented by
             the indices of the two strands, and the index of the chord, counted clockwise.
-            
+
         - A tuple with the circles marked as negative.
-        
+
         - The i-index (degree) corresponding to the state.
-        
+
         - the j-index (height) corresponding to the state.
-        
+
         EXAMPLES::
-            
+
             sage: K = Link([[[1,-2,3,-1,2,-3]],[-1,-1,-1]])
             sage: K.pd_code()
             [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
@@ -849,7 +849,7 @@ class Link(object):
             (((1, 3, 9), (3, 5, 8), (5, 1, 7)), ((2, 6, 8), (4, 2, 7), (6, 4, 9))),
             0,
             -1))
-        
+
         """
         writhe = self.writhe()
         crossings = self.pd_code()
@@ -884,8 +884,76 @@ class Link(object):
                 j = writhe + sm[2] +  len(circpos) - len(circneg)
                 states.append((sm[0], tuple(circneg), tuple(circpos), sm[2], j))
         return tuple(states)
-    
+
     @cached_method
+    def _khovanov_homology_cached(self, height, ring = ZZ):
+        r"""
+        Return the Khovanov homology of the link.
+
+        INPUT:
+
+        - ``height`` -- the height of the homology to compute.
+
+        - ``ring`` -- the coefficient ring (default: ``ZZ``).
+
+        OUTPUT:
+
+        The Khovanov homology of the Link in the given height. It is given
+        as a tuple of key-value pairs, whose keys are the degrees.
+
+        EXAMPLES::
+
+            sage: K = Link([[[1, -2, 3, -1, 2, -3]],[-1, -1, -1]])
+            sage: K._khovanov_homology_cached(-5)
+             ((-3, 0), (-2, Z), (-1, 0), (0, 0))
+
+        The figure eight knot::
+
+            sage: L = Link([[1, 6, 2, 7], [5, 2, 6, 3], [3, 1, 4, 8], [7, 5, 8, 4]])
+            sage: L._khovanov_homology_cached(-1)
+            ((-2, 0), (-1, Z), (0, Z), (1, 0), (2, 0))
+
+
+        .. WARNING:
+
+        This is a private method intended to be used as a cache for khovanov_homology.
+        It should be not exposed to the user, or mutated.
+        """
+        writhe = self.writhe()
+        crossings = self.pd_code()
+        ncross = len(crossings)
+        states = [(_0, Set(_1), Set(_2), _3, _4) for (_0, _1, _2, _3, _4) in self._enhanced_states() ]
+        bases = {} # arrange them by (i,j)
+        for st in states:
+            i, j = st[3], st[4]
+            if j == height:
+                if (i,j) in bases.keys():
+                    bases[i,j].append(st)
+                else:
+                    bases[i,j] = [st]
+        complexes = {}
+        for (i, j) in bases.keys():
+            if (i+1, j) in bases.keys():
+                m = matrix(ring, len(bases[(i,j)]), len(bases[(i+1,j)]))
+                for ii in range(m.nrows()):
+                    V1 = bases[(i,j)][ii]
+                    for jj in range(m.ncols()):
+                        V2 = bases[(i+1, j)][jj]
+                        V20 = V2[0]
+                        difs = [index for index,value in enumerate(V1[0]) if value != V20[index] ]
+                        if len(difs) == 1:
+                            if not (V2[2].intersection(V1[1]) or V2[1].intersection(V1[2])):
+                                m[ii,jj] = (-1)**sum([V2[0][_] for _ in range(difs[0]+1, ncross)])
+                                #Here we have the matrix constructed, now we have to put it in the dictionary of complexes
+            else:
+                m = matrix(ring, len(bases[(i,j)]), 0)
+            complexes[i] = m.transpose()
+            if not (i-1, j) in bases.keys():
+                    complexes[i-1] = matrix(ring,  len(bases[(i,j)]), 0)
+        homologies = ChainComplex(complexes).homology()
+        return tuple(sorted(homologies.items()))
+
+
     def khovanov_homology(self, ring = ZZ, height = None, degree = None):
         r"""
         Return the Khovanov homology of the link.
@@ -900,7 +968,7 @@ class Link(object):
         - ``degree`` -- the degree of the homology to compute. If none is specified,
             all the degrees are computed.
 
-        OUTPUT: 
+        OUTPUT:
 
         The Khovanov homology of the Link. It is given as a tuple of key-value pairs_top_sugar
         the keys are the different heights, and for each height the homology is given
@@ -910,18 +978,18 @@ class Link(object):
 
             sage: K = Link([[[1, -2, 3, -1, 2, -3]],[-1, -1, -1]])
             sage: K.khovanov_homology()
-            ((-9, ((-3, Z),)),
-             (-7, ((-3, 0), (-2, C2))),
-             (-5, ((-3, 0), (-2, Z), (-1, 0), (0, 0))),
-             (-3, ((-3, 0), (-2, 0), (-1, 0), (0, Z))),
-             (-1, ((0, Z),)))
+            {-9: {-3: Z},
+             -7: {-3: 0, -2: C2},
+             -5: {-3: 0, -2: Z, -1: 0, 0: 0},
+             -3: {-3: 0, -2: 0, -1: 0, 0: Z},
+             -1: {0: Z}}
 
 
         The figure eight knot::
 
             sage: L = Link([[1, 6, 2, 7], [5, 2, 6, 3], [3, 1, 4, 8], [7, 5, 8, 4]])
             sage: L.khovanov_homology(height=-1)
-            ((-1, ((-2, 0), (-1, Z), (0, Z), (1, 0), (2, 0))),)
+            {-1: {-2: 0, -1: Z, 0: Z, 1: 0, 2: 0}}
 
         And the Hopf link::
 
@@ -931,49 +999,20 @@ class Link(object):
             sage: b = B([1, 1])
             sage: K = Link(b)
             sage: K.khovanov_homology(degree = 2)
-            ((2, ((2, 0),)), (4, ((2, Z),)), (6, ((2, Z),)))
+            {2: {2: 0}, 4: {2: Z}, 6: {2: Z}}
 
         """
-        writhe = self.writhe()
-        crossings = self.pd_code()
-        ncross = len(crossings)
-        states = [(_0, Set(_1), Set(_2), _3, _4) for (_0, _1, _2, _3, _4) in self._enhanced_states() ]
-        bases = {} # arrange them by (i,j)
-        for st in states:
-            i, j = st[3], st[4]
-            if (i,j) in bases.keys():
-                bases[i,j].append(st)
-            else:
-                bases[i,j] = [st]
-        complexes = {}
-        for (i, j) in bases.keys():
-            if height is not None and j!= height:
-                continue
-            elif degree is not None and abs(degree - i) > 1:
-                continue
-            if (i+1, j) in bases.keys():
-                m = matrix(ZZ, len(bases[(i,j)]), len(bases[(i+1,j)]))
-                for ii in range(m.nrows()):
-                    V1 = bases[(i,j)][ii]
-                    for jj in range(m.ncols()):
-                        V2 = bases[(i+1, j)][jj]
-                        V20 = V2[0]
-                        difs = [index for index,value in enumerate(V1[0]) if value != V20[index] ]
-                        if len(difs) == 1:
-                            if not (V2[2].intersection(V1[1]) or V2[1].intersection(V1[2])):
-                                m[ii,jj] = (-1)**sum([V2[0][_] for _ in range(difs[0]+1, ncross)]) 
-                                #Here we have the matrix constructed, now we have to put it in the dictionary of complexes
-            else:
-                m = matrix(ZZ, len(bases[(i,j)]), 0)
-            if not j in complexes.keys():
-                complexes[j] = {}
-            complexes[j][i] = m.transpose()
-            if not (i-1, j) in bases.keys():
-                    complexes[j][i-1] = matrix(ZZ,  len(bases[(i,j)]), 0)
-        homologies = {j: ChainComplex(complexes[j]).homology() for j in complexes}
+        if height is not None:
+            heights = [height]
+        else:
+            heights = sorted(set(_[-1] for _ in self._enhanced_states()))
         if degree is not None:
-            return tuple((j, tuple((a, b) for (a, b) in v.items() if a == degree)) for (j, v) in sorted(homologies.items()))
-        return tuple((j, tuple(sorted(v.items()))) for (j, v) in sorted(homologies.items()))
+            homs = {j: dict(self._khovanov_homology_cached(j, ring)) for j in heights}
+            homologies = {j: {degree: homs[j][degree]} for j in homs if degree in homs[j]}
+        else:
+            homologies = {j: dict(self._khovanov_homology_cached(j, ring)) for j in heights}
+        return homologies
+
 
     def oriented_gauss_code(self):
         """

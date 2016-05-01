@@ -1061,14 +1061,14 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             res = self._new()
 
             if self.is_zero():
-                if exp == 0:
+                if nn == 0:
                     fmpz_poly_set_coeff_si(res.__poly, 0, 1)
                     return res
-                elif exp < 0:
+                elif nn < 0:
                     raise ZeroDivisionError("negative exponent in power of zero")
                 else:
                     return res
-            if exp < 0:
+            if nn < 0:
                 sig_on()
                 fmpz_poly_pow(res.__poly, self.__poly, -nn)
                 sig_off()

@@ -210,7 +210,7 @@ class UniqueFactorizationDomains(Category_singleton):
 
         def nth_root(self, n):
             r"""
-            Return the `n`-th root of this element.
+            Return a `n`-th root of this element.
 
             This generic method relies on factorization.
 
@@ -235,25 +235,38 @@ class UniqueFactorizationDomains(Category_singleton):
 
             if n <= 0:
                 raise ValueError("n (={}) must be positive".format(n))
-            elif n == 1:
+            elif n.is_one() or self.is_zero():
                 return self
             else:
-                if self.is_zero():
-                    return self
-
                 f = self.factor()
                 u = f.unit()
 
                 if u.is_one():
                     ans = u.base_ring().one()
                 else:
-                    if u.parent() != u.base_ring():
-                        u = u.base_ring(u)
+                    # here we need to compute a n-th root of the unit ``u``. In
+                    # most case, it is not doable. But in some cases (e.g.
+                    # polynomial ring) we can hope that the base ring can handle
+                    # the computation.
+                    R = self.parent()
+
+                    if u.parent() == R:
+                        try:
+                            u = R.base_ring()(u)
+                        except (ValueError,TypeError):
+                            pass
+
+                    if u.parent() == R:
+                        # we raise an error as otherwise calling nth_root will
+                        # lead to an infinite recursion
+                        raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
 
                     try:
                         ans = u.nth_root(n)
                     except AttributeError:
                         raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+                    ans = R(ans)
 
                 for (v, exp) in f:
                     if exp % n:

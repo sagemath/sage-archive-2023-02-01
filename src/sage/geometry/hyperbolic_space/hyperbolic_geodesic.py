@@ -1032,7 +1032,17 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Traceback (most recent call last):
             ...
             ValueError: the length must be finite
-        """
+
+        TEST::
+
+        This checks :trac::`20330 so that geodesics defined symbolic expressions do not 
+        generate runtime errors.
+        
+            sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
+            sage: g.midpoint()
+            Point in UHP 1/2*(sqrt(2)*e^(1/2*arccosh(3)) - sqrt(2) + (I - 1)*e^(1/2*arccosh(3)) + I - 1)/((1/4*I - 1/4)*sqrt(2)*e^(1/2*arccosh(3)) - (1/4*I - 1/4)*sqrt(2) + 1/2*e^(1/2*arccosh(3)) + 1/2)
+
+"""
         if self.length() == infinity:
             raise ValueError("the length must be finite")
 
@@ -1040,15 +1050,36 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         end = self._end.coordinates()
         d = self._model._dist_points(start, end) / 2
         S = self.complete()._to_std_geod(start)
-        T = matrix([[exp(d), 0], [0, 1]])
-        M = S.inverse() * T * S
-        if ((real(start - end) < EPSILON)
+        
+        if S[0,0].is_numeric():
+            # if the matrix that sends self to the imaginary axis is numeric there is no 
+            #    need to simplify_full() the matrix
+            S_1 = S.inverse()
+            T = matrix([[exp(d), 0], [0, 1]])
+            M = S_1 * T * S
+            if ((real(start - end) < EPSILON)
                 or (abs(real(start - end)) < EPSILON
                     and imag(start - end) < EPSILON)):
-            end_p = start
+                end_p = start
+            else:
+                end_p = end
+            P_3 = moebius_transform(M,end_p)
         else:
-            end_p = end
-        return self._model.get_point(moebius_transform(M, end_p))
+            # in any other case the symbolic matrix needs to be simplified in order to 
+            #    make the calculations easier for the symbolic calculus module.
+            S = S.simplify_full().simplify_full()
+            S_1=S.inverse()
+            T = matrix([[exp(d), 0], [0, 1]])
+            M = S_1 * T * S
+            if ((real(start - end) < EPSILON)
+                or (abs(real(start - end)) < EPSILON
+                    and imag(start - end) < EPSILON)):
+                end_p = start
+            else:
+                end_p = end
+            P_3 = moebius_transform(M,end_p)
+            
+        return self._model.get_point(P_3)
 
     def angle(self, other):  # UHP
         r"""

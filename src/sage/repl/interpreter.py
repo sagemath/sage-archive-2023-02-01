@@ -180,10 +180,6 @@ class SageShellOverride(object):
         """
         Run a system command.
 
-        If the command is not a sage-specific binary, adjust the library
-        paths before calling system commands.  See :trac:`975` for a
-        discussion of running system commands.
-
         This is equivalent to the sage-native-execute shell script.
 
         EXAMPLES::
@@ -196,22 +192,12 @@ class SageShellOverride(object):
             sage: shell.system_raw('true')
             sage: shell.user_ns['_exit_code']
             0
-            sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
-            sage: shell.user_ns['_exit_code']
-            1
             sage: shell.system_raw('R --version')
             R version ...
             sage: shell.user_ns['_exit_code']
             0
             sage: shell.quit()
         """
-        path = os.path.join(SAGE_LOCAL, 'bin',
-                            re.split(r'[\s|;&]', cmd)[0])
-        if not os.access(path, os.X_OK):
-            libraries = 'LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH";export LD_LIBRARY_PATH;'
-            if os.uname()[0]=='Darwin':
-                libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
-            cmd = libraries+cmd
         return super(SageShellOverride, self).system_raw(cmd)
 
 

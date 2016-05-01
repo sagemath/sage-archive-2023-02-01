@@ -228,6 +228,27 @@ class UniqueFactorizationDomains(Category_singleton):
                 ValueError: 25*x^2 + 25*x + 25 is not a 2nd power
                 sage: R(0).nth_root(3)
                 0
+                sage: R.<x> = QQ[]
+                sage: a = 1/4 * (x/7 + 3/2)^2 * (x/2 + 5/3)^4
+                sage: a.nth_root(2)
+                1/56*x^3 + 103/336*x^2 + 365/252*x + 25/12
+
+                sage: R.<x,y,z> = QQ[]
+                sage: a = 32 * (x*y + 1)^5 * (x+y+z)^5
+                sage: a.nth_root(5)
+                2*x^2*y + 2*x*y^2 + 2*x*y*z + 2*x + 2*y + 2*z
+                sage: b = x + 2*y + 3*z
+                sage: b.nth_root(42)
+                Traceback (most recent call last):
+                ...
+                ValueError: x + 2*y + 3*z is not a 42th power
+
+                sage: R.<x> = NumberField(QQ['x'].gen()^2 - 2)
+                sage: a = (1 + x)^3 * (2*x - 5)^6
+                sage: b = a.nth_root(3); b
+                13*x - 7
+                sage: b^3 == a
+                True
             """
             from sage.rings.integer_ring import ZZ
 

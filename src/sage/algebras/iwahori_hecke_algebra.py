@@ -486,6 +486,13 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._root = None
             self._shorthands = ['T']
 
+        # if 2 is a unit in the base ring then add th A and B bases
+        try:
+            base_ring(base_ring.one()/2)
+            self._shorthands.extend(['A','B'])
+        except (TypeError, ZeroDivisionError):
+            pass
+
         if W.is_finite():
             self._category = FiniteDimensionalAlgebrasWithBasis(base_ring)
         else:
@@ -2038,6 +2045,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         in the base ring. The A-basis induces a $\mathbb{Z}/2\mathbb{Z}$-grading
         on the Iwahori-Hecke algebra.
 
+        The A-basis is a basis only when `2` is invertible. An error is returned
+        whenever `2` is not a unit in the base ring.
+
         EXAMPLES::
 
             sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
@@ -2049,6 +2059,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
             sage: A[1]*A[2]
             A[1,2] - (1/4-1/2*v^2+1/4*v^4)
+
+        TESTS::
+
+            sage: R.<v> = LaurentPolynomialRing(GF(2), 'v')
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)
+            sage: H.A()
+            Traceback (most recent call last):
+            ...
+            TypeError: The A-basis is defined only when 2 is invertible
         """
         _basis_name = "A"
 
@@ -2060,8 +2079,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: H = IwahoriHeckeAlgebra('A3', v**2)
                 sage: A = H.A()
             """
-            if 1/2 not in IHAlgebra.base_ring():
-                raise ValueError('The A-basis is defined only when 2 is invertible ')
+            R = IHAlgebra.base_ring()
+            try:
+                R(R.one()/2)
+            except (TypeError, ZeroDivisionError):
+                raise TypeError('The A-basis is defined only when 2 is invertible ')
 
             super(IwahoriHeckeAlgebra.A, self).__init__(IHAlgebra, prefix)
 
@@ -2079,14 +2101,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(QQ)
-                sage: H = IwahoriHeckeAlgebra('A3', v**2); B=H.B(); T=H.T()
+                sage: H = IwahoriHeckeAlgebra('A3', v**2); A=H.A(); T=H.T()
                 sage: s=H.coxeter_group().simple_reflection(1)
                 sage: A.to_T_basis(s)
-                T[1]
+                T[1] + (1/2-1/2*v^2)
                 sage: T(A[1,2])
-                T[1,2]
+                T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
                 sage: A(T[1,2])
-                A[1,2]
+                A[1,2] - (1/2-1/2*v^2)*A[1] - (1/2-1/2*v^2)*A[2]
             """
             T=self.realization_of().T()
             return (T.monomial(w)+(-1)**w.length()*T.goldman_involution_on_basis(w))/2
@@ -2138,6 +2160,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         under the Kazhdan-Lusztig bar involution and hence are related to the
         Kazhdan-Lusztig bases.
 
+        The B-basis is a basis only when `2` is invertible. An error is returned
+        whenever `2` is not a unit in the base ring.
+
         EXAMPLES::
 
             sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
@@ -2157,6 +2182,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1] - (1/2*v+1/2*v^3)*Cp[2] + (1/2+1/2*v^4)
             sage: Cp(A[1,2,1])
             v^3*Cp[1,2,1] - (1/2*v^2+1/2*v^4)*Cp[1,2] - (1/2*v^2+1/2*v^4)*Cp[2,1] + (1/2*v+1/2*v^5)*Cp[1] + (1/2*v+1/2*v^5)*Cp[2] - (1/2+1/2*v^6)
+
+        TESTS::
+
+            sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)
+            sage: H.B()
+            Traceback (most recent call last):
+            ...
+            TypeError: The B-basis is defined only when 2 is invertible
         """
         _basis_name = "B"
 
@@ -2170,8 +2204,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: H = IwahoriHeckeAlgebra('A3', v**2)
                 sage: B = H.B()
             """
-            if 1/2 not in IHAlgebra.base_ring():
-                raise ValueError('The B-basis is defined only when 2 is invertible ')
+            R = IHAlgebra.base_ring()
+            try:
+                R(R.one()/2)
+            except (TypeError, ZeroDivisionError):
+                raise TypeError('The B-basis is defined only when 2 is invertible ')
 
             super(IwahoriHeckeAlgebra.B, self).__init__(IHAlgebra, prefix)
 

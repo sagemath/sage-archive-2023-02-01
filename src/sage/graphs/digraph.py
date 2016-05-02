@@ -3085,7 +3085,7 @@ class DiGraph(GenericGraph):
         The following digraph has three strongly connected components,
         and the digraph of those is a chain::
 
-            sage: g = DiGraph({0:{1:"01", 2: "02", 3: 03}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
+            sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
             sage: scc_digraph = g.strongly_connected_components_digraph()
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]

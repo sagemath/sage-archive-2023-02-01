@@ -644,7 +644,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
     TESTS::
 
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
-        ....:     print(p);print("\n****")   #indirect doctest
+        ....:     print(p)
+        ....:     print("\n****")   #indirect doctest
         a b
         b a
         ****
@@ -652,7 +653,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         a b
         ****
         sage: for p in iet.Permutations_iterator(3, alphabet="abc"):
-        ....:     print(p);print("\n*****")   #indirect doctest
+        ....:     print(p)
+        ....:     print("\n*****")   #indirect doctest
         a b c
         b c a
         *****
@@ -2309,7 +2311,8 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for g in r.full_loop_iterator(p,2):
-            ....:     print(g.matrix());print("\n*****")
+            ....:     print(g.matrix())
+            ....:     print("\n*****")
             [1 1]
             [1 2]
             *****
@@ -2346,7 +2349,8 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()
             sage: for g in d.full_nloop_iterator(p,2):
-            ....:     print(g.matrix());print("\n*****")
+            ....:     print(g.matrix())
+            ....:     print("\n*****")
             [1 1]
             [1 2]
             *****

@@ -145,7 +145,8 @@ Obtains the connected components of a stratum::
     sage: cc
     [H_hyp(6), H_odd(6), H_even(6)]
     sage: for c in cc:
-    ....:     print(c);print(c.representative(alphabet=range(1,9)))
+    ....:     print(c)
+    ....:     print(c.representative(alphabet=range(1,9)))
     H_hyp(6)
     1 2 3 4 5 6 7 8
     8 7 6 5 4 3 2 1
@@ -173,9 +174,9 @@ corresponds to the first singularity degree::
     sage: b = AbelianStratum(2, 4, marked_separatrix='out')
     sage: a == b
     False
-    sage: print((a, a.connected_components()))
+    sage: a, a.connected_components()
     (H^out(4, 2), [H_odd^out(4, 2), H_even^out(4, 2)])
-    sage: print((b, b.connected_components()))
+    sage: b, b.connected_components()
     (H^out(2, 4), [H_odd^out(2, 4), H_even^out(2, 4)])
     sage: a_odd, a_even = a.connected_components()
     sage: b_odd, b_even = b.connected_components()
@@ -205,9 +206,9 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ....:     print((c, i))
-    (H_hyp^out(2), 7)
-    (H_hyp^out(0, 0, 0), 6)
+    ....:     print("{} : {}".format(c, i))
+    H_hyp^out(2) : 7
+    H_hyp^out(0, 0, 0) : 6
     sage: sum(n)
     13
 
@@ -217,11 +218,11 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ....:     print((c, i))
-    (H_hyp^out(0, 2), 11)
-    (H_hyp^out(2, 0), 35)
-    (H_hyp^out(1, 1), 15)
-    (H_hyp^out(0, 0, 0, 0), 10)
+    ....:     print("{} : {}".format(c, i))
+    H_hyp^out(0, 2) : 11
+    H_hyp^out(2, 0) : 35
+    H_hyp^out(1, 1) : 15
+    H_hyp^out(0, 0, 0, 0) : 10
     sage: sum(n)
     71
 
@@ -231,14 +232,14 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ....:     print((c, i))
-    (H_hyp^out(4), 31)
-    (H_odd^out(4), 134)
-    (H_hyp^out(0, 2, 0), 66)
-    (H_hyp^out(2, 0, 0), 105)
-    (H_hyp^out(0, 1, 1), 20)
-    (H_hyp^out(1, 1, 0), 90)
-    (H_hyp^out(0, 0, 0, 0, 0), 15)
+    ....:     print("{} : {}".format(c, i))
+    H_hyp^out(4) : 31
+    H_odd^out(4) : 134
+    H_hyp^out(0, 2, 0) : 66
+    H_hyp^out(2, 0, 0) : 105
+    H_hyp^out(0, 1, 1) : 20
+    H_hyp^out(1, 1, 0) : 90
+    H_hyp^out(0, 0, 0, 0, 0) : 15
     sage: sum(n)
     461
 """

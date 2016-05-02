@@ -88,9 +88,9 @@ of primal and dual problems. Thus we can get the optimizer `X` of the dual probl
 as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
 E.g.::
 
-    sage: p.dual_variable(1)
-    [1.44...  -1.22...]
-    [-1.22...  1.44...]
+    sage: p.dual_variable(1)  # tol 5e-03
+    [ 1.44 -1.22]
+    [-1.22  1.44]
 
 We can see that the optimal value of the dual is equal (up to numerical noise) to `opt`.::
 

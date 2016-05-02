@@ -35,8 +35,7 @@ For instance, you want to maximize `x_1 - x_0` subject to
  \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right),\quad
  \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) x_0 +
  \left( \begin{array}{cc} 2 & 2  \\ 2 & 2  \end{array} \right) x_1 \preceq
- \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right),
- \quad x_0\geq 0, x_1\geq 0.
+ \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right).
 
 An SDP can give you an answer to the problem above. Here is how it's done:
 
@@ -45,7 +44,6 @@ An SDP can give you an answer to the problem above. Here is how it's done:
      p.new_variable()``.
   #. Add those two matrix inequalities as inequality constraints via
      :meth:`~SemidefiniteProgram.add_constraint`.
-  #. Add another matrix inequality to specify nonnegativity of `x`.
   #. Specify the objective function via :meth:`~SemidefiniteProgram.set_objective`.
      In our case it is  `x_1 - x_0`. If it
      is a pure constraint satisfaction problem, specify it as ``None``.
@@ -64,11 +62,8 @@ The following example shows all these steps::
     sage: b1 = matrix([[1, 1.], [1., 1.]])
     sage: b2 = matrix([[2, 2.], [2., 2.]])
     sage: b3 = matrix([[3, 3.], [3., 3.]])
-    sage: c1 = matrix([[1.0, 0],[0,0]],sparse=True)
-    sage: c2 = matrix([[0.0, 0],[0,1]],sparse=True)
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-    sage: p.add_constraint(c1*x[0] + c2*x[1] >= matrix.zero(2,2,sparse=True))
     sage: p.solver_parameter("show_progress", True)
     sage: opt = p.solve()
         pcost       dcost       gap    pres   dres   k/t
@@ -76,16 +71,15 @@ The following example shows all these steps::
     ...
     Optimal solution found.
     sage: print 'Objective Value:', round(opt,3)
-    Objective Value: 1.0
+    Objective Value: 3.0
     sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
-    [0.0, 1.0]
+    [-1.0, 2.0]
     sage: p.show()
     Maximization:
       x_0 - x_1
     Constraints:
       constraint_0: [3.0 4.0][4.0 5.0]x_0 + [1.0 2.0][2.0 3.0]x_1 <=  [5.0 6.0][6.0 7.0]
       constraint_1: [2.0 2.0][2.0 2.0]x_0 + [1.0 1.0][1.0 1.0]x_1 <=  [3.0 3.0][3.0 3.0]
-      constraint_2: [ 0.0  0.0][ 0.0 -1.0]x_0 + [-1.0  0.0][ 0.0  0.0]x_1 <=  [0 0][0 0]
     Variables:
        x_0,  x_1
 
@@ -95,8 +89,8 @@ as follows, as diagonal blocks, one per each constraint, via :meth:`~Semidefinit
 E.g.::
 
     sage: p.dual_variable(1)
-    [ 85545.1... -85545.1...]
-    [-85545.1...  85545.1...]
+    [1.44...  -1.22...]
+    [-1.22...  1.44...]
 
 We can see that the optimal value of the dual is equal (up to numerical noise) to `opt`.::
 

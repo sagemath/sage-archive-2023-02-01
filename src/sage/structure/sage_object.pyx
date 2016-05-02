@@ -2,6 +2,7 @@
 r"""
 Abstract base class for Sage objects
 """
+from __future__ import print_function
 
 import cPickle
 import os
@@ -46,8 +47,7 @@ def py_rich_to_bool(op, c):
         ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
         sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
         ....:     for c in (-1,0,1):
-        ....:         print py_rich_to_bool(op, c),
-        ....:     print
+        ....:         print(py_rich_to_bool(op, c))
         True False False
         True True False
         False True False
@@ -981,7 +981,7 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
+        sage: open(t,'w').write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -1074,7 +1074,7 @@ def save(obj, filename=None, compress=True, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: allowed file extensions for images are '.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg'!
-        sage: print load(objfile)
+        sage: print(load(objfile))
         Graphics object consisting of 2 graphics primitives
         sage: save("A python string", os.path.join(SAGE_TMP, 'test'))
         sage: load(objfile)
@@ -1119,7 +1119,7 @@ def dumps(obj, compress=True):
 
         sage: a = 2/3
         sage: s = dumps(a)
-        sage: print len(s)
+        sage: len(s)
         49
         sage: loads(s)
         2/3
@@ -1562,7 +1562,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     If you want to find *lots* of little issues in Sage then try the following::
 
-        sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
+        sage: print("x"); sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
 
     This runs :class:`TestSuite` tests on all objects in the Sage pickle
     jar. Some of those objects seem to unpickle properly, but do not
@@ -1615,9 +1615,9 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
             except Exception:
                 j += 1
                 if run_test_suite:
-                    print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)
+                    print(" * unpickle failure: TestSuite(load('%s')).run()" % os.path.join(dir, A))
                 else:
-                    print " * unpickle failure: load('%s')"%os.path.join(dir,A)
+                    print(" * unpickle failure: load('%s')" % os.path.join(dir, A))
                 from traceback import print_exc
                 print_exc()
                 failed.append(A)
@@ -1625,17 +1625,17 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                     tracebacks.append(sys.exc_info())
 
     if len(failed) > 0:
-        print "Failed:\n%s"%('\n'.join(failed))
+        print("Failed:\n%s" % ('\n'.join(failed)))
         if pickle_jar:
             # if we are checking the pickle_jar then print a message to alert the
             # user about what to do to fix unpickling errors
-            print '-'*70
-            print """** This error is probably due to an old pickle failing to unpickle.
+            print('-' * 70)
+            print("""** This error is probably due to an old pickle failing to unpickle.
 ** See sage.structure.sage_object.register_unpickle_override for
 ** how to override the default unpickling methods for (old) pickles.
-** NOTE: pickles should never be removed from the pickle_jar! """
-            print '-'*70
-    print "Successfully unpickled %s objects."%i
-    print "Failed to unpickle %s objects."%j
+** NOTE: pickles should never be removed from the pickle_jar! """)
+            print('-' * 70)
+    print("Successfully unpickled %s objects." % i)
+    print("Failed to unpickle %s objects." % j)
     if debug:
         return tracebacks

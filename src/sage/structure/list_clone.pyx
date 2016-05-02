@@ -99,7 +99,7 @@ modification::
 
     sage: with el.clone() as elc2:
     ....:     elc2[1] = 12
-    ....:     print elc2
+    ....:     print(elc2)
     ....:     elc2[2] = 25
     [1, 12, 8]
     sage: elc2
@@ -140,7 +140,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
 include "cysignals/memory.pxi"
@@ -325,7 +325,7 @@ cdef class ClonableElement(Element):
             sage: copy(el).is_mutable()
             True
             sage: with el.clone() as el1:
-            ....:      print [el.is_mutable(), el1.is_mutable()]
+            ....:      print([el.is_mutable(), el1.is_mutable()])
             [False, True]
         """
         return not self._is_immutable
@@ -346,7 +346,7 @@ cdef class ClonableElement(Element):
             sage: copy(el).is_immutable()
             False
             sage: with el.clone() as el1:
-            ....:      print [el.is_immutable(), el1.is_immutable()]
+            ....:      print([el.is_immutable(), el1.is_immutable()])
             [True, False]
         """
         return self._is_immutable
@@ -1112,12 +1112,12 @@ cdef class ClonableList(ClonableArray):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ....:      print elc.pop()
+            ....:      print(elc.pop())
             9
             sage: elc
             [1, 4, 5, 8]
             sage: with el.clone() as elc:
-            ....:      print elc.pop(2)
+            ....:      print(elc.pop(2))
             5
             sage: elc
             [1, 4, 8, 9]
@@ -1427,7 +1427,6 @@ cdef class ClonableIntArray(ClonableElement):
         cdef int start, stop, step, keyi
         cdef list res
         cdef slice keysl
-        # print key
         if isinstance(key, slice):
             keysl = <slice> key
             start, stop, step = keysl.indices(self._len)
@@ -1436,13 +1435,12 @@ cdef class ClonableIntArray(ClonableElement):
                 res.append(self._getitem(i))
             return res
         keyi = <int> key
-        # print key, key, self._len, self._len+keyi
         if keyi < 0:
             keyi += self._len
         if 0 <= keyi < self._len:
             return self._list[keyi]
         else:
-            raise IndexError, "list index out of range"
+            raise IndexError("list index out of range")
 
     def __setitem__(self, int key, value):
         """

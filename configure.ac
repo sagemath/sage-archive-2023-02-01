@@ -287,6 +287,13 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
+# Check whether git works by executing "git --version"
+need_to_install_git=no
+AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
+    AC_PATH_PROGS_FEATURE_CHECK([GIT], [git],
+    [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
+    [need_to_install_git=yes; ac_cv_path_GIT=no])])
+
 
 ###############################################################################
 # Check C/C++/Fortran compilers

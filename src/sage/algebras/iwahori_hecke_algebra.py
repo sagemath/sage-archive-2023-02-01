@@ -1781,8 +1781,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def to_T_basis(self, w):
             r"""
-            Returns the Kazhdan-Lusztig basis elememt ``self[w]`` as a linear
-            combination of ``T``-bais elements.
+            Returns the Kazhdan-Lusztig basis element ``self[w]`` as a linear
+            combination of ``T``-basis elements.
 
             EXAMPLES::
 
@@ -1820,8 +1820,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         \frac{1}{2}(\ell(w)-\ell(v)-1)`.
 
         More generally, if the quadratic relations are of the form
-        (T_s-q_1)(T_s-q_2)=0` and `\sqrt{-q_1q_2}` exists then for a simple
-        reflection `s` then the corresponding Kazhdan-Lusztig basis element is:
+        (T_s-q_1)(T_s-q_2)=0` and `\sqrt{-q_1q_2}` exists then, for a simple
+        reflection `s`, the corresponding Kazhdan-Lusztig basis element is:
 
         .. MATH::
 
@@ -1922,19 +1922,18 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         `P_{v,w}(q)\in\ZZ[q,q^{-1}]` are polynomials in `\ZZ[q]` such that
         `P_{w,w}(q) = 1` and if `v < w` then
         `\deg P_{v,w}(q) \leq \frac{1}{2}(\ell(w) - \ell(v) - 1)`.
-
-        More generally, if the quadratic relations are of the form
-        (T_s-q_1)(T_s-q_2)=0` and `\sqrt{-q_1q_2}` exists then for a simple
-        reflection `s` then the corresponding Kazhdan-Lusztig basis element is:
-
-        .. MATH::
-
-            C_s = (-q_1 q_2)^{1/2} (1 - (-q_1 q_2)^{-1/2} T_s).
-
         This is related to the `C^{\prime}` Kazhdan-Lusztig basis by `C_i =
         -\alpha(C_i^{\prime})` where `\alpha` is the `\ZZ`-linear Hecke
         involution defined by `q^{1/2} \mapsto q^{-1/2}` and `\alpha(T_i) =
         -(q_1 q_2)^{-1/2} T_i`.
+
+        More generally, if the quadratic relations are of the form
+        (T_s-q_1)(T_s-q_2)=0` and `\sqrt{-q_1q_2}` exists then, for a simple
+        reflection `s`, the corresponding Kazhdan-Lusztig basis element is:
+
+        .. MATH::
+
+            C_s = (-q_1 q_2)^{1/2} (1 - (-q_1 q_2)^{-1/2} T_s).
 
         See [KL79]_ for more details.
 
@@ -2035,6 +2034,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             A_w = T_w + (-1)^{\ell(w)}T_w^\#
                 = T_w + (-1)^{\ell(w)}T_{w^{-1}}^{-1}
 
+        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit 
+        in the base ring. The A-basis induces a $\mathbb{Z}/2\mathbb{Z}$-grading
+        on the Iwahori-Hecke algebra.
 
         EXAMPLES::
 
@@ -2047,7 +2049,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
             sage: A[1]*A[2]
             A[1,2] - (1/4-1/2*v^2+1/4*v^4)
-
         """
         _basis_name = "A"
 
@@ -2071,6 +2072,22 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             from_T_to_A.register_as_coercion()
 
         def to_T_basis(self, w):
+            r"""
+            Returns the A-basis element ``self[w]`` as a linear
+            combination of ``T``-basis elements.
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(QQ)
+                sage: H = IwahoriHeckeAlgebra('A3', v**2); B=H.B(); T=H.T()
+                sage: s=H.coxeter_group().simple_reflection(1)
+                sage: A.to_T_basis(s)
+                T[1]
+                sage: T(A[1,2])
+                T[1,2]
+                sage: A(T[1,2])
+                A[1,2]
+            """
             T=self.realization_of().T()
             return (T.monomial(w)+(-1)**w.length()*T.goldman_involution_on_basis(w))/2
 
@@ -2100,8 +2117,46 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         The B-basis of an Iwahori-Hecke algebra.
 
         The B-basis is the unique basis of the Iwahori-Hecke algebra that is
-        invariant under the hash involution and
+        invariant under the Goldman involution, up to sign, and invariant
+        under the Kazhdan-Lusztig bar involution. In the generic case, the
+        B-basis becomes the group basis of the group algebra of the Coxeter
+        group the B-basis upon setting the Hecke parameters equal to 1. If $w$
+        is an element of the corresponding Coxeter group then the B-basis
+        element $B_w$ is uniquely determined by the conditions that:
+        $B_w^\# = (-1)^{|ell(w)}B_w$, where $\#$ is the Goldman involution (see
+        :meth:`goldman_involution`) and
 
+        .. MATH::
+
+            B_w = T_w + \sum_{v<w}b_{vw}(q) T_v
+
+        where $b_{vw}(q)]ne0$ only if $v<w$ in the Bruhat order and
+        $\ell(v)\not\equiv\ell(w)\pmod 2$.
+        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit 
+        in the base ring. The B-basis induces a $\mathbb{Z}/2\mathbb{Z}$-grading
+        on the Iwahori-Hecke algebra. The $B$-basis elements are also invariant
+        under the Kazhdan-Lusztig bar involution and hence are related to the
+        Kazhdan-Lusztig bases.
+
+        EXAMPLES::
+
+            sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)
+            sage: A=H.A(); T=H.T(); Cp=H.Cp()
+            sage: T(A[1])
+            T[1] + (1/2-1/2*v^2)
+            sage: T(A[1,2])
+            T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
+            sage: A[1]*A[2]
+            A[1,2] - (1/4-1/2*v^2+1/4*v^4)
+            sage: Cp(A[1]*A[2])
+            v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1] - (1/2*v+1/2*v^3)*Cp[2] + (1/4+1/2*v^2+1/4*v^4)
+            sage: Cp(A[1])
+            v*Cp[1] - (1/2+1/2*v^2)
+            sage: Cp(A[1,2])
+            v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1] - (1/2*v+1/2*v^3)*Cp[2] + (1/2+1/2*v^4)
+            sage: Cp(A[1,2,1])
+            v^3*Cp[1,2,1] - (1/2*v^2+1/2*v^4)*Cp[1,2] - (1/2*v^2+1/2*v^4)*Cp[2,1] + (1/2*v+1/2*v^5)*Cp[1] + (1/2*v+1/2*v^5)*Cp[2] - (1/2+1/2*v^6)
         """
         _basis_name = "B"
 
@@ -2128,6 +2183,22 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         @cached_method
         def to_T_basis(self, w):
+            r"""
+            Returns the B-basis element ``self[w]`` as a linear
+            combination of ``T``-basis elements.
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(QQ)
+                sage: H = IwahoriHeckeAlgebra('A3', v**2); B=H.B(); T=H.T()
+                sage: s=H.coxeter_group().simple_reflection(1)
+                sage: B.to_T_basis(s)
+                T[1] + (1/2-1/2*v^2)
+                sage: T(B[1,2])
+                T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2]
+                sage: B(T[1,2])
+                B[1,2] - (1/2-1/2*v^2)*B[1] - (1/2-1/2*v^2)*B[2] + (1/2-v^2+1/2*v^4)
+            """
             T=self.realization_of().T()
             Bw=T(self.realization_of().A()[w])
             odd=[v for v in Bw.support() if v<>w and (v.length()-w.length())%2==0]

@@ -374,23 +374,27 @@ class GenericGraph(GenericGraph_pyx):
                 from sage.graphs.graph   import Graph   as constructor
             self._backend = constructor(g)._backend
 
-    def __add__(self, other_graph):
+    def __add__(self, other):
         """
-        Returns the disjoint union of self and other.
+        Return a graph isomorphic to disjoint union of this graph with `other`.
 
-        If there are common vertices to both, they will be renamed.
+        Labels of the resultin graph will always be consecutive integers
+        starting from zero.
+
+        .. SEEALSO:: :meth:`disjoint_union`
 
         EXAMPLES::
 
-            sage: G = graphs.CycleGraph(3)
-            sage: H = graphs.CycleGraph(4)
+            sage: G = Graph({'a': ['b', 'c']})
+            sage: H = Graph({'c': ['d', 'e', 'f']})
             sage: J = G + H; J
-            Cycle graph disjoint_union Cycle graph: Graph on 7 vertices
+            Graph on 3 vertices disjoint_union Graph on 4 vertices: Graph on 7 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
         """
-        if isinstance(other_graph, GenericGraph):
-            return self.disjoint_union(other_graph, labels='integers')
+        if isinstance(other, GenericGraph):
+            return self.disjoint_union(other, labels='integers')
+        raise TypeError('adding a graph and something other than another graph is not defined')
 
     def __eq__(self, other):
         """
@@ -16560,6 +16564,8 @@ class GenericGraph(GenericGraph_pyx):
             Cycle graph disjoint_union Cycle graph: Graph on 7 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
+            sage: (G+H).vertices()  # '+'-operator is a shortcut
+            [0, 1, 2, 3, 4, 5, 6] 
 
         ::
 
@@ -16598,7 +16604,12 @@ class GenericGraph(GenericGraph_pyx):
             r_other = dict([[v,(1,v)] for v in other])
             G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
 
-        G._name = '%s disjoint_union %s'%(self.name(), other.name())
+        a = self.name()
+        if a == '': a = self._repr_()
+        b = other.name()
+        if b == '': b = other._repr_()
+
+        G._name = '%s disjoint_union %s'%(a, b)
         return G
 
     def union(self, other, immutable=None):

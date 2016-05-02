@@ -13,7 +13,7 @@ EXAMPLES:
 Creation of an interval exchange transformation::
 
     sage: T = iet.IntervalExchangeTransformation(('a b','b a'),(sqrt(2),1))
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
     a b
     b a
@@ -22,7 +22,7 @@ It can also be initialized using permutation (group theoretic ones)::
 
     sage: p = Permutation([3,2,1])
     sage: T = iet.IntervalExchangeTransformation(p, [1/3,2/3,1])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, 2[ with permutation
     1 2 3
     3 2 1
@@ -33,7 +33,7 @@ iet.Permutation. For the creation of labelled permutations of interval exchange
 transformation::
 
     sage: p1 =  iet.Permutation('a b c', 'c b a')
-    sage: print p1
+    sage: p1
     a b c
     c b a
 
@@ -41,7 +41,7 @@ They can be used for initialization of an iet::
 
     sage: p = iet.Permutation('a b','b a')
     sage: T = iet.IntervalExchangeTransformation(p, [1,sqrt(2)])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
     a b
     b a
@@ -49,21 +49,21 @@ They can be used for initialization of an iet::
 You can also, create labelled permutations of linear involutions::
 
     sage: p = iet.GeneralizedPermutation('a a b', 'b c c')
-    sage: print p
+    sage: p
     a a b
     b c c
 
 Sometimes it's more easy to deal with reduced permutations::
 
     sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
-    sage: print p
+    sage: p
     a b c
     c b a
 
 Permutations with flips::
 
     sage: p1 = iet.Permutation('a b c', 'c b a', flips = ['a','c'])
-    sage: print p1
+    sage: p1
     -a  b -c
     -c  b -a
 
@@ -630,12 +630,12 @@ def Permutations_iterator(nintervals=None, irreducible=True,
     Generates all reduced permutations with given number of intervals::
 
         sage: P = iet.Permutations_iterator(nintervals=2,alphabet="ab",reduced=True)
-        sage: for p in P: print p, "\n* *"
+        sage: for p in P: print(p);print("\n* *")
         a b
         b a
         * *
         sage: P = iet.Permutations_iterator(nintervals=3,alphabet="abc",reduced=True)
-        sage: for p in P: print p, "\n* * *"
+        sage: for p in P: print(p);print("\n* * *")
         a b c
         b c a
         * * *
@@ -739,24 +739,24 @@ def RauzyDiagram(*args, **kargs):
     Using Rauzy diagrams and path in Rauzy diagrams::
 
         sage: r = iet.RauzyDiagram('a b c', 'c b a')
-        sage: print r
+        sage: r
         Rauzy diagram with 3 permutations
         sage: p = iet.Permutation('a b c','c b a')
         sage: p in r
         True
         sage: g0 = r.path(p, 'top', 'bottom','top')
         sage: g1 = r.path(p, 'bottom', 'top', 'bottom')
-        sage: print g0.is_loop(), g1.is_loop()
-        True True
-        sage: print g0.is_full(), g1.is_full()
-        False False
+        sage: g0.is_loop(), g1.is_loop()
+        (True, True)
+        sage: g0.is_full(), g1.is_full()
+        (False, False)
         sage: g = g0 + g1
         sage: g
         Path of length 6 in a Rauzy diagram
-        sage: print g.is_loop(), g.is_full()
-        True True
+        sage: g.is_loop(), g.is_full()
+        (True, True)
         sage: m = g.matrix()
-        sage: print m
+        sage: m
         [1 1 1]
         [2 4 1]
         [2 3 2]
@@ -771,7 +771,7 @@ def RauzyDiagram(*args, **kargs):
 
         sage: v = m.eigenvectors_right()[-1][1][0]
         sage: T = iet.IntervalExchangeTransformation(p, v).normalize()
-        sage: print T
+        sage: T
         Interval exchange transformation of [0, 1[ with permutation
         a b c
         c b a
@@ -822,7 +822,7 @@ def RauzyDiagram(*args, **kargs):
 
 #TODO
 # def GeneralizedPermutation_iterator():
-#     print "gpi"
+
 
 def IntervalExchangeTransformation(permutation=None, lengths=None):
     """

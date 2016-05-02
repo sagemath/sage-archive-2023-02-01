@@ -43,7 +43,7 @@ class QuadraticStratum(SageObject):
         TESTS::
 
             sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
+            sage: print(a)
             Q(-1, -1, -1, -1)
         """
         return "Q(" + str(self._zeroes)[1:-1] + ")"
@@ -53,7 +53,7 @@ class QuadraticStratum(SageObject):
         TESTS::
 
             sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
+            sage: print(a)
             Q(-1, -1, -1, -1)
         """
         return "Q(" + str(self._zeroes)[1:-1] + ")"

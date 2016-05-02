@@ -643,7 +643,7 @@ def LabelledPermutationsIET_iterator(nintervals=None,
     TESTS::
 
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
-        ....:     print p, "\n****"   #indirect doctest
+        ....:     print(p);print("\n****")   #indirect doctest
         a b
         b a
         ****
@@ -651,7 +651,7 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         a b
         ****
         sage: for p in iet.Permutations_iterator(3, alphabet="abc"):
-        ....:     print p, "\n*****"   #indirect doctest
+        ....:     print(p);print("\n*****")   #indirect doctest
         a b c
         b c a
         *****
@@ -751,12 +751,12 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         sage: p = iet.Permutation('a b c', 'c b a')
         sage: p.has_rauzy_move('top')
         True
-        sage: print p.rauzy_move('bottom')
+        sage: p.rauzy_move('bottom')
         a c b
         c b a
         sage: p.has_rauzy_move('top')
         True
-        sage: print p.rauzy_move('top')
+        sage: p.rauzy_move('top')
         a b c
         c a b
 
@@ -1090,9 +1090,9 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         sage: p.is_irreducible()
         False
         sage: test, decomposition = p.is_irreducible(return_decomposition = True)
-        sage: print test
+        sage: test
         False
-        sage: print decomposition
+        sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
     Rauzy movability and Rauzy move::
@@ -1103,7 +1103,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         sage: p.has_rauzy_move(1)
         True
         sage: q = p.rauzy_move(1)
-        sage: print q
+        sage: q
         a a b b c
         c d d
         sage: q.has_rauzy_move(0)
@@ -1580,10 +1580,10 @@ class FlippedLabelledPermutation(LabelledPermutation):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b', 'b a', flips='a')
-            sage: print p[0]
+            sage: p[0]
             [('a', -1), ('b', 1)]
             sage: p = iet.GeneralizedPermutation('c p p', 't t c', flips='ct')
-            sage: print p[1]
+            sage: p[1]
             [('t', -1), ('t', -1), ('c', -1)]
         """
         if not isinstance(i, (Integer, int)):
@@ -1752,13 +1752,13 @@ class FlippedLabelledPermutationIET(
     Rauzy movability and Rauzy move::
 
         sage: p = iet.Permutation('a b c', 'c b a',flips='a')
-        sage: print p
+        sage: p
         -a  b  c
          c  b -a
-        sage: print p.rauzy_move(1)
+        sage: p.rauzy_move(1)
         -c -a  b
         -c  b -a
-        sage: print p.rauzy_move(0)
+        sage: p.rauzy_move(0)
         -a  b  c
          c -a  b
 
@@ -1810,7 +1810,7 @@ class FlippedLabelledPermutationIET(
             sage: h = map(hash, p)
             sage: for i in range(len(h)-1):
             ....:     if h[i] == h[i+1]:
-            ....:         print "You choose a bad hash!"
+            ....:         print("You choose a bad hash!")
         """
         if self._hash is None:
             f = self._flips
@@ -1918,9 +1918,9 @@ class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
         sage: p.is_irreducible()
         False
         sage: test, decomp = p.is_irreducible(return_decomposition = True)
-        sage: print test
+        sage: test
         False
-        sage: print decomp
+        sage: decomp
         (['a'], ['c', 'a'], [], ['c'])
 
     Rauzy movability and Rauzy move::
@@ -2308,7 +2308,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for g in r.full_loop_iterator(p,2):
-            ....:     print g.matrix(), "\n*****"
+            ....:     print(g.matrix());print("\n*****")
             [1 1]
             [1 2]
             *****
@@ -2345,7 +2345,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()
             sage: for g in d.full_nloop_iterator(p,2):
-            ....:     print g.matrix(), "\n*****"
+            ....:     print(g.matrix());print("\n*****")
             [1 1]
             [1 2]
             *****

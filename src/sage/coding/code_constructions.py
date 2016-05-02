@@ -540,7 +540,7 @@ def BCHCode(n,delta,F,b=0):
     for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
         L1.extend(P((a**j).minpoly()) for j in coset)
     g = P(LCM(L1))
-    #print(cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1))
+
     if not(g.divides(x**n-1)):
         raise ValueError("BCH codes does not exist with the given input.")
     return CyclicCodeFromGeneratingPolynomial(n,g)

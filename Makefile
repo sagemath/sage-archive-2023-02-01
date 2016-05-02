@@ -43,6 +43,9 @@ download:
 	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
 	./src/bin/sage-download-upstream
 
+dist: build/make/Makefile
+	./sage --sdist
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL

@@ -67,6 +67,8 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 
 include "cysignals/signals.pxi"
@@ -2487,8 +2489,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
             1
-            sage: int(e)/int(2^3)
-            1
+            sage: int(e)
+            8
         """
         if k == 0:
             return self

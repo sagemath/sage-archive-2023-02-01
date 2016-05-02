@@ -20,6 +20,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -338,7 +340,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         for b in range(self._cartan_matrix.ncols()):
             ib = I[b]
             q = partitions[b].get_num_cells_to_column(g*i, gamma[ib])
-            vac_num -= self._cartan_matrix[a,b] * q / gamma[ib]
+            vac_num -= self._cartan_matrix[a,b] * q // gamma[ib]
 
         return vac_num
 
@@ -433,7 +435,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         for a in range(n):
             index = vindex.index(sigma[a][0])
             partitions[a] = [row_len // gamma[a] for row_len in vrc[index]._list]
-            riggings[a] = [rig_val / gamma[a] for rig_val in vrc[index].rigging]
+            riggings[a] = [rig_val // gamma[a] for rig_val in vrc[index].rigging]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings)
 

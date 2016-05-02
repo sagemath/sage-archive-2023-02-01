@@ -15,6 +15,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, PolynomialRing, NumberField
 from sage.functions.all import cos,exp,sec
@@ -935,7 +936,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: [key for key in sorted(G._conj_prim)]
             [-4, lam - 3, 0, 4*lam, 7*lam + 6, 9*lam + 5, 15*lam + 6, 33*lam + 21]
             sage: for key in sorted(G._conj_prim):
-            ....:     print G._conj_prim[key]
+            ....:     print(G._conj_prim[key])
             [[S], [S]]
             [[U], [U]]
             [[V(4)]]
@@ -948,7 +949,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [-lam - 2, lam - 3, 32*lam + 16]
 
             sage: for key in sorted(G._conj_nonprim):
-            ....:     print G._conj_nonprim[key]
+            ....:     print(G._conj_nonprim[key])
             [[U^(-2)], [U^2], [U^(-2)], [U^2]]
             [[U^(-1)], [U^(-1)]]
             [[V(2)^2], [V(3)^2]]

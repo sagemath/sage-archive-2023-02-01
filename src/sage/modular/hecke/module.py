@@ -11,6 +11,7 @@ Hecke modules
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.rings.all
 import sage.arith.all as arith
@@ -1710,10 +1711,10 @@ class HeckeModule_free_module(HeckeModule_generic):
         Next we define a function that does the above::
 
             sage: def b(N,k=2):
-            ...    t=cputime()
-            ...    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()
-            ...    for A in S.decomposition():
-            ...        print N, A.system_of_eigenvalues(5)
+            ....:    t=cputime()
+            ....:    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()
+            ....:    for A in S.decomposition():
+            ....:        print("{} {}".format(N, A.system_of_eigenvalues(5)))
 
         ::
 

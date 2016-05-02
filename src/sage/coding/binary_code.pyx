@@ -3364,66 +3364,6 @@ cdef class BinaryCodeClassifier:
 
         state = 1
         while state != -1:
-            if False:
-                print('-----')
-                print("k:", k)
-                print("h:", h)
-            if False:
-                if k != -1:
-                    if v[k]&nu.flag:
-                        print("v[k]: word ", v[k]^nu.flag)
-                    else:
-                        print("v[k]: col ", v[k])
-                    if tvc&nu.flag:
-                        print("tvc- wd", tvc^nu.flag)
-                    else:
-                        print("tvc- col", tvc)
-                    if W[self.Phi_size * k]:
-                        print("W[k]: cols", Integer(W[self.Phi_size * k]).binary())
-                    else:
-                        j = nwords/self.radix
-                        if nwords%self.radix:
-                            j += 1
-                        L = ''
-                        for i from 0 <= i < j:
-                            if i == j - 1:
-                                jj = nwords%self.radix
-                                if jj == 0:
-                                    jj = self.radix
-                            else:
-                                jj = self.radix
-                            for ii from 0 <= ii < jj:
-                                if W[self.Phi_size * k + 1 + i] & (1 << ii):
-                                    L += '1'
-                                else:
-                                    L += '0'
-                        print("W[k]: words", L) #[Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
-            if False:
-                print('nu')
-                print(nu)
-                if tvc&nu.flag:
-                    print('tvc is word', tvc^nu.flag)
-                else:
-                    print('tvc is col', tvc)
-                if v[k]&nu.flag:
-                    print('v[k] is word', v[k]^nu.flag)
-                else:
-                    print('v[k] is col', v[k])
-            if False:
-                if h != -1:
-                    print('zeta')
-                    print(zeta)
-                    print('rho')
-                    print(rho)
-                print("hzf:", hzf__h_zeta)
-                print("aut_gp_index", self.aut_gp_index)
-                print('hh', hh)
-                print('ht', ht)
-                print('hzf__h_zeta', hzf__h_zeta)
-                print('qzb', qzb)
-            if False:
-                print('-----')
-                print("state:", state)
 
             if state == 1: # Entry point: once only
                 alpha[0] = 0

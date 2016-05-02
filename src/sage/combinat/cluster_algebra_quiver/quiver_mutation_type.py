@@ -15,7 +15,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import ptrint_function
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from copy import copy

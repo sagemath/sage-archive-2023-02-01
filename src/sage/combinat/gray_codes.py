@@ -181,7 +181,7 @@ def combinations(n,t):
         ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
         sage: s
-        set([0, 4, 13, 14])
+        {0, 4, 13, 14}
 
     TESTS::
 

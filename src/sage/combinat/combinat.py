@@ -710,10 +710,8 @@ def stirling_number2(n, k, algorithm=None):
     Print a table of the first several Stirling numbers of the second kind::
 
         sage: for n in range(10):
-        ...       for k in range(10):
-        ...           print str(stirling_number2(n,k)).rjust(k and 6),
-        ...       print
-        ...
+        ....:     for k in range(10):
+        ....:         print(str(stirling_number2(n,k)).rjust(k and 6))
         1      0      0      0      0      0      0      0      0      0
         0      1      0      0      0      0      0      0      0      0
         0      1      1      0      0      0      0      0      0      0
@@ -784,7 +782,7 @@ def stirling_number2(n, k, algorithm=None):
          ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
          ...         s_gap = stirling_number2(n,k, algorithm = "gap")
          ...         if not (s_sage == s_maxima and s_sage == s_gap):
-         ...             print "Error with n<200"
+         ...             print("Error with n<200")
 
      For `n\geq 200`::
 
@@ -794,7 +792,7 @@ def stirling_number2(n, k, algorithm=None):
          ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
          ...         s_gap = stirling_number2(n,k, algorithm = "gap")
          ...         if not (s_sage == s_maxima and s_sage == s_gap):
-         ...             print "Error with n<200"
+         ...             print("Error with n<200")
 
 
      TESTS:
@@ -1985,7 +1983,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: from sage.combinat.combinat import Permutations_CC
-            sage: print repr(Permutations_CC(3).union(Permutations_CC(2)))
+            sage: print(repr(Permutations_CC(3).union(Permutations_CC(2))))
             Union combinatorial class of
                 Standard permutations of 3
             and
@@ -2666,7 +2664,7 @@ def bell_polynomial(n, k):
         Multivariate Polynomial Ring in x over Integer Ring
 
         sage: for n in (0..4):
-        ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
+        ....:     print([bell_polynomial(n,k).coefficients() for k in (0..n)])
         [[1]]
         [[], [1]]
         [[], [1], [1]]

@@ -982,8 +982,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                 The hash involution `\alpha` is a `\ZZ`-algebra
                 involution of the Iwahori-Hecke algebra determined by
-                `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto -1^{\ell(w)}
-                (q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
+                `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto
+                (-q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
                 corresponding Coxeter group.
 
                 This map is defined in [KL79]_ and it is used to
@@ -1548,8 +1548,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             The hash involution `\alpha` is a `\ZZ`-algebra
             involution of the Iwahori-Hecke algebra determined by
-            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto -1^{\ell(w)}
-            (q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
+            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto 
+            (-q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
             corresponding Coxeter group.
 
             This map is defined in [KL79]_ and it is used to change between
@@ -1587,7 +1587,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             .. MATH::
 
-                T_w \mapsto -1^{\ell(w)} (q_1 q_2)^{\ell(w)} T_{w^{-1}}^{-1},
+                T_w \mapsto (-q_1 q_2)^{\ell(w)} T_{w^{-1}}^{-1},
 
             where `w` is an element of the corresponding Coxeter group.
 

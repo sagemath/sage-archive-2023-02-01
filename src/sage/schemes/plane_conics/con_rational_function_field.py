@@ -38,6 +38,8 @@ Points can be found using :meth:`has_rational_point`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.rings.all import PolynomialRing
 from sage.matrix.constructor import diagonal_matrix, matrix, block_matrix
@@ -407,10 +409,10 @@ for function field of characteristic 2.")
             for factor in decom:
                 if factor[1] > 1:
                     if factor[1] % 2 == 0:
-                        x2 = x2 * factor[0] ** (factor[1] / 2)
+                        x2 = x2 * factor[0] ** (factor[1] // 2)
                     else:
                         x = x * factor[0]
-                        x2 = x2 * factor[0] ** ((factor[1]-1) / 2)
+                        x2 = x2 * factor[0] ** ((factor[1]-1) // 2)
                 else:
                     x = x * factor[0]
             for j, y in enumerate(multipliers):

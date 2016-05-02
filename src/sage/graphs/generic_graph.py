@@ -306,8 +306,6 @@ can be applied on both. Here is what it can do:
 Methods
 -------
 """
-# python3
-from __future__ import division
 
 from copy import copy
 from sage.misc.decorators import options
@@ -15803,7 +15801,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in distances.values():
             total = total + sum(u.values())
 
-        return total // 2
+        return total / 2
 
     def average_distance(self, by_weight=False, algorithm=None,
                          weight_function=None):

@@ -9,11 +9,9 @@ Evaluating a String in Sage
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-# python3
-from __future__ import division
+
 from __future__ import absolute_import
 import six
-
 from copy import copy
 import sage.repl.preparse as preparser
 
@@ -94,7 +92,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     ::
 
         sage: x = 5
-        sage: eval('4//3 + x', {'x':25})
+        sage: eval('4/3 + x', {'x':25})
         26
         sage: sage_eval('4/3 + x',  locals={'x':25})
         79/3

@@ -684,7 +684,7 @@ the Python int ``1`` is unique, but the Sage Integer ``1`` is not:
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)//int(2)
+    sage: int(1) is int(2)/int(2)
     True
     sage: 1 is 1
     False

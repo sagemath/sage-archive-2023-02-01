@@ -16565,7 +16565,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
             sage: (G+H).vertices()  # '+'-operator is a shortcut
-            [0, 1, 2, 3, 4, 5, 6] 
+            [0, 1, 2, 3, 4, 5, 6]
 
         ::
 

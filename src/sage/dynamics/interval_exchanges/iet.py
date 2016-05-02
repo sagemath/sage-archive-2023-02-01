@@ -42,6 +42,8 @@ There are two plotting methods for iet::
     sage: T.plot_function()
     Graphics object consisting of 3 graphics primitives
 """
+from __future__ import print_function
+
 from copy import copy
 from sage.structure.sage_object import SageObject
 

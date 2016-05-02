@@ -1,6 +1,8 @@
 r"""
 Strata of quadratic differentials on Riemann surfaces
 """
+from __future__ import print_function
+
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational

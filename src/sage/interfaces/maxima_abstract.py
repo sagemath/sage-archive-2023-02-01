@@ -278,7 +278,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
-            print(s)
+            print(s, end="")
             sys.stdout.flush()
         # in Maxima 5.19.1, apropos returns all commands that contain
         # the given string, instead of all commands that start with

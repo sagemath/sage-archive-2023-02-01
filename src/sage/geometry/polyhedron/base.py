@@ -4389,7 +4389,7 @@ class Polyhedron_base(Element):
         return group
 
     @cached_method
-    def restricted_automorphism_group(self, kind="abstract"):
+    def restricted_automorphism_group(self, output="abstract"):
         r"""
         Return the restricted automorphism group.
 
@@ -4454,10 +4454,10 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``kind`` -- which kind of object to return:
+        - ``output`` -- how the group should be represented:
 
-          - ``"abstract"`` -- return an abstract permutation group
-            without further meaning.
+          - ``"abstract"`` (default) -- return an abstract permutation
+            group without further meaning.
 
           - ``"permutation"`` -- return a permutation group on the
             indices of the polyhedron generators. For example, the
@@ -4466,20 +4466,24 @@ class Polyhedron_base(Element):
 
           - ``"matrix"`` -- return a matrix group representing affine
             transformations. When acting on affine vectors, you should
-            append a `1` to every vector.
+            append a `1` to every vector. If the polyhedron is not full
+            dimensional, the returned matrices act as the identity on
+            the orthogonal complement of the affine space spanned by
+            the polyhedron.
 
-          - ``"matrixlist"`` -- return the list of elements of the
-            matrix group. Useful for fields without a good
-            implementation of matrix groups.
+          - ``"matrixlist"`` -- like ``matrix``, but return the list of
+            elements of the matrix group. Useful for fields without a
+            good implementation of matrix groups or to avoid the
+            overhead of creating the group.
 
         OUTPUT:
 
-        - For ``kind="abstract"`` and ``kind="permutation"``:
+        - For ``output="abstract"`` and ``output="permutation"``:
           a :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`.
 
-        - For ``kind="matrix"``: a :class:`MatrixGroup`.
+        - For ``output="matrix"``: a :class:`MatrixGroup`.
 
-        - For ``kind="matrixlist"``: a list of matrices.
+        - For ``output="matrixlist"``: a list of matrices.
 
         REFERENCES:
 
@@ -4493,9 +4497,9 @@ class Polyhedron_base(Element):
             sage: P = polytopes.cross_polytope(3)
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(3,4), (2,3)(4,5), (2,5), (1,2)(5,6), (1,6)]
-            sage: P.restricted_automorphism_group(kind="permutation")
+            sage: P.restricted_automorphism_group(output="permutation")
             Permutation Group with generators [(2,3), (1,2)(3,4), (1,4), (0,1)(4,5), (0,5)]
-            sage: P.restricted_automorphism_group(kind="matrix")
+            sage: P.restricted_automorphism_group(output="matrix")
             Matrix group over Rational Field with 5 generators (
             [ 1  0  0  0]  [1 0 0 0]  [ 1  0  0  0]  [0 1 0 0]  [-1  0  0  0]
             [ 0  1  0  0]  [0 0 1 0]  [ 0 -1  0  0]  [1 0 0 0]  [ 0  1  0  0]
@@ -4520,7 +4524,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(rays=[(1,0),(0,1)])
             sage: P.Vrepresentation()
             (A vertex at (0, 0), A ray in the direction (0, 1), A ray in the direction (1, 0))
-            sage: P.restricted_automorphism_group(kind="permutation")
+            sage: P.restricted_automorphism_group(output="permutation")
             Permutation Group with generators [(1,2)]
 
         Also, the polyhedron need not be full-dimensional::
@@ -4528,7 +4532,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[(1,2,3,4,5),(7,8,9,10,11)])
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(1,2)]
-            sage: G = P.restricted_automorphism_group(kind="matrixlist")
+            sage: G = P.restricted_automorphism_group(output="matrixlist")
             sage: G
             [
             [1 0 0 0 0 0]  [ -87/55  -82/55    -2/5   38/55   98/55   12/11]
@@ -4575,12 +4579,12 @@ class Polyhedron_base(Element):
             sage: Polyhedron(vertices=points).restricted_automorphism_group()
             Permutation Group with generators [(2,3), (1,2)]
 
-        The ``kind="matrixlist"`` can be used over fields without a
+        The ``output="matrixlist"`` can be used over fields without a
         complete implementation of matrix groups::
 
             sage: P = polytopes.dodecahedron(); P
             A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
-            sage: G = P.restricted_automorphism_group(kind="matrixlist")
+            sage: G = P.restricted_automorphism_group(output="matrixlist")
             sage: len(G)
             120
 
@@ -4590,24 +4594,24 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices=[(1/3,0,0,1),(0,1/4,0,1),(0,0,1/5,1)], base_ring=RDF)
             sage: P.restricted_automorphism_group()
             Permutation Group with generators [(2,3), (1,2)]
-            sage: len(P.restricted_automorphism_group(kind="matrixlist"))
+            sage: len(P.restricted_automorphism_group(output="matrixlist"))
             6
 
         TESTS::
 
             sage: P = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
-            sage: P.restricted_automorphism_group(kind="permutation")
+            sage: P.restricted_automorphism_group(output="permutation")
             Permutation Group with generators [(1,2)]
-            sage: P.restricted_automorphism_group(kind="matrix")
+            sage: P.restricted_automorphism_group(output="matrix")
             Matrix group over Rational Field with 1 generators (
             [ 1  0  0]
             [ 0 -1  1]
             [ 0  0  1]
             )
-            sage: P.restricted_automorphism_group(kind="foobar")
+            sage: P.restricted_automorphism_group(output="foobar")
             Traceback (most recent call last):
             ...
-            ValueError: unknown kind 'foobar', valid values are ('abstract', 'permutation', 'matrix', 'matrixlist')
+            ValueError: unknown output 'foobar', valid values are ('abstract', 'permutation', 'matrix', 'matrixlist')
         """
         # The algorithm works as follows:
         #
@@ -4645,17 +4649,17 @@ class Polyhedron_base(Element):
         # that B = (V P V+) + W is the correct matrix: it acts the same
         # as A on V and it satisfies B W = W.
 
-        kinds = ("abstract", "permutation", "matrix", "matrixlist")
-        if kind not in kinds:
-            raise ValueError("unknown kind {!r}, valid values are {}".format(kind, kinds))
+        outputs = ("abstract", "permutation", "matrix", "matrixlist")
+        if output not in outputs:
+            raise ValueError("unknown output {!r}, valid values are {}".format(output, outputs))
 
         # For backwards compatibility, we treat "abstract" as
         # "permutation", but where we add 1 to the indices of the
         # permutations.
         index0 = 0
-        if kind == "abstract":
+        if output == "abstract":
             index0 = 1
-            kind = "permutation"
+            output = "permutation"
 
         if self.base_ring().is_exact():
             def rational_approximation(c):
@@ -4700,13 +4704,13 @@ class Polyhedron_base(Element):
                 G.add_edge(index0+i, index0+j, edge_label(i, j, c_ij))
 
         permgroup = G.automorphism_group(edge_labels=True)
-        if kind == "permutation":
+        if output == "permutation":
             return permgroup
-        elif kind == "matrix":
+        elif output == "matrix":
             permgroup = permgroup.gens()
 
         # Compute V+ = Vt Q+ as list of row vectors
-        Vplus = list(matrix(V) * Qplus)  # matrix(V) is V+
+        Vplus = list(matrix(V) * Qplus)  # matrix(V) is Vt
 
         # Compute W = 1 - V V+
         W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V)))
@@ -4715,14 +4719,14 @@ class Polyhedron_base(Element):
         # If P is a permutation, then we return the matrix
         # B = (V P V+) + W.
         #
-        # If kind == "matrix", we loop over the generators of the group.
+        # If output == "matrix", we loop over the generators of the group.
         # Otherwise, we loop over all elements.
         matrices = []
         for perm in permgroup:
             A = sum(V[perm(i)].column() * Vplus[i].row() for i in range(len(V)))
             matrices.append(A + W)
 
-        if kind == "matrixlist":
+        if output == "matrixlist":
             return matrices
         else:
             return MatrixGroup(matrices)

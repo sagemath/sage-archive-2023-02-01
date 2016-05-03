@@ -498,12 +498,12 @@ class ExpressionNice(Expression):
         sage: fun = fun*f
         sage: ExpressionNice(fun)
         f(x, y)*(d(f)/dy)^2
-        sage: omit_function_args(True)
+        sage: Manifold.global_options(omit_function_arguments=True)
         sage: ExpressionNice(fun)
         f*(d(f)/dy)^2
         sage: latex(ExpressionNice(fun))
         f \left(\frac{\partial\,f}{\partial y}\right)^{2}
-        sage: omit_function_args(False)  # revert to standard display
+        sage: Manifold.global_options.reset()
         sage: ExpressionNice(fun)
         f(x, y)*(d(f)/dy)^2
         sage: latex(ExpressionNice(fun))
@@ -597,8 +597,8 @@ class ExpressionNice(Expression):
 
             d = d.replace(o, res)
 
-        from sage.manifolds.coord_func_symb import CoordFunctionSymb
-        if CoordFunctionSymb._omit_fargs:
+        from sage.manifolds.manifold import ManifoldOptions
+        if ManifoldOptions('omit_function_arguments'):
             list_f = []
             _list_functions(self, list_f)
 
@@ -696,9 +696,8 @@ class ExpressionNice(Expression):
 
             d = d.replace(o, res)
 
-        # if omit_function_args(True):
-        from sage.manifolds.coord_func_symb import CoordFunctionSymb
-        if CoordFunctionSymb._omit_fargs:
+        from sage.manifolds.manifold import ManifoldOptions
+        if ManifoldOptions('omit_function_arguments'):
             list_f = []
             _list_functions(self, list_f)
 
@@ -833,84 +832,4 @@ def _list_functions(ex, list_f):
 
         for operand in operands:
             _list_functions(operand, list_f)
-
-
-def nice_derivatives(status):
-    r"""
-    Set the display mode of partial derivatives.
-
-    INPUT:
-
-    - ``status`` -- boolean specifying the type of display:
-
-      * ``True`` - nice (textbook) display
-      * ``False`` - standard Pynac notation
-
-    EXAMPLES::
-
-        sage: M = Manifold(2, 'M', structure='topological')
-        sage: X.<x,y> = M.chart()
-        sage: g = function('g')(x, y)
-        sage: f = X.function(diff(g, x) + diff(g, y))
-        sage: f
-        d(g)/dx + d(g)/dy
-        sage: latex(f)
-        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
-
-    Standard Pynac display of partial derivatives::
-
-        sage: nice_derivatives(False)
-        sage: f
-        D[0](g)(x, y) + D[1](g)(x, y)
-        sage: latex(f)
-        D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-
-    Let us revert to nice display::
-
-        sage: nice_derivatives(True)
-        sage: f
-        d(g)/dx + d(g)/dy
-        sage: latex(f)
-        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
-
-    """
-    from sage.manifolds.coord_func_symb import CoordFunctionSymb
-    if not isinstance(status, bool):
-        raise TypeError("the argument must be a boolean")
-    CoordFunctionSymb._nice_output = status
-
-
-def omit_function_args(status):
-    r"""
-    Set the display mode of expression to omit arguments of symbolic functions.
-
-    INPUT:
-
-    - ``status`` -- boolean specifying the type of display:
-
-        * ``True`` - arguments are not printed
-        * ``False`` - standard Pynac notation
-
-    TESTS::
-
-        sage: from sage.manifolds.utilities import ExpressionNice
-        sage: f = function('f_x')(x)
-        sage: f = f*(1 + f^2)
-        sage: ExpressionNice(f)
-        (f_x(x)^2 + 1)*f_x(x)
-        sage: omit_function_args(True)
-        sage: ExpressionNice(f)
-        (f_x^2 + 1)*f_x
-        sage: omit_function_args(False)
-        sage: latex(ExpressionNice(f))
-        {\left(f_{x}\left(x\right)^{2} + 1\right)} f_{x}\left(x\right)
-        sage: omit_function_args(True)
-        sage: latex(ExpressionNice(f))
-        {\left(f_{x}^{2} + 1\right)} f_{x}
-
-    """
-    from sage.manifolds.coord_func_symb import CoordFunctionSymb
-    if not isinstance(status, bool):
-        raise TypeError("the argument must be a boolean")
-    CoordFunctionSymb._omit_fargs = status
 

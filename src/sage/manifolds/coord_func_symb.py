@@ -171,7 +171,7 @@ class CoordFunctionSymb(CoordFunction):
         sage: f0 + g0
         (x, y, z) |--> cos(x)^2 + sin(x)^2
 
-    To get 1,  one has to call
+    To get `1`, one has to call
     :meth:`~sage.symbolic.expression.Expression.simplify_trig`::
 
         sage: (f0 + g0).simplify_trig()
@@ -216,13 +216,12 @@ class CoordFunctionSymb(CoordFunction):
         sage: f.expr()
         D[0](g)(x, y) + D[1](g)(x, y)
 
-    One can switch to Pynac notation via the command
-    :func:`~sage.manifolds.utilities.nice_derivatives`::
+    One can switch to Pynac notation by changing the global options::
 
-        sage: nice_derivatives(False)
+        sage: Manifold.global_options(textbook_output=False)
         sage: latex(f)
         D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-        sage: nice_derivatives(True)
+        sage: Manifold.global_options.reset()
         sage: latex(f)
         \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
@@ -241,7 +240,7 @@ class CoordFunctionSymb(CoordFunction):
     `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
     tensor expressions. We can switch it off by::
 
-        sage: omit_function_args(True)
+        sage: Manifold.global_options(omit_function_arguments=True)
         sage: f
         u*v
 
@@ -255,18 +254,11 @@ class CoordFunctionSymb(CoordFunction):
 
     We revert to the default behavior by::
 
-        sage: omit_function_args(False)
+        sage: Manifold.global_options.reset()
         sage: f
         u(x, y)*v(x, y)
 
     """
-
-    _nice_output = True # static flag for textbook-like output instead of the
-                        # Pynac output for derivatives
-
-    _omit_fargs  = False # static flag to govern whether or not
-                         # the arguments of symbolic functions are printed
-
     def __init__(self, parent, expression):
         r"""
         Initialize ``self``.
@@ -325,7 +317,7 @@ class CoordFunctionSymb(CoordFunction):
             x*y + 1
 
         """
-        if CoordFunctionSymb._nice_output:
+        if self.parent()._chart.manifold().global_options('textbook_output'):
             return str(ExpressionNice(self._express))
         else:
             return str(self._express)
@@ -346,7 +338,7 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         from sage.misc.latex import latex
-        if CoordFunctionSymb._nice_output:
+        if self.parent()._chart.manifold().global_options('textbook_output'):
             return latex(ExpressionNice(self._express))
         else:
             return latex(self._express)

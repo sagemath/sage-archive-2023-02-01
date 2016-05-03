@@ -14,6 +14,7 @@ overridden by subclasses.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
@@ -494,10 +495,10 @@ class InterfaceInit(Converter):
             sage: f = function('f')
             sage: a = f(x).diff(x); a
             D[0](f)(x)
-            sage: print m.derivative(a, a.operator())
+            sage: print(m.derivative(a, a.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
-            sage: print m.derivative(b, b.operator())
+            sage: print(m.derivative(b, b.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a

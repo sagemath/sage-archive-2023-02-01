@@ -130,6 +130,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
@@ -173,7 +175,7 @@ def hap_decorator(f):
     EXAMPLES::
 
         sage: from sage.groups.perm_gps.permgroup import hap_decorator
-        sage: def foo(self, n, p=0): print "Done"
+        sage: def foo(self, n, p=0): print("Done")
         sage: foo = hap_decorator(foo)
         sage: foo(None, 3)    #optional - gap_packages
         Done
@@ -2752,7 +2754,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
 
-        Type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::
@@ -2768,7 +2770,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 2  0  0  0 -2]
             sage: CT = gap(G).CharacterTable()
 
-        Again, type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Again, type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::

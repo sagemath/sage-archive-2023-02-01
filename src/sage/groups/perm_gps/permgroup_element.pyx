@@ -52,7 +52,7 @@ degree.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-
+from __future__ import print_function
 
 import random
 
@@ -265,7 +265,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         True
         sage: g = G.gen(0); g
         (1,2,3)(4,5)
-        sage: print g
+        sage: print(g)
         (1,2,3)(4,5)
         sage: g*g
         (1,3,2)
@@ -1435,9 +1435,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             for i in range(len(l4)):
                 for j in range(1,len(words)+1):
                     l5[i][0] = l5[i][0].replace("x"+str(j),str(words[j-1]))
-            print "         ",l1
-            print "         ",l5
-        return l1,l2
+            print(l1)
+            print(l5)
+        return l1, l2
 
 cdef class SymmetricGroupElement(PermutationGroupElement):
     """

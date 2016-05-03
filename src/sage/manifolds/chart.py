@@ -312,22 +312,15 @@ class Chart(UniqueRepresentation, SageObject):
                                 # subsets as keys
         # The null and one functions of the coordinates:
         base_field_type = self._domain.base_field_type()
-        if base_field_type in ['real', 'complex']:
-            self._zero_function = CoordFunctionSymb(self, 0)
-            self._one_function = CoordFunctionSymb(self, 1)
-        else:
-            base_field = self._domain.base_field()
-            self._zero_function = CoordFunctionSymb(self, base_field.zero())
-            self._one_function = CoordFunctionSymb(self, base_field.one())
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
         for dom in self._domain._supersets:
             if hasattr(dom, '_zero_scalar_field'):
                 # dom is an open set
-                dom._zero_scalar_field._express[self] = self._zero_function
+                dom._zero_scalar_field._express[self] = self.function_ring().zero()
             if hasattr(dom, '_one_scalar_field'):
                 # dom is an open set
-                dom._one_scalar_field._express[self] = self._one_function
+                dom._one_scalar_field._express[self] = self.function_ring().one()
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -844,6 +837,20 @@ class Chart(UniqueRepresentation, SageObject):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
 
+    def function_ring(self):
+        """
+        Return the ring of coordinate functions on ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.function_ring()
+            Ring of coordinate functions on Chart (M, (x, y))
+        """
+        from sage.manifolds.coord_func_symb import CoordFunctionSymbRing
+        return CoordFunctionSymbRing(self)
+
     def function(self, expression):
         r"""
         Define a coordinate function to the base field.
@@ -896,7 +903,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f
             sin(x*y)
             sage: type(f)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
             sage: f.display()
             (x, y) |--> sin(x*y)
             sage: f(2,3)
@@ -907,7 +914,7 @@ class Chart(UniqueRepresentation, SageObject):
             raise NotImplementedError("numerical coordinate function not " +
                                       "implemented yet")
         else:
-            return CoordFunctionSymb(self, expression)
+            return self.function_ring()(expression)
 
     def zero_function(self):
         r"""
@@ -942,7 +949,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function().display()
             (x, y) |--> 0
             sage: type(X.zero_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
 
         The result is cached::
 
@@ -961,7 +968,7 @@ class Chart(UniqueRepresentation, SageObject):
             (x, y) |--> 0
 
         """
-        return self._zero_function
+        return self.function_ring().zero()
 
     def one_function(self):
         r"""
@@ -996,7 +1003,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function().display()
             (x, y) |--> 1
             sage: type(X.one_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1015,23 +1022,24 @@ class Chart(UniqueRepresentation, SageObject):
             (x, y) |--> 1 + O(5^20)
 
         """
-        return self._one_function
+        return self.function_ring().one()
 
 
     def multifunction(self, *expressions):
         r"""
         Define a coordinate function to some Cartesian power of the base field.
 
-        If `n` and `m` are two positive integers and `(U,\varphi)` is a chart on
-        a topological manifold `M` of dimension `n` over a topological field `K`,
-        a *multi-coordinate function* associated to `(U,\varphi)` is a map
+        If `n` and `m` are two positive integers and `(U, \varphi)` is a
+        chart on a topological manifold `M` of dimension `n` over a
+        topological field `K`, a *multi-coordinate function* associated
+        to `(U,\varphi)` is a map
 
         .. MATH::
 
             \begin{array}{llcl}
             f:& V \subset K^n & \longrightarrow & K^m \\
-              & (x^1,\ldots,x^n) & \longmapsto & (f_1(x^1,\ldots,x^n),\ldots,
-                f_m(x^1,\ldots,x^n)) ,
+              & (x^1, \ldots, x^n) & \longmapsto & (f_1(x^1, \ldots, x^n),
+                \ldots, f_m(x^1, \ldots, x^n)),
             \end{array}
 
         where `V` is the codomain of `\varphi`. In other words, `f` is a
@@ -1051,10 +1059,10 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - an instance of :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
           representing `f`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Function of two coordinates with values in `\RR^3`::
 
@@ -1062,10 +1070,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x+y, sin(x*y), x^2 + 3*y); f
             Coordinate functions (x + y, sin(x*y), x^2 + 3*y) on the Chart (M, (x, y))
-            sage: type(f)
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
             sage: f(2,3)
             (5, sin(6), 13)
+
+        TESTS::
+
+            sage: type(f)
+            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
 
         """
         from sage.manifolds.coord_func import MultiCoordFunction

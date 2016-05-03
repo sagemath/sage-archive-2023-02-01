@@ -40,16 +40,17 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
+from sage.structure.element import AlgebraElement
 from sage.structure.sage_object import SageObject
-from sage.misc.latex import latex
 
-class CoordFunction(SageObject):
+class CoordFunction(AlgebraElement):
     r"""
     Abstract base class for coordinate functions.
 
     If `(U, \varphi)` is a chart on a topological manifold `M` of
     dimension `n` over a topological field `K`, a *coordinate function*
-    associated to `(U, \varphi)` is a map `f: V\subset K^n \to K`, where
+    associated to `(U, \varphi)` is a map `f: V \subset K^n \to K`, where
     `V` is the codomain of `\varphi`. In other words, `f` is a `K`-valued
     function of the coordinates associated to the chart `(U, \varphi)`.
 
@@ -64,20 +65,20 @@ class CoordFunction(SageObject):
       the chart `(U, \varphi)`
 
     """
-    def __init__(self, chart):
+    def __init__(self, parent):
         r"""
-        Base constructor for derived classes.
+        Initialize ``self``.
 
         TEST::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
 
         """
-        self._chart = chart
-        self._nc = len(chart[:])    # number of coordinates
+        AlgebraElement.__init__(self, parent)
+        self._nc = len(parent._chart[:])    # number of coordinates
 
     # ----------------------------------------------------------------
     # Methods that do not need to be re-implemented by derived classes
@@ -85,8 +86,7 @@ class CoordFunction(SageObject):
 
     def chart(self):
         r"""
-        Return the chart with respect to which the coordinate function
-        is defined.
+        Return the chart with respect to which ``self`` is defined.
 
         OUTPUT:
 
@@ -103,15 +103,15 @@ class CoordFunction(SageObject):
             True
 
         """
-        return self._chart
+        return self.parent()._chart
 
     def scalar_field(self, name=None, latex_name=None):
         r"""
-        Construct the scalar field that has the coordinate function as
+        Construct the scalar field that has ``self`` as
         coordinate expression.
 
         The domain of the scalar field is the open subset covered by the
-        chart on which the coordinate function is defined.
+        chart on which ``self`` is defined.
 
         INPUT:
 
@@ -139,10 +139,11 @@ class CoordFunction(SageObject):
             True
 
         """
-        alg = self._chart.domain().scalar_field_algebra()
-        return alg.element_class(alg, coord_expression={self._chart: self},
+        alg = self.parent()._chart.domain().scalar_field_algebra()
+        return alg.element_class(alg, coord_expression={self.parent()._chart: self},
                                  name=name, latex_name=latex_name)
 
+    # TODO: This should be abstract up to SageObject at some point - TCS
     def __ne__(self, other):
         r"""
         Inequality operator.
@@ -171,240 +172,6 @@ class CoordFunction(SageObject):
         """
         return not (self == other)
 
-    def __radd__(self, other):
-        r"""
-        Reflected addition operator: performs ``other + self``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the addition of ``self`` to
-          ``other``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__radd__(g)
-            (x + 1)*y + x
-            sage: f.__radd__(X.zero_function()) == f
-            True
-            sage: 2 + f  # indirect doctest
-            x + y + 2
-
-        """
-        return self.__add__(other)  # since + is commutative
-
-    def __iadd__(self, other):
-        r"""
-        In-place addition operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the addition of ``self`` and
-          ``other``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__iadd__(g)
-            (x + 1)*y + x
-            sage: f += g; f
-            (x + 1)*y + x
-            sage: f.__iadd__(X.zero_function()) == f
-            True
-
-        """
-        return self.__add__(other)
-
-    def __rsub__(self, other):
-        r"""
-        Reflected subtraction operator: performs ``other - self``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the subtraction of ``self``
-          from ``other``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__rsub__(g)
-            (x - 1)*y - x
-            sage: f.__rsub__(g) == -f + g
-            True
-            sage: 2 - f  # indirect doctest
-            -x - y + 2
-
-        """
-        return self.__neg__().__add__(other)
-
-    def __isub__(self, other):
-        r"""
-        In-place subtraction operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the subtraction of ``other``
-          from ``self``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__isub__(g)
-            -(x - 1)*y + x
-            sage: f -= g; f
-            -(x - 1)*y + x
-            sage: f.__isub__(X.zero_function()) == f
-            True
-
-        """
-        return self.__sub__(other)
-
-    def __rmul__(self, other):
-        r"""
-        Reflected multiplication operator: performs ``other * self``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the multiplication of ``other``
-          by ``self``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__rmul__(g)
-            x^2*y + x*y^2
-            sage: f.__rmul__(g) == g*f
-            True
-            sage: f.__rmul__(X.one_function()) == f
-            True
-            sage: 2*f  # indirect doctest
-            2*x + 2*y
-
-        """
-        return self.__mul__(other)  # since * is commutative
-
-    def __imul__(self, other):
-        r"""
-        In-place multiplication operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the multiplication of ``self``
-          by ``other``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__imul__(g)
-            x^2*y + x*y^2
-            sage: f *= g; f
-            x^2*y + x*y^2
-            sage: f.__imul__(X.one_function()) == f
-            True
-
-        """
-        return self.__mul__(other)
-
-    def __rdiv__(self, other):
-        r"""
-        Reflected division operator: performs ``other / self``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the division of ``other``
-          by ``self``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__rdiv__(g)
-            x*y/(x + y)
-            sage: f.__rdiv__(g) == g/f
-            True
-            sage: 2/f  # indirect doctest
-            2/(x + y)
-
-        """
-        return self.__invert__().__mul__(other)
-
-    def __idiv__(self, other):
-        r"""
-        In-place division operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - coordinate function resulting from the division of ``self`` by
-          ``other``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y)
-            sage: g = X.function(x*y)
-            sage: f.__idiv__(g)
-            (x + y)/(x*y)
-            sage: f /= g; f
-            (x + y)/(x*y)
-            sage: f.__idiv__(X.one_function()) == f
-            True
-
-        """
-        return self.__div__(other)
-
     # --------------------------------------------
     # Methods to be implemented by derived classes
     # --------------------------------------------
@@ -422,11 +189,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f._repr_()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction._repr_ not implemented
+            NotImplementedError: <abstract method _repr_ at 0x...>
         """
 
     @abstract_method
@@ -442,11 +209,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f._latex_()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction._latex_ not implemented
+            NotImplementedError: <abstract method _latex_ at 0x...>
         """
 
     @abstract_method
@@ -462,11 +229,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.display()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.display not implemented
+            NotImplementedError: <abstract method display at 0x...>
         """
 
     disp = display
@@ -489,11 +256,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.expr()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.expr not implemented
+            NotImplementedError: <abstract method expr at 0x...>
 
         """
 
@@ -522,11 +289,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.__call__(2,-3)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__call__ not implemented
+            NotImplementedError: <abstract method __call__ at 0x...>
 
         """
 
@@ -543,11 +310,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.is_zero()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.is_zero not implemented
+            NotImplementedError: <abstract method is_zero at 0x...>
 
         """
 
@@ -568,18 +335,19 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.copy()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.copy not implemented
+            NotImplementedError: <abstract method copy at 0x...>
 
         """
 
     @abstract_method
     def diff(self, coord):
         r"""
-        Partial derivative with respect to a coordinate.
+        Return the partial derivative of ``self`` with respect to a
+        coordinate.
 
         INPUT:
 
@@ -602,93 +370,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.diff(x)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.diff not implemented
-
-        """
-
-    @abstract_method
-    def __eq__(self, other):
-        r"""
-        Comparison (equality) operator.
-
-        INPUT:
-
-        - ``other`` -- a :class:`CoordFunction` or a value
-
-        OUTPUT:
-
-        - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
-
-        TESTS:
-
-        This method must be implemented by derived classes; it is not
-        implemented here::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: g = CoordFunction(X)
-            sage: f == g
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: CoordFunction.__eq__ not implemented
-
-        """
-
-    def __pos__(self):
-        r"""
-        Unary plus operator.
-
-        OUTPUT:
-
-        - ``self``
-
-        TESTS:
-
-        Coordinate functions associated to a 2-dimensional chart::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x+y^2)
-            sage: g = +f; g
-            y^2 + x
-            sage: type(g)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: g == f
-            True
-            sage: g is f
-            True
-
-        """
-        return self
-
-    @abstract_method
-    def __neg__(self):
-        r"""
-        Unary minus operator.
-
-        OUTPUT:
-
-        - the opposite of the coordinate function ``self``
-
-        TESTS:
-
-        This method must be implemented by derived classes; it is not
-        implemented here::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: f.__neg__()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: CoordFunction.__neg__ not implemented
+            NotImplementedError: <abstract method diff at 0x...>
 
         """
 
@@ -704,7 +390,7 @@ class CoordFunction(SageObject):
 
         OUTPUT:
 
-        - the inverse of the coordinate function ``self``
+        - the inverse of ``self``
 
         TESTS:
 
@@ -714,16 +400,16 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.__invert__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__invert__ not implemented
+            NotImplementedError: <abstract method __invert__ at 0x...>
 
         """
 
     @abstract_method
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Addition operator.
 
@@ -744,16 +430,16 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: f.__add__(2)
+            sage: f = CoordFunction(X.function_ring())
+            sage: f._add_(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__add__ not implemented
+            NotImplementedError: <abstract method _add_ at 0x...>
 
         """
 
     @abstract_method
-    def __sub__(self, other):
+    def _sub_(self, other):
         r"""
         Subtraction operator.
 
@@ -774,16 +460,16 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: f.__sub__(2)
+            sage: f = CoordFunction(X.function_ring())
+            sage: f._sub_(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__sub__ not implemented
+            NotImplementedError: <abstract method _sub_ at 0x...>
 
         """
 
     @abstract_method
-    def __mul__(self, other):
+    def _mul_(self, other):
         r"""
         Multiplication  operator.
 
@@ -804,16 +490,16 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: f.__mul__(2)
+            sage: f = CoordFunction(X.function_ring())
+            sage: f._mul_(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__mul__ not implemented
+            NotImplementedError: <abstract method _mul_ at 0x...>
 
         """
 
     @abstract_method
-    def __div__(self, other):
+    def _div_(self, other):
         r"""
         Division  operator.
 
@@ -834,18 +520,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
-            sage: f.__div__(2)
+            sage: f = CoordFunction(X.function_ring())
+            sage: f._div_(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__div__ not implemented
+            NotImplementedError: <abstract method _div_ at 0x...>
 
         """
 
     @abstract_method
     def exp(self):
         r"""
-        Exponential of the coordinate function.
+        Exponential of ``self``.
 
         OUTPUT:
 
@@ -860,18 +546,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.exp()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.exp not implemented
+            NotImplementedError: <abstract method exp at 0x...>
 
         """
 
     @abstract_method
     def log(self, base=None):
         r"""
-        Logarithm of the coordinate function.
+        Logarithm of ``self``.
 
         INPUT:
 
@@ -891,18 +577,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.log()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.log not implemented
+            NotImplementedError: <abstract method log at 0x...>
 
         """
 
     @abstract_method
     def __pow__(self, exponent):
         r"""
-        Power of the coordinate function.
+        Power of ``self``.
 
         INPUT:
 
@@ -921,18 +607,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.__pow__(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.__pow__ not implemented
+            NotImplementedError: <abstract method __pow__ at 0x...>
 
         """
 
     @abstract_method
     def sqrt(self):
         r"""
-        Square root of the coordinate function.
+        Square root of ``self``.
 
         OUTPUT:
 
@@ -947,18 +633,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.sqrt()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.sqrt not implemented
+            NotImplementedError: <abstract method sqrt at 0x...>
 
         """
 
     @abstract_method
     def cos(self):
         r"""
-        Cosine of the coordinate function.
+        Cosine of ``self``.
 
         OUTPUT:
 
@@ -973,18 +659,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.cos()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.cos not implemented
+            NotImplementedError: <abstract method cos at 0x...>
 
         """
 
     @abstract_method
     def sin(self):
         r"""
-        Sine of the coordinate function.
+        Sine of ``self``.
 
         OUTPUT:
 
@@ -999,18 +685,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.sin()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.sin not implemented
+            NotImplementedError: <abstract method sin at 0x...>
 
         """
 
     @abstract_method
     def tan(self):
         r"""
-        Tangent of the coordinate function.
+        Tangent of ``self``.
 
         OUTPUT:
 
@@ -1025,18 +711,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.tan()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.tan not implemented
+            NotImplementedError: <abstract method tan at 0x...>
 
         """
 
     @abstract_method
     def arccos(self):
         r"""
-        Arc cosine of the coordinate function.
+        Arc cosine of ``self``.
 
         OUTPUT:
 
@@ -1051,18 +737,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arccos()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arccos not implemented
+            NotImplementedError: <abstract method arccos at 0x...>
 
         """
 
     @abstract_method
     def arcsin(self):
         r"""
-        Arc sine of the coordinate function.
+        Arc sine of ``self``.
 
         OUTPUT:
 
@@ -1077,18 +763,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arcsin()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arcsin not implemented
+            NotImplementedError: <abstract method arcsin at 0x...>
 
         """
 
     @abstract_method
     def arctan(self):
         r"""
-        Arc tangent of the coordinate function.
+        Arc tangent of ``self``.
 
         OUTPUT:
 
@@ -1103,18 +789,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arctan()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arctan not implemented
+            NotImplementedError: <abstract method arctan at 0x...>
 
         """
 
     @abstract_method
     def cosh(self):
         r"""
-        Hyperbolic cosine of the coordinate function.
+        Hyperbolic cosine of ``self``.
 
         OUTPUT:
 
@@ -1129,18 +815,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.cosh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.cosh not implemented
+            NotImplementedError: <abstract method cosh at 0x...>
 
         """
 
     @abstract_method
     def sinh(self):
         r"""
-        Hyperbolic sine of the coordinate function.
+        Hyperbolic sine of ``self``.
 
         OUTPUT:
 
@@ -1155,18 +841,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.sinh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.sinh not implemented
+            NotImplementedError: <abstract method sinh at 0x...>
 
         """
 
     @abstract_method
     def tanh(self):
         r"""
-        Hyperbolic tangent of the coordinate function.
+        Hyperbolic tangent of ``self``.
 
         OUTPUT:
 
@@ -1181,18 +867,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.tanh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.tanh not implemented
+            NotImplementedError: <abstract method tanh at 0x...>
 
         """
 
     @abstract_method
     def arccosh(self):
         r"""
-        Inverse hyperbolic cosine of the coordinate function.
+        Inverse hyperbolic cosine of ``self``.
 
         OUTPUT:
 
@@ -1207,18 +893,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arccosh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arccosh not implemented
+            NotImplementedError: <abstract method arccosh at 0x...>
 
         """
 
     @abstract_method
     def arcsinh(self):
         r"""
-        Inverse hyperbolic sine of the coordinate function.
+        Inverse hyperbolic sine of ``self``.
 
         OUTPUT:
 
@@ -1233,18 +919,18 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arcsinh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arcsinh not implemented
+            NotImplementedError: <abstract method arcsinh at 0x...>
 
         """
 
     @abstract_method
     def arctanh(self):
         r"""
-        Inverse hyperbolic tangent of the coordinate function.
+        Inverse hyperbolic tangent of ``self``.
 
         OUTPUT:
 
@@ -1259,11 +945,11 @@ class CoordFunction(SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
-            sage: f = CoordFunction(X)
+            sage: f = CoordFunction(X.function_ring())
             sage: f.arctanh()
             Traceback (most recent call last):
             ...
-            NotImplementedError: CoordFunction.arctanh not implemented
+            NotImplementedError: <abstract method arctanh at 0x...>
 
         """
 
@@ -1343,7 +1029,7 @@ class MultiCoordFunction(SageObject):
     :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`::
 
         sage: type(f[0])
-        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
 
     A class :class:`MultiCoordFunction` can represent a
     real-valued function (case `m = 1`), although one should
@@ -1368,7 +1054,7 @@ class MultiCoordFunction(SageObject):
     """
     def __init__(self, chart, expressions):
         r"""
-        Construct a multi-coordinate function.
+        Initialize ``self``.
 
         TESTS::
 
@@ -1386,13 +1072,10 @@ class MultiCoordFunction(SageObject):
         self._nf = len(expressions)       # number of functions
         self._functions = tuple(chart.function(express)
                                 for express in expressions)
-        # Derived quantities:
-        self._jacob = None
-        self._jacob_det = None
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -1419,15 +1102,16 @@ class MultiCoordFunction(SageObject):
             sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
             sage: f._latex_()
             \left(x - y, x y, \cos\left(x\right) e^{y}\right)
-            sage: latex(f)  # indirect doctest
+            sage: latex(f)
             \left(x - y, x y, \cos\left(x\right) e^{y}\right)
 
         """
+        from sage.misc.latex import latex
         return latex(self._functions)
 
     def expr(self):
         r"""
-        Return a tuple of data, the item no. `i` begin sufficient to
+        Return a tuple of data, the item no.`i` begin sufficient to
         reconstruct the coordinate function no. `i`.
 
         In other words, if ``f`` is a multi-coordinate function, then
@@ -1458,8 +1142,7 @@ class MultiCoordFunction(SageObject):
 
     def chart(self):
         r"""
-        Return the chart with respect to which the multi-coordinate
-        function is defined.
+        Return the chart with respect to which ``self`` is defined.
 
         OUTPUT:
 
@@ -1582,15 +1265,15 @@ class MultiCoordFunction(SageObject):
 
         INPUT:
 
-        - ``*coords`` -- list of coordinates where the functions are to be
-          evaluated
-        - ``**options`` -- allows to pass some options, like
+        - ``*coords`` -- list of coordinates where the functions are
+          to be evaluated
+        - ``**options`` -- allows to pass some options, e.g.,
           ``simplify=False`` to disable simplification for symbolic
           coordinate functions
 
         OUTPUT:
 
-        - tuple containing the values of the `m` functions.
+        - tuple containing the values of the `m` functions
 
         TESTS::
 
@@ -1607,21 +1290,23 @@ class MultiCoordFunction(SageObject):
         """
         return tuple(func(*coords, **options) for func in self._functions)
 
+    @cached_method
     def jacobian(self):
         r"""
         Return the Jacobian matrix of the system of coordinate functions.
 
         ``jacobian()`` is a 2-dimensional array of size `m \times n`,
-        where `m` is the number of functions and `n` the number of coordinates,
-        the generic element being `J_{ij} = \frac{\partial f_i}{\partial x^j}`
-        with `1 \leq i \leq m` (row index) and `1 \leq j \leq n`
-        (column index).
+        where `m` is the number of functions and `n` the number of
+        coordinates, the generic element being
+        `J_{ij} = \frac{\partial f_i}{\partial x^j}` with `1 \leq i \leq m`
+        (row index) and `1 \leq j \leq n` (column index).
 
         OUTPUT:
 
-        - Jacobian matrix as a 2-dimensional array ``J`` of coordinate functions,
-          ``J[i-1][j-1]`` being `J_{ij} = \frac{\partial f_i}{\partial x^j}`
-          for `1\leq i \leq m` and `1\leq j \leq n`
+        - Jacobian matrix as a 2-dimensional array ``J`` of
+          coordinate functions with ``J[i-1][j-1]`` being
+          `J_{ij} = \frac{\partial f_i}{\partial x^j}`
+          for `1 \leq i \leq m` and `1 \leq j \leq n`
 
         EXAMPLES:
 
@@ -1631,19 +1316,21 @@ class MultiCoordFunction(SageObject):
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
             sage: f.jacobian()
-            [[1, -1], [y, x], [-y^3*sin(x), 3*y^2*cos(x)]]
+            [           1           -1]
+            [           y            x]
+            [ -y^3*sin(x) 3*y^2*cos(x)]
 
         Each element of the result is a
         :class:`coordinate function <CoordFunction>`::
 
-            sage: type(f.jacobian()[2][0])
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: f.jacobian()[2][0].display()
+            sage: type(f.jacobian()[2,0])
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            sage: f.jacobian()[2,0].display()
             (x, y) |--> -y^3*sin(x)
 
         Test of the computation::
 
-            sage: [[f.jacobian()[i][j] == f[i].diff(j) for j in range(2)] for i in range(3)]
+            sage: [[f.jacobian()[i,j] == f[i].diff(j) for j in range(2)] for i in range(3)]
             [[True, True], [True, True], [True, True]]
 
         Test with ``start_index = 1``::
@@ -1652,23 +1339,26 @@ class MultiCoordFunction(SageObject):
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
             sage: f.jacobian()
-            [[1, -1], [y, x], [-y^3*sin(x), 3*y^2*cos(x)]]
-            sage: [[f.jacobian()[i][j] == f[i].diff(j+1) for j in range(2)]  # note the j+1
+            [           1           -1]
+            [           y            x]
+            [ -y^3*sin(x) 3*y^2*cos(x)]
+            sage: [[f.jacobian()[i,j] == f[i].diff(j+1) for j in range(2)]  # note the j+1
             ....:                                         for i in range(3)]
             [[True, True], [True, True], [True, True]]
         """
-        if self._jacob is None:
-            xx = self._chart[:]  # coordinates x^j
-            self._jacob = [[ self._functions[i].diff(xx[j])
-                          for j in range(self._nc) ] for i in range(self._nf) ]
-        return self._jacob
+        from sage.matrix.constructor import matrix
+        mat = matrix([[func.diff(coord) for coord in self._chart[:]]
+                      for func in self._functions])
+        mat.set_immutable()
+        return mat
 
+    @cached_method
     def jacobian_det(self):
         r"""
         Return the Jacobian determinant of the system of functions.
 
-        The number `m` of coordinate functions must equal the number `n` of
-        coordinates.
+        The number `m` of coordinate functions must equal the number `n`
+        of coordinates.
 
         OUTPUT:
 
@@ -1689,7 +1379,7 @@ class MultiCoordFunction(SageObject):
         values of the coordinates, e.g. `(x,y) = (1,2)`::
 
             sage: type(f.jacobian_det())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
             sage: f.jacobian_det().display()
             (x, y) |--> x + y
             sage: f.jacobian_det()(1,2)
@@ -1751,10 +1441,9 @@ class MultiCoordFunction(SageObject):
                 sign = not sign
             return res
 
-        if self._jacob_det is None:
-            if (self._nf != self._nc):
-                raise ValueError("the Jacobian matrix is not a square matrix")
-            self.jacobian() # forces the computation of self._jacob
-            self._jacob_det = simple_determinant(self._jacob)
-        return self._jacob_det
+        if self._nf != self._nc:
+            raise ValueError("the Jacobian matrix is not a square matrix")
+        J = self.jacobian()
+        J = [[J[i,j] for i in range(self._nc)] for j in range(self._nc)]
+        return simple_determinant(J)
 

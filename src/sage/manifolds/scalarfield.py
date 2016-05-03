@@ -2,8 +2,8 @@ r"""
 Scalar Fields
 
 Given a topological manifold `M` over a topological field `K` (in most
-applications, `K = \RR` or `K = \CC`), a *scalar field* on `M` is a continuous
-map
+applications, `K = \RR` or `K = \CC`), a *scalar field* on `M` is a
+continuous map
 
 .. MATH::
 
@@ -213,7 +213,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: f.coord_function(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
         sage: type(f.coord_function(c_uv))
-        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
         sage: f.coord_function(c_uv).display()
         (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -470,7 +470,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
-        on V: (u, v) |--> (a*u^2 + a*v^2)/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (u^2 + v^2)*a/(u^2 + v^2 + 1)
 
     However, if the symbolic variable is a chart coordinate, the
     multiplication is performed only in the corresponding chart::
@@ -484,7 +484,7 @@ class ScalarField(CommutativeAlgebraElement):
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
-        on V: (u, v) |--> (u^3 + u*v^2)/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
     Some tests::
 
@@ -991,7 +991,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f.coord_function(c_xy)  # equivalent form (since c_xy is the default chart)
             x*y^2
             sage: type(f.coord_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
 
         Expression via a change of coordinates::
 
@@ -1981,7 +1981,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUPUT:
 
-        - the scalar field ``number*self``
+        - the scalar field ``number * self``
 
         TESTS::
 
@@ -1997,7 +1997,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
             sage: f._rmul_(pi).display()
             M --> R
-            (x, y) |--> pi*x + pi*y
+            (x, y) |--> pi*(x + y)
             sage: f._rmul_(pi) == pi*f
             True
             sage: f._rmul_(0) == M.zero_scalar_field()
@@ -2068,7 +2068,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUPUT:
 
-        - the scalar field ``self*number``
+        - the scalar field ``self * number``
 
         TESTS::
 

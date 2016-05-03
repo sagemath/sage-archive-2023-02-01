@@ -36,9 +36,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.symbolic.ring import SR
 from sage.structure.element import RingElement
-from sage.misc.latex import latex
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.algebras import Algebras
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
 from sage.manifolds.utilities import (ExpressionNice, simplify_chain_real,
                                       simplify_chain_generic)
@@ -78,7 +81,7 @@ class CoordFunctionSymb(CoordFunction):
         sage: X.<x,y> = M.chart()
         sage: f = X.function(x^2+3*y+1)
         sage: type(f)
-        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
         sage: f.display()
         (x, y) |--> x^2 + 3*y + 1
         sage: f(x,y)
@@ -264,9 +267,9 @@ class CoordFunctionSymb(CoordFunction):
     _omit_fargs  = False # static flag to govern whether or not
                          # the arguments of symbolic functions are printed
 
-    def __init__(self, chart, expression):
+    def __init__(self, parent, expression):
         r"""
-        Construct a coordinate function.
+        Initialize ``self``.
 
         TESTS:
 
@@ -277,7 +280,7 @@ class CoordFunctionSymb(CoordFunction):
             sage: f = X.function(1+x*y); f
             x*y + 1
             sage: type(f)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
             sage: TestSuite(f).run()
 
         Coordinate function on a complex manifold::
@@ -289,12 +292,11 @@ class CoordFunctionSymb(CoordFunction):
             sage: TestSuite(g).run()
 
         """
-        self._chart = chart
-        self._nc = len(chart[:])  # number of coordinates
+        CoordFunction.__init__(self, parent)
         self._express = SR(expression)  # symbolic expression enforced
         # Definition of the simplification chain to be applied in
         # symbolic calculus:
-        if self._chart.manifold().base_field_type() == 'real':
+        if self.parent()._chart.manifold().base_field_type() == 'real':
             self._simplify = simplify_chain_real
         else:
             self._simplify = simplify_chain_generic
@@ -308,7 +310,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -330,7 +332,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def _latex_(self):
         r"""
-        LaTeX representation of the object.
+        LaTeX representation of ``self``.
 
         TESTS::
 
@@ -343,6 +345,7 @@ class CoordFunctionSymb(CoordFunction):
             \cos\left(\frac{1}{2} \, x y\right)
 
         """
+        from sage.misc.latex import latex
         if CoordFunctionSymb._nice_output:
             return latex(ExpressionNice(self._express))
         else:
@@ -350,7 +353,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def display(self):
         r"""
-        Display the function in arrow notation.
+        Display ``self`` in arrow notation.
 
         The output is either text-formatted (console mode) or
         LaTeX-formatted (notebook mode).
@@ -379,9 +382,10 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
-        resu_txt = str((self._chart)[:]) + ' |--> ' + \
+        from sage.misc.latex import latex
+        resu_txt = str(self.parent()._chart[:]) + ' |--> ' + \
                    str(ExpressionNice(self._express))
-        resu_latex = latex(self._chart[:]) + r' \mapsto' + \
+        resu_latex = latex(self.parent()._chart[:]) + r' \mapsto' + \
                      latex(ExpressionNice(self._express))
         return FormattedExpansion(resu_txt, resu_latex)
 
@@ -389,8 +393,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def expr(self):
         r"""
-        Return the symbolic expression representing the image of
-        the coordinate function.
+        Return the symbolic expression representing the image of ``self``.
 
         OUTPUT:
 
@@ -476,7 +479,7 @@ class CoordFunctionSymb(CoordFunction):
         """
         if len(coords) != self._nc:
             raise ValueError("bad number of coordinates")
-        substitutions = dict(zip(self._chart._xx, coords))
+        substitutions = dict(zip(self.parent()._chart._xx, coords))
         resu = self._express.subs(substitutions)
         if 'simplify' in options:
             if options['simplify']:
@@ -543,7 +546,7 @@ class CoordFunctionSymb(CoordFunction):
             False
 
         """
-        return CoordFunctionSymb(self._chart, self._express)
+        return type(self)(self.parent(), self._express)
 
     def diff(self, coord):
         r"""
@@ -578,7 +581,7 @@ class CoordFunctionSymb(CoordFunction):
         Each partial derivatives is itself a coordinate function::
 
             sage: type(f.diff(x))
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
 
         An index can be used instead of the coordinate symbol::
 
@@ -606,20 +609,19 @@ class CoordFunctionSymb(CoordFunction):
         from sage.rings.integer import Integer
         if self._der is None:
             # the list of partial derivatives has to be updated
-            self._der = [CoordFunctionSymb(self._chart,
-                                           self._simplify(diff(self._express,
-                                                               xx)))
-                         for xx in self._chart[:]]
+            self._der = [type(self)(self.parent(),
+                                    self._simplify(diff(self._express, xx)))
+                         for xx in self.parent()._chart[:]]
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
             # of other classes. A more conventional OOP writing would be
-            # coordsi = coord - self._chart.domain().start_index()
-            coordsi = coord - self._chart._domain._sindex
+            # coordsi = coord - self.parent()._chart.domain().start_index()
+            coordsi = coord - self.parent()._chart._domain._sindex
             if coordsi < 0 or coordsi >= self._nc:
                 raise ValueError("coordinate index out of range")
             return self._der[coordsi]
         else:
-            return self._der[self._chart[:].index(coord)]
+            return self._der[self.parent()._chart[:].index(coord)]
 
     def __eq__(self, other):
         r"""
@@ -661,7 +663,7 @@ class CoordFunctionSymb(CoordFunction):
         if other is self:
             return True
         if isinstance(other, CoordFunctionSymb):
-            if other._chart != self._chart:
+            if other.parent() != self.parent():
                 return False
             else:
                 return bool(other._express == self._express)
@@ -674,7 +676,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the opposite of the coordinate function ``self``
+        - the opposite of ``self``
 
         TESTS:
 
@@ -686,12 +688,12 @@ class CoordFunctionSymb(CoordFunction):
             sage: g = -f; g
             -y^2 - x
             sage: type(g)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
             sage: -g == f
             True
 
         """
-        return CoordFunctionSymb(self._chart, self._simplify(-self._express))
+        return type(self)(self.parent(), self._simplify(-self._express))
 
     def __invert__(self):
         r"""
@@ -704,7 +706,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the inverse of the coordinate function ``self``
+        - the inverse of ``self``
 
         TESTS:
 
@@ -716,20 +718,20 @@ class CoordFunctionSymb(CoordFunction):
             sage: g = f.__invert__(); g
             1/(x^2 + y^2 + 1)
             sage: type(g)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
             sage: g == ~f
             True
             sage: g.__invert__() == f
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(SR(1) / self._express))
+        return type(self)(self.parent(),
+                          self._simplify(SR.one() / self._express))
         # NB: self._express.__invert__() would return 1/self._express
         # (cf. the code of __invert__ in src/sage/symbolic/expression.pyx)
         # Here we prefer SR(1)/self._express
 
-    def __add__(self, other):
+    def _add_(self, other):
         r"""
         Addition operator.
 
@@ -748,42 +750,31 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
-            sage: s = f.__add__(g); s.display()
+            sage: s = f + g; s.display()
             (x, y) |--> y^2 + 2*x + 1
             sage: type(s)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: f.__add__(0).display()
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            sage: (f + 0).display()
             (x, y) |--> y^2 + x
-            sage: f.__add__(X.zero_function()).display()
+            sage: (f + X.zero_function()).display()
             (x, y) |--> y^2 + x
-            sage: f.__add__(1).display()
+            sage: (f + 1).display()
             (x, y) |--> y^2 + x + 1
-            sage: f.__add__(pi).display()
+            sage: (f + pi).display()
             (x, y) |--> pi + y^2 + x
-            sage: f.__add__(x).display()
+            sage: (f + x).display()
             (x, y) |--> y^2 + 2*x
-            sage: f.__add__(-f).display()
+            sage: (f + -f).display()
             (x, y) |--> 0
-            sage: f.__radd__(g) == g.__add__(f)
-            True
 
         """
-        if isinstance(other, CoordFunctionSymb):
-            if other._chart != self._chart:
-                raise ValueError("two coordinate functions not defined on " +
-                                 "the same chart cannot be added")
-            res = self._simplify(self._express + other._express)
-        elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express + SR(other))
-        else:
-            # addition to a numerical coord. function shall fall into this case
-            return other.__radd__(self)
+        res = self._simplify(self._express + other._express)
         if res == 0:
-            return self._chart._zero_function
+            return self.parent().zero()
         else:
-            return CoordFunctionSymb(self._chart, res)
+            return type(self)(self.parent(), res)
 
-    def __sub__(self, other):
+    def _sub_(self, other):
         r"""
         Subtraction operator.
 
@@ -802,47 +793,34 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
-            sage: s = f.__sub__(g); s.display()
+            sage: s = f - g; s.display()
             (x, y) |--> y^2 - 1
             sage: type(s)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: f.__sub__(0).display()
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            sage: (f - 0).display()
             (x, y) |--> y^2 + x
-            sage: f.__sub__(X.zero_function()).display()
+            sage: (f - X.zero_function()).display()
             (x, y) |--> y^2 + x
-            sage: f.__sub__(1).display()
+            sage: (f - 1).display()
             (x, y) |--> y^2 + x - 1
-            sage: f.__sub__(x).display()
+            sage: (f - x).display()
             (x, y) |--> y^2
-            sage: f.__sub__(pi).display()
+            sage: (f - pi).display()
             (x, y) |--> -pi + y^2 + x
-            sage: f.__sub__(f).display()
+            sage: (f - f).display()
             (x, y) |--> 0
-            sage: f.__sub__(g) == - (g.__sub__(f))
+            sage: (f - g) == -(g - f)
             True
-            sage: f.__rsub__(g) == g.__sub__(f)
-            True
-
         """
-        if isinstance(other, CoordFunctionSymb):
-            if other._chart != self._chart:
-                raise ValueError("two coordinate functions not defined on " +
-                                 "the same chart cannot be subtracted")
-            res = self._simplify(self._express - other._express)
-        elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express - SR(other))
-        else:
-            # subtraction of a numerical coord. function shall fall into this
-            # case
-            return other.__rsub__(self)
+        res = self._simplify(self._express - other._express)
         if res == 0:
-            return self._chart._zero_function
+            return self.parent().zero()
         else:
-            return CoordFunctionSymb(self._chart, res)
+            return type(self)(self.parent(), res)
 
-    def __mul__(self, other):
+    def _mul_(self, other):
         r"""
-        Multiplication  operator.
+        Multiplication operator.
 
         INPUT:
 
@@ -859,45 +837,73 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x-y)
-            sage: s = f.__mul__(g); s.display()
+            sage: s = f._mul_(g); s.display()
             (x, y) |--> x^2 - y^2
             sage: type(s)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: f.__mul__(0).display()
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            sage: (f * 0).display()
             (x, y) |--> 0
-            sage: f.__mul__(X.zero_function()).display()
+            sage: (f * X.zero_function()).display()
             (x, y) |--> 0
-            sage: f.__mul__(2).display()
-            (x, y) |--> 2*x + 2*y
-            sage: f.__mul__(pi).display()
-            (x, y) |--> pi*x + pi*y
-            sage: f.__mul__(x).display()
-            (x, y) |--> x^2 + x*y
-            sage: f.__mul__(1/f).display()
+            sage: (f * (1/f)).display()
             (x, y) |--> 1
-            sage: f.__rmul__(g) == g.__mul__(f)
-            True
 
         """
-        if isinstance(other, CoordFunctionSymb):
-            if other._chart != self._chart:
-                raise ValueError("two coordinate functions not defined on " +
-                                 "the same chart cannot be multiplied")
-            res = self._simplify(self._express * other._express)
-        elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express * SR(other))
-        else:
-            # multiplication by a numerical coord. function shall fall into
-            # this case
-            return other.__rmul__(self)
+        res = self._simplify(self._express * other._express)
         if res == 0:
-            return self._chart._zero_function
+            return self.parent().zero()
         else:
-            return CoordFunctionSymb(self._chart, res)
+            return type(self)(self.parent(), res)
 
-    def __div__(self, other):
+    def _rmul_(self, other):
+        """
+        Return ``other * self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: one = X.function_ring().one()
+            sage: 2 * one
+            2
+            sage: f = X.function(x+y)
+            sage: (f * pi).display()
+            (x, y) |--> pi*(x + y)
+            sage: (x * f).display()
+            (x, y) |--> (x + y)*x
+        """
+        try:
+            other = SR(other)
+        except (TypeError, ValueError):
+            return
+        return type(self)(self.parent(), other * self._express)
+
+    def _lmul_(self, other):
+        """
+        Return ``self * other``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: one = X.function_ring().one()
+            sage: one * 2
+            2
+            sage: f = X.function(x+y)
+            sage: (f * 2).display()
+            (x, y) |--> 2*x + 2*y
+            sage: (f * pi).display()
+            (x, y) |--> pi*(x + y)
+        """
+        try:
+            other = SR(other)
+        except (TypeError, ValueError):
+            return
+        return type(self)(self.parent(), self._express * other)
+
+    def _div_(self, other):
         r"""
-        Division  operator.
+        Division operator.
 
         INPUT:
 
@@ -914,52 +920,39 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(1+x^2+y^2)
-            sage: s = f.__div__(g); s.display()
+            sage: s = f._div_(g); s.display()
             (x, y) |--> (x + y)/(x^2 + y^2 + 1)
             sage: type(s)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
-            sage: f.__div__(X.zero_function())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            sage: f / X.zero_function()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Division of a coordinate function by zero
-            sage: f.__div__(1).display()
+            ZeroDivisionError: division of a coordinate function by zero
+            sage: (f / 1).display()
             (x, y) |--> x + y
-            sage: f.__div__(2).display()
+            sage: (f / 2).display()
             (x, y) |--> 1/2*x + 1/2*y
-            sage: f.__div__(pi).display()
+            sage: (f / pi).display()
             (x, y) |--> (x + y)/pi
-            sage: f.__div__(1+x^2).display()
+            sage: (f / (1+x^2)).display()
             (x, y) |--> (x + y)/(x^2 + 1)
-            sage: f.__div__(1+x^2).display()
+            sage: (f / (1+x^2)).display()
             (x, y) |--> (x + y)/(x^2 + 1)
-            sage: f.__div__(g) == ~(g.__div__(f))
-            True
-            sage: f.__rdiv__(g) == g.__div__(f)
+            sage: (f / g) == ~(g / f)
             True
 
         """
-        if isinstance(other, CoordFunctionSymb):
-            if other._chart != self._chart:
-                raise ValueError("two coordinate functions not defined on " +
-                                 "the same chart cannot be divided")
-            if other._express.is_zero():
-                raise ZeroDivisionError("Division of a coordinate function " +
-                                        "by zero")
-            res = self._simplify(self._express / other._express)
-        elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express / SR(other))
-        else:
-            # division by a numerical coord. function shall fall into this
-            # case
-            return other.__rdiv__(self)
+        if other._express.is_zero():
+            raise ZeroDivisionError("division of a coordinate function by zero")
+        res = self._simplify(self._express / SR(other))
         if res == 0:
-            return self._chart._zero_function
+            return self.parent().zero()
         else:
-            return CoordFunctionSymb(self._chart, res)
+            return type(self)(self.parent(), res)
 
     def exp(self):
         r"""
-        Exponential of the coordinate function.
+        Exponential of ``self``.
 
         OUTPUT:
 
@@ -981,12 +974,11 @@ class CoordFunctionSymb(CoordFunction):
             1
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.exp()))
+        return type(self)(self.parent(), self._simplify(self._express.exp()))
 
     def log(self, base=None):
         r"""
-        Logarithm of the coordinate function.
+        Logarithm of ``self``.
 
         INPUT:
 
@@ -1015,12 +1007,11 @@ class CoordFunctionSymb(CoordFunction):
             log(x + y)/log(2)
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.log(base)))
+        return type(self)(self.parent(), self._simplify(self._express.log(base)))
 
     def __pow__(self, exponent):
         r"""
-        Power of the coordinate function.
+        Power of ``self``.
 
         INPUT:
 
@@ -1050,12 +1041,12 @@ class CoordFunctionSymb(CoordFunction):
             (x, y) |--> 0
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(pow(self._express, exponent)))
+        return type(self)(self.parent(),
+                          self._simplify(pow(self._express, exponent)))
 
     def sqrt(self):
         r"""
-        Square root of the coordinate function.
+        Square root of ``self``.
 
         OUTPUT:
 
@@ -1077,12 +1068,12 @@ class CoordFunctionSymb(CoordFunction):
             (x, y) |--> 0
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.sqrt()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.sqrt()))
 
     def cos(self):
         r"""
-        Cosine of the coordinate function.
+        Cosine of ``self``.
 
         OUTPUT:
 
@@ -1104,12 +1095,12 @@ class CoordFunctionSymb(CoordFunction):
             (x, y) |--> 1
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.cos()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.cos()))
 
     def sin(self):
         r"""
-        Sine of the coordinate function.
+        Sine of ``self``.
 
         OUTPUT:
 
@@ -1131,12 +1122,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.sin()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.sin()))
 
     def tan(self):
         r"""
-        Tangent of the coordinate function.
+        Tangent of ``self``.
 
         OUTPUT:
 
@@ -1158,12 +1149,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.tan()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.tan()))
 
     def arccos(self):
         r"""
-        Arc cosine of the coordinate function.
+        Arc cosine of ``self``.
 
         OUTPUT:
 
@@ -1187,12 +1178,12 @@ class CoordFunctionSymb(CoordFunction):
             (x, y) |--> 1/2*pi
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.arccos()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arccos()))
 
     def arcsin(self):
         r"""
-        Arc sine of the coordinate function.
+        Arc sine of ``self``.
 
         OUTPUT:
 
@@ -1216,12 +1207,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.arcsin()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arcsin()))
 
     def arctan(self):
         r"""
-        Arc tangent of the coordinate function.
+        Arc tangent of ``self``.
 
         OUTPUT:
 
@@ -1245,12 +1236,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.arctan()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arctan()))
 
     def cosh(self):
         r"""
-        Hyperbolic cosine of the coordinate function.
+        Hyperbolic cosine of ``self``.
 
         OUTPUT:
 
@@ -1272,12 +1263,12 @@ class CoordFunctionSymb(CoordFunction):
             (x, y) |--> 1
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.cosh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.cosh()))
 
     def sinh(self):
         r"""
-        Hyperbolic sine of the coordinate function.
+        Hyperbolic sine of ``self``.
 
         OUTPUT:
 
@@ -1299,12 +1290,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.sinh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.sinh()))
 
     def tanh(self):
         r"""
-        Hyperbolic tangent of the coordinate function.
+        Hyperbolic tangent of ``self``.
 
         OUTPUT:
 
@@ -1326,12 +1317,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.tanh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.tanh()))
 
     def arccosh(self):
         r"""
-        Inverse hyperbolic cosine of the coordinate function.
+        Inverse hyperbolic cosine of ``self``.
 
         OUTPUT:
 
@@ -1355,12 +1346,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.arccosh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arccosh()))
 
     def arcsinh(self):
         r"""
-        Inverse hyperbolic sine of the coordinate function.
+        Inverse hyperbolic sine of ``self``.
 
         OUTPUT:
 
@@ -1384,12 +1375,12 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                self._simplify(self._express.arcsinh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arcsinh()))
 
     def arctanh(self):
         r"""
-        Inverse hyperbolic tangent of the coordinate function.
+        Inverse hyperbolic tangent of ``self``.
 
         OUTPUT:
 
@@ -1413,8 +1404,8 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return CoordFunctionSymb(self._chart,
-                                 self._simplify(self._express.arctanh()))
+        return type(self)(self.parent(),
+                          self._simplify(self._express.arctanh()))
 
     # -------------------------------------
     # Methods specific to CoordFunctionSymb
@@ -1442,7 +1433,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def simplify(self):
         r"""
-        Simplify the coordinate expression of the function.
+        Simplify the coordinate expression of ``self``.
 
         For details about the employed chain of simplifications, see
         :func:`~sage.manifolds.utilities.simplify_chain_real` for coordinate
@@ -1452,7 +1443,7 @@ class CoordFunctionSymb(CoordFunction):
 
         OUTPUT:
 
-        - the coordinate function, with its expression simplified
+        - ``self`` with its expression simplified
 
         EXAMPLES:
 
@@ -1507,11 +1498,11 @@ class CoordFunctionSymb(CoordFunction):
 
     def factor(self):
         r"""
-        Factorize the coordinate expression of the function.
+        Factorize the coordinate expression of ``self``.
 
         OUTPUT:
 
-        - the coordinate function, with its expression factorized
+        - ``self`` with its expression factorized
 
         EXAMPLES:
 
@@ -1537,11 +1528,11 @@ class CoordFunctionSymb(CoordFunction):
 
     def expand(self):
         r"""
-        Expand the coordinate expression of the function.
+        Expand the coordinate expression of ``self``.
 
         OUTPUT:
 
-        - the coordinate function, with its expression expanded
+        - ``self`` with its expression expanded
 
         EXAMPLES:
 
@@ -1567,16 +1558,16 @@ class CoordFunctionSymb(CoordFunction):
 
     def collect(self, s):
         r"""
-        Collect the coefficients of `s` in the expression of the coordinate
-        function into a group.
+        Collect the coefficients of `s` in the expression of ``self``
+        into a group.
 
         INPUT:
 
-        - ``s`` -- the symbol whose coefficients will be collected.
+        - ``s`` -- the symbol whose coefficients will be collected
 
         OUTPUT:
 
-        - the coordinate function, with the coefficients of ``s`` grouped in
+        - ``self`` with the coefficients of ``s`` grouped in
           its expression
 
         EXAMPLES:
@@ -1603,15 +1594,14 @@ class CoordFunctionSymb(CoordFunction):
 
     def collect_common_factors(self):
         r"""
-        Collect common factors in the expression of the coordinate
-        function.
+        Collect common factors in the expression of ``self``.
 
         This method does not perform a full factorization but only looks
         for factors which are already explicitly present.
 
         OUTPUT:
 
-        - the coordinate function, with the common factors collected in
+        - ``self`` with the common factors collected in
           its expression
 
         EXAMPLES:
@@ -1637,4 +1627,114 @@ class CoordFunctionSymb(CoordFunction):
         self._express = self._express.collect_common_factors()
         self._del_derived()
         return self
+
+
+class CoordFunctionSymbRing(Parent, UniqueRepresentation):
+    """
+    Ring of all symbolic coordinate functions on a chart.
+    """
+    def __init__(self, chart):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: TestSuite(FR).run()
+        """
+        self._chart = chart
+        Parent.__init__(self, base=SR, category=Algebras(SR))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.function_ring()
+            Ring of coordinate functions on Chart (M, (x, y))
+        """
+        return "Ring of coordinate functions on {}".format(self._chart)
+
+    @cached_method
+    def zero(self):
+        """
+        Return the constant function `0` in ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: FR.zero()
+            0
+
+            sage: M = Manifold(2, 'M', structure='topological', field=Qp(5))
+            sage: X.<x,y> = M.chart()
+            sage: X.function_ring().zero()
+            0
+        """
+        if self._chart.manifold().base_field_type() in ['real', 'complex']:
+            elt = SR.zero()
+        else:
+            elt = self._chart.manifold().base_field().zero()
+        return self.element_class(self, elt)
+
+    @cached_method
+    def one(self):
+        """
+        Return the constant function `1` in ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: FR.one()
+            1
+
+            sage: M = Manifold(2, 'M', structure='topological', field=Qp(5))
+            sage: X.<x,y> = M.chart()
+            sage: X.function_ring().one()
+            1 + O(5^20)
+        """
+        if self._chart.manifold().base_field_type() in ['real', 'complex']:
+            elt = SR.one()
+        else:
+            elt = self._chart.manifold().base_field().one()
+        return self.element_class(self, elt)
+
+    def from_base_ring(self, r):
+        """
+        Return the canonical embedding of ``r`` into ``self``.
+
+        INPUT:
+
+        - ``r`` -- an element of ``self.base_ring()``
+
+        EXAMPLES::
+        """
+        return self.element_class(self, r)
+
+    def is_integral_domain(self):
+        """
+        Return ``False`` as ``self`` is not an integral domain.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: FR.is_field()
+            False
+        """
+        return False
+
+    is_commutative = is_field = is_integral_domain
+
+    Element = CoordFunctionSymb
 

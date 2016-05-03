@@ -725,7 +725,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if res is None:
                 print("Unknown result parent.")
             else:
-                print("Result lives in", res)
+                print("Result lives in {}".format(res))
         return res
 
     cpdef analyse(self, xp, yp, op=mul):

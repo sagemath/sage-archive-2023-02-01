@@ -26,6 +26,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython cimport *
 include "cysignals/signals.pxi"
@@ -1283,11 +1284,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: for algorithm in ("Godsil","Ryser","ButeraPernici"):
             ....:     v = m.rook_vector(complement=True, use_complement=True, algorithm=algorithm)
             ....:     if v != [1, 16, 78, 128, 53]:
-            ....:         print "ERROR with algorithm={} use_complement=True".format(algorithm)
+            ....:         print("ERROR with algorithm={} use_complement=True".format(algorithm))
             ....:     v = m.rook_vector(complement=True, use_complement=False, algorithm=algorithm)
             ....:     v = m.rook_vector(complement=True, use_complement=False)
             ....:     if v != [1, 16, 78, 128, 53]:
-            ....:         print "ERROR with algorithm={} use_complement=False".format(algorithm)
+            ....:         print("ERROR with algorithm={} use_complement=False".format(algorithm))
 
         REFERENCES:
 
@@ -2240,7 +2241,7 @@ cdef class Matrix(matrix1.Matrix):
         It's a little difficult to distinguish the variables. To fix this,
         we temporarily view the indeterminate as `Z`::
 
-            sage: with localvars(f.parent(), 'Z'): print f
+            sage: with localvars(f.parent(), 'Z'): print(f)
             Z^2 + (-y^2 - x)*Z - x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start::
@@ -2628,11 +2629,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: K.<z> = CyclotomicField(3)
             sage: M = MatrixSpace(K,3,sparse=True)
             sage: A = M([(1+z)/3,(2+z)/3,z/3,1,1+z,-2,1,5,-1+z])
-            sage: print A
+            sage: print(A)
             [1/3*z + 1/3 1/3*z + 2/3       1/3*z]
             [          1       z + 1          -2]
             [          1           5       z - 1]
-            sage: print A.denominator()
+            sage: print(A.denominator())
             3
         """
         if self.nrows() == 0 or self.ncols() == 0:
@@ -8603,7 +8604,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
             sage: M = sum([c * p.to_matrix() for (c,p) in L])
             sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M)
-            sage: print decomp
+            sage: print(decomp)
             2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
 
         An exception is raised when the matrix is not bistochastic::

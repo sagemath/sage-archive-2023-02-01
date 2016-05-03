@@ -31,7 +31,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 # System imports
 import sys
@@ -792,7 +792,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: a = list(MS)
             sage: len(a)
             16
-            sage: for m in a: print m, '\n-'
+            sage: for m in a:
+            ....:     print(m)
+            ....:     print('-')
             [0 0]
             [0 0]
             -
@@ -1772,14 +1774,14 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
         assert(not mn0.is_invertible())
         try:
             d = mn0.determinant()
-            print d
+            print(d)
             res = False
         except ValueError:
             res = True
         assert(res)
         try:
             mn0.inverse()
-            res =False
+            res = False
         except ArithmeticError:
             res = True
         assert(res)

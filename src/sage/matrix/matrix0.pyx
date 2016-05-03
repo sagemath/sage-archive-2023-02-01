@@ -21,6 +21,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython cimport *
 
@@ -1634,7 +1635,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = matrix([[1,2], [3,4], [5,6]])
             sage: A.__repr__()
             '[1 2]\n[3 4]\n[5 6]'
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
             [5 6]
@@ -1644,7 +1645,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
             '100 x 100 dense matrix over Integer Ring'
-            sage: print A
+            sage: print(A)
             100 x 100 dense matrix over Integer Ring
 
         When a big matrix returned, include a hint on how to get the entries.
@@ -4252,9 +4253,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            print self
-            print self.nrows()
-            print self.dict()
+            print(self)
+            print(self.nrows())
+            print(self.dict())
             raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
         return tuple(x)
 

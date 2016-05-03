@@ -2484,7 +2484,7 @@ class RauzyDiagram(SageObject):
                 sage: g = r.path(p, 't', 't')
                 sage: for q in g:
                 ....:     print(q)
-                ....:     print("\n*****")
+                ....:     print("*****")
                 a b c
                 c b a
                 *****
@@ -2497,7 +2497,7 @@ class RauzyDiagram(SageObject):
                 sage: g = r.path(p,'b','t')
                 sage: for q in g:
                 ....:     print(q)
-                ....:     print("\n*****")
+                ....:     print("*****")
                 a b c
                 c b a
                 *****

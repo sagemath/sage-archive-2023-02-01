@@ -634,14 +634,14 @@ def Permutations_iterator(nintervals=None, irreducible=True,
         sage: P = iet.Permutations_iterator(nintervals=2,alphabet="ab",reduced=True)
         sage: for p in P:
         ....:     print(p)
-        ....:     print("\n* *")
+        ....:     print("* *")
         a b
         b a
         * *
         sage: P = iet.Permutations_iterator(nintervals=3,alphabet="abc",reduced=True)
         sage: for p in P:
         ....:     print(p)
-        ....:     print("\n* * *")
+        ....:     print("* * *")
         a b c
         b c a
         * * *

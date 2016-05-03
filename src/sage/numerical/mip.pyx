@@ -90,10 +90,10 @@ The following example shows all these steps::
       x_1 is an integer variable (min=-oo, max=+oo)
       x_2 is an integer variable (min=-oo, max=+oo)
       x_3 is an integer variable (min=-oo, max=+oo)
-    sage: print 'Objective Value:', p.solve()
+    sage: print('Objective Value: {}'.format(p.solve()))
     Objective Value: 2.0
     sage: for i, v in p.get_values(w).iteritems():
-    ....:     print 'w_%s = %s' % (i, int(round(v)))
+    ....:     print('w_%s = %s' % (i, int(round(v))))
     w_0 = 15
     w_1 = 10
     w_2 = 3
@@ -221,7 +221,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from copy import copy
 from sage.structure.parent cimport Parent
@@ -519,7 +519,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
              sage: p = MixedIntegerLinearProgram()
              sage: v = p.new_variable(nonnegative=True)
              sage: p.add_constraint(v[1] + v[2], max=2)
-             sage: print p
+             sage: print(p)
              Mixed Integer Program ( maximization, 2 variables, 1 constraints )
          """
          cdef GenericBackend b = self._backend
@@ -720,9 +720,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         By default, variables are unbounded::
 
-            sage: print p.get_min(x0)
+            sage: print(p.get_min(x0))
             None
-            sage: print p.get_max(x0)
+            sage: print(p.get_max(x0))
             None
 
          To define two dictionaries of variables, the first being
@@ -1200,47 +1200,47 @@ cdef class MixedIntegerLinearProgram(SageObject):
             varid_name[i] = s if s else 'x_'+str(i)
 
         ##### Sense and objective function
-        print ("Maximization:" if b.is_maximization() else "Minimization:")
-        print " ",
+        print("Maximization:" if b.is_maximization() else "Minimization:")
+        print(" ", end=" ")
         first = True
         for 0<= i< b.ncols():
             c = b.objective_coefficient(i)
             if c == 0:
                 continue
-            print (("+ " if (not first and c>0) else "") +
+            print((("+ " if (not first and c>0) else "") +
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" "))+varid_name[i]
-                   ),
+                   ), end=" ")
             first = False
         d = b.objective_constant_term()
-        if d > self._backend.zero(): print "+", d,
-        elif d < self._backend.zero(): print "-", -d,
+        if d > self._backend.zero(): print("+ {} ".format(d))
+        elif d < self._backend.zero(): print("- {} ".format(-d))
         print
 
         ##### Constraints
-        print "Constraints:"
+        print("Constraints:")
         for 0<= i < b.nrows():
             indices, values = b.row(i)
             lb, ub = b.row_bounds(i)
-            print " ",
+            print(" ", end=" ")
             # Constraint's name
             if b.row_name(i):
-                print b.row_name(i)+":",
+                print(b.row_name(i)+":", end=" ")
             # Lower bound
             if lb is not None:
-                print str(lb)+" <=",
+                print(str(lb)+" <=", end=" ")
             first = True
             for j, c in sorted(zip(indices, values)):
                 if c == 0:
                     continue
-                print (("+ " if (not first and c>0) else "") +
+                print((("+ " if (not first and c>0) else "") +
                        ("" if c == 1 else ("- " if c == -1 else (str(c) + " " if first and c < 0 else ("- " + str(abs(c)) + " " if c < 0 else str(c) + " "))))+varid_name[j]
-                       ),
+                       ), end=" ")
                 first = False
             # Upper bound
-            print ("<= "+str(ub) if ub is not None else "")
+            print("<= "+str(ub) if ub is not None else "")
 
         ##### Variables
-        print "Variables:"
+        print("Variables:")
         for 0<= i < b.ncols():
             if b.is_variable_integer(i):
                 var_type = 'an integer'
@@ -2727,7 +2727,7 @@ class MIPSolverException(RuntimeError):
         sage: e = MIPSolverException("Error")
         sage: e
         MIPSolverException('Error',)
-        sage: print e
+        sage: print(e)
         Error
 
     TESTS:

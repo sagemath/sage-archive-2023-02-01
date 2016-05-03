@@ -2274,7 +2274,9 @@ cdef class GapElement_List(GapElement):
 
         EXAMPLES::
 
-            sage: m = libgap.eval('[[Z(2^2), Z(2)^0],[0*Z(2), Z(2^2)^2]]');  m
+            sage: F = libgap.GF(4)
+            sage: a = F.PrimitiveElement()
+            sage: m = libgap([[a,a^0],[0*a,a^2]]); m
             [ [ Z(2^2), Z(2)^0 ],
               [ 0*Z(2), Z(2^2)^2 ] ]
             sage: m.IsMatrix()
@@ -2325,7 +2327,9 @@ cdef class GapElement_List(GapElement):
 
         EXAMPLES::
 
-            sage: m = libgap.eval('[0*Z(2), Z(2^2), Z(2)^0, Z(2^2)^2]');  m
+            sage: F = libgap.GF(4)
+            sage: a = F.PrimitiveElement()
+            sage: m = libgap([0*a, a, a^3, a^2]); m
             [ 0*Z(2), Z(2^2), Z(2)^0, Z(2^2)^2 ]
             sage: type(m)
             <type 'sage.libs.gap.element.GapElement_List'>

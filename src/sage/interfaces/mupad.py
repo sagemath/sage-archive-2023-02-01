@@ -89,6 +89,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
 import os
 
@@ -189,7 +190,7 @@ class Mupad(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print mupad._install_hints()
+            sage: print(mupad._install_hints())
             <BLANKLINE>
             In order to use the MuPAD interface you need to have MuPAD installed
             ...
@@ -384,10 +385,10 @@ command-line version of MuPAD.
             v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
                 sum([self.completions(chr(97+n)) for n in range(26)], [])
         except RuntimeError:
-            print "\n"*3
-            print "*"*70
-            print "WARNING: You do not have a working version of MuPAD installed!"
-            print "*"*70
+            print("\n" * 3)
+            print("*" * 70)
+            print("WARNING: You do not have a working version of MuPAD installed!")
+            print("*" * 70)
             v = []
         v.sort()
         return v
@@ -413,9 +414,9 @@ command-line version of MuPAD.
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding MuPAD command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding MuPAD command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
             self.__tab_completion = v
             if len(v) > 200:

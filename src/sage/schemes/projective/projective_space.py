@@ -913,9 +913,9 @@ class ProjectiveSpace_ring(AmbientSpace):
         """
         Generates an endomorphism of this projective line by a Chebyshev polynomial.
     
-        Chebyshev polynomials are a sequence ofrecursively defined orthogonal
+        Chebyshev polynomials are a sequence of recursively defined orthogonal
         polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
-        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyhshev of
+        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
         the second kind are defined as `U_0(x) = 1`,
         `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
     
@@ -959,6 +959,14 @@ class ProjectiveSpace_ring(AmbientSpace):
             Traceback (most recent call last):
             ...
             ValueError: first parameter 'n' must be a non-negative integer
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 2, 'x')
+            sage: P.chebyshev_polynomial(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: projective space must be of dimension 1
         """
         if self.dimension_relative() != 1:
             raise TypeError("projective space must be of dimension 1")

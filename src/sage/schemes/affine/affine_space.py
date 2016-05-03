@@ -718,9 +718,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         Generates an endomorphism of this affine line by a Chebyshev polynomial.
         
-        Chebyshev polynomials are a sequence ofrecursively defined orthogonal
+        Chebyshev polynomials are a sequence of recursively defined orthogonal
         polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
-        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyhshev of
+        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
         the second kind are defined as `U_0(x) = 1`,
         `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
     
@@ -764,6 +764,14 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             Traceback (most recent call last):
             ...
             ValueError: first parameter 'n' must be a non-negative integer
+
+        ::
+
+            sage: A = AffineSpace(QQ, 2, 'x')
+            sage: A.chebyshev_polynomial(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: affine space must be of dimension 1
         """
         if self.dimension_relative() != 1:
             raise TypeError("affine space must be of dimension 1")

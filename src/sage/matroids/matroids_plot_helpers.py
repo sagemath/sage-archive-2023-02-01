@@ -329,7 +329,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: ptsdict={'a':(1,3),'b':(2,1),'c':(4,5),'d':(5,2)}
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'])
-        sage: [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
@@ -337,7 +337,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,
         ....: ['a','b','c','d'],lineorders2=[['b','a','c','d'],
         ....: ['p','q','r','s']])
-        sage: [len(x),len(y),len(x_i),len(y_i)]
+        sage: [len(x), len(y), len(x_i), len(y_i)]
         [4, 4, 100, 100]
         sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         sage: G+=points(zip(x, y), color='black', size=300,zorder=2)

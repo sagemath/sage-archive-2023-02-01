@@ -1240,7 +1240,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 return '1'
             return ''.join("%s_{%d}"%(self._print_options['prefix'], i) for i in redword)
 
-
         def product_on_basis(self, w1, w2):
             r"""
             Return the product of the two  basis elements indexed by ``w1`` and
@@ -1749,25 +1748,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                               codomain=self, category=self.category()
                               ).register_as_coercion()
 
-        def product_on_basis(self, w1, w2):
-            r"""
-            Return the product of the two Kazhdan-Lusztig basis elements
-            indexed by ``w1`` and ``w2``. The computation is actually done by
-            converting to the `T`-basis, multiplying and then converting back.
-
-            EXAMPLES::
-
-                sage: R = LaurentPolynomialRing(QQ, 'v')
-                sage: v = R.gen(0)
-                sage: H = IwahoriHeckeAlgebra('A2', v**2)
-                sage: s1,s2 = H.coxeter_group().simple_reflections()
-                sage: [H.Cp().product_on_basis(s1,x) for x in [s1,s2]]
-                [(v^-1+v)*Cp[1], Cp[1,2]]
-                sage: [H.C().product_on_basis(s1,x) for x in [s1,s2]]
-                [-(v^-1+v)*C[1], C[1,2]]
-            """
-            return self(self.to_T_basis(w1) * self.to_T_basis(w2))
-
         def bar_on_basis(self, w):
             r"""
             Return the bar involution on the Kazhdan-Lusztig basis element
@@ -2263,8 +2243,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             return (-1)**w.length()*self( self.monomial(w) )
 
 
-# This **must** have the same basis classes as the IwahoriHeckeAlgebra class
-#   with the same name and they should inherit from the respecitive basis class
+# The IwahoriHeckeAlgebra_nonstandard class must have the same basis classes as
+# the IwahoriHeckeAlgebra class with the same name and they should inherit from
+# the respective basis class
 class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
     r"""
     This is a class which is used behind the scenes by

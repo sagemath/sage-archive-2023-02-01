@@ -50,7 +50,7 @@ We test corner cases for multiplication::
     sage: m11 = matrix(GF(3),1,1,[1])
     sage: good = [ (v0,m00), (v0,m01), (v1,m10), (v1,m11), (m00,v0), (m10,v0), (m01,v1), (m11,v1), (m00,m00), (m01,m10), (m10,m01), (m11,m11) ]
     sage: for v, m in good:
-    ....:     print('{} x {} = {}'.format(v, m, v * m)
+    ....:     print('{} x {} = {}'.format(v, m, v * m))
     () x [] = ()
     () x [] = (0)
     (1) x [] = ()

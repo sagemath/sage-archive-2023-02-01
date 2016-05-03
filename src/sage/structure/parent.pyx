@@ -469,8 +469,7 @@ cdef class Parent(category_object.CategoryObject):
         if self._category is None:
             self._init_category_(category)
             if debug.refine_category_hash_check and hash_old != hash(self):
-                print('hash of {0} changed in Parent._refine_category_ during initialisation' \
-                    .format(str(self.__class__)))
+                print('hash of {0} changed in Parent._refine_category_ during initialisation'.format(str(self.__class__)))
             return
         if category is self._category:
             return
@@ -497,8 +496,7 @@ cdef class Parent(category_object.CategoryObject):
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
-            print('hash of {0} changed in Parent._refine_category_ during refinement' \
-                .format(str(self.__class__)))
+            print('hash of {0} changed in Parent._refine_category_ during refinement'.format(str(self.__class__)))
 
     def _unset_category(self):
         """
@@ -755,8 +753,7 @@ cdef class Parent(category_object.CategoryObject):
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
             if warn:
-                print("init_coerce() for ", type(self))
-                raise ZeroDivisionError("hello")
+                raise AssertionError(f"unexpected call of init_coerce() for {type(self)}")
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []

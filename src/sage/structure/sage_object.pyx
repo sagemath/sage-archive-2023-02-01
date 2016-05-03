@@ -1562,7 +1562,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     If you want to find *lots* of little issues in Sage then try the following::
 
-        sage: print("x"); sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
+        sage: sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
 
     This runs :class:`TestSuite` tests on all objects in the Sage pickle
     jar. Some of those objects seem to unpickle properly, but do not

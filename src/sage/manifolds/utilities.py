@@ -316,11 +316,11 @@ def simplify_chain_real(expr):
     Other simplifications::
 
         sage: s = abs(sin(pi*x))
-        sage: simplify_chain_real(s)  # correct output since x in (0,1)
+        sage: simplify_chain_real(s)  # correct output since x in (0,1) # known bug - #20475
         sin(pi*x)
-        sage: s.simplify_real()  # unsimplified output
+        sage: s.simplify_real()  # unsimplified output # known bug - #20475
         abs(sin(pi*x))
-        sage: s.simplify_full()  # unsimplified output
+        sage: s.simplify_full()  # unsimplified output # known bug - #20475
         abs(sin(pi*x))
 
     ::

@@ -20,6 +20,18 @@ from sage.numerical.mip import MIPSolverException
 
 cdef class CPLEXBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the CPLEX solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - CPLEX
+
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor
@@ -1437,7 +1449,7 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
-    cpdef CPLEXBackend copy(self):
+    cpdef __copy__(self):
         r"""
         Returns a copy of self.
 
@@ -1451,7 +1463,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: copy(p).solve()                              # optional - CPLEX
             6.0
         """
-        cdef CPLEXBackend p = CPLEXBackend()
+        cdef CPLEXBackend p = type(self)()
 
         p.lp = CPXcloneprob(p.env, self.lp, &status)
         check(status)

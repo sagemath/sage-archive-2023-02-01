@@ -1115,6 +1115,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         of ``lseries()``, where the value is also divided by the
         number of connected components of `E(\RR)`). In particular the
         modular symbol depends on `E` and not only the isogeny class of `E`.
+        For the negative part the corresponding period is purely imaginary of
+        smallest positive imaginary part.
 
         INPUT:
 
@@ -1209,6 +1211,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
             sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
             1/25
+            sage: E.modular_symbol(sign=-1, use_eclib=False, normalize='L_ratio')(1/3)
+            1/2
+
 
         """
         typ = (sign, normalize, use_eclib)
@@ -1664,7 +1669,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        .. [Bob13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
            ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
@@ -3350,7 +3355,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [GrossZagier] B. Gross and D. Zagier, *Heegner points and
+        .. [GrossZagier] \B. Gross and D. Zagier, *Heegner points and
            derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
         """
         try:
@@ -5879,7 +5884,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Co1] H. Cohen, Number Theory, Vol. I: Tools and
+        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
            Diophantine Equations.  GTM 239, Springer, 2007.
 
         AUTHORS:

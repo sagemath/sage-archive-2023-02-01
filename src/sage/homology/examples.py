@@ -400,7 +400,7 @@ def KleinBottle():
 
     REFERENCES:
 
-    .. [Ce1994] D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
+    .. [Ce1994] \D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
        bottle in three-space", Geom. Ded. 50 (1994) 117-141,
        http://www.math.union.edu/~dpvc/papers/1993-03.kb/vmkb.pdf.
     """
@@ -521,7 +521,7 @@ def ComplexProjectivePlane():
 
     REFERENCES:
 
-    .. [KB1983] W. Kühnel and T. F. Banchoff, "The 9-vertex complex
+    .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
        projective plane", Math. Intelligencer 5 (1983), no. 3,
        11-22.
 
@@ -731,7 +731,7 @@ def RealProjectiveSpace(n):
     .. [Da2007] Basudeb Datta, "Minimal triangulations of manifolds",
        J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
 
-    .. [Ku1987] W. Kühnel, "Minimal triangulations of Kummer varieties",
+    .. [Ku1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
        Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
 
     .. [Lu2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
@@ -877,11 +877,11 @@ def K3Surface():
 
     REFERENCES:
 
-    .. [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface
+    .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface
        with the minimum number of vertices", Topology 40 (2001),
        753–772.
 
-    .. [SK2011] J. Spreer and W. Kühnel, "Combinatorial properties
+    .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties
        of the K3 surface: Simplicial blowups and slicings", Experimental
        Mathematics, Volume 20, Issue 2, 2011.
 
@@ -1375,7 +1375,7 @@ def SumComplex(n, A):
 
     REFERENCES:
 
-    .. [LMR2010] N. Linial, R. Meshulam and M. Rosenthal, "Sum
+    .. [LMR2010] \N. Linial, R. Meshulam and M. Rosenthal, "Sum
        complexes -- a new family of hypertrees", Discrete &
        Computational Geometry, 2010, Volume 44, Number 3, Pages
        622-636

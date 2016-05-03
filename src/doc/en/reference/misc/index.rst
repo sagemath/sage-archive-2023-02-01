@@ -226,6 +226,7 @@ Interactive Sage Sessions
    sage/misc/viewer
    sage/misc/pager
    sage/misc/sagedoc
+   sage/misc/sphinxify
 
 Distribution
 ~~~~~~~~~~~~

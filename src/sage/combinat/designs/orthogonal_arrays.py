@@ -1651,7 +1651,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
        University of New South Wales,
        1995
 
-    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng,
+    .. [AbelCheng1994] \R.J.R. Abel and Y.W. Cheng,
        Some new MOLS of order 2np for p a prime power,
        The Australasian Journal of Combinatorics, vol 10 (1994)
     """

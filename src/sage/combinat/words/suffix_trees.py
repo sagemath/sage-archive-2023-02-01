@@ -630,7 +630,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1),letter)
-        while end_state == False:
+        while not end_state:
             # adjoin a new state rr and create a transition from r to rr
             rr = len(self._transition_function)
             self._transition_function[rr] = {}
@@ -1096,7 +1096,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1), end_of_string)
-        while end_state == False:
+        while not end_state:
             (s, k) = self._canonize(self._suffix_link[s], (k,i-1))
             (end_state, r) = self._test_and_split(s, (k,i-1), end_of_string)
         # remove the end of string symbol from the word

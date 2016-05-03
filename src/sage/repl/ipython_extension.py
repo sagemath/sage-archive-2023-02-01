@@ -59,8 +59,8 @@ In contrast, input to the ``%time`` magic command is preparsed::
 from IPython.core.magic import Magics, magics_class, line_magic
 
 from sage.repl.load import load_wrap
-
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
+from sage.misc.lazy_import import LazyImport
 
 @magics_class
 class SageMagics(Magics):
@@ -394,13 +394,11 @@ class SageCustomizations(object):
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        import sage.misc.sagedoc as sagedoc
-        import sage.misc.sageinspect as sageinspect
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
-        IPython.core.oinspect.getsource = sagedoc.my_getsource
-        IPython.core.oinspect.find_file = sageinspect.sage_getfile
-        IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
+        IPython.core.oinspect.getdoc = LazyImport("sage.misc.sageinspect", "sage_getdoc")
+        IPython.core.oinspect.getsource = LazyImport("sage.misc.sagedoc", "my_getsource")
+        IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
+        IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
 
     def init_line_transforms(self):
         """

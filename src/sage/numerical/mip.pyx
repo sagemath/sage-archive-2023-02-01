@@ -267,6 +267,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - If ``solver=None`` (default), the default solver is used (see
         :func:`default_mip_solver`)
 
+      - ``solver`` can also be a callable,
+        see :func:`sage.numerical.backends.generic_backend.get_solver` for
+        examples.
+
     - ``maximization``
 
       - When set to ``True`` (default), the ``MixedIntegerLinearProgram``
@@ -342,6 +346,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - GLPK (``solver="GLPK"``). See the `GLPK
             <http://www.gnu.org/software/glpk/>`_ web site.
 
+          - GLPK's implementation of an exact rational simplex
+            method (``solver="GLPK/exact"``).
+
           - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
             <http://www.coin-or.org>`_ web site.
 
@@ -358,8 +365,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - PPL (``solver="PPL"``). See the `PPL
             <http://bugseng.com/products/ppl>`_ web site.
 
-          -If ``solver=None`` (default), the default solver is used (see
-           ``default_mip_solver`` method.
+          - If ``solver=None`` (default), the default solver is used, see
+            :func:`default_mip_solver`.
+
+          - ``solver`` can also be a callable,
+            see :func:`sage.numerical.backends.generic_backend.get_solver` for
+            examples.
 
         - ``maximization``
 
@@ -536,8 +547,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: q.number_of_constraints()
             1
         """
+        def copying_solver(**kwdargs):
+            return (<GenericBackend> self._backend).copy()
+
         cdef MixedIntegerLinearProgram p = \
-            MixedIntegerLinearProgram(solver="GLPK")
+            MixedIntegerLinearProgram(solver=copying_solver)
         try:
             p._variables = copy(self._variables)
         except AttributeError:
@@ -554,8 +568,36 @@ cdef class MixedIntegerLinearProgram(SageObject):
         except AttributeError:
             pass
 
-        p._backend = (<GenericBackend> self._backend).copy()
         return p
+
+    def __deepcopy__(self, memo={}):
+        """
+        Return a deep copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = deepcopy(p)
+            sage: cp.solve()
+            6.0
+
+        TEST:
+
+        Test that `deepcopy` makes actual copies but preserves identities::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: ll = [mip, mip]
+            sage: dcll=deepcopy(ll)
+            sage: ll[0] is dcll[0]
+            False
+            sage: dcll[0] is dcll[1]
+            True
+
+        """
+        return self.__copy__()
 
     def __getitem__(self, v):
         r"""
@@ -598,7 +640,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
-            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP')
+            sage: from sage.rings.all import AA
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', base_ring=AA)
             sage: p.base_ring()
             Algebraic Real Field
             sage: d = polytopes.dodecahedron()

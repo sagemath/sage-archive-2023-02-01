@@ -71,6 +71,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
@@ -1913,7 +1914,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: it = P.relations_iterator()
             sage: type(it)
             <type 'generator'>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([1, 1], [1, 2])
 
             sage: P = posets.PentagonPoset()
@@ -2549,9 +2550,40 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_connected()
 
+    def is_series_parallel(self):
+        """
+        Return ``True`` if the poset is series-parallel, and ``False``
+        otherwise.
+
+        A poset is *series-parallel* if it can be built up from one-element
+        posets using the operations of disjoint union and ordinal
+        sum. This is also called *N-free* property: every poset that is not
+        series-parallel contains a subposet isomorphic to the 4-element
+        N-shaped poset where `a > c, d` and `b > d`.
+
+        See :wikipedia:`Series-parallel partial order`.
+
+        EXAMPLES::
+
+            sage: VA = Poset({1: [2, 3], 4: [5], 6: [5]})
+            sage: VA.is_series_parallel()
+            True
+            sage: big_N = Poset({1: [2, 4], 2: [3], 4:[7], 5:[6], 6:[7]})
+            sage: big_N.is_series_parallel()
+            False
+
+        TESTS::
+
+            sage: Poset().is_series_parallel()
+            True
+        """
+        # TODO: Add series-parallel decomposition later.
+        N = Poset({0: [2, 3], 1: [3]})
+        return not self.has_isomorphic_subposet(N)
+
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
-        Returns ``True`` if ``f`` is an EL labelling of ``self``.
+        Return ``True`` if ``f`` is an EL labelling of ``self``.
 
         A labelling `f` of the edges of the Hasse diagram of a poset
         is called an EL labelling (edge lexicographic labelling) if
@@ -3017,7 +3049,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
             <type 'generator'>
-            sage: l0.next()
+            sage: next(l0)
             2
         """
         for e in self._hasse_diagram.neighbor_in_iterator(self._element_to_vertex(x)):
@@ -3493,7 +3525,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: it = Posets.PentagonPoset().antichains_iterator(); it
             <generator object antichains_iterator at ...>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([], [4])
 
         .. SEEALSO:: :meth:`antichains`
@@ -3799,6 +3831,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
 
+        One can also simply use `*`::
+
+            sage: P = Posets.ChainPoset(2)
+            sage: Q = Posets.ChainPoset(3)
+            sage: P*Q
+            Finite lattice containing 6 elements
+
         TESTS::
 
             sage: Poset({0:[1]}).product(Poset())  # Product with empty poset
@@ -3826,6 +3865,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             constructor = Poset
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
+    _mul_ = product
+    
     def disjoint_union(self, other, labels='pairs'):
         """
         Return a poset isomorphic to disjoint union (also called direct

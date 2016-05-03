@@ -341,7 +341,7 @@ def WellsGraph():
 
     REFERENCES:
 
-    .. [BCN89] A. E. Brouwer, A. M. Cohen, A. Neumaier,
+    .. [BCN89] \A. E. Brouwer, A. M. Cohen, A. Neumaier,
       Distance-Regular Graphs,
       Springer, 1989.
     """
@@ -4947,7 +4947,7 @@ def JankoKharaghaniTonchevGraph():
 
     REFERENCES:
 
-    .. [JKT01] Z.Janko, H.Kharaghani, V.D.Tonchev
+    .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
        The existence of a Bush-type Hadamard matrix of order 324
        and two new infinite classes of symmetric designs.
        Des. Codes Cryptogr. 24(2001), 225-232

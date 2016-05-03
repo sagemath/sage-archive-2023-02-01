@@ -268,7 +268,9 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -278,7 +280,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()

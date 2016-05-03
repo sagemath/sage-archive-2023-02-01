@@ -15,7 +15,7 @@ a strictly minimal multiple point of the alegbraic variety `H = 0`.
 The algorithms and formulas implemented here come from [RaWi2008a]_
 and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
 
-.. [AiYu1983] I.A. Aizenberg and A.P. Yuzhakov.
+.. [AiYu1983] \I.A. Aizenberg and A.P. Yuzhakov.
    *Integral representations and residues in multidimensional complex analysis*.
    Translations of Mathematical Monographs, **58**. American Mathematical
    Society, Providence, RI. (1983). x+283 pp. ISBN: 0-8218-4511-X.

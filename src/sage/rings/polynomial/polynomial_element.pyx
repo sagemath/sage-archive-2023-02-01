@@ -7795,6 +7795,87 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) < 2
 
+    def nth_root(self, n):
+        r"""
+        Return a `n`-th root of this element.
+
+        This generic method relies on factorization.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: a = 27 * (x+3)**6 * (x+5)**3
+            sage: a.nth_root(3)
+            3*x^3 + 33*x^2 + 117*x + 135
+
+            sage: b = 25 * (x^2 + x + 1)
+            sage: b.nth_root(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 25*x^2 + 25*x + 25 is not a 2nd power
+            sage: R(0).nth_root(3)
+            0
+            sage: R.<x> = QQ[]
+            sage: a = 1/4 * (x/7 + 3/2)^2 * (x/2 + 5/3)^4
+            sage: a.nth_root(2)
+            1/56*x^3 + 103/336*x^2 + 365/252*x + 25/12
+
+            sage: R.<x> = NumberField(QQ['x'].gen()^2 - 2)
+            sage: a = (1 + x)^3 * (2*x - 5)^6
+            sage: b = a.nth_root(3); b
+            13*x - 7
+            sage: b^3 == a
+            True
+        """
+        from sage.rings.integer_ring import ZZ
+
+        n = ZZ.coerce(n)
+
+        if n <= 0:
+            raise ValueError("n (={}) must be positive".format(n))
+        elif n.is_one() or self.is_zero():
+            return self
+        else:
+            f = self.factor()
+            u = f.unit()
+
+            if u.is_one():
+                ans = u.base_ring().one()
+            else:
+                # here we need to compute a n-th root of the unit ``u``. In
+                # most case, it is not doable. But in some cases (e.g.
+                # polynomial ring) we can hope that the base ring can handle
+                # the computation.
+                R = self.parent()
+
+                if u.parent() == R:
+                    try:
+                        u = R.base_ring()(u)
+                    except (ValueError, TypeError):
+                        pass
+
+                if u.parent() == R or not hasattr(u, 'nth_root'):
+                    # we raise an error as otherwise calling nth_root will
+                    # raise an AttributeError or lead to an infinite recursion
+                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+                ans = R(u.nth_root(n))
+
+            for (v, exp) in f:
+                if exp % n:
+                    if n == 2:
+                        postfix = 'nd'
+                    elif n == 3:
+                        postfix = 'rd'
+                    else:
+                        postfix = 'th'
+                    raise ValueError("{} is not a {}{} power".format(self, n, postfix))
+                ans *= v ** (exp // n)
+
+            return ans
+
+
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

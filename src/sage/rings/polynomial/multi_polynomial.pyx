@@ -1766,6 +1766,72 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
 
+    def nth_root(self, n):
+        r"""
+        Return a `n`-th root of this element.
+
+        This generic method relies on factorization.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: a = 32 * (x*y + 1)^5 * (x+y+z)^5
+            sage: a.nth_root(5)
+            2*x^2*y + 2*x*y^2 + 2*x*y*z + 2*x + 2*y + 2*z
+            sage: b = x + 2*y + 3*z
+            sage: b.nth_root(42)
+            Traceback (most recent call last):
+            ...
+            ValueError: x + 2*y + 3*z is not a 42th power
+        """
+        from sage.rings.integer_ring import ZZ
+
+        n = ZZ.coerce(n)
+
+        if n <= 0:
+            raise ValueError("n (={}) must be positive".format(n))
+        elif n.is_one() or self.is_zero():
+            return self
+        else:
+            f = self.factor()
+            u = f.unit()
+
+            if u.is_one():
+                ans = u.base_ring().one()
+            else:
+                # here we need to compute a n-th root of the unit ``u``. In
+                # most case, it is not doable. But in some cases (e.g.
+                # polynomial ring) we can hope that the base ring can handle
+                # the computation.
+                R = self.parent()
+
+                if u.parent() == R:
+                    try:
+                        u = R.base_ring()(u)
+                    except (ValueError, TypeError):
+                        pass
+
+                if u.parent() == R or not hasattr(u, 'nth_root'):
+                    # we raise an error as otherwise calling nth_root will
+                    # raise an AttributeError or lead to an infinite recursion
+                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+                ans = R(u.nth_root(n))
+
+            for (v, exp) in f:
+                if exp % n:
+                    if n == 2:
+                        postfix = 'nd'
+                    elif n == 3:
+                        postfix = 'rd'
+                    else:
+                        postfix = 'th'
+                    raise ValueError("{} is not a {}{} power".format(self, n, postfix))
+                ans *= v ** (exp // n)
+
+            return ans
+
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

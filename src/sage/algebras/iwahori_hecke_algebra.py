@@ -36,7 +36,7 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 
 def normalized_laurent_polynomial(R, p):
     r"""
-    Returns a normalized version of the (Laurent polynomial) ``p`` in the
+    Return a normalized version of the (Laurent polynomial) ``p`` in the
     ring ``R``.
 
     Various ring operations in ``sage`` return an element of the field of
@@ -104,7 +104,7 @@ def index_cmp(x, y):
 
 class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     r"""
-    Returns the Iwahori-Hecke algebra of the Coxeter group ``W``
+    The Iwahori-Hecke algebra of the Coxeter group ``W``
     with the specified parameters.
 
     INPUT:
@@ -1335,8 +1335,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             This method is only available if the Iwahori-Hecke algebra
             parameters ``q1`` and ``q2`` are both invertible.  In this case,
-            the algebra generators are also invertible and this method returns
-            the inverse of ``self.algebra_generator(i)``.
+            the algebra generators are also invertible and this method
+            returns the inverse of ``self.algebra_generator(i)``.
 
             EXAMPLES::
 
@@ -1734,8 +1734,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         def __init__(self, IHAlgebra, prefix=None):
             r"""
-            Returns the Kazhdan-Lusztig basis of the Iwahori-Hecke algebra
-            ``IHAlgebra``.
+            Initialize the Kazhdan-Lusztig basis of the Iwahori-Hecke
+            algebra ``IHAlgebra``.
 
             EXAMPLES::
 
@@ -1784,7 +1784,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def to_T_basis(self, w):
             r"""
-            Returns the Kazhdan-Lusztig basis element ``self[w]`` as a linear
+            Return the Kazhdan-Lusztig basis element ``self[w]`` as a linear
             combination of ``T``-basis elements.
 
             EXAMPLES::
@@ -2093,7 +2093,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def to_T_basis(self, w):
             r"""
-            Returns the `A`-basis element ``self[w]`` as a linear
+            Return the `A`-basis element ``self[w]`` as a linear
             combination of `T`-basis elements.
 
             EXAMPLES::

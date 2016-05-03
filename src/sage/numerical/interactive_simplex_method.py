@@ -2746,7 +2746,7 @@ class LPAbstractDictionary(SageObject):
     @abstract_method
     def column_coefficients(self, v):
         r"""
-        Return the coefficients of a nonbasic variable
+        Return the coefficients of a nonbasic variable.
 
         INPUT:
 
@@ -3096,16 +3096,11 @@ class LPAbstractDictionary(SageObject):
 
     def leaving_coefficients(self):
         r"""
-        Return coefficients of a leaving variable
-
-        INPUT:
-
-        - ``v`` -- a basic variable of ``self``, can be given as a string, an
-          actual variable, or an integer interpreted as the index of a variable
+        Return coefficients of the leaving variable.
 
         OUTPUT:
 
-        - a vector of coefficients of a leaving variable
+        - a vector
 
         EXAMPLES::
 
@@ -3899,7 +3894,12 @@ class LPDictionary(LPAbstractDictionary):
 
     def column_coefficients(self, v):
         r"""
-        Return coefficients of the entering variable.
+        Return coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 
@@ -3912,8 +3912,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: D.enter(1)
-            sage: D.entering_coefficients()
+            sage: D.column_coefficients(1)
             (1, 3)
         """
         if v is not None:
@@ -4782,7 +4781,12 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
     def column_coefficients(self, v):
         r"""
-        Return coefficients of the entering variable.
+        Return the coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
 
         OUTPUT:
 

@@ -2117,7 +2117,7 @@ class Components(SageObject):
             sage: c = Components(QQ, V.basis(), 2)
             sage: list(c.index_generator())
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
-            (2, 1), (2, 2)]
+             (2, 1), (2, 2)]
 
         """
         si = self._sindex
@@ -2161,11 +2161,11 @@ class Components(SageObject):
             sage: c = Components(QQ, V.basis(), 2)
             sage: list(c.non_redundant_index_generator())
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
-            (2, 1), (2, 2)]
+             (2, 1), (2, 2)]
             sage: c = Components(QQ, V.basis(), 2, start_index=1)
             sage: list(c.non_redundant_index_generator())
             [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1),
-            (3, 2), (3, 3)]
+             (3, 2), (3, 3)]
 
         """
         for ind in self.index_generator():

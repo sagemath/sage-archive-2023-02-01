@@ -829,9 +829,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         TESTS::
 
-            sage: for i in range(2):
-            ....:     print(w[i] == sum(phi.matrix()[i,j]*v[j] for j in range(3)))
-            True
+            sage: all(w[i] == sum(phi.matrix()[i,j]*v[j] for j in range(3)) for i in range(2))
             True
             sage: phi.matrix(e,f)
             [-1  2  0]
@@ -853,9 +851,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             Element phi(v) of the Rank-2 free module N over the Integer Ring
             sage: w.display()
             phi(v) = -5 f_0 + 10 f_1
-            sage: for i in range(2):
-            ....:     print(w[i] == sum(phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3)))
-            True
+            sage: all(w[i] == sum(phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3)) for i in range(2))
             True
 
         Check of homomorphism properties::

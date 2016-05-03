@@ -60,10 +60,14 @@ TESTS::
 #                     2006 David Joyner <wdjoyner@gmail.com>
 #                     2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import absolute_import, division, print_function
 
 from sage.symbolic.function import BuiltinFunction
 from sage.sets.real_set import RealSet, InternalRealInterval
@@ -71,8 +75,8 @@ from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 
-class PiecewiseFunction(BuiltinFunction):
 
+class PiecewiseFunction(BuiltinFunction):
     def __init__(self):
         """
         Piecewise function
@@ -128,8 +132,7 @@ class PiecewiseFunction(BuiltinFunction):
             sage: step(-1/2), step(0), step(1/2)
             (-1, 0, 1)
         """
-        #print 'pf_call', function_pieces, kwds
-        from types import *
+        from types import FunctionType
         var = kwds.pop('var', None)
         parameters = []
         domain_list = []
@@ -482,7 +485,6 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: p._fast_callable_(etb)
                 {piecewise(x|-->-x on (-1, 0), x|-->x on [0, 1]; x)}(v_0)
             """
-            # print 'ev_fast_cal', parameters, variable, etb
             self = piecewise(parameters, var=variable)
             return etb.call(self, variable)
 

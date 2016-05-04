@@ -180,7 +180,7 @@ class ParametrizedSurface3D(SageObject):
     determine the numerical value of the length integral::
 
         sage: L = sqrt(ellipsoid.first_fundamental_form(du, du).substitute(u1=u1,u2=u2))
-        sage: numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0]
+        sage: numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0] # rel tol 1e-11
         2.00127905972
 
     We find the area of the sphere of radius $R$::

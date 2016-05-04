@@ -102,7 +102,7 @@ base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
 		$(inst_arb) \
-		$(inst_atlas) \
+		$(BLAS) \
 		$(inst_brial) \
 		$(inst_cephes) \
 		$(inst_cliquer) \

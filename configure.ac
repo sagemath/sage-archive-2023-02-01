@@ -643,7 +643,67 @@ SHELL = `command -v bash`
 # Directory to keep track of which packages are installed
 INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
+# Aliases for optional packages selected at configure time
 EOF
+
+
+# Python version
+if test "$SAGE_PYTHON3" = yes; then
+    echo >&7 'PYTHON = $(inst_python3)'
+else
+    echo >&7 'PYTHON = $(inst_python2)'
+fi
+
+# Sage MP library
+AC_MSG_CHECKING([multiprecision library])
+AC_ARG_WITH([mp],
+[AS_HELP_STRING([--with-mp=mpir],
+    [use MPIR as multiprecision library (default)])]
+[AS_HELP_STRING([--with-mp=gmp],
+    [use GMP as multiprecision library])])
+
+case "$with_mp" in
+    MPIR|mpir) with_mp=MPIR;;
+    GMP|gmp) with_mp=GMP;;
+    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
+    *)
+        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
+esac
+
+AC_MSG_RESULT([$with_mp])
+
+if test $with_mp = MPIR; then
+    echo >&7 'MP_LIBRARY = $(inst_mpir)'
+else
+    echo >&7 'MP_LIBRARY = $(inst_gmp)'
+fi
+
+# BLAS library
+AC_MSG_CHECKING([BLAS library])
+AC_ARG_WITH([blas],
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=openblas],
+    [use OpenBLAS as BLAS library])],,
+    [with_blas=atlas]  # default
+)
+
+case "$with_blas" in
+    atlas) true;;
+    openblas) need_to_install_atlas=no;;
+    *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
+esac
+
+AC_MSG_RESULT([$with_blas])
+
+echo >&7 "BLAS = \$(inst_${with_blas})"
+
+# $(TOOLCHAIN) variable containing prerequisites for the build
+AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    AS_ECHO_N(>&7 [' $(inst_ccache)'])
+fi
+echo >&7
 
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
@@ -732,6 +792,7 @@ filtered_packages_list() {
 }
 ]
 
+echo >&7
 echo >&7 '# Files to track installation of packages'
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     if test "$PKG_NAME" != "$PKG_VERSION"; then
@@ -749,45 +810,6 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     fi
 done
 
-echo >&7
-echo >&7 '# Aliases for optional packages selected at configure time'
-
-# Python version
-if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
-else
-    echo >&7 'PYTHON = $(inst_python2)'
-fi
-
-# Sage MP library
-AC_MSG_CHECKING([multiprecision library])
-AC_ARG_WITH([mp],
-[AS_HELP_STRING([--with-mp=mpir],
-    [use MPIR as multiprecision library (default)])]
-[AS_HELP_STRING([--with-mp=gmp],
-    [use GMP as multiprecision library])])
-
-case "$with_mp" in
-    MPIR|mpir) with_mp=MPIR;;
-    GMP|gmp) with_mp=GMP;;
-    "") with_mp=${SAGE_MP_LIBRARY:-MPIR};;
-    *)
-        AC_MSG_ERROR([allowed values for --with-mp are MPIR and GMP]) ;;
-esac
-
-AC_MSG_RESULT([$with_mp])
-
-if test $with_mp = MPIR; then
-    echo >&7 'MP_LIBRARY = $(inst_mpir)'
-else
-    echo >&7 'MP_LIBRARY = $(inst_gmp)'
-fi
-
-# $(TOOLCHAIN) variable containing prerequisites for the build
-AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
-if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    AS_ECHO_N(>&7 [' $(inst_ccache)'])
-fi
 echo >&7
 echo >&7
 

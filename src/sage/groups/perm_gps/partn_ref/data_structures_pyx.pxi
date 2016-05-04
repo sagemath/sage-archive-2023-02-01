@@ -357,7 +357,6 @@ cdef PS_print(PartitionStack *PS):
     cdef int i
     for i from 0 <= i <= PS.depth:
         PS_print_partition(PS, i)
-    print()
 
 cdef PS_print_partition(PartitionStack *PS, int k):
     """
@@ -700,7 +699,7 @@ def PS_represent(partition, splits):
     print("PartitionStack's data:")
     print("entries -> %s"%[PS.entries[i] for i from 0 <= i < n])
     print("levels -> %s"%[PS.levels[i] for i from 0 <= i < n])
-    print("depth = %d, degree = %d"%(PS.depth,PS.degree))
+    print("depth = %d, degree = %d" % (PS.depth,PS.degree))
     PS_print(PS)
     print("Checking PS_is_discrete:")
     print("True" if PS_is_discrete(PS) else "False")
@@ -745,7 +744,7 @@ def PS_represent(partition, splits):
     bitset_free(b)
     print("Finding element 1:")
     bitset_init(b, n)
-    print("Location is:", PS_find_element(PS, b, 1))
+    print("Location is: {}".format(PS_find_element(PS, b, 1)))
     print("Bitset is:")
     print(bitset_string(b))
     bitset_free(b)

@@ -106,7 +106,6 @@ Some examples in the group of points of an elliptic curve over a finite field:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from copy import copy
 

@@ -66,10 +66,12 @@ Comprehensive Module list
     sage/combinat/crystals/infinity_crystals
     sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/kirillov_reshetikhin
+    sage/combinat/crystals/kleshchev
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
+    sage/combinat/crystals/multisegments
     sage/combinat/crystals/spins
     sage/combinat/crystals/star_crystal
     sage/combinat/crystals/tensor_product

@@ -819,7 +819,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             sage: x = p.new_variable()
             sage: f = 0.5 + 3/2*x[1] + 0.6*x[3]
             sage: for id, coeff in f.iteritems():
-            ....:     print('id = {}   coeff ='.format(id, coeff))
+            ....:     print('id = {}   coeff = {}'.format(id, coeff))
             id = 0   coeff = 3/2
             id = 1   coeff = 3/5
             id = -1   coeff = 1/2

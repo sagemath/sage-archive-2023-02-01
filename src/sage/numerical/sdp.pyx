@@ -59,12 +59,13 @@ The following example shows all these steps::
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
     sage: p.solver_parameter("show_progress", True)
-    sage: print('Objective Value: {}'.format(round(p.solve(),3)))
-    Objective Value:      pcost       dcost       gap    pres   dres   k/t
+    sage: ov = round(p.solve(),3)
+        pcost       dcost       gap    pres   dres   k/t
     0: -3.00...
     ...
     Optimal solution found.
-    -3.0
+    sage: print('Objective Value: {}'.format(ov))
+    Objective Value: -3.0
     sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
     [-1.0, 2.0]
     sage: p.show()

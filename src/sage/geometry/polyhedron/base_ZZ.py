@@ -2,22 +2,22 @@ r"""
 Base class for polyhedra over `\ZZ`
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
-
-
-from sage.rings.all import ZZ, QQ, gcd
+from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
+from sage.arith.all import gcd
 from constructor import Polyhedron
 from base import Polyhedron_base
-
 
 
 #########################################################################
@@ -547,8 +547,8 @@ class Polyhedron_ZZ(Polyhedron_base):
             edge_vectors.append([ v_prim*i for i in range(d+1) ])
         origin = self.ambient_space().zero()
         parent = self.parent()
-        from sage.combinat.cartesian_product import CartesianProduct
-        for edges in CartesianProduct(*edge_vectors):
+        from itertools import product
+        for edges in product(*edge_vectors):
             v = []
             point = origin
             for e in edges:

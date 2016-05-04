@@ -599,7 +599,7 @@ class PuzzlePieces(object):
             sage: hash(x) == hash(x)
             True
         """
-        return hash((type(self), self.__repr__()))
+        return hash((type(self), repr(self)))
 
     def add_piece(self, piece, rotations=120):
         r"""
@@ -835,7 +835,7 @@ def K_grassmannian_pieces():
 
     REFERENCES:
 
-    .. [Buch00] A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arXiv:`math.AG/0004137`
+    .. [Buch00] \A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arXiv:`math.AG/0004137`
 
     EXAMPLES::
 
@@ -858,7 +858,7 @@ def H_two_step_pieces():
 
     REFERENCES:
 
-    .. [BuchKreschTamvakis03] A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arXiv:`math/0306388`
+    .. [BuchKreschTamvakis03] \A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arXiv:`math/0306388`
 
     EXAMPLES::
 
@@ -887,7 +887,7 @@ def HT_two_step_pieces():
 
     REFERENCES:
 
-    .. [CoskunVakil06] I. Coskun, R. Vakil, Geometric positivity in the cohomology of homogeneous spaces
+    .. [CoskunVakil06] \I. Coskun, R. Vakil, Geometric positivity in the cohomology of homogeneous spaces
        and generalized Schubert calculus, :arXiv:`math/0610538`
 
     EXAMPLES::
@@ -932,7 +932,7 @@ def BK_pieces(max_letter):
 
     REFERENCES:
 
-    .. [KnutsonPurbhoo10] A. Knutson, K. Purbhoo, Product and puzzle formulae
+    .. [KnutsonPurbhoo10] \A. Knutson, K. Purbhoo, Product and puzzle formulae
        for `GL_n` Belkale-Kumar coefficients, :arXiv:`1008.4979`
 
     EXAMPLES::

@@ -42,26 +42,25 @@ AUTHORS:
 Functions and methods
 ---------------------
 """
-#***************************************************************************
-#                              Copyright (C) 2007                          #
-#                                                                          #
-#                Peter Dobcsanyi       and         David Joyner            #
-#           <peter@designtheory.org>          <wdjoyner@gmail.com>         #
-#                                                                          #
-#                                                                          #
-#    Distributed under the terms of the GNU General Public License (GPL)   #
-#    as published by the Free Software Foundation; either version 2 of     #
-#    the License, or (at your option) any later version.                   #
-#                    http://www.gnu.org/licenses/                          #
-#***************************************************************************
+
+#*****************************************************************************
+#       Copyright (C) 2007 Peter Dobcsanyi <peter@designtheory.org>
+#       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial, integer_floor
+from sage.arith.all import binomial, integer_floor, is_prime_power
 from incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
@@ -144,7 +143,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l+1) is False
         ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l-1) is False
     """
-    import sage.rings.arith as arith
+    import sage.arith.all as arith
 
     q1 = Integer(v - k)
     q2 = Integer(k - lmbda)
@@ -165,7 +164,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
     return (True, (q,d)) if return_parameters else True
 
-def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
+def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, check=True):
     """
     Return a projective geometry design.
 
@@ -188,6 +187,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
       GAP's "design" package must be available in this case, and that it can be
       installed with the ``gap_packages`` spkg.
 
+    - ``point_coordinates`` -- ``True`` by default. Ignored and assumed to be ``False`` if
+      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates in `F^{n+1}`.
+      Otherwise the ground set is indexed by integers,
+
     EXAMPLES:
 
     The set of `d`-dimensional subspaces in a `n`-dimensional projective space
@@ -202,6 +205,18 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 85, 5, 1))
+
+    Use coordinates::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3))
+        sage: PG.blocks()[0]
+        [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
+
+    Use indexing by integers::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),point_coordinates=0)
+        sage: PG.blocks()[0]
+        [0, 1, 2, 12]
 
     Check that the constructor using gap also works::
 
@@ -224,7 +239,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
                 m.set_immutable()
                 b.append(points[m])
             blocks.append(b)
-        return BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        if point_coordinates:
+            B.relabel({i:p[0] for p,i in points.iteritems()})
+        return B
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
@@ -481,7 +499,7 @@ def HughesPlane(q2, check=True):
     while `D_{0,70}`, `D_{1,59}` and `D_{10,57}` are not concurrent::
 
         sage: blocks = H.blocks()
-        sage: line = lambda p,q: (b for b in blocks if p in b and q in b).next()
+        sage: line = lambda p,q: next(b for b in blocks if p in b and q in b)
 
         sage: b_0_1 = line(0, 1)
         sage: b_1_10 = line(1, 10)
@@ -533,8 +551,8 @@ def HughesPlane(q2, check=True):
     if q2%2 == 0:
         raise EmptySetError("No Hughes plane of even order exists.")
     q = q2.sqrt()
-    K = FiniteField(q2, prefix='x', conway=True)
-    F = FiniteField(q, prefix='y', conway=True)
+    K = FiniteField(q2, prefix='x')
+    F = FiniteField(q, prefix='y')
     A = q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()
@@ -684,7 +702,6 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     if n <= 1:
@@ -932,7 +949,7 @@ def Hadamard3Design(n):
 
     REFERENCES:
 
-    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+    .. [CvL] \P. Cameron, J. H. van Lint, Designs, graphs, codes and
       their links, London Math. Soc., 1991.
     """
     if n == 1 or n == 4:

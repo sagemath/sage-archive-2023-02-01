@@ -27,11 +27,12 @@ compute a basis.
     sage: V2 = FreeModule(IntegerRing(),2)
     sage: H = Hom(V3,V2)
     sage: H
-    Set of Morphisms from Ambient free module of rank 3 over the
-    principal ideal domain Integer Ring to Ambient free module
-    of rank 2 over the principal ideal domain Integer Ring in
-    Category of modules with basis over (euclidean domains and
-    infinite enumerated sets)
+    Set of Morphisms from Ambient free module of rank 3 over
+     the principal ideal domain Integer Ring
+     to Ambient free module of rank 2
+     over the principal ideal domain Integer Ring
+     in Category of finite dimensional modules with basis over
+     (euclidean domains and infinite enumerated sets and metric spaces)
     sage: B = H.basis()
     sage: len(B)
     6
@@ -152,8 +153,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: phi(V.0) == V.1
             True
 
-        The following tests against a bug that was fixed in trac
-        ticket #9944. The method ``zero()`` calls this hom space with
+        The following tests against a bug that was fixed in
+        :trac:`9944`. The method ``zero()`` calls this hom space with
         a function, not with a matrix, and that case had previously
         not been taken care of::
 

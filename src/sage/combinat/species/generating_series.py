@@ -60,29 +60,27 @@ weighted degree where each variable x_i has weight i.
 
 REFERENCES:
 
-.. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+.. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
+
 #*****************************************************************************
-#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from series import LazyPowerSeriesRing, LazyPowerSeries
 from stream import Stream, _integers_from
-from sage.rings.all import Integer, moebius, lcm, divisors, RationalField
+from sage.rings.all import Integer, RationalField
+from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -108,7 +106,9 @@ def OrdinaryGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -181,7 +181,9 @@ def ExponentialGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 2, 6]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -347,7 +349,9 @@ def CycleIndexSeriesRing(R):
         ....:                        # meaningful.
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -748,12 +752,11 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
            :arXiv:`math/0503436v2`.
 
         """
-        from sage.rings.arith import gcd, lcm, divisors
         from itertools import product, repeat, chain
 
         p = self.base_ring()
@@ -1261,7 +1264,7 @@ def _exp_gen(R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _exp_gen
         sage: g = _exp_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
     return (_exp_term(i, R) for i in _integers_from(0))
@@ -1320,7 +1323,7 @@ def _cl_gen (R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _cl_gen
         sage: g = _cl_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
     return (_cl_term(i, R) for i in _integers_from(0))
@@ -1352,7 +1355,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
+    .. [Labelle] \G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_gen(R))

@@ -202,14 +202,14 @@ class RiggedConfigurationElement(ClonableArray):
                     nu.append(RiggedPartition())
             else:
                 if len(data) != n: # otherwise n should be equal to the number of tableaux
-                    raise ValueError("Incorrect number of partitions")
+                    raise ValueError("incorrect number of partitions")
 
                 nu = []
                 if "rigging_list" in options:
                     rigging_data = options["rigging_list"]
 
                     if len(rigging_data) != n:
-                        raise ValueError("Incorrect number of riggings")
+                        raise ValueError("incorrect number of riggings")
 
                     for i in range(n):
                        nu.append(RiggedPartition(tuple(data[i]), \
@@ -586,7 +586,7 @@ class RiggedConfigurationElement(ClonableArray):
 
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
-        ret_RC = self.__class__(self.parent(), new_partitions)
+        ret_RC = self.__class__(self.parent(), new_partitions, use_vacancy_numbers=True)
         nu = ret_RC.nu()
         if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
             # Update that row's vacancy number
@@ -618,7 +618,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if not self.parent()._cartan_matrix[a][b]:
+        if not self.parent()._cartan_matrix[a,b]:
             return self[b]
 
         new_list = self[b][:]
@@ -626,7 +626,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = self.parent()._cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a,b]
         for i in range(len(new_vac_nums)):
             if new_list[i] < k:
                 break
@@ -634,7 +634,7 @@ class RiggedConfigurationElement(ClonableArray):
             new_vac_nums[i] += value
             new_rigging[i] += value
 
-        return(RiggedPartition(new_list, new_rigging, new_vac_nums))
+        return RiggedPartition(new_list, new_rigging, new_vac_nums)
 
     def f(self, a):
         r"""
@@ -735,7 +735,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         # Note that we do not need to sort the rigging since if there was a
         #   smaller rigging in a larger row, then `k` would be larger.
-        return self.__class__(self.parent(), new_partitions)
+        return self.__class__(self.parent(), new_partitions, use_vacancy_numbers=True)
 
     def _generate_partition_f(self, a, b, k):
         r"""
@@ -761,7 +761,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if not self.parent()._cartan_matrix[a][b]:
+        if not self.parent()._cartan_matrix[a,b]:
             return self[b]
 
         new_list = self[b][:]
@@ -769,7 +769,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = self.parent()._cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a,b]
         for i in range(len(new_vac_nums)):
             if new_list[i] <= k:
                 break
@@ -777,7 +777,7 @@ class RiggedConfigurationElement(ClonableArray):
             new_vac_nums[i] -= value
             new_rigging[i] -= value
 
-        return(RiggedPartition(new_list, new_rigging, new_vac_nums))
+        return RiggedPartition(new_list, new_rigging, new_vac_nums)
 
     def epsilon(self, a):
         r"""
@@ -1804,6 +1804,125 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         return rc
 
     delta = left_box
+
+    def left_column_box(self):
+        r"""
+        Return the image of ``self`` under the left column box splitting
+        map `\gamma`.
+
+        Consider the map `\gamma : RC(B^{r,1} \otimes B) \to RC(B^{1,1}
+        \otimes B^{r-1,1} \otimes B)` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a singular string of length `1` to `\nu^{(a)}`.
+
+        We can extend `\gamma` when the left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[3,1], [2,1]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            0[ ]0  0[ ][ ]0  0[ ]0
+            0[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            1[ ]1  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[0][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[0][1] > 1:
+            return self.left_split().left_column_box()
+
+        B = [[1,1], [r-1,1]]
+        B.extend(P.dims[1:])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in self] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, 1)
+            i = nu._list.index(1)
+            nu.vacancy_numbers.insert(i, vac_num)
+            nu.rigging.insert(i, vac_num)
+        return RC(*parts)
+
+    def right_column_box(self):
+        r"""
+        Return the image of ``self`` under the right column box splitting
+        map `\gamma^*`.
+
+        Consider the map `\gamma^* : RC(B \otimes B^{r,1}) \to RC(B \otimes
+        B^{r-1,1} \otimes B^{1,1})` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a string of length `1` with rigging 0 to `\nu^{(a)}`
+        for all `a < r` to a classically highest weight element and extended
+        as a classical crystal morphism.
+
+        We can extend `\gamma^*` when the right-most factor is not a single
+        column by precomposing with a :meth:`right_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.right_column_box())
+            1[ ]0  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[-1][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[-1][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[-1][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[-1][1] > 1:
+            return self.right_split().right_column_box()
+
+        rc, e_string = self.to_highest_weight(P.cartan_type().classical().index_set())
+
+        B = P.dims[:-1] + ([r-1,1], [1,1])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in rc] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, -1)
+            nu.vacancy_numbers.append(vac_num)
+            nu.rigging.append(0)
+        return RC(*parts).f_string(reversed(e_string))
 
     def complement_rigging(self, reverse_factors=False):
         r"""

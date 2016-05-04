@@ -166,7 +166,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
             NEXT_PRIME_VIADIFF(p, pari_prime_ptr)
 
     elif algorithm == "pari_isprime":
-        from sage.rings.arith import primes
+        from sage.arith.all import primes
         res = list(primes(start, stop))
     else:
         raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")

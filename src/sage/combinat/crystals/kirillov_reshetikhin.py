@@ -312,27 +312,27 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
 
     REFERENCES:
 
-    .. [Shimozono02] M. Shimozono
+    .. [Shimozono02] \M. Shimozono
        *Affine type A crystal structure on tensor products of rectangles,
        Demazure characters, and nilpotent varieties*,
        J. Algebraic Combin. **15** (2002). no. 2. 151-187.
        :arxiv:`math.QA/9804039`.
 
-    .. [Schilling08] A. Schilling. "Combinatorial structure of
+    .. [Schilling08] \A. Schilling. "Combinatorial structure of
        Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`".
        J. Algebra. **319** (2008). 2938-2962. :arxiv:`0704.2046`.
 
-    .. [JS2010] B. Jones, A. Schilling.
+    .. [JS2010] \B. Jones, A. Schilling.
        "Affine structures and a tableau model for `E_6` crystals",
        J. Algebra. **324** (2010). 2512-2542.
        :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
 
-    .. [FOS09] G. Fourier, M. Okado, A. Schilling.
+    .. [FOS09] \G. Fourier, M. Okado, A. Schilling.
        *Kirillov-Reshetikhin crystals for nonexceptional types*.
        Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
        :arxiv:`0810.5067`.
 
-    .. [LOS12] C. Lecouvey, M. Okado, M. Shimozono.
+    .. [LOS12] \C. Lecouvey, M. Okado, M. Shimozono.
        "Affine crystals, one-dimensional sums and parabolic Lusztig
        `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
        819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
@@ -576,7 +576,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
         REFERENCES:
 
-            .. [FOS2010] G. Fourier, M. Okado, A. Schilling.
+            .. [FOS2010] \G. Fourier, M. Okado, A. Schilling.
                Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types
                Contemp. Math. 506 (2010) 127-143 ( arXiv:0811.1604 [math.RT] )
 
@@ -2915,13 +2915,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.epsilon(0) # indirect doctest
             1
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def eps0_defn(elt):
+            ....:     x = elt.e(0)
+            ....:     eps = 0
+            ....:     while x is not None:
+            ....:         x = x.e(0)
+            ....:         eps = eps + 1
+            ....:     return eps
+            sage: all(eps0_defn(x) == x.epsilon0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
         l4 = pm.pm_diagram[n][0]
-        return l1+l4
+        return l1+l4/2
 
     def phi0(self):
         r"""
@@ -2933,13 +2948,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.phi(0) # indirect doctest
             0
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def phi0_defn(elt):
+            ....:     x = elt.f(0)
+            ....:     phi = 0
+            ....:     while x is not None:
+            ....:         x = x.f(0)
+            ....:         phi = phi + 1
+            ....:     return phi
+            sage: all(phi0_defn(x) == x.phi0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l2 = pm.pm_diagram[n-1][1]
         l4 = pm.pm_diagram[n][0]
-        return l2+l4
+        return l2+l4/2
 
 KR_type_Dn_twisted.Element = KR_type_Dn_twistedElement
 
@@ -3040,13 +3070,21 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: K = crystals.KirillovReshetikhin(['D',4,1],3,2)
             sage: K.classical_decomposition()
             The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1, 1, -1]]
+
+        TESTS:
+
+        Check that this is robust against python ints::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,1], 4, int(1))
+            sage: K.classical_crystal
+            The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, 1/2]]
         """
         C = self.cartan_type().classical()
-        s = self.s()
+        s = QQ(self.s())
         if self.r() == C.n:
-            c = [s/2]*C.n
+            c = [s/QQ(2)]*C.n
         else:
-            c = [s/2]*(C.n-1)+[-s/2]
+            c = [s/QQ(2)]*(C.n-1)+[-s/QQ(2)]
         return CrystalOfTableaux(C, shape = c)
 
     def dynkin_diagram_automorphism(self, i):
@@ -3212,7 +3250,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
 
     REFERENCES:
 
-    .. [KMOY07] M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
+    .. [KMOY07] \M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
        *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
     """
     def __init__(self, ct, s):
@@ -3259,6 +3297,44 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                + [l(0)]*(coords[2]%2) + [l(-3)]*(coords[3]//2)
                + [l(-2)]*coords[4] + [l(-1)]*coords[5])
         return self.element_class(self, C(*lst))
+
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,3], 1, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 1, 3, model='KR')
+            sage: elt = KRC.module_generators[2].f_string([1,1,2,1,2]); elt
+            [[3, 0]]
+            sage: ret = KRT(elt); ret
+            [[3, 0, E]]
+            sage: test = KRC(ret); test
+            [[3, 0]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            # The classically HW element consists of 1, -1, and 'E'
+            wt = sum(x.value for x in to_hw[0] if x.value != 'E')
+            letters = elt.parent().letters
+            if wt:
+                rows = [[letters(1)]*int(wt)]
+            else:
+                rows = []
+            hw_elt = self(rows=rows)
+            f_str = reversed(to_hw[1])
+            return hw_elt.f_string(f_str)
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
 
     class Element(KirillovReshetikhinGenericCrystalElement):
         @cached_method

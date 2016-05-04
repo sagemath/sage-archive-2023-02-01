@@ -56,23 +56,39 @@ This example illustrates generators for a free module over `\ZZ`.
     (1, 0, 0, 0)
     sage: M.gens()
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+
+TESTS::
+
+    sage: sage.structure.parent_gens.normalize_names(5, 'x')
+    doctest:...: DeprecationWarning:
+    Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
+    See http://trac.sagemath.org/19675 for details.
+    ('x0', 'x1', 'x2', 'x3', 'x4')
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
+
+include 'sage/ext/stdsage.pxi'
 
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 import gens_py
 cimport parent
 from sage.structure.coerce_dict import MonoDict
+cimport sage.structure.category_object as category_object
 
-include 'sage/ext/stdsage.pxi'
+from sage.misc.lazy_import import LazyImport
+normalize_names = LazyImport("sage.structure.category_object",
+        "normalize_names", deprecation=19675)
+
 
 cdef inline check_old_coerce(parent.Parent p):
     if p._element_constructor is not None:
@@ -137,90 +153,6 @@ def is_ParentWithMultiplicativeAbelianGens(x):
     deprecation(18759, "the class ParentWithMultiplicativeAbelianGens is deprecated")
     return isinstance(x, ParentWithMultiplicativeAbelianGens)
 
-def _certify_names(names):
-    v = []
-    try:
-        names = tuple(names)
-    except TypeError:
-        names = [str(names)]
-    for N in names:
-        if not isinstance(N, str):
-            N = str(N)
-        N = N.strip().strip("'")
-        if len(N) == 0:
-            raise ValueError, "variable name must be nonempty"
-        if not N.isalnum() and not N.replace("_","").isalnum():
-            # We must be alphanumeric, but we make an exception for non-leading '_' characters.
-            raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
-        if not N[0].isalpha():
-            raise ValueError, "first letter of variable name must be a letter"
-        v.append(N)
-    return tuple(v)
-
-def normalize_names(int ngens, names=None):
-    r"""
-    Return a tuple of strings of variable names of length ngens given the input names.
-
-    INPUT:
-
-    - ``ngens`` - integer
-
-    - ``names``
-
-      - tuple or list of strings, such as ('x', 'y')
-
-      - a string prefix, such as 'alpha'
-
-      - string of single character names, such as 'xyz'
-
-    EXAMPLES::
-
-        sage: from sage.structure.parent_gens import normalize_names as nn
-        sage: nn(1, 'a')
-        ('a',)
-        sage: nn(2, 'zzz')
-        ('zzz0', 'zzz1')
-        sage: nn(2, 'ab')
-        ('a', 'b')
-        sage: nn(3, ('a', 'bb', 'ccc'))
-        ('a', 'bb', 'ccc')
-        sage: nn(4, ['a1', 'a2', 'b1', 'b11'])
-        ('a1', 'a2', 'b1', 'b11')
-
-    TESTS::
-
-        sage: nn(2, 'z1')
-        ('z10', 'z11')
-        sage: PolynomialRing(QQ, 2, 'alpha0')
-        Multivariate Polynomial Ring in alpha00, alpha01 over Rational Field
-    """
-    if names is None:
-        return None
-    if isinstance(names, str) and names.find(',') != -1:
-        names = names.split(',')
-    if isinstance(names, str) and ngens > 1 and len(names) == ngens:
-        maybe_names = tuple(names)
-        try:
-            _certify_names(maybe_names)
-            names = maybe_names
-        except ValueError:
-            # this happens when you try for 2 names starting "x0"
-            # that gets split to "x", "0" and fails the certification
-            pass
-    if isinstance(names, str):
-        name = names
-        names = sage.misc.defaults.variable_names(ngens, name)
-        names = _certify_names(names)
-    else:
-        names = _certify_names(names)
-        if not isinstance(names, (list, tuple)):
-            raise TypeError, "names must be a list or tuple of strings"
-        for x in names:
-            if not isinstance(x,str):
-                raise TypeError, "names must consist of strings"
-        if ngens != 0 and len(names) != ngens:
-            raise IndexError, "the number of names must equal the number of generators"
-    return names
 
 # Classes that derive from ParentWithGens must define gen(i) and
 # ngens() functions.  It is also good if they define gens() to return
@@ -337,7 +269,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             return parent.Parent._assign_names(self, names=names, normalize=normalize)
         if names is None: return
         if normalize:
-            names = normalize_names(self.ngens(), names)
+            names = category_object.normalize_names(self.ngens(), names)
         if self._names is not None and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
         if isinstance(names, str):
@@ -576,7 +508,7 @@ cdef class localvars:
     def __init__(self, obj, names, latex_names=None, normalize=True):
         self._obj = obj
         if normalize:
-            self._names = normalize_names(obj.ngens(), names)
+            self._names = category_object.normalize_names(obj.ngens(), names)
             self._latex_names = latex_names
         else:
             self._names = names

@@ -38,8 +38,11 @@ Package types
 Not all packages are built by default, they are divided into standard,
 optional and experimental ones:
 
-- **standard** packages are built by default. They have stringent quality
-  requirements: they should work on all supported platforms. In order
+- **standard** packages are built by default. For a few packages,
+  ``configure`` checks whether they are available from the system,
+  in which case the build of those packages is skipped.
+  Standard packages have stringent quality requirements:
+  they should work on all supported platforms. In order
   for a new standard package to be accepted, it should have been
   optional for a while, see :ref:`section-inclusion-procedure`.
 
@@ -235,7 +238,7 @@ Many packages depend on other packages. Consider for example the
 PARI, NTL and FLINT. So the following is the ``dependencies`` file
 for ``eclib``::
 
-    $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+    pari ntl flint
 
     ----------
     All lines of this file are ignored except the first.
@@ -396,16 +399,6 @@ Sage (``FoO-1.3.tar.gz`` in the example of section
 :ref:`section-directory-structure`). Now you need to manually place it
 in the ``SAGE_ROOT/upstream/`` directory and run
 ``sage --fix-pkg-checksums`` if you have not done that yet.
-
-In order to update ``build/make/Makefile``, which contains the rules
-to build all packages, you need to run the following command from
-``SAGE_ROOT``::
-
-    [user@localhost]$ ./configure
-
-You need to re-run ``./configure`` whenever you change any package
-metadata: if you add or remove a package or if you change the version,
-type or dependencies of a package.
 
 Now you can install the package using::
 

@@ -337,13 +337,13 @@ from sage.gsl.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.misc.sagedoc import detex
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
+from sage.arith.srange import xsrange
 from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
-from sage.rings.arith import falling_factorial
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, lcm
+from sage.arith.all import falling_factorial, lcm
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.symbolic.all import I, pi
 
 # TODO: remove the following line once 4ti2 functions are removed
@@ -451,6 +451,7 @@ class Sandpile(DiGraph):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(Sandpile.__dict__.keys()):
             if i[0]!='_':
@@ -490,14 +491,14 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-         - ``g`` -- dict for directed multigraph with edges weighted by
-           nonnegative integers (see NOTE), a Graph or DiGraph.
+        - ``g`` -- dict for directed multigraph with edges weighted by
+          nonnegative integers (see NOTE), a Graph or DiGraph.
 
-         - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
-           designated sink are ignored for the purposes of stabilization.  It is
-           assumed that every vertex has a directed path into the sink.  If the
-           ``sink`` argument is omitted, the first vertex in the list of the
-           Sandpile's vertices is set as the sink.
+        - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
+          designated sink are ignored for the purposes of stabilization.  It is
+          assumed that every vertex has a directed path into the sink.  If the
+          ``sink`` argument is omitted, the first vertex in the list of the
+          Sandpile's vertices is set as the sink.
 
         OUTPUT:
 
@@ -517,41 +518,37 @@ class Sandpile(DiGraph):
             sage: G = Sandpile(g,'d')
 
         Here is a square with unweighted edges.  In this example, the graph is
-        also undirected.
-
-        ::
+        also undirected. ::
 
             sage: g = {0:[1,2], 1:[0,3], 2:[0,3], 3:[1,2]}
             sage: G = Sandpile(g,3)
 
         In the following example, multiple edges and loops in the dictionary
-        become edge weights in the Sandpile.
+        become edge weights in the Sandpile. ::
 
-        ::
+            sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
+            sage: s.laplacian()
+            [ 3 -1 -1 -1]
+            [-1  4 -3  0]
+            [-1 -2  3  0]
+            [ 0  0  0  0]
+            sage: s.dict()
+            {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
 
-        sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
-        sage: s.laplacian()
-        [ 3 -1 -1 -1]
-        [-1  4 -3  0]
-        [-1 -2  3  0]
-        [ 0  0  0  0]
-        sage: s.dict()
-        {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
+        Sandpiles can be created from Graphs and DiGraphs. ::
 
-        Sandpiles can be created from Graphs and DiGraphs.
-
-        sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
-        sage: s = Sandpile(g)
-        sage: s.dict()
-        {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
-        sage: s.sink()
-        0
-        sage: s = sandpiles.Cycle(4)
-        sage: s.laplacian()
-        [ 2 -1  0 -1]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [-1  0 -1  2]
+            sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
+            sage: s = Sandpile(g)
+            sage: s.dict()
+            {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
+            sage: s.sink()
+            0
+            sage: s = sandpiles.Cycle(4)
+            sage: s.laplacian()
+            [ 2 -1  0 -1]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [-1  0 -1  2]
 
         .. NOTE::
 
@@ -610,13 +607,13 @@ class Sandpile(DiGraph):
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
         self._dict = deepcopy(g)
-        if sink==None:
+        if sink is None:
             sink = self.vertices()[0]
         self._sink = sink  # key for sink
         self._sink_ind = self.vertices().index(sink)
         self._nonsink_vertices = deepcopy(self.vertices())
         del self._nonsink_vertices[self._sink_ind]
-        # compute laplacians:
+        # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
         temp = range(self.num_verts())
         del temp[self._sink_ind]
@@ -1943,7 +1940,7 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
             True
         """
         return deepcopy(self._smith_form)
@@ -2139,7 +2136,7 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(3)
             sage: a = s.stable_configs()
-            sage: a.next()
+            sage: next(a)
             {1: 0, 2: 0}
             sage: [i.values() for i in a]
             [[0, 1], [1, 0], [1, 1]]
@@ -2147,7 +2144,7 @@ class Sandpile(DiGraph):
             sage: list(b)
             [{1: 0, 2: 0}, {1: 1, 2: 0}]
         """
-        if smax==None:
+        if smax is None:
             smax = self.max_stable().values()
         else:
             c = SandpileConfig(self,smax)
@@ -2177,42 +2174,42 @@ class Sandpile(DiGraph):
 
             sage: s = sandpiles.Complete(4)
             sage: m = s.markov_chain([0,0,0])
-            sage: m.next()          # random
+            sage: next(m)          # random
             {1: 0, 2: 0, 3: 0}
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 1, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [2, 2, 1]
             sage: m = s.markov_chain(s.zero_div(), [0.1,0.1,0.1,0.7])
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 0, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [0, 0, 1, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 0]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 1]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 2]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 3]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 2, 4]
-            sage: m.next().values() # random
+            sage: next(m).values() # random
             [1, 1, 3, 4]
 
         .. NOTE::
@@ -2247,7 +2244,7 @@ class Sandpile(DiGraph):
                 st = SandpileDivisor(self,st)
             else:
                 raise SyntaxError(state)
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
@@ -2935,6 +2932,7 @@ class SandpileConfig(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileConfig.__dict__.keys()):
             if i[0]!='_':
@@ -3825,7 +3823,7 @@ class SandpileConfig(dict):
         c = deepcopy(self)
         ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
-        if distrib==None:  # default = uniform distribution on nonsink vertices
+        if distrib is None:  # default = uniform distribution on nonsink vertices
             distrib = [1/(n-1)]*(n-1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
@@ -4288,6 +4286,7 @@ class SandpileDivisor(dict):
         # occurrence of a period or question mark.  If neither of these appear
         # in the string, take the sentence to be the empty string.  If the
         # latter occurs, something should be changed.
+        from sage.misc.sagedoc import detex
         methods = []
         for i in sorted(SandpileDivisor.__dict__.keys()):
             if i[0]!='_':
@@ -5151,7 +5150,7 @@ class SandpileDivisor(dict):
         S = E.sandpile()
         V = S.vertices()
         n = S.num_verts()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
@@ -5172,7 +5171,7 @@ class SandpileDivisor(dict):
 
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [0,1,1])
-            sage: D._set_linear_system() # optional - 4ti2
+            sage: D._set_linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
 
         .. WARNING:
 
@@ -5275,7 +5274,7 @@ class SandpileDivisor(dict):
             ....:  5: {2: 1, 3: 1}}
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
-            sage: D.linear_system() # optional - 4ti2
+            sage: D.linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
             {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
              'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
              'num_homog': 2,
@@ -5685,6 +5684,8 @@ class SandpileDivisor(dict):
             ....: )
             sage: D = SandpileDivisor(S, [0,0,0,0,0,4]) # optional - 4ti2
             sage: E = D.r_of_D(True) # optional - 4ti2
+            doctest:... DeprecationWarning: D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.
+            See http://trac.sagemath.org/18618 for details.
             sage: E # optional - 4ti2
             (1, {0: 0, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0})
             sage: F = E[1] # optional - 4ti2
@@ -6033,7 +6034,7 @@ class SandpileDivisor(dict):
         D = deepcopy(self)
         S = self.sandpile()
         V = S.vertices()
-        if distrib==None:  # default = uniform distribution
+        if distrib is None:  # default = uniform distribution
             n = S.num_verts()
             distrib = [1/n]*n
         X = GeneralDiscreteDistribution(distrib)
@@ -6497,8 +6498,8 @@ def aztec_sandpile(n):
     """
     aztec_sandpile = {}
     half = QQ(1)/2
-    for i in srange(n):
-        for j in srange(n-i):
+    for i in xsrange(n):
+        for j in xsrange(n-i):
             aztec_sandpile[(half+i,half+j)] = {}
             aztec_sandpile[(-half-i,half+j)] = {}
             aztec_sandpile[(half+i,-half-j)] = {}

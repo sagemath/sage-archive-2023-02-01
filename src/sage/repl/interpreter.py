@@ -690,10 +690,6 @@ def get_test_shell():
             app.shell._restart()
         except AttributeError:
             pass
-    # overwrite the default (console + graphics) formatter with the plain text one
-    import sage.repl.display.formatter as formatter
-    app.shell.display_formatter.formatters['text/plain'] = (
-        formatter.SagePlainTextFormatter(config=app.shell.config))
     # No quit noise
     app.shell.verbose_quit = False
     return app.shell

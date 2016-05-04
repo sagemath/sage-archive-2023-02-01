@@ -30,6 +30,8 @@ import collections
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
+from external import available_software
+
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
@@ -458,13 +460,13 @@ class SageDocTestParser(doctest.DocTestParser):
         r"""
         A Sage specialization of :class:`doctest.DocTestParser`.
 
-        INPUTS:
+        INPUT:
 
         - ``string`` -- the string to parse.
         - ``name`` -- optional string giving the name indentifying string,
           to be used in error messages.
 
-        OUTPUTS:
+        OUTPUT:
 
         - A list consisting of strings and :class:`doctest.Example`
           instances.  There will be at least one string between
@@ -563,8 +565,12 @@ class SageDocTestParser(doctest.DocTestParser):
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)):
-                        continue
+                    if not self.optional_tags is True:
+                        extra = optional_tags - self.optional_tags # set difference
+                        if len(extra) > 0:
+                            if not('external' in self.optional_tags
+                                   and available_software.issuperset(extra)):
+                                continue
                 elif self.optional_only:
                     self.optionals['sage'] += 1
                     continue

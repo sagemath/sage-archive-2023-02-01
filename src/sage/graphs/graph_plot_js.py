@@ -10,7 +10,7 @@ code is then inserted into a .html file to be opened by a browser.
 
 What Sage feeds javascript with is a "graph" object with the following content:
 
-- ``vertices`` -- each vertex is a dictionay defining :
+- ``vertices`` -- each vertex is a dictionary defining :
 
     - ``name``  -- The vertex's label
 

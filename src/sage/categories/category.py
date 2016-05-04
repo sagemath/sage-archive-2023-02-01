@@ -35,7 +35,7 @@ Let's request the category of some objects::
 
     sage: V = VectorSpace(RationalField(), 3)
     sage: V.category()
-    Category of vector spaces with basis over quotient fields
+    Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces)
     sage: G = SymmetricGroup(9)
     sage: G.category()
     Join of Category of finite permutation groups and Category of finite weyl groups
@@ -323,7 +323,8 @@ class Category(UniqueRepresentation, SageObject):
 
         sage: Algebras(GF(5)).parent_class is Algebras(GF(7)).parent_class
         True
-        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ['x'])).parent_class
+        sage: F = FractionField(ZZ['t'])
+        sage: Coalgebras(F).parent_class is Coalgebras(FractionField(F['x'])).parent_class
         True
 
     We now construct a parent in the usual way::
@@ -1077,8 +1078,6 @@ class Category(UniqueRepresentation, SageObject):
             Category of left modules over Integer Ring
             sage: Coalgebras(QQ).additional_structure()   # coproduct
             Category of coalgebras over Rational Field
-            sage: CoxeterGroups().additional_structure()  # distinguished generators
-            Category of coxeter groups
             sage: Crystals().additional_structure()       # crystal operators
             Category of crystals
 
@@ -1175,9 +1174,15 @@ class Category(UniqueRepresentation, SageObject):
             This method together with the methods overloading it
             provide the basic data to determine, for a given category,
             the super categories that define some structure (see
-            :meth:`structure`), and to test whether a
-            category is a full subcategory of some other category (see
-            :meth:`is_full_subcategory`).
+            :meth:`structure`), and to test whether a category is a
+            full subcategory of some other category (see
+            :meth:`is_full_subcategory`). For example, the category of
+            Coxeter groups is not full subcategory of the category of
+            groups since morphisms need to perserve the distinguished
+            generators::
+
+                sage: CoxeterGroups().is_full_subcategory(Groups())
+                False
 
             The support for modeling full subcategories has been
             introduced in :trac:`16340`.
@@ -1836,7 +1841,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Monoids().or_subcategory(EnumeratedSets())
             Traceback (most recent call last):
             ...
-            AssertionError: Subcategory of `Category of enumerated sets` required; got `Category of monoids`
+            ValueError: Subcategory of `Category of monoids` required; got `Category of enumerated sets`
 
         Otherwise, the two categories are joined together::
 
@@ -1851,7 +1856,8 @@ class Category(UniqueRepresentation, SageObject):
         if join:
             return Category.join([self, category])
         else:
-            assert category.is_subcategory(self), "Subcategory of `{}` required; got `{}`".format(category, self)
+            if not category.is_subcategory(self):
+                raise ValueError("Subcategory of `{}` required; got `{}`".format(self, category))
             return category
 
     def _is_subclass(self, c):
@@ -2755,9 +2761,9 @@ class CategoryWithParameters(Category):
         Similarly for ``QQ`` and ``RR``::
 
             sage: QQ.category()
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: RR.category()
-            Category of fields
+            Join of Category of fields and Category of complete metric spaces
             sage: Modules(QQ).parent_class is Modules(RR).parent_class
             False
 
@@ -2818,14 +2824,17 @@ class CategoryWithParameters(Category):
 
             sage: Algebras(ZZ)._make_named_class_key("parent_class")
             Join of Category of euclidean domains
-                and Category of infinite enumerated sets
+                 and Category of infinite enumerated sets
+                 and Category of metric spaces
 
         The morphism class of a bimodule depends only on the category
         of the left and right base rings::
 
             sage: Bimodules(QQ, ZZ)._make_named_class_key("morphism_class")
-            (Category of quotient fields,
-             Join of Category of euclidean domains and Category of infinite enumerated sets)
+            (Join of Category of quotient fields and Category of metric spaces,
+             Join of Category of euclidean domains
+                 and Category of infinite enumerated sets
+                 and Category of metric spaces)
 
         The element class of a join category depends only on the
         element class of its super categories::
@@ -2953,13 +2962,14 @@ class JoinCategory(CategoryWithParameters):
 
             sage: Modules(ZZ)._make_named_class_key('element_class')
             Join of Category of euclidean domains
-                and Category of infinite enumerated sets
+                 and Category of infinite enumerated sets
+                 and Category of metric spaces
             sage: Modules(QQ)._make_named_class_key('parent_class')
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
             Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
         """
         return tuple(getattr(cat, name) for cat in self._super_categories)
 
@@ -3005,7 +3015,8 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLE::
 
-            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QuotientFields())]))  # indirect doctest
+            sage: cat = Category.join([Rings(), VectorSpaces(QuotientFields().Metric())])
+            sage: QQ['x'].category().is_subcategory(cat)  # indirect doctest
             True
         """
         return all(category.is_subcategory(X) for X in self._super_categories)

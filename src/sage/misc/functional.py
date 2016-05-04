@@ -124,7 +124,8 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces with basis over quotient fields
+        Category of finite dimensional vector spaces with basis over
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()
@@ -230,7 +231,7 @@ def decomposition(x):
         [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1,
         Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
         sage: d[0].parent()
-        Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
+        Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2
     """
     return x.decomposition()
 
@@ -1574,7 +1575,7 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)

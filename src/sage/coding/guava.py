@@ -1,5 +1,5 @@
 r"""
-Guava error-correcting code constructions.
+Guava error-correcting code constructions
 
 This module only contains Guava wrappers (Guava is an optional GAP package).
 
@@ -34,7 +34,7 @@ Functions
 from sage.interfaces.all import gap
 from sage.misc.randstate import current_randstate
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
 from sage.groups.perm_gps.permgroup import *
 from linear_code import *
@@ -115,7 +115,7 @@ def QuasiQuadraticResidueCode(p):
     .. [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
       March 2003, available on Mitter's MIT website).
 
-    .. [Jresidue] D. Joyner, {\it On quadratic residue codes and hyperelliptic curves},
+    .. [Jresidue] \D. Joyner, {\it On quadratic residue codes and hyperelliptic curves},
       (preprint 2006)
 
     These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.

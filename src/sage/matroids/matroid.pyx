@@ -133,8 +133,10 @@ additional functionality (e.g. linear extensions).
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
+    - :meth:`chow_ring() <sage.matroids.matroid.Matroid.chow_ring>`
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
+    - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -285,23 +287,23 @@ Testing. Note that the abstract base class does not support pickling::
 REFERENCES
 ==========
 
-..  [BC79] R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
-..  [Cunningham86] W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
-..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
-..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
-..  [Cunningham] W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
+..  [BC79] \R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
+..  [Cunningham86] \W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
+..  [CMO11] \C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
+..  [CMO12] \C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
+..  [Cunningham] \W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
-..  [GR01] C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
+..  [GR01] \C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
 ..  [Hlineny] Petr Hlineny, "Equivalence-free exhaustive generation of matroid representations", Discrete Applied Mathematics 154 (2006), pp. 1210-1222.
 ..  [Hochstaettler] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid", preprint.
-..  [Lyons] R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
+..  [Lyons] \R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
 ..  [Oxley1] James Oxley, "Matroid theory", Oxford University Press, 1992.
 ..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
-..  [Pen12] R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
-..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid 
+..  [Pen12] \R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
+..  [PvZ] \R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid
     representations over partial fields, Journal of Combinatorial Theory, 
     Series B, Volume 100, Issue 1, January 2010, Pages 36-67
-..  [Rajan] A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
+..  [Rajan] \A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
 
 AUTHORS:
 
@@ -2582,12 +2584,61 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``self.full_rank()``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
         """
         cdef SetSystem res
         res = SetSystem(list(self.groundset()))
         for X in combinations(self.groundset(), self.full_rank()):
             if self._rank(X) == len(X):
                 res.append(X)
+        return res
+    
+    cpdef independent_sets(self):
+        r"""
+        Return the list of independent subsets of the matroid.
+
+        OUTPUT:
+
+        An iterable containing all independent subsets of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Pappus()
+            sage: I = M.independent_sets()
+            sage: len(I)
+            121
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
+        """
+        cdef int r
+        cdef int full_rank = self.full_rank()
+        cdef list T = [set() for r in range(full_rank)]
+        cdef list I = [frozenset()] * (full_rank+1)
+        r = 0
+
+        res = [frozenset()]
+        T[0] = set(self.groundset()) - self.closure([])
+        while r >= 0:
+            if r + 1 == full_rank:
+                for x in T[r]:
+                    I[r+1] = I[r].union([x])
+                    res.append(I[r+1])
+                T[r] = set()
+                r -= 1
+            elif T[r]:
+                I[r+1] = I[r].union([T[r].pop()])
+                res.append(I[r+1])
+                T[r+1] = T[r] - self._closure(I[r+1])
+                r += 1
+            else:
+                r -= 1
         return res
 
     cpdef independent_r_sets(self, long r):
@@ -2614,6 +2665,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``r``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_sets() <sage.matroids.matroid.Matroid.independent_sets>`
+            :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
         """
         res = []
         for X in combinations(self.groundset(), r):
@@ -2812,9 +2868,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the list of broken circuits of ``self``.
 
-        A *broken circuit* `B` for is a subset of the ground set under
-        some total ordering `<` such that `B \cup \{ u \}` is a circuit
-        and `u < b` for all `b \in B`.
+        Let `M` be a matroid with ground set `E`, and let `<` be a total
+        ordering on `E`. A *broken circuit* for `M` means a subset `B` of
+        `E` such that there exists a `u \in E` for which `B \cup \{ u \}`
+        is a circuit of `M` and `u < b` for all `b \in B`.
 
         INPUT:
 
@@ -2890,6 +2947,31 @@ cdef class Matroid(SageObject):
                     ret.append(I)
         return ret
 
+    def orlik_solomon_algebra(self, R, ordering=None):
+        """
+        Return the Orlik-Solomon algebra of ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        .. SEEALSO::
+
+            :class:`~sage.algebras.orlik_solomon.OrlikSolomonAlgebra`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(3, 4)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS
+            Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
+             with circuit-closures
+             {3: {{0, 1, 2, 3}}}
+        """
+        from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+        return OrlikSolomonAlgebra(R, self, ordering)
+
     # polytopes
 
     def matroid_polytope(self):
@@ -2924,7 +3006,7 @@ cdef class Matroid(SageObject):
 
         REFERENCE:
 
-        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+        .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
           of matroid polytopes and polymatroids. Discrete & Computational
           Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
           :doi:`10.1007/s00454-008-9120-8`
@@ -2979,8 +3061,7 @@ cdef class Matroid(SageObject):
         vector_e = ambient.basis()
         convert = {ind: i for i, ind in enumerate(self.groundset())}
         vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
-                    for r in range(self.full_rank() + 1)
-                    for IS in self.independent_r_sets(r)]
+                    for IS in self.independent_sets()]
         return Polyhedron(vertices)
 
     # isomorphism and equality
@@ -3643,7 +3724,18 @@ cdef class Matroid(SageObject):
             sage: M.contract(1) == M / 1  # indirect doctest
             True
         """
-        # Shorthand: M / X
+        return self.contract(X)
+
+    def __truediv__(self, X):
+        r"""
+        Shorthand for ``self.contract(X)``.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(4)
+            sage: M.contract(1) == M.__truediv__(1)
+            True
+        """
         return self.contract(X)
 
     cpdef delete(self, X):
@@ -5575,9 +5667,10 @@ cdef class Matroid(SageObject):
         ``True`` if the matroid is 3-connected, ``False`` otherwise. 
 
         INPUT:
+
         - ``basis`` -- a basis of the matroid.
         - ``fund_cocircuits`` -- a iterable of some fundamental cocircuits with 
-        respect to ``basis``. It must contain all separating fundamental cocircuits. 
+          respect to ``basis``. It must contain all separating fundamental cocircuits. 
 
         OUTPUT:
 
@@ -5598,8 +5691,8 @@ cdef class Matroid(SageObject):
 
         .. NOTE::
 
-        The function does not check its input at all. You may want to make
-        sure the matroid is both simple and cosimple.
+            The function does not check its input at all. You may want to make
+            sure the matroid is both simple and cosimple.
         """
         # Step 1: base case
         if self.rank() <= 2:
@@ -6731,6 +6824,8 @@ cdef class Matroid(SageObject):
             True
             sage: sum(map(len,P))==len(M.groundset())
             True
+            sage: Matroid(matrix([])).partition()
+            []
 
         ALGORITHM:
 
@@ -6741,7 +6836,8 @@ cdef class Matroid(SageObject):
         from sage.matroids.union_matroid import MatroidSum, PartitionMatroid
         if self.loops():
             raise ValueError("Cannot partition matroids with loops.")
-
+        if self.size()==0:
+            return []
         # doubling search for minimum independent sets that partitions the groundset
         n = self.size()
         r = self.rank()
@@ -6751,7 +6847,7 @@ cdef class Matroid(SageObject):
         # doubling step
         while True:
             p = PartitionMatroid([[(i,x) for i in range(hi)] for x in self.groundset()])
-            X = MatroidSum([self]*hi).intersection(p)
+            X = MatroidSum([self]*hi)._intersection_unweighted(p)
             if len(X)==self.size():
                 break
             lo = hi
@@ -6760,7 +6856,7 @@ cdef class Matroid(SageObject):
         while lo < hi:
             mid = (lo+hi)//2
             p = PartitionMatroid([[(i,x) for i in range(mid)] for x in self.groundset()])
-            X = MatroidSum([self]*mid).intersection(p)
+            X = MatroidSum([self]*mid)._intersection_unweighted(p)
             if len(X)!=self.size() : lo = mid+1
             else: hi = mid
 
@@ -6953,7 +7049,108 @@ cdef class Matroid(SageObject):
         eps = 0.00000001
 
         return [F for F in FF if fsol[F] > 1 - eps]
-        
+
+    def chow_ring(self, R=None):
+        r"""
+        Return the Chow ring of ``self`` over ``R``.
+
+        Let `M` be a matroid and `R` be a commutative ring.
+        The *Chow ring* of `M` is the quotient ring
+
+        .. MATH::
+
+            A^*(M)_R := R[x_{F_1}, \ldots, x_{F_k}] / (Q_M + L_M),
+
+        where
+
+        - `F_1, \ldots, F_k` are the non-empty proper flats of `M`,
+        - `Q_M` is the ideal generated by all `x_{F_i} x_{F_j}` where
+          `F_i` and `F_j` are incomparable elements in the lattice of
+          flats, and
+        - `L_M` is the ideal generated by all linear forms
+
+          .. MATH::
+
+              \sum_{i_1 \in F} x_F - \sum_{i_2 \in F} x_F
+
+          for all `i_1 \neq i_2 \in E`.
+
+        INPUT:
+
+        - ``R`` -- (default: `\ZZ`) the base ring
+
+        EXAMPLES::
+
+            sage: M = matroids.Wheel(2)
+            sage: A = M.chow_ring()
+            sage: A
+            Chow ring of Wheel(2): Regular matroid of rank 2 on 4 elements
+             with 5 bases over Integer Ring
+            sage: A.gens()
+            (A23, A23, A23)
+            sage: A23 = A.gen(0)
+            sage: A23*A23
+            A23^2
+
+        We construct a more interesting example using the Fano matroid::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: A = M.chow_ring(QQ)
+            sage: A
+            Chow ring of Fano: Binary matroid of rank 3 on 7 elements,
+             type (3, 0) over Rational Field
+
+        Next we get the non-trivial generators and do some computations::
+
+            sage: Ag, Aabf, Aace, Aadg, Abcd, Abeg, Acfg, Adef = A.gens()[6:]
+            sage: Ag * Ag
+            Ag^2
+            sage: Ag * Aace
+            Aace^2 - Abcd*Abeg - Abeg*Acfg - Aadg*Adef + Abcd*Adef + Abeg*Adef
+            sage: Aace * Adef
+            Aadg*Adef + Abcd*Adef - Abeg*Adef
+
+        REFERENCES:
+
+        .. [FY04] Eva Maria Feichtner and Sergey Yuzvinsky.
+           *Chow rings of toric varieties defined by atomic lattices*.
+           Inventiones Mathematicae. **155** (2004), no. 3, pp. 515-536.
+
+        .. [AHK15] Karim Adiprasito, June Huh, and Eric Katz.
+           *Hodge theory for combinatorial geometries*. :arxiv:`1511.02888`.
+        """
+        # Setup
+        if R is None:
+            R = ZZ
+        # We only want proper flats
+        flats = [X for i in range(1, self.rank())
+                 for X in self.flats(i)]
+        E = list(self.groundset())
+        flats_containing = {x: [] for x in E}
+        for i,F in enumerate(flats):
+            for x in F:
+                flats_containing[x].append(i)
+
+        # Create the ambient polynomial ring
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        try:
+            names = ['A{}'.format(''.join(str(x) for x in sorted(F))) for F in flats]
+            P = PolynomialRing(R, names)
+        except ValueError: # variables are not proper names
+            P = PolynomialRing(R, 'A', len(flats))
+            names = P.variable_names()
+        gens = P.gens()
+        # Create the ideal of quadratic relations
+        Q = [gens[i] * gens[i+j+1] for i,F in enumerate(flats)
+             for j,G in enumerate(flats[i+1:]) if F < G or G < F]
+        # Create the ideal of linear relations
+        L = [sum(gens[i] for i in flats_containing[x])
+             - sum(gens[i] for i in flats_containing[y])
+             for j,x in enumerate(E) for y in E[j+1:]]
+        ret = P.quotient(Q + L, names=names)
+        ret.rename("Chow ring of {} over {}".format(self, R))
+        return ret
+
     cpdef plot(self, B=None, lineorders=None, pos_method=None,pos_dict=None,save_pos=False):
         """
         Return geometric representation as a sage graphics object.

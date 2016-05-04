@@ -21,6 +21,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
+from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -668,7 +669,7 @@ class SympyConverter(Converter):
 
     TESTS:
 
-    Make sure we can convert I (trac #6424)::
+    Make sure we can convert I (:trac:`6424`)::
 
         sage: bool(I._sympy_() == I)
         True
@@ -840,7 +841,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -850,7 +851,7 @@ class AlgebraicConverter(Converter):
 
             sage: from sage.symbolic.expression_conversions import AlgebraicConverter
             sage: a = AlgebraicConverter(QQbar)
-            sage: a.composition(exp(I*pi/3), exp)
+            sage: a.composition(exp(I*pi/3, hold=True), exp)
             0.500000000000000? + 0.866025403784439?*I
             sage: a.composition(sin(pi/7), sin)
             0.4338837391175581? + 0.?e-18*I
@@ -902,8 +903,8 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+            if (res - ex).is_trivial_zero():
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -923,7 +924,7 @@ def algebraic(ex, field):
         sage: type(QQbar(a))
         <class 'sage.rings.qqbar.AlgebraicNumber'>
         sage: QQbar(i)
-        1*I
+        I
         sage: AA(golden_ratio)
         1.618033988749895?
         sage: QQbar(golden_ratio)
@@ -940,7 +941,7 @@ def algebraic(ex, field):
         sage: QQbar((2*I)^(1/2))
         1 + 1*I
         sage: QQbar(e^(pi*I/3))
-        0.500000000000000? + 0.866025403784439?*I
+        0.50000000000000000? + 0.866025403784439?*I
 
         sage: AA(x*sin(0))
         0
@@ -1196,7 +1197,7 @@ class FastFloatConverter(Converter):
             sage: ff(1.0,2.0,3.0)
             4.1780638977...
 
-        Using _fast_float_ without specifying the variable names is
+        Using ``_fast_float_`` without specifying the variable names is
         deprecated::
 
             sage: f = x._fast_float_()
@@ -1208,8 +1209,8 @@ class FastFloatConverter(Converter):
             sage: f(1.2)
             1.2
 
-        Using _fast_float_ on a function which is the identity is
-        now supported (see Trac 10246)::
+        Using ``_fast_float_`` on a function which is the identity is
+        now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
             sage: f._fast_float_(x)
@@ -1298,7 +1299,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError("free variable: %s" % repr(ex))
+            raise NotImplementedError, "free variable: %s" % repr(ex)
 
     def arithmetic(self, ex, operator):
         """

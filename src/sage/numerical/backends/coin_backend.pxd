@@ -129,6 +129,19 @@ cdef extern from "coin/OsiSolverInterface.hpp":
         void getBInvARow(int row, double* z, double * slack)
         void getBInvACol(int col, double* vec)
 
+        # Get indicies of basic variables
+        void getBasics(int* index)
+
+        # Get objective coefficients
+        double * getRowPrice()
+        double * getReducedCost()
+
+        #Solve initial LP relaxation
+        void initialSolve()
+
+        # Resolve an LP relaxation after problem modification
+        void resolve()
+
 cdef extern from "coin/CbcModel.hpp":
      cdef cppclass CbcModel:
          # default constructor
@@ -184,8 +197,11 @@ cdef class CoinBackend(GenericBackend):
     cdef list col_names, row_names
     cdef str prob_name
 
-    cpdef CoinBackend copy(self)
+    cpdef __copy__(self)
     cpdef get_basis_status(self)
     cpdef int set_basis_status(self, list cstat, list rstat) except -1
     cpdef get_binva_row(self, int i)
     cpdef get_binva_col(self, int j)
+    cpdef get_basics(self)
+    cpdef get_row_price(self)
+    cpdef get_reduced_cost(self)

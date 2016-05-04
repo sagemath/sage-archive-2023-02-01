@@ -21,6 +21,8 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
+from sage.arith.all import is_prime_power
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -87,7 +89,6 @@ def SymplecticPolarGraph(d, q, algorithm=None):
         G = _polar_graph(d, q, libgap.SymplecticGroup(d, q))
 
     elif algorithm == None:    # faster for small (q<4) fields
-        from sage.rings.finite_rings.constructor import FiniteField
         from sage.modules.free_module import VectorSpace
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
@@ -187,7 +188,6 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         s = 0
 
     from sage.interfaces.gap import gap
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -224,7 +224,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     - ``point_type`` -- a list of elements from `F_q`
 
     EXAMPLES:
-    
+
     Petersen graph::
 `
         sage: from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
@@ -287,7 +287,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
 
     """
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -453,7 +452,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'+')
         sage: g.is_strongly_regular(parameters=True)
         (136, 75, 42, 40)
-        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-') 
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-')
         sage: g.is_strongly_regular(parameters=True)
         (120, 51, 18, 24)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(7,4,'+'); g # not tested (long time)
@@ -487,11 +486,10 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,4,'+')
         Traceback (most recent call last):
         ...
-        ValueError: for m even q must be 2 or 3 
+        ValueError: for m even q must be 2 or 3
 
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0:
         raise ValueError('q must be a prime power')
@@ -635,14 +633,12 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
 
     elif algorithm == None: # slow on large examples
         from sage.schemes.projective.projective_space import ProjectiveSpace
-        from sage.rings.finite_rings.constructor import FiniteField
         from sage.modules.free_module_element import free_module_element as vector
-        from __builtin__ import sum as psum
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
         map(lambda x: x.set_immutable(), PG)
         def P(x,y):
-            return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
+            return sum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
@@ -692,12 +688,11 @@ def NonisotropicUnitaryPolarGraph(m, q):
 
     REFERENCE:
 
-    .. [Hu75] X. L. Hubaut.
+    .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
       http://dx.doi.org/10.1016/0012-365X(75)90057-6
     """
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0:
        raise ValueError('q must be a prime power')
@@ -743,7 +738,7 @@ def UnitaryDualPolarGraph(m, q):
 
     EXAMPLES:
 
-    The point graph of a generalized quadrangle of order (8,4)::
+    The point graph of a generalized quadrangle (see [GQwiki]_, [PT09]_) of order (8,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(5,2); G   # long time
         Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
@@ -811,10 +806,10 @@ def SymplecticDualPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: libGAP: Error, <subfield> must be a prime or a finite field
-    
+
     REFERENCE:
 
-    .. [Co81] A. M. Cohen,
+    .. [Co81] \A. M. Cohen,
       `A synopsis of known distance-regular graphs with large diameters
       <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
       Stichting Mathematisch Centrum, 1981.
@@ -838,7 +833,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
     This graph admits a partition into cliques of size `q`, which are useful in
-    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`,
+    :func:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographSRG`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
@@ -881,12 +876,10 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         ...
         ValueError: q must be an odd prime power
     """
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
        raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
     from __builtin__ import sum
@@ -926,7 +919,7 @@ def TaylorTwographSRG(q):
 
     .. SEEALSO::
 
-        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG>`
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographDescendantSRG`
 
     EXAMPLES::
 
@@ -940,4 +933,393 @@ def TaylorTwographSRG(q):
     G.add_vertex(v0)
     G.seidel_switching(sum(l[:(q**2+1)/2],[]))
     G.name("Taylor two-graph SRG")
+    return G
+
+def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
+    r"""
+    Return the collinearity graph of the generalized quadrangle `AS(q)`, or of its dual
+
+    Let `q` be an odd prime power.  `AS(q)` is a generalized quadrangle [GQwiki]_ of
+    order `(q-1,q+1)`, see 3.1.5 in [PT09]_. Its points are elements
+    of `F_q^3`, and lines are sets of size `q` of the form
+
+    * `\{ (\sigma, a, b) \mid \sigma\in F_q \}`
+    * `\{ (a, \sigma, b) \mid \sigma\in F_q \}`
+    * `\{ (c \sigma^2 - b \sigma + a, -2 c \sigma + b, \sigma) \mid \sigma\in F_q \}`,
+
+    where `a`, `b`, `c` are arbitrary elements of `F_q`.
+
+    INPUT:
+
+    - ``q`` -- a power of an odd prime number
+
+    - ``dual`` -- if ``False`` (default), return the collinearity graph of `AS(q)`.
+      Otherwise return the collinearity graph of the dual `AS(q)`.
+
+    EXAMPLES::
+
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5); g
+        AS(5); GQ(4, 6): Graph on 125 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (125, 28, 3, 7)
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5,dual=True); g
+        AS(5)*; GQ(6, 4): Graph on 175 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (175, 30, 5, 5)
+
+    REFERENCE:
+
+    .. [GQwiki] `Generalized quadrangle
+      <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
+
+    .. [PT09] \S. Payne, J. A. Thas.
+      Finite generalized quadrangles.
+      European Mathematical Society,
+      2nd edition, 2009.
+    """
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+       raise ValueError('q must be an odd prime power')
+    F = FiniteField(q, 'a')
+    L = []
+    for a in F:
+        for b in F:
+            L.append(tuple(map(lambda s: (s, a, b), F)))
+            L.append(tuple(map(lambda s: (a, s, b), F)))
+            for c in F:
+                L.append(tuple(map(lambda s: (c*s**2 - b*s + a, -2*c*s + b, s), F)))
+    if dual:
+        G = IncidenceStructure(L).intersection_graph()
+        G.name('AS('+str(q)+')*; GQ'+str((q+1,q-1)))
+    else:
+        G = IncidenceStructure(L).dual().intersection_graph()
+        G.name('AS('+str(q)+'); GQ'+str((q-1,q+1)))
+    return G
+
+def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
+    r"""
+    Return the collinearity graph of the generalized quadrangle `T_2^*(q)`, or of its dual
+
+    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalized quadrangle [GQwiki]_
+    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
+    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
+    `O \subset \Pi`. The points of `T_2^*(q):=T_2^*(O)` are the points of `\Theta`
+    outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
+    that meet `\Pi` in a point of `O`.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``dual`` -- if ``False`` (default), return the graph of `T_2^*(O)`.
+      Otherwise return the graph of the dual `T_2^*(O)`.
+
+    - ``hyperoval`` -- a hyperoval (i.e. a complete 2-arc; a set of points in the plane
+      meeting every line in 0 or 2 points) in the plane of points with 0th coordinate
+      0 in `PG(3,q)` over the field ``field``. Each point of ``hyperoval`` must be a length 4
+      vector over ``field`` with 1st non-0 coordinate equal to 1. By default, ``hyperoval`` and
+      ``field`` are not specified, and constructed on the fly. In particular, ``hyperoval``
+      we build is the classical one, i.e. a conic with the point of intersection of its
+      tangent lines.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
+      check ``hyperoval`` for correctness.
+
+
+    EXAMPLES:
+
+    using the built-in construction::
+
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4,dual=True); g
+        T2*(O,4)*; GQ(5, 3): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 20, 4, 4)
+
+    supplying your own hyperoval::
+
+        sage: F=GF(4,'b')
+        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+    """
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
+    from sage.modules.free_module_element import free_module_element as vector
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+       raise ValueError('q must be a power of 2')
+    if field is None:
+        F = FiniteField(q, 'a')
+    else:
+        F = field
+
+    Theta = PG(3, 1, F, point_coordinates=1)
+    Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
+    if hyperoval is None:
+        O = filter(lambda x: x[1]+x[2]*x[3]==0 or (x[1]==1 and x[2]==0 and x[3]==0), Pi)
+        O = set(O)
+    else:
+        map(lambda x: x.set_immutable(), hyperoval)
+        O = set(hyperoval)
+        if check_hyperoval:
+            if len(O) != q+2:
+                raise RuntimeError("incorrect hyperoval size")
+            for L in Theta.blocks():
+                if set(L).issubset(Pi):
+                    if not len(O.intersection(L)) in [0,2]:
+                        raise RuntimeError("incorrect hyperoval")
+    L = map(lambda z: filter(lambda y: not y in O, z),
+            filter(lambda x: len(O.intersection(x)) == 1, Theta.blocks()))
+    if dual:
+        G = IncidenceStructure(L).intersection_graph()
+        G.name('T2*(O,'+str(q)+')*; GQ'+str((q+1,q-1)))
+    else:
+        G = IncidenceStructure(L).dual().intersection_graph()
+        G.name('T2*(O,'+str(q)+'); GQ'+str((q-1,q+1)))
+    return G
+
+def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_hyperoval=True):
+    r"""
+    Return the Haemers graph obtained from `T_2^*(q)^*`
+
+    Let `q` be a power of 2. In Sect. 8.A of [BvL84]_ one finds a construction
+    of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
+    the graph of `T_2^*(q)^*`, constructed by
+    :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+    by redefining adjacencies in the way specified by an arbitrary ``hyperoval_matching``
+    of the the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
+    `T_2^*(q)^*`.
+
+    While [BvL84]_ gives the construction in geometric terms, it can be formulated,
+    and is implemented, in graph-theoretic ones, of re-adjusting the edges.
+    Namely, `G=T_2^*(q)^*` has a partition
+    into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
+    adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever
+    `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
+    between `I_k` and `I_{k'}`.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``hyperoval_matching`` -- if ``None`` (default), pair each `i`-th point of
+      ``hyperoval`` with `(i+1)`-th. Otherwise, specifies the pairing
+      in the format `((i_1,i'_1),(i_2,i'_2),...)`.
+
+    - ``hyperoval`` -- a hyperoval defining `T_2^*(q)^*`. If ``None`` (default),
+      the classical hyperoval obtained from a conic is used. See the
+      documentation of
+      :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
+      for more information.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``, check
+      ``hyperoval`` for correctness.
+
+    EXAMPLES:
+
+    using the built-in constructions::
+
+        sage: g=graphs.HaemersGraph(4); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    supplying your own hyperoval_matching::
+
+        sage: g=graphs.HaemersGraph(4,hyperoval_matching=((0,5),(1,4),(2,3))); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+
+        sage: g=graphs.HaemersGraph(8); g               # not tested (long time)
+        Haemers(8): Graph on 640 vertices
+        sage: g.is_strongly_regular(parameters=True)    # not tested (long time)
+        (640, 71, 6, 8)
+
+    """
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    from itertools import combinations
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+        raise ValueError('q must be a power of 2')
+
+    if hyperoval_matching is None:
+        hyperoval_matching = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
+    if field is None:
+        F = GF(q,'a')
+    else:
+        F = field
+
+    # for q=8, 95% of CPU time taken by this function is spent in the follwing call
+    G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
+
+    def normalize(v):  # make sure the 1st non-0 coordinate is 1.
+        d=next(x for x in v if x!=F.zero())
+        return vector(map(lambda x: x/d, v))
+
+    # build the partition into independent sets
+    P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
+    O = list(set(map(tuple,P)))
+    I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
+    for i in xrange(len(P)):
+        I_ks[O.index(tuple(P[i]))].append(i)
+
+    # perform the adjustment of the edges, as described.
+    G.relabel()
+    cliques = []
+    for i,j in hyperoval_matching:
+        Pij = set(I_ks[i]+I_ks[j])
+        for v in Pij:
+            cliques.append(Pij.intersection(G.neighbors(v)))
+        G.delete_edges(G.edge_boundary(I_ks[i],I_ks[j])) # edges on (I_i,I_j)
+    G.add_edges(e for c in cliques for e in combinations(c,2))
+    G.name('Haemers('+str(q)+')')
+    return G
+
+def CossidentePenttilaGraph(q):
+    r"""
+    Cossidente-Penttila `((q^3+1)(q+1)/2,(q^2+1)(q-1)/2,(q-3)/2,(q-1)^2/2)`-strongly regular graph
+
+    For each odd prime power `q`, one can partition the points of the `O_6^-(q)`-generalized
+    quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
+    the point graph of the GQ has parameters as above [CP05]_.
+
+    Directly follwing the construction in [CP05]_ is not efficient,
+    as one then needs to construct the dual `GQ(q^2,q)`. Thus we
+    describe here a more efficient approach that we came up with, following a suggestion by
+    T.Penttila. Namely, this partition is invariant
+    under the subgroup `H=\Omega_3(q^2)<O_6^-(q)`. We build the appropriate `H`, which
+    leaves the form `B(X,Y,Z)=XY+Z^2` invariant, and
+    pick up two orbits of `H` on the `F_q`-points. One them is `B`-isotropic, and we
+    take the representative `(1:0:0)`. The other one corresponds to the points of
+    `PG(2,q^2)` that have all the lines on them either missing the conic specified by `B`, or
+    intersecting the conic in two points. We take `(1:1:e)` as the representative. It suffices
+    to pick `e` so that `e^2+1` is not a square in `F_{q^2}`. Indeed,
+    The conic can be viewed as the union of `\{(0:1:0)\}` and `\{(1:-t^2:t) | t \in F_{q^2}\}`.
+    The coefficients of a generic line on `(1:1:e)` are `[1:-1-eb:b]`, for `-1\neq eb`.
+    Thus, to make sure the intersection with the conic is always even, we need that the
+    discriminant of `1+(1+eb)t^2+tb=0` never vanishes, and this is if and only if
+    `e^2+1` is not a square. Further, we need to adjust `B`, by multiplying it by appropriately
+    chosen `\nu`, so that `(1:1:e)` becomes isotropic under the relative trace norm
+    `\nu B(X,Y,Z)+(\nu B(X,Y,Z))^q`. The latter is used then to define the graph.
+
+    INPUT:
+
+    - ``q`` -- an odd prime power.
+
+    EXAMPLES:
+
+    For `q=3` one gets Sims-Gewirtz graph. ::
+
+        sage: G=graphs.CossidentePenttilaGraph(3)    # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (56, 10, 0, 2)
+
+    For `q>3` one gets new graphs. ::
+
+        sage: G=graphs.CossidentePenttilaGraph(5)    # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (378, 52, 1, 8)
+
+    TESTS::
+
+        sage: G=graphs.CossidentePenttilaGraph(7)    # optional - gap_packages (grape) # long time
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape) # long time
+        (1376, 150, 2, 18)
+        sage: graphs.CossidentePenttilaGraph(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q(=2) must be an odd prime power
+
+    REFERENCES:
+
+    .. [CP05] \A.Cossidente and T.Penttila
+       Hemisystems on the Hermitian surface
+       Journal of London Math. Soc. 72(2005), 731-741
+    """
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+        raise ValueError('q(={}) must be an odd prime power'.format(q))
+
+    from sage.libs.gap.libgap import libgap
+    from sage.misc.package import is_package_installed, PackageNotFoundError
+
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
+
+    adj_list=libgap.function_factory("""function(q)
+        local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
+        LoadPackage("grape");
+        G0:=SO(3,q^2);
+        so:=GeneratorsOfGroup(G0);
+        G1:=Group(Comm(so[1],so[2]),Comm(so[1],so[3]),Comm(so[2],so[3]));
+        B:=InvariantBilinearForm(G0).matrix;
+        z:=Z(q^2); e:=z; sqo:=(q^2-1)/2;
+        if IsInt(sqo/Order(e^2+z^0)) then
+            e:=z^First([2..q^2-2], x-> not IsInt(sqo/Order(z^(2*x)+z^0)));
+        fi;
+        nu:=z^First([0..q^2-2], x->z^x*(e^2+z^0)+(z^x*(e^2+z^0))^q=0*z);
+        T:=function(x)
+            local r;
+            r:=nu*x*B*x;
+            return r+r^q;
+        end;
+        s:=Group([Z(q)*IdentityMat(3,GF(q))]);
+        O1:=Orbit(G1, Set(Orbit(s,z^0*[1,0,0])), OnSets);
+        O2:=Orbit(G1, Set(Orbit(s,z^0*[1,1,e])), OnSets);
+        G:=Graph(G1,Concatenation(O1,O2),OnSets,
+            function(x,y) return x<>y and 0*z=T(x[1]+y[1]); end);
+        return List([1..OrderGraph(G)],x->Adjacency(G,x));
+        end;""")
+
+    adj = adj_list(q) # for each vertex, we get the list of vertices it is adjacent to
+    G = Graph(((i,int(j-1))
+               for i,ni in enumerate(adj) for j in ni),
+               format='list_of_edges', multiedges=False)
+    G.name('CossidentePenttila('+str(q)+')')
     return G

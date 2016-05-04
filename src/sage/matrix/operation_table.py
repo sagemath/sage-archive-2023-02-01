@@ -419,16 +419,28 @@ class OperationTable(SageObject):
         # If not, we'll discover that next in actual use.
 
         self._table = []
+
+        # the elements might not be hashable. But if they are it is much
+        # faster to lookup in a hash table rather than in a list!
+        try:
+            get_row = {e: i for i,e in enumerate(self._elts)}.__getitem__
+        except TypeError:
+            get_row = self._elts.index
+
         for g in self._elts:
             row = []
             for h in self._elts:
                 try:
                     result = self._operation(g, h)
-                    row.append(self._elts.index(result))
-                except ValueError:  # list/index condition
-                    raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
                 except Exception:
                     raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
+
+                try:
+                    r = get_row(result)
+                except (KeyError,ValueError):
+                    raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
+
+                row.append(r)
             self._table.append(row)
 
     def _name_maker(self, names):
@@ -467,6 +479,7 @@ class OperationTable(SageObject):
             ()
 
         TESTS:
+
         We test the error conditions here, rather than as part of the
         doctests for the :class:`OperationTable` and :meth:`change_names`
         methods that rely on this one. ::
@@ -559,8 +572,8 @@ class OperationTable(SageObject):
         TESTS::
 
             sage: from sage.matrix.operation_table import OperationTable
-            sage: G=DiCyclicGroup(3)
-            sage: T=OperationTable(G, operator.mul)
+            sage: G = DiCyclicGroup(3)
+            sage: T = OperationTable(G, operator.mul)
             sage: T[G('(1,2)(3,4)(5,6,7)')]
             Traceback (most recent call last):
             ...
@@ -629,7 +642,7 @@ class OperationTable(SageObject):
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         r"""

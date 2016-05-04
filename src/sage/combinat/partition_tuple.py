@@ -85,9 +85,9 @@ tuples. Four different classes of tuples of partitions are currently supported:
 
 REFERENCES:
 
-.. [DJM99] R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra", Math. Z,
+.. [DJM99] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra", Math. Z,
       229 (1999), 385-416.
-.. [BK09] J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
+.. [BK09] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
       Adv. Math., 222 (2009), 1883-1942"
 
 AUTHORS:
@@ -256,7 +256,8 @@ subgroup::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
+import itertools
+
 from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
@@ -526,10 +527,6 @@ class PartitionTuple(CombinatorialElement):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16933, 'compact argument is deprecated.')
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):
@@ -1181,7 +1178,7 @@ class PartitionTuple(CombinatorialElement):
 
         REFERENCE:
 
-        .. [KMR] A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
+        .. [KMR] \A. Kleshchev, A. Mathas, and A. Ram, *Universal Specht
            modules for cyclotomic Hecke algebras*,
            Proc. London Math. Soc. (2012) 105 (6): 1245-1289.
            :arxiv:`1102.3519v1`
@@ -1564,7 +1561,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         """
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
+        if mu == [] or mu == () or mu == [[]]:
             return Partition([])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
@@ -2051,7 +2048,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         p = [Partitions(i) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
 
@@ -2105,7 +2102,7 @@ class PartitionTuples_level_size(PartitionTuples):
         return ZZ(gp.eval('polcoeff((1/eta(x+O(x^%s)))^%s, %s, x)'%(self.size()+1,self.level(), self.size())))
 
     def __setstate__(self, state):
-        """
+        r"""
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
         ``__setstate__``.

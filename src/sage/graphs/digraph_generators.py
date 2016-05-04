@@ -293,7 +293,7 @@ class DiGraphGenerators():
                     butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
         elif vertices=='vectors':
             from sage.modules.free_module import VectorSpace
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             from copy import copy
             butterfly = {}
             for v in VectorSpace(FiniteField(2),n):
@@ -455,22 +455,19 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: for g in digraphs.tournaments_nauty(4): # optional - nauty
-            ....:    print g.edges(labels = False)        # optional - nauty
+            sage: for g in digraphs.tournaments_nauty(4):
+            ....:    print g.edges(labels = False)
             [(1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
             [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(0, 2), (0, 3), (1, 0), (2, 1), (3, 1), (3, 2)]
             sage: tournaments = digraphs.tournaments_nauty
-            sage: [len(list(tournaments(x))) for x in range(1,8)] # optional - nauty
+            sage: [len(list(tournaments(x))) for x in range(1,8)]
             [1, 1, 2, 4, 12, 56, 456]
-            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)] # optional - nauty
+            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)]
             [1, 0, 1, 1, 6, 35, 353, 6008]
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("The optional nauty spkg does not seem to be installed")
 
         nauty_input = options
 
@@ -721,7 +718,7 @@ class DiGraphGenerators():
         When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to the
         de Bruijn digraph of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -758,11 +755,11 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [RPK80] S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
+        .. [RPK80] \S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
           minimal diameter and maximal connectivity, School Eng., Oakland Univ.,
           Rochester MI, Tech. Rep., July 1980.
 
-        .. [RPK83] S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
+        .. [RPK83] \S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
           Processor Interconnection. *IEEE International Conference on Parallel
           Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
         """
@@ -795,7 +792,7 @@ class DiGraphGenerators():
         the digraph of Imase and Itoh is isomorphic to the Kautz digraph
         [Kautz68]_ of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -831,7 +828,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [II83] M. Imase and M. Itoh. A design for directed graphs with
+        .. [II83] \M. Imase and M. Itoh. A design for directed graphs with
           minimum diameter, *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
         """
         if n < 2:
@@ -868,7 +865,7 @@ class DiGraphGenerators():
         See also the
         :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
 
-        INPUTS:
+        INPUT:
 
         - ``k`` -- Two possibilities for this parameter :
             - An integer equal to the degree of the digraph to be produced, that
@@ -935,7 +932,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [Kautz68] W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
+        .. [Kautz68] \W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
           cellular logic networks and machines, AFCRL-68-0668, SRI Project 7258,
           Final Rep., pp. 20-28, 1968.
         """
@@ -946,7 +943,7 @@ class DiGraphGenerators():
         from sage.rings.integer import Integer
 
         my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.size_of_alphabet() < 2:
+        if my_alphabet.alphabet().cardinality() < 2:
             raise ValueError("Kautz digraphs are defined for degree at least one.")
 
         if vertices == 'strings':
@@ -1052,7 +1049,7 @@ class DiGraphGenerators():
         Returns a random digraph on `n` nodes. Each edge is inserted
         independently with probability `p`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- number of nodes of the digraph
 
@@ -1065,10 +1062,10 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [1] P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
+        .. [1] \P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
                (1959).
 
-        .. [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+        .. [2] \E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
 
         PLOTTING: When plotting, this graph will use the default spring-layout

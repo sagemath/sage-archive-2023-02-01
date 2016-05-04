@@ -24,7 +24,7 @@ def excepthook(*exc):
 
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
-                "sage-%s.log" % os.environ['SAGE_VERSION'])
+                "sagelib-%s.log" % os.environ['SAGE_VERSION'])
     except:
         pass
     else:
@@ -71,23 +71,9 @@ include_dirs = sage_include_directories(use_sources=True)
 extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
 DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
-
-# Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
-# as witnessed by a doctest in sage/libs/gap/element.pyx if the
-# compiler flag -Og is used. See also
-# * http://trac.sagemath.org/sage_trac/ticket/14460
-# * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
-if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-dominator-opts')
 
 #########################################################
 ### Testing related stuff
@@ -324,6 +310,7 @@ def execute_list_of_commands(command_list):
 ########################################################################
 
 from distutils.command.build_ext import build_ext
+from distutils.command.install import install
 from distutils.dep_util import newer_group
 from distutils import log
 
@@ -634,6 +621,22 @@ print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
 
 #########################################################
+### Install also Jupyter kernel spec
+#########################################################
+
+# We cannot just add the installation of the kernel spec to data_files
+# since the file is generated, not copied.
+class sage_install(install):
+    def run(self):
+        install.run(self)
+        self.install_kernel_spec()
+
+    def install_kernel_spec(self):
+        from sage.repl.ipython_kernel.install import SageKernelSpec
+        SageKernelSpec.update()
+
+
+#########################################################
 ### Distutils
 #########################################################
 
@@ -647,6 +650,5 @@ code = setup(name = 'sage',
       packages    = python_packages,
       data_files  = python_data_files,
       scripts = [],
-      cmdclass = { 'build_ext': sage_build_ext },
+      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
       ext_modules = ext_modules)
-

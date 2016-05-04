@@ -28,7 +28,6 @@ import operator
 
 import homset
 
-include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
 
@@ -162,7 +161,10 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Category of endsets of unital magmas and right modules over (euclidean domains and infinite enumerated sets) and left modules over (euclidean domains and infinite enumerated sets)
+            Category of endsets of unital magmas and right modules over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+             and left modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)

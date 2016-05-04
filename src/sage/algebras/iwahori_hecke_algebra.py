@@ -29,7 +29,7 @@ from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWith
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.arith import is_square
+from sage.arith.all import is_square
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
@@ -281,15 +281,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [I64] N. Iwahori, On the structure of a Hecke ring of a
+    .. [I64] \N. Iwahori, On the structure of a Hecke ring of a
        Chevalley group over a finite field,  J. Fac. Sci. Univ. Tokyo Sect.
        I, 10 (1964), 215--236 (1964). :mathscinet:`MR0165016`
 
-    .. [HKP] T. J. Haines, R. E. Kottwitz, A. Prasad,
+    .. [HKP] \T. J. Haines, R. E. Kottwitz, A. Prasad,
        Iwahori-Hecke Algebras, J. Ramanujan Math. Soc., 25 (2010), 113--145.
        :arxiv:`0309168v3` :mathscinet:`MR2642451`
 
-    .. [J87] V. Jones, Hecke algebra representations of braid groups and
+    .. [J87] \V. Jones, Hecke algebra representations of braid groups and
        link polynomials.  Ann. of Math. (2) 126 (1987), no. 2, 335--388.
        :doi:`10.2307/1971403` :mathscinet:`MR0908150`
 
@@ -496,7 +496,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         # The following is used by the bar involution = self._bar_on_coefficients
         try:
-            self._inverse_base_ring_generators = { g: self.base_ring()(g).__pow__(-1)
+            self._inverse_base_ring_generators = { g: self.base_ring()(g) ** -1
                     for g in self.base_ring().variable_names()}
         except TypeError:
             self._inverse_base_ring_generators = {}
@@ -1262,8 +1262,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # This currently works better than ~(self._q1) if
                 # self.base_ring() is a Laurent polynomial ring since it
                 # avoids accidental coercion into a field of fractions.
-                i1 = normalized_laurent_polynomial(A._base, A._q1.__pow__(-1))
-                i2 = normalized_laurent_polynomial(A._base, A._q2.__pow__(-1))
+                i1 = normalized_laurent_polynomial(A._base, A._q1 ** -1)
+                i2 = normalized_laurent_polynomial(A._base, A._q2 ** -1)
             except Exception:
                 raise ValueError("%s and %s must be invertible."%(A._q1, A._q2))
             return (-i1*i2)*self.algebra_generator(i)+(i1+i2)

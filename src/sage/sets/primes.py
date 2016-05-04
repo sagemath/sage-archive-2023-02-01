@@ -23,7 +23,7 @@ AUTHORS:
 from sage.rings.all import ZZ
 from set import Set_generic
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.rings.arith import nth_prime
+from sage.arith.all import nth_prime
 from sage.structure.unique_representation import UniqueRepresentation
 
 

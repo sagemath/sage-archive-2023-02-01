@@ -428,11 +428,22 @@ class HighestWeightCrystals(Category_singleton):
                  to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
                 sage: type(H)
                 <class 'sage.categories.highest_weight_crystals.HighestWeightCrystalHomset_with_category'>
+
+            TESTS:
+
+            Check that we fallback first to trying a crystal homset
+            (:trac:`19458`)::
+
+                sage: Binf = crystals.infinity.Tableaux(['A',2])
+                sage: Bi = crystals.elementary.Elementary(Binf.cartan_type(), 1)
+                sage: tens = Bi.tensor(Binf)
+                sage: Hom(Binf, tens)
+                Set of Crystal Morphisms from ...
             """
             if category is None:
                 category = self.category()
-            elif not category.is_subcategory(HighestWeightCrystals()):
-                raise TypeError("{} is not a subcategory of HighestWeightCrystals()".format(category))
+            elif not category.is_subcategory(Crystals()):
+                raise TypeError("{} is not a subcategory of Crystals()".format(category))
             if Y not in Crystals():
                 raise TypeError("{} is not a crystal".format(Y))
             return HighestWeightCrystalHomset(self, Y, category=category, **options)

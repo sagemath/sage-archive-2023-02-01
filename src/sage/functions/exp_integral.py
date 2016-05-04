@@ -180,7 +180,7 @@ class Function_exp_integral_e(BuiltinFunction):
         Check that Python ints work (:trac:`14766`)::
 
             sage: exp_integral_e(int(3), 0)
-            0.5
+            1/2
         """
         z_zero = False
         # special case: z == 0 and n > 1

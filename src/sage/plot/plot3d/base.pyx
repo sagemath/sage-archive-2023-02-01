@@ -128,9 +128,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -496,7 +493,6 @@ cdef class Graphics3d(SageObject):
                 a_min[i] = a_min[i] - 1
                 a_max[i] = a_max[i] + 1
         return a_min, a_max
-
 
     def bounding_box(self):
         """
@@ -1297,8 +1293,6 @@ end_scene""" % (render_params.antialiasing,
 
            * 'tachyon': Ray tracer generates a static PNG image
 
-           * 'java3d': Interactive OpenGL based 3D
-
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
 
@@ -1740,6 +1734,20 @@ end_scene""" % (render_params.antialiasing,
         string_list += ['</volume></mesh></object></amf>']
         return "".join(string_list)
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+
+        EXAMPLES::
+
+            sage: S = sphere((0,0,0), 2)
+            sage: S.plot() is S
+            True
+
+        """
+        return self
 
 # if you add any default parameters you must update some code below
 SHOW_DEFAULTS = {'viewer': 'jmol',
@@ -1994,7 +2002,8 @@ class Graphics3dGroup(Graphics3d):
                 all.append(g)
         return Graphics3dGroup(all)
 
-
+    def plot(self):
+        return self
 
 class TransformGroup(Graphics3dGroup):
     """
@@ -2577,7 +2586,7 @@ def flatten_list(L):
         sage: flatten_list([['a'], [[['b'], 'c'], ['d'], [[['e', 'f', 'g']]]]])
         ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     """
-    if not PyList_CheckExact(L):
+    if type(L) is not list:
         return [L]
     flat = []
     L_stack = []; L_pop = L_stack.pop
@@ -2586,7 +2595,7 @@ def flatten_list(L):
     while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
         while i < PyList_GET_SIZE(L):
             tmp = <object>PyList_GET_ITEM(L, i)
-            if PyList_CheckExact(tmp):
+            if type(tmp) is list:
                 PyList_Append(L_stack, L)
                 L = tmp
                 PyList_Append(i_stack, i)

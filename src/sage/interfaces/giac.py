@@ -185,6 +185,7 @@ loaded.
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
@@ -258,7 +259,7 @@ class Giac(Expect):
 
 
     """
-    def __init__(self, maxread=10000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Giac interpreter.
 
@@ -272,7 +273,6 @@ class Giac(Expect):
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
-                        maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
                         server_tmpdir = server_tmpdir,
@@ -477,27 +477,27 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Returns a list of all the commands defined in Giac and optionally
         (per default) store them to disk.
 
         EXAMPLES::
 
-            sage: c = giac.trait_names(use_disk_cache=False, verbose=False) # optional - giac
+            sage: c = giac._tab_completion(use_disk_cache=False, verbose=False) # optional - giac
             sage: len(c) > 100  # optional - giac
             True
             sage: 'factors' in c  # optional - giac
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
@@ -505,7 +505,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200:
                 # Giac is actually installed.
                 sage.misc.persist.save(v, COMMANDS_CACHE)
@@ -888,15 +888,15 @@ class GiacElement(ExpectElement):
         else:
             return 1
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: a = giac(2) # optional - giac
-            sage: 'sin' in a.trait_names() # optional - giac
+            sage: 'sin' in a._tab_completion() # optional - giac
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
 
     def __len__(self):
@@ -985,7 +985,7 @@ class GiacElement(ExpectElement):
             matrix[[0,1-y,1-y^2,1-y^3],[x-1,x-y,x-y^2,x-y^3],[x^2-1,x^2-y,x^2-y^2,x^2-y^3],[x^3-1,x^3-y,x^3-y^2,x^3-y^3]]
             sage: M.eigenvals()       # random; optional - giac
             0,0,(x^3+x^2+x-y^3-y^2-y+sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2,(x^3+x^2+x-y^3-y^2-y-sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2
-            sage: Z=matrix(M,R);Z                                # optional - giac
+            sage: Z=matrix(R,M);Z                                # optional - giac
             [         0     -y + 1   -y^2 + 1   -y^3 + 1]
             [     x - 1      x - y   -y^2 + x   -y^3 + x]
             [   x^2 - 1    x^2 - y  x^2 - y^2 -y^3 + x^2]
@@ -1061,9 +1061,7 @@ class GiacElement(ExpectElement):
         ::
 
             sage: f = giac('exp(x^2)').integral('x',0,1) ; f                # optional - giac
-            integra...
-            sage: f.evalf(10)                                              # optional - giac
-            1.462651746
+            1.46265174...
             sage: x,y=giac('x'),giac('y');integrate(cos(x+y),'x=0..pi').simplify()     # optional - giac
             -2*sin(y)
         """
@@ -1135,7 +1133,10 @@ def giac_console():
         -------------------------------------------------
         Press CTRL and D simultaneously to finish session
         Type ?commandname for help
-        """
+    """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%giac magics instead.')
     os.system('giac')
 
 

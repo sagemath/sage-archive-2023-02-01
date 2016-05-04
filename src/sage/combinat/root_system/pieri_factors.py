@@ -19,7 +19,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 import sage.combinat.ranker
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.root_system import RootSystem
@@ -67,12 +67,12 @@ class PieriFactors(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-        .. [FoSta1994] S. Fomin, R. Stanley. Schubert polynomials and the nilCoxeter algebra. Advances in Math., 1994.
-        .. [BH1994] S. Billey, M. Haiman.  Schubert polynomials for the classical groups. J. Amer. Math. Soc., 1994.
-        .. [TKLam1996] T.K. Lam.  B and D analogues of stable Schubert polynomials and related insertion algorithms. PhD Thesis, MIT, 1996.
-        .. [Lam2008] T. Lam. Schubert polynomials for the affine Grassmannian.  J. Amer. Math. Soc., 2008.
-        .. [LSS2009] T. Lam, A. Schilling, M. Shimozono. Schubert polynomials for the affine Grassmannian of the symplectic group. Mathematische Zeitschrift 264(4) (2010) 765-811 (arXiv:0710.2720 [math.CO])
-        .. [Pon2010] S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
+        .. [FoSta1994] \S. Fomin, R. Stanley. Schubert polynomials and the nilCoxeter algebra. Advances in Math., 1994.
+        .. [BH1994] \S. Billey, M. Haiman.  Schubert polynomials for the classical groups. J. Amer. Math. Soc., 1994.
+        .. [TKLam1996] \T.K. Lam.  B and D analogues of stable Schubert polynomials and related insertion algorithms. PhD Thesis, MIT, 1996.
+        .. [Lam2008] \T. Lam. Schubert polynomials for the affine Grassmannian.  J. Amer. Math. Soc., 2008.
+        .. [LSS2009] \T. Lam, A. Schilling, M. Shimozono. Schubert polynomials for the affine Grassmannian of the symplectic group. Mathematische Zeitschrift 264(4) (2010) 765-811 (arXiv:0710.2720 [math.CO])
+        .. [Pon2010] \S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
     """
 
     def _repr_(self):

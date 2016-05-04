@@ -242,7 +242,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__eq__(Y2)
             False
         """
-        return type(self) is type(other) and self._digraph.__eq__(other._digraph)
+        return type(self) is type(other) and self._digraph == other._digraph
 
     def __ne__(self, other):
         r"""
@@ -266,7 +266,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__ne__(Y2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""

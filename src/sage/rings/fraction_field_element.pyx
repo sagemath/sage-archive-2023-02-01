@@ -10,7 +10,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Ho72] E. Horowitz, "Algorithms for Rational Function Arithmetic
+.. [Ho72] \E. Horowitz, "Algorithms for Rational Function Arithmetic
    Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
    the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
 
@@ -841,18 +841,6 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: K.<x,y> = Frac(ZZ['x,y'])
-            sage: x > y
-            True
-            sage: 1 > y
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
@@ -863,6 +851,14 @@ cdef class FractionFieldElement(FieldElement):
             sage: t+1/t == (t^2+1)/t
             True
             sage: t == t/5
+            False
+
+        ::
+
+            sage: K.<x,y> = Frac(ZZ['x,y'])
+            sage: x > y
+            True
+            sage: 1 > y
             False
         """
         return cmp(self.__numerator * \

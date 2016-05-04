@@ -354,9 +354,9 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-            .. [Deodhar1987] V.V. Deodhar, On some geometric aspects of Bruhat orderings II. The parabolic analogue of Kazhdan-Lusztig polynomials, J. Alg. 111 (1987) 483-506.
+            .. [Deodhar1987] \V.V. Deodhar, On some geometric aspects of Bruhat orderings II. The parabolic analogue of Kazhdan-Lusztig polynomials, J. Alg. 111 (1987) 483-506.
 
-            .. [LeclercThibon1998] B. Leclerc, J.-Y. Thibon, Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials, http://front.math.ucdavis.edu/9809.5122
+            .. [LeclercThibon1998] \B. Leclerc, J.-Y. Thibon, Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials, http://front.math.ucdavis.edu/9809.5122
 
         EXAMPLES::
 

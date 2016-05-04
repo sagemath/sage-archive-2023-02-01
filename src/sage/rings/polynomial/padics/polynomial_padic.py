@@ -73,6 +73,68 @@ class Polynomial_padic(Polynomial):
                 s += (x + var)
         return s or "0"
 
+    def content(self):
+        """
+        Compute the content of this polynomial.
+
+        OUTPUT:
+
+        If this is the zero polynomial, return the constant coefficient.
+        Otherwise, since the content is only defined up to a unit, return the
+        content as `\pi^k` with maximal precision where `k` is the minimal
+        valuation of any of the coefficients.
+
+        EXAMPLES::
+
+            sage: K = Zp(13,7)
+            sage: R.<t> = K[]
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f.content()
+            13^2 + O(13^9)
+            sage: R(0).content()
+            0
+            sage: f = R(K(0,3)); f
+            (O(13^3))
+            sage: f.content()
+            O(13^3)
+
+            sage: P.<x> = ZZ[]
+            sage: f = x + 2
+            sage: f.content()
+            1
+            sage: fp = f.change_ring(pAdicRing(2, 10))
+            sage: fp
+            (1 + O(2^10))*x + (2 + O(2^11))
+            sage: fp.content()
+            1 + O(2^10)
+            sage: (2*fp).content()
+            2 + O(2^11)
+
+        Over a field it would be sufficient to return only zero or one, as the
+        content is only defined up to multiplication with a unit. However, we
+        return `\pi^k` where `k` is the minimal valuation of any coefficient::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^-4
+            sage: f.content()
+            13^-4 + O(13^3)
+            sage: f = R.zero()
+            sage: f.content()
+            0
+            sage: f = R(K(0,3))
+            sage: f.content()
+            O(13^3)
+            sage: f = 13*t^3 + K(0,1)*t
+            sage: f.content()
+            13 + O(13^8)
+
+        """
+        if self.is_zero():
+            return self[0]
+        else:
+            return self.base_ring()(self.base_ring().prime_pow(min([x.valuation() for x in self.coefficients(sparse=False)])))
+
     def factor(self):
         """
         Return the factorization of this polynomial.

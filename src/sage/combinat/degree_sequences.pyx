@@ -48,8 +48,9 @@ Definitions
 
 A sequence of integers `d_1,...,d_n` is said to be a *degree sequence* (or
 *graphic* sequence) if there exists a graph in which vertex `i` is of degree
-`d_i`. It is often required to be *non-increasing*, i.e. that `d_1 \geq ... \geq
-d_n`.
+`d_i`. It is often required to be *non-increasing*, i.e. that
+`d_1 \geq ... \geq d_n`. Finding a graph with given degree sequence is
+known as *graph realization problem*.
 
 An integer sequence need not necessarily be a degree sequence. Indeed, in a
 degree sequence of length `n` no integer can be larger than `n-1` -- the degree
@@ -264,8 +265,8 @@ Checking the consistency of enumeration and test::
 
 from libc.string cimport memset
 from sage.rings.integer cimport Integer
-include 'sage/ext/stdsage.pxi'
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef unsigned char * seq
@@ -382,7 +383,7 @@ class DegreeSequences:
         Freeing the memory
         """
         if seq != NULL:
-            sage_free(seq)
+            sig_free(seq)
 
 cdef init(int n):
     """
@@ -398,7 +399,7 @@ cdef init(int n):
         return [[0]]
 
     sig_on()
-    seq = <unsigned char *> sage_malloc((n+1)*sizeof(unsigned char))
+    seq = <unsigned char *> sig_malloc((n+1)*sizeof(unsigned char))
     memset(seq,0,(n+1)*sizeof(unsigned char))
     sig_off()
 
@@ -408,7 +409,7 @@ cdef init(int n):
     N = n
     sequences = []
     enum(1,0)
-    sage_free(seq)
+    sig_free(seq)
     return sequences
 
 cdef inline add_seq():

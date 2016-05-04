@@ -46,7 +46,7 @@ from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.structure.sequence import Sequence
 from sage.structure.element import MonoidElement
 from sage.groups.old import Group
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.rings.all import ZZ
 
 

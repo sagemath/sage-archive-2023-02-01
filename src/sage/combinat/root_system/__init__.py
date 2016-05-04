@@ -35,6 +35,7 @@ Cartan datum
 - :ref:`sage.combinat.root_system.dynkin_diagram`
 - :ref:`sage.combinat.root_system.cartan_matrix`
 - :ref:`sage.combinat.root_system.coxeter_matrix`
+- :ref:`sage.combinat.root_system.coxeter_type`
 
 Root systems
 ------------
@@ -59,6 +60,16 @@ Coxeter groups
 .. SEEALSO::
 
     The categories :class:`CoxeterGroups` and :class:`WeylGroups`
+
+Finite reflection groups
+------------------------
+
+- :ref:`sage.combinat.root_system.reflection_group_complex`
+- :ref:`sage.combinat.root_system.reflection_group_real`
+
+.. SEEALSO::
+
+    The category :class:`~sage.categories.complex_reflection_groups.ComplexReflectionGroups`
 
 Representation theory
 ---------------------

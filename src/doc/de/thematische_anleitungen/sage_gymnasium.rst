@@ -572,7 +572,7 @@ Tupel besteht, welches das Interval des Definitionsbereichs angibt, also z.B. ``
 `[-\infty, 0]` und einer für das Interval geltende Funktionsgleichung. Als letztes Argument muss angegeben werden,
 welche Variable durch die Funktion gebunden werden soll::
 
-    sage: f = Piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], x)
+    sage: f = piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], var=x)
     sage: f(3)
     9
     sage: f(-3)
@@ -916,7 +916,7 @@ Die Addition von Vektoren könnte also zum Beispiel wie folgt veranschaulicht we
     sage: v1 = arrow((0,0), (3,4))
     sage: v2 = arrow((3,4), (6,1))
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red')
-    sage: plot(v1 + v2 + sum_v1_v2)
+    sage: v1 + v2 + sum_v1_v2
     Graphics object consisting of 3 graphics primitives
 
 Falls die Vektorpfeile zu dick oder zu dünn sind, kann mit der ``width`` Option die Strichbreite angepasst werden.
@@ -926,8 +926,8 @@ in der Grafik erwünscht sind::
     sage: v1 = arrow((0,0), (3,4), width=5)
     sage: v2 = arrow((3,4), (6,1), width=5)
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red', width=6)
-    sage: plot(v1 + v2 + sum_v1_v2, gridlines=true)
-    Graphics object consisting of 3 graphics primitives
+    sage: G = v1 + v2 + sum_v1_v2
+    sage: G.show(gridlines=true)
 
 Analysis
 ========

@@ -91,8 +91,10 @@ Libraries of algorithms
    sage/graphs/graph_latex
    sage/graphs/graph_editor
    sage/graphs/graph_list
+   sage/graphs/graph_input
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial
+   sage/graphs/partial_cube
    sage/graphs/generic_graph_pyx
 
 .. include:: ../footer.txt

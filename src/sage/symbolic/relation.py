@@ -76,7 +76,7 @@ Multiply two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
@@ -87,11 +87,11 @@ Divide two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) == (5*x + 1)/sin(2*pi + x)
     sage: m = x != 5*x + 1
-    sage: n = sin(x) != sin(x+2*pi)
+    sage: n = sin(x) != sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) != (5*x + 1)/sin(2*pi + x)
 
@@ -280,7 +280,7 @@ More Examples
 
     sage: f = x^5 + a
     sage: solve(f==0,x)
-    [x == (-a)^(1/5)*e^(2/5*I*pi), x == (-a)^(1/5)*e^(4/5*I*pi), x == (-a)^(1/5)*e^(-4/5*I*pi), x == (-a)^(1/5)*e^(-2/5*I*pi), x == (-a)^(1/5)]
+    [x == 1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(2*sqrt(5) + 10) - 1), x == -1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(-2*sqrt(5) + 10) + 1), x == -1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + 1), x == 1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(2*sqrt(5) + 10) - 1), x == (-a)^(1/5)]
 
 You can also do arithmetic with inequalities, as illustrated
 below::
@@ -617,7 +617,7 @@ def solve(f, *args, **kwds):
     for symbolic expressions, which defaults to exact answers only::
 
         sage: solve([y^6==y],y)
-        [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi), y == e^(-2/5*I*pi), y == 1, y == 0]
+        [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
         sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
         True
 
@@ -764,7 +764,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=1)
         []
 
-    This inequality holds for any real ``x`` (trac #8078)::
+    This inequality holds for any real ``x`` (:trac:`8078`)::
 
         sage: solve(x^4+2>0,x)
         [x < +Infinity]

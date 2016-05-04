@@ -417,7 +417,7 @@ def spanning_stars(M):
     EXAMPLES::
 
         sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
-        sage: Graph(map(lambda (x,y): (x+3,y), edges)).is_connected()
+        sage: Graph([(x+3, y) for x,y in edges]).is_connected()
         True
     """
 

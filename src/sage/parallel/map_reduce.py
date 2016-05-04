@@ -487,10 +487,10 @@ Generating series for sum of strictly decreassing list of integer smaller than
 
     sage: y = polygen(ZZ, 'y')
     sage: R = RESetMapReduce(
-    ....:  roots = [([], 0, 0)] +[([i], i, i) for i in range(1,15)],
-    ....:  children = lambda (list, sum, last):
-    ....:      [(list + [i], sum + i, i) for i in range(1,last)],
-    ....:  map_function = lambda (li, sum, unused): y**sum)
+    ....:     roots = [([], 0, 0)] +[([i], i, i) for i in range(1,15)],
+    ....:     children = lambda list_sum_last:
+    ....:         [(list_sum_last[0] + [i], list_sum_last[1] + i, i) for i in range(1, list_sum_last[2])],
+    ....:     map_function = lambda li_sum_dummy: y**li_sum_dummy[1])
     sage: sg = R.run()
     sage: bool(sg == expand(prod((1+y^i) for i in range(1,15))))
     True

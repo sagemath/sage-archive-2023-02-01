@@ -1124,10 +1124,10 @@ Alternatively, we could construct an iterator on the counter-examples::
 
         sage: cubes = [t**3 for t in range(-999,1000)]
         sage: exists([(x,y) for x in cubes for y in cubes],  # long time (3s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
         sage: exists(((x,y) for x in cubes for y in cubes),  # long time (2s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
 
     Which of the last two is more economical in terms of time? In terms

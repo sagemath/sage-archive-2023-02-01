@@ -162,7 +162,9 @@ def kirkman_triple_system(v,existence=False):
         sage: kts = designs.kirkman_triple_system(15)
         sage: classes = kts.is_resolvable(1)[1]
         sage: names = '0123456789abcde'
-        sage: to_name = lambda (r,s,t): ' '+names[r]+names[s]+names[t]+' '
+        sage: def to_name(r_s_t):
+        ....:     r, s, t = r_s_t
+        ....:     return ' ' + names[r] + names[s] + names[t] + ' '
         sage: rows = ['   '.join(('Day {}'.format(i) for i in range(1,8)))]
         sage: rows.extend('   '.join(map(to_name,row)) for row in zip(*classes))
         sage: print '\n'.join(rows)

@@ -50,7 +50,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -2308,17 +2308,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
         ``.T`` is a convenient shortcut for the transpose::
 
-            sage: print A.T
+            sage: print(A.T)
             [0 3]
             [1 4]
             [2 5]

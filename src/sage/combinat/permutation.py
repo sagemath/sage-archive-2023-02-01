@@ -2780,11 +2780,20 @@ class Permutation(CombinatorialElement):
         r"""
         Return the list of the descents of ``self``.
 
-        A descent of a permutation ``p`` is an integer ``i`` such that
-        ``p(i) > p(i+1)``.
+        A descent of a permutation `p` is an integer `i` such that
+        `p(i) > p(i+1)`.
 
-        With the ``final_descent`` option, the last position of a non-empty
-        permutation is also considered as a descent.
+        INPUT:
+
+        - ``final_descent`` -- optional boolean (default ``False``)
+          If ``True``, the last position of a non-empty
+          permutation is also considered as a descent.
+
+        - ``side`` -- optional, ``'right'`` (default) or ``'left'``
+          If ``'left'``, return the descents of the inverse permutation.
+
+        - ``positive`` -- optional boolean (default ``False``)
+          If ``True``, return the positions that are not descents.
 
         EXAMPLES::
 

@@ -19,7 +19,7 @@ parameters `k=2` and `n=3`::
     00010111
     sage: shift = lambda i: [(i+j)%2**3 for j in range(3)]
     sage: for i in range(2**3):
-    ....:    print(Word(map(lambda (j,b): b if j in shift(i) else '*',
+    ....:    print (Word(map(lambda (j,b): b if j in shift(i) else '*',
     ....:                                     enumerate(seq))).string_rep())
     000*****
     *001****

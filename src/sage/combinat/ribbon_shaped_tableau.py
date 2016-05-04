@@ -341,12 +341,11 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
         if comp == []:
             return self.element_class(self, [p[:]])
 
-        #[p[j]$j=compo[i]+1..compo[i+1]] $i=1..nops(compo)-1, [p[j]$j=compo[nops(compo)]+1..nops(p)]
         r = []
-        r.append([p[j] for j in range(comp[0]+1)])
+        r.append([p[j] for j in range(comp[0])])
         for i in range(len(comp)-1):
-            r.append([ p[j] for j in range(comp[i]+1,comp[i+1]+1) ])
-        r.append( [ p[j] for j in range(comp[-1]+1, len(p))] )
+            r.append([ p[j] for j in range(comp[i],comp[i+1]) ])
+        r.append( [ p[j] for j in range(comp[-1], len(p))] )
         r.reverse()
         return self.element_class(self, r)
 

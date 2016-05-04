@@ -472,6 +472,7 @@ class ToricPlotter(SageObject):
 
             sage: from sage.geometry.toric_plotter import ToricPlotter
             sage: tp = ToricPlotter(dict(), 2)
+            sage: tp.adjust_options()
             sage: tp.plot_lattice()
             Graphics object consisting of 1 graphics primitive
         """
@@ -515,6 +516,7 @@ class ToricPlotter(SageObject):
 
             sage: from sage.geometry.toric_plotter import ToricPlotter
             sage: tp = ToricPlotter(dict(), 2)
+            sage: tp.adjust_options()
             sage: tp.plot_points([(1,0), (0,1)])
             Graphics object consisting of 1 graphics primitive
         """

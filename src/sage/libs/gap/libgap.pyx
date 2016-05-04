@@ -259,7 +259,7 @@ from sage.libs.gap.element cimport *
 ############################################################################
 
 cdef void report(libGAP_Obj bag):
-    print libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag)
+    print(libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag))
 
 
 cdef void print_gasman_objects():

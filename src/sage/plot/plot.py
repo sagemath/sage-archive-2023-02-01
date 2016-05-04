@@ -222,7 +222,7 @@ of a single polygon)::
 We combine together different graphics objects using "+"::
 
     sage: H = G + P + Q
-    sage: print H
+    sage: print(H)
     Graphics object consisting of 3 graphics primitives
     sage: type(H)
     <class 'sage.plot.graphics.Graphics'>
@@ -292,7 +292,7 @@ the first few zeros::
     sage: i = CDF.0      # define i this way for maximum speed.
     sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
     sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,color=hue(0.7))
-    sage: print p1 + p2
+    sage: print(p1 + p2)
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
     Graphics object consisting of 2 graphics primitives
@@ -544,7 +544,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import os
 from functools import reduce
@@ -980,7 +980,7 @@ def plot(funcs, *args, **kwds):
 
     We plot the `\sin` function::
 
-        sage: P = plot(sin, (0,10)); print P
+        sage: P = plot(sin, (0,10)); print(P)
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
         1
@@ -996,7 +996,7 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: P = plot(sin, (0,10), plot_points=10); print P
+        sage: P = plot(sin, (0,10), plot_points=10); print(P)
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
         32
@@ -3231,7 +3231,7 @@ def graphics_array(array, nrows=None, ncols=None):
 
         sage: p1 = plot(sin,(-4,4))
         sage: p2 = plot(cos,(-4,4))
-        sage: g = graphics_array([p1, p2]); print g
+        sage: g = graphics_array([p1, p2]); print(g)
         Graphics Array of size 1 x 2
         sage: g.show()
 

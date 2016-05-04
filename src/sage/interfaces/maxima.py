@@ -61,7 +61,7 @@ use the print command: use ``str(x)``.
 
 ::
 
-    sage: print F
+    sage: print(F)
                                4      3    2  2    3      4
                    - (y - x) (y  + x y  + x  y  + x  y + x )
 
@@ -81,7 +81,7 @@ maxima and returns the result as a *string* not a maxima object.
 
 ::
 
-    sage: print maxima.eval('factor(x^5 - y^5)')
+    sage: print(maxima.eval('factor(x^5 - y^5)'))
     -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
 
 We can create the polynomial `f` as a Maxima polynomial,
@@ -271,7 +271,7 @@ We illustrate Laplace transforms::
     sage: _ = maxima.eval("f(t) := t^5*exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
     360*(2*s-2)/(s^2-2*s+2)^4-480*(2*s-2)^3/(s^2-2*s+2)^5+120*(2*s-2)^5/(s^2-2*s+2)^6
-    sage: print maxima("laplace(f(t),t,s)")
+    sage: print(maxima("laplace(f(t),t,s)"))
                                              3                 5
                360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
               --------------- - --------------- + ---------------
@@ -291,7 +291,7 @@ We illustrate Laplace transforms::
 It is difficult to read some of these without the 2d
 representation::
 
-    sage: print maxima("laplace(diff(x(t),t,2),t,s)")
+    sage: print(maxima("laplace(diff(x(t),t,2),t,s)"))
                          !
                 d        !         2
               - -- (x(t))!      + s  laplace(x(t), t, s) - x(0) s
@@ -341,7 +341,7 @@ You can formally evaluate sums (note the ``nusum``
 command)::
 
     sage: S = maxima('nusum(exp(1+2*i/n),i,1,n)')
-    sage: print S
+    sage: print(S)
                             2/n + 3                   2/n + 1
                           %e                        %e
                    ----------------------- - -----------------------
@@ -463,6 +463,7 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
@@ -729,11 +730,10 @@ class Maxima(MaximaAbstract, Expect):
                 self._expect_expr()
                 raise ValueError(msg)
         except KeyboardInterrupt as msg:
-            #print self._expect.before
             i = 0
             while True:
                 try:
-                    print "Control-C pressed.  Interrupting Maxima. Please wait a few seconds..."
+                    print("Control-C pressed.  Interrupting Maxima. Please wait a few seconds...")
                     self._sendstr('quit;\n'+chr(3))
                     self._sendstr('quit;\n'+chr(3))
                     self.interrupt()
@@ -913,7 +913,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima._crash_msg()
             Maxima crashed -- automatically restarting.
         """
-        print "Maxima crashed -- automatically restarting."
+        print("Maxima crashed -- automatically restarting.")
 
     def _error_check(self, cmd, out):
         """
@@ -1180,7 +1180,7 @@ class MaximaElement(MaximaAbstractElement, ExpectElement):
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
-            print s
+            print(s)
         else:
             return s
 

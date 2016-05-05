@@ -2794,6 +2794,38 @@ class NumberField_generic(number_field_base.NumberField):
             [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
             [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
             
+        This example was suggested on sage-nt; see :trac:`18942`::
+
+            sage: G=DirichletGroup(80);
+            sage: for chi in G:
+            ....:    D=ModularSymbols(chi,2,-1).cuspidal_subspace().new_subspace().decomposition()
+            ....:    for f in D:
+            ....:        elt=f.q_eigenform(10,'alpha')[3];
+            ....:        print(elt.is_integral())
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+            True
+
         """
         return hash((self.variable_name(), self.base_field(), tuple(self.__relative_polynomial)))
     

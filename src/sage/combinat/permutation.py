@@ -2635,7 +2635,7 @@ class Permutation(CombinatorialElement):
         """
         p = self[:]
         rws = []
-        descents = self.descents()
+        descents = self.descents(from_zero=False)
 
         if not descents:
             return [[]]
@@ -2776,12 +2776,16 @@ class Permutation(CombinatorialElement):
     # Descents #
     ############
 
-    def descents(self, final_descent=False, side='right', positive=False):
+    def descents(self, final_descent=False, side='right', positive=False,
+                 from_zero=True):
         r"""
         Return the list of the descents of ``self``.
 
         A descent of a permutation `p` is an integer `i` such that
         `p(i) > p(i+1)`.
+
+        By default, the descents are returned as python indices,
+        starting at zero.
 
         INPUT:
 
@@ -2795,13 +2799,18 @@ class Permutation(CombinatorialElement):
         - ``positive`` -- optional boolean (default ``False``)
           If ``True``, return the positions that are not descents.
 
+        - ``from_zero`` -- optional boolean (default ``True``)
+          If ``False``, return the positions starting from `1`
+
         EXAMPLES::
 
             sage: Permutation([3,1,2]).descents()
-            [1]
+            [0]
             sage: Permutation([1,4,3,2]).descents()
-            [2, 3]
+            [1, 2]
             sage: Permutation([1,4,3,2]).descents(final_descent=True)
+            [1, 2, 3]
+            sage: Permutation([1,4,3,2]).descents(from_zero=False)
             [2, 3, 4]
         """
         if side == 'right':
@@ -2820,9 +2829,12 @@ class Permutation(CombinatorialElement):
         if final_descent:
             descents.append(len(p))
 
+        if from_zero:
+            return [i - 1 for i in descents]
+
         return descents
 
-    def idescents(self, final_descent=False):
+    def idescents(self, final_descent=False, from_zero=True):
         """
         Return a list of the idescents of ``self``, that is the list of
         the descents of ``self``'s inverse.
@@ -2830,19 +2842,31 @@ class Permutation(CombinatorialElement):
         A descent of a permutation ``p`` is an integer ``i`` such that
         ``p(i) > p(i+1)``.
 
-        With the ``final_descent`` option, the last position of a
-        non-empty permutation is also considered as a descent.
+        By default, the idescents are returned as python indices,
+        starting at zero.
+
+        INPUT:
+
+        - ``final_descent`` -- optional boolean (default ``False``)
+          If ``True``, the last position of a non-empty
+          permutation is also considered as a descent.
+
+        - ``from_zero`` -- optional boolean (default ``True``)
+          If ``False``, return the positions starting from `1`
 
         EXAMPLES::
 
             sage: Permutation([2,3,1]).idescents()
-            [1]
+            [0]
             sage: Permutation([1,4,3,2]).idescents()
-            [2, 3]
+            [1, 2]
             sage: Permutation([1,4,3,2]).idescents(final_descent=True)
-            [2, 3, 4]
+            [1, 2, 3]
+            sage: Permutation([1,4,3,2]).idescents(from_zero=False)
+            [2, 3]
         """
-        return self.inverse().descents(final_descent=final_descent)
+        return self.inverse().descents(final_descent=final_descent,
+                                       from_zero=from_zero)
 
     def idescents_signature(self, final_descent=False):
         """
@@ -2925,7 +2949,7 @@ class Permutation(CombinatorialElement):
         """
         if len(self) == 0:
             return Composition([])
-        d = [0] + self.descents() + [len(self)]
+        d = [0] + self.descents(from_zero=False) + [len(self)]
         return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
 
     def descent_polynomial(self):
@@ -2998,7 +3022,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).major_index()
             6
         """
-        descents = self.descents(final_descent)
+        descents = self.descents(final_descent, from_zero=False)
 
         return sum(descents)
 
@@ -3611,7 +3635,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         pred = []
         if side == "right":
-            for d in p.descents():
+            for d in p.descents(from_zero=False):
                 pp = p[:]
                 pp[d - 1] = p[d]
                 pp[d] = p[d - 1]
@@ -6426,7 +6450,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: x.descents()
+                sage: x.descents(from_zero=False)
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 3]
@@ -6484,7 +6508,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: (~x).descents()
+                sage: (~x).descents(from_zero=False)
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 2]
@@ -7376,7 +7400,7 @@ def from_major_code(mc, final_descent=False):
         #Lemma 2.2 in Skandera
 
         #Get the descents of w and place them in reverse order
-        d = Permutation(w, check_input=False).descents(final_descent=final_descent)
+        d = Permutation(w, check_input=False).descents(final_descent=final_descent, from_zero=False)
         d.reverse()
 
         #a is the list of all positions which are not descents

@@ -473,7 +473,7 @@ cdef class FiniteField(Field):
 
         REFERENCES:
 
-        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+        .. [Coh] \H. Cohen, A Course in Computational Algebraic Number
            Theory.  Springer-Verlag, 1993.
 
         .. [Yun] Yun, David YY. On square-free decomposition algorithms.
@@ -1162,7 +1162,7 @@ cdef class FiniteField(Field):
 
         TESTS:
 
-        We check that trac #18915 is fixed::
+        We check that :trac:`18915` is fixed::
 
             sage: F = GF(2)
             sage: F.extension(int(3), 'a')

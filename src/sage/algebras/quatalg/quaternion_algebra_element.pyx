@@ -213,7 +213,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: int(A(-3))
             -3
             sage: int(A(-3/2))
-            -2
+            -1
             sage: int(-3 + i)
             Traceback (most recent call last):
             ...
@@ -234,7 +234,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: long(A(-3))
             -3L
             sage: long(A(-3/2))
-            -2L
+            -1L
             sage: long(-3 + i)
             Traceback (most recent call last):
             ...
@@ -617,7 +617,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             v = [(self*a).coefficient_tuple() for a in self._parent.basis()]
         else:
             raise ValueError, "action must be either 'left' or 'right'"
-        return matrix(self.base_ring(), 4, v, check=False)
+        return matrix(self.base_ring(), 4, v)
 
     def coefficient_tuple(self):
         """

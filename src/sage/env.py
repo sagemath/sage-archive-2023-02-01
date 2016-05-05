@@ -165,7 +165,7 @@ def sage_include_directories(use_sources=False):
         sage: sage.env.sage_include_directories()
         ['.../include',
         '.../include/python...',
-        '.../python.../site-packages/numpy/core/include',
+        '.../python.../numpy/core/include',
         '.../python.../site-packages',
         '.../python.../site-packages/sage/ext']
     """

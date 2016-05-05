@@ -239,7 +239,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: symbolic_evalue
             1/2*sqrt(5) - 1/2
 
-            sage: qqbar_evalue == symbolic_evalue
+            sage: bool(qqbar_evalue == symbolic_evalue)
             True
 
         A slightly larger matrix with a "nice" spectrum. ::

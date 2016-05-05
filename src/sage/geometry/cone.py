@@ -2294,7 +2294,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         C1 and C2 are equal, but not identical. We currently want them
         to have non identical face lattices, even if the faces
-        themselves are equal (see #10998)::
+        themselves are equal (see :trac:`10998`)::
 
             sage: C1.face_lattice() is C2.face_lattice()
             False
@@ -4482,7 +4482,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Rockafellar] R.T. Rockafellar. Convex Analysis. Princeton
+        .. [Rockafellar] \R.T. Rockafellar. Convex Analysis. Princeton
            University Press, Princeton, 1970.
 
         EXAMPLES:
@@ -4564,7 +4564,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Orlitzky] M. Orlitzky. The Lyapunov rank of an improper cone.
+        .. [Orlitzky] \M. Orlitzky. The Lyapunov rank of an improper cone.
            http://www.optimization-online.org/DB_HTML/2015/10/5135.html
 
         EXAMPLES:
@@ -4655,7 +4655,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M. Orlitzky. The Lyapunov rank of an improper cone.
         http://www.optimization-online.org/DB_HTML/2015/10/5135.html
 
-        .. [Rudolf] G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
+        .. [Rudolf] \G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
            Bilinear optimality constraints for the cone of positive
            polynomials. Mathematical Programming, Series B, 129 (2011) 5-31.
 
@@ -4824,7 +4824,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
+        .. [Gowda-Tao] \M.S. Gowda and J. Tao. On the bilinearity rank of
            a proper cone and Lyapunov-like transformations. Mathematical
            Programming, 147 (2014) 155-170.
 
@@ -5240,7 +5240,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
       cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
       don't care.
 
-    * ``solid`` (defalt: random) -- Whether or not to make the returned
+    * ``solid`` (default: random) -- Whether or not to make the returned
       cone solid. Specify ``True`` for a solid cone, ``False`` for a
       non-solid cone, or ``None`` if you don't care.
 

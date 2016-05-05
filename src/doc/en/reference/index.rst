@@ -88,6 +88,7 @@ Geometry and Topology
 * :doc:`Differential Forms <tensor/index>`
 * :doc:`Manifolds <manifolds/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
+* :doc:`Knot Theory <knots/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------

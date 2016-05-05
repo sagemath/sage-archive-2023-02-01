@@ -14,14 +14,16 @@ Numerical Optimization
    sage/numerical/optimize
    sage/numerical/interactive_simplex_method
 
-Linear Optimization (LP) Solver backends
-----------------------------------------
+Linear Optimization (LP) and Mixed Integer Linear Optimization (MIP) Solver backends
+------------------------------------------------------------------------------------
 
 .. toctree::
    :maxdepth: 1
 
    sage/numerical/backends/generic_backend
+   sage/numerical/backends/interactivelp_backend
    sage/numerical/backends/glpk_backend
+   sage/numerical/backends/glpk_exact_backend
    sage/numerical/backends/glpk_graph_backend
    sage/numerical/backends/ppl_backend
    sage/numerical/backends/cvxopt_backend

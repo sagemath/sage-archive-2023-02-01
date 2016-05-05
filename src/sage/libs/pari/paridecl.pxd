@@ -4034,6 +4034,8 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     serchop0(GEN s)
     GEN     sqrtnint(GEN a, long n)
     GEN     teich(GEN x)
+    GEN     teichmullerinit(long p, long n)
+    GEN     teichmuller(GEN x, GEN tab)
     GEN     trans_eval(char *fun, GEN (*f) (GEN, long), GEN x, long prec)
     ulong   upowuu(ulong p, ulong k)
     ulong   usqrtn(ulong a, ulong n)

@@ -38,7 +38,7 @@ to be preserved::
     sage: w[0] = 'hi'
     Traceback (most recent call last):
     ...
-    TypeError: unable to convert hi to a rational
+    TypeError: unable to convert 'hi' to a rational
 
 However, if you do ``w = Sequence(v)`` and the resulting universe
 is ``Objects()``, the elements are not guaranteed to have any

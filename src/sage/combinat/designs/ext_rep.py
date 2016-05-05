@@ -11,7 +11,7 @@ written by Peter Dobcsanyi [D2009]_ peter@designtheory.org.
 
 REFERENCES:
 
-.. [D2009] P. Dobcsanyi et al. DesignTheory.org
+.. [D2009] \P. Dobcsanyi et al. DesignTheory.org
    http://designtheory.org/database/
 
 .. TODO::

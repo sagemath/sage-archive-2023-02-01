@@ -27,7 +27,7 @@ method of univariate polynomial ring objects and the top-level
 
 import sys
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from libc.string cimport memset
 
@@ -149,7 +149,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
     if (<object>max_deg)*sizeof(long) > sys.maxsize:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
-    cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>sig_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     memset(coeffs, 0, sizeof(long) * (max_deg+1))
@@ -195,7 +195,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     else:
         L = [coeffs[k] for k from offset <= k <= deg]
 
-    sage_free(coeffs)
+    sig_free(coeffs)
     return L
 
 def cyclotomic_value(n, x):
@@ -298,7 +298,7 @@ def cyclotomic_value(n, x):
 
     P = parent_c(x)
     try:
-        return P(pari.polcyclo_eval(n, x).sage())
+        return P(pari.polcyclo(n, x).sage())
     except Exception:
         pass
     one = P(1)
@@ -330,7 +330,7 @@ def cyclotomic_value(n, x):
             return x
     xd = [x] # the x^d for d | n
     cdef char mu
-    cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
+    cdef char* md = <char*>sig_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
     try:
         md[0] = 1
         if L & 1:
@@ -358,7 +358,7 @@ def cyclotomic_value(n, x):
                 else:
                     den *= xpow - one
     finally:
-        sage_free(md)
+        sig_free(md)
     try:
         ans = num / den
     except ZeroDivisionError:

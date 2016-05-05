@@ -123,7 +123,7 @@ Methods
 #*****************************************************************************
 
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from libc.string cimport memset
@@ -313,7 +313,7 @@ def mkgraph(int num_vertices):
     from sage.graphs.graph import Graph
     g = Graph()
 
-    cdef subset_t * tab = <subset_t *> sage_malloc(sizeof(subset_t) * (2*num_vertices -1))
+    cdef subset_t * tab = <subset_t *> sig_malloc(sizeof(subset_t) * (2*num_vertices -1))
     tab[0] = 0x7ffffffful >> (31 - num_vertices)
 
     cdef int beg = 0
@@ -335,7 +335,7 @@ def mkgraph(int num_vertices):
         tab[end] = cslots[s]
         end += 1
 
-    sage_free(tab)
+    sig_free(tab)
     return g
 
 cdef bitset_to_vertex_set(subset_t s):

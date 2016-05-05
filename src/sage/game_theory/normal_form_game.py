@@ -104,7 +104,7 @@ To compute this in Sage we have::
 
     sage: for ne in battle_of_the_sexes.obtain_nash(algorithm='enumeration'):
     ....:     print("Utility for {}: ".format(ne))
-    ....:     print(vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1]))
+    ....:     print("{} {}".format(vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])))
     Utility for [(0, 1), (0, 1)]:
     2 3
     Utility for [(3/4, 1/4), (1/4, 3/4)]:

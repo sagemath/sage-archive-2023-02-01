@@ -166,7 +166,7 @@ def mpc_sqrt(tuple z, int prec, str rnd='d'):
         sage: from mpmath.libmp import mpc_sqrt, from_float, to_float
         sage: z = from_float(-2), from_float(0)
         sage: re, im = mpc_sqrt(z, 53, 'n')
-        sage: to_float(re), to_float(im)
+        sage: to_float(re), to_float(im)  # abs tol 1e-11
         (0.0, 1.41421356237)
 
     """
@@ -189,7 +189,7 @@ def mpc_exp(tuple z, int prec, str rnd='d'):
         sage: from mpmath.libmp import mpc_exp, from_float, to_float
         sage: z = from_float(0), from_float(1)
         sage: re, im = mpc_exp(z, 53, 'n')
-        sage: to_float(re), to_float(im)
+        sage: to_float(re), to_float(im)  # abs tol 1e-11
         (0.540302305868, 0.841470984808)
 
     """

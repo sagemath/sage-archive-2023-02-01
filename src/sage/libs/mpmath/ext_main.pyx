@@ -1188,11 +1188,11 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: mp.sqrt(2)   # indirect doctest
+            sage: print(mp.sqrt(2))   # indirect doctest
             1.4142135623731
-            sage: mp.sqrt(-2)
+            sage: print(mp.sqrt(-2))
             (0.0 + 1.4142135623731j)
-            sage: mp.sqrt(2+2j)
+            sage: print(mp.sqrt(2+2j))
             (1.55377397403004 + 0.643594252905583j)
 
         """
@@ -1226,9 +1226,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: mp.exp(2)   # indirect doctest
+            sage: print(mp.exp(2))   # indirect doctest
             7.38905609893065
-            sage: mp.exp(2+2j)
+            sage: print(mp.exp(2+2j))
             (-3.07493232063936 + 6.71884969742825j)
 
         """
@@ -1258,9 +1258,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: mp.cos(2)   # indirect doctest
+            sage: print(mp.cos(2))   # indirect doctest
             -0.416146836547142
-            sage: mp.cos(2+2j)
+            sage: print(mp.cos(2+2j))
             (-1.56562583531574 - 3.29789483631124j)
 
         """
@@ -1295,9 +1295,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: mp.sin(2)   # indirect doctest
+            sage: print(mp.sin(2))   # indirect doctest
             0.909297426825682
-            sage: mp.sin(2+2j)
+            sage: print(mp.sin(2+2j))
             (3.42095486111701 - 1.50930648532362j)
 
         """
@@ -1331,11 +1331,11 @@ cdef class Context:
         EXAMPLES::
 
             sage: from mpmath import mp
-            sage: mp.ln(2)   # indirect doctest
+            sage: print(mp.ln(2))   # indirect doctest
             0.693147180559945
-            sage: mp.ln(-2)
+            sage: print(mp.ln(-2))
             (0.693147180559945 + 3.14159265358979j)
-            sage: mp.ln(2+2j)
+            sage: print(mp.ln(2+2j))
             (1.03972077083992 + 0.785398163397448j)
 
         """
@@ -2214,9 +2214,9 @@ cdef class constant(mpf_base):
         custom precision and rounding direction can also be passed ::
 
             sage: from mpmath import pi
-            sage: pi(dps=5, rounding='d')
+            sage: print(pi(dps=5, rounding='d'))
             3.1415901184082
-            sage: pi(dps=5, rounding='u')
+            sage: print(pi(dps=5, rounding='u'))
             3.14159393310547
 
         """
@@ -2306,7 +2306,7 @@ cdef class constant(mpf_base):
         Computes the square root of the constant ::
 
             sage: from mpmath import pi
-            sage: pi.sqrt()
+            sage: print(pi.sqrt())
             1.77245385090552
         """
         return mpf(self).sqrt()
@@ -2623,7 +2623,7 @@ def hypsum_internal(int p, int q, param_types, str ztype, coeffs, z,
 
         sage: from mpmath import mp  # indirect doctest
         sage: mp.dps = 15
-        sage: mp.hyp1f1(1,2,3)
+        sage: print(mp.hyp1f1(1,2,3))
         6.36184564106256
 
     TODO: convert mpf/mpc parameters to fixed-point numbers here

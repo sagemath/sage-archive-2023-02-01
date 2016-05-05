@@ -2297,27 +2297,20 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         else:
             start = list(start)
 
-
-        if plot_type == 'arrow' or plot_type == 'point':
+        if plot_type != 'step':
             dimension = len(coords)
-            if dimension == 3:
-                from sage.plot.plot3d.shapes2 import line3d, point3d
+            if dimension < 2:
+                # pad to make 2-dimensional
+                coords.extend([0]*(2-dimension))
+                start.extend([0]*(2-dimension))
+            
+            if plot_type == 'arrow':
+                from sage.plot.all import arrow
+                return arrow(start, [(u+v) for u,v in zip(coords, start)], **kwds)
+            elif plot_type == 'point':
+                from sage.plot.all import point
+                return point(coords, **kwds)
 
-                if plot_type == 'arrow':
-                    return line3d([start, [(u+v) for u,v in zip(coords, start)]], arrow_head=True, **kwds)
-                else:
-                    return point3d(coords, **kwds)
-            elif dimension < 3:
-                if dimension < 2:
-                    # pad to make 2-dimensional
-                    coords.extend([0]*(2-dimension))
-                    start.extend([0]*(2-dimension))
-
-                from sage.plot.all import arrow, point
-                if plot_type == 'arrow':
-                    return arrow(start, [(u+v) for u,v in zip(coords, start)], **kwds)
-                else:
-                    return point(coords, **kwds)
             else:
                 raise ValueError("arrow and point plots require vectors with 3 or fewer components")
 

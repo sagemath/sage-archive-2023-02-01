@@ -25,6 +25,8 @@ AUTHORS:
 
 - Vincent Delecroix (2015-02): comparisons/floor/ceil using embeddings
 
+- Kiran Kedlaya (2016-05): relative number fields hash based on relative polynomials
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -1220,6 +1222,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
+        self.__relative_polynomial = self.relative_polynomial()
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
@@ -2763,9 +2766,37 @@ class NumberField_generic(number_field_base.NumberField):
             sage: hash(K) == hash(L)
             True
 
+        The number fields ``K`` and ``L`` in the following example used to have
+        the same hash prior to :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L # The underlying fields are isomorphic
+            True
+            sage: hash(K) == hash(L)
+            False
+            
+        This example illustrates the issue resolved in :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2+x+1)
+            sage: xx = polygen(F)
+            sage: ps = [p for p, _ in F(7).factor()]
+            sage: for mu in ps:
+            ....:    K = F.extension(xx^3 - mu, 'alpha')
+            ....:    print K.defining_polynomial().roots(K)
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            sage: for mu in ps:
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print K.defining_polynomial().roots(K)
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            
         """
-        return hash((self.variable_name(), self.base_field(), tuple(self.__polynomial)))
-
+        return hash((self.variable_name(), self.base_field(), tuple(self.__relative_polynomial)))
+    
     def _ideal_class_(self, n=0):
         """
         Return the Python class used in defining the zero ideal of the ring

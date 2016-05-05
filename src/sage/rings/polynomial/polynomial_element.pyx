@@ -7827,6 +7827,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b^3 == a
             True
         """
+        # note: this code is duplicated in
+        # sage.rings.polynomial.multi_polynomial.MPolynomial.nth_root
         from sage.rings.integer_ring import ZZ
 
         n = ZZ.coerce(n)

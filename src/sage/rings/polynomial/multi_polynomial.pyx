@@ -1784,6 +1784,8 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: x + 2*y + 3*z is not a 42th power
         """
+        # note: this code is duplicated in
+        # sage.rings.polynomial.polynomial_element.Polynomial.nth_root
         from sage.rings.integer_ring import ZZ
 
         n = ZZ.coerce(n)

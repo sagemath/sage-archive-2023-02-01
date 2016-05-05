@@ -645,9 +645,7 @@ class HyperbolicGeodesic(SageObject):
     def midpoint(self):
         r"""
         Return the (hyperbolic) midpoint of a hyperbolic line segment.
-
         EXAMPLES::
-
             sage: g = HyperbolicPlane().UHP().random_geodesic()
             sage: m = g.midpoint()
             sage: end1, end2 = g.endpoints()
@@ -1159,6 +1157,54 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     # Helper methods #
     ##################
 
+    @staticmethod
+    def _get_B(a):
+        r"""
+        Helper function to get an appropiate matrix transforming (0,1,inf)->(0,I,inf)
+        based on the type of a
+        
+        EXAMPLES::
+        
+        sage: UHP = HyperbolicPlane().UHP()
+        sage: g = UHP.random_geodesic()
+        sage: B = g._get_B(CDF.an_element());  B
+        [   1.0    0.0]
+        [   0.0 -1.0*I]
+        sage: type(B)
+        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+        sage: B = g._get_B(SR(1));  B
+        [ 1  0]
+        [ 0 -I]
+        sage: type(B)
+        <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+        sage: B = g._get_B(complex(1));  B
+        [   1.0    0.0]
+        [   0.0 -1.0*I]
+        sage: type(B)
+        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+        sage: B = g._get_B(QQbar(1+I));  B
+        [ 1  0]
+        [ 0 -I]
+        sage: type(B[1,1])
+        <class 'sage.rings.qqbar.AlgebraicNumber'>
+        sage: type(B)
+        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        """
+        
+        from sage.structure.element import Element
+        from sage.symbolic.expression import Expression
+        if isinstance(a, complex):
+            return matrix([[complex(1),complex(0)],[complex(0),-complex("j")]])
+        elif isinstance(a, Expression):
+            return matrix([[SR(1),SR(0)],[SR(0),-SR("I")]])
+        elif isinstance(a, Element):
+            return matrix([[-a.parent().gen()*a.parent().gen(),
+                a.parent().gen()-a.parent().gen()],
+                [a.parent().gen()-a.parent().gen(),
+                -a.parent().gen()]])
+        else:
+            raise ValueError("not a complex number")
+
     def _to_std_geod(self, p):
         r"""
         Given the coordinates of a geodesic in hyperbolic space, return the
@@ -1184,8 +1230,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: bool(A(e).coordinates() == infinity)
             True
         """
-        B = matrix([[1, 0], [0, -I]])
         [s, e] = [k.coordinates() for k in self.complete().endpoints()]
+        B = HyperbolicGeodesicUHP._get_B(s)
         # outmat below will be returned after we normalize the determinant.
         outmat = B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
         outmat = outmat / outmat.det().sqrt()

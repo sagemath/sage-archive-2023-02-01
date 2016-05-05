@@ -14,19 +14,21 @@ Scalar fields are implemented by the class :class:`ScalarField`.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
-- [Lee11]_ : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
-  York) (2011)
-- [KN63]_ : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
+- [Lee11]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+  Springer (New York) (2011)
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
 
 """
 
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

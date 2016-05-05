@@ -349,7 +349,7 @@ ManifoldOptions=GlobalOptions(name='manifolds',
     are set, then the function returns a copy of the options dictionary.
 
     The ``options`` to manifolds can be accessed as the method
-    :obj:`TopologicalManifolds.global_options`.
+    :obj:`Manifold.global_options`.
     """,
     end_doc=r"""
     EXAMPLES::

@@ -24,11 +24,14 @@ This module implements symbolic coordinate functions via the class
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
+- Travis Scrimshaw (2016) : make coordinate functions elements of
+  :class:`CoordFunctionSymbRing`.
 
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -41,7 +44,7 @@ from sage.symbolic.ring import SR
 from sage.structure.element import RingElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.algebras import Algebras
+from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
 from sage.manifolds.utilities import (ExpressionNice, simplify_chain_real,
                                       simplify_chain_generic)
@@ -67,8 +70,8 @@ class CoordFunctionSymb(CoordFunction):
 
     INPUT:
 
-    - ``chart`` -- :class:`~sage.manifolds.chart.Chart`;
-      the chart `(U, \varphi)`
+    - ``parent`` -- the algebra of coordinate functions on the chart
+      `(U, \varphi)`
     - ``expression`` -- a symbolic expression representing
       `f(x^1, \ldots, x^n)`, where `(x^1, \ldots, x^n)` are the
       coordinates of the chart `(U, \varphi)`
@@ -1624,6 +1627,23 @@ class CoordFunctionSymb(CoordFunction):
 class CoordFunctionSymbRing(Parent, UniqueRepresentation):
     """
     Ring of all symbolic coordinate functions on a chart.
+
+    INPUT:
+
+    - ``chart`` -- a coordinate chart, as an instance of class
+      :class:`~sage.manifolds.chart.Chart`
+
+    EXAMPLES::
+
+        sage: M = Manifold(2, 'M', structure='topological')
+        sage: X.<x,y> = M.chart()
+        sage: FR = X.function_ring(); FR
+        Ring of coordinate functions on Chart (M, (x, y))
+        sage: type(FR)
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category'>
+        sage: FR.category()
+        Category of commutative algebras over Symbolic Ring
+
     """
     def __init__(self, chart):
         """
@@ -1637,7 +1657,7 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
             sage: TestSuite(FR).run()
         """
         self._chart = chart
-        Parent.__init__(self, base=SR, category=Algebras(SR))
+        Parent.__init__(self, base=SR, category=CommutativeAlgebras(SR))
 
     def _repr_(self):
         """
@@ -1709,6 +1729,14 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
         - ``r`` -- an element of ``self.base_ring()``
 
         EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: f = FR.from_base_ring(x*y)
+            sage: f.display()
+            (x, y) |--> x*y
+
         """
         return self.element_class(self, r)
 
@@ -1721,12 +1749,14 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: FR = X.function_ring()
+            sage: FR.is_integral_domain()
+            False
             sage: FR.is_field()
             False
         """
         return False
 
-    is_commutative = is_field = is_integral_domain
+    is_field = is_integral_domain
 
     Element = CoordFunctionSymb
 

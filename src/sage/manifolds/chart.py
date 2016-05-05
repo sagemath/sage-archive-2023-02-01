@@ -16,10 +16,10 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 2 of [Lee11]_ J.M. Lee: *Introduction to Topological Manifolds*,
+- Chap. 2 of [Lee11]_ \J.M. Lee: *Introduction to Topological Manifolds*,
   2nd ed., Springer (New York) (2011)
 
-- Chap. 1 of [Lee13]_ J.M. Lee : *Introduction to Smooth Manifolds*,
+- Chap. 1 of [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
   2nd ed., Springer (New York) (2013)
 """
 

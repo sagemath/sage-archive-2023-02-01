@@ -330,6 +330,7 @@ REFERENCES:
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
+from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
@@ -643,6 +644,10 @@ class TopologicalManifold(ManifoldSubset):
         self._zero_scalar_field = self._scalar_field_algebra.zero()
         # The unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
+        # Dictionary of sets of morphisms to over manifolds (keys: codomains):
+        self._homsets = {}  # to be populated by self._Hom_
+        # The identity map on self:
+        self._identity_map = Hom(self, self).one()
 
     def _repr_(self):
         r"""
@@ -1835,6 +1840,297 @@ class TopologicalManifold(ManifoldSubset):
         return self._one_scalar_field
 
     global_options = ManifoldOptions
+
+    def _Hom_(self, other, category=None):
+        r"""
+        Construct the set of morphisms (i.e. continuous maps)
+        ``self`` --> ``other``.
+
+        INPUT:
+
+        - ``other`` -- an open subset of some topological manifold over the
+          same field as ``self``
+        - ``category`` -- (default: ``None``) not used here (to ensure
+          compatibility with generic hook ``_Hom_``)
+
+        OUTPUT:
+
+        - the homset Hom(U,V), where U is ``self`` and V is ``other``
+
+        See class
+        :class:`~sage.manifolds.manifold_homset.TopologicalManifoldHomset`
+        for more documentation.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: N = Manifold(3, 'N', structure='topological')
+            sage: H = M._Hom_(N); H
+            Set of Morphisms from 2-dimensional topological manifold M to
+             3-dimensional topological manifold N in Category of manifolds over
+             Real Field with 53 bits of precision
+
+        The result is cached::
+
+            sage: H is Hom(M, N)
+            True
+
+        """
+        if other not in self._homsets:
+            self._homsets[other] = self._structure.homset(self, other)
+        return self._homsets[other]
+
+    def continuous_map(self, codomain, coord_functions=None, chart1=None,
+                       chart2=None, name=None, latex_name=None):
+        r"""
+        Define a continuous map between the current topological manifold
+        and another topological manifold over the same topological field.
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``codomain`` -- the map's codomain (must be an instance
+          of :class:`TopologicalManifold`)
+        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
+          either
+
+          - (i) a dictionary of
+            the coordinate expressions (as lists (or tuples) of the
+            coordinates of the image expressed in terms of the coordinates of
+            the considered point) with the pairs of charts (chart1, chart2)
+            as keys (chart1 being a chart on ``self`` and chart2 a chart on
+            ``codomain``)
+          - (ii) a single coordinate expression in a given pair of charts, the
+            latter being provided by the arguments ``chart1`` and ``chart2``
+
+          In both cases, if the dimension of the codomain is 1, a single
+          coordinate expression can be passed instead of a tuple with a single
+          element
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
+          on the current manifold defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the manifold's default chart
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``codomain`` defining the target coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``codomain``
+        - ``name`` -- (default: ``None``) name given to the continuous
+          map
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          continuous map; if none is provided, the LaTeX symbol is set to
+          ``name``
+
+        OUTPUT:
+
+        - the continuous map, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLES:
+
+        A continuous map between an open subset of `S^2` covered by regular
+        spherical coordinates and `\RR^3`::
+
+            sage: M = Manifold(2, 'S^2', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+            sage: N = Manifold(3, 'R^3', latex_name=r'\RR^3', structure='topological')
+            sage: c_cart.<x,y,z> = N.chart()  # Cartesian coord. on R^3
+            sage: Phi = U.continuous_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
+            ....:                        name='Phi', latex_name=r'\Phi')
+            sage: Phi
+            Continuous map Phi from the Open subset U of the 2-dimensional topological manifold S^2 to the 3-dimensional topological manifold R^3
+
+        The same definition, but with a dictionary with pairs of charts as
+        keys (case (i) above)::
+
+            sage: Phi1 = U.continuous_map(N,
+            ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph), cos(th))},
+            ....:        name='Phi', latex_name=r'\Phi')
+            sage: Phi1 == Phi
+            True
+
+        The continuous map acting on a point::
+
+            sage: p = U.point((pi/2, pi)) ; p
+            Point on the 2-dimensional topological manifold S^2
+            sage: Phi(p)
+            Point on the 3-dimensional topological manifold R^3
+            sage: Phi(p).coord(c_cart)
+            (-1, 0, 0)
+            sage: Phi1(p) == Phi(p)
+            True
+
+        See the documentation of class
+        :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
+        examples.
+
+        """
+        homset = Hom(self, codomain)
+        if coord_functions is None:
+            coord_functions = {}
+        if not isinstance(coord_functions, dict):
+            # Turn coord_functions into a dictionary:
+            if chart1 is None:
+                chart1 = self._def_chart
+            elif chart1 not in self._atlas:
+                raise ValueError("{} is not a chart ".format(chart1) +
+                                 "defined on the {}".format(self))
+            if chart2 is None:
+                chart2 = codomain._def_chart
+            elif chart2 not in codomain._atlas:
+                raise ValueError("{} is not a chart ".format(chart2) +
+                                 " defined on the {}".format(codomain))
+            coord_functions = {(chart1, chart2): coord_functions}
+        return homset(coord_functions, name=name, latex_name=latex_name)
+
+    def homeomorphism(self, codomain, coord_functions=None, chart1=None,
+                       chart2=None, name=None, latex_name=None):
+        r"""
+        Define a homeomorphism between the current manifold and another one.
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``codomain`` -- codomain of the homeomorphism (must be an instance
+          of :class:`TopologicalManifold`)
+        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
+          either
+
+          - (i) a dictionary of
+            the coordinate expressions (as lists (or tuples) of the
+            coordinates of the image expressed in terms of the coordinates of
+            the considered point) with the pairs of charts (chart1, chart2)
+            as keys (chart1 being a chart on ``self`` and chart2 a chart on
+            ``codomain``)
+          - (ii) a single coordinate expression in a given pair of charts, the
+            latter being provided by the arguments ``chart1`` and ``chart2``
+
+          In both cases, if the dimension of the codomain is 1, a single
+          coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
+          on the current manifold defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the manifold's default chart
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``codomain`` defining the target coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``codomain``
+        - ``name`` -- (default: ``None``) name given to the homeomorphism
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          homeomorphism; if none is provided, the LaTeX symbol is set to
+          ``name``
+
+        OUTPUT:
+
+        - the homeomorphism, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLE:
+
+        Homeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
+
+            sage: forget()  # for doctests only
+            sage: M = Manifold(2, 'M', structure='topological')  # the open unit disk
+            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
+            sage: c_xy.add_restrictions(x^2+y^2<1)
+            sage: N = Manifold(2, 'N', structure='topological')  # R^2
+            sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
+            sage: Phi = M.homeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
+            ....:                       name='Phi', latex_name=r'\Phi')
+            sage: Phi
+            Homeomorphism Phi from the 2-dimensional topological manifold M to
+             the 2-dimensional topological manifold N
+            sage: Phi.display()
+            Phi: M --> N
+               (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+
+        The inverse homeomorphism::
+
+            sage: Phi^(-1)
+            Homeomorphism Phi^(-1) from the 2-dimensional topological
+             manifold N to the 2-dimensional topological manifold M
+            sage: (Phi^(-1)).display()
+            Phi^(-1): N --> M
+               (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
+
+        See the documentation of class
+        :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
+        examples.
+
+        """
+        homset = Hom(self, codomain)
+        if coord_functions is None:
+            coord_functions = {}
+        if not isinstance(coord_functions, dict):
+            # Turn coord_functions into a dictionary:
+            if chart1 is None:
+                chart1 = self._def_chart
+            elif chart1 not in self._atlas:
+                raise ValueError("{} is not a chart ".format(chart1) +
+                                 "defined on the {}".format(self))
+            if chart2 is None:
+                chart2 = codomain._def_chart
+            elif chart2 not in codomain._atlas:
+                raise ValueError("{} is not a chart ".format(chart2) +
+                                 " defined on the {}".format(codomain))
+            coord_functions = {(chart1, chart2): coord_functions}
+        return homset(coord_functions, name=name, latex_name=latex_name,
+                      is_isomorphism=True)
+
+    def identity_map(self):
+        r"""
+        Identity map of the manifold.
+
+        The identity map of a topological manifold `M` is the trivial
+        homeomorphism
+
+        .. MATH::
+
+            \begin{array}{cccc}
+            \mathrm{Id}_M: & M & \longrightarrow & M \\
+                & p & \longmapsto & p
+            \end{array}
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        OUTPUT:
+
+        - the identity map, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLE:
+
+        Identity map of a complex manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological', field='complex')
+            sage: X.<x,y> = M.chart()
+            sage: id = M.identity_map(); id
+            Identity map Id_M of the Complex 2-dimensional topological manifold M
+            sage: id.parent()
+            Set of Morphisms from Complex 2-dimensional topological manifold M
+             to Complex 2-dimensional topological manifold M in Category of
+             manifolds over Complex Field with 53 bits of precision
+            sage: id.display()
+            Id_M: M --> M
+               (x, y) |--> (x, y)
+
+        The identity map acting on a point::
+
+            sage: p = M((1+I, 3-I), name='p'); p
+            Point p on the Complex 2-dimensional topological manifold M
+            sage: id(p)
+            Point p on the Complex 2-dimensional topological manifold M
+            sage: id(p) == p
+            True
+
+        """
+        return self._identity_map
 
 ##############################################################################
 ## Constructor function

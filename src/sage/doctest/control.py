@@ -12,12 +12,15 @@ AUTHORS:
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import, division, print_function
 
 import random, os, sys, time, json, re, types
 import six
@@ -27,11 +30,11 @@ from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
 from sage.misc.temporary_file import tmp_dir
 from cysignals.signals import AlarmInterrupt, init_cysignals
 
-from sources import FileDocTestSource, DictAsObject
-from forker import DocTestDispatcher
-from reporting import DocTestReporter
-from util import NestedName, Timer, count_noun, dict_difference
-from external import external_software, available_software
+from .sources import FileDocTestSource, DictAsObject
+from .forker import DocTestDispatcher
+from .reporting import DocTestReporter
+from .util import Timer, count_noun, dict_difference
+from .external import external_software, available_software
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -511,7 +514,7 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: print open(DD.logfile).read()
+            sage: print(open(DD.logfile).read())
             hello world
 
         In serial mode, check that logging works even if ``stdout`` is
@@ -526,7 +529,7 @@ class DocTestController(SageObject):
             hello world
             sage: S.stop_spoofing()
             sage: DC.logfile.close()
-            sage: print open(DD.logfile).read()
+            sage: print(open(DD.logfile).read())
             hello world
 
         Check that no duplicate logs appear, even when forking (:trac:`15244`)::
@@ -539,7 +542,7 @@ class DocTestController(SageObject):
             ....:     DC.logfile.close()
             ....:     os._exit(0)
             sage: DC.logfile.close()
-            sage: print open(DD.logfile).read()
+            sage: print(open(DD.logfile).read())
             hello world
 
         """
@@ -592,7 +595,6 @@ class DocTestController(SageObject):
             Running doctests with ID ...
         """
         self.run_id = time.strftime('%Y-%m-%d-%H-%M-%S-') + "%08x" % random.getrandbits(32)
-        from sage.version import version
         self.log("Running doctests with ID %s."%self.run_id)
 
     def add_files(self):
@@ -633,7 +635,6 @@ class DocTestController(SageObject):
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
         def all_files():
-            from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(SAGE_DOC_SRC)
@@ -778,7 +779,7 @@ class DocTestController(SageObject):
             ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.sort_sources()
             Sorting sources by runtime so that slower doctests are run first....
-            sage: print "\n".join([source.basename for source in DC.sources])
+            sage: print("\n".join([source.basename for source in DC.sources]))
             sage.doctest.util
             sage.doctest.test
             sage.doctest.sources
@@ -949,7 +950,7 @@ class DocTestController(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
-            sage: print DC._assemble_cmd()
+            sage: print(DC._assemble_cmd())
             python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
         """
         cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))

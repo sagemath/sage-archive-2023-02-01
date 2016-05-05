@@ -867,7 +867,7 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
         ....:              if radical_difference_family(K, k, existence=True):
         ....:                  list_q.append(q)
         ....:                  _ = radical_difference_family(K,k)
-        ....:     print(" ".join(list_q))
+        ....:     print(" ".join([str(p) for p in list_q]))
         k = 5
         41 61 81 241 281 401 421 601 641 661 701 761 821 881 1181 1201 1301 1321
         1361 1381 1481 1601 1681 1801 1901

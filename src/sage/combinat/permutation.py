@@ -2440,7 +2440,7 @@ class Permutation(CombinatorialElement):
             ...
             ValueError: Not enough letters in the alphabet are specified compared to the weight
         """
-        ides = self.idescents()
+        ides = self.idescents(from_zero=False)
         partial = [0]
         for a in weight:
             partial.append(partial[-1]+a)
@@ -2886,7 +2886,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).idescents_signature()
             [1, -1, -1, 1]
         """
-        idescents = self.idescents(final_descent=final_descent)
+        idescents = self.idescents(final_descent=final_descent, from_zero=False)
         d = {True: -1, False: 1}
         return [d[(i + 1) in idescents] for i in range(len(self))]
 
@@ -3047,7 +3047,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).imajor_index()
             6
         """
-        return sum(self.idescents(final_descent))
+        return sum(self.idescents(final_descent), from_zero=False)
 
     def to_major_code(self, final_descent=False):
         r"""

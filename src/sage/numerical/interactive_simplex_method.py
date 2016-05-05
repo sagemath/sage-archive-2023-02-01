@@ -927,6 +927,67 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
+    def add_constraint(self, new_row, new_b, new_constraint_type="<="):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+
+        - ``new_b`` -- a constant term of the new constraint
+
+        - ``new_constraint_type`` -- (default: ``"<="``) a string indicating
+          the constraint type of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem <InteractiveLPProblem>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<=")
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.constraint_types()
+            ('<=', '<=', '<=')
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.constraint_types()
+            ('<=', '<=')
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, new_constraint_type="<=")
+            Traceback (most recent call last):
+            ...
+            ValueError: A and new_row have incompatible dimensions
+            sage: P3 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown constraint type
+        """
+        if self.n_variables() != matrix(new_row).ncols():
+            raise ValueError("A and new_row have incompatible dimensions")
+        if new_constraint_type in ["<=", ">=", "=="]:
+            constraint_type = self._constraint_types + (new_constraint_type,)
+        else:
+            raise ValueError("unknown constraint type")
+        A = self.Abcx()[0]
+        b = self.Abcx()[1]
+        c = self.Abcx()[2]
+        A = A.stack(matrix(new_row))
+        b = vector(tuple(b) + (new_b,))
+        return InteractiveLPProblem(A, b, c, constraint_type=constraint_type)
+
     def base_ring(self):
         r"""
         Return the base ring of ``self``.
@@ -1957,6 +2018,70 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
+    def add_constraint(self, new_row, new_b, new_slack_variable):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+
+        - ``new_b`` -- a constant term of the new constraint
+
+        - ``new_slack_variable`` -- a string giving the new slack variable name
+
+        OUTPUT:
+
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, 'c')
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.slack_variables()
+            (x3, x4, c)
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.slack_variables()
+            (x3, x4)
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, 'c')
+            Traceback (most recent call last):
+            ...
+            ValueError: A and new_row have incompatible dimensions
+        """
+        if self.n_variables() != matrix(new_row).ncols():
+            raise ValueError("A and new_row have incompatible dimensions")
+        A = self.Abcx()[0]
+        b = self.Abcx()[1]
+        c = self.Abcx()[2]
+        R = self._R
+        G = list(R.gens())
+        slack = list(self.slack_variables())
+
+        # Construct a larger ring for variables
+        G.append(new_slack_variable)
+        R1 = PolynomialRing(self.base_ring(), G, order="neglex")
+
+        new_slack_variable = R1.gens()[len(R1.gens())-1]
+        slack.append(new_slack_variable)
+        A = A.stack(matrix(new_row))
+        b = vector(tuple(b) + (new_b,))
+
+        return InteractiveLPProblemStandardForm(
+            A, b, c, slack_variables=slack)
+
     def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
@@ -2655,6 +2780,15 @@ class LPAbstractDictionary(SageObject):
             LP problem dictionary (use typeset mode to see details)
         """
         return "LP problem dictionary (use typeset mode to see details)"
+
+    def add_row(self):
+        r"""
+        Update a dictionary with an additional row based on a given dictionary.
+
+        See :meth:`add_row` in :class:`LPDictionary` and
+        :class:`LPRevisedDictionary` for documentation.
+        """
+        raise NotImplementedError
 
     def base_ring(self):
         r"""
@@ -3873,6 +4007,68 @@ class LPDictionary(LPAbstractDictionary):
         result += latex(self).split("\n", 2)[2] # Remove array header
         return LatexExpr(result)
 
+    def add_row(self, nonbasic_coefficients,
+                constant, slack_variable):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row
+
+        - ``constant``-- a number of the constant term for the new row
+
+        - ``slack_variable``-- a string of the name for the new slack variable
+
+        OUTPUT:
+
+        - a :class:`dictionary <LPDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, 'c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+            sage: set(D1.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {42}
+            sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
+        """
+        B = self.basic_variables()
+        N = self.nonbasic_variables()
+        b = self.constant_terms()
+        n = len(N)
+        m = len(B)
+        A = tuple([self.row_coefficients(B[i]) for i in range(m)])
+        A = matrix(self.base_ring(), A)
+
+        v = vector(self.base_ring(), n, nonbasic_coefficients)
+        A = A.stack(v)
+
+        b = vector(tuple(b) + (constant,))
+        B = tuple(B) + (slack_variable,)
+
+        # Construct a larger ring for variable
+        R = B[0].parent()
+        G = list(R.gens())
+        G.append(slack_variable)
+        R = PolynomialRing(self.base_ring(), G, order="neglex")
+        # Update B and N to the larger ring
+        B2 = vector([R(x) for x in B])
+        N2 = vector([R(x) for x in N])
+
+        new_dict = LPDictionary(matrix(QQ, A), b, self.objective_coefficients(),
+                                self.objective_value(), B2, N2, self._AbcvBNz[6])
+        return new_dict
+
     def basic_variables(self):
         r"""
         Return the basic variables of ``self``.
@@ -4672,6 +4868,102 @@ class LPRevisedDictionary(LPAbstractDictionary):
         E.set_col_to_multiple_of_col(l, l, -1/d)
         E[l, l] = 1 / d
         return E
+
+    def add_row(self, nonbasic_coefficients, new_b,
+                slack_variable):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the new row
+
+        - ``constant``-- a number of the constant term for the new row
+
+        - ``slack_variable``-- a string of the name for the new slack variable
+
+        OUTPUT:
+
+        - a :class:`revised dictionary <LPRevisedDictionary>`
+
+        TESTS:
+
+        Tested with a variety of different bases::
+
+            sage: A = ([-1, 1111, 3, 17], [8, 222, 7, 6],
+            ....: [3, 7, 17, 5], [9, 5, 7, 3])
+            sage: b = (2, 17, 11, 27)
+            sage: c = (5/133, 1/10, 1/18, 47/3)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_revised_dictionary()
+            sage: D1 = D.add_row([7, 11, 13, 9], 42, 'c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 13, 9)
+            sage: set(D1.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {42}
+            sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
+            sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
+            ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
+            ....: [119, 7, 121, 5, 111])
+            sage: b = (33, 27, 1, 272, 61)
+            sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, 'c')
+            sage: D2.row_coefficients("c")
+            (5, 7, 11, 13, 9)
+            sage: set(D2.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {99}
+            sage: set(D2.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
+        """
+        problem = self._problem
+        A = problem.Abcx()[0]
+        b = problem.Abcx()[1]
+        nonbasic = self.nonbasic_variables()
+        original = list(self._problem.Abcx()[3])
+        slack = list(self._problem.slack_variables())
+        variables = original + slack
+        n = len(original)
+        set_nonbasic = set(self.nonbasic_variables())
+
+        # Update nonbasic_coefficients with the right orders
+        # in original and slack variables
+        dic = {item: coef for item, coef
+               in zip(nonbasic, nonbasic_coefficients)}
+        #new nonbasic coefficient after reordering
+        d = [dic[item] for item
+             in variables if item in set_nonbasic]
+        new_row = vector(QQ, [0] * n)
+
+        def standard_unit_vector(index, length):
+            v = vector(QQ, [0] * length)
+            v[index] = 1
+            return v
+
+        d_index = 0
+        original_index = 0
+        slack_index = 0
+        for item in original:
+            if item in set_nonbasic:
+                new_row += d[d_index] * standard_unit_vector(original_index, n)
+                d_index += 1
+            original_index += 1
+        for item in slack:
+            if item in set_nonbasic:
+                new_row -= d[d_index] * A[slack_index]
+                new_b -= d[d_index] * b[slack_index]
+                d_index += 1
+            slack_index += 1
+        new_problem = problem.add_constraint(new_row, new_b, slack_variable)
+        new_basic_var = [str(i) for i in self.basic_variables()] + [slack_variable]
+        R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
+        return new_problem.revised_dictionary(*R.gens())
 
     def basic_indices(self):
         r"""

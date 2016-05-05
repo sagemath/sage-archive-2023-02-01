@@ -296,7 +296,7 @@ Test logfiles in serial and parallel mode (see :trac:`19271`)::
     sage: t = tmp_filename()
     sage: subprocess.call(["sage", "-t", "--serial", "--warn-long", "0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
     1
-    sage: print(open(t).read())
+    sage: print(open(t).read())  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 simple_failure.rst
@@ -319,7 +319,7 @@ Test logfiles in serial and parallel mode (see :trac:`19271`)::
 
     sage: subprocess.call(["sage", "-t", "--warn-long", "0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
     1
-    sage: print(open(t).read())
+    sage: print(open(t).read())  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 simple_failure.rst

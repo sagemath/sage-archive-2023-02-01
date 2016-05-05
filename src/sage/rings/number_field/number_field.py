@@ -2785,12 +2785,12 @@ class NumberField_generic(number_field_base.NumberField):
             sage: ps = [p for p, _ in F(7).factor()]
             sage: for mu in ps:
             ....:    K = F.extension(xx^3 - mu, 'alpha')
-            ....:    print K.defining_polynomial().roots(K)
+            ....:    print(K.defining_polynomial().roots(K))
             [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
             [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
             sage: for mu in ps:
             ....:     K = F.extension(xx^3 - mu, 'alpha')
-            ....:     print K.defining_polynomial().roots(K)
+            ....:     print(K.defining_polynomial().roots(K))
             [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
             [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
             

@@ -39,10 +39,9 @@ for patch in ../patches/*.patch; do
 done
 
 
-# HAPprime should be added in the future?
 for p in \
-    crime ctbllib design factint grape \
-    guava-3.12 Hap1.11 HAPcryst laguna polymaking \
+    aclib crime ctbllib cryst crystcat design factint grape \
+    guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \
     sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
@@ -70,7 +69,7 @@ fi
 
 
 # Build GUAVA package
-cd "$PKG_DIR/guava-3.12"
+cd "$PKG_DIR/guava-3*"
 ./configure "$GAP_DIR"
 if [ $? -ne 0 ]; then 
     echo >&2 "Error configuring GUAVA packagae."

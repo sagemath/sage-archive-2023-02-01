@@ -21,6 +21,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
+from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -840,7 +841,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -902,8 +903,8 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+            if (res - ex).is_trivial_zero():
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -1298,7 +1299,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError("free variable: %s" % repr(ex))
+            raise NotImplementedError, "free variable: %s" % repr(ex)
 
     def arithmetic(self, ex, operator):
         """

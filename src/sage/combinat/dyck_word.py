@@ -1926,7 +1926,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [BK2001] J. Bandlow, K. Killpatrick -- An area-to_inv bijection
+        .. [BK2001] \J. Bandlow, K. Killpatrick -- An area-to_inv bijection
            between Dyck paths and 312-avoiding permutations, Electronic Journal
            of Combinatorics, Volume 8, Issue 1 (2001).
 
@@ -1973,7 +1973,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Stu2008] C. Stump -- More bijective Catalan combinatorics on
+        .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
            permutations and on colored permutations, Preprint.
            :arXiv:`0808.2822`.
 
@@ -2024,12 +2024,12 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [EP2004] S. Elizalde, I. Pak. *Bijections for refined restricted
+        .. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
            permutations**. JCTA 105(2) 2004.
-        .. [CK2008] A. Claesson, S. Kitaev. *Classification of bijections
+        .. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
            between `321`- and `132`- avoiding permutations*. Seminaire
            Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
-        .. [Knu1973] D. Knuth. *The Art of Computer Programming, Vol. III*.
+        .. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
            Addison-Wesley. Reading, MA. 1973.
 
         EXAMPLES::
@@ -2084,7 +2084,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Kra2001] C. Krattenthaler -- Permutations with restricted
+        .. [Kra2001] \C. Krattenthaler -- Permutations with restricted
            patterns and Dyck paths, Adv. Appl. Math. 27 (2001), 510--530.
 
         EXAMPLES::
@@ -2369,7 +2369,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+        .. [Cha2005] \F. Chapoton, Une Base Symétrique de l'algèbre des
            Coinvariants Quasi-Symétriques, Electronic Journal of
            Combinatorics Vol 12(1) (2005) N16.
         """
@@ -2497,7 +2497,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [DS1992] A. Denise, R. Simion, Two combinatorial statistics on
+        .. [DS1992] \A. Denise, R. Simion, Two combinatorial statistics on
            Dyck paths, Discrete Math 137 (1992), 155--176.
         """
         aseq = self.to_area_sequence() + [0]

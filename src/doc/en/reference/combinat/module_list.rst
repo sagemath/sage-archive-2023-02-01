@@ -221,6 +221,8 @@ Comprehensive Module list
     sage/combinat/root_system/non_symmetric_macdonald_polynomials
     sage/combinat/root_system/pieri_factors
     sage/combinat/root_system/plot
+    sage/combinat/root_system/reflection_group_complex
+    sage/combinat/root_system/reflection_group_real
     sage/combinat/root_system/root_lattice_realization_algebras
     sage/combinat/root_system/root_lattice_realizations
     sage/combinat/root_system/root_space

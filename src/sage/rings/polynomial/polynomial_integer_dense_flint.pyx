@@ -682,7 +682,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: z.quo_rem(2*x)
             (0, 0)
 
-        Ticket #383, make sure things get coerced correctly::
+        :trac:`383`, make sure things get coerced correctly::
 
             sage: f = x+1; parent(f)
             Univariate Polynomial Ring in x over Integer Ring
@@ -1373,8 +1373,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fmpz_poly_set_ZZX(fac.__poly, v[i][0])
             F.append( (fac,e[i]) )
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
 
         return Factorization(F, unit=z, sort=False)
 

@@ -221,7 +221,7 @@ def getattr_from_other_class(self, cls, str name):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__weakref__'
 
-    This was caught by #8296 for which we do a couple more tests::
+    This was caught by :trac:`8296` for which we do a couple more tests::
 
         sage: "__weakref__" in dir(A)
         True
@@ -311,7 +311,7 @@ def dir_with_other_class(self, cls):
 
     TESTS:
 
-    Check that #13043 is fixed::
+    Check that :trac:`13043` is fixed::
 
         sage: len(dir(RIF))==len(set(dir(RIF)))
         True

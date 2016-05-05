@@ -153,8 +153,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: phi(V.0) == V.1
             True
 
-        The following tests against a bug that was fixed in trac
-        ticket #9944. The method ``zero()`` calls this hom space with
+        The following tests against a bug that was fixed in
+        :trac:`9944`. The method ``zero()`` calls this hom space with
         a function, not with a matrix, and that case had previously
         not been taken care of::
 

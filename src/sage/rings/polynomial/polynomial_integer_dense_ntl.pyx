@@ -897,8 +897,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             z.__poly = v[i][0]
             F.append((z, e[i]))
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return Factorization(F, unit=c, sort=False)
 
     def _factor_pari(self):

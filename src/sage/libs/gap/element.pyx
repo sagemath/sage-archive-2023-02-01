@@ -1097,10 +1097,11 @@ cdef class GapElement(RingElement):
         m = len(entries) // n
         if len(entries) % n != 0:
             raise ValueError('not a rectangular list of lists')
-        from sage.matrix.constructor import matrix
+        from sage.matrix.matrix_space import MatrixSpace
         if ring is None:
             ring = entries.DefaultRing().sage()
-        return matrix(ring, n, m, [ x.sage(ring=ring) for x in entries ])
+        MS = MatrixSpace(ring, n, m)
+        return MS([x.sage(ring=ring) for x in entries])
 
     _matrix_ = matrix
 

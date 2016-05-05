@@ -1162,7 +1162,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
 
     REFERENCE:
 
-    .. [Denniston69] R. H. F. Denniston,
+    .. [Denniston69] \R. H. F. Denniston,
        Some maximal arcs in finite projective planes.
        Journal of Combinatorial Theory 6, no. 3 (1969): 317-319.
        http://dx.doi.org/10.1016/S0021-9800(69)80095-5

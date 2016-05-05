@@ -837,7 +837,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         TESTS:
 
-        This exposed a bug in HNF (see trac #4527)::
+        This exposed a bug in HNF (see :trac:`4527`)::
 
             sage: A = J0(206).new_subvariety().decomposition()[3] ; A # long time
             Simple abelian subvariety 206d(1,206) of dimension 4 of J0(206)

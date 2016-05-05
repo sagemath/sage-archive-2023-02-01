@@ -186,7 +186,7 @@ class BaxterPermutations_size(BaxterPermutations):
 
         REFERENCES:
 
-        .. [BBF08] N. Bonichon, M. Bousquet-Melou, E. Fusy.
+        .. [BBF08] \N. Bonichon, M. Bousquet-Melou, E. Fusy.
            Baxter permutations and plane bipolar orientations.
            Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """

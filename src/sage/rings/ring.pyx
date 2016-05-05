@@ -2291,7 +2291,7 @@ cdef class Field(PrincipalIdealDomain):
 
         REFERENCES:
 
-        .. [Cohen1996] H. Cohen, A Course in Computational Algebraic
+        .. [Cohen1996] \H. Cohen, A Course in Computational Algebraic
            Number Theory.  Graduate Texts in Mathematics 138.
            Springer-Verlag, 1996.
 

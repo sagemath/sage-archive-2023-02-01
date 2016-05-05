@@ -25,7 +25,7 @@ from sage.rings.integer cimport Integer
 from sage.structure.element cimport parent_c as parent
 from sage.structure.sequence import Sequence
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
 
 
 def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include_endpoint=False, endpoint_tolerance=1e-5):

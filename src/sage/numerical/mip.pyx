@@ -1212,9 +1212,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
                    ), end=" ")
             first = False
         d = b.objective_constant_term()
-        if d > self._backend.zero(): print("+ {} ".format(d))
-        elif d < self._backend.zero(): print("- {} ".format(-d))
-        print
+        if d > self._backend.zero():
+            print("+ {} ".format(d))
+        elif d < self._backend.zero():
+            print("- {} ".format(-d))
+        print("\n")
 
         ##### Constraints
         print("Constraints:")

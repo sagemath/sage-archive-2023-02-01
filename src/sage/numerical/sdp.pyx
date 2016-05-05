@@ -601,9 +601,11 @@ cdef class SemidefiniteProgram(SageObject):
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" ")) + varid_name[i]
                    ), end=" ")
             first = False
-        if b.obj_constant_term > self._backend.zero(): print("+ {}".format(b.obj_constant_term))
-        elif b.obj_constant_term < self._backend.zero(): print("- {}".format(-b.obj_constant_term))
-        print
+        if b.obj_constant_term > self._backend.zero():
+            print("+ {}".format(b.obj_constant_term))
+        elif b.obj_constant_term < self._backend.zero():
+            print("- {}".format(-b.obj_constant_term))
+        print("\n")
 
         ##### Constraints
         print("Constraints:")

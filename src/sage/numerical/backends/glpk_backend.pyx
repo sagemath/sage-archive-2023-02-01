@@ -2288,7 +2288,7 @@ cdef class GLPKBackend(GenericBackend):
                 with open(fname) as f:
                     for line in f:
                         print(line, end=" ")
-                print
+                print("\n")
 
         return res
 

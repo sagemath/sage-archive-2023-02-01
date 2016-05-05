@@ -1301,6 +1301,37 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             return '()'
         return ''.join([repr(c) for c in cycles]).replace(', ',',').replace(',)',')')
 
+    def cycle_type(self):
+        r"""
+        Return the partition that gives the cycle type of ``g`` as an element of
+        ``self``.
+
+        INPUT:
+
+        - ``g`` -- an element of the permutation group ``self.parent()``
+
+        OUTPUT:
+
+        The class:`Partition` giving the cycle type of ``g`` in the group ``self``. 
+
+        EXAMPLES::
+
+            sage: G=DihedralGroup(3)
+            sage: [g.cycle_type() for g in G]
+            [[1, 1, 1], [2, 1], [3], [2, 1], [3], [2, 1]]
+            sage: PermutationGroupElement('(1,2,3)(4,5)(6,7,8)').cycle_type()
+            [3, 3, 2]
+            sage: G=SymmetricGroup(3); G('(1,2)').cycle_type()
+            [2, 1]
+            sage: G=SymmetricGroup(4); G('(1,2)').cycle_type()
+            [2, 1, 1]
+        """
+        cycle_type=[len(c) for c in self.cycle_tuples(singletons=True)]
+        cycle_type.sort()
+        cycle_type.reverse()
+        from sage.combinat.partition import Partition
+        return Partition(cycle_type)
+
     def has_descent(self, i, side = "right", positive = False):
         """
         INPUT:

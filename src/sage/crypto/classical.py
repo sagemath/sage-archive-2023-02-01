@@ -2484,7 +2484,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
             ....:     if Dict[k] == P:
-            ....:         print("key =" + str(k))
+            ....:         print("key = " + str(k))
             key = 7
 
         Over the hexadecimal number system::
@@ -2496,7 +2496,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
             ....:     if Dict[k] == P:
-            ....:         print("key =" + str(k))
+            ....:         print("key = " + str(k))
             key = 5
 
         And over the binary number system::
@@ -2508,7 +2508,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: Dict = S.brute_force(C)
             sage: for k in xrange(len(Dict)):
             ....:     if Dict[k] == P:
-            ....:         print("key =" + str(k))
+            ....:         print("key = " + str(k))
             key = 1
 
         Don't use any ranking functions, i.e. ``ranking="none"``::

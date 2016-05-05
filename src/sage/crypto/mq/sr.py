@@ -127,7 +127,7 @@ All solutions can easily be recovered using the variety function for ideals.::
    sage: for V in I.variety():
    ....:    for k,v in sorted(V.iteritems()):
    ....:       print("{} {}".format(k, v))
-   ....:    print()
+   ....:    print("\n")
    k003 0
    k002 1
    k001 0

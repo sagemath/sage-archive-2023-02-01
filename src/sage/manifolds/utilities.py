@@ -835,3 +835,56 @@ def _list_functions(ex, list_f):
         for operand in operands:
             _list_functions(operand, list_f)
 
+#******************************************************************************
+
+def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
+    r"""
+    Set axes labels for a 3D graphics object.
+
+    This is a workaround for the lack of axes labels in Sage 3D plots; it
+    sets the labels as text3d objects at locations determined from the
+    bounding box of the graphic object ``graph``.
+
+    INPUT:
+
+    - ``graph`` -- a 3D graphic object, as an instance of
+      :class:`~sage.plot.plot3d.base.Graphics3d`
+    - ``xlabel`` -- string for the x-axis label
+    - ``ylabel`` -- string for the y-axis label
+    - ``zlabel`` -- string for the z-axis label
+    - ``**kwds`` -- options (e.g. color) for text3d
+
+    OUTPUT:
+
+    - the 3D graphic object with text3d labels added.
+
+    EXAMPLE::
+
+        sage: g = sphere()
+        sage: print(g)
+        Graphics3d Object
+        sage: show(g)  # no axes labels
+        sage: from sage.manifolds.utilities import set_axes_labels
+        sage: ga = set_axes_labels(g, 'X', 'Y', 'Z', color='red')
+        sage: print(ga)
+        Graphics3d Object
+        sage: show(ga)  # the 3D frame has now axes labels
+
+    """
+    from sage.plot.plot3d.shapes2 import text3d
+    xmin, ymin, zmin = graph.bounding_box()[0]
+    xmax, ymax, zmax = graph.bounding_box()[1]
+    dx = xmax - xmin
+    dy = ymax - ymin
+    dz = zmax - zmin
+    x1 = xmin + dx / 2
+    y1 = ymin + dy / 2
+    z1 = zmin + dz / 2
+    xmin1 = xmin - dx / 20
+    xmax1 = xmax + dx / 20
+    ymin1 = ymin - dy / 20
+    zmin1 = zmin - dz / 20
+    graph += text3d('  ' + xlabel, (x1, ymin1, zmin1), **kwds)
+    graph += text3d('  ' + ylabel, (xmax1, y1, zmin1), **kwds)
+    graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
+    return graph

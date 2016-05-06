@@ -1770,7 +1770,7 @@ cdef class MPolynomial(CommutativeRingElement):
         r"""
         Return a `n`-th root of this element.
 
-        This generic method relies on factorization.
+        This method relies on factorization.
 
         EXAMPLES::
 
@@ -1790,44 +1790,36 @@ cdef class MPolynomial(CommutativeRingElement):
 
         n = ZZ.coerce(n)
 
+        if n == 2:
+            postfix = 'nd'
+        elif n == 3:
+            postfix = 'rd'
+        else:
+            postfix = 'th'
+
         if n <= 0:
             raise ValueError("n (={}) must be positive".format(n))
         elif n.is_one() or self.is_zero():
             return self
+        elif self.degree() % n:
+            raise ValueError("{} is not a {}{} power".format(self, n, postfix))
         else:
             f = self.factor()
-            u = f.unit()
+            u = self.base_ring()(f.unit())
 
             if u.is_one():
-                ans = u.base_ring().one()
+                ans = u
             else:
-                # here we need to compute a n-th root of the unit ``u``. In
-                # most case, it is not doable. But in some cases (e.g.
-                # polynomial ring) we can hope that the base ring can handle
-                # the computation.
-                R = self.parent()
-
-                if u.parent() == R:
-                    try:
-                        u = R.base_ring()(u)
-                    except (ValueError, TypeError):
-                        pass
-
-                if u.parent() == R or not hasattr(u, 'nth_root'):
-                    # we raise an error as otherwise calling nth_root will
-                    # raise an AttributeError or lead to an infinite recursion
+                # try to compute a n-th root of the unit in the
+                # base ring. the `nth_root` method thus has to be
+                # implemented in the base ring.
+                try:
+                    ans = self.parent(u.nth_root(n))
+                except AttributeError:
                     raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
-
-                ans = R(u.nth_root(n))
 
             for (v, exp) in f:
                 if exp % n:
-                    if n == 2:
-                        postfix = 'nd'
-                    elif n == 3:
-                        postfix = 'rd'
-                    else:
-                        postfix = 'th'
                     raise ValueError("{} is not a {}{} power".format(self, n, postfix))
                 ans *= v ** (exp // n)
 

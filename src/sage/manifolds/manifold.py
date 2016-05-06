@@ -338,8 +338,9 @@ from sage.misc.prandom import getrandbits
 from sage.rings.integer import Integer
 from sage.structure.global_options import GlobalOptions
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.structure import (TopologicalStructure,
-                                      RealTopologicalStructure)
+from sage.manifolds.structure import(
+                            TopologicalStructure, RealTopologicalStructure,
+                            DifferentialStructure, RealDifferentialStructure)
 
 #############################################################################
 ## Global options
@@ -647,7 +648,7 @@ class TopologicalManifold(ManifoldSubset):
         # Dictionary of sets of morphisms to over manifolds (keys: codomains):
         self._homsets = {}  # to be populated by self._Hom_
         # The identity map on self:
-        self._identity_map = Hom(self, self).one()
+        self._identity_map = self._Hom_(self).one()
 
     def _repr_(self):
         r"""
@@ -683,13 +684,20 @@ class TopologicalManifold(ManifoldSubset):
                                                           self._structure.name,
                                                           self._name)
             elif self._field_type == 'complex':
-                return "Complex {}-dimensional {} manifold {}".format(self._dim,
-                                                           self._structure.name,
-                                                           self._name)
-            return "{}-dimensional {} manifold {} over the {}".format(self._dim,
-                                                           self._structure.name,
-                                                           self._name,
-                                                           self._field)
+                if isinstance(self._structure, DifferentialStructure):
+                    return "{}-dimensional complex manifold {}".format(
+                                                                    self._dim,
+                                                                    self._name)
+                else:
+                    return "Complex {}-dimensional {} manifold {}".format(
+                                                          self._dim,
+                                                          self._structure.name,
+                                                          self._name)
+            return "{}-dimensional {} manifold {} over the {}".format(
+                                                          self._dim,
+                                                          self._structure.name,
+                                                          self._name,
+                                                          self._field)
         else:
             return "Open subset {} of the {}".format(self._name, self._manifold)
 
@@ -1634,8 +1642,9 @@ class TopologicalManifold(ManifoldSubset):
         r"""
         Define a scalar field on the manifold.
 
-        See :class:`~sage.manifolds.scalarfield.ScalarField` for a complete
-        documentation.
+        See :class:`~sage.manifolds.scalarfield.ScalarField` (or
+        :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+        if the manifold is differentiable) for a complete documentation.
 
         INPUT:
 
@@ -1669,7 +1678,10 @@ class TopologicalManifold(ManifoldSubset):
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the defined scalar field
+          (or of the subclass
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if the manifold is differentiable) representing the defined scalar
+          field.
 
         EXAMPLES:
 
@@ -2180,7 +2192,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
     OUTPUT:
 
-    - a manifold of the specified type
+    - a manifold of the specified type, as an instance of
+      :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
+      subclasses, e.g.
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
 
     EXAMPLES:
 
@@ -2205,9 +2220,54 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M = Manifold(3, 'M', structure='topological', field=QQ); M
         3-dimensional topological manifold M over the Rational Field
 
-    See the documentation of class
-    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
-    detailed examples.
+    A 3-dimensional real differentiable manifold of class `C^4`::
+
+        sage: M = Manifold(3, 'M', field='real', structure='differentiable',
+        ....:              diff_degree=4); M
+        3-dimensional differentiable manifold M
+
+    Since the default value of the parameter ``field`` is ``'real'``, the above
+    is equivalent to::
+
+        sage: M = Manifold(3, 'M', structure='differentiable', diff_degree=4)
+        sage: M
+        3-dimensional differentiable manifold M
+        sage: M.base_field_type()
+        'real'
+
+    A 3-dimensional real smooth manifold::
+
+        sage: M = Manifold(3, 'M', structure='differentiable', diff_degree=+oo)
+        sage: M
+        3-dimensional differentiable manifold M
+
+    Instead of ``structure='differentiable', diff_degree=+oo``, it suffices to
+    use ``structure='smooth'`` to get the same result::
+
+        sage: M = Manifold(3, 'M', structure='smooth'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    Actually, since ``'smooth'`` is the default value of the parameter
+    ``structure``, the creation of a real smooth manifold can be shorten to::
+
+        sage: M = Manifold(3, 'M'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    For a complex smooth manifold, we have to set the parameter ``field``::
+
+        sage: M = Manifold(3, 'M', field='complex'); M
+        3-dimensional complex manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    See the documentation of classes
+    :class:`~sage.manifolds.manifold.TopologicalManifold` and
+    :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+    for more detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2277,6 +2337,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         True
     """
     from time import time
+    from sage.rings.infinity import infinity
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
@@ -2288,12 +2350,28 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()
-    else:
-        raise NotImplementedError("manifolds of type {} are not ".format(structure) +
-                                  "implemented")
-    return TopologicalManifold(dim, name, field, structure,
-                               latex_name=latex_name, start_index=start_index,
-                               unique_tag=getrandbits(128)*time())
+        return TopologicalManifold(dim, name, field, structure,
+                                   latex_name=latex_name,
+                                   start_index=start_index,
+                                   unique_tag=getrandbits(128)*time())
+    elif structure in ['differentiable', 'diff', 'smooth']:
+        if structure == 'smooth':
+            diff_degree = infinity
+        elif 'diff_degree' in extra_kwds:
+            diff_degree = extra_kwds['diff_degree']
+        else:
+            diff_degree = None
+        if field == 'real' or isinstance(field, RealField_class):
+            structure = RealDifferentialStructure()
+        else:
+            structure = DifferentialStructure()
+        return DifferentiableManifold(dim, name, field, structure,
+                                      diff_degree=diff_degree,
+                                      latex_name=latex_name,
+                                      start_index=start_index,
+                                      unique_tag=getrandbits(128)*time())
+
+    raise NotImplementedError("manifolds of type {} are ".format(structure) +
+                              "not implemented")
 
 Manifold.global_options = ManifoldOptions
-

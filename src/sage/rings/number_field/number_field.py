@@ -1222,7 +1222,6 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
-        self.__relative_polynomial = self.relative_polynomial()
         self._pari_bnf_certified = False
         self._integral_basis_dict = {}
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
@@ -2722,6 +2721,19 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: M['x'] == L['x']
             False
+            
+        Similarly, two relative number fields which are isomorphic as absolute
+        fields, but which are not presented the same way, should not be equal (see
+        :trac:`18942`)::
+
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
+            True
 
         """
         if self is other:
@@ -2733,7 +2745,7 @@ class NumberField_generic(number_field_base.NumberField):
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
         # compare coefficients so that the polynomial variable does not count
-        c = cmp(list(self.__polynomial), list(other.__polynomial))
+        c = cmp(list(self.relative_polynomial()), list(other.relative_polynomial()))
         if c: return c
         # Now we compare the embeddings (if any).
         f, g = self.coerce_embedding(), other.coerce_embedding()
@@ -2773,7 +2785,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: y = polygen(F)
             sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
             sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
-            sage: K == L # The underlying fields are isomorphic
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
             True
             sage: hash(K) == hash(L)
             False
@@ -2784,8 +2798,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: xx = polygen(F)
             sage: ps = [p for p, _ in F(7).factor()]
             sage: for mu in ps:
-            ....:    K = F.extension(xx^3 - mu, 'alpha')
-            ....:    print(K.defining_polynomial().roots(K))
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print(K.defining_polynomial().roots(K))
             [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
             [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
             sage: for mu in ps:
@@ -2798,37 +2812,14 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: G=DirichletGroup(80);
             sage: for chi in G:
-            ....:    D=ModularSymbols(chi,2,-1).cuspidal_subspace().new_subspace().decomposition()
-            ....:    for f in D:
-            ....:        elt=f.q_eigenform(10,'alpha')[3];
-            ....:        print(elt.is_integral())
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
-            True
+            ....:     D=ModularSymbols(chi,2,-1).cuspidal_subspace().new_subspace().decomposition()
+            ....:     for f in D:
+            ....:         elt=f.q_eigenform(10,'alpha')[3];
+            ....:         assert(elt.is_integral())
 
         """
-        return hash((self.variable_name(), self.base_field(), tuple(self.__relative_polynomial)))
-    
+        return hash((self.variable_name(), self.base_field(), tuple(self.relative_polynomial())))
+
     def _ideal_class_(self, n=0):
         """
         Return the Python class used in defining the zero ideal of the ring

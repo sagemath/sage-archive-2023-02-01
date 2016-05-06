@@ -949,7 +949,7 @@ def Hadamard3Design(n):
 
     REFERENCES:
 
-    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+    .. [CvL] \P. Cameron, J. H. van Lint, Designs, graphs, codes and
       their links, London Math. Soc., 1991.
     """
     if n == 1 or n == 4:

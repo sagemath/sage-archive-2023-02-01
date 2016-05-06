@@ -18,6 +18,8 @@ cdef class GenericSDPBackend:
     cpdef int solve(self) except -1
     cpdef get_objective_value(self)
     cpdef get_variable_value(self, int variable)
+    cpdef dual_variable(self, int variable, sparse=*)
+    cpdef slack(self, int variable, sparse=*)
     cpdef bint is_maximization(self)
     cpdef row(self, int i)
     cpdef int ncols(self)

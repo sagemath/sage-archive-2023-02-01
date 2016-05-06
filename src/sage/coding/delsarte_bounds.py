@@ -206,7 +206,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
 
     REFERENCES:
 
-    .. [1] P. Delsarte, An algebraic approach to the association schemes of coding theory,
+    .. [1] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
            Philips Res. Rep., Suppl., vol. 10, 1973.
 
 

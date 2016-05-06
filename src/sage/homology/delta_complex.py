@@ -52,7 +52,7 @@ REFERENCES:
 
 .. [Hat] Allen Hatcher, "Algebraic Topology", Cambridge University Press (2002).
 
-.. [EZ] S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes and Singular
+.. [EZ] \S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes and Singular
         Homology", Ann. Math. (2) 51 (1950), 499-513.
 """
 

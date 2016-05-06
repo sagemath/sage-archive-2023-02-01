@@ -127,7 +127,7 @@ REFERENCES:
 
 - :wikipedia:`Jacobi's_elliptic_functions`
 
-.. [KhaSuk04] A. Khare and U. Sukhatme. "Cyclic Identities Involving
+.. [KhaSuk04] \A. Khare and U. Sukhatme. "Cyclic Identities Involving
    Jacobi Elliptic Functions". :arxiv:`math-ph/0201004`
 
 AUTHORS:

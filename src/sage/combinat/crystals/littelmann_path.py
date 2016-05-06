@@ -116,7 +116,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [Littelmann95] P. Littelmann, Paths and root operators in representation
+    .. [Littelmann95] \P. Littelmann, Paths and root operators in representation
        theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
     """
 
@@ -972,7 +972,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             REFERENCES:
 
-            .. [LNSSS2013] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+            .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
                A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.
                DMTCS proc, to appear ( {{{:arXiv:`1211.6019`}}} )
 

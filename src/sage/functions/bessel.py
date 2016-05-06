@@ -156,13 +156,13 @@ AUTHORS:
 
 REFERENCES:
 
-.. [AS-Bessel] F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
+.. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
     http://people.math.sfu.ca/~cbm/aands/page_355.htm
-.. [AS-Struve] M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
+.. [AS-Struve] \M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
    http://people.math.sfu.ca/~cbm/aands/page_495.htm
-.. [DLMF-Bessel] F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
+.. [DLMF-Bessel] \F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/10
-.. [DLMF-Struve] R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
+.. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
     http://dlmf.nist.gov/11
 .. _`mpmath Library`: https://github.com/fredrik-johansson/mpmath
 .. [WP-Bessel] :wikipedia:`Bessel_function`

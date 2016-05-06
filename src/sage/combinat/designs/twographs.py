@@ -241,7 +241,9 @@ def is_twograph(T):
         for x in B:
             v_to_blocks[x].add(B)
 
-    has_triple = lambda (x,y,z) : bool(v_to_blocks[x]&v_to_blocks[y]&v_to_blocks[z])
+    def has_triple(x_y_z):
+        x, y, z = x_y_z
+        return bool(v_to_blocks[x] & v_to_blocks[y] & v_to_blocks[z])
 
     # Check that every quadruple contains an even number of triples
     from __builtin__ import sum

@@ -243,7 +243,7 @@ class Stock:
 
     yahoo = deprecated_function_alias(18355,current_price_data)
 
-    def history(self,startdate='Jan+1,+1900',enddate=date.today().strftime("%b+%d,+%Y"), histperiod='daily'):
+    def history(self, startdate='Jan+1,+1900', enddate=None, histperiod='daily'):
         """
         Return an immutable sequence of historical price data
         for this stock, obtained from Google. OHLC data is stored
@@ -322,7 +322,6 @@ class Stock:
               9-Jan-07 29.90 30.05 29.60 29.90     103338
             ]
 
-
         Here, we create a stock by cid, and get historical data.
         Note that when using historical, if a cid is specified,
         it will take precedence over the stock's symbol.  So, if
@@ -337,8 +336,10 @@ class Stock:
              11-Jun-99 0.00 1.73 1.65 1.66   46261600,
              14-Jun-99 0.00 1.67 1.61 1.62   39270000
             ]
-
         """
+        if enddate is None:
+            enddate = date.today().strftime("%b+%d,+%Y")
+
         cid = self.cid
         symbol = self.symbol
 
@@ -571,7 +572,7 @@ class Stock:
         hist_data = Sequence(hist_data,cr=True,universe=lambda x:x, immutable=True)
         return hist_data
 
-    def _get_data(self, exchange='', startdate='Jan+1,+1900', enddate=date.today().strftime("%b+%d,+%Y"), histperiod='daily'):
+    def _get_data(self, exchange, startdate, enddate, histperiod='daily'):
         """
         This function is used internally.
 

@@ -13,21 +13,21 @@ It defines the following functions:
 
 REFERENCES:
 
-.. [BJL99-1] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
+.. [BJL99-1] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
    Second edition. Encyclopedia of Mathematics and its Applications, 69. Cambridge
    University Press, (1999).
 
-.. [BLJ99-2] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
+.. [BLJ99-2] \T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
    Second edition. Encyclopedia of Mathematics and its Applications, 78. Cambridge
    University Press, (1999).
 
-.. [Bo39] R. C. Bose, "On the construction of balanced incomplete block
+.. [Bo39] \R. C. Bose, "On the construction of balanced incomplete block
    designs", Ann. Eugenics, vol. 9, (1939), 353--399.
 
-.. [Bu95] M. Buratti "On simple radical difference families", J. of
+.. [Bu95] \M. Buratti "On simple radical difference families", J. of
    Combinatorial Designs, vol. 3, no. 2 (1995)
 
-.. [Wi72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
+.. [Wi72] \R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.
 
 Functions
@@ -41,6 +41,8 @@ Functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -244,7 +246,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     for d in D:
         s = block_stabilizer(G,d)
         stab.append(s)
-        nb_diff += k*(k-1) / len(s)
+        nb_diff += k*(k-1) // len(s)
     if l is None:
         if nb_diff % (v-1) != 0:
             if verbose:
@@ -437,7 +439,7 @@ def df_q_6_1(K, existence=False, check=True):
 
     # we now compute the cosets of x**i
     xx = x**5
-    to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
+    to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)//5)}
 
     for c in to_coset: # the loop runs through all nonzero elements of K
         if c == one or c == r or c == r2:
@@ -1309,7 +1311,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     Check twin primes difference sets::
 
         sage: for p in [3,5,7,9,11]:
-        ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
+        ....:     v = p*(p+2); k = (v-1)//2;  lmbda = (k-1)//2
         ....:     G,D = designs.difference_family(v,k,lmbda)
 
     Check the database::
@@ -1380,9 +1382,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             K = G = GF(v,'a',modulus=poly)
 
         B = map(K,B)
-        e = k*(k-1)/2
+        e = k*(k-1)//2
         xe = G.multiplicative_generator()**e
-        df = [[xe**j*b for b in B] for j in range((v-1)/(2*e))]
+        df = [[xe**j*b for b in B] for j in range((v-1)//(2*e))]
         if check and not is_difference_family(G, df, v=v, k=k, l=l):
             raise RuntimeError("There is an invalid ({},{})-evenly distributed "
                      "set in the database... Please contact "

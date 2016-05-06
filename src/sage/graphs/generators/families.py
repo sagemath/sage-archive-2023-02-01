@@ -697,7 +697,7 @@ def GoethalsSeidelGraph(k,r):
     in Theorem 2.4 of [GS70]_. It relies on a :func:`(v,k)-BIBD
     <sage.combinat.designs.bibd.balanced_incomplete_block_design>` with `r`
     blocks and a
-    :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix>` of order
+    :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix` of order
     `r+1`. The result is a
     :func:`sage.graphs.strongly_regular_db.strongly_regular_graph` on `v(r+1)`
     vertices with degree `k=(n+r-1)/2`.
@@ -1599,11 +1599,12 @@ def PasechnikGraph(n):
     """
     Pasechnik strongly regular graph on `(4n-1)^2` vertices
 
-    A strongly regular graph with parameters of the orthogonal array graph
-    :func:`OrthogonalArrayBlockGraph
-    <sage.graphs.generateudo_L_2n_4n_m_1ors.GraphGenerators.OrthogonalArrayBlockGraph>`, also
-    known as pseudo Latin squares graph `L_{2n-1}(4n-1)`, constructed from a
-    skew Hadamard matrix of order `4n` following [Pa92]_.
+    A strongly regular graph with parameters of the orthogonal array
+    graph
+    :func:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
+    also known as pseudo Latin squares graph `L_{2n-1}(4n-1)`,
+    constructed from a skew Hadamard matrix of order `4n` following
+    [Pa92]_.
 
     EXAMPLES::
 
@@ -1611,6 +1612,7 @@ def PasechnikGraph(n):
         (225, 98, 43, 42)
         sage: graphs.PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 578, 273, 272)
+
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     from sage.matrix.constructor import identity_matrix, matrix
@@ -1627,7 +1629,7 @@ def SquaredSkewHadamardMatrixGraph(n):
 
     A strongly regular graph with parameters of the orthogonal array graph
     :func:`OrthogonalArrayBlockGraph
-    <sage.graphs.generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    <sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
     known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
     skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
 
@@ -1658,7 +1660,7 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     A strongly regular graph in the
     :meth:`Seidel switching <Graph.seidel_switching>` class of the disjoint union of
     a 1-vertex graph and the one produced by :func:`Pseudo-L_{2n}(4n-1)
-    <sage.graphs.generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
+    <sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
 
     In this case, the other possible parameter set of a strongly regular graph in the
     Seidel switching class of the latter graph (see [BH12]_) coincides with the set
@@ -2517,7 +2519,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
         sage: ff=map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
-        sage: L=sum(map(lambda (i,(a,b)): i*(r[a]-r[b]), zip(range(1,len(ff)+1), ff))); L
+        sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
         [ 0  1 -1  2  3 -4 -2  4 -3]
         [-1  0  1 -4  2  3 -3 -2  4]
         [ 1 -1  0  3 -4  2  4 -3 -2]
@@ -2548,13 +2550,13 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     REFERENCES:
 
-    .. [Mat78] R. A. Mathon,
+    .. [Mat78] \R. A. Mathon,
        Symmetric conference matrices of order `pq^2 + 1`,
        Canad. J. Math. 30 (1978) 321-331
 
-    .. [ST78] J. J. Seidel and D. E. Taylor,
+    .. [ST78] \J. J. Seidel and D. E. Taylor,
        Two-graphs, a second survey.
-       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
+       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689--711,
        Colloq. Math. Soc. János Bolyai, 25,
        North-Holland, Amsterdam-New York, 1981.
     """
@@ -2562,7 +2564,6 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     from sage.rings.integer_ring import ZZ
     from sage.matrix.constructor import matrix, block_matrix, \
         ones_matrix, identity_matrix
-    from itertools import product
     from sage.arith.all import two_squares
     p = 4*t+1
     try:
@@ -2593,16 +2594,22 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         I = identity_matrix(q)
         J = ones_matrix(q)
         if m == 0:
-           f = lambda (i, j): 0*I if i==j                    else\
-                              I+F if (a[j]-a[i]).is_square() else\
-                              J-F
+            def f(i, j):
+                if i == j:
+                    return 0 * I
+                elif (a[j]-a[i]).is_square():
+                    return I + F
+                else:
+                    return J - F
         elif m < 2*t:
-           f = lambda (i, j): F*P[a.index(g**(2*m) * (a[i]+a[j]))]
+            def f(i, j):
+                return F * P[a.index(g**(2*m) * (a[i]+a[j]))]
         elif m == 2*t:
-           f = lambda (i, j): E*P[i]
-        return block_matrix(q,q, map(f, product(xrange(q), xrange(q))))
+            def f(i, j):
+                return E * P[i]
+        return block_matrix(q,q, [f(i, j) for i in xrange(q) for j in xrange(q)])
 
-    def Acon((i, j)):
+    def Acon(i, j):
         J = ones_matrix(q**2)
         if i==j:
             return              B(0)
@@ -2614,7 +2621,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
             return              B(-L[i,j]).T
         return                  J-B(-L[i,j]).T
 
-    A = Graph(block_matrix(p, p, map(Acon, product(xrange(p), xrange(p)))))
+    A = Graph(block_matrix(p, p, [Acon(i,j) for i in xrange(p) for j in xrange(p)]))
     A.name("Mathon's PC SRG on "+str(p*q**2)+" vertices")
     A.relabel()
     return A

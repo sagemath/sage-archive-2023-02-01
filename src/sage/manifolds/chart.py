@@ -1209,8 +1209,8 @@ class RealChart(Chart):
     Coordinate are also accessible by their indices::
 
         sage: x1 = c_spher[1]; x2 = c_spher[2]; x3 = c_spher[3]
-        sage: print x1, x2, x3
-        r th ph
+        sage: [x1, x2, x3]
+        [r, th, ph]
         sage: (x1, x2, x3) == (r, th, ph)
         True
 
@@ -2152,8 +2152,8 @@ class CoordChange(SageObject):
                 raise ValueError("no solution found; use set_inverse() to " +
                                  "set the inverse manually")
             if len(list_x2_to_x1) > 1:
-                print "Multiple solutions found: "
-                print list_x2_to_x1
+                print("Multiple solutions found: ")
+                print(list_x2_to_x1)
                 raise ValueError(
                    "non-unique solution to the inverse coordinate " +
                    "transformation; use set_inverse() to set the inverse " +

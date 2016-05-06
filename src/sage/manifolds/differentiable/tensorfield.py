@@ -3051,3 +3051,298 @@ class TensorField(ModuleElement):
         for dom, rst in self._restrictions.iteritems():
             if point in dom:
                 return rst.at(point)
+
+    def up(self, metric, pos=None):
+        r"""
+        Compute a metric dual of the tensor field by raising some index with a
+        given metric.
+
+        If `T` is the tensor field, `(k,l)` its type and `p` the position of a
+        covariant index (i.e. `k\leq p < k+l`), this method called with
+        ``pos`` `=p` yields the tensor field `T^\sharp` of type `(k+1,l-1)`
+        whose components are
+
+        .. MATH::
+
+            (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\ \ b_1 \ldots b_{l-1}}
+            = g^{a_{k+1} i} \,
+            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
+
+        `g^{ab}` being the components of the inverse metric.
+
+        The reverse operation is :meth:`TensorField.down`
+
+        INPUT:
+
+        - ``metric`` -- metric `g`, as an instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        - ``pos`` -- (default: ``None``) position of the index (with the
+          convention ``pos=0`` for the first index); if ``None``, the raising
+          is performed over all the covariant indices, starting from the first
+          one
+
+        OUTPUT:
+
+        - the tensor field `T^\sharp` resulting from the index raising
+          operation
+
+        EXAMPLES:
+
+        Raising the index of a 1-form results in a vector field::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: c_xy.<x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
+            sage: w = M.one_form()
+            sage: w[:] = [-1, 2]
+            sage: v = w.up(g) ; v
+            Vector field on the 2-dimensional differentiable manifold M
+            sage: v.display()
+            ((2*x - 1)*y + 1)/(x^2*y^2 + (x + 1)*y - x - 1) d/dx
+             - (x*y + 2*x + 2)/(x^2*y^2 + (x + 1)*y - x - 1) d/dy
+            sage: ig = g.inverse(); ig[:]
+            [ (y - 1)/(x^2*y^2 + (x + 1)*y - x - 1)      x*y/(x^2*y^2 + (x + 1)*y - x - 1)]
+            [     x*y/(x^2*y^2 + (x + 1)*y - x - 1) -(x + 1)/(x^2*y^2 + (x + 1)*y - x - 1)]
+
+        Using the index notation instead of :meth:`up`::
+
+            sage: v == ig['^ab']*w['_b']
+            True
+
+        The reverse operation::
+
+            sage: w1 = v.down(g) ; w1
+            1-form on the 2-dimensional differentiable manifold M
+            sage: w1.display()
+            -dx + 2 dy
+            sage: w1 == w
+            True
+
+        The reverse operation in index notation::
+
+            sage: g['_ab']*v['^b'] == w
+            True
+
+        Raising the indices of a tensor field of type (0,2)::
+
+            sage: t = M.tensor_field(0, 2)
+            sage: t[:] = [[1,2], [3,4]]
+            sage: tu0 = t.up(g, 0) ; tu0  # raising the first index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: tu0[:]
+            [  ((3*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1) 2*((2*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1)]
+            [    (x*y - 3*x - 3)/(x^2*y^2 + (x + 1)*y - x - 1)   2*(x*y - 2*x - 2)/(x^2*y^2 + (x + 1)*y - x - 1)]
+            sage: tu0 == ig['^ac']*t['_cb'] # the same operation in index notation
+            True
+            sage: tuu0 = tu0.up(g) ; tuu0 # the two indices have been raised, starting from the first one
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: tuu0 == tu0['^a_c']*ig['^cb'] # the same operation in index notation
+            True
+            sage: tu1 = t.up(g, 1) ; tu1 # raising the second index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: tu1 == ig['^ac']*t['_bc'] # the same operation in index notation
+            True
+            sage: tu1[:]
+            [((2*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1) ((4*x + 3)*y - 3)/(x^2*y^2 + (x + 1)*y - x - 1)]
+            [  (x*y - 2*x - 2)/(x^2*y^2 + (x + 1)*y - x - 1) (3*x*y - 4*x - 4)/(x^2*y^2 + (x + 1)*y - x - 1)]
+            sage: tuu1 = tu1.up(g) ; tuu1 # the two indices have been raised, starting from the second one
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: tuu1 == tu1['^a_c']*ig['^cb'] # the same operation in index notation
+            True
+            sage: tuu0 == tuu1 # the order of index raising is important
+            False
+            sage: tuu = t.up(g) ; tuu # both indices are raised, starting from the first one
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: tuu0 == tuu # the same order for index raising has been applied
+            True
+            sage: tuu1 == tuu # to get tuu1, indices have been raised from the last one, contrary to tuu
+            False
+            sage: d0tuu = tuu.down(g, 0) ; d0tuu # the first index is lowered again
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: dd0tuu = d0tuu.down(g) ; dd0tuu  # the second index is then lowered
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: d1tuu = tuu.down(g, 1) ; d1tuu # lowering operation, starting from the last index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: dd1tuu = d1tuu.down(g) ; dd1tuu
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: ddtuu = tuu.down(g) ; ddtuu # both indices are lowered, starting from the last one
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: ddtuu == t # should be true
+            True
+            sage: dd0tuu == t # not true, because of the order of index lowering to get dd0tuu
+            False
+            sage: dd1tuu == t # should be true
+            True
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        if pos is None:
+            result = self
+            for p in range(n_con, self._tensor_rank):
+                k = result._tensor_type[0]
+                result = result.up(metric, k)
+            return result
+        if not isinstance(pos, (int, Integer)):
+            raise TypeError("the argument 'pos' must be an integer")
+        if pos<n_con or pos>self._tensor_rank-1:
+            print("pos = {}".format(pos))
+            raise ValueError("position out of range")
+        return self.contract(pos, metric.inverse(), 0)
+
+    def down(self, metric, pos=None):
+        r"""
+        Compute a metric dual of the tensor field by lowering some index with a
+        given metric.
+
+        If `T` is the tensor field, `(k,l)` its type and `p` the position of a
+        contravariant index (i.e. `0\leq p < k`), this method called with
+        ``pos`` `=p`  yields the tensor field `T^\flat` of type `(k-1,l+1)`
+        whose components are
+
+        .. MATH::
+
+            (T^\flat)^{a_1\ldots a_{k-1}}_{\qquad\ \  b_1 \ldots b_{l+1}}
+            = g_{b_1 i} \,
+            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\qquad\qquad\quad\; b_2 \ldots b_{l+1}},
+
+        `g_{ab}` being the components of the metric tensor.
+
+        The reverse operation is :meth:`TensorField.up`
+
+        INPUT:
+
+        - ``metric`` -- metric `g`, as an instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        - ``pos`` -- (default: ``None``) position of the index (with the
+          convention ``pos=0`` for the first index); if ``None``, the lowering
+          is performed over all the contravariant indices, starting from the
+          last one
+
+        OUTPUT:
+
+        - the tensor field `T^\flat` resulting from the index lowering
+          operation
+
+        EXAMPLES:
+
+        Lowering the index of a vector field results in a 1-form::
+
+            sage: M = Manifold(2, 'M', start_index=1)
+            sage: c_xy.<x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
+            sage: v = M.vector_field()
+            sage: v[:] = [-1,2]
+            sage: w = v.down(g) ; w
+            1-form on the 2-dimensional differentiable manifold M
+            sage: w.display()
+            (2*x*y - x - 1) dx + (-(x + 2)*y + 2) dy
+
+        Using the index notation instead of :meth:`down`::
+
+            sage: w == g['_ab']*v['^b']
+            True
+
+        The reverse operation::
+
+            sage: v1 = w.up(g) ; v1
+            Vector field on the 2-dimensional differentiable manifold M
+            sage: v1 == v
+            True
+
+        Lowering the indices of a tensor field of type (2,0)::
+
+            sage: t = M.tensor_field(2, 0)
+            sage: t[:] = [[1,2], [3,4]]
+            sage: td0 = t.down(g, 0) ; td0  # lowering the first index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: td0 == g['_ac']*t['^cb'] # the same operation in index notation
+            True
+            sage: td0[:]
+            [  3*x*y + x + 1   (x - 3)*y + 3]
+            [4*x*y + 2*x + 2 2*(x - 2)*y + 4]
+            sage: tdd0 = td0.down(g) ; tdd0 # the two indices have been lowered, starting from the first one
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: tdd0 == g['_ac']*td0['^c_b'] # the same operation in index notation
+            True
+            sage: tdd0[:]
+            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3]
+            [(3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
+            sage: td1 = t.down(g, 1) ; td1  # lowering the second index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: td1 == g['_ac']*t['^bc'] # the same operation in index notation
+            True
+            sage: td1[:]
+            [  2*x*y + x + 1   (x - 2)*y + 2]
+            [4*x*y + 3*x + 3 (3*x - 4)*y + 4]
+            sage: tdd1 = td1.down(g) ; tdd1 # the two indices have been lowered, starting from the second one
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: tdd1 == g['_ac']*td1['^c_b'] # the same operation in index notation
+            True
+            sage: tdd1[:]
+            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 (3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2]
+            [2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
+            sage: tdd1 == tdd0   # the order of index lowering is important
+            False
+            sage: tdd = t.down(g) ; tdd  # both indices are lowered, starting from the last one
+            Tensor field of type (0,2) on the 2-dimensional differentiable
+             manifold M
+            sage: tdd[:]
+            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 (3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2]
+            [2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
+            sage: tdd0 == tdd  # to get tdd0, indices have been lowered from the first one, contrary to tdd
+            False
+            sage: tdd1 == tdd  # the same order for index lowering has been applied
+            True
+            sage: u0tdd = tdd.up(g, 0) ; u0tdd # the first index is raised again
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: uu0tdd = u0tdd.up(g) ; uu0tdd # the second index is then raised
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: u1tdd = tdd.up(g, 1) ; u1tdd  # raising operation, starting from the last index
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: uu1tdd = u1tdd.up(g) ; uu1tdd
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: uutdd = tdd.up(g) ; uutdd  # both indices are raised, starting from the first one
+            Tensor field of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: uutdd == t  # should be true
+            True
+            sage: uu0tdd == t # should be true
+            True
+            sage: uu1tdd == t # not true, because of the order of index raising to get uu1tdd
+            False
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        if pos is None:
+            result = self
+            for p in range(0, n_con):
+                k = result._tensor_type[0]
+                result = result.down(metric, k-1)
+            return result
+        if not isinstance(pos, (int, Integer)):
+            raise TypeError("the argument 'pos' must be an integer")
+        if pos<0 or pos>=n_con:
+            print("pos = {}".format(pos))
+            raise ValueError("position out of range")
+        return metric.contract(1, self, pos)
+

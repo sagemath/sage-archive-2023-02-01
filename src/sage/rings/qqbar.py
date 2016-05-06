@@ -1311,7 +1311,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         elif n == 4:
             return self.gen()
         else:
-            nf = CyclotomicField(n, embedding=CC.zeta(n))
+            nf = CyclotomicField(n)
             p = nf.polynomial()
             root = ANRoot(p, ComplexIntervalField(64).zeta(n))
             gen = AlgebraicGenerator(nf, root)

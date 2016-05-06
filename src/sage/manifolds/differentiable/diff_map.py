@@ -1084,8 +1084,7 @@ class DiffMap(ContinuousMap):
         Pushforward of a vector field on the real line to the `\RR^3`, via a
         helix embedding::
 
-            sage: R = Manifold(1, 'R') # the real line
-            sage: T.<t> = R.chart()
+            sage: R.<t> = RealLine()
             sage: Psi = R.diff_map(R3, [cos(t), sin(t), t], name='Psi',
             ....:                  latex_name=r'\Psi')
             sage: u = R.vector_field(name='u')
@@ -1093,9 +1092,8 @@ class DiffMap(ContinuousMap):
             sage: u.display()
             u = d/dt
             sage: pu = Psi.pushforward(u); pu
-            Vector field Psi^*(u) along the 1-dimensional differentiable
-             manifold R with values on the 3-dimensional differentiable
-             manifold R^3
+            Vector field Psi^*(u) along the Real number line R with values on
+             the 3-dimensional differentiable manifold R^3
             sage: pu.display()
             Psi^*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
 

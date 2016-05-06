@@ -265,10 +265,12 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.rings.all import NN, ZZ
+from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 
 #--------------------------------------------------
 # Partition tuple - element class
@@ -960,6 +962,35 @@ class PartitionTuple(CombinatorialElement):
         """
         return multicharge[k]-r+c
 
+    def content_tableau(self,multicharge):
+        """
+        Return the tableau which has (k,r,c)th entry equal to the content
+        ``multicharge[k]-r+c of this cell.
+
+        As with the content function, by setting the ``multicharge``
+        appropriately the tableau containing the residues is returned.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,0])
+            ([[0, 1], [-1]], [[0, 1]], [[0], [-1], [-2]])
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,1]).pp()
+                0  1     0  1     1
+               -1                 0
+                                 -1
+
+        as with the content function the multicharge can be used to return the
+        tableau containing the residues of the cells::
+
+            sage: multicharge=[ IntegerModRing(3)(c) for c in [0,0,1] ]
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau(multicharge).pp()
+                0  1     0  1     1
+                2                 0
+                                  2
+        """
+        from tableau_tuple import TableauTuple
+        return TableauTuple([[[multicharge[k]-r+c for c in range(self[k][r])]
+                        for r in range(len(self[k]))] for k in range(len(self))])
 
     def conjugate(self):
         """
@@ -1451,6 +1482,275 @@ class PartitionTuple(CombinatorialElement):
                 gens.extend([c for c in range(m+1,m+row)])
                 m+=row
         return gens
+
+
+    def conormal_cells(self,e,multicharge,i=None,direction='up'):
+        """
+        Returns a dictionary of the cells of the partition which are conormal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the conormal cells for 0<=``i`` <``e``.
+
+        The conormal are computed by reading down the rows of the partition
+        and marking all of all of the addable and removable cells of
+        e-residue i and then recursively removing all adjacent pairs of
+        addable and removable cells from this list. The addable i-cells
+        that remain at the end of the this process are the conormal i-cells.
+
+        When computing conormal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting <direction>='up'.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1])
+            {0: [(1, 1, 3), (0, 1, 4)], 1: [(1, 3, 0), (1, 2, 2), (0, 2, 0)], 2: [(1, 0, 4), (0, 0, 5)]}
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],i=1)
+            [(1, 3, 0), (1, 2, 2), (0, 2, 0)]
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],i=2)
+            [(1, 0, 4), (0, 0, 5)]
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],direction='down')
+            {0: [(0, 1, 4), (1, 1, 3)], 1: [(0, 2, 0), (1, 2, 2), (1, 3, 0)], 2: [(0, 0, 5), (1, 0, 4)]}
+        """
+        from collections import defaultdict
+        # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
+        conormals=defaultdict(list)   # the conormal cells of each residue
+        carry=defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        Ie=IntegerModRing(e)
+        multicharge=[Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+
+        # the indices for the rows ending in addable nodes
+        rows=[(k,r) for k in range(len(self)) for r in range(len(self[k])+1)]
+        if direction=='up': rows.reverse()
+
+        for row in rows:
+            k,r=row
+            if r==len(self[k]): # addable cell at bottom of a component
+                res=multicharge[k]-r
+                if carry[res]>=0: conormals[res].append( (k,r,0) )
+                else: carry[res]-=1
+            else:
+                res=multicharge[k]+self[k][r]-r-1
+                if r==len(self[k])-1 or self[k][r]>self[k][r+1]: # removable cell
+                    carry[res]+=1
+                if r==0 or self[k][r-1]>self[k][r]:               #addable cell
+                    if carry[res+1]>=0: conormals[res+1].append( (k,r,self[k][r]) )
+                    else: carry[res+1]-=1
+
+        # finally return the result
+        if i==None: return dict(conormals)
+        else: return conormals[i]
+
+    def cogood_cells(self,e, multicharge, i=None, direction='up'):
+        """
+        Return a list of the cells of the partition which are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good i-cell is the 'last' normal ``i``-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
+            {0: (1, 2, 1), 2: (1, 1, 2)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
+            {0: (1, 2, 1), 2: (0, 1, 3)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],0,direction='down')
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
+            True
+        """
+        conormal_cells=self.conormal_cells(e,multicharge,i,direction)
+        if i==None:
+            return {i:conormal_cells[i][0] for i in conormal_cells}
+        elif conormal_cells==[]:
+            return None
+        else:
+            return conormal_cells[0]
+
+    def normal_cells(self,e,multicharge,i=None, direction='up'):
+        """
+        Returns a dictionary of the removable cells of the partition which are normal.
+        If no residue ``i`` is specified then a list of length ``e`` is returned
+        which gives the normal cells for 0<=``i`` <``e``.
+
+        The normal are computed by reading up (or down) the rows of the partition
+        and marking all of all of the addable and removable cells of
+        ``e``-residue ``i`` and then recursively removing all adjacent pairs of
+        addable and removable cells from this list. The removable ``i``-cells
+        that remain at the end of the this process are the normal ``i``-cells.
+
+        When computing normal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting <direction>='up'.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1])
+            {0: [(1, 2, 1)], 2: [(1, 1, 2)]}
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1],1)
+            []
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1],direction='down')
+            {1: [(0, 0, 4)]}
+        """
+        from collections import defaultdict
+        # We use a dictionary for the normal nodes as the indexing set is Z when e=0
+        normals=defaultdict(list)     # the normal cells of each residue
+        carry=defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        Ie=IntegerModRing(e)
+        multicharge=[Ie(m) for m in multicharge]  # adding multicharge works mod e
+
+        # the indices for the rows ending in addable nodes
+        rows=[(k,r) for k in range(len(self)) for r in range(len(self[k])+1)]
+        if direction=='up': rows.reverse()
+
+        for row in rows:
+            k,r=row
+            if r==len(self[k]): # addable cell at bottom of a component
+                carry[multicharge[k]-r]-=1
+            else:
+                res=multicharge[k]+self[k][r]-r-1
+                if r==len(self[k])-1 or self[k][r]>self[k][r+1]: # removable cell
+                    if carry[res]==0: normals[res].append( (k,r,self[k][r]-1) )
+                    else: carry[res]+=1
+                if r==0 or self[k][r-1]>self[k][r]:               #addable cell
+                    carry[res+1]-=1
+
+        # finally return the result
+        if i==None: return dict(normals)    # change the defaultdict into a dict
+        else: return normals[i]
+
+    def good_cells(self,e,multicharge, i=None, direction='up'):
+        """
+        Return a list of the cells of the partition tuple which are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good ``i``-cell is the 'last' normal ``i``-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
+            {0: (1, 2, 1), 2: (1, 1, 2)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
+            {0: (1, 2, 1), 2: (0, 1, 3)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
+            True
+        """
+        normal_cells=self.normal_cells(e,multicharge,i,direction)
+        if i is None:
+            return {i:normal_cells[i][-1] for i in normal_cells}
+        elif normal_cells==[]:
+            return None
+        else:
+            return normal_cells[-1]
+
+    def good_residue_sequence(self, e, multicharge, direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition to this
+        partition, or None if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_residue_sequence(3,[0,1])
+
+        """
+        if self.size()==0:
+            return []
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            k,r,c,=good_cells[0]
+            good_seq=self.remove_cell(k,r,c).good_residue_sequence(e,multicharge,direction)
+            good_seq.append( IntegerModRing(e)(multicharge[k]+c-r) )
+            return good_seq
+        except (TypeError, AttributeError):  
+            # if this fails then there is no good cell sequence
+            return None
+
+    def good_cell_sequence(self, e, multicharge, direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition to this
+        partition, or None if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cell_sequence(3,[0,1])
+
+        """
+        if self.size()==0:
+            return []
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            cell=good_cells[0]
+            good_seq=self.remove_cell(*cell).good_cell_sequence(e,multicharge,direction)
+            good_seq.append(cell)
+            return good_seq
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def Mullineux_conjugate(self, e, multicharge, direction='up'):
+        """
+        Return the partition tuple which is the Mullineux conjugate of this
+        partition tuple, or None if no such partition tuple exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).Mullineux_conjugate(3,[0,1])
+
+        """
+        if self.size()==0:
+            return PartitionTuples([[] for l in range(self.level())])
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            k,r,c=good_cells[0]
+            mu=self.remove_cell(k,r,c).Mullineux_conjugate(e,multicharge,direction)
+            # add back on a cogood cell of residue -residue(k,r,c)
+            return mu.add_cell(*mu.cogood_cell(e,muticharge=multicharge,i=r-c-multicharge[k],direction=direction))
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def is_regular(self,e,multicharge):
+        """
+        Return True if this is a restricted partition tuple. That is, we can get
+        to the empty partition tuple by successively removing a sequence of good
+        cells.
+
+        EXAMPLES::
+
+        """
+        for cell in self.good_cells(e,multicharge,direction='down'):
+            if not cell is None:
+                return self.remove_cell(*cell).is_restricted(e,multicharge)
+        return False
+
+    def is_restricted(self,e,multicharge):
+        """
+        Return True if this is a restricted partition tuple. That is, we can get
+        to the empty partition tuple by successively removing a sequence of good
+        cells.
+
+        EXAMPLES::
+
+        """
+        if self.size()==0: return True
+        for cell in self.good_cells(e,multicharge).values():
+            if not cell is None:
+                return self.remove_cell(*cell).is_restricted(e,multicharge)
+        return False
+
 
 #--------------------------------------------------
 # Partition tuples - parent classes
@@ -2120,3 +2420,565 @@ class PartitionTuples_level_size(PartitionTuples):
             self.__dict__=parts.__dict__
         else:
             super(PartitionTuples, self).__setstate__(state)
+
+#--------------------------------------------------
+# Kleshchev partitions - parent classes
+#--------------------------------------------------
+class KleshchevPartitions(PartitionTuples):
+    """
+    A partition (tuple) `\mu` is restricted if it can be recursively obtained by
+    adding a sequence of good nodes to the empty :class:`PartitionTuple:` of the
+    same :meth:`~PartitionTuple.level`.
+
+    EXAMPLES::
+
+    """
+    @staticmethod
+    def __classcall_private__(klass, e, multicharge=(0,),size=None):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        the values of `level` and `size`.
+        """
+        if size is None and isinstance(multicharge,(int,Integer)):
+            size=multicharge
+            multicharge=(0,)
+
+        if size is None:
+            return KleshchevPartitions_all(e,tuple(multicharge))
+        else:
+            return KleshchevPartitions_size(e,tuple(multicharge),size)
+
+
+class KleshchevPartitions_all(KleshchevPartitions):
+    """
+    Class of all Kleshchev partitions.
+    """
+    def __init__(self, e, multicharge=(0,)):
+        r"""
+        Initializes classes of PartitionTuples.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+        """
+        assert e in NN and ( e==0 or e>1), 'e must belong to {0,2,3,4,5,6,...}'
+        super(KleshchevPartitions_all, self).__init__(category=InfiniteEnumeratedSets())
+        self._level=len(multicharge)
+        self.e=e   # for printing
+        self._I=IntegerModRing(e)
+        self._multicharge=tuple(self._I(m) for m in multicharge)
+
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+            sage: KleshchevPartitions(3,[0,0,0])
+            Kleshchev partitions with e=3 and multicharge=(0,0,0)
+            sage: KleshchevPartitions(3,[0,0,1])
+            Kleshchev partitions with e=3 and multicharge=(0,0,1)
+        """
+        if self._level==1:
+            return 'Kleshchev partitions with e=%s' % (self.e)
+        else:
+            return 'Kleshchev partitions with e=%s and multicharge=(%s)' % (
+                    self.e,','.join('%s'%m for m in self._multicharge))
+
+
+    def __contains__(self,mu):
+        """
+        Containment test for the class KleshchevPartitions()
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,0,1], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 8)
+            True
+            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(2,[0,0,0],8))
+            True
+        """
+        if isinstance(mu,PartitionTuple) and mu.level()==self.level():
+            return mu.is_restricted(self.e,self._multicharge)
+
+        try:
+            mu=PartitionTuple(mu)
+        except ValueError:
+            return False
+        return mu.level()==self.level() and mu.is_restricted(self.e,self._multicharge)
+
+
+    def __iter__(self):
+        r"""
+        Returns an iterator for the finite class of PartitionTuples of a fixed level
+        and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,[0,1],0)[:] #indirect doctest
+            [([], [])]
+            sage: KleshchevPartitions(2,[0,1],1)[:] #indirect doctest
+            [([1], []), ([], [1])]
+            sage: KleshchevPartitions(2,[0,1],2)[:] #indirect doctest
+            [([1], [1]), ([], [1, 1])]
+            sage: KleshchevPartitions(3,[0,1,2],2)[:] #indirect doctest
+            [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
+        """
+        for size in NonNegativeIntegers():
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,size):
+                yield mu
+
+    def _an_element_(self):
+        """
+        Return a generic element.
+
+        EXAMPLES::
+            sage: KleshchevPartitions(3,[0,0,0,0],size=4).an_element()  # indirect doctest
+            ([1], [1], [1], [1])
+
+        """
+        return self[12]
+
+
+class KleshchevPartitions_size(KleshchevPartitions):
+    """
+    Class of all Kleshchev partitions.
+    """
+
+    def __init__(self, e, multicharge=(0,), size=0):
+        r"""
+        Initializes classes of KleshchevPartitions.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+        """
+        super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())
+        self._size=size
+        self._level=len(multicharge)
+        # As lists do not take negative indices the case e=0 needs to be handled
+        # differently. Rather than doing this we set e equal to a "really big"
+        # number. Mathematically, this is equivalent and it means that we don't
+        # have an exception to cater for.
+        self.e=e
+        self.e=e
+        self._I=IntegerModRing(e)
+        self._multicharge=tuple(self._I(m) for m in multicharge)
+        if self._level==1:
+            self.__iter__=self.__iter__level_one
+        else:
+            self.__iter__=self.__iter__higher_levels
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,[0,0],3)
+            Kleshchev partitions with e=4 and multicharge=(0,0) and size 3
+        """
+        if self._level==1:
+            return 'Kleshchev partitions with e=%s and size %s' % (self.e, self._size)
+        else:
+            return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
+                    self.e,','.join('%s'%m for m in self._multicharge), self._size) 
+
+    def __contains__(self,mu):
+        """
+        Containment test for the class PartitionTuples_level_size()
+
+        TESTS::
+
+            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0],7)
+            False
+            sage: PartitionTuple([[3,2],[],[],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
+            False
+            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
+            False
+            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in KleshchevPartitions(2,[0,0,0,0,0],9)
+            False
+            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(0,[0,0,0],8))
+            True
+        """
+        if isinstance(mu,PartitionTuple) and mu.level()==self._level and mu.size()==self._size:
+            return PartitionTuple(mu).is_restricted(self.e,self._multicharge)
+
+        try:
+            mu=PartitionTuple(mu)
+        except ValueError:
+            return False
+        return mu.level()==self._level and mu.is_restricted(self.e,self._multicharge) and mu.size()==self._size
+
+
+    def __iter__level_one(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of level one 
+        and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,0)[:] #indirect doctest
+            [[]]
+            sage: KleshchevPartitions(2,1)[:] #indirect doctest
+            [[1]]
+            sage: KleshchevPartitions(2,2)[:] #indirect doctest
+            [[1, 1]]
+            sage: KleshchevPartitions(3,2)[:] #indirect doctest
+            [[2], [1, 1]]
+        """
+        if self._size==0:
+                yield Partition([])
+        else:
+            # for level one restriction simply means that the difference of 
+            # consecutive parts is always less than e
+            for mu in Partitions(self._size, min_slope=1-self.e):
+                if mu[-1]<self.e: yield mu
+        return   # all done
+
+    def __iter__higher_levels(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of a fixed 
+        :meth:`level` greater than 1 and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,[0,0],1)[:] #indirect doctest
+            [([], [1])]
+            sage: KleshchevPartitions(2,[0,0],2)[:] #indirect doctest
+            [([1], [1]), ([], [1, 1])]
+            sage: KleshchevPartitions(3,[0,0],2)[:] #indirect doctest
+            [([1], [1]), ([], [2]), ([], [1, 1])]
+        """
+        if self._size==0:
+            yield PartitionTuples_level_size(level=self._level,size=0)[0]
+        else:
+            # For higher levels we have to recursively construct the restricted partitions
+            # by adding on co-good nodes to smaller restricted partition. To avoid over 
+            # counting we return a new restricted partition only if we added on its lowest
+            # good node.
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,self._size-1):
+                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge).values():
+                    if cell is not None:
+                        nu=mu.add_cell(*cell)
+                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge).values() if c is not None):
+                            yield nu
+        return   # all done
+
+    @lazy_attribute
+    def __iter__(self):
+        """
+        Wrapper to return the correct iterator which is different for :class:`Partitions`
+        (level 1) and for :class:PartitionTuples` (higher levels).
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(3,3)[:]            #indirect doctest
+            [[2, 1], [1, 1, 1]]
+            sage: KleshchevPartitions(3,[0],3)[:]        #indirect doctest
+            [[2, 1], [1, 1, 1]]
+            sage: KleshchevPartitions(3,[0,0],3)[:]      #indirect doctest
+            [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
+        """
+        if self.level()==1:
+            return self.__iter__level_one
+        else:
+            return self.__iter__higher_levels
+
+    def _an_element_(self):
+        """
+        Return a generic element.
+
+        EXAMPLES::
+            sage: KleshchevPartitions(4,[0,0,0,0],4).an_element()  # indirect doctest
+            ([1], [1], [1], [1])
+
+        """
+        return self[0]
+
+#--------------------------------------------------
+# Kleshchev partitions - parent classes
+#--------------------------------------------------
+class KleshchevPartitions(PartitionTuples):
+    """
+    A partition (tuple) `\mu` is restricted if it can be recursively obtained by
+    adding a sequence of good nodes to the empty :class:`PartitionTuple:` of the
+    same :meth:`~PartitionTuple.level`.
+
+    EXAMPLES::
+
+    """
+    @staticmethod
+    def __classcall_private__(klass, e, multicharge=(0,),size=None):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        the values of `level` and `size`.
+        """
+        if size is None and isinstance(multicharge,(int,Integer)):
+            size=multicharge
+            multicharge=(0,)
+
+        if size is None:
+            return KleshchevPartitions_all(e,tuple(multicharge))
+        else:
+            return KleshchevPartitions_size(e,tuple(multicharge),size)
+
+
+class KleshchevPartitions_all(KleshchevPartitions):
+    """
+    Class of all Kleshchev partitions.
+    """
+    def __init__(self, e, multicharge=(0,)):
+        r"""
+        Initializes classes of PartitionTuples.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+        """
+        assert e in NN and ( e==0 or e>1), 'e must belong to {0,2,3,4,5,6,...}'
+        super(KleshchevPartitions_all, self).__init__(category=InfiniteEnumeratedSets())
+        self._level=len(multicharge)
+        self.e=e   # for printing
+        self._I=IntegerModRing(e)
+        self._multicharge=tuple(self._I(m) for m in multicharge)
+
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+            sage: KleshchevPartitions(3,[0,0,0])
+            Kleshchev partitions with e=3 and multicharge=(0,0,0)
+            sage: KleshchevPartitions(3,[0,0,1])
+            Kleshchev partitions with e=3 and multicharge=(0,0,1)
+        """
+        if self._level==1:
+            return 'Kleshchev partitions with e=%s' % (self.e)
+        else:
+            return 'Kleshchev partitions with e=%s and multicharge=(%s)' % (
+                    self.e,','.join('%s'%m for m in self._multicharge))
+
+
+    def __contains__(self,mu):
+        """
+        Containment test for the class KleshchevPartitions()
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,0,1], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 7)
+            False
+            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 8)
+            True
+            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(2,[0,0,0],8))
+            True
+        """
+        if isinstance(mu,PartitionTuple) and mu.level()==self.level():
+            return mu.is_restricted(self.e,self._multicharge)
+
+        try:
+            mu=PartitionTuple(mu)
+        except ValueError:
+            return False
+        return mu.level()==self.level() and mu.is_restricted(self.e,self._multicharge)
+
+
+    def __iter__(self):
+        r"""
+        Returns an iterator for the finite class of PartitionTuples of a fixed level
+        and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,[0,1],0)[:] #indirect doctest
+            [([], [])]
+            sage: KleshchevPartitions(2,[0,1],1)[:] #indirect doctest
+            [([1], []), ([], [1])]
+            sage: KleshchevPartitions(2,[0,1],2)[:] #indirect doctest
+            [([1], [1]), ([], [1, 1])]
+            sage: KleshchevPartitions(3,[0,1,2],2)[:] #indirect doctest
+            [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
+        """
+        for size in NonNegativeIntegers():
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,size):
+                yield mu
+
+    def _an_element_(self):
+        """
+        Return a generic element.
+
+        EXAMPLES::
+            sage: KleshchevPartitions(3,[0,0,0,0],size=4).an_element()  # indirect doctest
+            ([1], [1], [1], [1])
+
+        """
+        return self[12]
+
+
+class KleshchevPartitions_size(KleshchevPartitions):
+    """
+    Class of all Kleshchev partitions.
+    """
+
+    def __init__(self, e, multicharge=(0,), size=0):
+        r"""
+        Initializes classes of KleshchevPartitions.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,2)
+            Kleshchev partitions with e=4 and size 2
+        """
+        super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())
+        self._size=size
+        self._level=len(multicharge)
+        # As lists do not take negative indices the case e=0 needs to be handled
+        # differently. Rather than doing this we set e equal to a "really big"
+        # number. Mathematically, this is equivalent and it means that we don't
+        # have an exception to cater for.
+        self.e=e
+        self.e=e
+        self._I=IntegerModRing(e)
+        self._multicharge=tuple(self._I(m) for m in multicharge)
+        if self._level==1:
+            self.__iter__=self.__iter__level_one
+        else:
+            self.__iter__=self.__iter__higher_levels
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: KleshchevPartitions(4,[0,0],3)
+            Kleshchev partitions with e=4 and multicharge=(0,0) and size 3
+        """
+        if self._level==1:
+            return 'Kleshchev partitions with e=%s and size %s' % (self.e, self._size)
+        else:
+            return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
+                    self.e,','.join('%s'%m for m in self._multicharge), self._size) 
+
+    def __contains__(self,mu):
+        """
+        Containment test for the class PartitionTuples_level_size()
+
+        TESTS::
+
+            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0],7)
+            False
+            sage: PartitionTuple([[3,2],[],[],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
+            False
+            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
+            False
+            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in KleshchevPartitions(2,[0,0,0,0,0],9)
+            False
+            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(0,[0,0,0],8))
+            True
+        """
+        if isinstance(mu,PartitionTuple) and mu.level()==self._level and mu.size()==self._size:
+            return PartitionTuple(mu).is_restricted(self.e,self._multicharge)
+
+        try:
+            mu=PartitionTuple(mu)
+        except ValueError:
+            return False
+        return mu.level()==self._level and mu.is_restricted(self.e,self._multicharge) and mu.size()==self._size
+
+
+    def __iter__level_one(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of level one 
+        and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,0)[:] #indirect doctest
+            [[]]
+            sage: KleshchevPartitions(2,1)[:] #indirect doctest
+            [[1]]
+            sage: KleshchevPartitions(2,2)[:] #indirect doctest
+            [[1, 1]]
+            sage: KleshchevPartitions(3,2)[:] #indirect doctest
+            [[2], [1, 1]]
+        """
+        if self._size==0:
+                yield Partition([])
+        else:
+            # for level one restriction simply means that the difference of 
+            # consecutive parts is always less than e
+            for mu in Partitions(self._size, min_slope=1-self.e):
+                if mu[-1]<self.e: yield mu
+        return   # all done
+
+    def __iter__higher_levels(self):
+        r"""
+        Returns an iterator for the finite class of KleshchevPartitions of a fixed 
+        :meth:`level` greater than 1 and a fixed size.
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(2,[0,0],1)[:] #indirect doctest
+            [([], [1])]
+            sage: KleshchevPartitions(2,[0,0],2)[:] #indirect doctest
+            [([1], [1]), ([], [1, 1])]
+            sage: KleshchevPartitions(3,[0,0],2)[:] #indirect doctest
+            [([1], [1]), ([], [2]), ([], [1, 1])]
+        """
+        if self._size==0:
+            yield PartitionTuples_level_size(level=self._level,size=0)[0]
+        else:
+            # For higher levels we have to recursively construct the restricted partitions
+            # by adding on co-good nodes to smaller restricted partition. To avoid over 
+            # counting we return a new restricted partition only if we added on its lowest
+            # good node.
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,self._size-1):
+                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge).values():
+                    if cell is not None:
+                        nu=mu.add_cell(*cell)
+                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge).values() if c is not None):
+                            yield nu
+        return   # all done
+
+    @lazy_attribute
+    def __iter__(self):
+        """
+        Wrapper to return the correct iterator which is different for :class:`Partitions`
+        (level 1) and for :class:PartitionTuples` (higher levels).
+
+        EXAMPLES::
+
+            sage: KleshchevPartitions(3,3)[:]            #indirect doctest
+            [[2, 1], [1, 1, 1]]
+            sage: KleshchevPartitions(3,[0],3)[:]        #indirect doctest
+            [[2, 1], [1, 1, 1]]
+            sage: KleshchevPartitions(3,[0,0],3)[:]      #indirect doctest
+            [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
+        """
+        if self.level()==1:
+            return self.__iter__level_one
+        else:
+            return self.__iter__higher_levels
+
+    def _an_element_(self):
+        """
+        Return a generic element.
+
+        EXAMPLES::
+            sage: KleshchevPartitions(4,[0,0,0,0],4).an_element()  # indirect doctest
+            ([1], [1], [1], [1])
+
+        """
+        return self[0]

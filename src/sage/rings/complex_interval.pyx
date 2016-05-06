@@ -1139,7 +1139,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         REFERENCES:
 
-        .. [RL] J. Rokne, P. Lancaster. Complex interval arithmetic.
+        .. [RL] \J. Rokne, P. Lancaster. Complex interval arithmetic.
            Communications of the ACM 14. 1971.
         """
 

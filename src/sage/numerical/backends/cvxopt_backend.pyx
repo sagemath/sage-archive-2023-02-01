@@ -90,7 +90,7 @@ cdef class CVXOPTBackend(GenericBackend):
                       "reltol":1e-6,
                       "feastol":1e-7,
                       "refinement":0 }
-
+        self.answer = {}
         if maximization:
             self.set_sense(+1)
         else:
@@ -116,7 +116,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: cp.get_objective_value()
             6.0
         """
-        cp = CVXOPTBackend()
+        cdef CVXOPTBackend cp = type(self)()
         cp.objective_function = self.objective_function[:]
         cp.G_matrix = [row[:] for row in self.G_matrix]
         cp.prob_name = self.prob_name

@@ -1669,7 +1669,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        .. [Bob13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
            ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
@@ -3355,7 +3355,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [GrossZagier] B. Gross and D. Zagier, *Heegner points and
+        .. [GrossZagier] \B. Gross and D. Zagier, *Heegner points and
            derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
         """
         try:
@@ -5884,7 +5884,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Co1] H. Cohen, Number Theory, Vol. I: Tools and
+        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
            Diophantine Equations.  GTM 239, Springer, 2007.
 
         AUTHORS:

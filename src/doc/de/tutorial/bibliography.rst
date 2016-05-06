@@ -41,7 +41,7 @@ Literaturverzeichnis
 
 ..  [SA] Sage web site, http://www.sagemath.org/.
 
-..  [Si] W. Decker, G.-M. Greuel, G. Pfister, and
+..  [Si] \W. Decker, G.-M. Greuel, G. Pfister, and
     H. Schönemann. Singular 3.3.1. A Computer Algebra System for
     Polynomial Computations. University of Kaiserslautern (2010),
     http://www.singular.uni-kl.de/.

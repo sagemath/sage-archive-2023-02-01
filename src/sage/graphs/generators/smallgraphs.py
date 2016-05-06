@@ -341,7 +341,7 @@ def WellsGraph():
 
     REFERENCES:
 
-    .. [BCN89] A. E. Brouwer, A. M. Cohen, A. Neumaier,
+    .. [BCN89] \A. E. Brouwer, A. M. Cohen, A. Neumaier,
       Distance-Regular Graphs,
       Springer, 1989.
     """
@@ -4850,12 +4850,12 @@ def JankoKharaghaniGraph(v):
 
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
-       J. Combin. Theory Ser. A 98 (2002), no. 1, 118–126.
+       J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
        http://dx.doi.org/10.1006/jcta.2001.3231
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,
-       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5–30.
+       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5--30.
        http://journals.cambridge.org/article_S1446788700033929
 
     """
@@ -4947,7 +4947,7 @@ def JankoKharaghaniTonchevGraph():
 
     REFERENCES:
 
-    .. [JKT01] Z.Janko, H.Kharaghani, V.D.Tonchev
+    .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
        The existence of a Bush-type Hadamard matrix of order 324
        and two new infinite classes of symmetric designs.
        Des. Codes Cryptogr. 24(2001), 225-232

@@ -218,12 +218,16 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
 from sage.misc.mrange import xmrange
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.superseded import deprecated_function_alias
+
 
 #######################################
 # n-cube isometry group transformations
@@ -1479,8 +1483,8 @@ class TilingSolver(SageObject):
 
         We test that there are four times less rows for that polyomino::
 
-            sage: len(T.rows()) / len(T._rows_mod_box_isometries(0))
-            4
+            sage: len(T.rows()) == 4 * len(T._rows_mod_box_isometries(0))
+            True
 
         Now, a real use case. A solution of the game Quantumino is a tiling
         of a 5x8x2 box. Since a 5x8x2 box has four orientation preserving

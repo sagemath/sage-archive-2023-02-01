@@ -446,7 +446,7 @@ cdef class GenericBackend:
     @classmethod
     def _test_add_linear_constraint_vector(cls, tester=None, **options):
         """
-        Run tests on the method :meth:`.add_linear_constraints`.
+        Run tests on the method :meth:`.add_linear_constraint_vector`.
 
         TEST::
 
@@ -1362,6 +1362,9 @@ def default_mip_solver(solver = None):
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
 
+        - GLPK's implementation of an exact rational simplex
+          method (``solver="GLPK/exact"``).
+
         - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
           <http://www.coin-or.org>`_ web site.
 
@@ -1405,7 +1408,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("PPL")
         sage: default_mip_solver()
         'Ppl'
-        sage: default_mip_solver("GUROBI")
+        sage: default_mip_solver("GUROBI") # random
         Traceback (most recent call last):
         ...
         ValueError: Gurobi is not available. Please refer to the documentation to install it.
@@ -1467,7 +1470,7 @@ def default_mip_solver(solver = None):
         except ImportError:
             raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
 
-    elif solver == "Glpk":
+    elif solver == "Glpk" or solver == "Glpk/exact":
         default_solver = solver
 
     elif solver == "Interactivelp":
@@ -1486,6 +1489,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
 
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
+
+        - GLPK's implementation of an exact rational simplex
+          method (``solver="GLPK/exact"``).
 
         - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
           <http://www.coin-or.org>`_ web site.
@@ -1507,10 +1513,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
           implementation of the revised simplex method in Sage.  It works over
           any exact ordered field, the default is ``QQ``.
 
-        ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-        ``"CPLEX"``, ``"CVXOPT"``,``"Gurobi"``, ``"PPL"``, ``"InteractiveLP"``,
-        or ``None``. If ``solver=None`` (default),
-        the default solver is used (see ``default_mip_solver`` method).
+        ``solver`` should then be equal to one of the above strings,
+        or ``None`` (default), in which case the default solver is used
+        (see ``default_mip_solver`` method).
 
         ``solver`` can also be a callable, in which case it is called,
         and its result is returned.
@@ -1566,7 +1571,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
     Passing a callable as the 'solver'::
 
         sage: from sage.numerical.backends.glpk_backend import GLPKBackend
-        sage: p = get_solver(GLPKBackend); p
+        sage: p = get_solver(solver=GLPKBackend); p
         <...sage.numerical.backends.glpk_backend.GLPKBackend...>
 
     Passing a callable that customizes a backend::
@@ -1619,6 +1624,10 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         from sage.numerical.backends.glpk_backend import GLPKBackend
         return GLPKBackend()
 
+    elif solver == "Glpk/exact":
+        from sage.numerical.backends.glpk_exact_backend import GLPKExactBackend
+        return GLPKExactBackend()
+
     elif solver == "Cplex":
         from sage.numerical.backends.cplex_backend import CPLEXBackend
         return CPLEXBackend()
@@ -1640,4 +1649,4 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         return InteractiveLPBackend(base_ring=base_ring)
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', None (in which case the default one is used), or a callable.")
+        raise ValueError("'solver' should be set to 'GLPK', 'GLPK/exact', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL', 'InteractiveLP', None (in which case the default one is used), or a callable.")

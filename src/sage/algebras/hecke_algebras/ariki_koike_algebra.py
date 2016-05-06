@@ -232,6 +232,10 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
             sage: H = algebras.ArikiKoike(5, 3)
             sage: TestSuite(H).run()
+            sage: H = algebras.ArikiKoike(1, 4)
+            sage: TestSuite(H).run()
+            sage: H = algebras.ArikiKoike(3, 4)
+            sage: TestSuite(H).run() # long time
         """
         self._r = r
         self._n = n
@@ -325,14 +329,19 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             sage: H = algebras.ArikiKoike(5, 3)
             sage: dict(H.algebra_generators())
             {'L1': L1, 'L2': L2, 'L3': L3, 'T1': T[1], 'T2': T[2]}
+
+            sage: H = algebras.ArikiKoike(1, 4)
+            sage: dict(H.algebra_generators())
+            {'T1': T[1], 'T2': T[2], 'T3': T[3]}
         """
         one = self._Pn.one()
         zero = [0]*self._n
         d = {}
-        for i in range(self._n):
-            r = list(zero) # Make a copy
-            r[i] = 1
-            d['L%s'%(i+1)] = self.monomial( (tuple(r), one) )
+        if self._r != 1:
+            for i in range(self._n):
+                r = list(zero) # Make a copy
+                r[i] = 1
+                d['L%s'%(i+1)] = self.monomial( (tuple(r), one) )
         G = self._Pn.group_generators()
         for i in range(1, self._n):
             d['T%s'%i] = self.monomial( (tuple(zero), G[i]) )
@@ -428,10 +437,22 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             L2
             sage: H.L()
             [L1, L2, L3]
+
+            sage: H = algebras.ArikiKoike(1, 3)
+            sage: H.L(2)
+            u*q + (-u+u*q)*T[1]
+            sage: H.L()
+            [u,
+             u*q + (-u+u*q)*T[1],
+             u*q^2 + (-u*q+u*q^2)*T[2] + (-u+u*q)*T[2,1,2]]
         """
         G = self.algebra_generators()
         if i is None:
+            if self._r == 1:
+                return [self._Li_r_power(j) for j in range(1, self._n+1)]
             return [G['L%s'%j] for j in range(1, self._n+1)]
+        if self._r == 1:
+            return self._Li_r_power(i)
         return G['L%s'%i]
 
     def dimension(self):
@@ -454,6 +475,20 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         """
         from sage.functions.other import factorial
         return self._r**self._n * factorial(self._n)
+
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: H = algebras.ArikiKoike(4, 3)
+            sage: H.some_elements()
+            [2 + 2*T[2] + 3*T[1], T[2] + T[1] + L3 + L2 + L1,
+             L1, L2, L3, T[1], T[2]]
+        """
+        G = self.algebra_generators()
+        return [self.an_element(), self.sum(G)] + list(G)
 
     @cached_method
     def product_on_basis(self, m1, m2):
@@ -492,6 +527,12 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             sage: L1^2 * T1*T2*T1 * L2 * L3 * T2
             (q-2*q^2+q^3)*L1^2*L2*L3 - (1-2*q+2*q^2-q^3)*L1^2*L2*L3*T[2]
              - (q^2-q^3)*L1^3*L3*T[1] + (q-q^2+q^3)*L1^3*L3*T[1,2]
+
+            sage: H = algebras.ArikiKoike(2, 3)
+            sage: L3 = H.L(3)
+            sage: x = H.an_element()
+            sage: (x * L3) * L3 == x * (L3 * L3)
+            True
         """
         L1,T1 = m1
         L2,T2 = m2
@@ -509,11 +550,15 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         # 1 - commute T_{i_k} L2 = x.
         # 2 - Multiply L1 * (T_{i_1} ... T_{i_{k-1}}) * x * T2
         if sum(L2) == 0:
+            # L2 is trivial, so we just multiply L1 * T1 * T2
             if T2 == id_perm:
                 return self.monomial((L1, T1))
-            wd = T2.reduced_word()
-            return (self._product_basis_Ti((L1, T1), wd[0])
-                    * self.monomial( (tuple([0]*len(L1)), self._Pn.from_reduced_word(wd[1:])) ))
+            # We have to flip the side due to Sage's multiplication
+            #   convention for permutations
+            i = T2.first_descent(side="right")
+            T2p = T2.apply_simple_reflection_right(i)
+            return (self._product_basis_Ti((L1, T1), i)
+                    * self.monomial( (tuple([0]*len(L1)), T2p) ))
         wd = T1.reduced_word()
         return (self.monomial((L1, self._Pn.from_reduced_word(wd[:-1])))
                 * self._product_Ti_L(wd[-1], L2)
@@ -643,6 +688,22 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             sage: L1,L2,L3,T1,T2 = H.algebra_generators()
             sage: (L1 * L3^2) * (T1 * T1)
             q*L1*L3^2 - (1-q)*L1*L3^2*T[1]
+
+        TESTS::
+
+            sage: H = algebras.ArikiKoike(3, 3)
+            sage: (T1 * T2) * T1 == T2 * (T1 * T2)
+            True
+            sage: (T1 * T2) * T2
+            q*T[1] - (1-q)*T[1,2]
+            sage: (T1 * T1) * T2
+            q*T[2] - (1-q)*T[1,2]
+            sage: (T1 * T1) * T2 == T1 * (T1 * T2)
+            True
+            sage: (T1 * T1) * T2 * T1
+            q*T[2,1] - (1-q)*T[2,1,2]
+            sage: (T1 * T1) * T2 * T1 == T1 * (T1 * T2 * T1)
+            True
         """
         L, w = m
         # We have to flip the side due to Sage's multiplication

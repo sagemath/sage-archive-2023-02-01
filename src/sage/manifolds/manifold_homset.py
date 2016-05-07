@@ -1,9 +1,10 @@
 r"""
 Sets of Morphisms between Topological Manifolds
 
-The class :class:`TopologicalManifoldHomset` implements sets of morphisms between
-two topological manifolds over the same topological field `K`, a morphism
-being a *continuous map* for the category of topological manifolds.
+The class :class:`TopologicalManifoldHomset` implements sets of
+morphisms between two topological manifolds over the same topological
+field `K`, a morphism being a *continuous map* for the category of
+topological manifolds.
 
 AUTHORS:
 
@@ -20,16 +21,18 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from sage.categories.homset import Homset
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.manifolds.continuous_map import ContinuousMap
+from sage.misc.cachefunc import cached_method
 
 class TopologicalManifoldHomset(UniqueRepresentation, Homset):
     r"""
@@ -37,23 +40,21 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
 
     Given two topological manifolds `M` and `N` over a topological field `K`,
     the class :class:`TopologicalManifoldHomset` implements the set
-    `\mathrm{Hom}(M,N)` of morphisms (i.e. continuous maps) `M\rightarrow N`.
+    `\mathrm{Hom}(M, N)` of morphisms (i.e. continuous maps) `M \to N`.
 
     This is a Sage *parent* class, whose *element* class is
     :class:`~sage.manifolds.continuous_map.ContinuousMap`.
 
     INPUT:
 
-    - ``domain`` -- topological manifold `M` (domain of the morphisms belonging
-      to the homset), as an instance of
-      :class:`~sage.manifolds.manifold.TopologicalManifold`
-    - ``codomain`` -- topological manifold `N` (codomain of the morphisms
-      belonging to the homset), as an instance of
-      :class:`~sage.manifolds.manifold.TopologicalManifold`
-    - ``name`` -- (default: ``None``) string; name given to the homset; if
-      ``None``, Hom(M,N) will be used
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if ``None``, `\mathrm{Hom}(M,N)` will be used
+    - ``domain`` -- :class:`~sage.manifolds.manifold.TopologicalManifold`;
+      the domain topological manifold `M` of the morphisms
+    - ``codomain`` -- :class:`~sage.manifolds.manifold.TopologicalManifold`;
+      the codomain topological manifold `N` of the morphisms
+    - ``name`` -- (default: ``None``) string; the name of ``self``;
+      if ``None``, ``Hom(M,N)`` will be used
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+      ``self``; if ``None``, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 
@@ -141,6 +142,8 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
 
     def __init__(self, domain, codomain, name=None, latex_name=None):
         r"""
+        Initialize ``self``.
+
         TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
@@ -171,21 +174,18 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
                             "instance of TopologicalManifold")
         Homset.__init__(self, domain, codomain)
         if name is None:
-            self._name = "Hom(" + domain._name + "," + codomain._name + ")"
+            self._name = "Hom({},{})".format(domain._name, codomain._name)
         else:
             self._name = name
         if latex_name is None:
-            self._latex_name = \
-                    r"\mathrm{Hom}\left(" + domain._latex_name + "," + \
-                    codomain._latex_name + r"\right)"
+            self._latex_name = r"\mathrm{{Hom}}\left({},{}\right)".format(
+                                    domain._latex_name, codomain._latex_name)
         else:
             self._latex_name = latex_name
-        self._one = None # to be set by self.one() if self is a set of
-                         # endomorphisms (codomain = domain)
 
     def _latex_(self):
         r"""
-        LaTeX representation of the object.
+        LaTeX representation of ``self``.
 
         EXAMPLE::
 
@@ -193,9 +193,8 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             sage: X.<x,y> = M.chart()
             sage: N = Manifold(3, 'N', structure='topological')
             sage: H = Hom(M, N)
-            sage: H._latex_()
-            '\\mathrm{Hom}\\left(M,N\\right)'
-
+            sage: latex(H)
+            \mathrm{Hom}\left(M,N\right)
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
@@ -207,27 +206,27 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
     def _element_constructor_(self, coord_functions, name=None, latex_name=None,
                               is_isomorphism=False, is_identity=False):
         r"""
-        Construct an element of the homset, i.e. a continuous map
-        M --> N, where M is the domain of the homset and N its codomain.
+        Construct an element of the homset, i.e. a continuous map `M \to N`,
+        where `M` is the domain of the homset and `N` its codomain.
 
         INPUT:
 
         - ``coord_functions`` -- a dictionary of the coordinate expressions
-          (as lists (or tuples) of the coordinates of the image expressed in
-          terms of the coordinates of the considered point) with the pairs of
-          charts (chart1, chart2) as keys (chart1 being a chart on `M` and
-          chart2 a chart on `N`). If the dimension of the arrival manifold
-          is 1, a single coordinate expression can be passed instead of a tuple
-          with a single element
+          (as lists or tuples of the coordinates of the image expressed in
+          terms of the coordinates of the considered point) with the pairs
+          of charts ``(chart1, chart2)`` as keys (``chart1`` being a chart
+          on `M` and ``chart2`` a chart on `N`); if the dimension of the
+          arrival manifold is 1, a single coordinate expression can be
+          passed instead of a tuple with a single element
         - ``name`` -- (default: ``None``) name given to the continuous map
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           continuous map; if ``None``, the LaTeX symbol is set to ``name``
         - ``is_isomorphism`` -- (default: ``False``) determines whether the
           constructed object is a isomorphism (i.e. a homeomorphism); if set to
-          ``True``, then the manifolds `M` and `N` must have the same dimension.
+          ``True``, then the manifolds `M` and `N` must have the same dimension
         - ``is_identity`` -- (default: ``False``) determines whether the
           constructed object is the identity map; if set to ``True``,
-          then `N` must be `M` and the entry ``coord_functions`` is not used.
+          then `N` must be `M` and the entry ``coord_functions`` is not used
 
         .. NOTE::
 
@@ -238,8 +237,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+        - a :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
         EXAMPLES::
 
@@ -270,12 +268,11 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
 
     def _an_element_(self):
         r"""
-        Construct some element.
+        Construct some element of ``self``.
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+        - a :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
         EXAMPLE::
 
@@ -312,9 +309,9 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent.
+        Determine whether coercion to ``self`` exists from parent ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -327,17 +324,21 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             False
             sage: H._coerce_map_from_(N)
             False
+            sage: H._coerce_map_from_(H)
+            True
 
         """
-        #!# for the time being:
+        if isinstance(other, TopologicalManifoldHomset):
+            return (other.domain().has_coerce_map_from(self.domain())
+                    and self.codomain().has_coerce_map_from(other.codomain()))
         return False
 
     #!# check
     def __call__(self, *args, **kwds):
         r"""
-        To bypass Homset.__call__, enforcing Parent.__call__ instead.
+        Construct an element of ``self`` from the input.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -351,17 +352,29 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x - y, x*y)
 
+        There is also the following shortcut for :meth:`one`::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: H = Hom(M, M)
+            sage: H(1)
+            Identity map Id_M of the 2-dimensional topological manifold M
         """
+        if len(args) == 1:
+            if self.domain() == self.codomain() and args[0] == 1:
+                return self.one()
+            if isinstance(args[0], ContinuousMap):
+                return Homset.__call__(self, args[0])
         return Parent.__call__(self, *args, **kwds)
 
     #### End of parent methods ####
 
     #### Monoid methods (case of an endomorphism set) ####
 
+    @cached_method
     def one(self):
         r"""
-        Return the identity element of the homset considered as a monoid (case
-        of a set of endomorphisms).
+        Return the identity element of ``self`` considered as a monoid
+        (case of a set of endomorphisms).
 
         This applies only when the codomain of the homset is equal to its
         domain, i.e. when the homset is of the type `\mathrm{Hom}(M,M)`.
@@ -407,16 +420,16 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
             sage: Hom(M, N).one()
             Traceback (most recent call last):
             ...
-            TypeError: the Set of Morphisms from 2-dimensional topological
-             manifold M to 3-dimensional topological manifold N in Category of
-             manifolds over Real Field with 53 bits of precision is not a
-             monoid
+            TypeError: Set of Morphisms
+             from 2-dimensional topological manifold M
+             to 3-dimensional topological manifold N
+             in Category of manifolds over Real Field with 53 bits of precision
+             is not a monoid
 
         """
-        if self._one is None:
-            if self.codomain() != self.domain():
-                raise TypeError("the {} is not a monoid".format(self))
-            self._one = self.element_class(self, is_identity=True)
-        return self._one
+        if self.codomain() != self.domain():
+            raise TypeError("{} is not a monoid".format(self))
+        return self.element_class(self, is_identity=True)
 
     #### End of monoid methods ####
+

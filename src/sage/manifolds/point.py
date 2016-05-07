@@ -75,6 +75,7 @@ Points can be compared::
 #*****************************************************************************
 
 from sage.structure.element import Element
+from sage.misc.decorators import options
 
 class ManifoldPoint(Element):
     r"""
@@ -682,11 +683,11 @@ class ManifoldPoint(Element):
         """
         return hash(self.parent().manifold())
 
-    def plot(self, chart=None, ambient_coords=None, mapping=None, size=10,
-             color='black', label=None, label_color=None, fontsize=10,
-             label_offset=0.1, parameters=None):
+    @options(size=10, color='black', label_color=None, fontsize=10, label_offset=0.1)
+    def plot(self, chart=None, ambient_coords=None, mapping=None,
+             label=None, parameters=None, **kwds):
         r"""
-        For real manifolds, plot the current point in a Cartesian graph based
+        For real manifolds, plot ``self`` in a Cartesian graph based
         on the coordinates of some ambient chart.
 
         The point is drawn in terms of two (2D graphics) or three (3D graphics)
@@ -699,28 +700,28 @@ class ManifoldPoint(Element):
         - ``chart`` -- (default: ``None``) the ambient chart (see above); if
           ``None``, the ambient chart is set the default chart of
           ``self.parent()``
-        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2 or 3
-          coordinates of the ambient chart in terms of which the plot is
-          performed; if ``None``, all the coordinates of the ambient chart are
-          considered
-        - ``mapping`` -- (default: ``None``) continuous manifold map `\Phi`
-          (instance of :class:`~sage.manifolds.continuous_map.ContinuousMap`)
-          providing the link between the current point `p` and the ambient
-          chart ``chart``: the domain of ``chart`` must contain `\Phi(p)`;
-          if ``None``, the identity map is assumed
+        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2
+          or 3 coordinates of the ambient chart in terms of which the plot
+          is performed; if ``None``, all the coordinates of the ambient
+          chart are considered
+        - ``mapping`` -- (default: ``None``)
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`; continuous
+          manifold map `\Phi` providing the link between the current point
+          `p` and the ambient chart ``chart``: the domain of ``chart`` must
+          contain `\Phi(p)`; if ``None``, the identity map is assumed
+        - ``label`` -- (default: ``None``) label printed next to the point;
+          if ``None``, the point's name is used
+        - ``parameters`` -- (default: ``None``) dictionary giving the numerical
+          values of the parameters that may appear in the point coordinates
         - ``size`` -- (default: 10) size of the point once drawn as a small
           disk or sphere
-        - ``color`` -- (default: 'black') color of the point
-        - ``label`` -- (default: ``None``) label printed next to the point;
-          if ``None``, the point's name is used.
+        - ``color`` -- (default: ``'black'``) color of the point
         - ``label_color`` -- (default: ``None``) color to print the label;
           if ``None``, the value of ``color`` is used
         - ``fontsize`` -- (default: 10) size of the font used to print the
           label
         - ``label_offset`` -- (default: 0.1) determines the separation between
           the point and its label
-        - ``parameters`` -- (default: ``None``) dictionary giving the numerical
-          values of the parameters that may appear in the point coordinates
 
         OUTPUT:
 
@@ -741,7 +742,8 @@ class ManifoldPoint(Element):
             sage: print(g)
             Graphics object consisting of 2 graphics primitives
             sage: gX = X.plot(max_range=4) # plot of the coordinate grid
-            sage: show(g+gX) # display of the point atop the coordinate grid
+            sage: g + gX # display of the point atop the coordinate grid
+            Graphics object consisting of 20 graphics primitives
 
         .. PLOT::
 
@@ -757,13 +759,15 @@ class ManifoldPoint(Element):
         ``plot``::
 
             sage: g = p.plot()
-            sage: show(g+gX)
+            sage: g + gX
+            Graphics object consisting of 20 graphics primitives
 
         Call with some options::
 
             sage: g = p.plot(chart=X, size=40, color='green', label='$P$',
             ....:            label_color='blue', fontsize=20, label_offset=0.3)
-            sage: show(g+gX)
+            sage: g + gX
+            Graphics object consisting of 20 graphics primitives
 
         .. PLOT::
 
@@ -781,7 +785,8 @@ class ManifoldPoint(Element):
             sage: a = var('a')
             sage: q = M.point((a,2*a), name='q')
             sage: gq = q.plot(parameters={a:-2}, label_offset=0.2)
-            sage: show(g+gX+gq)
+            sage: g + gX + gq
+            Graphics object consisting of 22 graphics primitives
 
         .. PLOT::
 
@@ -810,13 +815,15 @@ class ManifoldPoint(Element):
             sage: print(g)
             Graphics3d Object
             sage: gX = X.plot(nb_values=5) # coordinate mesh cube
-            sage: show(g+gX) # display of the point atop the coordinate mesh
+            sage: g + gX # display of the point atop the coordinate mesh
+            Graphics3d Object
 
         Call with some options::
 
             sage: g = p.plot(chart=X, size=40, color='green', label='P_1',
             ....:            label_color='blue', fontsize=20, label_offset=0.3)
-            sage: show(g+gX)
+            sage: g + gX
+            Graphics3d Object
 
         An example of plot via a mapping: plot of a point on a 2-sphere viewed
         in the 3-dimensional space ``M``::
@@ -832,7 +839,8 @@ class ManifoldPoint(Element):
             on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: g = p.plot(chart=X, mapping=F)
             sage: gS2 = XS.plot(chart=X, mapping=F, nb_values=9)
-            sage: show(g+gS2)
+            sage: g + gS2
+            Graphics3d Object
 
         Use of the option ``ambient_coords`` for plots on a 4-dimensional
         manifold::
@@ -841,14 +849,17 @@ class ManifoldPoint(Element):
             sage: X.<t,x,y,z> = M.chart()
             sage: p = M.point((1,2,3,4), name='p')
             sage: g = p.plot(X, ambient_coords=(t,x,y), label_offset=0.4)  # the coordinate z is skipped
-            sage: gX = X.plot(X, ambient_coords=(t,x,y), nb_values=5)
-            sage: show(g+gX) # 3D plot
+            sage: gX = X.plot(X, ambient_coords=(t,x,y), nb_values=5)  # long time
+            sage: g + gX # 3D plot  # long time
+            Graphics3d Object
             sage: g = p.plot(X, ambient_coords=(t,y,z), label_offset=0.4)  # the coordinate x is skipped
-            sage: gX = X.plot(X, ambient_coords=(t,y,z), nb_values=5)
-            sage: show(g+gX) # 3D plot
+            sage: gX = X.plot(X, ambient_coords=(t,y,z), nb_values=5)  # long time
+            sage: g + gX # 3D plot  # long time
+            Graphics3d Object
             sage: g = p.plot(X, ambient_coords=(y,z), label_offset=0.4)  # the coordinates t and x are skipped
             sage: gX = X.plot(X, ambient_coords=(y,z))
-            sage: show(g+gX) # 2D plot
+            sage: g + gX # 2D plot
+            Graphics object consisting of 20 graphics primitives
 
         .. PLOT::
 
@@ -866,8 +877,8 @@ class ManifoldPoint(Element):
         from sage.plot.plot3d.shapes2 import point3d, text3d
         from sage.manifolds.chart import Chart
         if self._manifold.base_field_type() != 'real':
-            raise NotImplementedError('plot of points on manifolds over ' +
-                                  'fields different from R is not implemented')
+            raise NotImplementedError('plot of points on manifolds over fields different'
+                                      ' from the real field is not implemented')
         # The ambient chart:
         if chart is None:
             chart = self.parent().default_chart()
@@ -884,8 +895,16 @@ class ManifoldPoint(Element):
         elif not isinstance(ambient_coords, tuple):
             ambient_coords = tuple(ambient_coords)
         nca = len(ambient_coords)
-        if nca != 2 and nca !=3:
-            raise TypeError("bad number of ambient coordinates: {}".format(nca))
+        if nca != 2 and nca != 3:
+            raise TypeError("invalid number of ambient coordinates: {}".format(nca))
+
+        # Extract the kwds options
+        size = kwds['size']
+        color = kwds['color']
+        label_color = kwds['label_color']
+        fontsize = kwds['fontsize']
+        label_offset = kwds['label_offset']
+
         # The point coordinates:
         coords = eff_point.coord(chart)
         xx = chart[:]
@@ -900,11 +919,12 @@ class ManifoldPoint(Element):
         if nca == 2:
             if label is None:
                 label = r'$' + self._latex_name + r'$'
-            resu += point2d(xp, color=color, size=size) + \
-                    text(label, xlab, fontsize=fontsize, color=label_color)
+            resu += (point2d(xp, color=color, size=size) +
+                     text(label, xlab, fontsize=fontsize, color=label_color))
         else:
             if label is None:
                 label = self._name
-            resu += point3d(xp, color=color, size=size) + \
-                    text3d(label, xlab, fontsize=fontsize, color=label_color)
+            resu += (point3d(xp, color=color, size=size) +
+                     text3d(label, xlab, fontsize=fontsize, color=label_color))
         return resu
+

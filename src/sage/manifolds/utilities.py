@@ -18,11 +18,14 @@ AUTHORS:
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
+from __future__ import division
 
 from sage.symbolic.expression import Expression
 
@@ -79,7 +82,6 @@ def simplify_sqrt_real(expr):
 
     """
     from sage.symbolic.ring import SR
-    from sage.calculus.calculus import maxima
     from sage.functions.other import sqrt
     # 1/ Search for the sqrt's in expr
     sexpr = str(expr)
@@ -318,11 +320,11 @@ def simplify_chain_real(expr):
     Other simplifications::
 
         sage: s = abs(sin(pi*x))
-        sage: simplify_chain_real(s)  # correct output since x in (0,1) # known bug - #20475
+        sage: simplify_chain_real(s)  # correct output since x in (0,1)
         sin(pi*x)
-        sage: s.simplify_real()  # unsimplified output # known bug - #20475
+        sage: s.simplify_real()  # unsimplified output
         abs(sin(pi*x))
-        sage: s.simplify_full()  # unsimplified output # known bug - #20475
+        sage: s.simplify_full()  # unsimplified output
         abs(sin(pi*x))
 
     ::
@@ -839,16 +841,17 @@ def _list_functions(ex, list_f):
 
 def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
     r"""
-    Set axes labels for a 3D graphics object.
+    Set axes labels for a 3D graphics object ``graph``.
 
-    This is a workaround for the lack of axes labels in Sage 3D plots; it
-    sets the labels as text3d objects at locations determined from the
-    bounding box of the graphic object ``graph``.
+    This is a workaround for the lack of axes labels in 3D plots.
+    This sets the labels as :func:`~sage.plot.plot3d.shapes2.text3d`
+    objects at locations determined from the bounding box of the
+    graphic object ``graph``.
 
     INPUT:
 
-    - ``graph`` -- a 3D graphic object, as an instance of
-      :class:`~sage.plot.plot3d.base.Graphics3d`
+    - ``graph`` -- :class:`~sage.plot.plot3d.base.Graphics3d`;
+      a 3D graphic object
     - ``xlabel`` -- string for the x-axis label
     - ``ylabel`` -- string for the y-axis label
     - ``zlabel`` -- string for the z-axis label
@@ -856,19 +859,18 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
 
     OUTPUT:
 
-    - the 3D graphic object with text3d labels added.
+    - the 3D graphic object with text3d labels added
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = sphere()
-        sage: print(g)
-        Graphics3d Object
-        sage: show(g)  # no axes labels
+        sage: g.all
+        [Graphics3d Object]
         sage: from sage.manifolds.utilities import set_axes_labels
         sage: ga = set_axes_labels(g, 'X', 'Y', 'Z', color='red')
-        sage: print(ga)
-        Graphics3d Object
-        sage: show(ga)  # the 3D frame has now axes labels
+        sage: ga.all  # the 3D frame has now axes labels
+        [Graphics3d Object, Graphics3d Object,
+         Graphics3d Object, Graphics3d Object]
 
     """
     from sage.plot.plot3d.shapes2 import text3d
@@ -888,3 +890,4 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
     graph += text3d('  ' + ylabel, (xmax1, y1, zmin1), **kwds)
     graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
     return graph
+

@@ -42,7 +42,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
-from sage.manifolds.coord_func_symb import CoordFunctionSymb
+from sage.misc.decorators import options
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -313,7 +313,6 @@ class Chart(UniqueRepresentation, SageObject):
                                 # subsets of self._domain, with the
                                 # subsets as keys
         # The null and one functions of the coordinates:
-        base_field_type = self._domain.base_field_type()
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
         for dom in self._domain._supersets:
@@ -547,10 +546,10 @@ class Chart(UniqueRepresentation, SageObject):
 
           restrictions = [x > y, (x != 0, y != 0), z^2 < x]
 
-        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
-        (``z^2 < x``). If the list ``restrictions`` contains only one
-        item, this item can be passed as such, i.e. writing ``x > y``
-        instead of the single element list ``[x > y]``.
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         EXAMPLES::
 
@@ -570,7 +569,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     def restrict(self, subset, restrictions=None):
         r"""
-        Return the restriction of the chart to some open subset of its domain.
+        Return the restriction of ``self`` to some open subset of its domain.
 
         If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
         is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
@@ -596,14 +595,14 @@ class Chart(UniqueRepresentation, SageObject):
 
           restrictions = [x > y, (x != 0, y != 0), z^2 < x]
 
-        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
-        (``z^2 < x``). If the list ``restrictions`` contains only one
-        item, this item can be passed as such, i.e. writing ``x > y``
-        instead of the single element list ``[x > y]``.
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+        - chart `(V, \psi)` as a :class:`Chart`
 
         EXAMPLES:
 
@@ -756,15 +755,15 @@ class Chart(UniqueRepresentation, SageObject):
 
           restrictions = [x > y, (x != 0, y != 0), z^2 < x]
 
-        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
-        (``z^2 < x``). If the list ``restrictions`` contains only one
-        item, this item can be passed as such, i.e. writing ``x > y``
-        instead of the single element list ``[x > y]``.
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         OUTPUT:
 
         - the transition map `\psi \circ \varphi^{-1}` defined on
-          `U \cap V`, as an instance of :class:`CoordChange`
+          `U \cap V` as a :class:`CoordChange`
 
         EXAMPLES:
 
@@ -867,7 +866,7 @@ class Chart(UniqueRepresentation, SageObject):
                   &  (x^1,\ldots, x^n) & \longmapsto & f(x^1,\ldots, x^n),
             \end{array}
 
-        where `V` is the chart codomain and `(x^1,\ldots, x^n)` are the
+        where `V` is the chart codomain and `(x^1, \ldots, x^n)` are the
         chart coordinates.
 
         The coordinate function can be either a symbolic one or a numerical
@@ -934,13 +933,13 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
         for a complete documentation.
+
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
-          representing the zero coordinate function `f`.
+        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+          representing the zero coordinate function `f`
 
         EXAMPLES::
 
@@ -988,13 +987,13 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
         for a complete documentation.
+
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
-          representing the one coordinate function `f`.
+        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+          representing the one coordinate function `f`
 
         EXAMPLES::
 
@@ -1046,7 +1045,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the codomain of `\varphi`. In other words, `f` is a
         `K^m`-valued function of the coordinates associated to the chart
-        `(U,\varphi)`.
+        `(U, \varphi)`.
 
         See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
         complete documentation.
@@ -1583,10 +1582,10 @@ class RealChart(Chart):
 
           restrictions = [x > y, (x != 0, y != 0), z^2 < x]
 
-        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
-        (``z^2 < x``). If the list ``restrictions`` contains only one
-        item, this item can be passed as such, i.e. writing ``x > y``
-        instead of the single element list ``[x > y]``.
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         EXAMPLES:
 
@@ -1681,8 +1680,8 @@ class RealChart(Chart):
         r"""
         Return the restriction of the chart to some open subset of its domain.
 
-        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
-        is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
+        If the current chart is `(U, \varphi)`, a *restriction* (or *subchart*)
+        is a chart `(V, \psi)` such that `V \subset U` and `\psi = \varphi|_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
@@ -1705,14 +1704,14 @@ class RealChart(Chart):
 
           restrictions = [x > y, (x != 0, y != 0), z^2 < x]
 
-        means (``x > y``) and ((``x != 0``) or (``y != 0``)) and
-        (``z^2 < x``). If the list ``restrictions`` contains only one
-        item, this item can be passed as such, i.e. writing ``x > y``
-        instead of the single element list ``[x > y]``.
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`RealChart`.
+        - the chart `(V, \psi)` as a :class:`RealChart`
 
         EXAMPLES:
 
@@ -1730,7 +1729,7 @@ class RealChart(Chart):
             sage: q in D
             False
 
-        Cartesian coordinates on the annulus `1 < \sqrt{x^2+y^2} < 2`::
+        Cartesian coordinates on the annulus `1 < \sqrt{x^2 + y^2} < 2`::
 
             sage: A = M.open_subset('A')
             sage: c_cart_A = c_cart.restrict(A, [x^2+y^2>1, x^2+y^2<4])
@@ -1864,22 +1863,22 @@ class RealChart(Chart):
         # All tests have been passed:
         return True
 
+    @options(color='red',  style='-', thickness=1, plot_points=75, label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
              fixed_coords=None, ranges=None, max_range=8, nb_values=None,
-             steps=None, parameters=None, color='red',  style='-', thickness=1,
-             plot_points=75, label_axes=True):
+             steps=None, parameters=None, **kwds):
         r"""
-        Plot the current chart as a "grid" in a Cartesian graph
-        based on the coordinates of some ambient chart.
+        Plot ``self`` as a grid in a Cartesian graph based on
+        the coordinates of some ambient chart.
 
-        The "grid" is formed by curves along which a chart coordinate
-        varies, the other coordinates being kept fixed; it is drawn in terms of
-        two (2D graphics) or three (3D graphics) coordinates of another chart,
-        called hereafter the *ambient chart*.
+        The grid is formed by curves along which a chart coordinate
+        varies, the other coordinates being kept fixed. It is drawn in
+        terms of two (2D graphics) or three (3D graphics) coordinates
+        of another chart, called hereafter the *ambient chart*.
 
         The ambient chart is related to the current chart either by
-        a transition map if both charts are defined on the same manifold, or by
-        the coordinate expression of some continuous map (typically an
+        a transition map if both charts are defined on the same manifold,
+        or by the coordinate expression of some continuous map (typically an
         immersion). In the latter case, the two charts may be defined on two
         different manifolds.
 
@@ -1887,31 +1886,32 @@ class RealChart(Chart):
 
         - ``chart`` -- (default: ``None``) the ambient chart (see above); if
           ``None``, the ambient chart is set to the current chart
-        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2 or 3
-          coordinates of the ambient chart in terms of which the plot is
-          performed; if ``None``, all the coordinates of the ambient chart are
-          considered
-        - ``mapping`` -- (default: ``None``) continuous manifold map (instance
-          of :class:`~sage.manifolds.continuous_map.ContinuousMap`)
-          providing the link between the current chart and the ambient chart
-          (cf. above); if ``None``, both charts are supposed to be defined on
-          the same manifold and related by some transition map (see
-          :meth:`~sage.manifolds.chart.Chart.transition_map`)
+        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2
+          or 3 coordinates of the ambient chart in terms of which the plot
+          is performed; if ``None``, all the coordinates of the ambient
+          chart are considered
+        - ``mapping`` -- (default: ``None``)
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`; continuous
+          manifold map providing the link between the current chart and the
+          ambient chart (cf. above); if ``None``, both charts are supposed
+          to be defined on the same manifold and related by some transition
+          map (see :meth:`~sage.manifolds.chart.Chart.transition_map`)
         - ``fixed_coords`` -- (default: ``None``) dictionary with keys the
           chart coordinates that are not drawn and with values the fixed
           value of these coordinates; if ``None``, all the coordinates of the
           current chart are drawn
-        - ``ranges`` -- (default: ``None``) dictionary with keys the coordinates
-          to be drawn and values tuples ``(x_min,x_max)`` specifying the
-          coordinate range for the plot; if ``None``, the entire coordinate
-          range declared during the chart construction is considered (with
-          -Infinity replaced by ``-max_range`` and +Infinity by ``max_range``)
+        - ``ranges`` -- (default: ``None``) dictionary with keys the
+          coordinates to be drawn and values tuples ``(x_min, x_max)``
+          specifying the coordinate range for the plot; if ``None``, the
+          entire coordinate range declared during the chart construction
+          is considered (with ``-Infinity`` replaced by ``-max_range``
+          and ``+Infinity`` by ``max_range``)
         - ``max_range`` -- (default: 8) numerical value substituted to
           +Infinity if the latter is the upper bound of the range of a
           coordinate for which the plot is performed over the entire coordinate
           range (i.e. for which no specific plot range has been set in
           ``ranges``); similarly ``-max_range`` is the numerical valued
-          substituted for -Infinity
+          substituted for ``-Infinity``
         - ``nb_values`` -- (default: ``None``) either an integer or a dictionary
           with keys the coordinates to be drawn and values the number of
           constant values of the coordinate to be considered; if ``nb_values``
@@ -1927,16 +1927,17 @@ class RealChart(Chart):
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
           values of the parameters that may appear in the relation between
           the two coordinate systems
-        - ``color`` -- (default: 'red') either a single color or a dictionary
-          of colors, with keys the coordinates to be drawn, representing the
-          colors of the lines along which the coordinate varies, the other
-          being kept constant; if ``color`` is a single color, it is used for
-          all coordinate lines
-        - ``style`` -- (default: '-') either a single line style or a dictionary
-          of line styles, with keys the coordinates to be drawn, representing
-          the style of the lines along which the coordinate varies, the other
-          being kept constant; if ``style`` is a single style, it is used for
-          all coordinate lines; NB: ``style`` is effective only for 2D plots
+        - ``color`` -- (default: ``'red'``) either a single color or a
+          dictionary of colors, with keys the coordinates to be drawn,
+          representing the colors of the lines along which the coordinate
+          varies, the other being kept constant; if ``color`` is a single
+          color, it is used for all coordinate lines
+        - ``style`` -- (default: ``'-'``) either a single line style or
+          a dictionary of line styles, with keys the coordinates to be
+          drawn, representing the style of the lines along which the
+          coordinate varies, the other being kept constant; if ``style``
+          is a single style, it is used for all coordinate lines;
+          NB: ``style`` is effective only for 2D plots
         - ``thickness`` -- (default: 1) either a single line thickness or a
           dictionary of line thicknesses, with keys the coordinates to be drawn,
           representing the thickness of the lines along which the coordinate
@@ -1949,16 +1950,15 @@ class RealChart(Chart):
           is a single integer, it is used for all coordinate lines
         - ``label_axes`` -- (default: ``True``) boolean determining whether the
           labels of the ambient coordinate axes shall be added to the graph;
-          can be set to False if the graph is 3D and must be superposed with
-          another graph.
+          can be set to ``False`` if the graph is 3D and must be superposed
+          with another graph
 
         OUTPUT:
 
-        - a graphic object, either an instance of
-          :class:`~sage.plot.graphics.Graphics` for a 2D plot (i.e. based on
-          2 coordinates of the ambient chart) or an instance of
-          :class:`~sage.plot.plot3d.base.Graphics3d` for a 3D plot (i.e.
-          based on 3 coordinates of the ambient chart)
+        - a graphic object, either a :class:`~sage.plot.graphics.Graphics`
+          for a 2D plot (i.e. based on 2 coordinates of the ambient chart)
+          or a :class:`~sage.plot.plot3d.base.Graphics3d` for a 3D plot
+          (i.e. based on 3 coordinates of the ambient chart)
 
         EXAMPLES:
 
@@ -1971,9 +1971,8 @@ class RealChart(Chart):
             sage: c_pol.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # polar coordinates on U
             sage: pol_to_cart = c_pol.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
             sage: g = c_pol.plot(c_cart)
-            sage: type(g)
-            <class 'sage.plot.graphics.Graphics'>
-            sage: show(g) # graphical display
+            sage: g
+            Graphics object consisting of 18 graphics primitives
 
         .. PLOT::
 
@@ -2033,7 +2032,8 @@ class RealChart(Chart):
         grid::
 
             sage: g = c_cart.plot()  # equivalent to c_cart.plot(c_cart)
-            sage: show(g) # a rectangular grid
+            sage: g # a rectangular grid
+            Graphics object consisting of 18 graphics primitives
 
         .. PLOT::
 
@@ -2063,29 +2063,31 @@ class RealChart(Chart):
             ....:                          2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]},
             ....:                         name='Phi', latex_name=r'\Phi') # Embedding of S^2 in R^3
             sage: g = c_xy.plot(c_cart, mapping=Phi)
-            sage: show(g) # 3D graphic display
+            sage: g
+            Graphics3d Object
             sage: type(g)
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
 
-        The same plot without the (X,Y,Z) axes labels::
+        The same plot without the ``(X,Y,Z)`` axes labels::
 
             sage: g = c_xy.plot(c_cart, mapping=Phi, label_axes=False)
 
         The North and South stereographic charts on the same plot::
 
             sage: g2 = c_uv.plot(c_cart, mapping=Phi, color='green')
-            sage: show(g+g2)
+            sage: g + g2
+            Graphics3d Object
 
         South stereographic chart drawned in terms of the North one (we split
-        the plot in four parts to avoid the singularity at (u,v)=(0,0))::
+        the plot in four parts to avoid the singularity at `(u,v)=(0,0)`)::
 
             sage: W = U.intersection(V) # the subset common to both charts
             sage: c_uvW = c_uv.restrict(W) # chart (W,(u,v))
-            sage: gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]})
-            sage: gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]})
-            sage: gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]})
-            sage: gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]})
-            sage: show(gSN1+gSN2+gSN3+gSN4, xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5)
+            sage: gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]})  # long time
+            sage: gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]})  # long time
+            sage: gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]})  # long time
+            sage: gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]})  # long time
+            sage: show(gSN1+gSN2+gSN3+gSN4, xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5)  # long time
 
         .. PLOT::
 
@@ -2105,12 +2107,13 @@ class RealChart(Chart):
             g = gSN1+gSN2+gSN3+gSN4; g.set_axes_range(-1.5, 1.5, -1.5, 1.5)
             sphinx_plot(g)
 
-        The coordinate line u=1 (red) and the coordinate line v=1 (green) on
-        the same plot::
+        The coordinate line `u = 1` (red) and the coordinate line `v = 1`
+        (green) on the same plot::
 
-            sage: gu1 = c_uvW.plot(c_xy, fixed_coords={u: 1}, max_range=20, plot_points=300)
-            sage: gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')
-            sage: show(gu1+gv1)
+            sage: gu1 = c_uvW.plot(c_xy, fixed_coords={u: 1}, max_range=20, plot_points=300)  # long time
+            sage: gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')  # long time
+            sage: gu1 + gv1  # long time
+            Graphics object consisting of 2 graphics primitives
 
         .. PLOT::
 
@@ -2127,15 +2130,16 @@ class RealChart(Chart):
             gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')
             sphinx_plot(gu1+gv1)
 
-        Note that we have set ``max_range=20`` to have a wider range for the
-        coordinates u and v, i.e. to have [-20,20] instead of the default
-        [-8,8].
+        Note that we have set ``max_range=20`` to have a wider range for
+        the coordinates `u` and `v`, i.e. to have `[-20, 20]` instead of
+        the default `[-8, 8]`.
 
         A 3-dimensional chart plotted in terms of itself results in a 3D
         rectangular grid::
 
-            sage: g = c_cart.plot() # equivalent to c_cart.plot(c_cart)
-            sage: show(g)  # a 3D mesh cube
+            sage: g = c_cart.plot() # equivalent to c_cart.plot(c_cart)  # long time
+            sage: g  # a 3D mesh cube  # long time
+            Graphics3d Object
 
         A 4-dimensional chart plotted in terms of itself (the plot is
         performed for at most 3 coordinates, which must be specified via
@@ -2143,10 +2147,12 @@ class RealChart(Chart):
 
             sage: M = Manifold(4, 'M', structure='topological')
             sage: X.<t,x,y,z> = M.chart()
-            sage: g = X.plot(ambient_coords=(t,x,y))  # the coordinate z is not depicted
-            sage: show(g)  # a 3D mesh cube
+            sage: g = X.plot(ambient_coords=(t,x,y)) # the coordinate z is not depicted  # long time
+            sage: g  # a 3D mesh cube  # long time
+            Graphics3d Object
             sage: g = X.plot(ambient_coords=(t,y)) # the coordinates x and z are not depicted
-            sage: show(g)  # a 2D mesh square
+            sage: g  # a 2D mesh square
+            Graphics object consisting of 18 graphics primitives
 
         .. PLOT::
 
@@ -2161,6 +2167,13 @@ class RealChart(Chart):
         from sage.plot.line import line
         from sage.manifolds.continuous_map import ContinuousMap
         from utilities import set_axes_labels
+
+        # Extract the kwds options
+        color = kwds['color']
+        style = kwds['style']
+        thickness = kwds['thickness']
+        plot_points = kwds['plot_points']
+        label_axes = kwds['label_axes']
 
         def _plot_xx_list(xx_list, rem_coords, ranges, steps, nb_values):
             r"""
@@ -2196,8 +2209,7 @@ class RealChart(Chart):
             transf = self.multifunction(*(self._xx))
             if nc > 3:
                 if ambient_coords is None:
-                    raise TypeError("the argument 'ambient_coords' must be " +
-                                    "provided")
+                    raise TypeError("the argument 'ambient_coords' must be provided")
                 if len(ambient_coords) > 3:
                     raise ValueError("too many ambient coordinates")
                 fixed_coords = {}
@@ -2224,7 +2236,7 @@ class RealChart(Chart):
                                 transf = coord_changes[chart_pair]._transf
             else:
                 if not isinstance(mapping, ContinuousMap):
-                    raise TypeError("the argument 'mapping' must be a " +
+                    raise TypeError("the argument 'mapping' must be a "
                                     "continuous manifold map")
                 if not self._domain.is_subset(mapping._domain):
                     raise ValueError("the domain of {} is not ".format(self) +
@@ -2296,11 +2308,12 @@ class RealChart(Chart):
             steps = {}
         for coord in coords:
             if coord not in steps:
-                steps[coord] = (ranges[coord][1] - ranges[coord][0])/ \
-                               (nb_values[coord]-1)
+                steps[coord] = ((ranges[coord][1] - ranges[coord][0])
+                                / (nb_values[coord]-1))
             else:
-                nb_values[coord] = 1 + int(
-                           (ranges[coord][1] - ranges[coord][0])/ steps[coord])
+                from sage.functions.other import floor
+                nb_values[coord] = 1 + floor((ranges[coord][1] - ranges[coord][0])
+                                             / steps[coord])
         if not isinstance(color, dict):
             color0 = {}
             for coord in coords:
@@ -2377,9 +2390,8 @@ class RealChart(Chart):
                         if self.valid_coordinates(*xp, tolerance=1e-13,
                                                   parameters=parameters):
                             yp = transf(*xp, simplify=False)
-                            curve.append(
-                              [numerical_approx( yp[j].substitute(parameters) )
-                               for j in ind_a] )
+                            curve.append([numerical_approx(yp[j].substitute(parameters))
+                                          for j in ind_a])
                             first_invalid = True # next invalid point will be
                                                  # the first one
                         else:
@@ -2398,7 +2410,7 @@ class RealChart(Chart):
                     resu += line(curve, color=color_c,
                                  linestyle=style_c,
                                  thickness=thickness_c)
-        if nca==2:  # 2D graphic
+        if nca == 2:  # 2D graphic
             resu.set_aspect_ratio(1)
             if label_axes:
                 # We update the dictionary _extra_kwds (options to be passed

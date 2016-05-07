@@ -335,6 +335,7 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
 from sage.misc.prandom import getrandbits
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.global_options import GlobalOptions
 from sage.manifolds.subset import ManifoldSubset
@@ -644,10 +645,6 @@ class TopologicalManifold(ManifoldSubset):
         self._zero_scalar_field = self._scalar_field_algebra.zero()
         # The unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
-        # Dictionary of sets of morphisms to over manifolds (keys: codomains):
-        self._homsets = {}  # to be populated by self._Hom_
-        # The identity map on self:
-        self._identity_map = Hom(self, self).one()
 
     def _repr_(self):
         r"""
@@ -1781,14 +1778,14 @@ class TopologicalManifold(ManifoldSubset):
 
     def zero_scalar_field(self):
         r"""
-        Return the zero scalar field defined on the manifold.
+        Return the zero scalar field defined on ``self``.
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the constant scalar field with value 0
+        - a :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the constant scalar field with value `0`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1807,16 +1804,16 @@ class TopologicalManifold(ManifoldSubset):
 
     def one_scalar_field(self):
         r"""
-        Return the constant scalar field with value the unit element of the
-        manifold's base field.
+        Return the constant scalar field with value the unit element
+        of the base field of ``self``.
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the constant scalar field with value the unit element
-          of the manifold's base field
+        - a :class:`~sage.manifolds.scalarfield.ScalarField` representing
+          the constant scalar field with value the unit element
+          of the base field of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1838,7 +1835,7 @@ class TopologicalManifold(ManifoldSubset):
     def _Hom_(self, other, category=None):
         r"""
         Construct the set of morphisms (i.e. continuous maps)
-        ``self`` --> ``other``.
+        ``self`` to ``other``.
 
         INPUT:
 
@@ -1849,13 +1846,15 @@ class TopologicalManifold(ManifoldSubset):
 
         OUTPUT:
 
-        - the homset Hom(U,V), where U is ``self`` and V is ``other``
+        - the homset `\mathrm{Hom}(U,V)`, where `U` is ``self``
+          and `V` is ``other``
 
-        See class
-        :class:`~sage.manifolds.manifold_homset.TopologicalManifoldHomset`
-        for more documentation.
+        .. SEEALSO::
 
-        TESTS::
+            For more documentation, see
+            :class:`~sage.manifolds.manifold_homset.TopologicalManifoldHomset`.
+
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: N = Manifold(3, 'N', structure='topological')
@@ -1870,55 +1869,45 @@ class TopologicalManifold(ManifoldSubset):
             True
 
         """
-        if other not in self._homsets:
-            self._homsets[other] = self._structure.homset(self, other)
-        return self._homsets[other]
+        return self._structure.homset(self, other)
 
     def continuous_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
-        Define a continuous map between the current topological manifold
-        and another topological manifold over the same topological field.
-
-        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
-        complete documentation.
+        Define a continuous map from ``self`` to ``codomain``.
 
         INPUT:
 
-        - ``codomain`` -- the map's codomain (must be an instance
-          of :class:`TopologicalManifold`)
-        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
-          either
+        - ``codomain`` -- :class:`TopologicalManifold`; the map's codomain
+        - ``coord_functions`` -- (default: ``None``) if not ``None``,
+          must be either
 
-          - (i) a dictionary of
-            the coordinate expressions (as lists (or tuples) of the
-            coordinates of the image expressed in terms of the coordinates of
-            the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            ``codomain``)
+          - (i) a dictionary of the coordinate expressions (as lists
+            (or tuples) of the coordinates of the image expressed in
+            terms of the coordinates of the considered point) with the
+            pairs of charts ``(chart1, chart2)`` as keys (``chart1`` being
+            a chart on ``self`` and ``chart2`` a chart on ``codomain``);
           - (ii) a single coordinate expression in a given pair of charts, the
-            latter being provided by the arguments ``chart1`` and ``chart2``
+            latter being provided by the arguments ``chart1`` and ``chart2``;
 
-          In both cases, if the dimension of the codomain is 1, a single
-          coordinate expression can be passed instead of a tuple with a single
-          element
-        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          on the current manifold defining the start coordinates involved in
-          ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the manifold's default chart
-        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``codomain`` defining the target coordinates involved in
-          ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the default chart of ``codomain``
-        - ``name`` -- (default: ``None``) name given to the continuous
-          map
+          in both cases, if the dimension of the codomain is `1`, a single
+          coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above)
+          chart on ``self`` defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if ``None``, the coordinates
+          are assumed to refer to the default chart of ``self``
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above)
+          chart on ``codomain`` defining the target coordinates involved in
+          ``coord_functions`` for case (ii); if ``None``, the coordinates
+          are assumed to refer to the default chart of ``codomain``
+        - ``name`` -- (default: ``None``) name given to the continuous map
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          continuous map; if none is provided, the LaTeX symbol is set to
-          ``name``
+          continuous map; if ``None``, the LaTeX symbol is set to ``name``
 
         OUTPUT:
 
-        - the continuous map, as an instance of
+        - the continuous map as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
         EXAMPLES:
@@ -1956,11 +1945,29 @@ class TopologicalManifold(ManifoldSubset):
             sage: Phi1(p) == Phi(p)
             True
 
-        See the documentation of class
-        :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
-        examples.
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.continuous_map(ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integer Ring is not a manifold
+             over Real Field with 53 bits of precision
+
+        .. SEEALSO::
+
+            See :class:`~sage.manifolds.continuous_map.ContinuousMap`
+            for the complete documentation and more examples.
+
+        .. TODO::
+
+            Allow the construction of continuous maps from ``self`` to the
+            base field (considered as a trivial 1-dimensional manifold).
 
         """
+        if (not isinstance(codomain, TopologicalManifold)
+            or codomain.base_field() != self.base_field()):
+            raise ValueError("{} is not a manifold over {}".format(codomain, self.base_field()))
         homset = Hom(self, codomain)
         if coord_functions is None:
             coord_functions = {}
@@ -1989,42 +1996,40 @@ class TopologicalManifold(ManifoldSubset):
 
         INPUT:
 
-        - ``codomain`` -- codomain of the homeomorphism (must be an instance
-          of :class:`TopologicalManifold`)
-        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
-          either
+        - ``codomain`` -- :class:`TopologicalManifold`; codomain of
+          the homeomorphism
+        - ``coord_functions`` -- (default: ``None``) if not ``None``,
+          must be either
 
-          - (i) a dictionary of
-            the coordinate expressions (as lists (or tuples) of the
-            coordinates of the image expressed in terms of the coordinates of
-            the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            ``codomain``)
+          - (i) a dictionary of the coordinate expressions (as lists
+            (or tuples) of the coordinates of the image expressed in
+            terms of the coordinates of the considered point) with the
+            pairs of charts ``(chart1, chart2)`` as keys (``chart1`` being
+            a chart on ``self`` and ``chart2`` a chart on ``codomain``);
           - (ii) a single coordinate expression in a given pair of charts, the
-            latter being provided by the arguments ``chart1`` and ``chart2``
+            latter being provided by the arguments ``chart1`` and ``chart2``;
 
-          In both cases, if the dimension of the codomain is 1, a single
+          in both cases, if the dimension of the codomain is `1`, a single
           coordinate expression can be passed instead of a tuple with
           a single element
-        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          on the current manifold defining the start coordinates involved in
-          ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the manifold's default chart
-        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``codomain`` defining the target coordinates involved in
-          ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the default chart of ``codomain``
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above)
+          chart on ``self`` defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if ``None``, the coordinates
+          are assumed to refer to the default chart of ``self``
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above)
+          chart on ``codomain`` defining the target coordinates involved in
+          ``coord_functions`` for case (ii); if ``None``, the coordinates
+          are assumed to refer to the default chart of ``codomain``
         - ``name`` -- (default: ``None``) name given to the homeomorphism
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          homeomorphism; if none is provided, the LaTeX symbol is set to
-          ``name``
+          homeomorphism; if ``None``, the LaTeX symbol is set to ``name``
 
         OUTPUT:
 
         - the homeomorphism, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Homeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
@@ -2052,7 +2057,7 @@ class TopologicalManifold(ManifoldSubset):
             Phi^(-1): N --> M
                (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
 
-        See the documentation of class
+        See the documentation of
         :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
         examples.
 
@@ -2076,12 +2081,13 @@ class TopologicalManifold(ManifoldSubset):
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
 
+    @cached_method
     def identity_map(self):
         r"""
-        Identity map of the manifold.
+        Identity map of ``self``.
 
         The identity map of a topological manifold `M` is the trivial
-        homeomorphism
+        homeomorphism:
 
         .. MATH::
 
@@ -2090,15 +2096,12 @@ class TopologicalManifold(ManifoldSubset):
                 & p & \longmapsto & p
             \end{array}
 
-        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
-        complete documentation.
-
         OUTPUT:
 
-        - the identity map, as an instance of
+        - the identity map as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Identity map of a complex manifold::
 
@@ -2123,8 +2126,13 @@ class TopologicalManifold(ManifoldSubset):
             sage: id(p) == p
             True
 
+        .. SEEALSO::
+
+            See :class:`~sage.manifolds.continuous_map.ContinuousMap`
+            for the complete documentation.
+
         """
-        return self._identity_map
+        return Hom(self, self).one()
 
 ##############################################################################
 ## Constructor function

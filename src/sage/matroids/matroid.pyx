@@ -6458,6 +6458,8 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_independent_generic()
             False
         """
+        res = []
+        r = 0
         if X is None:
             X = self.groundset()
         else:
@@ -6469,53 +6471,48 @@ cdef class Matroid(SageObject):
         # in order of weakly decreasing weight.
         if weights is None:
             Y = list(X)
-        else:
-            wt = []
-            try:
-                for e in X:
-                    wt.append((weights[e], e))
-            except (IndexError, TypeError, ValueError):
-                try:
-                    wt = []
-                    for e in X:
-                        wt.append((weights(e), e))
-                except (TypeError, ValueError):
-                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
-            wt = sorted(wt, reverse=True)
-            if wt[-1][1] < 0:
-                raise ValueError("nonnegative weights were expected.")
-            Y = [e for (w, e) in wt]
-        res = []
-        smres = []
-        r = 0
-        if weights is None:
             for e in Y:
                 res.append(e)
                 if self._rank(res) > r:
                     r += 1
                 else:
                     del res[-1]
-                    smres.append(e)
-                    if self._rank(smres) >= 1:
+                    if self._rank([e]) >= 1:
                         return False
-                    else:
-                        del smres[-1]
             return True
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+        smres = []
         for e in Y:
             res.append(e)
+            if len(res) >= 2:
+                if wt_dic[e] < wt_dic[res[-2]]:
+                    smres=res[:]
             if self._rank(res) > r:
                 r += 1
-                if len(res) >= 2:
-                    if weights(e) < weights(res[-2]):
-                        smres=res[:]
-                        del smres[-1]
             else:
-                if len(res) >= 2:
-                    if weights(e) < weights(res[-2]):
-                        smres=res[:]
                 del res[-1]
                 if self._rank(smres) >= len(smres):
                     return False
+                del smres[-1]
         return True
 
     cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
@@ -6567,6 +6564,8 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_coindependent_generic()
             False
         """
+        res = []
+        r = 0
         if X is None:
             X = self.groundset()
         else:
@@ -6578,53 +6577,48 @@ cdef class Matroid(SageObject):
         # in order of weakly decreasing weight.
         if weights is None:
             Y = list(X)
-        else:
-            wt = []
-            try:
-                for e in X:
-                    wt.append((weights[e], e))
-            except (IndexError, TypeError, ValueError):
-                try:
-                    wt = []
-                    for e in X:
-                        wt.append((weights(e), e))
-                except (TypeError, ValueError):
-                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
-            wt = sorted(wt, reverse=True)
-            if wt[-1][1] < 0:
-                raise ValueError("nonnegative weights were expected.")
-            Y = [e for (w, e) in wt]
-        res = []
-        smres = []
-        r = 0
-        if weights is None:
             for e in Y:
                 res.append(e)
                 if self._corank(res) > r:
                     r += 1
                 else:
                     del res[-1]
-                    smres.append(e)
-                    if self._corank(smres) >= 1:
+                    if self._co     rank([e]) >= 1:
                         return False
-                    else:
-                        del smres[-1]
             return True
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+        smres = []
         for e in Y:
             res.append(e)
-            if self._corank(res) > r:
+            if len(res) >= 2:
+                if wt_dic[e] < wt_dic[res[-2]]:
+                    smres=res[:]
+            if self._rank(res) > r:
                 r += 1
-                if len(res) >= 2:
-                    if weights(e) < weights(res[-2]):
-                        smres=res[:]
-                        del smres[-1]
             else:
-                if len(res) >= 2:
-                    if weights(e) < weights(res[-2]):
-                        smres=res[:]
                 del res[-1]
-                if self._corank(smres) >= len(smres):
+                if self._rank(smres) >= len(smres):
                     return False
+                del smres[-1]
         return True
 
 

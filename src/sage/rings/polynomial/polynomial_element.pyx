@@ -7812,7 +7812,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b.nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: 25*x^2 + 25*x + 25 is not a 2nd power
+            ValueError: (25*x^2 + 25*x + 25)^(1/2) does not lie in
+            Univariate Polynomial Ring in x over Integer Ring
             sage: R(0).nth_root(3)
             0
             sage: R.<x> = QQ[]
@@ -7833,17 +7834,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         n = ZZ.coerce(n)
 
-        if 10 <= n % 100 < 20:
-            postfix = 'th'
-        else:
-            postfix = {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')
-
         if n <= 0:
             raise ValueError("n (={}) must be positive".format(n))
         elif n.is_one() or self.is_zero():
             return self
         elif self.degree() % n:
-            raise ValueError("{} is not a {}{} power".format(self, n, postfix))
+            raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
         else:
             f = self.factor()
             u = self.base_ring()(f.unit())
@@ -7861,7 +7857,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             for (v, exp) in f:
                 if exp % n:
-                    raise ValueError("{} is not a {}{} power".format(self, n, postfix))
+                    raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
                 ans *= v ** (exp // n)
 
             return ans

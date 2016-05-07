@@ -14,6 +14,7 @@ Set of homomorphisms
 
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
+from sage.misc.mrange import xmrange
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.schemes.generic.homset import SchemeHomset_points
 
@@ -46,32 +47,33 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([1,1],QQ,'z')
-            sage: Q = P([1,2,2,3]); Q
-            (1/2 : 1 , 2/3 : 1)
+            sage: P = ProductProjectiveSpaces([1,1],ZZ,'z')
+            sage: Q = P([4,6,6,2]); Q
+            (2 : 3 , 3 : 1)
             sage: type(Q)
-            <class 'sage.schemes.product_projective.point.ProductProjectiveSpaces_point_field'>
-            sage: P(QQ)._element_constructor_([1,2,2,0])
-            (1/2 : 1 , 1 : 0)
+            <class 'sage.schemes.product_projective.point.ProductProjectiveSpaces_point_ring'>
+            sage: P(QQ)._element_constructor_([4,2,2,0])
+            (2 : 1 , 1 : 0)
         """
         return self.codomain()._point(self, v, **kwds)
 
 class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_product_projective_spaces_ring):
     def points(self, B=0, prec=53):
         r"""
-        Return some or all rational points of a projective scheme.
+        Return some or all rational points of a projective scheme. A list of points. Over a finite field,
+        all points are returned. Over an infinite field, all points satisfying the bound are returned. For
+        a zero-dimensional subscheme, all points are returned regardless of whether the base ring is a field
+        or not.
 
         INPUT:
 
         - `B` -- integer (optional, default=0). The bound for the
           coordinates.
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
 
         OUTPUT:
 
-        A list of points. Over a finite field, all points are
-        returned. Over an infinite field, all points satisfying the
-        bound are returned.
+        - all points with height at most the bound are returned.
 
         .. WARNING::
 
@@ -114,7 +116,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         ::
 
             sage: P.<x,y,z,u,v> = ProductProjectiveSpaces([2,1],GF(3))
-            sage: P(P.base_ring()).points()
+            sage: P(P.base_ring()).points().sort()
             [(0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (0 : 0 : 1 , 2 : 1), (0 : 0 : 1 , 1 : 0),
             (1 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 1 : 1), (1 : 0 : 1 , 2 : 1), (1 : 0 : 1 , 1 : 0),
             (2 : 0 : 1 , 0 : 1), (2 : 0 : 1 , 1 : 1), (2 : 0 : 1 , 2 : 1), (2 : 0 : 1 , 1 : 0),
@@ -142,39 +144,29 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             if dim_ideal == X.ambient_space().num_components():
                 points = set()
                 # find points from all possible affine patches
-                indices = [[k] for k in range(0,X.ambient_space().dimension_relative_components()[0] + 1)]
-                for t in range(1,X.ambient_space().num_components()):
-                    tmpL = []
-                    for I in indices:
-                        for k in range(0,X.ambient_space().dimension_relative_components()[t] + 1):
-                            tmpL.append(I+[k])
-                    indices = []
-                    indices = indices + tmpL
-                for I in indices:
+                for I in xmrange([n+1 for n in X.ambient_space().dimension_relative_components()]):
                     [Y,phi] = X.affine_patch(I,True)
                     aff_points = Y.rational_points()
                     for PP in aff_points:
-                        points.add(X.ambient_space()(list(phi(PP))))
+                        points.add(phi(PP))
                 return list(points)
         R = self.value_ring()
         points = []
         if R in NumberFields():
             if not B > 0:
-                raise TypeError("a positive bound B (= %s) must be specified."%B)
-            bddpts = X.ambient_space().points_of_bounded_height(B,prec)
-            for P in bddpts:
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
+            for P in X.ambient_space().points_of_bounded_height(B,prec):
                 try:
                     points.append(X(P))
                 except TypeError:
                     pass
             return points
         if is_FiniteField(R):
-            tpts = X.ambient_space().rational_points()
-            for P in tpts:
+            for P in X.ambient_space().rational_points():
                 try:
                     points.append(X(P))
                 except TypeError:
                     pass
             return points
         else:
-            raise TypeError("unable to enumerate points over %s."%R)
+            raise TypeError("unable to enumerate points over %s"%R)

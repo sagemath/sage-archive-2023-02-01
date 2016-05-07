@@ -38,6 +38,8 @@ We can also construct the product by specifying the dimensions and the base ring
 
 import six
 from sage.misc.cachefunc import cached_method
+from copy import copy
+from sage.misc.mrange import xmrange
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
 from sage.rings.commutative_ring import is_CommutativeRing
@@ -971,10 +973,10 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
     def points_of_bounded_height(self,bound, prec=53):
         r"""
-        Returns an iterator of the points in self with the absolute heights of the components of at most the given
-        bound. Bound check is strict for the rational field. Requires self to be a product of projective spaces over
-        a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height
-        [Doyle-Krumm].
+        Returns an iterator of the points in this product of projective spaces with the absolute heights of the
+        components of at most the given bound. Bound check is strict for the rational field. Requires the base
+        field of this space to be a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
+        up to a given height [Doyle-Krumm]_.
 
         INPUT:
 
@@ -984,11 +986,11 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
         OUTPUT:
 
-        - an iterator of points in self
+        - an iterator of points in this space
 
         .. WARNING::
 
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
            cannot be guaranteed to be correct due to the necessity of floating point
            computations. In some cases, the default 53-bit precision is
            considerably lower than would be required for the algorithm to
@@ -1032,22 +1034,14 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
             (1 : 0 , -1 : 1), (1 : 0 , 1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , -v : 1), (1 : 0 , 1/2*v : 1),
             (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
         """
-        comp_points = [list(self._components[i].points_of_bounded_height(bound,prec)) for i in range(self.num_components())]
-        indices = []
-        indices = [[k] for k in range(len(comp_points[0]))]
-        for t in range(1,self.num_components()):
-            tmpL = []
-            for I in indices:
-                for k in range(0,len(comp_points[t])):
-                    tmpL.append(I+[k])
-            indices = []
-            indices = indices + tmpL
-
-        return iter([self([comp_points[t][I[t]] for t in range(self.num_components())]) for I in indices])
+        m = self.num_components()
+        comp_points = [list(self._components[i].points_of_bounded_height(bound,prec)) for i in range(m)]
+        indices = xmrange([len(comp_points[i]) for i in range(m)])
+        return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
 
 class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
     def _point(self, *args, **kwds):
-        """
+        r"""
         Construct a point.
 
         For internal use only. See :mod:`morphism` for details.
@@ -1060,8 +1054,44 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
         """
         return ProductProjectiveSpaces_point_finite_field(*args, **kwds)
 
-    def rational_points(self, F=None):
+    def __iter__(self):
+        r"""
+        Returns iterator over the elements of this product of projective spaces.
+
+        EXAMPLES::
+
+            sage: P = ProductProjectiveSpaces([2,1],GF(3))
+            sage: [x for x in P]
+            [(0 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 0 : 1), (2 : 0 : 1 , 0 : 1), (0 : 1 : 1 , 0 : 1), (1 : 1 : 1 , 0 : 1),
+            (2 : 1 : 1 , 0 : 1), (0 : 2 : 1 , 0 : 1), (1 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 0 : 1), (0 : 1 : 0 , 0 : 1),
+            (1 : 1 : 0 , 0 : 1), (2 : 1 : 0 , 0 : 1), (1 : 0 : 0 , 0 : 1), (0 : 0 : 1 , 1 : 1), (1 : 0 : 1 , 1 : 1),
+            (2 : 0 : 1 , 1 : 1), (0 : 1 : 1 , 1 : 1), (1 : 1 : 1 , 1 : 1), (2 : 1 : 1 , 1 : 1), (0 : 2 : 1 , 1 : 1),
+            (1 : 2 : 1 , 1 : 1), (2 : 2 : 1 , 1 : 1), (0 : 1 : 0 , 1 : 1), (1 : 1 : 0 , 1 : 1), (2 : 1 : 0 , 1 : 1),
+            (1 : 0 : 0 , 1 : 1), (0 : 0 : 1 , 2 : 1), (1 : 0 : 1 , 2 : 1), (2 : 0 : 1 , 2 : 1), (0 : 1 : 1 , 2 : 1),
+            (1 : 1 : 1 , 2 : 1), (2 : 1 : 1 , 2 : 1), (0 : 2 : 1 , 2 : 1), (1 : 2 : 1 , 2 : 1), (2 : 2 : 1 , 2 : 1),
+            (0 : 1 : 0 , 2 : 1), (1 : 1 : 0 , 2 : 1), (2 : 1 : 0 , 2 : 1), (1 : 0 : 0 , 2 : 1), (0 : 0 : 1 , 1 : 0),
+            (1 : 0 : 1 , 1 : 0), (2 : 0 : 1 , 1 : 0), (0 : 1 : 1 , 1 : 0), (1 : 1 : 1 , 1 : 0), (2 : 1 : 1 , 1 : 0),
+            (0 : 2 : 1 , 1 : 0), (1 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 0), (0 : 1 : 0 , 1 : 0), (1 : 1 : 0 , 1 : 0),
+            (2 : 1 : 0 , 1 : 0), (1 : 0 : 0 , 1 : 0)]
         """
+        iters = [ iter(T) for T in self._components ]
+        L=[]
+        for x in iters:
+            L.append(next(x)) # put at zero
+        yield(copy(self(L)))
+        j = 0
+        while j < self.num_components():
+            try:
+                L[j] = next(iters[j])
+                yield(copy(self(L)))
+                j = 0
+            except StopIteration:
+                iters[j] = iter(self[j])  # reset
+                L[j] = next(iters[j]) # put at zero
+                j += 1
+
+    def rational_points(self, F=None):
+        r"""
         Return the list of `F`-rational points on the affine space self,
         where `F` is a given finite field, or the base ring of self.
 
@@ -1069,22 +1099,26 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
 
             sage: P = ProductProjectiveSpaces([1,1],GF(5))
             sage: P.rational_points()
-            [(0 : 1 , 0 : 1), (0 : 1 , 1 : 1), (0 : 1 , 2 : 1), (0 : 1 , 3 : 1), (0 : 1 , 4 : 1), (0 : 1 , 1 : 0),
-            (1 : 1 , 0 : 1), (1 : 1 , 1 : 1), (1 : 1 , 2 : 1), (1 : 1 , 3 : 1), (1 : 1 , 4 : 1), (1 : 1 , 1 : 0),
-            (2 : 1 , 0 : 1), (2 : 1 , 1 : 1), (2 : 1 , 2 : 1), (2 : 1 , 3 : 1), (2 : 1 , 4 : 1), (2 : 1 , 1 : 0),
-            (3 : 1 , 0 : 1), (3 : 1 , 1 : 1), (3 : 1 , 2 : 1), (3 : 1 , 3 : 1), (3 : 1 , 4 : 1), (3 : 1 , 1 : 0),
-            (4 : 1 , 0 : 1), (4 : 1 , 1 : 1), (4 : 1 , 2 : 1), (4 : 1 , 3 : 1), (4 : 1 , 4 : 1), (4 : 1 , 1 : 0),
-            (1 : 0 , 0 : 1), (1 : 0 , 1 : 1), (1 : 0 , 2 : 1), (1 : 0 , 3 : 1), (1 : 0 , 4 : 1), (1 : 0 , 1 : 0)]
+            [(0 : 1 , 0 : 1), (1 : 1 , 0 : 1), (2 : 1 , 0 : 1), (3 : 1 , 0 : 1), (4 : 1 , 0 : 1), (1 : 0 , 0 : 1),
+            (0 : 1 , 1 : 1), (1 : 1 , 1 : 1), (2 : 1 , 1 : 1), (3 : 1 , 1 : 1), (4 : 1 , 1 : 1), (1 : 0 , 1 : 1),
+            (0 : 1 , 2 : 1), (1 : 1 , 2 : 1), (2 : 1 , 2 : 1), (3 : 1 , 2 : 1), (4 : 1 , 2 : 1), (1 : 0 , 2 : 1),
+            (0 : 1 , 3 : 1), (1 : 1 , 3 : 1), (2 : 1 , 3 : 1), (3 : 1 , 3 : 1), (4 : 1 , 3 : 1), (1 : 0 , 3 : 1),
+            (0 : 1 , 4 : 1), (1 : 1 , 4 : 1), (2 : 1 , 4 : 1), (3 : 1 , 4 : 1), (4 : 1 , 4 : 1), (1 : 0 , 4 : 1),
+            (0 : 1 , 1 : 0), (1 : 1 , 1 : 0), (2 : 1 , 1 : 0), (3 : 1 , 1 : 0), (4 : 1 , 1 : 0), (1 : 0 , 1 : 0)]
         """
-        comp_points = [list(self._components[i].rational_points(F)) for i in range(self.num_components())]
-        indices = []
-        indices = [[k] for k in range(len(comp_points[0]))]
-        for t in range(1,self.num_components()):
-            tmpL = []
-            for I in indices:
-                for k in range(0,len(comp_points[t])):
-                    tmpL.append(I+[k])
-            indices = []
-            indices = indices + tmpL
-
-        return [self([comp_points[t][I[t]] for t in range(self.num_components())]) for I in indices]
+        iters = [ iter(T) for T in self._components ]
+        L=[]
+        for x in iters:
+            L.append(next(x)) # put at zero
+        points=[copy(self(L))]
+        j = 0
+        while j < self.num_components():
+            try:
+                L[j] = next(iters[j])
+                points.append(copy(self(L)))
+                j = 0
+            except StopIteration:
+                iters[j] = iter(self[j]) # reset
+                L[j] = next(iters[j]) # put at zero
+                j += 1
+        return points

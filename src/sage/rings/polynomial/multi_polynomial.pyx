@@ -1802,7 +1802,7 @@ cdef class MPolynomial(CommutativeRingElement):
             u = self.base_ring()(f.unit())
 
             if u.is_one():
-                ans = u
+                ans = self.parent().one()
             else:
                 # try to compute a n-th root of the unit in the
                 # base ring. the `nth_root` method thus has to be

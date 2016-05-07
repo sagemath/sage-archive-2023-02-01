@@ -7827,6 +7827,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             13*x - 7
             sage: b^3 == a
             True
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: parent(R.one().nth_root(3))
+            Univariate Polynomial Ring in x over Integer Ring
         """
         # note: this code is duplicated in
         # sage.rings.polynomial.multi_polynomial.MPolynomial.nth_root
@@ -7845,7 +7851,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             u = self.base_ring()(f.unit())
 
             if u.is_one():
-                ans = u
+                ans = self.parent().one()
             else:
                 # try to compute a n-th root of the unit in the
                 # base ring. the `nth_root` method thus has to be

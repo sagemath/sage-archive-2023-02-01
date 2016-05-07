@@ -28,6 +28,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.list cimport *
 from cpython.object cimport PyObject
@@ -102,7 +103,7 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: print S
+            sage: print(S)
             Graphics3d Object
         """
         return str(self)
@@ -128,9 +129,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -497,7 +495,6 @@ cdef class Graphics3d(SageObject):
                 a_max[i] = a_max[i] + 1
         return a_min, a_max
 
-
     def bounding_box(self):
         """
         Return the lower and upper corners of a 3d bounding box for ``self``.
@@ -689,7 +686,7 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: print sphere((1, 2, 3), 5).x3d()
+            sage: print(sphere((1, 2, 3), 5).x3d())
             <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
             <head>
             <meta name='title' content='sage3d'/>
@@ -703,7 +700,7 @@ cdef class Graphics3d(SageObject):
             </X3D>
 
             sage: G = icosahedron() + sphere((0,0,0), 0.5, color='red')
-            sage: print G.x3d()
+            sage: print(G.x3d())
             <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
             <head>
             <meta name='title' content='sage3d'/>
@@ -740,7 +737,7 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: print sphere((1, 2, 3), 5, color='yellow').tachyon()
+            sage: print(sphere((1, 2, 3), 5, color='yellow').tachyon())
             begin_scene
             resolution 400 400
                      camera
@@ -761,7 +758,7 @@ cdef class Graphics3d(SageObject):
 
             sage: G = icosahedron(color='red') + sphere((1,2,3), 0.5, color='yellow')
             sage: G.show(viewer='tachyon', frame=false)
-            sage: print G.tachyon()
+            sage: print(G.tachyon())
             begin_scene
             ...
             Texdef texture...
@@ -820,7 +817,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import ColorCube
-            sage: print ColorCube(1, ['red', 'yellow', 'blue']).obj()
+            sage: print(ColorCube(1, ['red', 'yellow', 'blue']).obj())
             g obj_1
             usemtl ...
             v 1 1 1
@@ -860,7 +857,7 @@ end_scene""" % (render_params.antialiasing,
             sage: z.namelist()
             ['obj_...pmesh', 'SCRIPT']
 
-            sage: print z.read('SCRIPT')
+            sage: print(z.read('SCRIPT'))
             data "model list"
             2
             empty
@@ -886,7 +883,7 @@ end_scene""" % (render_params.antialiasing,
             label "hi"
             isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;
 
-            sage: print z.read(z.namelist()[0])
+            sage: print(z.read(z.namelist()[0]))
             24
             0.5 0.5 0.5
             -0.5 0.5 0.5
@@ -1073,7 +1070,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
-            sage: print G.mtl_str()
+            sage: print(G.mtl_str())
             newmtl ...
             Ka 0.5 5e-06 5e-06
             Kd 1.0 1e-05 1e-05
@@ -1296,8 +1293,6 @@ end_scene""" % (render_params.antialiasing,
            * 'jmol': Interactive 3D viewer using Java
 
            * 'tachyon': Ray tracer generates a static PNG image
-
-           * 'java3d': Interactive OpenGL based 3D
 
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
@@ -1574,7 +1569,7 @@ end_scene""" % (render_params.antialiasing,
             '    endloop']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.stl_ascii_string(name='triangle')
+            sage: print(p.stl_ascii_string(name='triangle'))
             solid triangle
             facet normal 0.0 0.832050294338 -0.554700196225
                 outer loop
@@ -1649,7 +1644,7 @@ end_scene""" % (render_params.antialiasing,
             'end_header']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.ply_ascii_string(name='triangle')
+            sage: print(p.ply_ascii_string(name='triangle'))
             ply
             format ascii 1.0
             comment triangle
@@ -1714,7 +1709,7 @@ end_scene""" % (render_params.antialiasing,
             '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.94871794872</x><y>-0.384615384615</y><z>-0.39358974359'
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.amf_ascii_string(name='triangle')
+            sage: print(p.amf_ascii_string(name='triangle'))
             <?xml version="1.0" encoding="utf-8"?><amf><object id="triangle"><mesh><vertices><vertex><coordinates><x>0.0</x><y>0.0</y><z>0.0</z></coordinates></vertex><vertex><coordinates><x>1.0</x><y>2.0</y><z>3.0</z></coordinates></vertex><vertex><coordinates><x>3.0</x><y>0.0</y><z>0.0</z></coordinates></vertex></vertices><volume><triangle><v1>0</v1><v2>1</v2><v3>2</v3></triangle></volume></mesh></object></amf>
         """
         faces = self.index_faces()
@@ -1740,6 +1735,20 @@ end_scene""" % (render_params.antialiasing,
         string_list += ['</volume></mesh></object></amf>']
         return "".join(string_list)
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+
+        EXAMPLES::
+
+            sage: S = sphere((0,0,0), 2)
+            sage: S.plot() is S
+            True
+
+        """
+        return self
 
 # if you add any default parameters you must update some code below
 SHOW_DEFAULTS = {'viewer': 'jmol',
@@ -1894,7 +1903,7 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sphere() + sphere((1,2,3))
-            sage: print G.x3d_str()
+            sage: print(G.x3d_str())
             <Transform translation='0 0 0'>
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
@@ -1994,7 +2003,8 @@ class Graphics3dGroup(Graphics3d):
                 all.append(g)
         return Graphics3dGroup(all)
 
-
+    def plot(self):
+        return self
 
 class TransformGroup(Graphics3dGroup):
     """
@@ -2577,7 +2587,7 @@ def flatten_list(L):
         sage: flatten_list([['a'], [[['b'], 'c'], ['d'], [[['e', 'f', 'g']]]]])
         ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     """
-    if not PyList_CheckExact(L):
+    if type(L) is not list:
         return [L]
     flat = []
     L_stack = []; L_pop = L_stack.pop
@@ -2586,7 +2596,7 @@ def flatten_list(L):
     while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
         while i < PyList_GET_SIZE(L):
             tmp = <object>PyList_GET_ITEM(L, i)
-            if PyList_CheckExact(tmp):
+            if type(tmp) is list:
                 PyList_Append(L_stack, L)
                 L = tmp
                 PyList_Append(i_stack, i)

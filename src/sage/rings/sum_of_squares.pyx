@@ -20,7 +20,7 @@ AUTHORS:
 from libc.math cimport sqrt
 
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cimport integer
 import integer
@@ -137,7 +137,7 @@ def two_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.two_squares` is much more suited for large inputs
+        :func:`~sage.arith.all.two_squares` is much more suited for large inputs
 
     EXAMPLES::
 
@@ -162,16 +162,16 @@ def two_squares_pyx(uint32_t n):
 
     TESTS::
 
-        sage: s = lambda (x,y) : x**2 + y**2
+        sage: s = lambda t: sum(i^2 for i in t)
         sage: for ij in Subsets(Subsets(45000,15).random_element(),2):
         ....:     if s(two_squares_pyx(s(ij))) != s(ij):
-        ....:         print "hey"
+        ....:         print("hey")
 
         sage: for n in xrange(1,65536):
-        ....:     if two_squares_pyx(n**2) != (0, n):
-        ....:         print "hey"
-        ....:     if two_squares_pyx(n**2+1) != (1, n):
-        ....:         print "ho"
+        ....:     if two_squares_pyx(n^2) != (0, n):
+        ....:         print("hey")
+        ....:     if two_squares_pyx(n^2 + 1) != (1, n):
+        ....:         print("ho")
     """
     cdef uint_fast32_t i[2]
 
@@ -250,10 +250,10 @@ def three_squares_pyx(uint32_t n):
 
     TESTS::
 
-        sage: s = lambda (x,y,z) : x**2 + y**2 + z**2
+        sage: s = lambda t: sum(i^2 for i in t)
         sage: for ijk in Subsets(Subsets(35000,15).random_element(),3):
         ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
-        ....:         print "hey"
+        ....:         print("hey")
     """
     cdef uint_fast32_t i[3]
 
@@ -275,7 +275,7 @@ def four_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.four_squares` is much more suited for large input
+        :func:`~sage.arith.all.four_squares` is much more suited for large input
 
     EXAMPLES::
 
@@ -300,7 +300,7 @@ def four_squares_pyx(uint32_t n):
         sage: four_squares_pyx(0)
         (0, 0, 0, 0)
 
-        sage: s = lambda (x,y,z,t): x**2 + y**2 + z**2 + t**2
+        sage: s = lambda t: sum(i^2 for i in t)
         sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
         True
     """

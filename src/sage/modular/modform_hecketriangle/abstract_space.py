@@ -748,7 +748,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: T = MF.group().T()
             sage: S = MF.group().S()
-            sage: z = AlgebraicField()(1+i/2)
+            sage: i = AlgebraicField()(i)
+            sage: z = 1 + i/2
 
             sage: MF.aut_factor(S, z)
             3/2*I - 7/16
@@ -766,7 +767,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF = ModularForms(n=7, k=14/5, ep=-1)
             sage: T = MF.group().T()
             sage: S = MF.group().S()
-            sage: z = AlgebraicField()(1+i/2)
 
             sage: MF.aut_factor(S, z)
             1.3655215324256...? + 0.056805991182877...?*I
@@ -969,7 +969,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.Faber_pol(-1, order_1=2)
             1/d^2*q^2 - 3/(4*d^2)*q + 81/(1024*d^2)
             sage: (MF.Faber_pol(-1, order_1=2)(MF.J_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)
@@ -1111,7 +1111,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.faber_pol(-1, order_1=2)
             q^2 - 3/(4*d)*q + 81/(1024*d^2)
             sage: (MF.faber_pol(-1, order_1=2)(MF.j_inv())*MF.F_simple(order_1=2)).q_expansion(prec=MF._l1 + 1)
-            q^-1 + (9075/(-8388608*d^4))*q^3 + O(q^4)
+            q^-1 - 9075/(8388608*d^4)*q^3 + O(q^4)
         """
 
         m = ZZ(m)

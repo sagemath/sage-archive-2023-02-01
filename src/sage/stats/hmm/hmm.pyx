@@ -27,8 +27,9 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -160,14 +161,14 @@ cdef class HiddenMarkovModel:
 
         OUTPUT:
 
-            - if number is not given, return a single TimeSeries.
-            - if number is given, return a list of TimeSeries.
+        - if number is not given, return a single TimeSeries.
+        - if number is given, return a list of TimeSeries.
 
         EXAMPLES::
 
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
-            sage: print a.sample(10, 3)
+            sage: print(a.sample(10, 3))
             [[1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 0, 0, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 0, 1, 1, 1]]
             sage: a.sample(15)
             [1, 1, 1, 1, 0 ... 1, 1, 1, 1, 1]
@@ -196,7 +197,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):

@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.flint.types cimport fmpz_mod_poly_t, fmpz_t, slong
 
 cdef extern from "flint/fmpz_mod_poly.h":

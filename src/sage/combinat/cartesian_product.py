@@ -33,14 +33,14 @@ def CartesianProduct(*iters):
         doctest:...: DeprecationWarning: CartesianProduct is deprecated. Use
         cartesian_product instead
         See http://trac.sagemath.org/18411 for details.
-        The cartesian product of ({1, 2}, {3, 4})
+        The Cartesian product of ({1, 2}, {3, 4})
         sage: cp.list()
         [(1, 3), (1, 4), (2, 3), (2, 4)]
 
     Note that you must not use a generator-type object that is
     returned by a function (using "yield"). They cannot be copied or
     rewound (you cannot jump back to the beginning), but this is
-    necessary to construct the cartesian product::
+    necessary to construct the Cartesian product::
 
         sage: def a(n): yield 1*n; yield 2*n
         sage: def b(): yield 'a'; yield 'b'
@@ -61,7 +61,7 @@ def CartesianProduct(*iters):
         See http://trac.sagemath.org/18411 for details.
         sage: list(C)
         doctest:...: UserWarning: Sage is not able to determine whether the
-        factors of this cartesian product are finite. The lexicographic ordering
+        factors of this Cartesian product are finite. The lexicographic ordering
         might not go through all elements.
         [(3, 'a'), (3, 'b'), (6, 'a'), (6, 'b')]
 
@@ -177,7 +177,7 @@ class CartesianProduct_iters(CombinatorialClass):
             sage: [1, 3, 1] in cp
             False
 
-        Note that it differs with the behavior of cartesian products::
+        Note that it differs with the behavior of Cartesian products::
 
             sage: cp = cartesian_product([[1,2], [3,4]])
             sage: [1,3] in cp
@@ -200,7 +200,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def cardinality(self):
         """
-        Returns the number of elements in the cartesian product of
+        Returns the number of elements in the Cartesian product of
         everything in \*iters.
 
         EXAMPLES::
@@ -224,11 +224,11 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def __len__(self):
         """
-        Return the number of elements of the cartesian product.
+        Return the number of elements of the Cartesian product.
 
         OUTPUT:
 
-        An ``int``, the number of elements in the cartesian product. If the
+        An ``int``, the number of elements in the Cartesian product. If the
         number of elements is infinite or does not fit into a python ``int``, a
         ``TypeError`` is raised.
 
@@ -278,7 +278,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def __iter__(self):
         """
-        An iterator for the elements in the cartesian product of the
+        An iterator for the elements in the Cartesian product of the
         iterables \*iters.
 
         From Recipe 19.9 in the Python Cookbook by Alex Martelli and David
@@ -304,7 +304,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def is_finite(self):
         """
-        The cartesian product is finite if all of its inputs are
+        The Cartesian product is finite if all of its inputs are
         finite, or if any input is empty.
 
         EXAMPLES::
@@ -329,7 +329,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def unrank(self, x):
         """
-        For finite cartesian products, we can reduce unrank to the
+        For finite Cartesian products, we can reduce unrank to the
         constituent iterators.
 
         EXAMPLES::
@@ -365,7 +365,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def random_element(self):
         """
-        Returns a random element from the cartesian product of \*iters.
+        Returns a random element from the Cartesian product of \*iters.
 
         EXAMPLES::
 

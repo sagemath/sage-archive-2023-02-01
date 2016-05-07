@@ -225,6 +225,23 @@ class StringMonoid_class(FreeMonoid_class):
     def alphabet(self):
         return tuple(self._alphabet)
 
+    def one(self):
+        r"""
+        Return the identity element of ``self``.
+
+        EXAMPLES::
+
+            sage: b = BinaryStrings(); b
+            Free binary string monoid
+            sage: b.one() * b('1011')
+            1011
+            sage: b.one() * b('110') == b('110')
+            True
+            sage: b('10101') * b.one() == b('101011')
+            False
+        """
+        return StringMonoidElement(self, '')
+
     def gen(self, i=0):
         r"""
         The `i`-th generator of the monoid.
@@ -886,7 +903,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
         REFERENCES:
 
-        .. [BekPip82] H. Beker and F. Piper. *Cipher Systems: The
+        .. [BekPip82] \H. Beker and F. Piper. *Cipher Systems: The
           Protection of Communications*. John Wiley and Sons, 1982.
 
         .. [Lew00] Robert Edward Lewand. *Cryptological Mathematics*.

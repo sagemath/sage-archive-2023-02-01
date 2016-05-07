@@ -72,10 +72,10 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.mwrank.all as mwrank
+import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.all as rings
 from sage.rings.all import (
     PowerSeriesRing,
@@ -809,7 +809,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EE
             y^2+ y = x^3 - x^2 - 10*x - 20
             sage: type(EE)
-            <class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>
+            <class 'sage.libs.eclib.interface.mwrank_EllipticCurve'>
             sage: EE.isogeny_class()
             ([[0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]],
             [[0, 5, 5], [5, 0, 0], [5, 0, 0]])
@@ -1115,6 +1115,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         of ``lseries()``, where the value is also divided by the
         number of connected components of `E(\RR)`). In particular the
         modular symbol depends on `E` and not only the isogeny class of `E`.
+        For the negative part the corresponding period is purely imaginary of
+        smallest positive imaginary part.
 
         INPUT:
 
@@ -1209,6 +1211,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
             sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
             1/25
+            sage: E.modular_symbol(sign=-1, use_eclib=False, normalize='L_ratio')(1/3)
+            1/2
+
 
         """
         typ = (sign, normalize, use_eclib)
@@ -1664,7 +1669,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        .. [Bob13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
            ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
@@ -2725,7 +2730,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.libs.ratpoints import ratpoints
         from sage.functions.all import exp
-        from sage.rings.arith import GCD
+        from sage.arith.all import GCD
         H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
         coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
         points = []
@@ -3350,7 +3355,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [GrossZagier] B. Gross and D. Zagier, *Heegner points and
+        .. [GrossZagier] \B. Gross and D. Zagier, *Heegner points and
            derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
         """
         try:
@@ -4015,22 +4020,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             k += 1
         return bound
 
-
-    def torsion_subgroup(self, algorithm="pari"):
+    def torsion_subgroup(self, algorithm=None):
         """
         Returns the torsion subgroup of this elliptic curve.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-        -  ``"pari"`` - (default) use the PARI library
-
-        -  ``"doud"`` - use Doud's algorithm
-
-        -  ``"lutz_nagell"`` - use the Lutz-Nagell theorem
-
 
         OUTPUT: The EllipticCurveTorsionSubgroup instance associated to
         this elliptic curve.
@@ -4064,26 +4056,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__torsion_subgroup
         except AttributeError:
+            # algorithm is deprecated: if not None, this will give a warning.
+            # deprecation(20219)
             self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self, algorithm)
             self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 
-    def torsion_points(self, algorithm="pari"):
+    def torsion_points(self, algorithm=None):
         """
         Returns the torsion points of this elliptic curve as a sorted
         list.
-
-        INPUT:
-
-
-        -  ``algorithm`` - string:
-
-           -  "pari" - (default) use the PARI library
-
-           -  "doud" - use Doud's algorithm
-
-           -  "lutz_nagell" - use the Lutz-Nagell theorem
-
 
         OUTPUT: A list of all the torsion points on this elliptic curve.
 
@@ -4153,6 +4135,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              (244 : -3902 : 1),
              (244 : 3658 : 1)]
         """
+        # algorithm is deprecated: if not None, this will give a warning.
+        # deprecation(20219)
         return sorted(self.torsion_subgroup(algorithm).points())
 
     @cached_method
@@ -5900,7 +5884,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        .. [Co1] H. Cohen, Number Theory, Vol. I: Tools and
+        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
            Diophantine Equations.  GTM 239, Springer, 2007.
 
         AUTHORS:
@@ -6554,7 +6538,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #                       print "testing denominator ",de
 #                       print "numerator bounds = ",(n_min,n_max)
 
-                    for n in misc.xsrange(n_min,n_max+1):
+                    for n in arith.xsrange(n_min,n_max+1):
                         tmp = n/de  # to save time, do not check de is the exact denominator
                         if E.is_x_coord(tmp):
                             xs+=[tmp]
@@ -7020,7 +7004,7 @@ def elliptic_curve_congruence_graph(curves):
         Graph on 12 vertices
     """
     from sage.graphs.graph import Graph
-    from sage.rings.arith import lcm, prime_divisors
+    from sage.arith.all import lcm, prime_divisors
     from sage.rings.fast_arith import prime_range
     from sage.misc.all import prod
     G = Graph()

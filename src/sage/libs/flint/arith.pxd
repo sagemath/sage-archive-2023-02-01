@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.flint.types cimport fmpz_t, fmpq_t, ulong
 
 cdef extern from "flint/arith.h":

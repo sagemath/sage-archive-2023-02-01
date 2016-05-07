@@ -399,9 +399,9 @@ corresponding value representing the coefficient of that term::
 
     sage: c = Sq(5).antipode(); c
     Sq(2,1) + Sq(5)
-    sage: for mono, coeff in c: print coeff, mono
-    1 (5,)
-    1 (2, 1)
+    sage: for mono, coeff in c: print((coeff, mono))
+    (1, (5,))
+    (1, (2, 1))
     sage: c.monomial_coefficients()
     {(2, 1): 1, (5,): 1}
     sage: sorted(c.monomials(), key=lambda x: x.support())
@@ -471,6 +471,7 @@ REFERENCES:
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
@@ -578,7 +579,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: TestSuite(SteenrodAlgebra(basis='comm_deg', p=5)).run() # long time
             sage: TestSuite(SteenrodAlgebra(p=2,generic=True)).run()
         """
-        from sage.rings.arith import is_prime
+        from sage.arith.all import is_prime
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
         from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -634,7 +635,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             sage: A = SteenrodAlgebra(3,basis='adem')
             sage: for (idx,key) in zip((1,..,10),A._basis_key_iterator()):
-            ...     print "> %2d %-20s %s" % (idx,key,A.monomial(key))
+            ....:     print("> %2d %-20s %s" % (idx,key,A.monomial(key)))
             >  1 ()                   1
             >  2 (1,)                 beta
             >  3 (0, 1, 0)            P^1
@@ -1282,7 +1283,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         ``algorithm`` is 'milnor' or 'serre-cartan'.
 
         OUTPUT: the coproduct of the corresponding basis element,
-        as an element of self tensor self.
+        as an element of ``self`` tensor ``self``.
 
         EXAMPLES::
 
@@ -1342,7 +1343,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                             a = a[:-1]
                         right.append(tuple(a))
                     tens = dict().fromkeys(zip(left, right), 1)
-                    return self.tensor_square()._from_dict(tens)
+                    return self.tensor_square()._from_dict(tens, coerce=True)
                 else: # p odd
                     from sage.combinat.permutation import Permutation
                     from steenrod_algebra_misc import convert_perm
@@ -1373,7 +1374,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                     for l, r in zip(left_p, right_p):
                         for q in tens_q:
                             tens[((q[0], l), (q[1], r))] = tens_q[q]
-                    return self.tensor_square()._from_dict(tens)
+                    return self.tensor_square()._from_dict(tens, coerce=True)
             elif basis == 'serre-cartan':
                 result = self.tensor_square().one()
                 if not self._generic:
@@ -1445,7 +1446,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(p=3, basis='serre-cartan').P(4).coproduct()
             1 # P^4 + P^1 # P^3 + P^2 # P^2 + P^3 # P^1 + P^4 # 1
             sage: SteenrodAlgebra(p=11, profile=((), (2,1,2))).Q(0,2).coproduct()
-            1 # Q_0 Q_2 + Q_0 # Q_2 + Q_0 Q_2 # 1 - Q_2 # Q_0
+            1 # Q_0 Q_2 + Q_0 # Q_2 + Q_0 Q_2 # 1 + 10*Q_2 # Q_0
         """
         # taken from categories.coalgebras_with_basis, then modified
         # to allow the use of the "algorithm" keyword
@@ -2243,7 +2244,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: A7.basis()
             Lazy family (Term map from basis key family of mod 7 Steenrod algebra, milnor basis to mod 7 Steenrod algebra, milnor basis(i))_{i in basis key family of mod 7 Steenrod algebra, milnor basis}
             sage: for (idx,a) in zip((1,..,9),A7.basis()):
-            ...      print idx, a
+            ....:      print("{} {}".format(idx, a))
             1 1
             2 Q_0
             3 P(1)
@@ -3111,9 +3112,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             sage: c = Sq(5).antipode(); c
             Sq(2,1) + Sq(5)
-            sage: for mono, coeff in c: print coeff, mono
-            1 (5,)
-            1 (2, 1)
+            sage: for mono, coeff in c: print((coeff, mono))
+            (1, (5,))
+            (1, (2, 1))
             sage: c.monomial_coefficients()
             {(2, 1): 1, (5,): 1}
             sage: sorted(c.monomials(), key=lambda x: x.support())
@@ -3648,8 +3649,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 sage: a.is_decomposable()
                 True
                 sage: for i in range(9):
-                ...       if not Sq(i).is_decomposable():
-                ...           print Sq(i)
+                ....:     if not Sq(i).is_decomposable():
+                ....:         print(Sq(i))
                 1
                 Sq(1)
                 Sq(2)

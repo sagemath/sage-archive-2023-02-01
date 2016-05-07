@@ -186,7 +186,7 @@ class BaxterPermutations_size(BaxterPermutations):
 
         REFERENCES:
 
-        .. [BBF08] N. Bonichon, M. Bousquet-Melou, E. Fusy.
+        .. [BBF08] \N. Bonichon, M. Bousquet-Melou, E. Fusy.
            Baxter permutations and plane bipolar orientations.
            Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
@@ -241,7 +241,7 @@ class BaxterPermutations_size(BaxterPermutations):
         """
         if self._n == 0:
             return 1
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return sum((binomial(self._n + 1, k) *
                     binomial(self._n + 1, k + 1) *
                     binomial(self._n + 1, k + 2)) //

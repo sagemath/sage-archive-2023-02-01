@@ -20,6 +20,8 @@ Kirillov-Reshetikhin Crystals
 # Acknowledgment: most of the design and implementation of this
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -312,27 +314,27 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
 
     REFERENCES:
 
-    .. [Shimozono02] M. Shimozono
+    .. [Shimozono02] \M. Shimozono
        *Affine type A crystal structure on tensor products of rectangles,
        Demazure characters, and nilpotent varieties*,
        J. Algebraic Combin. **15** (2002). no. 2. 151-187.
        :arxiv:`math.QA/9804039`.
 
-    .. [Schilling08] A. Schilling. "Combinatorial structure of
+    .. [Schilling08] \A. Schilling. "Combinatorial structure of
        Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`".
        J. Algebra. **319** (2008). 2938-2962. :arxiv:`0704.2046`.
 
-    .. [JS2010] B. Jones, A. Schilling.
+    .. [JS2010] \B. Jones, A. Schilling.
        "Affine structures and a tableau model for `E_6` crystals",
        J. Algebra. **324** (2010). 2512-2542.
        :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
 
-    .. [FOS09] G. Fourier, M. Okado, A. Schilling.
+    .. [FOS09] \G. Fourier, M. Okado, A. Schilling.
        *Kirillov-Reshetikhin crystals for nonexceptional types*.
        Advances in Mathematics. **222** (2009). Issue 3. 1080-1116.
        :arxiv:`0810.5067`.
 
-    .. [LOS12] C. Lecouvey, M. Okado, M. Shimozono.
+    .. [LOS12] \C. Lecouvey, M. Okado, M. Shimozono.
        "Affine crystals, one-dimensional sums and parabolic Lusztig
        `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
        819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
@@ -576,7 +578,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
         REFERENCES:
 
-            .. [FOS2010] G. Fourier, M. Okado, A. Schilling.
+            .. [FOS2010] \G. Fourier, M. Okado, A. Schilling.
                Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types
                Contemp. Math. 506 (2010) 127-143 ( arXiv:0811.1604 [math.RT] )
 
@@ -1510,7 +1512,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = int(s/2)
+        m = s // 2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -1767,7 +1769,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = int(s/2)
+        m = s // 2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -2714,7 +2716,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         """
         s = self.s()
         if is_even(s):
-            s = int(s/2)
+            s = s // 2
         else:
             s = s/2
         return CrystalOfTableaux(self.cartan_type().classical(), shape = [s]*self.r() )
@@ -2915,13 +2917,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.epsilon(0) # indirect doctest
             1
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def eps0_defn(elt):
+            ....:     x = elt.e(0)
+            ....:     eps = 0
+            ....:     while x is not None:
+            ....:         x = x.e(0)
+            ....:         eps = eps + 1
+            ....:     return eps
+            sage: all(eps0_defn(x) == x.epsilon0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
         l4 = pm.pm_diagram[n][0]
-        return l1+l4
+        return l1 + l4 // 2
 
     def phi0(self):
         r"""
@@ -2933,13 +2950,28 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
             sage: b = K.module_generators[0]
             sage: b.phi(0) # indirect doctest
             0
+
+        TESTS:
+
+        Check that :trac:`19982` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(['D',3,2], 2,3)
+            sage: def phi0_defn(elt):
+            ....:     x = elt.f(0)
+            ....:     phi = 0
+            ....:     while x is not None:
+            ....:         x = x.f(0)
+            ....:         phi = phi + 1
+            ....:     return phi
+            sage: all(phi0_defn(x) == x.phi0() for x in K)
+            True
         """
         n = self.parent().cartan_type().rank()-1
         [b,l] = self.lift().to_highest_weight(index_set=range(2,n+1))
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l2 = pm.pm_diagram[n-1][1]
         l4 = pm.pm_diagram[n][0]
-        return l2+l4
+        return l2 + l4 // 2
 
 KR_type_Dn_twisted.Element = KR_type_Dn_twistedElement
 
@@ -3220,7 +3252,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
 
     REFERENCES:
 
-    .. [KMOY07] M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
+    .. [KMOY07] \M. Kashiwara, K. C. Misra, M. Okado, D. Yamada.
        *Perfect crystals for* `U_q(D_4^{(3)})`, J. Algebra. **317** (2007).
     """
     def __init__(self, ct, s):
@@ -3341,7 +3373,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             """
             coords = self.coordinates()
             z = [coords[-1] - coords[0], coords[-2] - coords[-3],
-                 coords[2] - coords[1], (coords[-3] - coords[2]) / 2]
+                 coords[2] - coords[1], (coords[-3] - coords[2]) // 2]
             return (0, z[0], z[0] + z[1], z[0] + z[1] + 3*z[3],
                     sum(z) + 2*z[3], sum(z) + z[0] + 2*z[3])
 
@@ -3359,7 +3391,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             c = list(self.coordinates())
             M = max(A)
             if A[5] == M:
-                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == self.parent()._s:
                     return None
                 c[5] += 1
                 return self.parent().from_coordinates(c)
@@ -3399,7 +3431,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
             c = list(self.coordinates())
             M = max(A)
             if A[0] == M:
-                if c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5] == self.parent()._s:
+                if c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5] == self.parent()._s:
                     return None
                 c[0] += 1
                 return self.parent().from_coordinates(c)
@@ -3436,8 +3468,8 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                 [5, 6, 7, 8, 9, 10]
             """
             c = self.coordinates()
-            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) / 2]
-            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            z = [c[-1] - c[0], c[-2] - c[-3], c[2] - c[1], (c[-3] - c[2]) // 2]
+            s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A) - (2*z[0] + z[1] + z[2] + 3*z[3])
 
         def phi0(self):
@@ -3451,7 +3483,7 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                 [5, 4, 3, 2, 1, 0]
             """
             c = self.coordinates()
-            s = c[0] + c[1] + (c[2] + c[3]) / 2 + c[4] + c[5]
+            s = c[0] + c[1] + (c[2] + c[3]) // 2 + c[4] + c[5]
             return self.parent()._s - s + max(self._A)
 
 #####################################################################
@@ -3524,7 +3556,7 @@ class PMDiagram(CombinatorialObject):
             intermediate = [s]+list(pm_diagram[3])+[0 for i in range(n)]
             inner = [s]+list(pm_diagram[4])+[0 for i in range(n)]
             pm = [[inner[n]]]
-            for i in range(int((n+1)/2)):
+            for i in range((n+1)//2):
                 pm.append([intermediate[n-2*i]-inner[n-2*i], inner[n-2*i-1]-intermediate[n-2*i]])
                 pm.append([outer[n-2*i]-inner[n-2*i-1], inner[n-2*i-2]-outer[n-2*i]])
             if is_odd(n):
@@ -3709,7 +3741,7 @@ class PMDiagram(CombinatorialObject):
         """
         n = self.n
         heights = []
-        for i in range(int((n+1)/2)):
+        for i in range((n+1)//2):
             heights += [n-2*i]*((self.outer_shape()+[0]*n)[n-2*i-1]-(self.intermediate_shape()+[0]*n)[n-2*i-1])
         return heights
 
@@ -3790,8 +3822,8 @@ def horizontal_dominoes_removed(r, s):
         sage: sage.combinat.crystals.kirillov_reshetikhin.horizontal_dominoes_removed(3,2)
         [[], [2], [2, 2], [2, 2, 2]]
     """
-    list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, int(s/2)) ]
-    two = lambda x : 2*(x-int(s/2)) + s
+    list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, s//2) ]
+    two = lambda x : 2*(x-s//2) + s
     return [Partition([two(y) for y in x]) for x in list]
 
 #####################################################################

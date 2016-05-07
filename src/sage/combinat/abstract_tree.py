@@ -62,6 +62,8 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
@@ -979,7 +981,7 @@ class AbstractTree(object):
             if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
             else: lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid
@@ -1963,7 +1965,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())

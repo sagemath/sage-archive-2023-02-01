@@ -62,7 +62,7 @@ axioms)::
     ....:     class Finite(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on finite C's"
+    ....:                 print("I am a method on finite C's")
 
 ::
 
@@ -146,7 +146,7 @@ elsewhere, typically in a separate file, with just a link from
     sage: class FiniteCs(CategoryWithAxiom):
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
     sage: Cs.Finite = FiniteCs
     sage: Cs().Finite()
     Category of finite cs
@@ -238,7 +238,7 @@ failed (try it!). In general, one needs to set the attribute explicitly::
     ....:     _base_category_class_and_axiom = (Cs, 'Finite')
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
 
 Having to set explicitly this link back from ``FiniteCs`` to ``Cs``
 introduces redundancy in the code. It would therefore be desirable to
@@ -334,7 +334,7 @@ out the largest category where the axiom makes sense. For example
     ....:     class Green(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on green C's"
+    ....:                 print("I am a method on green C's")
 
 With the current implementation, the name of the axiom must also be
 added to a global container::
@@ -812,7 +812,7 @@ axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_construction.CovariantConstructionCategory.extra_super_categories`).
-For example, the fact that a cartesian product of associative magmas
+For example, the fact that a Cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
 
@@ -1653,6 +1653,7 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import importlib
 import re
@@ -1675,6 +1676,7 @@ all_axioms += ("Flying", "Blue",
                "Compact",
                "Differentiable", "Smooth", "Analytic", "AlmostComplex",
                "FinitelyGeneratedAsMagma",
+               "WellGenerated",
                "Facade", "Finite", "Infinite",
                "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
@@ -1682,7 +1684,7 @@ all_axioms += ("Flying", "Blue",
                "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
-               "Endset"
+               "Endset",
               )
 
 def uncamelcase(s,separator=" "):

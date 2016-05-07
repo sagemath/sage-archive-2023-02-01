@@ -1,7 +1,6 @@
-include "decl.pxi"
-
-from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
+from .types cimport ZZ_pE_c
+from .ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
+from .ntl_ZZ_pX cimport ntl_ZZ_pX
 
 cdef class ntl_ZZ_pE(object):
     cdef ZZ_pE_c x

@@ -30,11 +30,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -232,7 +235,7 @@ cdef class ntl_zz_p(object):
         zz_p_mul(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
-    def __div__(ntl_zz_p self, other):
+    def __truediv__(ntl_zz_p self, other):
         """
         EXAMPLES:
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
@@ -249,6 +252,9 @@ cdef class ntl_zz_p(object):
         zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
         sig_off()
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def __pow__(ntl_zz_p self, long n, ignored):
         """

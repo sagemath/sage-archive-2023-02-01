@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
@@ -24,6 +24,7 @@ from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.int cimport PyInt_AS_LONG
 
 ZZ_sage = IntegerRing()
 
@@ -81,9 +82,9 @@ cdef class ntl_ZZ(object):
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
-        elif PyInt_Check(v):
+        elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif PyLong_Check(v):
+        elif isinstance(v, long):
             PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
@@ -418,24 +419,27 @@ def ntl_setSeed(x=None):
     r"""
     Seed the NTL random number generator.
 
-    This is automatically called when you set the main \sage random
+    This is automatically called when you set the main Sage random
     number seed, then call any NTL routine requiring random numbers;
     so you should never need to call this directly.
 
     If for some reason you do need to call this directly, then
-    you need to get a random number from NTL (so that \sage will
-    seed NTL), then call this function and \sage will not notice.
+    you need to get a random number from NTL (so that Sage will
+    seed NTL), then call this function and Sage will not notice.
 
-    EXAMPLE:
-    This is automatically seeded from the main \sage random number seed.
+    EXAMPLES:
+
+    This is automatically seeded from the main Sage random number seed::
+
         sage: ntl.ZZ_random(1000)
-        341
+        979
 
     Now you can call this function, and it will not be overridden until
-    the next time the main \sage random number seed is changed.
+    the next time the main Sage random number seed is changed::
+
         sage: ntl.ntl_setSeed(10)
         sage: ntl.ZZ_random(1000)
-        776
+        935
     """
     cdef ntl_ZZ seed = ntl_ZZ(1)
     if x is None:
@@ -457,9 +461,10 @@ def randomBnd(q):
     "cryptographically strong"; of course, that depends in part on
     how they are seeded.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [ntl.ZZ_random(99999) for i in range(5)]
-        [82123, 14857, 53872, 13159, 83337]
+        [30675, 84282, 80559, 6939, 44798]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
@@ -480,11 +485,12 @@ def randomBnd(q):
 
 def randomBits(long n):
     r"""
-    Return a pseudo-random number between 0 and $2^n-1$
+    Return a pseudo-random number between 0 and `2^n-1`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [ntl.ZZ_random_bits(20) for i in range(3)]
-        [564629, 843071, 972038]
+        [948179, 477498, 1020180]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>

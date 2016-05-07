@@ -168,7 +168,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras constructed as cartesian products of algebras
+        The category of algebras constructed as Cartesian products of algebras
 
         This construction gives the direct product of algebras. See
         discussion on:
@@ -178,7 +178,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
         """
         def extra_super_categories(self):
             """
-            A cartesian product of algebras is endowed with a natural
+            A Cartesian product of algebras is endowed with a natural
             algebra structure.
 
             EXAMPLES::

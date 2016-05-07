@@ -11,7 +11,8 @@ AUTHORS:
 """
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from sage.rings.integer import Integer
 import sage.databases.conway
 
 def conway_polynomial(p, n):
@@ -197,7 +198,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
 
         REFERENCE:
 
-        .. [HL99] L. Heath and N. Loehr (1999).  New algorithms for
+        .. [HL99] \L. Heath and N. Loehr (1999).  New algorithms for
            generating Conway polynomials over finite fields.
            Proceedings of the tenth annual ACM-SIAM symposium on
            discrete algorithms, pp. 429-437.
@@ -217,6 +218,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
             return self.nodes[n]
 
         p = self.p
+        n = Integer(n)
 
         if n == 1:
             f = self.ring.gen() - FiniteField(p).multiplicative_generator()

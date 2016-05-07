@@ -24,12 +24,14 @@ import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
-from sage.ext.interrupt import AlarmInterrupt, init_interrupts
+from sage.misc.temporary_file import tmp_dir
+from cysignals.signals import AlarmInterrupt, init_cysignals
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
+from external import external_software, available_software
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
@@ -77,7 +79,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(["sage"])
+        self.optional = set(['sage'])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -541,13 +543,12 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_ROOT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
         def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
             self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
-            self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
+            self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)
@@ -596,7 +597,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            10
+            11
             sage: DC.sources[0].options.optional
             True
 
@@ -697,6 +698,7 @@ class DocTestController(SageObject):
             sage.doctest.parsing
             sage.doctest.forker
             sage.doctest.fixtures
+            sage.doctest.external
             sage.doctest.control
             sage.doctest.all
             sage.doctest
@@ -960,8 +962,10 @@ class DocTestController(SageObject):
         if testing:
             return
 
-        # Setup Sage signal handler
-        init_interrupts()
+        # Setup signal handlers.
+        # Save crash logs in temporary directory.
+        os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
+        init_cysignals()
 
         import signal, subprocess
         p = subprocess.Popen(cmd, shell=True)
@@ -1030,12 +1034,18 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software to be detected: " + ','.join(external_software))
 
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
             self.sort_sources()
             self.run_doctests()
+
+            if self.options.optional is True or 'external' in self.options.optional:
+                self.log("External software detected for doctesting: "
+                         + ','.join(available_software.seen()))
             return self.reporter.error_status
 
 def run_doctests(module, options=None):

@@ -98,14 +98,14 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                 sage: A = SymmetricGroup(4).algebra(QQ)
                 sage: A.radical_basis()
-                []
+                ()
 
             TESTS::
 
                 sage: A.radical_basis.__module__
-                'sage.categories.finite_dimensional_algebras_with_basis'
+                'sage.categories.finite_dimensional_semisimple_algebras_with_basis'
             """
-            return []
+            return ()
 
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
 

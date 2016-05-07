@@ -357,6 +357,19 @@ class Constant(object):
         """
         return self._domain
 
+    def __lt__(self, other):
+        """
+        Perform float comparison with constant.
+
+        EXAMPLES::
+
+            sage: cmp(pi, 0)
+            1
+            sage: cmp(pi, SR(0))
+            1
+        """
+        return self.__float__() < other
+
     def expression(self):
         """
         Returns an expression for this constant.
@@ -622,7 +635,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 Expressions involving I that are real-valued can be converted to real fields::
 
@@ -656,7 +669,7 @@ We can convert to complex fields::
     1j
 
     sage: QQbar(I)
-    1*I
+    I
 
     sage: abs(I)
     1
@@ -1080,8 +1093,10 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional - mathematica
         Khinchin
         sage: m.N(200)                                 # optional - mathematica
-        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
-        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
+            2.6854520010653064453097148354817956938203822939944629530511523455572
+        >    188595371520028011411749318476979951534659052880900828976777164109630517
+        >    925334832596683818523154213321194996260393285220448194096181
+
     """
     def __init__(self, name='khinchin'):
         """

@@ -266,6 +266,12 @@ class DyckWord(CombinatorialElement):
     the `NE = (1,1)` and the `SE = (1,-1)` direction such that it does not
     pass below the horizontal axis.
 
+    .. PLOT::
+        :width: 400 px
+
+        d = DyckWord([1,0,1,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,1,0,0,0,0,0])
+        sphinx_plot(d.plot(aspect_ratio=1))
+
     A path representing a Dyck word (either using `N` and `E` steps, or
     using `NE` and `SE` steps) is called a Dyck path.
 
@@ -914,6 +920,25 @@ class DyckWord(CombinatorialElement):
         res += ";\n"
         res += "\\end{tikzpicture}$}}"
         return res
+
+    def plot(self, **kwds):
+        """
+        Plot a Dyck word as a continuous path.
+
+        EXAMPLES::
+
+            sage: w = DyckWords(100).random_element()
+            sage: w.plot()
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        step = [-1, 1]
+        sigma = 0
+        list_sigma = [0]
+        for l in self:
+            sigma += step[l]
+            list_sigma.append(sigma)
+        return list_plot(list_sigma, plotjoined=True, **kwds)
 
     def length(self):
         r"""
@@ -1585,7 +1610,7 @@ class DyckWord(CombinatorialElement):
 
             sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
             sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_dyck_word()
             [1, 1, 0, 1, 0, 0, 1, 0]
             sage: ip.upper_dyck_word()
@@ -1762,7 +1787,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord(area_sequence=[0,0,0]).number_of_parking_functions()
             6
         """
-        from sage.rings.arith import multinomial
+        from sage.arith.all import multinomial
         return multinomial(list(self.rise_composition()))
 
     def list_parking_functions(self):
@@ -1901,7 +1926,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [BK2001] J. Bandlow, K. Killpatrick -- An area-to_inv bijection
+        .. [BK2001] \J. Bandlow, K. Killpatrick -- An area-to_inv bijection
            between Dyck paths and 312-avoiding permutations, Electronic Journal
            of Combinatorics, Volume 8, Issue 1 (2001).
 
@@ -1948,7 +1973,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Stu2008] C. Stump -- More bijective Catalan combinatorics on
+        .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
            permutations and on colored permutations, Preprint.
            :arXiv:`0808.2822`.
 
@@ -1999,12 +2024,12 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [EP2004] S. Elizalde, I. Pak. *Bijections for refined restricted
+        .. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
            permutations**. JCTA 105(2) 2004.
-        .. [CK2008] A. Claesson, S. Kitaev. *Classification of bijections
+        .. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
            between `321`- and `132`- avoiding permutations*. Seminaire
            Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
-        .. [Knu1973] D. Knuth. *The Art of Computer Programming, Vol. III*.
+        .. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
            Addison-Wesley. Reading, MA. 1973.
 
         EXAMPLES::
@@ -2059,7 +2084,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Kra2001] C. Krattenthaler -- Permutations with restricted
+        .. [Kra2001] \C. Krattenthaler -- Permutations with restricted
            patterns and Dyck paths, Adv. Appl. Math. 27 (2001), 510--530.
 
         EXAMPLES::
@@ -2344,7 +2369,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+        .. [Cha2005] \F. Chapoton, Une Base Symétrique de l'algèbre des
            Coinvariants Quasi-Symétriques, Electronic Journal of
            Combinatorics Vol 12(1) (2005) N16.
         """
@@ -2472,7 +2497,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [DS1992] A. Denise, R. Simion, Two combinatorial statistics on
+        .. [DS1992] \A. Denise, R. Simion, Two combinatorial statistics on
            Dyck paths, Discrete Math 137 (1992), 155--176.
         """
         aseq = self.to_area_sequence() + [0]
@@ -3511,7 +3536,7 @@ class DyckWords_size(DyckWords):
             ....:      for p in range(7))
             True
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return (self.k1 - self.k2 + 1) * binomial(self.k1 + self.k2, self.k2) // (self.k1 + 1)
 
 ################################################################

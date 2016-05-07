@@ -276,11 +276,11 @@ def find_objects_from_name(name, module_name=None):
 
 def find_object_modules(obj):
     r"""
-    Return a dictionnary whose keys are the names of the modules where ``obj``
+    Return a dictionary whose keys are the names of the modules where ``obj``
     appear and the value at a given module name is the list of names that
     ``obj`` have in that module.
 
-    It is very unlikely that the output dictionnary has several keys except when
+    It is very unlikely that the output dictionary has several keys except when
     ``obj`` is an instance of a class.
 
     EXAMPLES::
@@ -395,7 +395,7 @@ def import_statements(*objects, **kwds):
         from sage.rings.integer_ring import Z
 
         sage: import_statements(euler_phi)
-        from sage.rings.arith import euler_phi
+        from sage.arith.misc import euler_phi
 
         sage: import_statements(x)
         from sage.calculus.predefined import x
@@ -518,7 +518,7 @@ def import_statements(*objects, **kwds):
     import inspect
     from sage.misc.lazy_import import LazyImport
 
-    answer = {}   # a dictionnary module -> [(name1,alias1), (name2,alias2) ...]
+    answer = {}   # a dictionary module -> [(name1,alias1), (name2,alias2) ...]
                   # where "nameX" is an object in "module" that has to be
                   # imported with the alias "aliasX"
 

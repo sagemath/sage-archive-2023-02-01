@@ -443,7 +443,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             relabel = True
         roots = [self]
         g.add_vertex(name=self.label())
-        while len(roots) != 0:
+        while roots:
             node = roots.pop()
             for child in node:
                 g.add_vertex(name=child.label())
@@ -456,7 +456,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     @combinatorial_map(name="To poset")
     def to_poset(self, root_to_leaf=False):
         r"""
-        Return the poset obtained by interpreting the tree as a hasse
+        Return the poset obtained by interpreting the tree as a Hasse
         diagram. The default orientation is from leaves to root but you can
         pass ``root_to_leaf=True`` to obtain the inverse orientation.
 
@@ -489,7 +489,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         relations = []
         elements = [self.label()]
         roots = [self]
-        while len(roots) != 0:
+        while roots:
             node = roots.pop()
             for child in node:
                 elements.append(child.label())
@@ -1136,7 +1136,7 @@ class LabelledOrderedTree(AbstractLabelledClonableTree, OrderedTree):
     INPUT:
 
     - ``children`` -- a list or tuple or more generally any iterable
-                      of trees or object convertible to trees
+      of trees or object convertible to trees
     - ``label`` -- any Sage object (default: ``None``)
 
     EXAMPLES::

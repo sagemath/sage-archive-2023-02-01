@@ -29,14 +29,14 @@ def version(clone = False):
     EXAMPLES::
 
        sage: version()
-       'SageMath Version ..., Release Date: ...'
+       'SageMath version ..., Release Date: ...'
        sage: version(clone=True)
-       ('SageMath Version ..., Release Date: ...',
+       ('SageMath version ..., Release Date: ...',
         'Mercurial clone branch: ...')
     """
     import os
     branch = os.popen("ls -l "+SAGE_SRC).read().split()[-1][5:]
-    v = 'SageMath Version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
+    v = 'SageMath version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
     if clone:
         return v,"Mercurial clone branch: %s"%branch
     return v
@@ -58,7 +58,7 @@ def banner_text():
 
         sage: print sage.misc.banner.banner_text()
         ┌────────────────────────────────────────────────────────────────────┐
-        │ SageMath Version ...
+        │ SageMath version ...
     """
     bars = u"─"*68
     s = u'┌' + bars + u'┐'
@@ -95,7 +95,7 @@ def banner():
 
         sage: banner()
         ┌────────────────────────────────────────────────────────────────────┐
-        │ SageMath Version ..., Release Date: ...
+        │ SageMath version ..., Release Date: ...
         │ Type "notebook()" for the browser-based notebook interface.        │
         │ Type "help()" for help.                                            │
         ...

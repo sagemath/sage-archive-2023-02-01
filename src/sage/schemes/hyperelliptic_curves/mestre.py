@@ -142,13 +142,13 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
 
     REFERENCES:
 
-    .. [LY2001] K. Lauter and T. Yang, "Computing genus 2 curves from
+    .. [LY2001] \K. Lauter and T. Yang, "Computing genus 2 curves from
        invariants on the Hilbert moduli space", Journal of Number Theory 131
        (2011), pages 936 - 958
-    .. [M1991] J.-F. Mestre, "Construction de courbes de genre 2 a partir de
+    .. [M1991] \J.-F. Mestre, "Construction de courbes de genre 2 a partir de
        leurs modules", in Effective methods in algebraic geometry
        (Castiglioncello, 1990), volume 94 of Progr. Math., pages 313 - 334
-    .. [W1999] P. van Wamelen, Pari-GP code, section "thecubic"
+    .. [W1999] \P. van Wamelen, Pari-GP code, section "thecubic"
        https://www.math.lsu.edu/~wamelen/Genus2/FindCurve/igusa2curve.gp
     """
     from sage.structure.sequence import Sequence

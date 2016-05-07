@@ -20,8 +20,7 @@ element contains the following data:
   `\mathbb{Q}_p` or `\mathbb{Z}_p`.  Then the modulus is given by
   `p^{ceil(a/e)}`.  Note that all kinds of problems arise if you try
   to mix moduli.  ``ZZ_pX_conv_modulus`` gives a semi-safe way to
-  convert between different moduli without having to pass through ZZX
-  (see ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntlwrap.cpp``)
+  convert between different moduli without having to pass through ZZX.
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common
@@ -160,8 +159,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "cysignals/signals.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -1833,7 +1833,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         if lift_mode == 'simple':
             ulist = self.ext_p_list(1)

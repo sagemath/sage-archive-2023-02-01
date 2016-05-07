@@ -86,8 +86,7 @@ ntl_configure()
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
         NTL_GMP_LIP=on NTL_GF2X_LIB=on \
-        LIBTOOL="$CUR/src/libtool/libtool"\
-        NTL_LEGACY_SP_MULMOD=on
+        LIBTOOL="$CUR/src/libtool/libtool"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring NTL."

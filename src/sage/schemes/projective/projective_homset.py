@@ -42,7 +42,7 @@ from sage.schemes.generic.homset import SchemeHomset_points
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 #*******************************************************************
 # Projective varieties
@@ -67,10 +67,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
         INPUT:
 
-        - `B` - integer (optional, default=0). The bound for the
+        - ``B`` - integer (optional, default=0). The bound for the
           coordinates.
 
-        - ``prec`` - he precision to use to compute the elements of bounded height for number fields
+        - ``prec`` - he precision to use to compute the elements of bounded height for number fields.
 
         OUTPUT:
 
@@ -139,19 +139,19 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:
-                raise TypeError("A positive bound B (= %s) must be specified."%B)
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         elif R in NumberFields():
             if not B > 0:
-                raise TypeError("A positive bound B (= %s) must be specified."%B)
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
             return enum_projective_number_field(self,B, prec=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())
         else:
-            raise TypeError("Unable to enumerate points over %s."%R)
+            raise TypeError("unable to enumerate points over %s"%R)
 
 class SchemeHomset_points_projective_ring(SchemeHomset_points):
     """
@@ -174,7 +174,7 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
 
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
+        - ``B`` -- integer (optional, default=0). The bound for the
           coordinates.
 
         EXAMPLES::
@@ -214,11 +214,11 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
         R = self.value_ring()
         if R == ZZ:
             if not B > 0:
-                raise TypeError("A positive bound B (= %s) must be specified."%B)
+                raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         else:
-            raise TypeError("Unable to enumerate points over %s."%R)
+            raise TypeError("unable to enumerate points over %s"%R)
 
 
 #*******************************************************************
@@ -226,7 +226,7 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
 #*******************************************************************
 class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_field):
     r"""
-    Set of rational points of an abelian variety.
+    Set of rational points of an Abelian variety.
 
     INPUT:
 
@@ -258,7 +258,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
 
     def _element_constructor_(self, *v, **kwds):
         """
-        The element contstructor.
+        The element constructor.
 
         INPUT:
 
@@ -289,7 +289,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
 
     def _repr_(self):
         """
-        Return a string representation of ``self``.
+        Return a string representation of this homset.
 
         OUTPUT:
 
@@ -328,11 +328,11 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
             Traceback (most recent call last):
             ...
             NotImplementedError: Abelian variety point sets are not
-            implemented as modules over rings other than ZZ.
+            implemented as modules over rings other than ZZ
         """
         if R is not ZZ:
             raise NotImplementedError('Abelian variety point sets are not '
-                            'implemented as modules over rings other than ZZ.')
+                            'implemented as modules over rings other than ZZ')
         return self
 
 

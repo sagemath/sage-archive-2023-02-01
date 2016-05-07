@@ -60,6 +60,7 @@ The module also provides decorator for functions and methods::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -81,7 +82,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
@@ -458,7 +459,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Integer.is_prime
-            sage: print sage_getdoc(d)   # indirect doctest
+            sage: print(sage_getdoc(d))   # indirect doctest
                Test whether "self" is prime.
             ...
                Calls the PARI "isprime" function.
@@ -494,7 +495,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Rational.is_square
-            sage: print sage_getsource(d.f)   # indirect doctest
+            sage: print(sage_getsource(d.f))   # indirect doctest
             def is_square(self):
             ...
                 return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
@@ -857,7 +858,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         ...    @set_from_method
         ...    def f(self): return xsrange(self.n())
         sage: a = A()
-        sage: print a.f.__class__
+        sage: print(a.f.__class__)
         sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
@@ -972,9 +973,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
             ...    @set_from_method
             ...    def f(self): return xsrange(self.n())
             sage: a = A()
-            sage: print A.f.__class__
+            sage: print(A.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
-            sage: print a.f.__class__
+            sage: print(a.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         """
         # You would hardly ever see an instance of this class alive.
@@ -1014,5 +1015,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)

@@ -391,7 +391,7 @@ class ClusterSeed(SageObject):
                 self._BC = copy(self._M)
         if self._bot_is_c != bot_is_c: # If we need to do this. It overrides the previous designations.
             self._bot_is_c = bot_is_c
-            if self._bot_is_c == True:
+            if self._bot_is_c:
                 self._use_c_vec = True
                 if self._m == self._n: # in this case, the second half of a 2n x n matrix is a c-matrix.
                     self._C = copy(self._M[self._n:(self._n+self._m),:self._n])
@@ -623,7 +623,7 @@ class ClusterSeed(SageObject):
                     self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n+self._m)])) for j in xrange(self._n)])
                 elif self._cluster:
                     raise ValueError("should not be possible to have cluster variables without f-polynomials")    # added this as a sanity check.  This error should never appear however.
-                elif self._track_mut == True: # If we can navigate from the root to where we are
+                elif self._track_mut: # If we can navigate from the root to where we are
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
                     catchup = ClusterSeed(self._b_initial, user_labels=user_labels, user_labels_prefix=user_labels_prefix)
@@ -725,19 +725,17 @@ class ClusterSeed(SageObject):
  
         EXAMPLES::
 
-        sage: S = ClusterSeed(['A',4]); S._init_vars
-        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
-        sage: S._sanitize_init_vars([1,2,3,4],'z')
-        sage: S._init_vars
-        {0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4'}
+            sage: S = ClusterSeed(['A',4]); S._init_vars
+            {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+            sage: S._sanitize_init_vars([1,2,3,4],'z')
+            sage: S._init_vars
+            {0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4'}
 
-        sage: S = ClusterSeed(['A',4]); S._init_vars
-        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
-        sage: S._sanitize_init_vars(['a', 'b', 'c', 'd'])
-        sage: S._init_vars
-        {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
-
-
+            sage: S = ClusterSeed(['A',4]); S._init_vars
+            {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+            sage: S._sanitize_init_vars(['a', 'b', 'c', 'd'])
+            sage: S._init_vars
+            {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
         """
         if isinstance(user_labels,list):
             self._init_vars = {}
@@ -1508,7 +1506,9 @@ class ClusterSeed(SageObject):
         r"""
         An internal procedure that returns ``self`` with g-vectors mutated at k.
 
-        WARNING: This function assumes you are sending it good data
+        .. WARNING::
+
+            This function assumes you are sending it good data.
 
         EXAMPLES::
 
@@ -1520,8 +1520,8 @@ class ClusterSeed(SageObject):
         REFERENCES:
 
         .. [NaZe2011] Tomoki Nakanishi and Andrei Zelevinsky
-        *On Tropical Dualities In Cluster Algebras*
-        :arxiv:`1101.3736v3`
+           *On Tropical Dualities In Cluster Algebras*
+           :arxiv:`1101.3736v3`
         """
         from sage.matrix.all import identity_matrix
 
@@ -4043,7 +4043,7 @@ def _bino(n, k):
         0
     """
     if n >= 0:
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return binomial(n, k)
     else:
         return 0
@@ -4188,9 +4188,10 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
                             nEA1 += 1
                     if nAF1 == b*nAF2 or nEA2 == c*nEA1:
                         uv_okay = True
-                if uv_okay == False:
+                if not uv_okay:
                         return False
         return True
+
 
 def get_green_vertices(C):
     r"""

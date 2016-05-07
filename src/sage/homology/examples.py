@@ -33,6 +33,7 @@ All of these examples are accessible by typing
 - :func:`PoincareHomologyThreeSphere`
 - :func:`PseudoQuaternionicProjectivePlane`
 - :func:`RandomComplex`
+- :func:`RandomTwoSphere`
 - :func:`RealProjectivePlane`
 - :func:`RealProjectiveSpace`
 - :func:`Simplex`
@@ -399,7 +400,7 @@ def KleinBottle():
 
     REFERENCES:
 
-    .. [Ce1994] D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
+    .. [Ce1994] \D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
        bottle in three-space", Geom. Ded. 50 (1994) 117-141,
        http://www.math.union.edu/~dpvc/papers/1993-03.kb/vmkb.pdf.
     """
@@ -520,7 +521,7 @@ def ComplexProjectivePlane():
 
     REFERENCES:
 
-    .. [KB1983] W. Kühnel and T. F. Banchoff, "The 9-vertex complex
+    .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
        projective plane", Math. Intelligencer 5 (1983), no. 3,
        11-22.
 
@@ -730,7 +731,7 @@ def RealProjectiveSpace(n):
     .. [Da2007] Basudeb Datta, "Minimal triangulations of manifolds",
        J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
 
-    .. [Ku1987] W. Kühnel, "Minimal triangulations of Kummer varieties",
+    .. [Ku1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
        Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
 
     .. [Lu2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
@@ -876,11 +877,11 @@ def K3Surface():
 
     REFERENCES:
 
-    .. [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface
+    .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface
        with the minimum number of vertices", Topology 40 (2001),
-       753–772.
+       753--772.
 
-    .. [SK2011] J. Spreer and W. Kühnel, "Combinatorial properties
+    .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties
        of the K3 surface: Simplicial blowups and slicings", Experimental
        Mathematics, Volume 20, Issue 2, 2011.
 
@@ -1374,7 +1375,7 @@ def SumComplex(n, A):
 
     REFERENCES:
 
-    .. [LMR2010] N. Linial, R. Meshulam and M. Rosenthal, "Sum
+    .. [LMR2010] \N. Linial, R. Meshulam and M. Rosenthal, "Sum
        complexes -- a new family of hypertrees", Discrete &
        Computational Geometry, 2010, Volume 44, Number 3, Pages
        622-636
@@ -1447,7 +1448,72 @@ def SumComplex(n, A):
     return UniqueSimplicialComplex(facets, name='Sum complex on vertices Z/{}Z associated to {}'.format(n, Set(A)))
 
 
+def RandomTwoSphere(n):
+    r"""
+    Return a random triangulation of the 2-dimensional sphere with `n`
+    vertices.
+
+    INPUT:
+
+    `n` -- an integer
+
+    OUTPUT:
+
+    A random triangulation of the sphere chosen uniformly among
+    the *rooted* triangulations on `n` vertices. Because some
+    triangulations have nontrivial automorphism groups, this may
+    not be equal to the uniform distribution among unrooted
+    triangulations.
+
+    ALGORITHM:
+
+    The algorithm is taken from [PS2006]_, section 2.1.
+
+    Starting from a planar tree (represented by its contour as a
+    sequence of vertices), one first performs local closures, until no
+    one is possible. A local closure amounts to replace in the cyclic
+    contour word a sequence ``in1,in2,in3,lf,in3`` by
+    ``in1,in3``. After all local closures are done, one has reached
+    the partial closure, as in [PS2006]_, figure 5 (a).
+
+    Then one has to perform complete closure by adding two more
+    vertices, in order to reach the situation of [PS2006]_, figure 5
+    (b). For this, it is necessary to find inside the final contour
+    one of the two subsequences ``lf,in,lf``.
+
+    At every step of the algorithm, newly created triangles are added
+    in a simplicial complex.
+
+    This algorithm is implemented in
+    :meth:`~sage.graphs.generators.random.RandomTriangulation`, which
+    creates an embedded graph. The triangles of the simplicial
+    complex are recovered from this embedded graph.
+
+    EXAMPLES::
+
+        sage: G = simplicial_complexes.RandomTwoSphere(6); G
+        Simplicial complex with vertex set (0, 1, 2, 3, 'a', 'b')
+        and 8 facets
+        sage: G.homology()
+        {0: 0, 1: 0, 2: Z}
+        sage: G.is_pure()
+        True
+        sage: fg = G.flip_graph(); fg
+        Graph on 8 vertices
+        sage: fg.is_planar() and fg.is_regular(3)
+        True
+    """
+    from sage.graphs.generators.random import RandomTriangulation
+
+    graph = RandomTriangulation(n)
+
+    graph = graph.relabel(inplace=False)
+    triangles = [(u, v, w) for u, L in graph._embedding.iteritems()
+                 for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
+
+    return SimplicialComplex(triangles, maximality_check=False)
+
+
 # For taking care of old pickles
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)
-

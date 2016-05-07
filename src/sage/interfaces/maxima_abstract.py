@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Abstract interface to Maxima
 
@@ -47,6 +48,7 @@ and library interfaces to Maxima.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
@@ -64,13 +66,15 @@ import sage.server.support
 
 from interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
 # maybe be useful somehow... (?)  Also maxima has a lot for getting
 # documentation from the system -- this could also be useful.
 
-class MaximaAbstract(Interface):
+
+class MaximaAbstract(ExtraTabCompletion, Interface):
     r"""
     Abstract interface to Maxima.
 
@@ -274,7 +278,7 @@ class MaximaAbstract(Interface):
             ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
-            print s,
+            print(s, end="")
             sys.stdout.flush()
         # in Maxima 5.19.1, apropos returns all commands that contain
         # the given string, instead of all commands that start with
@@ -314,7 +318,7 @@ class MaximaAbstract(Interface):
                  for n in range(26)], [])
         return self.__commands
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         r"""
         Return all Maxima commands, which is useful for tab completion.
 
@@ -329,30 +333,30 @@ class MaximaAbstract(Interface):
 
         EXAMPLES::
 
-            sage: t = maxima.trait_names(verbose=False)
+            sage: t = maxima._tab_completion(verbose=False)
             sage: 'gcd' in t
             True
             sage: len(t)    # random output
             1840
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding Maxima command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding Maxima command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands(verbose=verbose)
             if verbose:
-                print "\nDone!"
-            self.__trait_names = v
+                print("\nDone!")
+            self.__tab_completion = v
             sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
 
@@ -799,7 +803,7 @@ class MaximaAbstract(Interface):
             sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")
             sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])  # not tested
 
-        Here is a Mobius strip::
+        Here is a Möbius strip::
 
             sage: x = "cos(u)*(3 + v*cos(u/2))"
             sage: y = "sin(u)*(3 + v*cos(u/2))"
@@ -888,7 +892,7 @@ class MaximaAbstract(Interface):
             sage: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
             sage: f
             f(x)=x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
-            sage: print f
+            sage: print(f)
                                                !
                                    x  d        !                  x          x
                         f(x) = x %e  (-- (f(x))!     ) - f(0) x %e  + f(0) %e
@@ -1061,14 +1065,13 @@ class MaximaAbstract(Interface):
                 cmd = cmd+'[discrete,'+str(pts_list[i][0])+','+str(pts_list[i][1])+'],'
             if i==n-1:
                 cmd = cmd+'[discrete,'+str(pts_list[i][0])+','+str(pts_list[i][1])+']]'
-        #print cmd
         if options is None:
             self('plot2d('+cmd+')')
         else:
             self('plot2d('+cmd+','+options+')')
 
 
-class MaximaAbstractElement(InterfaceElement):
+class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
     r"""
     Element of Maxima through an abstract interface.
 
@@ -1098,7 +1101,7 @@ class MaximaAbstractElement(InterfaceElement):
 
             sage: f = maxima('1/(x-1)^3'); f
             1/(x-1)^3
-            sage: print f
+            sage: print(f)
                                                   1
                                                --------
                                                       3
@@ -1787,7 +1790,7 @@ class MaximaAbstractElement(InterfaceElement):
 
         return s
 
-    def trait_names(self, verbose=False):
+    def _tab_completion(self, verbose=False):
         """
         Return all Maxima commands, which is useful for tab completion.
 
@@ -1800,10 +1803,10 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: m = maxima(2)
-            sage: 'gcd' in m.trait_names()
+            sage: 'gcd' in m._tab_completion()
             True
         """
-        return self.parent().trait_names(verbose=False)
+        return self.parent()._tab_completion(verbose=False)
 
     def _matrix_(self, R):
         r"""
@@ -1869,7 +1872,7 @@ class MaximaAbstractElement(InterfaceElement):
             sage: f = maxima('1/((1+x)*(x-1))')
             sage: f.partial_fraction_decomposition('x')
             1/(2*(x-1))-1/(2*(x+1))
-            sage: print f.partial_fraction_decomposition('x')
+            sage: print(f.partial_fraction_decomposition('x'))
                                  1           1
                              --------- - ---------
                              2 (x - 1)   2 (x + 1)
@@ -2366,4 +2369,7 @@ def maxima_console():
         Maxima 5.34.1 http://maxima.sourceforge.net
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%maxima magics instead.')
     os.system('maxima')

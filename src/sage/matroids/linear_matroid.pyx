@@ -108,6 +108,8 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
@@ -289,7 +291,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M = None
         """
         if self._prow is not NULL:
-            sage_free(self._prow)
+            sig_free(self._prow)
             self._prow = NULL
 
     cdef list _setup_internal_representation(self, matrix, reduced_matrix, ring, keep_initial_representation):
@@ -318,7 +320,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             else:
                 self._A = (<LeanMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
             P = range(self._A.nrows())
-        self._prow = <long* > sage_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):
                 self._prow[P[r]] = r
@@ -2262,7 +2264,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 M._forget()
                 comp_chains[comp] = M._linear_extension_chains(FM, fundamentals)
 
-            chains = [{}]             # make cartesian product of component chains
+            chains = [{}]             # make Cartesian product of component chains
             for comp in comp_chains:
                 new_chains = []
                 for c in chains:
@@ -3024,7 +3026,7 @@ cdef class BinaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -3528,13 +3530,13 @@ cdef class BinaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.S8()
-            sage: for F in M._principal_tripartition(): print sorted(F)
+            sage: for F in M._principal_tripartition(): print(sorted(F))
             ['a', 'b', 'c', 'e', 'f', 'g']
             ['d']
             ['h']
             sage: M.bicycle_dimension()
             2
-            sage: for i in [-1, 0, 1]: print sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 2 + i])
+            sage: for i in [-1, 0, 1]: print(sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 2 + i]))
             ['a', 'b', 'c', 'e', 'f', 'g']
             ['d']
             ['h']
@@ -4066,7 +4068,7 @@ cdef class TernaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -4502,19 +4504,19 @@ cdef class TernaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.N1()
-            sage: print M
+            sage: print(M)
             N1: Ternary matroid of rank 5 on 10 elements, type 0+
             sage: P = M._principal_quadripartition()
-            sage: for e in sorted(P[0]): print e, M/e
-            sage: for e in sorted(P[1]): print e, M/e
+            sage: for e in sorted(P[0]): print("{} {}".format(e, M/e))
+            sage: for e in sorted(P[1]): print("{} {}".format(e, M/e))
             a Ternary matroid of rank 4 on 9 elements, type 1-
             b Ternary matroid of rank 4 on 9 elements, type 1-
             e Ternary matroid of rank 4 on 9 elements, type 1-
             f Ternary matroid of rank 4 on 9 elements, type 1-
-            sage: for e in sorted(P[2]): print e, M/e
+            sage: for e in sorted(P[2]): print("{} {}".format(e, M/e))
             d Ternary matroid of rank 4 on 9 elements, type 0-
             i Ternary matroid of rank 4 on 9 elements, type 0-
-            sage: for e in sorted(P[3]): print e, M/e
+            sage: for e in sorted(P[3]): print("{} {}".format(e, M/e))
             c Ternary matroid of rank 4 on 9 elements, type 0+
             g Ternary matroid of rank 4 on 9 elements, type 0+
             h Ternary matroid of rank 4 on 9 elements, type 0+
@@ -4943,7 +4945,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         BasisExchangeMatroid.__init__(self, groundset, bas)
 
         # Setup index of displayed basis
-        self._prow = <long* > sage_malloc((self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.ncols()) * sizeof(long))
         for c in xrange(self._A.ncols()):
             self._prow[c] = -1
         if matrix is not None:
@@ -5326,13 +5328,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Q10()\'a'
-            sage: for F in M._principal_tripartition(): print sorted(F)
+            sage: for F in M._principal_tripartition(): print(sorted(F))
             ['b', 'c', 'd', 'e', 'h', 'i']
             ['f', 'g', 'j']
             []
             sage: M.bicycle_dimension()
             1
-            sage: for i in [-1, 0, 1]: print sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 1 + i])
+            sage: for i in [-1, 0, 1]: print(sorted([e for e in M.groundset() if (M\e).bicycle_dimension() == 1 + i]))
             ['b', 'c', 'd', 'e', 'h', 'i']
             ['f', 'g', 'j']
             []
@@ -5647,7 +5649,7 @@ cdef class RegularMatroid(LinearMatroid):
             else:
                 self._A = (<IntegerMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
             P = range(self._A.nrows())
-        self._prow = <long* > sage_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
+        self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):
                 self._prow[P[r]] = r
@@ -5967,7 +5969,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2.delete('a'))
             True
 
-        Check that trac ticket #17316 was fixed::
+        Check that :trac:`17316` was fixed::
 
             sage: from sage.matroids.advanced import *
             sage: Mnew = RegularMatroid(groundset=range(12), matrix=Matrix(ZZ,

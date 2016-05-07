@@ -364,9 +364,9 @@ explicit calls to Maxima or other systems.
     sage: a = tan(z); a
     tan(z)
     sage: a.real()
-    tan(real_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sin(2*real_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
     sage: a.imag()
-    tanh(imag_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sinh(2*imag_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
 
 
 ::
@@ -526,7 +526,7 @@ explicit calls to Maxima or other systems.
     sage: #      Verify(Simplify(Integrate(x)
     sage: #        if(x<0) (-x) else x),
     sage: #        Simplify(if(x<0) (-x^2/2) else x^2/2));
-    sage: f = piecewise([ [[-10,0], -x], [[0,10], x]])
+    sage: f = piecewise([ ((-10,0), -x), ((0,10), x)])
     sage: f.integral(definite=True)
     100
 

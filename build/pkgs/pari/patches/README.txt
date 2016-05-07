@@ -3,7 +3,6 @@ Current patches to PARI in Sage:
 ======================================================================
 
 Patches to configuration files:
-* get_ld.patch (Carl Witty): Disable -rpath.
 * get_config_options.patch (Leif Leonhardy): Catch invalid arguments to
   "--graphic" (and treat such as an error) since otherwise strange
   compilation errors might occur (cf. #9722, too).
@@ -13,5 +12,5 @@ Patches to configuration files:
   the flag unconditionally.
 
 C files:
-* public_memory_functions.patch (Jeroen Demeyer, #16997): Make some of
-  PARI's private memory functions public to improve interface with Sage.
+* stackwarn.patch (Jeroen Demeyer, #19883): do not display warnings
+  regarding the stack size (unless DEBUGMEM is set).

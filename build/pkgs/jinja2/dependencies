@@ -1,4 +1,4 @@
-$(INST)/$(MARKUPSAFE) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS)
+markupsafe setuptools docutils
 
 ----------
 All lines of this file are ignored except the first.

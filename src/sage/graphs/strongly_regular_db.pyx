@@ -20,7 +20,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.
@@ -31,15 +31,14 @@ Functions
 """
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.arith import is_square
-from sage.rings.arith import is_prime_power
+from sage.arith.all import is_square, is_prime_power, divisors
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.orthogonal_arrays import orthogonal_array
 from sage.combinat.designs.bibd import balanced_incomplete_block_design
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
@@ -185,7 +184,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Pa92] D. V. Pasechnik,
+    .. [Pa92] \D. V. Pasechnik,
       Skew-symmetric association schemes with two classes and strongly
       regular graphs of type `L_{2n-1}(4n- 1)`,
       Acta Applicandaie Math. 29(1992), 129-138
@@ -318,7 +317,6 @@ def is_affine_polar(int v,int k,int l,int mu):
 
         sage: t = is_affine_polar(5,5,5,5); t
     """
-    from sage.rings.arith import divisors
     # Using notations from http://www.win.tue.nl/~aeb/graphs/VO.html
     #
     # VO+(2e,q) has parameters: v = q^(2e), k = (q^(e−1) + 1)(q^e − 1), λ =
@@ -386,7 +384,6 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
         (<function OrthogonalPolarGraph at ...>, 6, 3, '+')
 
     """
-    from sage.rings.arith import divisors
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
         return
@@ -836,6 +833,51 @@ def is_haemers(int v,int k,int l,int mu):
             return (HaemersGraph, q)
 
 @cached_function
+def is_cossidente_penttila(int v,int k,int l,int mu):
+    r"""
+    Test whether some CossidentePenttilaGraph graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`~sage.graphs.graph_generators.GraphGenerators.CossidentePenttilaGraph`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_cossidente_penttila
+        sage: t =  is_cossidente_penttila(378, 52, 1, 8); t
+        (<function CossidentePenttilaGraph at ...>, 5)
+        sage: g = t[0](*t[1:]); g                      # optional - gap_packages
+        CossidentePenttila(5): Graph on 378 vertices
+        sage: g.is_strongly_regular(parameters=True)   # optional - gap_packages
+        (378, 52, 1, 8)
+
+    TESTS::
+
+        sage: t =  is_cossidente_penttila(56,10,0,2); t
+        (<function CossidentePenttilaGraph at ...>, 3)
+        sage: t =  is_cossidente_penttila(1376,150,2,18); t
+        (<function CossidentePenttilaGraph at ...>, 7)
+        sage: t = is_cossidente_penttila(5,5,5,5); t
+    """
+    cdef int q, n, p
+    q = 2*l+3
+    p, n = is_prime_power(q, get_data=True)
+    if 2 < p and n != 0:
+        if (v  == (q**3+1)*(q+1)/2     and
+            k  == (q**2+1)*(q-1)/2      and
+            mu  == (q-1)**2/2):
+            from sage.graphs.generators.classical_geometries import CossidentePenttilaGraph
+            return (CossidentePenttilaGraph, q)
+
+@cached_function
 def is_complete_multipartite(int v,int k,int l,int mu):
     r"""
     Test whether some complete multipartite graph is `(v,k,\lambda,\mu)`-strongly regular.
@@ -924,7 +966,7 @@ def is_polhill(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Polhill09] J. Polhill,
+    .. [Polhill09] \J. Polhill,
        Negative Latin square type partial difference sets and
        amorphic association schemes with Galois rings,
        Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
@@ -1093,7 +1135,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    some graphs ::
 
         sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
         sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
@@ -1102,6 +1146,16 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         True
         sage: SRG_from_RSHCD(144, 65, 28, 30)
         Graph on 144 vertices
+
+    an example with vertex-transitive automorphism group, found during the
+    implementation of the case `v=324` ::
+
+        sage: G=SRG_from_RSHCD(324,152,70,72)  # long time
+        sage: a=G.automorphism_group()         # long time
+        sage: a.order()                        # long time
+        2592
+        sage: len(a.orbits())                  # long time
+        1
 
     TESTS::
 
@@ -1346,7 +1400,7 @@ def is_GQqmqp(int v,int k,int l,int mu):
 @cached_function
 def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     r"""
-    Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
+    Test whether some descendant graph of a s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
 
     We check whether there can exist `(v+1,k,\lambda^*,\mu^*)`-s.r.g. `G` so
     that ``self`` is a descendant graph of the regular two-graph specified
@@ -1567,7 +1621,8 @@ cdef eigenvalues(int v,int k,int l,int mu):
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
 
     If the set of parameters is not feasible, or if they correspond to a
-    conference graph, the function returns ``(None,None)``.
+    conference graph, the function returns ``(None,None)``. Otherwise
+    it returns the pair [r,s] of eigenvalues, satisfying r>s.
 
     INPUT:
 
@@ -1583,6 +1638,95 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
+def eigenmatrix(int v,int k,int l,int mu):
+    r"""
+    Return the 1st eigenmatrix of a `(v,k,l,mu)`-strongly regular graph.
+
+    The adjacency matrix `A` of an s.r.g. commutes with the adacency matrix
+    `A'=J-A-I` of its complement (here `J` is all-1 matrix, and `I` the identity
+    matrix).  Thus, they can be simultaneously diagonalized and so `A` and `A'`
+    share eigenspaces.
+
+    The eigenvalues of `J` are `v` with multiplicity 1, and 0 with multiplicity
+    `v-1`. Thus the eigenvalue of `A'` corresponding to the 1-dimension
+    `k`-eigenspace of `A` is `v-k-1`.  Respecively, the eigenvalues of `A'`
+    corresponding to `t`-eigenspace of `A`, with `t` unequal to `k`, equals
+    `-t-1`. The 1st eigenmatrix `P` of the C-algebra `C[A]` generated by `A`
+    encodes this eigenvalue information in its three colums; the 2nd (resp. 3rd)
+    column contains distinct eigenvalues of `A` (resp. of `A'`), and the 1st
+    column contains the corresponding eigenvalues of `I`. The matrix `vP^{-1}`
+    is called the 2nd eigenvalue matrix of `C[A]`.
+
+    The most interesting feature of `vP^{-1}` is that it is the 1st eigenmatrix
+    of the dual of `C[A]` if the dual is generated by the adjacency matrix of a
+    strongly regular graph. See [BH12]_ and [BI84]_ for details.
+
+    If the set of parameters is not feasible, or if they correspond to a
+    conference graph, the function returns ``None``. Its output is stable, assuming
+    that the eigenvalues r,s used satisfy r>s; this holds for the current
+    implementation of eigenvalues().
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    EXAMPLES:
+
+    Petersen's graph's C-algebra does not have a dual coming from an s.r.g.::
+
+        sage: from sage.graphs.strongly_regular_db import eigenmatrix
+        sage: P=eigenmatrix(10,3,0,1); P
+        [ 1  3  6]
+        [ 1  1 -2]
+        [ 1 -2  1]
+        sage: 10*P^-1
+        [   1    5    4]
+        [   1  5/3 -8/3]
+        [   1 -5/3  2/3]
+
+    The line graph of `K_{3,3}` is self-dual::
+
+        sage: P=eigenmatrix(9,4,1,2); P
+        [ 1  4  4]
+        [ 1  1 -2]
+        [ 1 -2  1]
+        sage: 9*P^-1
+        [ 1  4  4]
+        [ 1  1 -2]
+        [ 1 -2  1]
+
+    A strongly regular graph with a non-isomorphic dual coming from another
+    strongly regular graph::
+
+        sage: graphs.strongly_regular_graph(243,220,199,200, existence=True)
+        True
+        sage: graphs.strongly_regular_graph(243,110,37,60, existence=True)
+        True
+        sage: P=eigenmatrix(243,220,199,200); P
+        [  1 220  22]
+        [  1   4  -5]
+        [  1  -5   4]
+        sage: 243*P^-1
+        [  1 110 132]
+        [  1   2  -3]
+        [  1 -25  24]
+        sage: 243*P^-1==eigenmatrix(243,110,37,60)
+        True
+
+    TESTS::
+
+        sage: eigenmatrix(5,5,5,-5)
+
+    REFERENCE:
+
+    .. [BI84] Eiichi Bannai, Tatsuro Ito,
+      Algebraic Combinatorics I: Association Schemes,
+      Benjamin/Cummings, 1984
+    """
+    from sage.rings.integer_ring import ZZ
+    r,s = eigenvalues(v,k,l,mu)
+    if r is not None:
+        return Matrix(ZZ, [[1,k,v-k-1],[1,r,-r-1],[1,s,-s-1]])
 
 cpdef latin_squares_graph_parameters(int v,int k, int l,int mu):
     r"""
@@ -1662,7 +1806,7 @@ def SRG_100_44_18_20():
 
     REFERENCES:
 
-    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+    .. [JK03] \L. K. Jørgensen, M. Klin, M.,
       Switching of edges in strongly regular graphs.
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
@@ -1713,12 +1857,12 @@ def SRG_105_32_4_12():
 
     REFERENCES:
 
-    .. [GS70] J.-M. Goethals and J. J. Seidel,
+    .. [GS70] \J.-M. Goethals and J. J. Seidel,
        Strongly regular graphs derived from combinatorial designs,
        Can. J. Math. 22 (1970) 597-614.
        http://dx.doi.org/10.4153/CJM-1970-067-9
 
-    .. [Co06] K. Coolsaet,
+    .. [Co06] \K. Coolsaet,
        The uniqueness of the strongly regular graph srg(105,32,4,12),
        Bull. Belg. Math. Soc. 12(2006), 707-718.
        http://projecteuclid.org/euclid.bbms/1136902608
@@ -1804,7 +1948,7 @@ def SRG_176_49_12_14():
 
     REFERENCE:
 
-    .. [BrouwerPolarities82] A. Brouwer,
+    .. [BrouwerPolarities82] \A. Brouwer,
        Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
        Aequationes mathematicae 25, no. 1 (1982): 77-82.
     """
@@ -1834,7 +1978,7 @@ def SRG_176_105_68_54():
     To build this graph, we first build a `2-(22,7,16)` design, by removing one
     point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
     points. We then build the intersection graph of blocks with intersection
-    size 3.
+    size 3. Known as S.7 in [Hu75]_.
 
     EXAMPLE::
 
@@ -1869,12 +2013,12 @@ def SRG_210_99_48_45():
 
     REFERENCES:
 
-    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+    .. [KPRWZ10] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
        Examples of computer experimentation in algebraic combinatorics,
        ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
        http://amc-journal.eu/index.php/amc/article/viewFile/119/118
 
-    .. [COCO] I. A. Faradjev and M. H. Klin,
+    .. [COCO] \I. A. Faradjev and M. H. Klin,
        Computer package for computations with coherent configurations,
        Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
        code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
@@ -1906,11 +2050,15 @@ def SRG_243_110_37_60():
     r"""
     Return a `(243, 110, 37, 60)`-strongly regular graph.
 
-    To build this graph, we consider the orthogonal complement of the
+    Consider the orthogonal complement of the
     :func:`~sage.coding.code_constructions.TernaryGolayCode`, which has 243
-    points. On those points we define a graph, in which two points are adjacent
-    when their hamming distance is equal to 9. This construction appears in
-    [GS75]_.
+    words. On them we define a graph, in which two words are adjacent
+    whenever their Hamming distance is 9. This construction appears in [GS75]_.
+
+    .. NOTE::
+
+        A strongly regular graph with the same parameters is also obtained from
+        the database of 2-weight codes.
 
     EXAMPLE::
 
@@ -1921,7 +2069,7 @@ def SRG_243_110_37_60():
 
     REFERENCE:
 
-    .. [GS75] J.M. Goethals, and J. J. Seidel,
+    .. [GS75] \J.M. Goethals, and J. J. Seidel,
        The regular two-graph on 276 vertices,
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
@@ -1938,7 +2086,7 @@ def SRG_253_140_87_65():
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
-    intersection size 3.
+    intersection size 3. Known as S.6 in [Hu75]_.
 
     EXAMPLE::
 
@@ -1968,7 +2116,7 @@ def SRG_196_91_42_42():
 
     REFERENCE:
 
-    .. [IS06] Y.J. Ionin, S. Shrikhande,
+    .. [IS06] \Y.J. Ionin, S. Shrikhande,
       Combinatorics of symmetric designs.
       Cambridge University Press, 2006.
     """
@@ -2031,7 +2179,7 @@ def SRG_276_140_58_84():
 
     REFERENCE:
 
-    .. [HT96] W. H. Haemers and V. D. Tonchev,
+    .. [HT96] \W. H. Haemers and V. D. Tonchev,
       Spreads in strongly regular graphs,
       Designs, Codes and Cryptography 8 (1996) 145-157.
     """
@@ -2101,7 +2249,7 @@ def SRG_280_117_44_52():
 
     REFERENCE:
 
-    .. [MR85] R. Mathon and A. Rosa,
+    .. [MR85] \R. Mathon and A. Rosa,
        A new strongly regular graph,
        Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
        http://dx.doi.org/10.1016/0097-3165(85)90025-1
@@ -2151,7 +2299,7 @@ def strongly_regular_from_two_weight_code(L):
 
     REFERENCES:
 
-    .. [vLintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
+    .. [vLintSchrijver81] \J. H. van Lint, and A. Schrijver (1981),
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.
@@ -2179,7 +2327,7 @@ def SRG_416_100_36_20():
     (among 2 that exists) of the group `G_2(4)`.
     This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
-    the neighbors of a vertex.
+    the neighbors of a vertex. Known as S.14 in [Hu75]_.
 
     EXAMPLE::
 
@@ -2261,7 +2409,7 @@ def strongly_regular_from_two_intersection_set(M):
 
     REFERENCES:
 
-    .. [CDB13] I. Cardinali and B. De Bruyn,
+    .. [CDB13] \I. Cardinali and B. De Bruyn,
       Spin-embeddings, two-intersection sets and two-weight codes,
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
@@ -2282,41 +2430,6 @@ def strongly_regular_from_two_intersection_set(M):
                                             for qq in K if not qq==K.zero()])
     g.relabel()
     return g
-
-
-def SRG_729_336_153_156():
-    r"""
-    Return a `(729, 336, 153, 156)`-strongly regular graph.
-
-    This graph is built from a 2-intersection code shared by L. Disset in his
-    thesis [Disset00]_ and available at
-    http://www.mat.uc.cl/~ldissett/newgraphs/.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.strongly_regular_db import SRG_729_336_153_156
-        sage: G = SRG_729_336_153_156()               # long time
-        sage: G.is_strongly_regular(parameters=True)  # long time
-        (729, 336, 153, 156)
-
-    REFERENCES:
-
-    .. [Disset00] L. Dissett,
-       Combinatorial and computational aspects of finite geometries,
-       2000,
-       https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
-    """
-    L = [
-        "101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
-        "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
-        "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
-        "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
-        "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
-        "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    ]
-
-    L = Matrix(GF(3),map(list,L)).transpose()
-    return strongly_regular_from_two_intersection_set(L)
 
 def SRG_120_63_30_36():
     r"""
@@ -2359,7 +2472,7 @@ def SRG_175_72_20_36():
     This graph is obtained from the line graph of
     :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
-    two yields the strongly regular graph. For more information, see
+    2 yields the graph. For more information, see 10.B.(iv) in [BvL84]_ and
     http://www.win.tue.nl/~aeb/graphs/McL.html.
 
     EXAMPLES::
@@ -2477,7 +2590,7 @@ def SRG_1288_792_476_504():
 
     REFERENCE:
 
-    .. [BvE92] A. Brouwer and C. Van Eijl,
+    .. [BvE92] \A. Brouwer and C. Van Eijl,
       On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
@@ -2491,7 +2604,6 @@ def SRG_1288_792_476_504():
                lambda x,y:len(x.symmetric_difference(y))==12])
     G.relabel()
     return G
-
 
 cdef bint seems_feasible(int v, int k, int l, int mu):
     r"""
@@ -2529,9 +2641,9 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
         return False
     r,s = rr,ss
 
-    # 1.3.1 of [Distance-regular graphs]
+    # p.87 of [BvL84]_
     # "Integrality condition"
-    if ((s+1)*(k-s)*k) % (mu*(s-r)):
+    if ((s+1)*(k-s)*k) % (mu*(s-r)) or ((r+1)*(k-r)*k) % (mu*(s-r)):
         return False
 
     # Theorem 21.3 of [WilsonACourse] or
@@ -2544,8 +2656,10 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
     # multiplicity of eigenvalues 'r,s' (f=lambda_r, g=lambda_s)
     #
     # They are integers (checked by the 'integrality condition').
-    f = -k*(s+1)*(k-s)/((k+r*s)*(r-s))
-    g =  k*(r+1)*(k-r)/((k+r*s)*(r-s))
+    f = -k*(s+1)*(k-s)/(mu*(r-s))
+    g =  k*(r+1)*(k-r)/(mu*(r-s))
+    if 1+f+g != v: # the only other eigenvalue, k, has multiplicity 1
+        return False
 
     # 3.C of [BvL84]
     # (Absolute bound)
@@ -2730,6 +2844,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_switch_OA_srg,
                       is_polhill,
                       is_haemers,
+                      is_cossidente_penttila,
                       is_mathon_PC_srg,
                       is_switch_skewhad]
 
@@ -2842,6 +2957,11 @@ def _build_small_srg_database():
     Build the database of small strongly regular graphs.
 
     This data is stored in the module-level variable ``_small_srg_database``.
+    We use formulas from Cor.3.7 of [CK86]_ to compute parameters of the
+    graph of the projective 2-intersection set associated with a 2-weight code `C`,
+    and the usual theory of duality in association schemes to compute the
+    parameters of the graph of words of `C`. Another relevant reference is
+    Sect.9.8.3 of [BH12]_.
 
     EXAMPLE:
 
@@ -2853,15 +2973,15 @@ def _build_small_srg_database():
     Make sure that all two-weight codes yield the strongly regular graphs we
     expect::
 
-        sage: graphs.strongly_regular_graph(81, 50, 31, 30)     # long time
+        sage: graphs.strongly_regular_graph(81, 50, 31, 30)
         Graph on 81 vertices
         sage: graphs.strongly_regular_graph(243, 220, 199, 200) # long time
         Graph on 243 vertices
-        sage: graphs.strongly_regular_graph(256, 153, 92, 90)   # long time
+        sage: graphs.strongly_regular_graph(256, 153, 92, 90)
         Graph on 256 vertices
-        sage: graphs.strongly_regular_graph(256, 170, 114, 110) # long time
+        sage: graphs.strongly_regular_graph(256, 170, 114, 110)
         Graph on 256 vertices
-        sage: graphs.strongly_regular_graph(256, 187, 138, 132) # long time
+        sage: graphs.strongly_regular_graph(256, 187, 138, 132)
         Graph on 256 vertices
         sage: graphs.strongly_regular_graph(512, 73, 12, 10)    # not tested (too long)
         Graph on 512 vertices
@@ -2869,12 +2989,14 @@ def _build_small_srg_database():
         Graph on 512 vertices
         sage: graphs.strongly_regular_graph(512, 315, 202, 180) # not tested (too long)
         Graph on 512 vertices
-        sage: graphs.strongly_regular_graph(625, 364, 213, 210) # not tested (too long)
+        sage: graphs.strongly_regular_graph(625, 364, 213, 210) # long time
         Graph on 625 vertices
-        sage: graphs.strongly_regular_graph(625, 416, 279, 272) # not tested (too long)
+        sage: graphs.strongly_regular_graph(625, 416, 279, 272) # long time
         Graph on 625 vertices
         sage: graphs.strongly_regular_graph(625, 468, 353, 342) # not tested (too long)
         Graph on 625 vertices
+        sage: graphs.strongly_regular_graph(729, 336, 153,156)  # not tested (too long)
+        Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 420, 243, 240) # not tested (too long)
         Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 448, 277, 272) # not tested (too long)
@@ -2887,8 +3009,20 @@ def _build_small_srg_database():
         Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 616, 523, 506) # not tested (too long)
         Graph on 729 vertices
+        sage: graphs.strongly_regular_graph(1024, 363, 122, 132)# not tested (too long)
+        Graph on 1024 vertices
+        sage: graphs.strongly_regular_graph(1024, 396, 148, 156)# not tested (too long)
+        Graph on 1024 vertices
+        sage: graphs.strongly_regular_graph(1024, 429, 176, 182)# not tested (too long)
+        Graph on 1024 vertices
         sage: graphs.strongly_regular_graph(1024, 825, 668, 650)# not tested (too long)
         Graph on 1024 vertices
+
+    REFERENCES:
+
+    .. [CK86] \R. Calderbank, W.M. Kantor,
+      The geometry of two-weight codes,
+      Bull. London Math. Soc. 18(1986) 97-122
     """
 
     from sage.graphs.generators.smallgraphs import McLaughlinGraph
@@ -2898,6 +3032,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
     from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
@@ -2936,33 +3071,41 @@ def _build_small_srg_database():
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
-        (729, 336, 153,156): [SRG_729_336_153_156],
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
+        (936, 375, 150,150): [JankoKharaghaniGraph, 936],
         (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],
+        (1800,1029,588,588): [JankoKharaghaniGraph, 1800],
     }
 
     # Turns the known two-weight codes into SRG constructors
     #
-    # This is slow, as it requires iterating over all codewords (twice) for
-    # every code.
-    cdef int n,q,k,w1,w2,K,N
+    cdef int n,q,k,w1,w2,K,N,l,m,K_O,l_O,m_O
     import sage.coding.two_weight_db
+    from sage.matrix.constructor import matrix
+    from sage.rings.integer_ring import ZZ
+    cinv = matrix(ZZ, [[1,0,0],[0,0,1],[0,1,0]])
     for code in sage.coding.two_weight_db.data:
         n,q,k,w1,w2 = code['n'], code['K'].cardinality(), code['k'], code['w1'], code['w2']
-        L = LinearCode(code['M'])
         N = q**k
+        K_O = n*(q-1)
+        l_O = K_O**2+3*K_O-q*(w1+w2)-K_O*q*(w1+w2)+w1*w2*q**2
+        m_O = (w1*w2*q**2)/N
 
-        codewords_of_weight_w1 = [x for x in L if x.hamming_weight() == w1]
-        K = len(codewords_of_weight_w1)
-
-        x0 = codewords_of_weight_w1[0]
-        l = sum(1 for x in codewords_of_weight_w1 if (x-x0).hamming_weight() == w1)
-
-        m = K*(K-l-1)//(N-K-1)
-        _small_srg_database[N,K,l,m] = [strongly_regular_from_two_weight_code, code['M']]
+        em = eigenmatrix(N,K_O,l_O,m_O) # 1st eigenmatrix
+        assert((not em is None) and (em.det() != 0))
+        emi = N*em.inverse()            # 2nd eigenmatrix
+        # 1st and 2nd eigenmatrices equal up to renumbering graphs?
+        selfdual = em==cinv*emi*cinv
+        _small_srg_database[N,K_O,l_O,m_O] = \
+            [lambda x: strongly_regular_from_two_intersection_set(x.transpose()), code['M']]
+        if not selfdual: # we can build two graphs (not complements to each other!)
+            K, s, r = emi[0,1], emi[1,1], emi[2,1] # by Thm 5.7 in [CK86]_.
+            l = K+r*s+r+s
+            m = K+r*s
+            _small_srg_database[N,K,l,m] = [strongly_regular_from_two_weight_code, code['M']]
 
 cdef load_brouwer_database():
     r"""
@@ -2988,12 +3131,12 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  90   40   42  ) that exists. Comment ... RSHCD<sup></sup>; 2-graph
+        Sage cannot build a (196  60   14   20  ) that exists. Comment from Brouwer's database: pg(6,9,2)?
         ...
         In Andries Brouwer's database:
-        - 448 impossible entries
-        - 2950 undecided entries
-        - 1140 realizable entries (Sage misses ... of them)
+        - 452 impossible entries
+        - 2936 undecided entries
+        - 1150 realizable entries (Sage misses ... of them)
 
     """
     global _brouwer_database

@@ -290,11 +290,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(3).rho() == 1/2 + sqrt(3)/2*i
+            sage: HeckeTriangleGroup(3).rho() == QQbar(1/2 + sqrt(3)/2*i)
             True
-            sage: HeckeTriangleGroup(4).rho() == sqrt(2)/2*(1 + i)
+            sage: HeckeTriangleGroup(4).rho() == QQbar(sqrt(2)/2*(1 + i))
             True
-            sage: HeckeTriangleGroup(6).rho() == sqrt(3)/2 + 1/2*i
+            sage: HeckeTriangleGroup(6).rho() == QQbar(sqrt(3)/2 + 1/2*i)
             True
             sage: HeckeTriangleGroup(10).rho()
             0.95105651629515...? + 0.30901699437494...?*I
@@ -541,7 +541,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(6).dvalue()
             1/108
             sage: HeckeTriangleGroup(10).dvalue()
-            e^(2*euler_gamma - 2*pi/sqrt(1/2*sqrt(5) + 5/2) + psi(4/5) + psi(7/10))
+            e^(2*euler_gamma - 4*pi/sqrt(2*sqrt(5) + 10) + psi(4/5) + psi(7/10))
             sage: HeckeTriangleGroup(infinity).dvalue()
             1/64
         """
@@ -958,7 +958,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         from sage.combinat.partition import OrderedPartitions
         from sage.combinat.combinat import tuples
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
 
         if not D is None:
             max_block_length = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()

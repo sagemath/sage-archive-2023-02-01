@@ -526,7 +526,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
             sage: L1^2 * T1*T2*T1 * L2 * L3 * T2
             (q-2*q^2+q^3)*L1^2*L2*L3 - (1-2*q+2*q^2-q^3)*L1^2*L2*L3*T[2]
-             - (q^2-q^3)*L1^3*L3*T[1] + (q-q^2+q^3)*L1^3*L3*T[1,2]
+             - (q^2-q^3)*L1^3*L3*T[1] + (q-2*q^2+q^3)*L1^3*L3*T[1,2]
+             + q^3*L1^3*L2*T[2,1] - (q^2-q^3)*L1^3*L2*T[2,1,2]
 
             sage: H = algebras.ArikiKoike(2, 3)
             sage: L3 = H.L(3)
@@ -549,19 +550,21 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         # Let T1 = T_{i_1} ... T_{i_k}. To compute the product, we do:
         # 1 - commute T_{i_k} L2 = x.
         # 2 - Multiply L1 * (T_{i_1} ... T_{i_{k-1}}) * x * T2
+
+        # We have to flip the side due to Sage's multiplication
+        #   convention for permutations
         if sum(L2) == 0:
             # L2 is trivial, so we just multiply L1 * T1 * T2
             if T2 == id_perm:
                 return self.monomial((L1, T1))
-            # We have to flip the side due to Sage's multiplication
-            #   convention for permutations
             i = T2.first_descent(side="right")
             T2p = T2.apply_simple_reflection_right(i)
             return (self._product_basis_Ti((L1, T1), i)
                     * self.monomial( (tuple([0]*len(L1)), T2p) ))
-        wd = T1.reduced_word()
-        return (self.monomial((L1, self._Pn.from_reduced_word(wd[:-1])))
-                * self._product_Ti_L(wd[-1], L2)
+
+        i = T1.first_descent(side="left")
+        return (self.monomial((L1, T1.apply_simple_reflection_left(i)))
+                * self._product_Ti_L(i, L2)
                 * self.monomial((tuple([0]*len(L1)), T2)))
 
     def _product_Ti_L(self, i, L):

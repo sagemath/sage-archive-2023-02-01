@@ -1782,7 +1782,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: b.nth_root(42)
             Traceback (most recent call last):
             ...
-            ValueError: x + 2*y + 3*z is not a 42th power
+            ValueError: x + 2*y + 3*z is not a 42nd power
         """
         # note: this code is duplicated in
         # sage.rings.polynomial.polynomial_element.Polynomial.nth_root
@@ -1790,12 +1790,10 @@ cdef class MPolynomial(CommutativeRingElement):
 
         n = ZZ.coerce(n)
 
-        if n == 2:
-            postfix = 'nd'
-        elif n == 3:
-            postfix = 'rd'
-        else:
+        if 10 <= n % 100 < 20:
             postfix = 'th'
+        else:
+            postfix = {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')
 
         if n <= 0:
             raise ValueError("n (={}) must be positive".format(n))

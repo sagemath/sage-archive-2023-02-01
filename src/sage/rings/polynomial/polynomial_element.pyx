@@ -7833,12 +7833,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         n = ZZ.coerce(n)
 
-        if n == 2:
-            postfix = 'nd'
-        elif n == 3:
-            postfix = 'rd'
-        else:
+        if 10 <= n % 100 < 20:
             postfix = 'th'
+        else:
+            postfix = {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')
 
         if n <= 0:
             raise ValueError("n (={}) must be positive".format(n))

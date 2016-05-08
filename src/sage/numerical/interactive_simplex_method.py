@@ -2798,7 +2798,7 @@ class LPAbstractDictionary(SageObject):
 
         OUTPUT:
 
-        - a :class:`dictionary <LPDictionary>`
+        - a new dictionary of the same class
 
         EXAMPLES::
 

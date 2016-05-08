@@ -177,9 +177,10 @@ Classes and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-import operator, re
+import operator
+import re
 
 
 from copy import copy
@@ -233,13 +234,13 @@ def _assemble_arrayl(lines, stretch=None):
         sage: from sage.numerical.interactive_simplex_method \
         ....:     import _assemble_arrayl
         sage: lines = ["1 + 1", "2"]
-        sage: print _assemble_arrayl(lines)
+        sage: print(_assemble_arrayl(lines))
         %notruncate
         \begin{array}{l}
         1 + 1\\
         2
         \end{array}
-        sage: print _assemble_arrayl(lines, 1.5)
+        sage: print(_assemble_arrayl(lines, 1.5))
         %notruncate
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
@@ -301,7 +302,7 @@ def _latex_product(coefficients, variables,
         ....:       _latex_product
         sage: var("x, y")
         (x, y)
-        sage: print _latex_product([-1, 3], [x, y])
+        sage: print(_latex_product([-1, 3], [x, y]))
         - \mspace{-6mu}&\mspace{-6mu} x \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 3 y
     """
     entries = []
@@ -755,7 +756,7 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
-            sage: print P._latex_()
+            sage: print(P._latex_())
             \begin{array}{l}
             \begin{array}{lcrcrcl}
              \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} \\
@@ -807,7 +808,7 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
-            sage: print P._repr_()
+            sage: print(P._repr_())
             LP problem (use typeset mode to see details)
         """
         return "LP problem (use typeset mode to see details)"
@@ -2585,7 +2586,7 @@ class LPAbstractDictionary(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._html_()
+            sage: print(D._html_())
             \begin{equation*}
             ...
             \end{equation*}
@@ -2647,10 +2648,10 @@ class LPAbstractDictionary(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._repr_()
+            sage: print(D._repr_())
             LP problem dictionary (use typeset mode to see details)
             sage: D = P.revised_dictionary()
-            sage: print D._repr_()
+            sage: print(D._repr_())
             LP problem dictionary (use typeset mode to see details)
         """
         return "LP problem dictionary (use typeset mode to see details)"
@@ -3496,7 +3497,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._latex_()
+            sage: print(D._latex_())
             \renewcommand{\arraystretch}{1.5} %notruncate
             \begin{array}{|rcrcrcr|}
             \hline
@@ -4077,7 +4078,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(3)
-            sage: print D._latex_()
+            sage: print(D._latex_())
             %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}

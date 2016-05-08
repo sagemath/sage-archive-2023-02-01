@@ -1031,16 +1031,18 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ...
             ValueError: the length must be finite
 
-        TEST::
+        TEST:
 
         This checks :trac::`20330 so that geodesics defined symbolic expressions do not 
-        generate runtime errors.
-        
+        generate runtime errors. ::
+
             sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
             sage: g.midpoint()
             Point in UHP 1/2*(sqrt(2)*e^(1/2*arccosh(3)) - sqrt(2) + (I - 1)*e^(1/2*arccosh(3)) + I - 1)/((1/4*I - 1/4)*sqrt(2)*e^(1/2*arccosh(3)) - (1/4*I - 1/4)*sqrt(2) + 1/2*e^(1/2*arccosh(3)) + 1/2)
 
-"""
+        """
+        from sage.symbolic.expression import Expression
+        from sage.matrix.matrix_symbolic_dense import Matrix_symbolic_dense
         if self.length() == infinity:
             raise ValueError("the length must be finite")
 
@@ -1048,8 +1050,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         end = self._end.coordinates()
         d = self._model._dist_points(start, end) / 2
         S = self.complete()._to_std_geod(start)
-        
-        if S[0,0].is_numeric():
+
+        if not isinstance(S,Matrix_symbolic_dense):
             # if the matrix that sends self to the imaginary axis is numeric there is no 
             #    need to simplify_full() the matrix
             S_1 = S.inverse()
@@ -1076,7 +1078,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             else:
                 end_p = end
             P_3 = moebius_transform(M,end_p)
-            
         return self._model.get_point(P_3)
 
     def angle(self, other):  # UHP
@@ -1162,9 +1163,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         r"""
         Helper function to get an appropiate matrix transforming (0,1,inf)->(0,I,inf)
         based on the type of a
-        
+
         EXAMPLES::
-        
+
         sage: UHP = HyperbolicPlane().UHP()
         sage: g = UHP.random_geodesic()
         sage: B = g._get_B(CDF.an_element());  B
@@ -1190,7 +1191,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         sage: type(B)
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         """
-        
+
         from sage.structure.element import Element
         from sage.symbolic.expression import Expression
         if isinstance(a, complex):
@@ -1227,7 +1228,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             True
             sage: bool(abs(A(g.midpoint()).coordinates() - I) < 10**-9)
             True
-            sage: bool(A(e).coordinates() == infinity)
+            sage: bool(abs(A(e).coordinates()) > 10**9) 
             True
         """
         [s, e] = [k.coordinates() for k in self.complete().endpoints()]

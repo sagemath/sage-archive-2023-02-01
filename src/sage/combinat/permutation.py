@@ -2811,7 +2811,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).descents(final_descent=True)
             [1, 2, 3]
             sage: Permutation([1,4,3,2]).descents(from_zero=False)
-            [2, 3, 4]
+            [2, 3]
         """
         if side == 'right':
             p = self
@@ -2882,7 +2882,7 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).idescents()
-            [2, 3]
+            [1, 2]
             sage: Permutation([1,4,3,2]).idescents_signature()
             [1, -1, -1, 1]
         """
@@ -3047,7 +3047,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).imajor_index()
             6
         """
-        return sum(self.idescents(final_descent), from_zero=False)
+        return sum(self.idescents(final_descent, from_zero=False))
 
     def to_major_code(self, final_descent=False):
         r"""

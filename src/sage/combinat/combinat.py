@@ -710,10 +710,8 @@ def stirling_number2(n, k, algorithm=None):
     Print a table of the first several Stirling numbers of the second kind::
 
         sage: for n in range(10):
-        ...       for k in range(10):
-        ...           print str(stirling_number2(n,k)).rjust(k and 6),
-        ...       print
-        ...
+        ....:     for k in range(10):
+        ....:         print(str(stirling_number2(n,k)).rjust(k and 6))
         1      0      0      0      0      0      0      0      0      0
         0      1      0      0      0      0      0      0      0      0
         0      1      1      0      0      0      0      0      0      0
@@ -779,22 +777,22 @@ def stirling_number2(n, k, algorithm=None):
      For `n<200`::
 
          sage: for n in Subsets(range(100,200), 5).random_element():
-         ...      for k in Subsets(range(n), 5).random_element():
-         ...         s_sage = stirling_number2(n,k)
-         ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
-         ...         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ...         if not (s_sage == s_maxima and s_sage == s_gap):
-         ...             print "Error with n<200"
+         ....:     for k in Subsets(range(n), 5).random_element():
+         ....:         s_sage = stirling_number2(n,k)
+         ....:         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
+         ....:         if not (s_sage == s_maxima and s_sage == s_gap):
+         ....:             print("Error with n<200")
 
      For `n\geq 200`::
 
          sage: for n in Subsets(range(200,300), 5).random_element():
-         ...      for k in Subsets(range(n), 5).random_element():
-         ...         s_sage = stirling_number2(n,k)
-         ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
-         ...         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ...         if not (s_sage == s_maxima and s_sage == s_gap):
-         ...             print "Error with n<200"
+         ....:     for k in Subsets(range(n), 5).random_element():
+         ....:         s_sage = stirling_number2(n,k)
+         ....:         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
+         ....:         if not (s_sage == s_maxima and s_sage == s_gap):
+         ....:             print("Error with n<200")
 
 
      TESTS:
@@ -1133,9 +1131,8 @@ class CombinatorialObject(SageObject):
 
                 sage: from sage.structure.element import Element
                 sage: class Bar(Element, CombinatorialObject):
-                ...       def __init__(self, l):
-                ...           CombinatorialObject.__init__(self, l)
-                ...
+                ....:     def __init__(self, l):
+                ....:         CombinatorialObject.__init__(self, l)
                 sage: b = Bar([4])
                 sage: not b
                 Traceback (most recent call last):
@@ -1339,9 +1336,8 @@ class CombinatorialClass(Parent):
         TEST::
 
             sage: class C(CombinatorialClass):
-            ...     def __iter__(self):
-            ...          return iter([1,2,3])
-            ...
+            ....:     def __iter__(self):
+            ....:         return iter([1,2,3])
             sage: len(C())
             Traceback (most recent call last):
             ...
@@ -1369,9 +1365,8 @@ class CombinatorialClass(Parent):
         EXAMPLES::
 
             sage: class C(CombinatorialClass):
-            ...     def __iter__(self):
-            ...          return iter([1,2,3])
-            ...
+            ....:     def __iter__(self):
+            ....:         return iter([1,2,3])
             sage: c = C()
             sage: c[0]
             1
@@ -1453,9 +1448,8 @@ class CombinatorialClass(Parent):
         EXAMPLES::
 
             sage: class C(CombinatorialClass):
-            ...     def __iter__(self):
-            ...          return iter([1,2,3])
-            ...
+            ....:     def __iter__(self):
+            ....:         return iter([1,2,3])
             sage: C().cardinality() #indirect doctest
             3
         """
@@ -1537,9 +1531,8 @@ class CombinatorialClass(Parent):
         EXAMPLES::
 
             sage: class C(CombinatorialClass):
-            ...     def __iter__(self):
-            ...          return iter([1,2,3])
-            ...
+            ....:     def __iter__(self):
+            ....:         return iter([1,2,3])
             sage: C().list() #indirect doctest
             [1, 2, 3]
         """
@@ -1589,11 +1582,10 @@ class CombinatorialClass(Parent):
             sage: C = CombinatorialClass()
             sage: C.last = lambda: 4
             sage: def prev(c):
-            ...       if c <= 1:
-            ...           return None
-            ...       else:
-            ...           return c-1
-            ...
+            ....:     if c <= 1:
+            ....:         return None
+            ....:     else:
+            ....:         return c-1
             sage: C.previous  = prev
             sage: it = iter(C) # indirect doctest
             sage: [next(it) for _ in range(4)]
@@ -1985,7 +1977,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: from sage.combinat.combinat import Permutations_CC
-            sage: print repr(Permutations_CC(3).union(Permutations_CC(2)))
+            sage: print(repr(Permutations_CC(3).union(Permutations_CC(2))))
             Union combinatorial class of
                 Standard permutations of 3
             and
@@ -2666,7 +2658,7 @@ def bell_polynomial(n, k):
         Multivariate Polynomial Ring in x over Integer Ring
 
         sage: for n in (0..4):
-        ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
+        ....:     print([bell_polynomial(n,k).coefficients() for k in (0..n)])
         [[1]]
         [[], [1]]
         [[], [1], [1]]

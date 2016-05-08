@@ -40,7 +40,7 @@
 namespace GiNaC {
 
 class ex;
-class ex_is_less;
+struct ex_is_less;
 class symbol;
 class numeric;
 class relational;

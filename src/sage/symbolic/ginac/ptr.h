@@ -55,7 +55,7 @@ private:
  *      from refcounted)
  *    T* T::duplicate() member function (only if makewriteable() is used) */
 template <class T> class ptr {
-	friend class std::less< ptr<T> >;
+	friend struct std::less< ptr<T> >;
 
 	// NB: This implementation of reference counting is not thread-safe.
 	// The reference counter needs to be incremented/decremented atomically,

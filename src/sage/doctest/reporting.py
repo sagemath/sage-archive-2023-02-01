@@ -131,13 +131,13 @@ class DocTestReporter(SageObject):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD, [filename])
             sage: DTR = DocTestReporter(DC)
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t .../sage/doctest/reporting.py
 
         The same with various options::
 
             sage: DD.long = True
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"

@@ -997,7 +997,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: x is not a 2nd power
+            ValueError: (x)^(1/2) does not lie in Univariate
+            Polynomial Ring in x over Integer Ring
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1018,7 +1019,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: R^2 + 3 is not a 2nd power
+            ValueError: (R^2 + 3)^(1/2) does not lie in Univariate
+            Polynomial Ring in R over Integer Ring
 
             Ring in R over Integer Ring
             sage: P(2)^P(2)

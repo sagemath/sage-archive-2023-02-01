@@ -271,7 +271,7 @@ class DocTestController(SageObject):
             try:
                 self.logfile = open(options.logfile, 'a')
             except IOError:
-                print("Unable to open logfile at %s\nProceeding without logging." % (options.logfile))
+                print "Unable to open logfile at %s\nProceeding without logging."%(options.logfile)
                 self.logfile = None
         else:
             self.logfile = None
@@ -434,7 +434,7 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: print open(DD.logfile).read()
             hello world
 
         Check that no duplicate logs appear, even when forking (:trac:`15244`)::
@@ -447,7 +447,7 @@ class DocTestController(SageObject):
             ....:     DC.logfile.close()
             ....:     os._exit(0)
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: print open(DD.logfile).read()
             hello world
 
         """
@@ -690,7 +690,7 @@ class DocTestController(SageObject):
             ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.sort_sources()
             Sorting sources by runtime so that slower doctests are run first....
-            sage: print("\n".join([source.basename for source in DC.sources]))
+            sage: print "\n".join([source.basename for source in DC.sources])
             sage.doctest.util
             sage.doctest.test
             sage.doctest.sources
@@ -861,7 +861,7 @@ class DocTestController(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
-            sage: print(DC._assemble_cmd())
+            sage: print DC._assemble_cmd()
             python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
         """
         cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))

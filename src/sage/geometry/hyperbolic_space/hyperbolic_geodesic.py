@@ -35,14 +35,14 @@ the same::
 """
 
 
-#***********************************************************************
+# ***********************************************************************
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#***********************************************************************
+# ***********************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.symbolic.pynac import I
@@ -497,6 +497,16 @@ class HyperbolicGeodesic(SageObject):
 
             sage: H.HM().get_geodesic((0,0,1), (1, 0, sqrt(2))).complete().is_complete()
             True
+
+        TEST:
+
+        Check that floating points remain floating points through this method::
+
+            sage: H = HyperbolicPlane()
+            sage: g = H.UHP().get_geodesic(CC(0,1), CC(2,2))
+            sage: gc = g.complete()
+            sage: parent(gc.start().coordinates())
+            Real Field with 53 bits of precision
         """
         if self._model.is_bounded():
             return self._model.get_geodesic(*self.ideal_endpoints())
@@ -692,6 +702,18 @@ class HyperbolicGeodesic(SageObject):
             sage: p = HyperbolicPlane().UHP().get_point(5)
             sage: g.dist(p)
             +Infinity
+
+        TEST:
+
+        Check that floating points remain floating points in dist() method.
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g = UHP.get_geodesic(CC(0,1), CC(2,2))
+            sage: UHP.dist(g.start(), g.end())
+            1.45057451382258
+            sage: parent(_)
+            Real Field with 53 bits of precision
+
         """
         return self._model.dist(self, other)
 
@@ -733,7 +755,7 @@ class HyperbolicGeodesic(SageObject):
         return self._model._dist_points(self._start.coordinates(), self._end.coordinates())
 
 #####################################################################
-## UHP geodesics
+# UHP geodesics
 
 
 class HyperbolicGeodesicUHP(HyperbolicGeodesic):
@@ -1033,15 +1055,22 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         TEST:
 
-        This checks :trac::`20330 so that geodesics defined symbolic expressions do not 
-        generate runtime errors. ::
+        This checks :trac:`20330` so that geodesics defined symbolic expressions
+        do not generate runtime errors. ::
 
             sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
             sage: g.midpoint()
             Point in UHP 1/2*(sqrt(2)*e^(1/2*arccosh(3)) - sqrt(2) + (I - 1)*e^(1/2*arccosh(3)) + I - 1)/((1/4*I - 1/4)*sqrt(2)*e^(1/2*arccosh(3)) - (1/4*I - 1/4)*sqrt(2) + 1/2*e^(1/2*arccosh(3)) + 1/2)
 
+        Check that floating points remain floating points in midpoint() method::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g = UHP.get_geodesic(CC(0,1), CC(2,2))
+            sage: g.midpoint()
+            Point in UHP 0.666666666666666 + 1.69967317119759*I
+            sage: parent(g.midpoint().coordinates())
+            Complex Field with 53 bits of precision
         """
-        from sage.symbolic.expression import Expression
         from sage.matrix.matrix_symbolic_dense import Matrix_symbolic_dense
         if self.length() == infinity:
             raise ValueError("the length must be finite")
@@ -1051,33 +1080,20 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         d = self._model._dist_points(start, end) / 2
         S = self.complete()._to_std_geod(start)
 
-        if not isinstance(S,Matrix_symbolic_dense):
-            # if the matrix that sends self to the imaginary axis is numeric there is no 
-            #    need to simplify_full() the matrix
-            S_1 = S.inverse()
-            T = matrix([[exp(d), 0], [0, 1]])
-            M = S_1 * T * S
-            if ((real(start - end) < EPSILON)
-                or (abs(real(start - end)) < EPSILON
-                    and imag(start - end) < EPSILON)):
-                end_p = start
-            else:
-                end_p = end
-            P_3 = moebius_transform(M,end_p)
-        else:
-            # in any other case the symbolic matrix needs to be simplified in order to 
-            #    make the calculations easier for the symbolic calculus module.
+        # If the matrix is symbolic then needs to be simplified in order to
+        #    make the calculations easier for the symbolic calculus module.
+        if isinstance(S, Matrix_symbolic_dense):
             S = S.simplify_full().simplify_full()
-            S_1=S.inverse()
-            T = matrix([[exp(d), 0], [0, 1]])
-            M = S_1 * T * S
-            if ((real(start - end) < EPSILON)
-                or (abs(real(start - end)) < EPSILON
-                    and imag(start - end) < EPSILON)):
-                end_p = start
-            else:
-                end_p = end
-            P_3 = moebius_transform(M,end_p)
+        S_1 = S.inverse()
+        T = matrix([[exp(d), 0], [0, 1]])
+        M = S_1 * T * S
+        if ((real(start - end) < EPSILON)
+            or (abs(real(start - end)) < EPSILON
+                and imag(start - end) < EPSILON)):
+            end_p = start
+        else:
+            end_p = end
+        P_3 = moebius_transform(M, end_p)
         return self._model.get_point(P_3)
 
     def angle(self, other):  # UHP
@@ -1161,14 +1177,14 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     @staticmethod
     def _get_B(a):
         r"""
-        Helper function to get an appropiate matrix transforming (0,1,inf)->(0,I,inf)
-        based on the type of a
+        Helper function to get an appropiate matrix transforming
+        (0,1,inf)->(0,I,inf) based on the type of a
 
         EXAMPLES::
 
         sage: UHP = HyperbolicPlane().UHP()
         sage: g = UHP.random_geodesic()
-        sage: B = g._get_B(CDF.an_element());  B
+        sage: B = g._get_B(CDF.an_element()); B
         [   1.0    0.0]
         [   0.0 -1.0*I]
         sage: type(B)
@@ -1195,14 +1211,16 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         from sage.structure.element import Element
         from sage.symbolic.expression import Expression
         if isinstance(a, complex):
-            return matrix([[complex(1),complex(0)],[complex(0),-complex("j")]])
+            return matrix([[complex(1), complex(0)],
+                           [complex(0), -complex("j")]])
         elif isinstance(a, Expression):
-            return matrix([[SR(1),SR(0)],[SR(0),-SR("I")]])
+            return matrix([[SR(1), SR(0)],
+                           [SR(0), -SR("I")]])
         elif isinstance(a, Element):
-            return matrix([[-a.parent().gen()*a.parent().gen(),
-                a.parent().gen()-a.parent().gen()],
-                [a.parent().gen()-a.parent().gen(),
-                -a.parent().gen()]])
+            return matrix([[-a.parent().gen() * a.parent().gen(),
+                            a.parent().gen() - a.parent().gen()],
+                           [a.parent().gen() - a.parent().gen(),
+                            -a.parent().gen()]])
         else:
             raise ValueError("not a complex number")
 
@@ -1228,8 +1246,18 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             True
             sage: bool(abs(A(g.midpoint()).coordinates() - I) < 10**-9)
             True
-            sage: bool(abs(A(e).coordinates()) > 10**9) 
+            sage: bool(abs(A(e).coordinates()) > 10**9)
             True
+
+        TEST:
+
+        Check that floating points remain floating points through this method::
+
+            sage: H = HyperbolicPlane()
+            sage: g = H.UHP().get_geodesic(CC(0,1), CC(2,2))
+            sage: gc = g.complete()
+            sage: parent(gc._to_std_geod(g.start().coordinates()))
+            Full MatrixSpace of 2 by 2 dense matrices over Complex Field with 53 bits of precision
         """
         [s, e] = [k.coordinates() for k in self.complete().endpoints()]
         B = HyperbolicGeodesicUHP._get_B(s)
@@ -1286,7 +1314,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                        [p1 - p0, (p1 - p0)*(-p2)]])
 
 #####################################################################
-## Other geodesics
+# Other geodesics
 
 
 class HyperbolicGeodesicPD(HyperbolicGeodesic):

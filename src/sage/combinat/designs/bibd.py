@@ -50,7 +50,7 @@ Functions
 ---------
 """
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -524,7 +524,7 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
 
         sage: G = Zmod(21)
         sage: D = [[0,1,4,14,16]]
-        sage: print sorted(G(x-y) for x in D[0] for y in D[0] if x != y)
+        sage: sorted(G(x-y) for x in D[0] for y in D[0] if x != y)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
         sage: from sage.combinat.designs.bibd import BIBD_from_difference_family
@@ -1414,8 +1414,8 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             sage: B = designs.balanced_incomplete_block_design(25, 4)
             sage: a2 = B.arc(2)
             sage: r = (25-1)//(4-1)
-            sage: print len(a2), 1 + r
-            8 9
+            sage: len(a2), 1 + r
+            (8, 9)
             sage: sa2 = set(a2)
             sage: set(len(sa2.intersection(b)) for b in B.blocks())
             {0, 1, 2}
@@ -1423,8 +1423,8 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             False
 
             sage: a3 = B.arc(3)
-            sage: print len(a3), 1 + 2*r
-            15 17
+            sage: len(a3), 1 + 2*r
+            (15, 17)
             sage: sa3 = set(a3)
             sage: set(len(sa3.intersection(b)) for b in B.blocks()) == set([0,3])
             False

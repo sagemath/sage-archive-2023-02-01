@@ -2781,14 +2781,42 @@ class LPAbstractDictionary(SageObject):
         """
         return "LP problem dictionary (use typeset mode to see details)"
 
-    def add_row(self):
+    @abstract_method
+    def add_row(self, nonbasic_coefficients,
+                constant, slack_variable):
         r"""
-        Update a dictionary with an additional row based on a given dictionary.
+        Return a dictionary with an additional row based on a given dictionary.
 
-        See :meth:`add_row` in :class:`LPDictionary` and
-        :class:`LPRevisedDictionary` for documentation.
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row
+
+        - ``constant``-- a number of the constant term for the new row
+
+        - ``slack_variable``-- a string of the name for the new slack variable
+
+        OUTPUT:
+
+        - a :class:`dictionary <LPDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, 'c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+            sage: set(D1.constant_terms()).symmetric_difference(
+            ....: set(D.constant_terms()))
+            {42}
+            sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {c}
         """
-        raise NotImplementedError
 
     def base_ring(self):
         r"""

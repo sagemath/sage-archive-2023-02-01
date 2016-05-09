@@ -69,8 +69,7 @@ fi
 
 
 # Build GUAVA package
-cd "$PKG_DIR/guava-3*"
-./configure "$GAP_DIR"
+cd "$PKG_DIR"/guava-3* && ./configure "$GAP_DIR"
 if [ $? -ne 0 ]; then 
     echo >&2 "Error configuring GUAVA packagae."
     exit 1

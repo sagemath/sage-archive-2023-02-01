@@ -7474,7 +7474,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""
-        Test if ``self`` is a cyclotomic polynomial.
+        Test if this polynomial is a cyclotomic polynomial.
 
         A *cyclotomic polynomial* is a monic, irreducible polynomial such that
         all roots are roots of unity.
@@ -7487,6 +7487,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`is_cyclotomic_product`
+            :meth:`cyclotomic_part`
 
         INPUT:
 
@@ -7589,9 +7590,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
            for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
            pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
-        if self.base_ring().characteristic() != 0:
+        S = self.base_ring()
+        if S.characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
-        if self.base_ring() != ZZ:
+        if S != ZZ:
             try:
                 f = self.change_ring(ZZ)
             except TypeError:
@@ -7648,7 +7650,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic_product(self):
         r"""
-        Test whether ``self`` is a product of cyclotomic polynomials.
+        Test whether this polynomial is a product of cyclotomic polynomials.
 
         This method simply calls the function ``poliscycloprod`` from the Pari
         library.
@@ -7656,6 +7658,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. SEEALSO::
 
             :meth:`is_cyclotomic`
+            :meth:`cyclotomic_part`
 
         EXAMPLES::
 
@@ -7689,11 +7692,82 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return bool(self._pari_().poliscycloprod())
 
+    def cyclotomic_part(self):
+        """
+        Return the product of the irreducible factors of this polynomial
+        which are cyclotomic polynomials.
+
+        .. SEEALSO::
+
+            :meth:`is_cyclotomic`
+            :meth:`is_cyclotomic_product`
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(Integers())
+            sage: pol = 2*(x^4 + 1)
+            sage: pol.cyclotomic_part()
+            x^4 + 1
+            sage: pol = x^4 + 2
+            sage: pol.cyclotomic_part()
+            1
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            x^8 + 2*x^4 + 1
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            x^8 + 2*x^4 + 1
+
+            sage: P.<x> = PolynomialRing(RR)
+            sage: pol = (x^4 + 1)^2 * (x^4 + 2)
+            sage: pol.cyclotomic_part()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for inexact base rings
+
+            sage: x = polygen(Zmod(5))
+            sage: (x-1).cyclotomic_part()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented in non-zero characteristic
+        """
+        S = self.base_ring()
+        if S.characteristic() != 0:
+            raise NotImplementedError("not implemented in non-zero characteristic")
+        if not S.is_exact():
+            raise NotImplementedError("not implemented for inexact base rings")
+        R = self.parent()
+        x = R.gen()
+        # Extract Phi_n when n is odd.
+        t1 = self
+        while True:
+            t2 = t1.gcd(t1(x**2))
+            if t1.degree() == t2.degree(): break
+            t1 = t2
+        ans = t1
+        # Extract Phi_n when v_2(n) = 1, 2, ...
+        t0 = self // t1
+        i = 0
+        while t0.degree() > 0:
+            t1 = t0
+            while True:
+                t2 = t1.gcd(t1(-x**2))
+                if t1.degree() == t2.degree(): break
+                t1 = t2
+            ans *= t1(x**(2**i))
+            t0 = t0 // t1
+            t1 = t0.gcd(t0(-x))
+            t0 = R(list(t1)[::2])
+            i += 1
+        return(ans // ans.leading_coefficient())
+
     def homogenize(self, var='h'):
         r"""
         Return the homogenization of this polynomial.
 
-        The polynomial itself is returned if it homogeneous already. Otherwise,
+        The polynomial itself is returned if it is homogeneous already. Otherwise,
         its monomials are multiplied with the smallest powers of ``var`` such
         that they all have the same total degree.
 

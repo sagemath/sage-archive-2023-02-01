@@ -41,7 +41,8 @@ are relative to the bases of the domain and codomain.  ::
     sage: K = Hom(GF(3)^2, GF(3)^2)
     sage: B = K.basis()
     sage: for f in B:
-    ...     print f, "\n"
+    ....:     print(f)
+    ....:     print("\n")
     Vector space morphism represented by the matrix:
     [1 0]
     [0 0]
@@ -189,6 +190,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 ####################################################################################
+from __future__ import print_function
 
 import inspect
 import sage.matrix.all as matrix

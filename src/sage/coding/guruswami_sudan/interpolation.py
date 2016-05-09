@@ -388,7 +388,7 @@ def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
     Mnew = M.row_reduced_form(transformation=False, old_call=False)
     # Construct Q as the element of the row with the lowest weighted degree
     degs = [(i, leading_term(Mnew.row(i)).degree()) for i in range(0,l+1)]
-    best = min(degs, key=lambda (i,d): d)[0]
+    best = min(degs, key=lambda i_d: i_d[1])[0]
     remove_shifts(Mnew, shifts)
     Qlist = Mnew.row(best)
     PFxy = F['x,y']

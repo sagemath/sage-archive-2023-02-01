@@ -22,7 +22,7 @@ This unit acts exactly like a symbolic variable::
 Units have additional information in their docstring::
 
     sage: # You would type: units.force.dyne?
-    sage: print units.force.dyne._sage_doc_()
+    sage: print(units.force.dyne._sage_doc_())
     CGS unit for force defined to be gram*centimeter/second^2.
     Equal to 10^-5 newtons.
 
@@ -65,7 +65,7 @@ Trying to multiply temperatures by another unit then converting raises a ValueEr
 
 TESTS:
 
-Check that Trac 12373 if fixed::
+Check that :trac:`12373` is fixed::
 
     sage: b = units.amount_of_substance.mole
     sage: b.convert(units.amount_of_substance.elementary_entity)
@@ -85,6 +85,7 @@ AUTHORS:
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 # standard Python libraries
 import re
@@ -1003,7 +1004,7 @@ class UnitExpression(Expression):
 
         EXAMPLES::
 
-            sage: print units.area.acre._sage_doc_()
+            sage: print(units.area.acre._sage_doc_())
             Defined to be 10 square chains or 4840 square yards.
             Approximately equal to 4046.856 square meters.
         """

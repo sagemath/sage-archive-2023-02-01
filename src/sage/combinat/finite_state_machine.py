@@ -10488,7 +10488,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,
-           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81–96,
+           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81--96,
            :doi:`10.1007/s10998-007-3081-z`.
         """
         from sage.calculus.functional import derivative

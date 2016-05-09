@@ -24,11 +24,12 @@
 
 namespace GiNaC {
 
-// Removing this will error Sage with undefined reference to
-// GiNaC::container<std::vector>::reg_info
-template <> GINAC_IMPLEMENT_REGISTERED_CLASS_OPT_T(exprseq, basic,
+GINAC_IMPLEMENT_REGISTERED_CLASS_OPT_T(exprseq, basic,
   print_func<print_context>(&exprseq::do_print).
   print_func<print_tree>(&exprseq::do_print_tree))
+
+/** Specialization of container::get_tinfo() for exprseq. */
+template<> tinfo_t exprseq::get_tinfo() { return &exprseq::tinfo_static; }
 
 /** Specialization of container::info() for exprseq. */
 template <> bool exprseq::info(unsigned inf) const

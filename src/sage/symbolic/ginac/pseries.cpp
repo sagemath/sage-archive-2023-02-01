@@ -156,7 +156,7 @@ void pseries::print_series(const print_context & c, const char *openbrace, const
 					c.s << ')' << closebrace;
 				} else
 					var.print(c);
-				if (i->coeff.compare(_ex1)) {
+				if (i->coeff.compare(_ex1) != 0) {
 					c.s << pow_sym;
 					c.s << openbrace;
 					if (i->coeff.info(info_flags::negative)) {
@@ -216,7 +216,7 @@ void pseries::do_print_python_repr(const print_python_repr & c, unsigned level) 
 	c.s << "),[";
 	size_t num = seq.size();
 	for (size_t i=0; i<num; ++i) {
-		if (i)
+		if (i != 0u)
 			c.s << ',';
 		c.s << '(';
 		seq[i].rest.print(c);
@@ -240,17 +240,17 @@ int pseries::compare_same_type(const basic & other) const
 	
 	// ...then the expansion point...
 	int cmpval = var.compare(o.var);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	cmpval = point.compare(o.point);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	
 	// ...and if that failed the individual elements
 	auto it = seq.begin(), o_it = o.seq.begin();
 	while (it!=seq.end() && o_it!=o.seq.end()) {
 		cmpval = it->compare(*o_it);
-		if (cmpval)
+		if (cmpval != 0)
 			return cmpval;
 		++it;
 		++o_it;
@@ -284,7 +284,7 @@ int pseries::degree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return last exponent
-		if (seq.size())
+		if (seq.size() != 0u)
 			return ex_to<numeric>((seq.end()-1)->coeff).to_int();
 		else
 			return 0;
@@ -311,7 +311,7 @@ int pseries::ldegree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return first exponent
-		if (seq.size())
+		if (seq.size() != 0u)
 			return ex_to<numeric>((seq.begin())->coeff).to_int();
 		else
 			return 0;
@@ -457,7 +457,7 @@ ex pseries::eval_integ() const
 {
 	epvector *newseq = nullptr;
 	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		if (newseq) {
+		if (newseq != nullptr) {
 			newseq->push_back(expair(i->rest.eval_integ(), i->coeff));
 			continue;
 		}
@@ -472,7 +472,7 @@ ex pseries::eval_integ() const
 	}
 
 	ex newpoint = point.eval_integ();
-	if (newseq || !are_ex_trivially_equal(newpoint, point))
+	if ((newseq != nullptr) || !are_ex_trivially_equal(newpoint, point))
 		return (new pseries(var==newpoint, *newseq))
 		       ->setflag(status_flags::dynallocated);
 	return *this;

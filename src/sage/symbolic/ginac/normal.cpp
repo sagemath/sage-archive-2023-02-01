@@ -1135,7 +1135,7 @@ static ex sr_gcd(const ex &a, const ex &b, sym_desc_vec::const_iterator var)
 		ri = c.expand().lcoeff(x);
 		if (delta == 1)
 			psi = ri;
-		else if (delta)
+		else if (delta != 0)
 			divide_in_z(pow(ri, delta), pow(psi, delta-1), psi, var+1);
 		delta = cdeg - ddeg;
 	}
@@ -1294,9 +1294,9 @@ static ex heur_gcd(const ex &a, const ex &b, ex *ca, ex *cb, sym_desc_vec::const
 	// GCD of two numeric values -> CLN
 	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b)) {
 		numeric g = gcd(ex_to<numeric>(a), ex_to<numeric>(b));
-		if (ca)
+		if (ca != nullptr)
 			*ca = ex_to<numeric>(a) / g;
-		if (cb)
+		if (cb != nullptr)
 			*cb = ex_to<numeric>(b) / g;
 		return g;
 	}
@@ -1339,7 +1339,7 @@ static ex heur_gcd(const ex &a, const ex &b, ex *ca, ex *cb, sym_desc_vec::const
 
 			// If the calculated polynomial divides both p and q, this is the GCD
 			ex dummy;
-			if (divide_in_z(p, g, ca ? *ca : dummy, var) && divide_in_z(q, g, cb ? *cb : dummy, var)) {
+			if (divide_in_z(p, g, ca != nullptr ? *ca : dummy, var) && divide_in_z(q, g, cb != nullptr ? *cb : dummy, var)) {
 				g *= gc;
 				return g;
 			}
@@ -1372,16 +1372,16 @@ ex gcd(const ex &a, const ex &b, ex *ca, ex *cb, bool check_args)
 	// GCD of numerics -> CLN
 	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b)) {
 		numeric g = gcd(ex_to<numeric>(a), ex_to<numeric>(b));
-		if (ca || cb) {
+		if ((ca != nullptr) || (cb != nullptr)) {
 			if (g.is_zero()) {
-				if (ca)
+				if (ca != nullptr)
 					*ca = _ex0;
-				if (cb)
+				if (cb != nullptr)
 					*cb = _ex0;
 			} else {
-				if (ca)
+				if (ca != nullptr)
 					*ca = ex_to<numeric>(a) / g;
-				if (cb)
+				if (cb != nullptr)
 					*cb = ex_to<numeric>(b) / g;
 			}
 		}
@@ -1408,9 +1408,9 @@ factored_a:
 			acc_ca.push_back(part_ca);
 			part_b = part_cb;
 		}
-		if (ca)
+		if (ca != nullptr)
 			*ca = (new mul(acc_ca))->setflag(status_flags::dynallocated);
-		if (cb)
+		if (cb != nullptr)
 			*cb = part_b;
 		return (new mul(g))->setflag(status_flags::dynallocated);
 	} else if (is_exactly_a<mul>(b)) {
@@ -1427,9 +1427,9 @@ factored_b:
 			acc_cb.push_back(part_cb);
 			part_a = part_ca;
 		}
-		if (ca)
+		if (ca != nullptr)
 			*ca = part_a;
-		if (cb)
+		if (cb != nullptr)
 			*cb = (new mul(acc_cb))->setflag(status_flags::dynallocated);
 		return (new mul(g))->setflag(status_flags::dynallocated);
 	}
@@ -1445,15 +1445,15 @@ factored_b:
 			if (p.is_equal(pb)) {
 				// a = p^n, b = p^m, gcd = p^min(n, m)
 				if (exp_a < exp_b) {
-					if (ca)
+					if (ca != nullptr)
 						*ca = _ex1;
-					if (cb)
+					if (cb != nullptr)
 						*cb = power(p, exp_b - exp_a);
 					return power(p, exp_a);
 				} else {
-					if (ca)
+					if (ca != nullptr)
 						*ca = power(p, exp_a - exp_b);
-					if (cb)
+					if (cb != nullptr)
 						*cb = _ex1;
 					return power(p, exp_b);
 				}
@@ -1463,9 +1463,9 @@ factored_b:
 				if (p_gcd.is_equal(_ex1)) {
 					// a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
 					// gcd(a,b) = 1
-					if (ca)
+					if (ca != nullptr)
 						*ca = a;
-					if (cb)
+					if (cb != nullptr)
 						*cb = b;
 					return _ex1;
 					// XXX: do I need to check for p_gcd = -1?
@@ -1486,9 +1486,9 @@ factored_b:
 		} else {
 			if (p.is_equal(b)) {
 				// a = p^n, b = p, gcd = p
-				if (ca)
+				if (ca != nullptr)
 					*ca = power(p, a.op(1) - 1);
-				if (cb)
+				if (cb != nullptr)
 					*cb = _ex1;
 				return p;
 			} 
@@ -1498,9 +1498,9 @@ factored_b:
 
 			if (p_gcd.is_equal(_ex1)) {
 				// a(x) = p(x)^n, gcd(p, b) = 1 ==> gcd(a, b) = 1
-				if (ca)
+				if (ca != nullptr)
 					*ca = a;
-				if (cb)
+				if (cb != nullptr)
 					*cb = b;
 				return _ex1;
 			} else {
@@ -1513,9 +1513,9 @@ factored_b:
 		ex p = b.op(0);
 		if (p.is_equal(a)) {
 			// a = p, b = p^n, gcd = p
-			if (ca)
+			if (ca != nullptr)
 				*ca = _ex1;
-			if (cb)
+			if (cb != nullptr)
 				*cb = power(p, b.op(1) - 1);
 			return p;
 		}
@@ -1525,9 +1525,9 @@ factored_b:
 		ex p_gcd = gcd(a, p, &apart_co, &p_co, false);
 		if (p_gcd.is_equal(_ex1)) {
 			// b=p(x)^n, gcd(a, p) = 1 ==> gcd(a, b) == 1
-			if (ca)
+			if (ca != nullptr)
 				*ca = a;
-			if (cb)
+			if (cb != nullptr)
 				*cb = b;
 			return _ex1;
 		} else {
@@ -1542,31 +1542,31 @@ factored_b:
 	// Some trivial cases
 	ex aex = a.expand(), bex = b.expand();
 	if (aex.is_zero()) {
-		if (ca)
+		if (ca != nullptr)
 			*ca = _ex0;
-		if (cb)
+		if (cb != nullptr)
 			*cb = _ex1;
 		return b;
 	}
 	if (bex.is_zero()) {
-		if (ca)
+		if (ca != nullptr)
 			*ca = _ex1;
-		if (cb)
+		if (cb != nullptr)
 			*cb = _ex0;
 		return a;
 	}
 	if (aex.is_equal(_ex1) || bex.is_equal(_ex1)) {
-		if (ca)
+		if (ca != nullptr)
 			*ca = a;
-		if (cb)
+		if (cb != nullptr)
 			*cb = b;
 		return _ex1;
 	}
 #if FAST_COMPARE
 	if (a.is_equal(b)) {
-		if (ca)
+		if (ca != nullptr)
 			*ca = _ex1;
-		if (cb)
+		if (cb != nullptr)
 			*cb = _ex1;
 		return a;
 	}
@@ -1574,9 +1574,9 @@ factored_b:
 
 	if (is_exactly_a<symbol>(aex)) {
 		if (! bex.subs(aex==_ex0, subs_options::no_pattern).is_zero()) {
-			if (ca)
+			if (ca != nullptr)
 				*ca = a;
-			if (cb)
+			if (cb != nullptr)
 				*cb = b;
 			return _ex1;
 		}
@@ -1584,9 +1584,9 @@ factored_b:
 
 	if (is_exactly_a<symbol>(bex)) {
 		if (! aex.subs(bex==_ex0, subs_options::no_pattern).is_zero()) {
-			if (ca)
+			if (ca != nullptr)
 				*ca = a;
-			if (cb)
+			if (cb != nullptr)
 				*cb = b;
 			return _ex1;
 		}
@@ -1595,9 +1595,9 @@ factored_b:
 	if (is_exactly_a<numeric>(aex)) {
 		numeric bcont = bex.integer_content();
 		numeric g = gcd(ex_to<numeric>(aex), bcont);
-		if (ca)
+		if (ca != nullptr)
 			*ca = ex_to<numeric>(aex)/g;
-		if (cb)
+		if (cb != nullptr)
 	 		*cb = bex/g;
 		return g;
 	}
@@ -1605,9 +1605,9 @@ factored_b:
 	if (is_exactly_a<numeric>(bex)) {
 		numeric acont = aex.integer_content();
 		numeric g = gcd(ex_to<numeric>(bex), acont);
-		if (ca)
+		if (ca != nullptr)
 			*ca = aex/g;
-		if (cb)
+		if (cb != nullptr)
 			*cb = ex_to<numeric>(bex)/g;
 		return g;
 	}
@@ -1627,9 +1627,9 @@ factored_b:
 	// No common symbols at all, just return 1:
 	if (vari == sym_stats.end()) {
 		// N.B: keep cofactors factored
-		if (ca)
+		if (ca != nullptr)
 			*ca = a;
-		if (cb)
+		if (cb != nullptr)
 			*cb = b;
 		return _ex1;
 	}
@@ -1654,14 +1654,14 @@ factored_b:
 		ex bex_u, bex_c, bex_p;
 		bex.unitcontprim(x, bex_u, bex_c, bex_p);
 		ex g = gcd(aex, bex_c, ca, cb, false);
-		if (cb)
+		if (cb != nullptr)
 			*cb *= bex_u * bex_p;
 		return g;
 	} else if (var->deg_b == 0 && var->deg_a != 0) {
 		ex aex_u, aex_c, aex_p;
 		aex.unitcontprim(x, aex_u, aex_c, aex_p);
 		ex g = gcd(aex_c, bex, ca, cb, false);
-		if (ca)
+		if (ca != nullptr)
 			*ca *= aex_u * aex_p;
 		return g;
 	}
@@ -1680,22 +1680,22 @@ factored_b:
 		g = sr_gcd(aex, bex, var);
 		if (g.is_equal(_ex1)) {
 			// Keep cofactors factored if possible
-			if (ca)
+			if (ca != nullptr)
 				*ca = a;
-			if (cb)
+			if (cb != nullptr)
 				*cb = b;
 		} else {
-			if (ca)
+			if (ca != nullptr)
 				divide(aex, g, *ca, false);
-			if (cb)
+			if (cb != nullptr)
 				divide(bex, g, *cb, false);
 		}
 	} else {
 		if (g.is_equal(_ex1)) {
 			// Keep cofactors factored if possible
-			if (ca)
+			if (ca != nullptr)
 				*ca = a;
-			if (cb)
+			if (cb != nullptr)
 				*cb = b;
 		}
 	}

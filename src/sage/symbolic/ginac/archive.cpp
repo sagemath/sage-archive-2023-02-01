@@ -191,7 +191,7 @@ static unsigned read_unsigned(std::istream &is)
 		b = b2;
 		ret |= (b & 0x7f) << shift;
 		shift += 7;
-	} while (b & 0x80);
+	} while ((b & 0x80) != 0);
 	return ret;
 }
 
@@ -374,7 +374,7 @@ archive_node::archive_node_cit
 
 void archive_node::add_bool(const std::string &name, bool value)
 {
-	props.push_back(property(a.atomize(name), PTYPE_BOOL, value));
+	props.push_back(property(a.atomize(name), PTYPE_BOOL, static_cast<unsigned int>(value)));
 }
 
 void archive_node::add_unsigned(const std::string &name, unsigned value)
@@ -402,7 +402,7 @@ bool archive_node::find_bool(const std::string &name, bool &ret, unsigned index)
 	for (const auto & elem : props) {
 		if (elem.type == PTYPE_BOOL && elem.name == name_atom) {
 			if (found_index == index) {
-				ret = elem.value;
+				ret = (elem.value != 0u);
 				return true;
 			}
 			found_index++;

@@ -355,7 +355,7 @@ ex indexed::expand(unsigned options) const
 {
 	GINAC_ASSERT(seq.size() > 0);
 
-	if (options & expand_options::expand_indexed) {
+	if ((options & expand_options::expand_indexed) != 0u) {
 		ex newbase = seq[0].expand(options);
 		if (is_exactly_a<add>(newbase)) {
 			ex sum = _ex0;
@@ -538,7 +538,7 @@ struct is_summation_idx : public std::unary_function<ex, bool> {
 
 exvector integral::get_free_indices() const
 {
-	if (a.get_free_indices().size() || b.get_free_indices().size())
+	if ((a.get_free_indices().size() != 0u) || (b.get_free_indices().size() != 0u))
 		throw (std::runtime_error("integral::get_free_indices: boundary values should not have free indices"));
 	return f.get_free_indices();
 }
@@ -670,7 +670,7 @@ bool reposition_dummy_indices(ex & e, exvector & variant_dummy_indices, exvector
 		ex try_e = e;
 		for (size_t j=0; j<local_var_dummies.size(); ++j) {
 			exmap m;
-			if (1<<j & i) {
+			if ((1<<j & i) != 0u) {
 				ex curr_idx = local_var_dummies[j];
 				ex curr_toggle = ex_to<varidx>(curr_idx).toggle_variance();
 				m[curr_idx] = curr_toggle;
@@ -1350,10 +1350,10 @@ bool spmapkey::operator==(const spmapkey &other) const
 bool spmapkey::operator<(const spmapkey &other) const
 {
 	int cmp = v1.compare(other.v1);
-	if (cmp)
+	if (cmp != 0)
 		return cmp < 0;
 	cmp = v2.compare(other.v2);
-	if (cmp)
+	if (cmp != 0)
 		return cmp < 0;
 
 	// Objects are equal, now check dimensions

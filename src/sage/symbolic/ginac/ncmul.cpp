@@ -130,7 +130,7 @@ ex ncmul::expand(unsigned options) const
 {
 	// First, expand the children
 	std::unique_ptr<exvector> vp = expandchildren(options);
-	const exvector &expanded_seq = vp.get() ? *vp : this->seq;
+	const exvector &expanded_seq = vp.get() != nullptr ? *vp : this->seq;
 	
 	// Now, look for all the factors that are sums and remember their
 	// position and number of terms.
@@ -155,7 +155,7 @@ ex ncmul::expand(unsigned options) const
 
 	// If there are no sums, we are done
 	if (number_of_adds == 0) {
-		if (vp.get())
+		if (vp.get() != nullptr)
 			return (new ncmul(std::move(vp)))->
 			        setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
 		else
@@ -246,7 +246,7 @@ ex ncmul::coeff(const ex & s, int n) const
 			coeffseq.push_back((*it).coeff(s,n));
 			++it;
 		}
-		return (new ncmul(coeffseq,1))->setflag(status_flags::dynallocated);
+		return (new ncmul(coeffseq,true))->setflag(status_flags::dynallocated);
 	}
 		 
 	bool coeff_found = false;
@@ -260,7 +260,7 @@ ex ncmul::coeff(const ex & s, int n) const
 		}
 	}
 
-	if (coeff_found) return (new ncmul(coeffseq,1))->setflag(status_flags::dynallocated);
+	if (coeff_found) return (new ncmul(coeffseq,true))->setflag(status_flags::dynallocated);
 	
 	return _ex0;
 }
@@ -311,7 +311,7 @@ ex ncmul::eval(int level) const
 	//                      ncmul(ncmul(x1,x2,...),X,ncmul(y1,y2,...)
 	//                      (X noncommutative_composite)
 
-	if ((level==1) && (flags & status_flags::evaluated)) {
+	if ((level==1) && ((flags & status_flags::evaluated) != 0u)) {
 		return *this;
 	}
 
@@ -379,7 +379,7 @@ ex ncmul::eval(int level) const
 			else
 				noncommutativeseq.push_back(assocseq[ii]);
 		}
-		commutativeseq.push_back((new ncmul(noncommutativeseq,1))->setflag(status_flags::dynallocated));
+		commutativeseq.push_back((new ncmul(noncommutativeseq,true))->setflag(status_flags::dynallocated));
 		return (new mul(commutativeseq))->setflag(status_flags::dynallocated);
 	}
 		

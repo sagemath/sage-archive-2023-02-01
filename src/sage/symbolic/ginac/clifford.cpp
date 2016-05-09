@@ -397,7 +397,7 @@ bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other
 
 		// gamma~mu Sodd gamma.mu = -2 Sodd_R
 		// (Chisholm identity in 4 dimensions)
-		} else if (!((other - self) & 1) && dim.is_equal(4)) {
+		} else if ((((other - self) & 1) == 0) && dim.is_equal(4)) {
 			if (std::find_if(self + 1, other, is_not_a_clifford()) != other)
 				return false;
 
@@ -409,7 +409,7 @@ bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other
 		// gamma~mu Sodd gamma~alpha gamma.mu = 2 gamma~alpha Sodd + 2 Sodd_R gamma~alpha
 		// (commutate contracted indices towards each other, then use
 		// Chisholm identity in 4 dimensions)
-		} else if (((other - self) & 1) && dim.is_equal(4)) {
+		} else if ((((other - self) & 1) != 0) && dim.is_equal(4)) {
 			if (std::find_if(self + 1, other, is_not_a_clifford()) != other)
 				return false;
 
@@ -1055,7 +1055,7 @@ ex canonicalize_clifford(const ex & e_)
 						base_and_index(it[1], b2, i2);
 						// for Clifford algebras (commutator_sign == -1) metric should be symmetrised
 						it[0] = (ex_to<clifford>(save0).get_metric(i1, i2, ex_to<clifford>(save0).get_commutator_sign() == -1) * b1 * b2).simplify_indexed();
-						it[1] = v.size() ? _ex2 * dirac_ONE(ex_to<clifford>(save0).get_representation_label()) : _ex2;
+						it[1] = v.size() != 0u ? _ex2 * dirac_ONE(ex_to<clifford>(save0).get_representation_label()) : _ex2;
 						ex sum = ncmul(v);
 						it[0] = save1;
 						it[1] = save0;
@@ -1091,8 +1091,8 @@ ex remove_dirac_ONE(const ex & e, unsigned char rl, unsigned options)
 	pointer_to_map_function_2args<unsigned char, unsigned> fcn(remove_dirac_ONE, rl, options | 1);
 	bool need_reevaluation = false;
 	ex e1 = e;
-	if (! (options & 1) )  { // is not a child
-		if (options & 2)
+	if ((options & 1) == 0u )  { // is not a child
+		if ((options & 2) != 0u)
 			e1 = expand_dummy_sum(e, true);
 		e1 = canonicalize_clifford(e1);
 	}
@@ -1104,7 +1104,7 @@ ex remove_dirac_ONE(const ex & e, unsigned char rl, unsigned options)
 			throw(std::invalid_argument("remove_dirac_ONE(): expression is a non-scalar Clifford number!"));
 	} else if (is_a<add>(e1) || is_a<ncmul>(e1) || is_a<mul>(e1)  
 			   || is_a<matrix>(e1) || e1.info(info_flags::list)) {
-		if (options & 3) // is a child or was already expanded
+		if ((options & 3) != 0u) // is a child or was already expanded
 			return e1.map(fcn);
 		else
 			try {
@@ -1113,7 +1113,7 @@ ex remove_dirac_ONE(const ex & e, unsigned char rl, unsigned options)
 				need_reevaluation = true;
 			}
 	} else if (is_a<power>(e1)) {
-		if (options & 3) // is a child or was already expanded
+		if ((options & 3) != 0u) // is a child or was already expanded
 			return pow(remove_dirac_ONE(e1.op(0), rl, options | 1), e1.op(1));
 		else
 			try {

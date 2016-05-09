@@ -207,7 +207,7 @@ ex & matrix::let_op(size_t i)
 ex matrix::eval(int level) const
 {
 	// check if we have to do anything at all
-	if ((level==1)&&(flags & status_flags::evaluated))
+	if ((level==1)&&((flags & status_flags::evaluated) != 0u))
 		return *this;
 	
 	// emergency break
@@ -921,7 +921,7 @@ ex matrix::charpoly(const ex & lambda) const
 			c = B.trace() / ex(i+1);
 			poly -= c*power(lambda, row-i-1);
 		}
-		if (row%2)
+		if ((row%2) != 0u)
 			return -poly;
 		else
 			return poly;
@@ -1096,7 +1096,7 @@ unsigned matrix::rank() const
 	to_eliminate.fraction_free_elimination();
 
 	unsigned r = row*col;  // index of last non-zero element
-	while (r--) {
+	while ((r--) != 0u) {
 		if (!to_eliminate.m[r].is_zero())
 			return 1+r/col;
 	}
@@ -1198,7 +1198,7 @@ ex matrix::determinant_minor() const
 					if (i!=r)
 						Mkey.push_back(Pkey[i]);
 				// Fetch the minors and compute the new determinant
-				if (r%2)
+				if ((r%2) != 0u)
 					det -= m[Pkey[r]*n+c]*A[Mkey];
 				else
 					det += m[Pkey[r]*n+c]*A[Mkey];
@@ -1217,7 +1217,7 @@ ex matrix::determinant_minor() const
 			if (fc<n-c && fc>0)
 				for (unsigned j=fc; j<n-c; ++j)
 					Pkey[j] = Pkey[j-1]+1;
-		} while(fc);
+		} while(fc != 0u);
 		// next column, so change the role of A and B:
 		A.swap(B);
 		B.clear();
@@ -1440,8 +1440,8 @@ int matrix::fraction_free_elimination(const bool det)
 					              tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
 					bool check = divide(dividend_n, divisor_n,
 					                    tmp_n.m[r2*n+c], true);
-					check &= divide(dividend_d, divisor_d,
-					                tmp_d.m[r2*n+c], true);
+					check &= static_cast<int>(divide(dividend_d, divisor_d,
+					                tmp_d.m[r2*n+c], true));
 					GINAC_ASSERT(check);
 				}
 				// fill up left hand side with zeros

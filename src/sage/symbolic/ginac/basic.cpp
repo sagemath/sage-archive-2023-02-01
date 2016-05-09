@@ -149,14 +149,14 @@ next_context:
 
 		// Method not found, try parent print_context class
 		const print_context_class_info * parent_pc_info = pc_info->get_parent();
-		if (parent_pc_info) {
+		if (parent_pc_info != nullptr) {
 			pc_info = parent_pc_info;
 			goto next_context;
 		}
 
 		// Method still not found, try parent class
 		const registered_class_info * parent_reg_info = reg_info->get_parent();
-		if (parent_reg_info) {
+		if (parent_reg_info != nullptr) {
 			reg_info = parent_reg_info;
 			pc_info = &c.get_class_info();
 			goto next_class;
@@ -187,7 +187,7 @@ void basic::do_print_tree(const print_tree & c, unsigned level) const
 {
 	c.s << std::string(level, ' ') << class_name() << " @" << this
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec;
-	if (nops())
+	if (nops() != 0u)
 		c.s << ", nops=" << nops();
 	c.s << std::endl;
 	for (size_t i=0; i<nops(); ++i)
@@ -319,7 +319,7 @@ ex basic::map(map_function & f) const
 		}
 	}
 
-	if (copy) {
+	if (copy != nullptr) {
 		copy->setflag(status_flags::dynallocated);
 		copy->clearflag(status_flags::hash_calculated | status_flags::expanded);
 		return *copy;
@@ -599,7 +599,7 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 /** Helper function for subs(). Does not recurse into subexpressions. */
 ex basic::subs_one_level(const exmap & m, unsigned options) const
 {
-	if (options & subs_options::no_pattern) {
+	if ((options & subs_options::no_pattern) != 0u) {
 		const auto& it = m.find(*this);
 		return (it != m.end())? it->second : *this;
 	} else {
@@ -618,7 +618,7 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
 ex basic::subs(const exmap & m, unsigned options) const
 {
 	size_t num = nops();
-	if (num) {
+	if (num != 0u) {
 
 		// Substitute in subexpressions
 		for (size_t i=0; i<num; i++) {
@@ -662,7 +662,7 @@ ex basic::diff(const symbol & s, unsigned nth) const
 		return ex(*this);
 	
 	// evaluate unevaluated *this before differentiating
-	if (!(flags & status_flags::evaluated))
+	if ((flags & status_flags::evaluated) == 0u)
 		return ex(*this).diff(s, nth);
 	
 	ex ndiff = this->derivative(s);
@@ -785,7 +785,7 @@ long basic::calchash() const
 	}
 
 	// store calculated hash value only if object is already evaluated
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

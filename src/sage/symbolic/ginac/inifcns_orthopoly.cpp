@@ -140,9 +140,9 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 
 	unsigned long nn = numn.to_long();
 	numeric p = t / (numeric(nn/2).factorial());
-	if (nn%2)
+	if ((nn%2) != 0u)
 		p *= *_num2_p;
-	if (nn&2)
+	if ((nn&2) != 0u)
 		p = -p;
 
 	for (unsigned long k=0; k < nn-nn/2; k++) {
@@ -152,7 +152,7 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 
 	p *= denom.power(nn/2);
         ex sum = _ex0;
-	if (nn%2)
+	if ((nn%2) != 0u)
 		sum += x*p;
 	else
 		sum += p;

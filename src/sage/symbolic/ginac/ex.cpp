@@ -75,7 +75,7 @@ void ex::dbgprinttree() const
 
 ex ex::expand(unsigned options) const
 {
-	if (options == 0 && (bp->flags & status_flags::expanded)) // The "expanded" flag only covers the standard options; someone might want to re-expand with different options
+	if (options == 0 && ((bp->flags & status_flags::expanded) != 0u)) // The "expanded" flag only covers the standard options; someone might want to re-expand with different options
 		return *this;
 	else
 		return bp->expand(options);
@@ -88,7 +88,7 @@ ex ex::expand(unsigned options) const
  *  @return partial derivative as a new expression */
 ex ex::diff(const symbol & s, unsigned nth) const
 {
-	if (!nth)
+	if (nth == 0u)
 		return *this;
 	else
 		return bp->diff(s, nth);
@@ -136,7 +136,7 @@ ex ex::subs(const lst & ls, const lst & lr, unsigned options) const
 		if (is_exactly_a<mul>(*its) || is_exactly_a<power>(*its))
 			options |= subs_options::pattern_is_product;
 	}
-	if (!(options & subs_options::pattern_is_product))
+	if ((options & subs_options::pattern_is_product) == 0u)
 		options |= subs_options::pattern_is_not_product;
 
 	return bp->subs(m, options);
@@ -179,7 +179,7 @@ ex ex::subs(const ex & e, unsigned options) const
 			if (is_exactly_a<mul>(s) || is_exactly_a<power>(s))
 				options |= subs_options::pattern_is_product;
 		}
-		if (!(options & subs_options::pattern_is_product))
+		if ((options & subs_options::pattern_is_product) == 0u)
 			options |= subs_options::pattern_is_not_product;
 
 		return bp->subs(m, options);
@@ -389,7 +389,7 @@ void ex::makewriteable()
  *  @see ex::compare(const ex &) */
 void ex::share(const ex & other) const
 {
-	if ((bp->flags | other.bp->flags) & status_flags::not_shareable)
+	if (((bp->flags | other.bp->flags) & status_flags::not_shareable) != 0u)
 		return;
 
 	if (bp->get_refcount() <= other.bp->get_refcount())
@@ -403,7 +403,7 @@ void ex::share(const ex & other) const
  *  @see ex::ex(const basic &) */
 ptr<basic> ex::construct_from_basic(const basic & other)
 {
-	if (!(other.flags & status_flags::evaluated)) {
+	if ((other.flags & status_flags::evaluated) == 0u) {
 
 		// The object is not yet evaluated, so call eval() to evaluate
 		// the top level. This will return either
@@ -430,7 +430,7 @@ ptr<basic> ex::construct_from_basic(const basic & other)
 		// it means that eval() hit case b) above. The original object is
 		// no longer needed (it evaluated into something different), so we
 		// delete it (because nobody else will).
-		if ((other.get_refcount() == 0) && (other.flags & status_flags::dynallocated))
+		if ((other.get_refcount() == 0) && ((other.flags & status_flags::dynallocated) != 0u))
 			delete &other; // yes, you can apply delete to a const pointer
 
 		// We can't return a basic& here because the tmpex is destroyed as
@@ -441,7 +441,7 @@ ptr<basic> ex::construct_from_basic(const basic & other)
 	} else {
 
 		// The easy case: making an "ex" out of an evaluated object.
-		if (other.flags & status_flags::dynallocated) {
+		if ((other.flags & status_flags::dynallocated) != 0u) {
 
 			// The object is already heap-allocated, so we can just make
 			// another reference to it.

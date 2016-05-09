@@ -114,7 +114,7 @@ void fderivative::do_print(const print_context & c, unsigned /*unused*/) const
 	} else {
 		sout = py_funcs.py_print_fderivative(serial, params, args);
 	}
-	if (!sout) { 
+	if (sout == nullptr) { 
 		throw(std::runtime_error("fderivative::do_print(): python print function raised exception"));
 	}
 	c.s<<*sout;
@@ -263,7 +263,7 @@ long fderivative::calchash() const
 	}
 
 	res=h^res;
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = res;
 	}

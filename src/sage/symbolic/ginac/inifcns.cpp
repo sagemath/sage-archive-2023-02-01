@@ -364,7 +364,7 @@ static ex step_series(const ex & arg,
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (is_exactly_a<numeric>(arg_pt)
 	    && ex_to<numeric>(arg_pt).real().is_zero()
-	    && !(options & series_options::suppress_branchcut))
+	    && ((options & series_options::suppress_branchcut) == 0u))
 		throw (std::domain_error("step_series(): on imaginary axis"));
 	
 	epvector seq;
@@ -443,7 +443,7 @@ static ex csgn_series(const ex & arg,
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (arg_pt.info(info_flags::numeric)
 	    && ex_to<numeric>(arg_pt).real().is_zero()
-	    && !(options & series_options::suppress_branchcut))
+	    && ((options & series_options::suppress_branchcut) == 0u))
 		throw (std::domain_error("csgn_series(): on imaginary axis"));
 	
 	epvector seq;
@@ -691,7 +691,7 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			return ser.series(rel, order);
 		}
 		// third special case: x real, >=1 (branch cut)
-		if (!(options & series_options::suppress_branchcut) &&
+		if (((options & series_options::suppress_branchcut) == 0u) &&
 			ex_to<numeric>(x_pt).is_real() && ex_to<numeric>(x_pt)>1) {
 			// method:
 			// This is the branch cut: assemble the primitive series manually
@@ -1123,7 +1123,7 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2,
 			// Restore, and try again with the other side instead!
 			xx[side] = xxprev;
 			fx[side] = fxprev;
-			side = !side;
+			side = static_cast<int>(side == 0);
 			xxprev = xx[side];
 			fxprev = fx[side];
 			xx[side] += ex_to<numeric>(ff.subs(x==xx[side]).evalf(0,
@@ -1131,7 +1131,7 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2,
 			fx[side] = ex_to<numeric>(f.subs(x==xx[side]).evalf(0,
 						parent));
 		}
-		if ((fx[side]<0 && fx[!side]<0) || (fx[side]>0 && fx[!side]>0)) {
+		if ((fx[side]<0 && fx[side == 0]<0) || (fx[side]>0 && fx[side == 0]>0)) {
 			// Oops, the root isn't bracketed any more.
 			// Restore, and perform a bisection!
 			xx[side] = xxprev;
@@ -1160,7 +1160,7 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2,
 				return xxmid;
 			}
 			if ((fxmid<0 && fx[side]>0) || (fxmid>0 && fx[side]<0)) {
-				side = !side;
+				side = static_cast<int>(side == 0);
 			}
 			xxprev = xx[side];
 			fxprev = fx[side];

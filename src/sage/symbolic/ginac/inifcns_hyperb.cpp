@@ -944,7 +944,7 @@ static ex atanh_series(const ex &arg,
 	if (arg_pt.is_equal(_ex1) || arg_pt.is_equal(_ex_1))
 		return ((log(_ex1+arg)-log(_ex1-arg))*_ex1_2).series(rel, order, options);
 	// ...and the branch cuts (the discontinuity at the cut being just I*Pi)
-	if (!(options & series_options::suppress_branchcut)) {
+	if ((options & series_options::suppress_branchcut) == 0u) {
  		// method:
  		// This is the branch cut: assemble the primitive series manually and
  		// then add the corresponding complex step function.

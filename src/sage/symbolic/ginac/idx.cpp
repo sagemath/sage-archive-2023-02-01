@@ -142,7 +142,7 @@ void idx::print_index(const print_context & c, unsigned level) const
 	value.print(c);
 	if (need_parens)
 		c.s << ")";
-	if (c.options & print_options::print_index_dimensions) {
+	if ((c.options & print_options::print_index_dimensions) != 0u) {
 		c.s << "[";
 		dim.print(c);
 		c.s << "]";
@@ -276,7 +276,7 @@ int idx::compare_same_type(const basic & other) const
 	const idx &o = static_cast<const idx &>(other);
 
 	int cmpval = value.compare(o.value);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	return dim.compare(o.dim);
 }
@@ -295,7 +295,7 @@ int varidx::compare_same_type(const basic & other) const
 	const varidx &o = static_cast<const varidx &>(other);
 
 	int cmpval = inherited::compare_same_type(other);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 
 	// Check variance last so dummy indices will end up next to each other
@@ -326,7 +326,7 @@ int spinidx::compare_same_type(const basic & other) const
 		return dotted ? -1 : 1;
 
 	int cmpval = inherited::compare_same_type(other);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 
 	return 0;
@@ -357,7 +357,7 @@ long idx::calchash() const
 	v ^= value.gethash();
 
 	// Store calculated hash value only if object is already evaluated
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}
@@ -379,7 +379,7 @@ ex idx::subs(const exmap & m, unsigned options) const
 	if (it != m.end()) {
 
 		// Substitution index->index
-		if (is_a<idx>(it->second) || (options & subs_options::really_subs_idx))
+		if (is_a<idx>(it->second) || ((options & subs_options::really_subs_idx) != 0u))
 			return it->second;
 
 		// Otherwise substitute value

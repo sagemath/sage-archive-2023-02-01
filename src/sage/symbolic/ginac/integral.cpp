@@ -131,20 +131,20 @@ int integral::compare_same_type(const basic & other) const
 	const integral &o = static_cast<const integral &>(other);
 
 	int cmpval = x.compare(o.x);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	cmpval = a.compare(o.a);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	cmpval = b.compare(o.b);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	return f.compare(o.f);
 }
 
 ex integral::eval(int level) const
 {
-	if ((level==1) && (flags & status_flags::evaluated))
+	if ((level==1) && ((flags & status_flags::evaluated) != 0u))
 		return *this;
 	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
@@ -383,7 +383,7 @@ ex & integral::let_op(size_t i)
 
 ex integral::expand(unsigned options) const
 {
-	if (options==0 && (flags & status_flags::expanded))
+	if (options==0 && ((flags & status_flags::expanded) != 0u))
 		return *this;
 
 	ex newa = a.expand(options);
@@ -457,7 +457,7 @@ ex integral::conjugate() const
 
 ex integral::eval_integ() const
 {
-	if (!(flags & status_flags::expanded))
+	if ((flags & status_flags::expanded) == 0u)
 		return this->expand().eval_integ();
 	
 	if (f==x)

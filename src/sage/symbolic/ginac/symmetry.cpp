@@ -176,7 +176,7 @@ int symmetry::compare_same_type(const basic & other) const
 	for (size_t i=0; i<children.size(); ++i) {
 		int cmpval = ex_to<symmetry>(children[i])
 			.compare_same_type(ex_to<symmetry>(othersymm.children[i]));
-		if (cmpval)
+		if (cmpval != 0)
 			return cmpval;
 	}
 
@@ -199,7 +199,7 @@ long symmetry::calchash() const
 		}
 	}
 
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

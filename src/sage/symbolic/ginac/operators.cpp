@@ -311,12 +311,12 @@ static void set_print_context(std::ios_base & s, const print_context & c)
 {
 	int i = my_ios_index();
 	long flags = s.iword(i);
-	if (!(flags & callback_registered)) {
+	if ((flags & callback_registered) == 0) {
 		s.register_callback(my_ios_callback, i);
 		s.iword(i) = flags | callback_registered;
 	}
 	print_context *p = static_cast<print_context *>(s.pword(i));
-	unsigned options = p ? p->options : c.options;
+	unsigned options = p != nullptr ? p->options : c.options;
 	delete p;
 	p = c.duplicate();
 	p->options = options;
@@ -327,7 +327,7 @@ static void set_print_context(std::ios_base & s, const print_context & c)
 static inline unsigned get_print_options(std::ios_base & s)
 {
 	print_context *p = get_print_context(s);
-	return p ? p->options : 0;
+	return p != nullptr ? p->options : 0;
 }
 
 // Set options for print_context associated with stream

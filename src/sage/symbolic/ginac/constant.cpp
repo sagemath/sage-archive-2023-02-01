@@ -98,7 +98,7 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 			return Euler;
 		else {
 			ans = py_funcs.py_get_constant(s.c_str());
-			if (PyErr_Occurred()) {
+			if (PyErr_Occurred() != nullptr) {
 				throw std::runtime_error("error while unarchiving constant");
 			}
 		}

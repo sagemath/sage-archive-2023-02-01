@@ -279,7 +279,7 @@ bool symbol::is_polynomial(const ex & var) const
  *  @see ex::diff */
 ex symbol::derivative(const symbol & s) const
 {
-	if (compare_same_type(s))
+	if (compare_same_type(s) != 0)
 		return _ex0;
 	else
 		return _ex1;

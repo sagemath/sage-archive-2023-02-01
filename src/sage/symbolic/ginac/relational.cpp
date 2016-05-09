@@ -183,7 +183,7 @@ bool relational::info(unsigned inf) const
 {
 	switch (inf) {
 		case info_flags::relation:
-			return 1;
+			return true;
 		case info_flags::relation_equal:
 			return o==equal;
 		case info_flags::relation_not_equal:
@@ -197,7 +197,7 @@ bool relational::info(unsigned inf) const
 		case info_flags::relation_greater_or_equal:
 			return o==greater_or_equal;
 	}
-	return 0;
+	return false;
 }
 
 size_t relational::nops() const
@@ -337,7 +337,7 @@ long relational::calchash() const
 	v ^= lhash;
 
 	// store calculated hash value only if object is already evaluated
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

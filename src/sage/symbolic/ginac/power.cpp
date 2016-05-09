@@ -226,7 +226,7 @@ static void print_sym_pow(const print_context & c, const symbol &x, int exp)
 		x.print(c);
 		c.s << "*";
 		x.print(c);
-	} else if (exp & 1) {
+	} else if ((exp & 1) != 0) {
 		x.print(c);
 		c.s << "*";
 		print_sym_pow(c, x, exp-1);
@@ -320,7 +320,7 @@ bool power::info(unsigned inf) const
 			return !exponent.info(info_flags::integer) ||
 			       basis.info(inf);
 		case info_flags::expanded:
-			return (flags & status_flags::expanded);
+			return (flags & status_flags::expanded) != 0u;
 		case info_flags::positive:
                         if (exponent.info(info_flags::even))
                                 return basis.info(info_flags::real);
@@ -333,9 +333,9 @@ bool power::info(unsigned inf) const
 		case info_flags::real:
 			return basis.info(inf) && exponent.info(info_flags::integer);
 		case info_flags::has_indices: {
-			if (flags & status_flags::has_indices)
+			if ((flags & status_flags::has_indices) != 0u)
 				return true;
-			else if (flags & status_flags::has_no_indices)
+			else if ((flags & status_flags::has_no_indices) != 0u)
 				return false;
 			else if (basis.info(info_flags::has_indices)) {
 				setflag(status_flags::has_indices);
@@ -465,7 +465,7 @@ ex power::coeff(const ex & s, int n) const
  *  @param level cut-off in recursive evaluation */
 ex power::eval(int level) const
 {
-	if ((level==1) && (flags & status_flags::evaluated))
+	if ((level==1) && ((flags & status_flags::evaluated) != 0u))
 		return *this;
 	else if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
@@ -601,12 +601,12 @@ ex power::eval(int level) const
 						PyObject* basis_py = num_basis.to_pyobject();
 						PyObject* exponent_py = num_exponent.to_pyobject();
 						PyObject* restuple = py_funcs.py_rational_power_parts(basis_py, exponent_py);
-						if(!restuple) {
+						if(restuple == nullptr) {
 							throw(std::runtime_error("power::eval, error in rational_power_parts"));
 						}
 						PyObject *ppower = PyTuple_GetItem(restuple,0);
 						PyObject *newbasis = PyTuple_GetItem(restuple,1);
-						const bool ppower_equals_one = PyObject_IsTrue(PyTuple_GetItem(restuple, 2));
+						const bool ppower_equals_one = PyObject_IsTrue(PyTuple_GetItem(restuple, 2)) != 0;
 						ex result = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
 						if (not ppower_equals_one)
 							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
@@ -784,7 +784,7 @@ ex power::evalm() const
 
 bool power::has(const ex & other, unsigned options) const
 {
-	if (!(options & has_options::algebraic))
+	if ((options & has_options::algebraic) == 0u)
 		return basic::has(other, options);
 	if (!is_a<power>(other))
 		return basic::has(other, options);
@@ -819,7 +819,7 @@ ex power::subs(const exmap & m, unsigned options) const
 	 || !are_ex_trivially_equal(exponent, subsed_exponent)) 
 		return power(subsed_basis, subsed_exponent).subs_one_level(m, options);
 
-	if (!(options & subs_options::algebraic))
+	if ((options & subs_options::algebraic) == 0u)
 		return subs_one_level(m, options);
 
         for (const auto & elem : m) {
@@ -953,7 +953,7 @@ int power::compare_same_type(const basic & other) const
 	const power &o = static_cast<const power &>(other);
 
 	int cmpval = basis.compare(o.basis);
-	if (cmpval)
+	if (cmpval != 0)
 		return cmpval;
 	else
 		return exponent.compare(o.exponent);
@@ -1246,11 +1246,11 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 	}
 
 	// do not bother to rename indices if there are no any.
-	if ((!(options & expand_options::expand_rename_idx)) 
+	if (((options & expand_options::expand_rename_idx) == 0u) 
 			&& m.info(info_flags::has_indices))
 		options |= expand_options::expand_rename_idx;
 	// Leave it to multiplication since dummy indices have to be renamed
-	if ((options & expand_options::expand_rename_idx) &&
+	if (((options & expand_options::expand_rename_idx) != 0u) &&
 		(get_all_dummy_indices(m).size() > 0) && n.is_positive()) {
 		ex result = m;
 		exvector va = get_all_dummy_indices(m);

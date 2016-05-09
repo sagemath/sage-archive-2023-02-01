@@ -1391,7 +1391,7 @@ static ex atan_series(const ex &arg,
 	// care for the poles, using the defining formula for atan()...
 	if (arg_pt.is_equal(I) || arg_pt.is_equal(-I))
 		return ((log(1+I*arg)-log(1-I*arg))/(2*I)).series(rel, order, options);
-	if (!(options & series_options::suppress_branchcut)) {
+	if ((options & series_options::suppress_branchcut) == 0u) {
 		// method:
 		// This is the branch cut: assemble the primitive series manually and
 		// then add the corresponding complex step function.

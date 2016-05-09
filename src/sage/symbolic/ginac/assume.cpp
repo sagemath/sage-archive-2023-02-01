@@ -28,11 +28,11 @@ void assume(ex rel) {
 }
 
 void assume(ex x, char* flag_desc) {
-        if (!strcmp(flag_desc, "integer"))
+        if (strcmp(flag_desc, "integer") == 0)
                 x.set_domain(domain::integer);
-        else if (!strcmp(flag_desc, "real"))
+        else if (strcmp(flag_desc, "real") == 0)
                 x.set_domain(domain::real);
-        else if (!strcmp(flag_desc, "complex"))
+        else if (strcmp(flag_desc, "complex") == 0)
                 x.set_domain(domain::complex);
 }
 

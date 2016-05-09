@@ -364,7 +364,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			print_latex tcontext(tstream, c.options);
 			print_exvector(others, tcontext, sep);
 			print_overall_coeff(overall_coeff, c,
-					std::isdigit(tstream.peek()) ?
+					std::isdigit(tstream.peek()) != 0 ?
 						" \\cdot " : " \\, ",
 					latex_tags);
 			c.s<<tstream.str();
@@ -665,7 +665,7 @@ ex mul::eval(int level) const
 	}
 #endif // def DO_GINAC_ASSERT
 	
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		GINAC_ASSERT(seq.size()>0);
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_integer_one());
 		return *this;
@@ -718,7 +718,7 @@ ex mul::eval(int level) const
                         return result.overall_coeff;
                 else
                         return x;
-	} else if ((seq_size >= 2) && (! (flags & status_flags::expanded))) {
+	} else if ((seq_size >= 2) && ((flags & status_flags::expanded) == 0u)) {
 		// Strip the content and the unit part from each term. Thus
 		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)2
 
@@ -1039,7 +1039,7 @@ bool algebraic_match_mul_with_mul(const mul &e, const ex &pat, lst &repls,
 
 bool mul::has(const ex & pattern, unsigned options) const
 {
-	if(!(options&has_options::algebraic))
+	if((options&has_options::algebraic) == 0u)
 		return basic::has(pattern,options);
 	if(is_exactly_a<mul>(pattern)) {
 		lst repls;
@@ -1172,7 +1172,7 @@ ex mul::derivative(const symbol & s) const
  Beware that symbolic exponents are wrapped inside pow objects with 1 as coeff. */
 double mul::total_degree() const
 {
-	if (flags & status_flags::tdegree_calculated) {
+	if ((flags & status_flags::tdegree_calculated) != 0u) {
 		return tdegree;
 	}
 	numeric tdeg = calc_total_degree();
@@ -1374,15 +1374,15 @@ ex mul::expand(unsigned options) const
         }
 
 	// do not rename indices if the object has no indices at all
-	if ((!(options & expand_options::expand_rename_idx)) && 
+	if (((options & expand_options::expand_rename_idx) == 0u) && 
 			this->info(info_flags::has_indices))
 		options |= expand_options::expand_rename_idx;
 
-	const bool skip_idx_rename = !(options & expand_options::expand_rename_idx);
+	const bool skip_idx_rename = (options & expand_options::expand_rename_idx) == 0u;
 
 	// First, expand the children
 	std::unique_ptr<epvector> expanded_seqp = expandchildren(options);
-	const epvector & expanded_seq = (expanded_seqp.get() ? *expanded_seqp : seq);
+	const epvector & expanded_seq = (expanded_seqp.get() != nullptr ? *expanded_seqp : seq);
 
 	// Now, look for all the factors that are sums and multiply each one out
 	// with the next one that is found while collecting the factors which are

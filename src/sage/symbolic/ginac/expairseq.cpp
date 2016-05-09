@@ -270,11 +270,11 @@ bool expairseq::info(unsigned inf) const
 {
 	switch(inf) {
 		case info_flags::expanded:
-			return (flags & status_flags::expanded);
+			return (flags & status_flags::expanded) != 0u;
 		case info_flags::has_indices: {
-			if (flags & status_flags::has_indices)
+			if ((flags & status_flags::has_indices) != 0u)
 				return true;
-			else if (flags & status_flags::has_no_indices)
+			else if ((flags & status_flags::has_no_indices) != 0u)
 				return false;
 			for (const auto & elem : seq) {
 				if (elem.rest.info(info_flags::has_indices)) {
@@ -340,7 +340,7 @@ ex expairseq::map(map_function &f) const
 /** Perform coefficient-wise automatic term rewriting rules in this class. */
 ex expairseq::eval(int level) const
 {
-	if ((level==1) && (flags &status_flags::evaluated))
+	if ((level==1) && ((flags &status_flags::evaluated) != 0u))
 		return *this;
 	
 	std::unique_ptr<epvector> vp = evalchildren(level);
@@ -354,7 +354,7 @@ epvector* conjugateepvector(const epvector& epv)
 {
 	epvector *newepv = nullptr;
 	for (const auto & elem : epv) {
-		if (newepv) {
+		if (newepv != nullptr) {
 			newepv->push_back(elem.conjugate());
 			continue;
 		}
@@ -489,9 +489,9 @@ found:		;
 ex expairseq::subs(const exmap & m, unsigned options) const
 {
 	std::unique_ptr<epvector> vp = subschildren(m, options);
-	if (vp.get())
+	if (vp.get() != nullptr)
 		return ex_to<basic>(thisexpairseq(std::move(vp), overall_coeff, (options & subs_options::no_index_renaming) == 0));
-	else if ((options & subs_options::algebraic) && is_exactly_a<mul>(*this))
+	else if (((options & subs_options::algebraic) != 0u) && is_exactly_a<mul>(*this))
 		return static_cast<const mul *>(this)->algebraic_subs_mul(m, options);
 	else
 		return subs_one_level(m, options);
@@ -657,7 +657,7 @@ long expairseq::calchash() const
 	v ^= overall_coeff.gethash();
 
 	// store calculated hash value only if object is already evaluated
-	if (flags &status_flags::evaluated) {
+	if ((flags &status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}
@@ -668,7 +668,7 @@ long expairseq::calchash() const
 ex expairseq::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);
-	if (vp.get())
+	if (vp.get() != nullptr)
 		return thisexpairseq(std::move(vp), overall_coeff);
 	else {
 		// The terms have not changed, so it is safe to declare this expanded
@@ -1557,7 +1557,7 @@ void expairseq::combine_same_terms()
 bool expairseq::is_canonical() const
 {
 	if (seq.size() <= 1)
-		return 1;
+		return true;
 	
 #if EXPAIRSEQ_USE_HASHTAB
 	if (hashtabsize > 0) return 1; // not canoncalized
@@ -1582,12 +1582,12 @@ bool expairseq::is_canonical() const
 					std::clog << "pair2:" << std::endl;
 					it->rest.print(print_tree(std::clog));
 					it->coeff.print(print_tree(std::clog));
-					return 0;
+					return false;
 				}
 			}
 		}
 	}
-	return 1;
+	return true;
 }
 
 
@@ -1699,7 +1699,7 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 	// When any of the objects to be substituted is a product or power
 	// we have to recombine the pairs because the numeric coefficients may
 	// be part of the search pattern.
-	if (!(options & (subs_options::pattern_is_product | subs_options::pattern_is_not_product))) {
+	if ((options & (subs_options::pattern_is_product | subs_options::pattern_is_not_product)) == 0u) {
 
 		// Search the list of substitutions and cache our findings
 		for (const auto & elem : m) {
@@ -1708,11 +1708,11 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 				break;
 			}
 		}
-		if (!(options & subs_options::pattern_is_product))
+		if ((options & subs_options::pattern_is_product) == 0u)
 			options |= subs_options::pattern_is_not_product;
 	}
 
-	if (options & subs_options::pattern_is_product) {
+	if ((options & subs_options::pattern_is_product) != 0u) {
 
 		// Substitute in the recombined pairs
 		auto cit = seq.begin(), last = seq.end();

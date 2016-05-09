@@ -147,7 +147,7 @@ const GiNaC::numeric& to_numeric(GiNaC::ex& e)
 //////////////////////////////////////////////////////////////
 
 void py_error(const char* /*unused*/) {
-        if (PyErr_Occurred()) {
+        if (PyErr_Occurred() != nullptr) {
                 throw std::runtime_error("");
         }
 }
@@ -222,21 +222,21 @@ void ginac_pyinit_I(PyObject* z) {
         GiNaC::I = z; // I is a global constant defined below.
 
         PyObject* m = PyImport_ImportModule("sage.rings.real_mpfr");
-        if (!m)
+        if (m == nullptr)
                 py_error("Error importing sage.rings.real_mpfr");
         PyObject* obj = PyObject_GetAttrString(m, "RR");
-        if (!obj)
+        if (obj == nullptr)
                 py_error("Error getting RR attribute");
         Py_INCREF(obj);
         GiNaC::RR = obj;
         m = PyImport_ImportModule("sage.rings.complex_field");
-        if (!m)
+        if (m == nullptr)
                 py_error("Error importing sage.complex_field");
         obj = PyObject_GetAttrString(m, "ComplexField");
-        if (!obj)
+        if (obj == nullptr)
                 py_error("Error getting ComplexField attribute");
         obj = PyObject_CallObject(obj, NULL);
-        if (!obj)
+        if (obj == nullptr)
                 py_error("Error getting CC attribute");
         Py_INCREF(obj);
         GiNaC::CC = obj;
@@ -255,10 +255,10 @@ PyObject* Integer(const long int& x) {
 
         // Slow version since we can't call Cython-exported code yet.
         PyObject* m = PyImport_ImportModule("sage.rings.integer");
-        if (!m)
+        if (m == nullptr)
                 py_error("Error importing sage.rings.integer");
         PyObject* Integer = PyObject_GetAttrString(m, "Integer");
-        if (!Integer)
+        if (Integer == nullptr)
                 py_error("Error getting Integer attribute");
         PyObject* ans = PyObject_CallFunction(Integer, const_cast<char*> ("l"), x);
         Py_DECREF(m);
@@ -302,7 +302,7 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
                         // TODO: maybe program around Python's braindead L suffix?
                         // PyLong_Check(s.v._pyobject) 
                         o = PyObject_Repr(s.v._pyobject);
-                        if (!o) {
+                        if (o == nullptr) {
                                 PyErr_Clear();
                                 throw (std::runtime_error(
                                         "operator<<(ostream, numeric): exception printing python object"));
@@ -370,7 +370,7 @@ int numeric::compare_same_type(const numeric& right) const {
         int ret;
         switch (t) {
                 case DOUBLE:
-                        return (v._double < right.v._double) ? -1 : (v._double > right.v._double);
+                        return (v._double < right.v._double) ? -1 : static_cast<int>(v._double > right.v._double);
                 case MPZ:
                         ret = mpz_cmp(v._bigint, right.v._bigint);
                         if (ret > 0)
@@ -481,7 +481,7 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
 }
 
 numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
-        if (!o) py_error("Error");
+        if (o == nullptr) py_error("Error");
         if (not force_py) {
                 if (PyInt_Check(o)) {
                         t = MPZ;
@@ -493,7 +493,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         return;
                 }
                 if (initialized) {
-                        if (py_funcs.py_is_Integer(o)) {
+                        if (py_funcs.py_is_Integer(o) != 0) {
                                 t = MPZ;
                                 mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
                                 hash = _mpz_pythonhash(v._bigint);
@@ -501,7 +501,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                                 Py_DECREF(o);
                                 return;
                         }
-                        else if (py_funcs.py_is_Rational(o)) {
+                        else if (py_funcs.py_is_Rational(o) != 0) {
                                 t = MPQ;
                                 mpq_init(v._bigrat);
                                 mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
@@ -515,7 +515,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
 
         t = PYOBJECT;
         hash = (long)PyObject_Hash(o);
-        if (hash == -1 && PyErr_Occurred()) {
+        if (hash == -1 && (PyErr_Occurred() != nullptr)) {
             // error is thrown on first hash request
             PyErr_Clear();
             is_hashable = false;
@@ -578,7 +578,7 @@ numeric::numeric(mpq_t bigrat) : basic(&numeric::tinfo_static) {
  *
  *  @exception overflow_error (division by zero) */
 numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
-        if (!den)
+        if (den == 0)
                 throw std::overflow_error("numeric::div(): division by zero");
         if ((num%den) == 0) {
                 t = MPZ;
@@ -599,7 +599,7 @@ numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
 
 numeric::numeric(double d) : basic(&numeric::tinfo_static) {
         t = PYOBJECT;
-        if (!(v._pyobject = PyFloat_FromDouble(d)))
+        if ((v._pyobject = PyFloat_FromDouble(d)) == nullptr)
                 py_error("Error creating double");
         setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -655,11 +655,11 @@ inherited(n, sym_lst) {
                         // unpickle
                         v._pyobject = py_funcs.py_loads(arg);
                         Py_DECREF(arg);
-                        if (PyErr_Occurred()) {
+                        if (PyErr_Occurred() != nullptr) {
                                 throw (std::runtime_error("archive error: caught exception in py_loads"));
                         }
                         hash = (long)PyObject_Hash(v._pyobject);
-                        if (hash == -1 && PyErr_Occurred()) {
+                        if (hash == -1 && (PyErr_Occurred() != nullptr)) {
                             PyErr_Clear();
                             is_hashable = false;
                             }
@@ -697,7 +697,7 @@ void numeric::archive(archive_node &n) const {
                 }
                 case PYOBJECT:
                         tstr = py_funcs.py_dumps(v._pyobject);
-                        if (PyErr_Occurred()) {
+                        if (PyErr_Occurred() != nullptr) {
                                 throw (std::runtime_error("archive error: exception in py_dumps"));
                         }
                         break;
@@ -879,7 +879,7 @@ ex numeric::evalf(int /*level*/, PyObject* parent) const {
         PyObject *a = to_pyobject();
         PyObject *ans = py_funcs.py_float(a, parent);
         Py_DECREF(a);
-        if (!ans)
+        if (ans == nullptr)
                 throw (std::runtime_error("numeric::evalf(): error calling py_float()"));
 
         return ans;
@@ -1673,7 +1673,7 @@ bool numeric::operator!=(const numeric &right) const {
                 case MPQ:
                         return mpq_equal(v._bigrat, right.v._bigrat) ==0;
                 case PYOBJECT:
-                        return (!py_funcs.py_is_equal(v._pyobject, right.v._pyobject));
+                        return (py_funcs.py_is_equal(v._pyobject, right.v._pyobject) == 0);
                 default:
                         stub("invalid type: operator!= type not handled");
         }
@@ -1833,7 +1833,7 @@ long numeric::to_long() const {
                         return n;
                 case PYOBJECT:
                         n = PyInt_AsLong(v._pyobject);
-                        if (n == -1 && PyErr_Occurred()) {
+                        if (n == -1 && (PyErr_Occurred() != nullptr)) {
                                 PyErr_Print();
                                 py_error("Overfloat converting to long int");
                         }
@@ -1869,7 +1869,7 @@ PyObject* numeric::to_pyobject() const {
                         mpq_clear(bigrat);
                         return o;
                 case DOUBLE:
-                        if (!(o = PyFloat_FromDouble(v._double)))
+                        if ((o = PyFloat_FromDouble(v._double)) == nullptr)
                                 py_error("Error creating double");
                         return o;
                         //if (!(o = PyObject_CallFunction(pyfunc_Float, "d", x.v._double))) {
@@ -1902,7 +1902,7 @@ double numeric::to_double() const {
                         return mpq_get_d(v._bigrat);
                 case PYOBJECT:
                         d = PyFloat_AsDouble(v._pyobject);
-                        if (d == -1 && PyErr_Occurred())
+                        if (d == -1 && (PyErr_Occurred() != nullptr))
                                 py_error("Error converting to a double.");
                         return d;
                 default:
@@ -1924,7 +1924,7 @@ const numeric numeric::real() const {
                         return *this;
                 case PYOBJECT:
                         ans = py_funcs.py_real(v._pyobject);
-                        if (!ans) py_error("real_part");
+                        if (ans == nullptr) py_error("real_part");
                         return ans;
                 default:
                         std::cerr << "type = " << t << std::endl;
@@ -1939,7 +1939,7 @@ const numeric numeric::imag() const {
         verbose("imag_part(a)");
         PyObject *a = to_pyobject();
         PyObject *ans = py_funcs.py_imag(a);
-        if (!ans) py_error("imag_part");
+        if (ans == nullptr) py_error("imag_part");
         Py_DECREF(a);
         return ans;
 }
@@ -1965,7 +1965,7 @@ const numeric numeric::numer() const {
                         return bigint;
                 case PYOBJECT:
                         a = py_funcs.py_numer(v._pyobject);
-                        if (!a) py_error("numer");
+                        if (a == nullptr) py_error("numer");
                         ans = a;
                         break;
                 default:
@@ -1994,7 +1994,7 @@ const numeric numeric::denom() const {
                         return bigint;
                 case PYOBJECT:
                         a = py_funcs.py_denom(v._pyobject);
-                        if (!a) py_error("denom");
+                        if (a == nullptr) py_error("denom");
                         ans = a;
                         break;
 
@@ -2082,7 +2082,7 @@ const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
         PyObject *aa = to_pyobject();
         PyObject* nn = n.to_pyobject();
         PyObject *ans = py_funcs.py_li(aa, nn, parent);
-        if (!ans) py_error("error calling function");
+        if (ans == nullptr) py_error("error calling function");
         Py_DECREF(aa);
         Py_DECREF(nn);
         return ans;
@@ -2130,10 +2130,10 @@ const numeric numeric::binomial(const numeric &k) const {
         kobj = k.to_pyobject();
 
         PyObject* m = PyImport_ImportModule("sage.arith.misc");
-        if (!m)
+        if (m == nullptr)
                 py_error("Error importing arith.misc");
         PyObject* binfunc = PyObject_GetAttrString(m, "binomial");
-        if (!binfunc)
+        if (binfunc == nullptr)
                 py_error("Error getting binomial");
 
         PyObject* pyresult = PyObject_CallFunctionObjArgs(binfunc, nobj, kobj, NULL);
@@ -2141,7 +2141,7 @@ const numeric numeric::binomial(const numeric &k) const {
         Py_DECREF(nobj);
         Py_DECREF(m);
         Py_DECREF(binfunc);
-        if (!pyresult) {
+        if (pyresult == nullptr) {
                 throw(std::runtime_error("numeric::binomial(): python function binomial raised exception"));
         }
         if ( pyresult == Py_None ) {
@@ -2150,7 +2150,7 @@ const numeric numeric::binomial(const numeric &k) const {
         // convert output Expression to an ex
         ex eval_result = py_funcs.pyExpression_to_ex(pyresult);
         Py_DECREF(pyresult);
-        if (PyErr_Occurred()) {
+        if (PyErr_Occurred() != nullptr) {
                 throw(std::runtime_error("numeric::binomial(): python function (Expression_to_ex) raised exception"));
         }
         return ex_to<numeric>(eval_result);
@@ -2163,13 +2163,13 @@ const numeric numeric::bernoulli() const {
 static PyObject* py_tuple_from_numvector(const std::vector<numeric>& vec)
 {
         PyObject* list = PyTuple_New(vec.size());
-        if (!list)
+        if (list == nullptr)
                 throw(std::runtime_error("py_list_from_numvector(): PyList_New returned NULL"));
         int pos = 0;
         for (const numeric& num : vec) {
                 PyObject *numobj = num.to_pyobject();
                 int ret = PyTuple_SetItem(list, pos++, numobj);
-                if (ret)
+                if (ret != 0)
                         throw(std::runtime_error("py_list_from_numvector(): PyList_Append unsuccessful"));
         }
         return list;
@@ -2182,20 +2182,20 @@ const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const s
 
         // call opt.evalf_f with this tuple
         PyObject* m = PyImport_ImportModule("sage.functions.hypergeometric");
-        if (!m)
+        if (m == nullptr)
                 py_error("Error importing hypergeometric");
         PyObject* hypfunc = PyObject_GetAttrString(m, "hypergeometric");
-        if (!hypfunc)
+        if (hypfunc == nullptr)
                 py_error("Error getting hypergeometric attribute");
 
-        if (parent and PyDict_CheckExact(parent))
+        if ((parent != nullptr) and PyDict_CheckExact(parent))
                 z = ex_to<numeric>(this->evalf(0, parent)).to_pyobject();
         PyObject* name = PyString_FromString(const_cast<char*>("_evalf_try_"));
         PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, NULL);
         Py_DECREF(m);
         Py_DECREF(name);
         Py_DECREF(hypfunc);
-        if (!pyresult) {
+        if (pyresult == nullptr) {
                 throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::_evalf_ raised exception"));
         }
         if ( pyresult == Py_None ) {
@@ -2204,7 +2204,7 @@ const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const s
         // convert output Expression to an ex
         ex eval_result = py_funcs.pyExpression_to_ex(pyresult);
         Py_DECREF(pyresult);
-        if (PyErr_Occurred()) {
+        if (PyErr_Occurred() != nullptr) {
                 throw(std::runtime_error("numeric::hypergeometric_pFq(): python function (Expression_to_ex) raised exception"));
         }
         return ex_to<numeric>(eval_result);
@@ -2742,7 +2742,7 @@ ex ConstantEvalf(unsigned serial, PyObject* dict) {
                 PyDict_SetItemString(dict, "parent", CC);
         }
         PyObject* x = py_funcs.py_eval_constant(serial, dict);
-        if (!x) py_error("error getting digits of constant");
+        if (x == nullptr) py_error("error getting digits of constant");
         return x;
 }
 

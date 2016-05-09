@@ -559,7 +559,7 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 	else if(!n.find_unsigned("python", python_func))
 		throw std::runtime_error("function::function archive error: cannot read python_func flag");
 	std::string s;
-	if (python_func) {
+	if (python_func != 0u) {
 		// read the pickle from the archive
 		if (!n.find_string("pickle", s))
 			throw std::runtime_error("function::function archive error: cannot read pickled function");
@@ -567,12 +567,12 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		PyObject* arg = Py_BuildValue("s#",s.c_str(), s.size());
 		PyObject* sfunc = py_funcs.py_loads(arg);
 		Py_DECREF(arg);
-		if (PyErr_Occurred()) {
+		if (PyErr_Occurred() != nullptr) {
 		    throw(std::runtime_error("function::function archive error: caught exception in py_loads"));
 		}
 		// get the serial of the new SFunction
 		unsigned int ser = py_funcs.py_get_serial_from_sfunction(sfunc);
-		if (PyErr_Occurred()) {
+		if (PyErr_Occurred() != nullptr) {
 		    throw(std::runtime_error("function::function archive error: cannot get serial from SFunction"));
 		}
 		// set serial 
@@ -594,7 +594,7 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		// Call Python to create a new symbolic function with name s
 		// and get the serial of this new SymbolicFunction
 		ser = py_funcs.py_get_serial_for_new_sfunction(s, nargs);
-		if (PyErr_Occurred()) {
+		if (PyErr_Occurred() != nullptr) {
 		    throw(std::runtime_error("function::function archive error: cannot create new symbolic function " + s));
 		}
 		serial = ser;
@@ -622,16 +622,16 @@ void function::archive(archive_node &n) const
 	// we should use the python unpickling mechanism, or the regular
 	// unarchiving for c++ functions.
 	unsigned python_func = registered_functions()[serial].python_func;
-	if (python_func) {
+	if (python_func != 0u) {
 		n.add_unsigned("python", python_func);
 		// find the corresponding SFunction object
 		PyObject* sfunc = py_funcs.py_get_sfunction_from_serial(serial);
-		if (PyErr_Occurred()) {
+		if (PyErr_Occurred() != nullptr) {
 		    throw(std::runtime_error("function::archive cannot get serial from SFunction"));
 		}
 		// call python to pickle it
 		std::string* pickled = py_funcs.py_dumps(sfunc);
-		if (PyErr_Occurred()) {
+		if (PyErr_Occurred() != nullptr) {
 		    throw(std::runtime_error("function::archive py_dumps raised exception"));
 		}
 		// store the pickle in the archive
@@ -661,7 +661,7 @@ void function::print(const print_context & c, unsigned level) const
 		std::string* sout;
 		if (is_a<print_latex>(c)) {
 			sout = py_funcs.py_latex_function(serial, args);
-                        if (PyErr_Occurred()) {
+                        if (PyErr_Occurred() != nullptr) {
                                 throw(std::runtime_error("function::print(): python print function raised exception"));
                         }
                         c.s << *sout;
@@ -669,7 +669,7 @@ void function::print(const print_context & c, unsigned level) const
 		}
 		else if (is_a<print_tree>(c)) {
 			sout = py_funcs.py_print_function(serial, args);
-                        if (PyErr_Occurred()) {
+                        if (PyErr_Occurred() != nullptr) {
                                 throw(std::runtime_error("function::print(): python print function raised exception"));
                         }
                         std::string fname = sout->substr(0, sout->find_first_of('('));
@@ -685,7 +685,7 @@ void function::print(const print_context & c, unsigned level) const
 		}
                 else {
 			sout = py_funcs.py_print_function(serial, args);
-                        if (PyErr_Occurred()) {
+                        if (PyErr_Occurred() != nullptr) {
                                 throw(std::runtime_error("function::print(): python print function raised exception"));
                         }
                         c.s << *sout;
@@ -706,7 +706,7 @@ next_context:
 
 		// Method not found, try parent print_context class
 		const print_context_class_info *parent_pc_info = pc_info->get_parent();
-		if (parent_pc_info) {
+		if (parent_pc_info != nullptr) {
 			pc_info = parent_pc_info;
 			goto next_context;
 		}
@@ -807,14 +807,14 @@ ex function::eval(int level) const
 	}
 	current_serial = serial;
 
-	if (opt.python_func & function_options::eval_python_f) {
+	if ((opt.python_func & function_options::eval_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
 				const_cast<char*>("_eval_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::eval(): python function raised exception"));
 		}
 		if ( pyresult == Py_None ) {
@@ -823,7 +823,7 @@ ex function::eval(int level) const
 		// convert output Expression to an ex
 		eval_result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::eval(): python function (Expression_to_ex) raised exception"));
 		}
 	}
@@ -874,7 +874,7 @@ ex function::evalf(int level, PyObject* kwds) const
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
-	if (opt.python_func & function_options::evalf_python_f) { 
+	if ((opt.python_func & function_options::evalf_python_f) != 0u) { 
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(eseq);
 		// call opt.evalf_f with this list
@@ -882,13 +882,13 @@ ex function::evalf(int level, PyObject* kwds) const
 			PyObject_GetAttrString((PyObject*)opt.evalf_f,
 				"_evalf_"), args, kwds);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::evalf(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::evalf(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -917,7 +917,7 @@ long function::calchash() const
 		v ^= this->op(i).gethash();
 	}
 
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}
@@ -946,7 +946,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	ex res;
 	current_serial = serial;
-	if (opt.python_func & function_options::series_python_f) {
+	if ((opt.python_func & function_options::series_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'order': order, 'options':options}
@@ -961,13 +961,13 @@ ex function::series(const relational & r, int order, unsigned options) const
 				"_series_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::series(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::series(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1016,7 +1016,7 @@ ex function::subs(const exmap & m, unsigned options) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options & opt = registered_functions()[serial];
 
-	if (opt.python_func & function_options::subs_python_f) {
+	if ((opt.python_func & function_options::subs_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.subs_args_to_PyTuple(m, options, seq);
 		// call opt.subs_f with this list
@@ -1024,13 +1024,13 @@ ex function::subs(const exmap & m, unsigned options) const
 				(PyObject*)opt.subs_f,
 				const_cast<char*>("_subs_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::subs(): python method (_subs_) raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::subs(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1048,7 +1048,7 @@ ex function::conjugate() const
 		return conjugate_function(*this).hold();
 	}
 
-	if (opt.python_func & function_options::conjugate_python_f) {
+	if ((opt.python_func & function_options::conjugate_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
@@ -1056,13 +1056,13 @@ ex function::conjugate() const
 				(PyObject*)opt.conjugate_f,
 				const_cast<char*>("_conjugate_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::conjugate(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::conjugate(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1094,20 +1094,20 @@ ex function::real_part() const
 	if (opt.real_part_f==nullptr)
 		return basic::real_part();
 
-	if (opt.python_func & function_options::real_part_python_f) {
+	if ((opt.python_func & function_options::real_part_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.real_part_f,
 				const_cast<char*>("_real_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::real_part(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::real_part(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1138,20 +1138,20 @@ ex function::imag_part() const
 	if (opt.imag_part_f==nullptr)
 		return basic::imag_part();
 
-	if (opt.python_func & function_options::imag_part_python_f) {
+	if ((opt.python_func & function_options::imag_part_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
 		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.imag_part_f,
 				const_cast<char*>("_imag_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::imag_part(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::imag_part(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1195,7 +1195,7 @@ ex function::derivative(const symbol & s) const
 		if (opt.derivative_f == nullptr)
 			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
 
-		if (opt.python_func & function_options::derivative_python_f) {
+		if ((opt.python_func & function_options::derivative_python_f) != 0u) {
 			// convert seq to a PyTuple of Expressions
 			PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 			// create a dictionary {'diff_param': s}
@@ -1210,13 +1210,13 @@ ex function::derivative(const symbol & s) const
 			Py_DECREF(symb);
 			Py_DECREF(args);
 			Py_DECREF(kwds);
-			if (!pyresult) { 
+			if (pyresult == nullptr) { 
 				throw(std::runtime_error("function::derivative(): python function raised exception"));
 			}
 			// convert output Expression to an ex
 			result = py_funcs.pyExpression_to_ex(pyresult);
 			Py_DECREF(pyresult);
-			if (PyErr_Occurred()) { 
+			if (PyErr_Occurred() != nullptr) { 
 				throw(std::runtime_error("function::derivative(): python function (pyExpression_to_ex) raised exception"));
 			}
 			return result;
@@ -1354,7 +1354,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
-	if (opt.python_func & function_options::derivative_python_f) {
+	if ((opt.python_func & function_options::derivative_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'diff_param': diff_param}
@@ -1365,7 +1365,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 				"_derivative_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::pderivative(): python function raised exception"));
 		}
 		if ( pyresult == Py_None ) {
@@ -1374,7 +1374,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::pderivative(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1406,7 +1406,7 @@ ex function::power(const ex & power_param) const // power of function
 	                                               status_flags::evaluated);
 
 	current_serial = serial;
-	if (opt.python_func & function_options::power_python_f) {
+	if ((opt.python_func & function_options::power_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'power_param': power_param}
@@ -1418,13 +1418,13 @@ ex function::power(const ex & power_param) const // power of function
 				"_power_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
-		if (!pyresult) { 
+		if (pyresult == nullptr) { 
 			throw(std::runtime_error("function::power(): python function raised exception"));
 		}
 		// convert output Expression to an ex
 		ex result = py_funcs.pyExpression_to_ex(pyresult);
 		Py_DECREF(pyresult);
-		if (PyErr_Occurred()) { 
+		if (PyErr_Occurred() != nullptr) { 
 			throw(std::runtime_error("function::power(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
@@ -1603,7 +1603,7 @@ bool function::info(unsigned inf) const
         else if (serial == binomial_SERIAL::serial) {
                 const ex& arg = op(0);
                 switch (inf) {
-                case info_flags::real or info_flags::nonnegative:
+                case static_cast<unsigned int>((info_flags::real != 0u) or (info_flags::nonnegative != 0u)):
                         return arg.info(inf);
                 case info_flags::integer:
                         return arg.info(inf) and op(1).info(inf);
@@ -1613,7 +1613,7 @@ bool function::info(unsigned inf) const
         else if (serial == factorial_SERIAL::serial) {
                 const ex& arg = op(0);
                 switch (inf) {
-                case info_flags::real or info_flags::nonnegative:
+                case static_cast<unsigned int>((info_flags::real != 0u) or (info_flags::nonnegative != 0u)):
                         return arg.info(inf);
                 case info_flags::integer:
                         return arg.info(inf);

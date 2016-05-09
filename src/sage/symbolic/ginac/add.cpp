@@ -378,7 +378,7 @@ ex add::eval(int level) const
 	}
 #endif // def DO_GINAC_ASSERT
 	
-	if (flags & status_flags::evaluated) {
+	if ((flags & status_flags::evaluated) != 0u) {
 		GINAC_ASSERT(seq.size()>0);
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_zero());
 		return *this;
@@ -407,7 +407,7 @@ ex add::eval(int level) const
 	for (const auto & elem : seq)
 		if (unlikely(is_exactly_a<numeric>(elem.rest)))
 			++terms_to_collect;
-	if (terms_to_collect) {
+	if (terms_to_collect != 0) {
                 epvector s;
 		s.reserve(seq_size - terms_to_collect);
 		numeric oc = *_num0_p;

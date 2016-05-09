@@ -353,7 +353,7 @@ static ex log_series(const ex &arg,
 				for (int i = order-1; i>0; --i) {
 					epvector cterm;
 					cterm.reserve(1);
-					cterm.push_back(expair(i%2 ? _ex1/i : _ex_1/i, _ex0));
+					cterm.push_back(expair((i%2) != 0 ? _ex1/i : _ex_1/i, _ex0));
 					acc = pseries(rel, cterm).add_series(ex_to<pseries>(acc));
 					acc = (ex_to<pseries>(rest)).mul_series(ex_to<pseries>(acc));
 				}
@@ -364,7 +364,7 @@ static ex log_series(const ex &arg,
 		} else  // it was a monomial
 			return pseries(rel, seq);
 	}
-	if (!(options & series_options::suppress_branchcut) &&
+	if (((options & series_options::suppress_branchcut) == 0u) &&
 	     arg_pt.info(info_flags::negative)) {
 		// method:
 		// This is the branch cut: assemble the primitive series manually and

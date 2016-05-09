@@ -18,8 +18,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import os, sys, re, random
+import os
+import sys
+import re
+import random
 import doctest
 from sage.repl.preparse import preparse
 from sage.repl.load import load

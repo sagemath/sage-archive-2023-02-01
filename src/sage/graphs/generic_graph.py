@@ -44,7 +44,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.has_vertex` | Return ``True`` if vertex is one of the vertices of this graph.
     :meth:`~GenericGraph.random_vertex` | Return a random vertex of self.
     :meth:`~GenericGraph.random_edge` | Return a random edge of self.
-    :meth:`~GenericGraph.vertex_boundary` | Return a list of all vertices in the external boundary of vertices1, intersected with vertices2.
+    :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of self.
     :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
     :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
     :meth:`~GenericGraph.get_vertex` | Retrieve the object associated with a given vertex.
@@ -9432,6 +9432,52 @@ class GenericGraph(GenericGraph_pyx):
         for i in xrange(0, randint(0, self.size() - 1)):
             next(it)
         return next(it)
+
+    def random_edge_iterator(self, **kwds):
+        r"""
+        Return an iterator over random edges of self.
+
+        The returned iterator enables to amortize the cost of accessing random
+        edges, as can be done with multiple calls to method :meth:`random_edge`.
+
+        INPUT:
+
+        - ``**kwds`` - arguments to be passed down to the :meth:`edge_iterator`
+          method.
+
+        EXAMPLE:
+
+        The returned value is an iterator over the edge of self::
+
+            sage: g = graphs.PetersenGraph()
+            sage: it = g.random_edge_iterator()
+            sage: [g.has_edge(next(it)) for _ in range(5)]
+            [True, True, True, True, True]
+
+        As the :meth:`edges` method would, this function returns by default a
+        triple ``(u,v,l)`` of values, in which ``l`` is the label of edge
+        `(u,v)`::
+
+            sage: print(next(g.random_edge_iterator()))
+            (0, 5, None)
+            sage: print(next(g.random_edge_iterator(labels=False)))
+            (5, 7)
+
+        TESTS:
+
+        Graph without edge::
+
+            sage: empty_graph = Graph()
+            sage: list(empty_graph.random_edge_iterator())
+            []
+        """
+        from sage.misc.prandom import randint
+        if self.size()==0:
+            return
+        E = list(self.edge_iterator(**kwds))
+        l = len(E)-1
+        while True:
+            yield E[randint(0, l)]
 
     def vertex_boundary(self, vertices1, vertices2=None):
         """

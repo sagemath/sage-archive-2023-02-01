@@ -363,7 +363,7 @@ ex add::coeff(const ex & s, int n) const
 ex add::eval(int level) const
 {
 	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
-	if (unlikely(evaled_seqp.get() != nullptr)) {
+	if (unlikely(evaled_seqp != nullptr)) {
 		// do more evaluation later
 		return (new add(*evaled_seqp, overall_coeff))->
 		       setflag(status_flags::dynallocated);
@@ -671,7 +671,7 @@ ex add::recombine_pair_to_ex(const expair & p) const
 ex add::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);
-	if (vp.get() == nullptr) {
+	if (vp == nullptr) {
 		// the terms have not changed, so it is safe to declare this expanded
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
 	}

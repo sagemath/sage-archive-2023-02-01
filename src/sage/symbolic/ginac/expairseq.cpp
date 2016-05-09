@@ -344,7 +344,7 @@ ex expairseq::eval(int level) const
 		return *this;
 	
 	std::unique_ptr<epvector> vp = evalchildren(level);
-	if (vp.get() == nullptr)
+	if (vp == nullptr)
 		return this->hold();
 	
 	return (new expairseq(std::move(vp), overall_coeff))->setflag(status_flags::dynallocated | status_flags::evaluated);

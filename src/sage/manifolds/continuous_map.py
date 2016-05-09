@@ -8,6 +8,7 @@ field `K` as `M`.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -21,6 +22,7 @@ REFERENCES:
 #*****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -24,10 +24,6 @@
 
 namespace GiNaC {
 
-template <> GINAC_IMPLEMENT_REGISTERED_CLASS_OPT_T(exprseq, basic,
-  print_func<print_context>(&exprseq::do_print).
-  print_func<print_tree>(&exprseq::do_print_tree))
-
 /** Specialization of container::info() for exprseq. */
 template <> bool exprseq::info(unsigned inf) const
 {

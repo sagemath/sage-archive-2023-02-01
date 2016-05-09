@@ -1301,7 +1301,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             return '()'
         return ''.join([repr(c) for c in cycles]).replace(', ',',').replace(',)',')')
 
-    def cycle_type(self):
+    def cycle_type(self, singletons=True, as_list=False):
         r"""
         Return the partition that gives the cycle type of ``g`` as an element of
         ``self``.
@@ -1309,26 +1309,43 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         INPUT:
 
         - ``g`` -- an element of the permutation group ``self.parent()``
+        
+        - ``singletons`` -- ``True`` or ``False`` depending on whether on or not
+          trivial cycles should be counted (default: ``True``)
+
+        - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
+          type should be returned as a ``list`` or as a class:`Partition` 
+          (default: ``False``)
 
         OUTPUT:
 
-        The class:`Partition` giving the cycle type of ``g`` in the group ``self``. 
+        A class:`Partition`, or `list` if ``is_list`` is ``True``, giving the cycle type of ``g`` 
+
+        If speed is a concern then ``as_list=True`` should be used.
 
         EXAMPLES::
 
-            sage: G=DihedralGroup(3)
+            sage: G = DihedralGroup(3)
             sage: [g.cycle_type() for g in G]
             [[1, 1, 1], [2, 1], [3], [2, 1], [3], [2, 1]]
             sage: PermutationGroupElement('(1,2,3)(4,5)(6,7,8)').cycle_type()
             [3, 3, 2]
-            sage: G=SymmetricGroup(3); G('(1,2)').cycle_type()
+            sage: G = SymmetricGroup(3); G('(1,2)').cycle_type()
             [2, 1]
-            sage: G=SymmetricGroup(4); G('(1,2)').cycle_type()
+            sage: G = SymmetricGroup(4); G('(1,2)').cycle_type()
+            [2, 1, 1]
+            sage: G = SymmetricGroup(4); G('(1,2)').cycle_type(singletons=False)
+            [2]
+            sage: G = SymmetricGroup(4); G('(1,2)').cycle_type(as_list=False)
             [2, 1, 1]
         """
-        cycle_type=[len(c) for c in self.cycle_tuples(singletons=True)]
-        cycle_type.sort(reverse=True)
-        return cycle_type
+        cycle_type = [len(c) for c in self.cycle_tuples(singletons)]
+        cycle_type.sort(reverse = True)
+        if as_list:
+            return cycle_type
+        else:
+            from sage.combinat.partition import _Partitions
+            return _Partitions(cycle_type)
 
     def has_descent(self, i, side = "right", positive = False):
         """

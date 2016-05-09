@@ -338,7 +338,7 @@ struct is_not_a_clifford : public std::unary_function<ex, bool> {
 };
 
 /** Contraction of a gamma matrix with something else. */
-bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other, exvector &) const
+bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other, exvector & /*v*/) const
 {
 	GINAC_ASSERT(is_a<clifford>(*self));
 	GINAC_ASSERT(is_a<indexed>(*other));
@@ -449,7 +449,7 @@ bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other
 }
 
 /** Contraction of a Clifford unit with something else. */
-bool cliffordunit::contract_with(exvector::iterator self, exvector::iterator other, exvector &) const
+bool cliffordunit::contract_with(exvector::iterator self, exvector::iterator other, exvector & /*v*/) const
 {
 	GINAC_ASSERT(is_a<clifford>(*self));
 	GINAC_ASSERT(is_a<indexed>(*other));

@@ -146,7 +146,7 @@ const GiNaC::numeric& to_numeric(GiNaC::ex& e)
 // Python Interface
 //////////////////////////////////////////////////////////////
 
-void py_error(const char*) {
+void py_error(const char* /*unused*/) {
         if (PyErr_Occurred()) {
                 throw std::runtime_error("");
         }
@@ -719,8 +719,8 @@ DEFAULT_UNARCHIVE(numeric)
 template<typename T1, typename T2>
 static inline bool coerce(T1& dst, const T2& arg);
 
-void numeric::print_numeric(const print_context & c, const char*,
-                            const char*, const char*, const char*,
+void numeric::print_numeric(const print_context & c, const char* /*unused*/,
+                            const char* /*unused*/, const char* /*unused*/, const char* /*unused*/,
                             unsigned level, bool latex = false) const {
         std::string* out;
         if (latex) {
@@ -741,7 +741,7 @@ void numeric::do_print_latex(const print_latex & c, unsigned level) const {
         print_numeric(c, "{(", ")}", "i", " ", level, true);
 }
 
-void numeric::do_print_csrc(const print_csrc & c, unsigned) const {
+void numeric::do_print_csrc(const print_csrc & c, unsigned /*unused*/) const {
         // TODO: not really needed?
         stub("print_csrc");
 }
@@ -836,7 +836,7 @@ ex numeric::coeff(const ex & s, int n) const {
  *  results:  (2+I).has(-2) -> true.  But this is consistent, since we also
  *  would like to have (-2+I).has(2) -> true and we want to think about the
  *  sign as a multiplicative factor. */
-bool numeric::has(const ex &other, unsigned) const {
+bool numeric::has(const ex &other, unsigned /*options*/) const {
         if (!is_exactly_a<numeric>(other))
                 return false;
         const numeric &o = ex_to<numeric>(other);
@@ -862,7 +862,7 @@ bool numeric::has(const ex &other, unsigned) const {
 }
 
 /** Evaluation of numbers doesn't do anything at all. */
-ex numeric::eval(int) const {
+ex numeric::eval(int /*level*/) const {
         // Warning: if this is ever gonna do something, the ex constructors from all kinds
         // of numbers should be checking for status_flags::evaluated.
         return this->hold();
@@ -875,7 +875,7 @@ ex numeric::eval(int) const {
  *
  *  @param level  ignored, only needed for overriding basic::evalf.
  *  @return  an ex-handle to a numeric. */
-ex numeric::evalf(int, PyObject* parent) const {
+ex numeric::evalf(int /*level*/, PyObject* parent) const {
         PyObject *a = to_pyobject();
         PyObject *ans = py_funcs.py_float(a, parent);
         Py_DECREF(a);

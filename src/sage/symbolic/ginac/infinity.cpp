@@ -173,7 +173,7 @@ void infinity::do_print_latex(const print_latex & c, unsigned level) const
 	}
 }
 
-void infinity::do_print_python_repr(const print_python_repr & c, unsigned) const
+void infinity::do_print_python_repr(const print_python_repr & c, unsigned /*level*/) const
 {
 	c.s << class_name() << "('" << "Infinity" << "'" << direction;
 	c.s << ')';
@@ -194,7 +194,7 @@ bool infinity::info(unsigned inf) const
 	return inherited::info(inf);
 }
 
-ex infinity::evalf(int, PyObject*) const
+ex infinity::evalf(int /*level*/, PyObject* /*parent*/) const
 {
 	if (is_unsigned_infinity())
 		return py_funcs.py_eval_unsigned_infinity();
@@ -232,7 +232,7 @@ ex infinity::imag_part() const
 
 // protected
 
-ex infinity::derivative(const symbol &) const
+ex infinity::derivative(const symbol & /*s*/) const
 {
 	return _ex0;
 }

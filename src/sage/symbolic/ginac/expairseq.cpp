@@ -700,7 +700,7 @@ ex expairseq::thisexpairseq(std::unique_ptr<epvector> vp, const ex &oc, bool do_
 	return expairseq(std::move(vp), oc, do_index_renaming);
 }
 
-void expairseq::printpair(const print_context & c, const expair & p, unsigned) const
+void expairseq::printpair(const print_context & c, const expair & p, unsigned /*unused*/) const
 {
 	c.s << "[[";
 	p.rest.print(c, precedence());
@@ -766,7 +766,7 @@ ex expairseq::recombine_pair_to_ex(const expair &p) const
 	return lst(p.rest,p.coeff);
 }
 
-bool expairseq::expair_needs_further_processing(epp)
+bool expairseq::expair_needs_further_processing(epp /*unused*/)
 {
 #if EXPAIRSEQ_USE_HASHTAB
 	//#  error "FIXME: expair_needs_further_processing not yet implemented for hashtabs, sorry. A.F."
@@ -801,7 +801,7 @@ void expairseq::combine_overall_coeff(const ex &c1, const ex &c2)
 	                add_dyn(ex_to<numeric>(c1).mul(ex_to<numeric>(c2)));
 }
 
-bool expairseq::can_make_flat(const expair &) const
+bool expairseq::can_make_flat(const expair & /*unused*/) const
 {
 	return true;
 }

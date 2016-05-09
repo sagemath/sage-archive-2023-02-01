@@ -100,7 +100,7 @@ void fderivative::print(const print_context & c, unsigned level) const
 	basic::print(c, level);
 }
 
-void fderivative::do_print(const print_context & c, unsigned) const
+void fderivative::do_print(const print_context & c, unsigned /*unused*/) const
 {
 	//convert paramset to a python list
 	PyObject* params = py_funcs.paramset_to_PyTuple(parameter_set);
@@ -134,7 +134,7 @@ void fderivative::do_print(const print_context & c, unsigned) const
 	*/
 }
 
-void fderivative::do_print_csrc(const print_csrc & c, unsigned) const
+void fderivative::do_print_csrc(const print_csrc & c, unsigned /*unused*/) const
 {
 	c.s << "D_";
 	auto i = parameter_set.begin(), iend = parameter_set.end();

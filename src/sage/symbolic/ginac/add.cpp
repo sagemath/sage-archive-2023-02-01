@@ -233,7 +233,7 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << ")";
 }
 
-void add::do_print_python_repr(const print_python_repr & c, unsigned) const
+void add::do_print_python_repr(const print_python_repr & c, unsigned /*level*/) const
 {
 	c.s << class_name() << '(';
 	op(0).print(c);
@@ -590,13 +590,13 @@ tinfo_t add::return_type_tinfo() const
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(const epvector & v, const ex & oc, bool) const
+ex add::thisexpairseq(const epvector & v, const ex & oc, bool /*do_index_renaming*/) const
 {
 	return (new add(v,oc))->setflag(status_flags::dynallocated);
 }
 
 //// Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool) const
+ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool /*do_index_renaming*/) const
 {
 	return (new add(*vp,oc))->setflag(status_flags::dynallocated);
 }

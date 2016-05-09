@@ -408,7 +408,7 @@ void indexed::validate() const
 /** Implementation of ex::diff() for an indexed object always returns 0.
  *
  *  @see ex::diff */
-ex indexed::derivative(const symbol &) const
+ex indexed::derivative(const symbol & /*s*/) const
 {
 	return _ex0;
 }
@@ -1276,7 +1276,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
  *
  *  @param options Simplification options (currently unused)
  *  @return simplified expression */
-ex ex::simplify_indexed(unsigned) const
+ex ex::simplify_indexed(unsigned /*unused*/) const
 {
 	exvector free_indices, dummy_indices;
 	scalar_products sp;
@@ -1291,7 +1291,7 @@ ex ex::simplify_indexed(unsigned) const
  *  @param sp Scalar products to be replaced automatically
  *  @param options Simplification options (currently unused)
  *  @return simplified expression */
-ex ex::simplify_indexed(const scalar_products & sp, unsigned) const
+ex ex::simplify_indexed(const scalar_products & sp, unsigned /*unused*/) const
 {
 	exvector free_indices, dummy_indices;
 	return GiNaC::simplify_indexed(*this, free_indices, dummy_indices, sp);
@@ -1378,7 +1378,7 @@ void scalar_products::add(const ex & v1, const ex & v2, const ex & dim, const ex
 	spm[spmapkey(v1, v2, dim)] = sp;
 }
 
-void scalar_products::add_vectors(const lst & l, const ex &)
+void scalar_products::add_vectors(const lst & l, const ex & /*unused*/)
 {
 	// Add all possible pairs of products
         for (const auto & elem1 : l)

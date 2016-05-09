@@ -15,7 +15,7 @@ Set of homomorphisms
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.misc.mrange import xmrange
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.schemes.generic.homset import SchemeHomset_points
 
 class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
@@ -48,13 +48,13 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([1,1],ZZ,'z')
-            sage: Q = P([4,6,6,2]); Q
-            (2 : 3 , 3 : 1)
+            sage: P = ProductProjectiveSpaces([1, 1], ZZ, 'z')
+            sage: Q = P([4, 6, 6, 2]); Q
+            (4 : 6 , 6 : 2)
             sage: type(Q)
             <class 'sage.schemes.product_projective.point.ProductProjectiveSpaces_point_ring'>
-            sage: P(QQ)._element_constructor_([4,2,2,0])
-            (2 : 1 , 1 : 0)
+            sage: P(QQ)._element_constructor_([4, 2, 2, 0])
+            (4 : 2 , 2 : 0)
         """
         return self.codomain()._point(self, v, **kwds)
 
@@ -78,7 +78,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         .. WARNING::
 
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
            cannot be guaranteed to be correct due to the necessity of floating point
            computations. In some cases, the default 53-bit precision is
            considerably lower than would be required for the algorithm to
@@ -86,24 +86,24 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],QQ)
-            sage: X = P.subscheme([x-y,z^2-2*w^2])
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: X = P.subscheme([x - y, z^2 - 2*w^2])
             sage: X(P.base_ring()).points()
             []
 
         ::
 
             sage: u = QQ['u'].0
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1], NumberField(u^2 - 2,'v'))
-            sage: X = P.subscheme([x^2-y^2,z^2-2*w^2])
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1], NumberField(u^2 - 2, 'v'))
+            sage: X = P.subscheme([x^2 - y^2, z^2 - 2*w^2])
             sage: X(P.base_ring()).points()
             [(-1 : 1 , -v : 1), (1 : 1 , v : 1), (1 : 1 , -v : 1), (-1 : 1 , v : 1)]
 
         ::
 
             sage: u = QQ['u'].0
-            sage: K = NumberField(u^2 + 1,'v')
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1], K)
+            sage: K = NumberField(u^2 + 1, 'v')
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], K)
             sage: P(K).points(1)
             [(0 : 1 , 0 : 1), (0 : 1 , v : 1), (0 : 1 , -1 : 1), (0 : 1 , -v : 1), (0 : 1 , 1 : 1),
             (0 : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , v : 1), (v : 1 , -1 : 1), (v : 1 , -v : 1),
@@ -116,21 +116,19 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         ::
 
-            sage: P.<x,y,z,u,v> = ProductProjectiveSpaces([2,1],GF(3))
-            sage: P(P.base_ring()).points().sort()
-            [(0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (0 : 0 : 1 , 2 : 1), (0 : 0 : 1 , 1 : 0),
-            (1 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 1 : 1), (1 : 0 : 1 , 2 : 1), (1 : 0 : 1 , 1 : 0),
-            (2 : 0 : 1 , 0 : 1), (2 : 0 : 1 , 1 : 1), (2 : 0 : 1 , 2 : 1), (2 : 0 : 1 , 1 : 0),
-            (0 : 1 : 1 , 0 : 1), (0 : 1 : 1 , 1 : 1), (0 : 1 : 1 , 2 : 1), (0 : 1 : 1 , 1 : 0),
-            (1 : 1 : 1 , 0 : 1), (1 : 1 : 1 , 1 : 1), (1 : 1 : 1 , 2 : 1), (1 : 1 : 1 , 1 : 0),
-            (2 : 1 : 1 , 0 : 1), (2 : 1 : 1 , 1 : 1), (2 : 1 : 1 , 2 : 1), (2 : 1 : 1 , 1 : 0),
-            (0 : 2 : 1 , 0 : 1), (0 : 2 : 1 , 1 : 1), (0 : 2 : 1 , 2 : 1), (0 : 2 : 1 , 1 : 0),
-            (1 : 2 : 1 , 0 : 1), (1 : 2 : 1 , 1 : 1), (1 : 2 : 1 , 2 : 1), (1 : 2 : 1 , 1 : 0),
-            (2 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 1 : 1), (2 : 2 : 1 , 2 : 1), (2 : 2 : 1 , 1 : 0),
-            (0 : 1 : 0 , 0 : 1), (0 : 1 : 0 , 1 : 1), (0 : 1 : 0 , 2 : 1), (0 : 1 : 0 , 1 : 0),
-            (1 : 1 : 0 , 0 : 1), (1 : 1 : 0 , 1 : 1), (1 : 1 : 0 , 2 : 1), (1 : 1 : 0 , 1 : 0),
-            (2 : 1 : 0 , 0 : 1), (2 : 1 : 0 , 1 : 1), (2 : 1 : 0 , 2 : 1), (2 : 1 : 0 , 1 : 0),
-            (1 : 0 : 0 , 0 : 1), (1 : 0 : 0 , 1 : 1), (1 : 0 : 0 , 2 : 1), (1 : 0 : 0 , 1 : 0)]
+            sage: P.<x,y,z,u,v> = ProductProjectiveSpaces([2, 1], GF(3))
+            sage: P(P.base_ring()).points()
+            [(0 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 0 : 1), (2 : 0 : 1 , 0 : 1), (0 : 1 : 1 , 0 : 1), (1 : 1 : 1 , 0 : 1),
+            (2 : 1 : 1 , 0 : 1), (0 : 2 : 1 , 0 : 1), (1 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 0 : 1), (0 : 1 : 0 , 0 : 1),
+            (1 : 1 : 0 , 0 : 1), (2 : 1 : 0 , 0 : 1), (1 : 0 : 0 , 0 : 1), (0 : 0 : 1 , 1 : 1), (1 : 0 : 1 , 1 : 1),
+            (2 : 0 : 1 , 1 : 1), (0 : 1 : 1 , 1 : 1), (1 : 1 : 1 , 1 : 1), (2 : 1 : 1 , 1 : 1), (0 : 2 : 1 , 1 : 1),
+            (1 : 2 : 1 , 1 : 1), (2 : 2 : 1 , 1 : 1), (0 : 1 : 0 , 1 : 1), (1 : 1 : 0 , 1 : 1), (2 : 1 : 0 , 1 : 1),
+            (1 : 0 : 0 , 1 : 1), (0 : 0 : 1 , 2 : 1), (1 : 0 : 1 , 2 : 1), (2 : 0 : 1 , 2 : 1), (0 : 1 : 1 , 2 : 1),
+            (1 : 1 : 1 , 2 : 1), (2 : 1 : 1 , 2 : 1), (0 : 2 : 1 , 2 : 1), (1 : 2 : 1 , 2 : 1), (2 : 2 : 1 , 2 : 1),
+            (0 : 1 : 0 , 2 : 1), (1 : 1 : 0 , 2 : 1), (2 : 1 : 0 , 2 : 1), (1 : 0 : 0 , 2 : 1), (0 : 0 : 1 , 1 : 0),
+            (1 : 0 : 1 , 1 : 0), (2 : 0 : 1 , 1 : 0), (0 : 1 : 1 , 1 : 0), (1 : 1 : 1 , 1 : 0), (2 : 1 : 1 , 1 : 0),
+            (0 : 2 : 1 , 1 : 0), (1 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 0), (0 : 1 : 0 , 1 : 0), (1 : 1 : 0 , 1 : 0),
+            (2 : 1 : 0 , 1 : 0), (1 : 0 : 0 , 1 : 0)]
         """
         X = self.codomain()
 
@@ -142,11 +140,11 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             if X.dimension() == -1:
                 return []
             # if X is zero-dimensional
-            if dim_ideal == X.ambient_space().num_components():
+            if X.dimension() == 0:
                 points = set()
                 # find points from all possible affine patches
-                for I in xmrange([n+1 for n in X.ambient_space().dimension_relative_components()]):
-                    [Y,phi] = X.affine_patch(I,True)
+                for I in xmrange([n + 1 for n in X.ambient_space().dimension_relative_components()]):
+                    [Y,phi] = X.affine_patch(I, True)
                     aff_points = Y.rational_points()
                     for PP in aff_points:
                         points.add(phi(PP))
@@ -156,7 +154,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         if R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            for P in X.ambient_space().points_of_bounded_height(B,prec):
+            for P in X.ambient_space().points_of_bounded_height(B, prec):
                 try:
                     points.append(X(P))
                 except TypeError:

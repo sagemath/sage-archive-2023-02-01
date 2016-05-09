@@ -46,7 +46,7 @@ from copy import copy
 from sage.misc.mrange import xmrange
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer, CommutativeRing)
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polydict import ETuple
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_product_projective
@@ -932,8 +932,8 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         EXAMPLES::
 
             sage: u = QQ['u'].0
-            sage: P = ProductProjectiveSpaces([1,2], NumberField(u^2 - 2,'v'),'x')
-            sage: P([1,3,u,1,1])
+            sage: P = ProductProjectiveSpaces([1, 2], NumberField(u^2 - 2, 'v'), 'x')
+            sage: P([1, 3, u, 1, 1])
             (1/3 : 1 , v : 1 : 1)
         """
         return ProductProjectiveSpaces_point_field(*args, **kwds)
@@ -946,7 +946,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],GF(5))
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], GF(5))
             sage: P._point_homset(Spec(GF(5)), P)
             Set of rational points of Product of projective spaces P^1 x P^1
             over Finite Field of size 5
@@ -980,7 +980,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
         EXAMPLES::
 
-            sage: PP = ProductProjectiveSpaces(QQ,[1,2])
+            sage: PP = ProductProjectiveSpaces(QQ, [1, 2])
             sage: list(PP.points_of_bounded_height(2))
             [(0 : 1 , 0 : 0 : 1), (0 : 1 , 1 : 0 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , 0 : 1 : 1),
             (0 : 1 , 1 : 1 : 1), (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 1 : -1 : 1),
@@ -999,7 +999,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         ::
 
             sage: u = QQ['u'].0
-            sage: P = ProductProjectiveSpaces([1,1], NumberField(u^2 - 2,'v'))
+            sage: P = ProductProjectiveSpaces([1, 1], NumberField(u^2 - 2, 'v'))
             sage: list(P.points_of_bounded_height(1.5))
             [(0 : 1 , 0 : 1), (0 : 1 , -1 : 1), (0 : 1 , 1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , -v : 1),
             (0 : 1 , 1/2*v : 1), (0 : 1 , v : 1), (0 : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , -1 : 1),
@@ -1017,7 +1017,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
             (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
         """
         m = self.num_components()
-        comp_points = [list(self._components[i].points_of_bounded_height(bound,prec)) for i in range(m)]
+        comp_points = [list(self._components[i].points_of_bounded_height(bound, prec)) for i in range(m)]
         indices = xmrange([len(comp_points[i]) for i in range(m)])
         return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
 
@@ -1030,8 +1030,8 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([1,2],GF(11))
-            sage: P([3,7,4,5,9])
+            sage: P = ProductProjectiveSpaces([1, 2], GF(11))
+            sage: P([3, 7, 4, 5, 9])
             (2 : 1 , 9 : 3 : 1)
         """
         return ProductProjectiveSpaces_point_finite_field(*args, **kwds)
@@ -1042,7 +1042,7 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([2,1],GF(3))
+            sage: P = ProductProjectiveSpaces([2, 1], GF(3))
             sage: [x for x in P]
             [(0 : 0 : 1 , 0 : 1), (1 : 0 : 1 , 0 : 1), (2 : 0 : 1 , 0 : 1), (0 : 1 : 1 , 0 : 1), (1 : 1 : 1 , 0 : 1),
             (2 : 1 : 1 , 0 : 1), (0 : 2 : 1 , 0 : 1), (1 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 0 : 1), (0 : 1 : 0 , 0 : 1),
@@ -1056,16 +1056,16 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
             (0 : 2 : 1 , 1 : 0), (1 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 0), (0 : 1 : 0 , 1 : 0), (1 : 1 : 0 , 1 : 0),
             (2 : 1 : 0 , 1 : 0), (1 : 0 : 0 , 1 : 0)]
         """
-        iters = [ iter(T) for T in self._components ]
+        iters = [iter(T) for T in self._components]
         L=[]
         for x in iters:
             L.append(next(x)) # put at zero
-        yield(copy(self(L)))
+        yield(self(L))
         j = 0
         while j < self.num_components():
             try:
                 L[j] = next(iters[j])
-                yield(copy(self(L)))
+                yield(self(L))
                 j = 0
             except StopIteration:
                 iters[j] = iter(self[j])  # reset
@@ -1074,12 +1074,12 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
 
     def rational_points(self, F=None):
         r"""
-        Return the list of `F`-rational points on the affine space self,
-        where `F` is a given finite field, or the base ring of self.
+        Return the list of `F`-rational points on the affine space of this space,
+        where `F` is a given finite field, or the base ring of this space.
 
         EXAMPLES::
 
-            sage: P = ProductProjectiveSpaces([1,1],GF(5))
+            sage: P = ProductProjectiveSpaces([1, 1], GF(5))
             sage: P.rational_points()
             [(0 : 1 , 0 : 1), (1 : 1 , 0 : 1), (2 : 1 , 0 : 1), (3 : 1 , 0 : 1), (4 : 1 , 0 : 1), (1 : 0 , 0 : 1),
             (0 : 1 , 1 : 1), (1 : 1 , 1 : 1), (2 : 1 , 1 : 1), (3 : 1 , 1 : 1), (4 : 1 , 1 : 1), (1 : 0 , 1 : 1),
@@ -1088,16 +1088,16 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
             (0 : 1 , 4 : 1), (1 : 1 , 4 : 1), (2 : 1 , 4 : 1), (3 : 1 , 4 : 1), (4 : 1 , 4 : 1), (1 : 0 , 4 : 1),
             (0 : 1 , 1 : 0), (1 : 1 , 1 : 0), (2 : 1 , 1 : 0), (3 : 1 , 1 : 0), (4 : 1 , 1 : 0), (1 : 0 , 1 : 0)]
         """
-        iters = [ iter(T) for T in self._components ]
+        iters = [iter(T) for T in self._components]
         L=[]
         for x in iters:
             L.append(next(x)) # put at zero
-        points=[copy(self(L))]
+        points=[self(L)]
         j = 0
         while j < self.num_components():
             try:
                 L[j] = next(iters[j])
-                points.append(copy(self(L)))
+                points.append(self(L))
                 j = 0
             except StopIteration:
                 iters[j] = iter(self[j]) # reset

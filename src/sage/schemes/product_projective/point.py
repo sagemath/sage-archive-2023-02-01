@@ -21,7 +21,6 @@ We construct products projective spaces of various dimensions over the same ring
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 from copy import copy
-
 from sage.categories.integral_domains import IntegralDomains
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
@@ -77,6 +76,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: X([1, 1, 2, 1])
             (1 : 1 , 2 : 1)
         """
+        polys = copy(polys)
         SchemeMorphism.__init__(self, parent)
         if all(isinstance(P, SchemeMorphism_point) for P in polys):
             if check:
@@ -276,38 +276,40 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def __hash__(self):
         """
-        Computes the hash value of ``self``.
+        Computes the hash value of this point.
 
         OUTPUT: Integer.
 
         EXAMPLES::
 
-            sage: PP = ProductProjectiveSpaces(Zmod(6),[1,1])
-            sage: hash(PP([5,1,2,4]))
+            sage: PP = ProductProjectiveSpaces(Zmod(6), [1, 1])
+            sage: hash(PP([5, 1, 2, 4]))
             1266382469                            # 32-bit
             -855399699883264379                   # 64-bit
 
         ::
 
-            sage: PP = ProductProjectiveSpaces(ZZ,[1,2])
-            sage: hash(PP([1,1,2,2,2]))
+            sage: PP = ProductProjectiveSpaces(ZZ, [1, 2])
+            sage: hash(PP([1, 1, 2, 2, 2]))
             805439612                            # 32-bit
             7267864846446758012                  # 64-bit
-            sage: hash(PP([1,1,1,1,1]))
+            sage: hash(PP([1, 1, 1, 1, 1]))
             805439612                            # 32-bit
             7267864846446758012                  # 64-bit
 
         ::
 
-            sage: PP = ProductProjectiveSpaces(QQ, [1,1])
-            sage: hash(PP([1/7,1,2,1]))
+            sage: PP = ProductProjectiveSpaces(QQ, [1, 1])
+            sage: hash(PP([1/7, 1, 2, 1]))
+            1139616004                          # 32-bit
             -7585172175017137916                # 64-bit
 
         ::
 
-            sage: PP = ProductProjectiveSpaces(GF(7), [1,1,1])
-            sage: hash(PP([4,1,5,4,6,1]))
-            -4539377540667874085
+            sage: PP = ProductProjectiveSpaces(GF(7), [1, 1, 1])
+            sage: hash(PP([4, 1, 5, 4, 6, 1]))
+            1796924635                          # 32-bit
+            -4539377540667874085                # 64-bit
         """
         R = self.codomain().base_ring()
         # if there is a fraction field normalize the point so that

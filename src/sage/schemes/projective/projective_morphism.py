@@ -3658,7 +3658,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([u^2 + v^2,v^2])
             sage: f.rational_periodic_points()
-            [(w : 1), (-w + 1 : 1), (1 : 0)]
+            [(w : 1), (1 : 0), (-w + 1 : 1)]
 
         ::
 

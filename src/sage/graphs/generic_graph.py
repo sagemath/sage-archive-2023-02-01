@@ -405,11 +405,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: G+42
             Traceback (most recent call last):
             ...
-            TypeError: adding a <type 'sage.rings.integer.Integer'> to a <class 'sage.graphs.graph.Graph'> is not defined
+            TypeError: adding <class 'sage.graphs.graph.Graph'> and <type 'sage.rings.integer.Integer'> is not defined
         """
         if isinstance(other, GenericGraph):
             return self.disjoint_union(other, labels='integers')
-        raise TypeError("adding a {} to a {} is not defined".format(type(other), type(self)))
+        raise TypeError("adding {} and {} is not defined".format(type(self), type(other)))
 
     def __eq__(self, other):
         """
@@ -16624,7 +16624,7 @@ class GenericGraph(GenericGraph_pyx):
         b = other.name()
         if b == '': b = other._repr_()
 
-        G._name = '%s disjoint_union %s'%(a, b)
+        G._name = '{} disjoint_union {}'.format(a, b)
         return G
 
     def union(self, other, immutable=None):

@@ -43,6 +43,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.delete_vertices` | Remove vertices from the (di)graph taken from an iterable container of vertices.
     :meth:`~GenericGraph.has_vertex` | Return ``True`` if vertex is one of the vertices of this graph.
     :meth:`~GenericGraph.random_vertex` | Return a random vertex of self.
+    :meth:`~GenericGraph.random_vertex_iterator` | Return an iterator over random vertices of self.
     :meth:`~GenericGraph.random_edge` | Return a random edge of self.
     :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of self.
     :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
@@ -9402,6 +9403,44 @@ class GenericGraph(GenericGraph_pyx):
             next(it)
         return next(it)
 
+    def random_vertex_iterator(self, **kwds):
+        r"""
+        Return an iterator over random vertices of self.
+
+        The returned iterator enables to amortize the cost of accessing random
+        vertices, as can be done with multiple calls to method
+        :meth:`random_vertex`.
+
+        INPUT:
+
+        - ``**kwds`` - arguments to be passed down to the
+          :meth:`vertex_iterator` method.
+
+        EXAMPLE:
+
+        The returned value is an iterator over the vertices of self::
+
+            sage: g = graphs.PetersenGraph()
+            sage: it = g.random_vertex_iterator()
+            sage: [next(it) in g for _ in range(5)]
+            [True, True, True, True, True]
+
+        TESTS:
+
+        Empty Graph::
+
+            sage: empty_graph = Graph()
+            sage: list(empty_graph.random_vertex_iterator())
+            []
+        """
+        from sage.misc.prandom import randint
+        if self.order()==0:
+            return
+        V = list(self.vertex_iterator(**kwds))
+        l = len(V)-1
+        while True:
+            yield V[randint(0, l)]
+
     def random_edge(self,**kwds):
         r"""
         Returns a random edge of self.
@@ -9447,7 +9486,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLE:
 
-        The returned value is an iterator over the edge of self::
+        The returned value is an iterator over the edges of self::
 
             sage: g = graphs.PetersenGraph()
             sage: it = g.random_edge_iterator()

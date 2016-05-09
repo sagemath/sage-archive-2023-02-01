@@ -2805,6 +2805,8 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([3,1,2]).descents()
+            doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
+            See http://trac.sagemath.org/20555 for details.
             [0]
             sage: Permutation([1,4,3,2]).descents()
             [1, 2]
@@ -2813,6 +2815,10 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).descents(from_zero=False)
             [2, 3]
         """
+        if from_zero:
+            from sage.misc.superseded import deprecation
+            deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
+        
         if side == 'right':
             p = self
         else:
@@ -2857,6 +2863,8 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([2,3,1]).idescents()
+            doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
+            See http://trac.sagemath.org/20555 for details.
             [0]
             sage: Permutation([1,4,3,2]).idescents()
             [1, 2]
@@ -2904,7 +2912,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).number_of_descents(final_descent=True)
             3
         """
-        return len(self.descents(final_descent))
+        return len(self.descents(final_descent, from_zero=False))
 
     def number_of_idescents(self, final_descent=False):
         r"""
@@ -5943,10 +5951,11 @@ class StandardPermutations_n_abstract(Permutations):
         ordering for multiplication::
 
             sage: SP = Permutations(3)
-            sage: TestSuite(SP).run(skip='_test_reduced_word')
+            sage: TestSuite(SP).run(skip=['_test_reduced_word',
+            ....:     '_test_descents'])
 
             sage: SP.global_options(mult='r2l')
-            sage: TestSuite(SP).run()
+            sage: TestSuite(SP).run(skip='_test_descents')
             sage: SP.global_options.reset()
         """
         self.n = n
@@ -6020,7 +6029,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             sage: P = Permutations(5)
             sage: P.global_options(mult='r2l')
-            sage: TestSuite(P).run()
+            sage: TestSuite(P).run(skip='_test_descents')
             sage: P.global_options.reset()
         """
         cat = FiniteWeylGroups().Irreducible() & FinitePermutationGroups()

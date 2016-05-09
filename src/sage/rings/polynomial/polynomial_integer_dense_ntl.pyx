@@ -31,7 +31,7 @@ do::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
@@ -127,7 +127,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Coercion from NTL polynomial::
 
             sage: f = ntl.ZZX([1, 2, 3])
-            sage: print R(f)
+            sage: print(R(f))
             3*x^2 + 2*x + 1
 
         Coercion from dictionary::

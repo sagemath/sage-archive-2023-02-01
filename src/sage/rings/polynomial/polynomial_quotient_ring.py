@@ -34,6 +34,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 import sage.rings.number_field.all
@@ -112,11 +113,11 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
         sage: A.<y> = PolynomialRing(GF(2)); A
         Univariate Polynomial Ring in y over Finite Field of size 2 (using NTL)
-        sage: B = A.quotient(y^2 + y + 1, 'y2'); print B
+        sage: B = A.quotient(y^2 + y + 1, 'y2'); print(B)
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: C = PolynomialRing(B, 'x'); x=C.gen(); print C
+        sage: C = PolynomialRing(B, 'x'); x=C.gen(); print(C)
         Univariate Polynomial Ring in x over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: R = C.quotient(x^3 - 5); print R
+        sage: R = C.quotient(x^3 - 5); print(R)
         Univariate Quotient Polynomial Ring in xbar over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
 
     Next we create a number field, but viewed as a quotient of a

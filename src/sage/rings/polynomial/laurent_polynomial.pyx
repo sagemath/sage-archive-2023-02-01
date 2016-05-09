@@ -9,6 +9,7 @@ Elements of Laurent polynomial rings
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -379,7 +380,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: R.<t> = LaurentPolynomialRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0

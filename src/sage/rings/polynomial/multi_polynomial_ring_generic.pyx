@@ -1,6 +1,7 @@
 r"""
 Base class for multivariate polynomial rings
 """
+from __future__ import print_function
 
 import sage.misc.latex
 import multi_polynomial_ideal
@@ -366,7 +367,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
-            sage: print P.repr_long()
+            sage: print(P.repr_long())
             Polynomial Ring
              Base Ring : Rational Field
                   Size : 3 Variables

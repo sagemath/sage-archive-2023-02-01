@@ -163,6 +163,7 @@ Check if :trac:`6160` is fixed::
 # Notable exceptions:
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
+from __future__ import print_function
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -1115,7 +1116,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = GF(17)[]
-            sage: print macaulay2(R)        # optional - macaulay2
+            sage: print(macaulay2(R))        # optional - macaulay2
             ZZ
             -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             17
@@ -1526,8 +1527,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: R.<x,y> = QQ[] # indirect doctest
             sage: with localvars(R, 'z,w'):
-            ...       print x^3 + y^3 - x*y
-            ...
+            ....:      print(x^3 + y^3 - x*y)
             z^3 + w^3 - z*w
         """
         cdef ring *_ring = self._ring
@@ -2499,7 +2499,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: P.<x,y,z> = QQ[]
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
-            sage: print f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR'])
+            sage: print(f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR']))
             -FOO^2*BAR - 25/27*BAR^3 - FOOBAR^2
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, self._parent_ring, varnames)
@@ -2811,7 +2811,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             flag = 0
             for i from 0<=i<gens:
                 if exps[i] != -1 and p_GetExp(p,i+1,r)!=exps[i]:
-                    #print i, p_GetExp(p,i+1,r), exps[i]
                     flag = 1
             if flag == 0:
                 newptemp = p_LmInit(p,r)
@@ -3288,9 +3287,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: n=1000; f = x^n
             sage: try:
             ....:   f.subs(x = x^n)
-            ....:   print "no overflow"
+            ....:   print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:   print("overflow")
             overflow    # 32-bit
             x^1000000   # 64-bit
             no overflow # 64-bit
@@ -3299,9 +3298,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: try:
             ....:   f = x^n
             ....:   f.subs(x = x^n)
-            ....:   print "no overflow"
+            ....:   print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:   print("overflow")
             overflow
 
         Check that there is no more segmentation fault if the polynomial gets 0

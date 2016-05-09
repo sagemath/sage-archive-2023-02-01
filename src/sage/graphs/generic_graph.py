@@ -378,7 +378,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Return a graph isomorphic to disjoint union of this graph with `other`.
 
-        Labels of the resultin graph will always be consecutive integers
+        Labels of the resulting graph will always be consecutive integers
         starting from zero.
 
         .. SEEALSO:: :meth:`disjoint_union`
@@ -391,10 +391,25 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 3 vertices disjoint_union Graph on 4 vertices: Graph on 7 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
+
+        TESTS::
+
+            sage: G = Graph({'a': ['b', 'c']})
+            sage: E = Graph()
+            sage: G+E
+            Graph on 3 vertices disjoint_union Graph on 0 vertices: Graph on 3 vertices
+            sage: E+G
+            Graph on 0 vertices disjoint_union Graph on 3 vertices: Graph on 3 vertices
+            sage: E+E
+            Graph on 0 vertices disjoint_union Graph on 0 vertices: Graph on 0 vertices
+            sage: G+42
+            Traceback (most recent call last):
+            ...
+            TypeError: adding a <type 'sage.rings.integer.Integer'> to a <class 'sage.graphs.graph.Graph'> is not defined
         """
         if isinstance(other, GenericGraph):
             return self.disjoint_union(other, labels='integers')
-        raise TypeError('adding a graph and something other than another graph is not defined')
+        raise TypeError("adding a {} to a {} is not defined".format(type(other), type(self)))
 
     def __eq__(self, other):
         """

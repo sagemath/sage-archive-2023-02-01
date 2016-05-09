@@ -76,9 +76,11 @@ class DefDict(dict):
             return dict.__getitem__(self, key)
         except KeyError:
             return self.default
-    def __nonzero__(self):
+
+    def __bool__(self):
         # docutils check "if option_spec"
         return True
+    __nonzero__ = __bool__  # for python2 compatibility
 
 
 def identity(x):
@@ -387,7 +389,7 @@ class Documenter(object):
     @staticmethod
     def get_attr(obj, name, *defargs):
         """getattr() override for types such as Zope interfaces."""
-        for typ, func in AutoDirective._special_attrgetters.iteritems():
+        for typ, func in iteritems(AutoDirective._special_attrgetters):
             if isinstance(obj, typ):
                 return func(obj, name, *defargs)
         return safe_getattr(obj, name, *defargs)
@@ -600,7 +602,7 @@ class Documenter(object):
         docstring = sage_getdoc_original(self.object)
         # make sure we have Unicode docstrings, then sanitize and split
         # into lines
-        if isinstance(docstring, unicode):
+        if isinstance(docstring, text_type):
             return [prepare_docstring(docstring, ignore)]
         elif isinstance(docstring, str):  # this will not trigger on Py3
             return [prepare_docstring(force_decode(docstring, encoding),
@@ -624,9 +626,9 @@ class Documenter(object):
         # set sourcename and add content from attribute documentation
         if self.analyzer:
             # prevent encoding errors when the file name is non-ASCII
-            if not isinstance(self.analyzer.srcname, unicode):
-                filename = unicode(self.analyzer.srcname,
-                                   sys.getfilesystemencoding(), 'replace')
+            if not isinstance(self.analyzer.srcname, text_type):
+                filename = text_type(self.analyzer.srcname,
+                                     sys.getfilesystemencoding(), 'replace')
             else:
                 filename = self.analyzer.srcname
             sourcename = u'%s:docstring of %s' % (filename, self.fullname)
@@ -670,7 +672,7 @@ class Documenter(object):
         if self.analyzer:
             attr_docs = self.analyzer.find_attr_docs()
             namespace = '.'.join(self.objpath)
-            for item in attr_docs.iteritems():
+            for item in iteritems(attr_docs):
                 if item[0][0] == namespace:
                     analyzed_member_names.add(item[0][1])
         if not want_all:
@@ -693,7 +695,7 @@ class Documenter(object):
             # __dict__ contains only the members directly defined in
             # the class (but get them via getattr anyway, to e.g. get
             # unbound method objects instead of function objects);
-            # using keys() because apparently there are objects for which
+            # using list(iterkeys()) because apparently there are objects for which
             # __dict__ changes while getting attributes
             try:
                 obj_dict = self.get_attr(self.object, '__dict__')
@@ -701,7 +703,7 @@ class Documenter(object):
                 members = []
             else:
                 members = [(mname, self.get_attr(self.object, mname, None))
-                           for mname in obj_dict.keys()]
+                           for mname in list(iterkeys(obj_dict))]
         membernames = set(m[0] for m in members)
         # add instance attributes from the analyzer
         for aname in analyzed_member_names:
@@ -816,7 +818,7 @@ class Documenter(object):
         # document non-skipped members
         memberdocumenters = []
         for (mname, member, isattr) in self.filter_members(members, want_all):
-            classes = [cls for cls in AutoDirective._registry.itervalues()
+            classes = [cls for cls in itervalues(AutoDirective._registry)
                        if cls.can_document_member(member, mname, isattr, self)]
             if not classes:
                 # don't know how to document this member
@@ -1310,7 +1312,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
             # for new-style classes, no __init__ means default __init__
             if (initdocstring is not None and
                 (initdocstring == object.__init__.__doc__ or  # for pypy
-                 initdocstring.strip() == object.__init__.__doc__)):  #for !pypy
+                 initdocstring.strip() == object.__init__.__doc__)):  # for !pypy
                 initdocstring = None
             if initdocstring:
                 if content == 'init':
@@ -1319,9 +1321,11 @@ class ClassDocumenter(ModuleLevelDocumenter):
                     docstrings.append(initdocstring)
         doc = []
         for docstring in docstrings:
-            if not isinstance(docstring, unicode):
-                docstring = force_decode(docstring, encoding)
-            doc.append(prepare_docstring(docstring))
+            if isinstance(docstring, text_type):
+                doc.append(prepare_docstring(docstring, ignore))
+            elif isinstance(docstring, str):  # this will not trigger on Py3
+                doc.append(prepare_docstring(force_decode(docstring, encoding),
+                                             ignore))
         return doc
 
     def add_content(self, more_content, no_docstring=False):

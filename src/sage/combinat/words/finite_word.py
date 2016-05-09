@@ -1619,7 +1619,7 @@ class FiniteWord_class(Word_class):
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
             sage: for i in range(5):
-            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i)))
+            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i))))
             0 [word: ]
             1 [word: 0]
             2 [word: 00, word: 01]
@@ -1684,7 +1684,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(5):
-            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i)))
+            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]

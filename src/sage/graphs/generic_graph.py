@@ -46,6 +46,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.random_vertex_iterator` | Return an iterator over random vertices of self.
     :meth:`~GenericGraph.random_edge` | Return a random edge of self.
     :meth:`~GenericGraph.random_edge_iterator` | Return an iterator over random edges of self.
+    :meth:`~GenericGraph.vertex_boundary` | Return a list of all vertices in the external boundary of vertices1, intersected with vertices2.
     :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
     :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
     :meth:`~GenericGraph.get_vertex` | Retrieve the object associated with a given vertex.

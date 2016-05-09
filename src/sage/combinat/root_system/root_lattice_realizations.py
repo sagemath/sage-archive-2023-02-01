@@ -11,6 +11,7 @@ Root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -571,7 +572,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             This matches with :wikipedia:`Root_systems`::
 
                 sage: for T in CartanType.samples(finite = True, crystallographic = True):
-                ...       print "%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots()))
+                ...       print("%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots())))
                 ['A', 1]   2   2
                 ['A', 5]  30  30
                 ['B', 1]   2   2
@@ -1670,7 +1671,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             The action on all almost positive roots::
 
                 sage: for root in L.almost_positive_roots():
-                ...      print 'tau({:<41}) ='.format(root), tau(root)
+                ...      print('tau({:<41}) ='.format(root), tau(root))
                 tau(-alpha[1]                                ) = alpha[1]
                 tau(alpha[1]                                 ) = -alpha[1]
                 tau(alpha[1] + alpha[2]                      ) = alpha[2] + alpha[3]
@@ -1691,7 +1692,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['B',3]).ambient_space()
                 sage: tau = L.tau_epsilon_operator_on_almost_positive_roots([1,3])
                 sage: for root in L.almost_positive_roots():
-                ...      print 'tau({:<41}) ='.format(root), tau(root)
+                ....:     print('tau({:<41}) ='.format(root), tau(root))
                 tau((-1, 1, 0)                               ) = (1, -1, 0)
                 tau((1, 0, 0)                                ) = (0, 1, 0)
                 tau((1, -1, 0)                               ) = (-1, 1, 0)
@@ -1750,7 +1751,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: S = RootSystem(['A',2]).root_lattice()
                 sage: taup, taum = S.tau_plus_minus()
-                sage: for beta in S.almost_positive_roots(): print beta, ",", taup(beta), ",", taum(beta)
+                sage: for beta in S.almost_positive_roots(): print("{} , {} , {}".format(beta, taup(beta), taum(beta)))
                 -alpha[1] , alpha[1] , -alpha[1]
                 alpha[1] , -alpha[1] , alpha[1] + alpha[2]
                 alpha[1] + alpha[2] , alpha[2] , alpha[1]
@@ -2450,13 +2451,13 @@ class RootLatticeRealizations(Category_over_base_ring):
             TESTS::
 
                 sage: L = RootSystem(["A",2]).ambient_space()
-                sage: print L.plot_reflection_hyperplanes().description()
+                sage: print(L.plot_reflection_hyperplanes().description())
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
                 Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
 
-                sage: print L.plot_reflection_hyperplanes("all").description()
+                sage: print(L.plot_reflection_hyperplanes("all").description())
                 Text '$H_{\alpha^\vee_{1} + \alpha^\vee_{2}}$' at the point (3.15,0.0)
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
@@ -2465,7 +2466,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
 
                 sage: L = RootSystem(["A",2,1]).ambient_space()
-                sage: print L.plot_reflection_hyperplanes().description()
+                sage: print(L.plot_reflection_hyperplanes().description())
                 Text '$H_{\alpha^\vee_{0}}$' at the point (3.15,0.90...)
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
@@ -2535,7 +2536,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             TESTS::
 
                 sage: L = RootSystem(["B",2]).ambient_space()
-                sage: print L.plot_hedron().description()
+                sage: print(L.plot_hedron().description())
                 Polygon defined by 8 points: [(1.5, 0.5), (0.5, 1.5), (-0.5, 1.5), (-1.5, 0.5), (-1.5, -0.5), (-0.5, -1.5), (0.5, -1.5), (1.5, -0.5)]
                 Line defined by 2 points: [(-0.5, -1.5), (0.5, -1.5)]
                 Line defined by 2 points: [(-0.5, 1.5), (0.5, 1.5)]
@@ -2599,10 +2600,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             TESTS::
 
                 sage: L = RootSystem(["B",2,1]).ambient_space()
-                sage: print L.plot_fundamental_chamber().description()
+                sage: print(L.plot_fundamental_chamber().description())
                 Polygon defined by 3 points:     [(0.5, 0.5), (1.0, 0.0), (0.0, 0.0)]
 
-                sage: print L.plot_fundamental_chamber(style="classical").description()
+                sage: print(L.plot_fundamental_chamber(style="classical").description())
                 Polygon defined by 3 points:     [(0.0, 0.0), (3.0, 3.0), (3.0, 0.0)]
             """
             plot_options = self.plot_parse_options(**options)
@@ -2668,7 +2669,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(["A",2,1]).weight_space()
                 sage: p = L.plot_alcoves(alcoves=[[0,0]])
-                sage: print p.description()
+                sage: print(p.description())
                 Line defined by 2 points: [(-1.0, 0.0), (0.0, -1.0)]
                 Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
                 Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
@@ -2899,7 +2900,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 ...                          foldings = [False, False, True, False, False, False, True, False, True, False],
                 ...                          color="green",
                 ...                          start=L.rho())
-                sage: print p.description()
+                sage: print(p.description())
                 Line defined by 2 points: [(-1.0, 8.0), (-1.5, 9.0)]
                 Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
                 Line defined by 2 points: [(1.0, 7.0), (1.5, 6.0)]
@@ -3860,7 +3861,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(["A",3]).root_lattice()
                 sage: positive_roots = L.positive_roots()
                 sage: for alpha in positive_roots:
-                ...       print alpha, alpha.to_simple_root()
+                ....:     print("{} {}".format(alpha, alpha.to_simple_root()))
                 alpha[1] 1
                 alpha[2] 2
                 alpha[3] 3
@@ -3868,7 +3869,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alpha[2] + alpha[3] 3
                 alpha[1] + alpha[2] + alpha[3] 3
                 sage: for alpha in positive_roots:
-                ...        print alpha, alpha.to_simple_root(reduced_word=True)
+                ....:     print("{} {}".format(alpha, alpha.to_simple_root(reduced_word=True)))
                 alpha[1] (1, ())
                 alpha[2] (2, ())
                 alpha[3] (3, ())

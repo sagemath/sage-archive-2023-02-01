@@ -289,6 +289,7 @@ from sage.symbolic.ring import var
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.skew_partition', 'SkewPartition')
+lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
@@ -5078,8 +5079,20 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P = Partitions()
             sage: P([3,3,1]) # indirect doctest
             [3, 3, 1]
+
+            sage: PT = PartitionTuples()
+            sage: elt = PT([[4,4,2,2,1]]); elt
+            ([4, 4, 2, 2, 1])
+            sage: P(elt)
+            [4, 4, 2, 2, 1]
         """
         if isinstance(lst, Partition):
+            if lst.parent() is self:
+                return lst
+        if isinstance(lst, PartitionTuple):
+            if lst.level() != 1:
+                raise ValueError('%s is not an element of %s'%(lst, self))
+            lst = lst[0]
             if lst.parent() is self:
                 return lst
         if lst in self:

@@ -1466,7 +1466,7 @@ class GroebnerFan(SageObject):
             for x in cone_info:
                 print(x.inequalities() + ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]))
                 print(x.equations())
-                print("")
+                print()
         cone_info = [Polyhedron(ieqs = x.inequalities() +
                                 ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]),
                                 eqns = x.equations()) for x in cone_info]

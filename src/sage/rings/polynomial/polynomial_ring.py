@@ -666,7 +666,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R._magma_init_(magma)                     # optional - magma
             'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
             sage: S = magma(R)                              # optional - magma
-            sage: print(S)                                   # optional - magma
+            sage: S                                         # optional - magma
             Univariate Polynomial Ring in y over Rational Field
             sage: S.1                                       # optional - magma
             y

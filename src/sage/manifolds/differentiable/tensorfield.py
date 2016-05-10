@@ -2974,3 +2974,80 @@ class TensorField(ModuleElement):
             self._lie_derivatives[id(vector)] = (vector, resu)
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
+
+    def at(self, point):
+        r"""
+        Value of the tensor field at a point of its domain.
+
+        If the current tensor field is
+
+        .. MATH::
+
+            t:\ U  \longrightarrow T^{(k,l)} M
+
+        associated with the differentiable map
+
+        .. MATH::
+
+            \Phi:\ U \longrightarrow M
+
+        where `U` and `M` are two manifolds (possibly `U=M` and
+        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is a tensor
+        on the tangent space to `M` at the point `\Phi(p)`.
+
+        INPUT:
+
+        - ``point`` -- (instance of
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
+          domain of the tensor field (`U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
+          representing the tensor `t(p)` on the tangent vector space
+          `T_{\Phi(p)} M`
+
+        EXAMPLES:
+
+        Tensor on a tangent space of a non-parallelizable 2-dimensional
+        manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: W = U.intersection(V)
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: a = M.tensor_field(1,1, name='a')
+            sage: a[eU,:] = [[1+y,x], [0,x+y]]
+            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: a.display(eU)
+            a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
+            sage: a.display(eV)
+            a = (u + 1/2) d/du*du + (-1/2*u - 1/2*v + 1/2) d/du*dv
+             + 1/2 d/dv*du + (1/2*u - 1/2*v + 1/2) d/dv*dv
+            sage: p = M.point((2,3), chart=c_xy, name='p')
+            sage: ap = a.at(p) ; ap
+            Type-(1,1) tensor a on the Tangent space at Point p on the
+             2-dimensional differentiable manifold M
+            sage: ap.parent()
+            Free module of type-(1,1) tensors on the Tangent space at Point p
+             on the 2-dimensional differentiable manifold M
+            sage: ap.display(eU.at(p))
+            a = 4 d/dx*dx + 2 d/dx*dy + 5 d/dy*dy
+            sage: ap.display(eV.at(p))
+            a = 11/2 d/du*du - 3/2 d/du*dv + 1/2 d/dv*du + 7/2 d/dv*dv
+            sage: p.coord(c_uv) # to check the above expression
+            (5, -1)
+
+        """
+        if point not in self._domain:
+            raise ValueError("the {} is not a point in the ".format(point) +
+                             "domain of {}".format(self))
+        for dom, rst in self._restrictions.iteritems():
+            if point in dom:
+                return rst.at(point)

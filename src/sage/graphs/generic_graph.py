@@ -9436,7 +9436,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import randint
         if self.order()==0:
-            return
+            raise StopIteration
         V = list(self.vertex_iterator(**kwds))
         l = len(V)-1
         while True:
@@ -9513,7 +9513,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import randint
         if self.size()==0:
-            return
+            raise StopIteration
         E = list(self.edge_iterator(**kwds))
         l = len(E)-1
         while True:

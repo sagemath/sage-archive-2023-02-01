@@ -969,7 +969,8 @@ class Posets(object):
         INPUT:
     
         - ``n`` - nonnegative integer, number of elements in the poset
-        - ``m`` - nonnegative integer (default 1), how frequently down steps occur
+        - ``m`` - nonnegative integer (default 1), how frequently down
+          steps occur
 
         OUTPUT:
 
@@ -1007,7 +1008,9 @@ class Posets(object):
         if m < 1:
             raise ValueError("parameter m must be positive, not {0}".format(m))
 
-        return Poset( (range(0,n), [[i,i+1] for i in range(n-1) if (i+1) % (m+1) != 0]+[[i+1,i] for i in range(n-1) if (i+1) % (m+1) == 0]) )
+        covers = [[i, i + 1] if (i + 1) % (m + 1) else [i + 1, i]
+                  for i in range(n - 1)]
+        return Poset((range(n), covers), cover_relations=True)
 
     @staticmethod
     def YoungDiagramPoset(lam):

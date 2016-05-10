@@ -9434,13 +9434,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(empty_graph.random_vertex_iterator())
             []
         """
-        from sage.misc.prandom import randint
-        if self.order()==0:
-            raise StopIteration
-        V = list(self.vertex_iterator(**kwds))
-        l = len(V)-1
-        while True:
-            yield V[randint(0, l)]
+        from sage.misc.prandom import choice
+        if self.order():
+            V = list(self.vertex_iterator(**kwds))
+            while True:
+                yield choice(V)
 
     def random_edge(self,**kwds):
         r"""
@@ -9511,13 +9509,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(empty_graph.random_edge_iterator())
             []
         """
-        from sage.misc.prandom import randint
-        if self.size()==0:
-            raise StopIteration
-        E = list(self.edge_iterator(**kwds))
-        l = len(E)-1
-        while True:
-            yield E[randint(0, l)]
+        from sage.misc.prandom import choice
+        if self.size():
+            E = list(self.edge_iterator(**kwds))
+            while True:
+                yield choice(E)
 
     def vertex_boundary(self, vertices1, vertices2=None):
         """

@@ -9433,6 +9433,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: empty_graph = Graph()
             sage: list(empty_graph.random_vertex_iterator())
             []
+            sage: it = empty_graph.random_vertex_iterator()
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration             
         """
         from sage.misc.prandom import choice
         if self.order():
@@ -9512,7 +9517,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: next(it)
             Traceback (most recent call last):
             ...
-            ValueError:             
+            StopIteration             
         """
         from sage.misc.prandom import choice
         if self.size():

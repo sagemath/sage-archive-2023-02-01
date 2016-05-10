@@ -1184,9 +1184,9 @@ Elliptic curves::
     sage: e.elllseries(2.1)
     0.402838047956645
     sage: e.elllseries(1, precision=128)
-    6.21952537507477 E-39
+    3.19632265064095 E-40
     sage: e.elllseries(1, precision=256)
-    2.95993347819786 E-77
+    8.68747983667209 E-79
     sage: e.elllseries(-2)
     0
     sage: e.elllseries(2.1, A=1.1)

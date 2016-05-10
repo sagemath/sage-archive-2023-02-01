@@ -1087,20 +1087,19 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
             (0 : 1 , 3 : 1), (1 : 1 , 3 : 1), (2 : 1 , 3 : 1), (3 : 1 , 3 : 1), (4 : 1 , 3 : 1), (1 : 0 , 3 : 1),
             (0 : 1 , 4 : 1), (1 : 1 , 4 : 1), (2 : 1 , 4 : 1), (3 : 1 , 4 : 1), (4 : 1 , 4 : 1), (1 : 0 , 4 : 1),
             (0 : 1 , 1 : 0), (1 : 1 , 1 : 0), (2 : 1 , 1 : 0), (3 : 1 , 1 : 0), (4 : 1 , 1 : 0), (1 : 0 , 1 : 0)]
+
+        ::
+
+            sage: P = ProductProjectiveSpaces([1, 1], GF(2))
+            sage: P.rational_points(GF(2^2,'a'))
+            [(0 : 1 , 0 : 1), (a : 1 , 0 : 1), (a + 1 : 1 , 0 : 1), (1 : 1 , 0 : 1), (1 : 0 , 0 : 1), (0 : 1 , a : 1),
+            (a : 1 , a : 1), (a + 1 : 1 , a : 1), (1 : 1 , a : 1), (1 : 0 , a : 1), (0 : 1 , a + 1 : 1), (a : 1 , a + 1 : 1),
+            (a + 1 : 1 , a + 1 : 1), (1 : 1 , a + 1 : 1), (1 : 0 , a + 1 : 1), (0 : 1 , 1 : 1), (a : 1 , 1 : 1),
+            (a + 1 : 1 , 1 : 1), (1 : 1 , 1 : 1), (1 : 0 , 1 : 1), (0 : 1 , 1 : 0), (a : 1 , 1 : 0), (a + 1 : 1 , 1 : 0),
+            (1 : 1 , 1 : 0), (1 : 0 , 1 : 0)]
         """
-        iters = [iter(T) for T in self._components]
-        L=[]
-        for x in iters:
-            L.append(next(x)) # put at zero
-        points=[self(L)]
-        j = 0
-        while j < self.num_components():
-            try:
-                L[j] = next(iters[j])
-                points.append(self(L))
-                j = 0
-            except StopIteration:
-                iters[j] = iter(self[j]) # reset
-                L[j] = next(iters[j]) # put at zero
-                j += 1
-        return points
+        if F is None:
+            return list(self)
+        elif not is_FiniteField(F):
+            raise TypeError("second argument (= %s) must be a finite field"%F)
+        return list(self.base_extend(F))

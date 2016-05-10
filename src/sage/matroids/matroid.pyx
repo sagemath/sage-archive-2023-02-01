@@ -6467,8 +6467,8 @@ cdef class Matroid(SageObject):
                 raise ValueError("input is not a subset of the groundset.")
         if len(X) == 0:
             return True
-        # Construct ``Y``: a list of all elements of ``X``
-        # in order of weakly decreasing weight.
+
+        # If there are no weights, then our elements are already in weakly decreasing order
         if weights is None:
             Y = list(X)
             for e in Y:
@@ -6480,6 +6480,11 @@ cdef class Matroid(SageObject):
                     if self._rank([e]) >= 1:
                         return False
             return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elementns of X.
         else:
             wt = []
             wt_dic = {}
@@ -6500,19 +6505,26 @@ cdef class Matroid(SageObject):
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
+
+        # res is a partally built maximal weighted basis. smres, when used is the elements of
+        # e that are strictly larger than e, together with e itself.
+        # If smres is independent when e was not added to res, then it could have been added to res
+        # if we made different choices in the greedy algorithm, so our building or res does not result
+        # in a unique maximal weight basis.
         smres = []
         for e in Y:
-            res.append(e)
-            if len(res) >= 2:
-                if wt_dic[e] < wt_dic[res[-2]]:
+            if len(res) >= 1:                  #This guarantees that smres is the elements of res that are strictly larger than e.
+                if wt_dic[e] < wt_dic[res[-1]]:
                     smres=res[:]
+            res.append(e)
             if self._rank(res) > r:
                 r += 1
             else:
-                del res[-1]
+                smres.append(e)
                 if self._rank(smres) >= len(smres):
                     return False
                 del smres[-1]
+                del res[-1]
         return True
 
     cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
@@ -6573,8 +6585,8 @@ cdef class Matroid(SageObject):
                 raise ValueError("input is not a subset of the groundset.")
         if len(X) == 0:
             return True
-        # Construct ``Y``: a list of all elements of ``X``
-        # in order of weakly decreasing weight.
+
+        # If there are no weights, then our elements are already in weakly decreasing order
         if weights is None:
             Y = list(X)
             for e in Y:
@@ -6583,9 +6595,14 @@ cdef class Matroid(SageObject):
                     r += 1
                 else:
                     del res[-1]
-                    if self._co     rank([e]) >= 1:
+                    if self._corank([e]) >= 1:
                         return False
             return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elementns of X.
         else:
             wt = []
             wt_dic = {}
@@ -6606,19 +6623,26 @@ cdef class Matroid(SageObject):
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
+
+        # res is a partally built maximal weighted cobasis. smres, when used is the elements of
+        # e that are strictly larger than e, together with e itself.
+        # If smres is coindependent when e was not added to res, then it could have been added to res
+        # if we made different choices in the greedy algorithm, so our building or res does not result
+        # in a unique maximal weight cobasis.
         smres = []
         for e in Y:
-            res.append(e)
-            if len(res) >= 2:
-                if wt_dic[e] < wt_dic[res[-2]]:
+            if len(res) >= 1:                  #This guarantees that smres is the elements of res that are strictly larger than e.
+                if wt_dic[e] < wt_dic[res[-1]]:
                     smres=res[:]
-            if self._rank(res) > r:
+            res.append(e)
+            if self._corank(res) > r:
                 r += 1
             else:
-                del res[-1]
-                if self._rank(smres) >= len(smres):
+                smres.append(e)
+                if self._corank(smres) >= len(smres):
                     return False
                 del smres[-1]
+                del res[-1]
         return True
 
 

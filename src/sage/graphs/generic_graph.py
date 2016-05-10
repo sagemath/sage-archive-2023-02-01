@@ -9508,6 +9508,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: empty_graph = Graph()
             sage: list(empty_graph.random_edge_iterator())
             []
+            sage: it = empty_graph.random_edge_iterator()
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            ValueError:             
         """
         from sage.misc.prandom import choice
         if self.size():

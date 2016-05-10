@@ -2605,3 +2605,217 @@ class DifferentiableManifold(TopologicalManifold):
         from sage.manifolds.differentiable.affine_connection import \
                                                                AffineConnection
         return AffineConnection(self, name, latex_name)
+
+    def metric(self, name, signature=None, latex_name=None, dest_map=None):
+        r"""
+        Define a pseudo-Riemannian metric on the manifold.
+
+        A *pseudo-Riemannian metric* is a field of nondegenerate symmetric
+        bilinear forms acting in the tangent spaces. See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: ``None``) signature `S` of the metric as a
+          single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the
+          number of positive terms (resp. number of negative terms) in any
+          diagonal writing of the metric components; if ``signature`` is not
+          provided, `S` is set to the manifold's dimension (Riemannian
+          signature)
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLE:
+
+        Metric on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: g = M.metric('g'); g
+            Riemannian metric g on the 3-dimensional differentiable manifold M
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.metric(name, signature=signature, latex_name=latex_name)
+
+    def riemannian_metric(self, name, latex_name=None, dest_map=None):
+        r"""
+        Define a Riemannian metric on the manifold.
+
+        A *Riemannian metric* is a field of positive definite symmetric
+        bilinear forms acting in the tangent spaces.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined Riemannian metric.
+
+        EXAMPLE:
+
+        Metric of the hyperbolic plane `H^2`::
+
+            sage: H2 = Manifold(2, 'H^2', start_index=1)
+            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincare half-plane coord.
+            sage: g = H2.riemannian_metric('g')
+            sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
+            sage: g
+            Riemannian metric g on the 2-dimensional differentiable manifold H^2
+            sage: g.display()
+            g = y^(-2) dx*dx + y^(-2) dy*dy
+            sage: g.signature()
+            2
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule.ambient_domain().dimension()
+        return vmodule.metric(name, signature=dim, latex_name=latex_name)
+
+    def riemann_metric(self, name, latex_name=None, dest_map=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`riemannian_metric` instead.
+
+        EXAMPLE::
+
+            sage: M = Manifold(3, 'M')
+            sage: g = M.riemann_metric('g')
+            doctest:...: DeprecationWarning: Use riemannian_metric() instead.
+            See http://trac.sagemath.org/19209 for details.
+            sage: g
+            Riemannian metric g on the 3-dimensional differentiable manifold M
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19209, 'Use riemannian_metric() instead.')
+        return self.riemannian_metric(name, latex_name=latex_name,
+                                      dest_map=dest_map)
+
+    def lorentzian_metric(self, name, signature='positive', latex_name=None,
+                          dest_map=None):
+        r"""
+        Define a Lorentzian metric on the manifold.
+
+        A *Lorentzian metric* is a field of nondegenerate symmetric bilinear
+        forms acting in the tangent spaces, with signature `(-,+,\cdots,+)` or
+        `(+,-,\cdots,-)`.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: 'positive') sign of the metric
+          signature:
+
+          * if set to 'positive', the signature is n-2, where n is the
+            manifold's dimension, i.e. `(-,+,\cdots,+)`
+          * if set to 'negative', the signature is -n+2, i.e. `(+,-,\cdots,-)`
+
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined Lorentzian metric.
+
+        EXAMPLE:
+
+        Metric of Minkowski spacetime::
+
+            sage: M = Manifold(4, 'M')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.lorentzian_metric('g'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: g.display()
+            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            sage: g.signature()
+            2
+
+        Choice of a negative signature::
+
+            sage: g = M.lorentzian_metric('g', signature='negative'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = 1, -1, -1, -1
+            sage: g.display()
+            g = dt*dt - dx*dx - dy*dy - dz*dz
+            sage: g.signature()
+            -2
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule.ambient_domain().dimension()
+        if signature=='positive':
+            signat = dim - 2
+        else:
+            signat = 2 - dim
+        return vmodule.metric(name, signature=signat, latex_name=latex_name)
+
+    def lorentz_metric(self, name, signature='positive', latex_name=None,
+                       dest_map=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`lorentzian_metric` instead.
+
+        EXAMPLE::
+
+            sage: M = Manifold(4, 'M')
+            sage: g = M.lorentz_metric('g')
+            doctest:...: DeprecationWarning: Use lorentzian_metric() instead.
+            See http://trac.sagemath.org/19209 for details.
+            sage: g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19209, 'Use lorentzian_metric() instead.')
+        return self.lorentzian_metric(name, signature=signature,
+                                      latex_name=latex_name, dest_map=dest_map)

@@ -3,7 +3,8 @@ Parallelization control
 
 This module defines the singleton class :class:`Parallelism` to govern the
 parallelization of computations in some specific topics. It allows the user to
-set the number of  processes to be used for parallelization.
+set the number of processes to be used for parallelization. A simplified
+front-end is :func:`~sage.parallel.parallelism.use_multiproc`.
 
 Some examples of use are provided in the documentation of
 :meth:`sage.tensor.modules.comp.Components.contract`.
@@ -32,6 +33,9 @@ class Parallelism(Singleton, SageObject):
     r"""
     Singleton class for managing the number of processes used in parallel
     computations involved in various fields.
+
+    A front-end is provided by the function
+    :func:`~sage.parallel.parallelism.use_multiproc`.
 
     EXAMPLES:
 
@@ -354,3 +358,53 @@ class Parallelism(Singleton, SageObject):
 
         """
         return self._default
+
+#******************************************************************************
+
+def use_multiproc(nproc=None, field=None):
+    r"""
+    Front-end to control the number of processes in parallel computations.
+
+    INPUT:
+
+    - ``nproc`` -- (default: ``None``) number of processes to be used for
+      parallelization; if ``None``, the number of processes will be set to
+      the default value, which, unless redefined by
+      :meth:`Parallelism.set_default`, is the total number of cores found on
+      the computer.
+    - ``field`` -- (default: ``None``) string specifying the computational
+      field for which the number of parallel processes is to be set; if
+      ``None``, all fields are considered
+
+    EXAMPLES:
+
+    Using 2 processes for all parallel computations::
+
+        sage: use_multiproc(2)
+        sage: Parallelism()
+        Number of processes for parallelization:
+         - tensor computations: 2
+
+    Using all the cores available on the computer::
+
+        sage: use_multiproc()
+        sage: Parallelism()  # random (depends on the computer)
+        Number of processes for parallelization:
+         - tensor computations: 8
+
+    Using 2 processes for tensor parallel computations::
+
+        sage: use_multiproc(2, field='tensor')
+        sage: Parallelism()
+        Number of processes for parallelization:
+         - tensor computations: 2
+
+    Reverting to a single process for all computations::
+
+        sage: use_multiproc(1)
+        sage: Parallelism()
+        Number of processes for parallelization:
+         - tensor computations: 1
+
+    """
+    Parallelism().set(field=field, nproc=nproc)

@@ -2568,3 +2568,40 @@ class DifferentiableManifold(TopologicalManifold):
                 # case self.dim()=1
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
+
+    def affine_connection(self, name, latex_name=None):
+        r"""
+        Define an affine connection on the manifold.
+
+        See :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the affine connection
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          affine connection
+
+        OUTPUT:
+
+        - the affine connection, as an instance of
+          :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+
+        EXAMPLE:
+
+        Affine connection on an open subset of a 3-dimensional smooth manifold::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
+            sage: nab = A.affine_connection('nabla', r'\nabla') ; nab
+            Affine connection nabla on the Open subset A of the 3-dimensional
+             differentiable manifold M
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+        for more examples.
+
+        """
+        from sage.manifolds.differentiable.affine_connection import \
+                                                               AffineConnection
+        return AffineConnection(self, name, latex_name)

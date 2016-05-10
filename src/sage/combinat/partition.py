@@ -5077,8 +5077,12 @@ class Partitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Partitions()
-            sage: P([3,3,1]) # indirect doctest
+            sage: p = P([3,3,1]); p
             [3, 3, 1]
+            sage: P(p) is p
+            True
+            sage: P([3, 2, 1, 0])
+            [3, 2, 1]
 
             sage: PT = PartitionTuples()
             sage: elt = PT([[4,4,2,2,1]]); elt
@@ -5086,9 +5090,6 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P(elt)
             [4, 4, 2, 2, 1]
         """
-        if isinstance(lst, Partition):
-            if lst.parent() is self:
-                return lst
         if isinstance(lst, PartitionTuple):
             if lst.level() != 1:
                 raise ValueError('%s is not an element of %s'%(lst, self))

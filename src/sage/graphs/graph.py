@@ -1908,7 +1908,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [ABCHRS08] L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
+        .. [ABCHRS08] \L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour
           Bisimplicial vertices in even-hole-free graphs
           Journal of Combinatorial Theory, Series B
           vol 98, n.6 pp 1119-1164, 2008
@@ -1990,7 +1990,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [CRST06] M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
+        .. [CRST06] \M. Chudnovsky, G. Cornuejols, X. Liu, P. Seymour, K. Vuskovic
           Recognizing berge graphs
           Combinatorica vol 25, n 2, pages 143--186
           2005
@@ -2249,7 +2249,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [GraphClasses] A. Brandstadt, VB Le and JP Spinrad
+        .. [GraphClasses] \A. Brandstadt, VB Le and JP Spinrad
           Graph classes: a survey
           SIAM Monographs on Discrete Mathematics and Applications},
           1999
@@ -2633,7 +2633,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [SPGT] M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
+        .. [SPGT] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
           The strong perfect graph theorem
           Annals of Mathematics
           vol 164, number 1, pages 51--230
@@ -3675,7 +3675,7 @@ class Graph(GenericGraph):
 
         REFERENCES:
 
-        .. [Stanley95] R. P. Stanley, *A symmetric function generalization
+        .. [Stanley95] \R. P. Stanley, *A symmetric function generalization
            of the chromatic polynomial of a graph*, Adv. Math., ***111***
            no.1 (1995), 166-194.
         """
@@ -4345,7 +4345,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [AhaBerZiv07] R. Aharoni and E. Berger and R. Ziv
+        .. [AhaBerZiv07] \R. Aharoni and E. Berger and R. Ziv
           Independent systems of representatives in weighted graphs
           Combinatorica vol 27, num 3, p253--267
           2007
@@ -4829,20 +4829,23 @@ class Graph(GenericGraph):
         r"""
         Returns the Seidel adjacency matrix of ``self``.
 
-        Returns `J-I-2A`, for `A` the (ordinary)
-        :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
-        `I` the identity matrix, and `J` the all-1 matrix.
+        Returns `J-I-2A`, for `A` the (ordinary) :meth:`adjacency
+        matrix
+        <sage.graphs.generic_graph.GenericGraph.adjacency_matrix>` of
+        ``self``, `I` the identity matrix, and `J` the all-1 matrix.
         It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or :func:`matrix` function.
+        method or :class:`matrix <sage.matrix.constructor.MatrixFactory>` function.
 
         INPUT:
 
-        - ``vertices`` (list) -- the ordering of the vertices defining how they
-          should appear in the matrix. By default, the ordering given by
-          :meth:`GenericGraph.vertices` is used.
+        - ``vertices`` (list) -- the ordering of the vertices defining
+          how they should appear in the matrix. By default, the
+          ordering given by
+          :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is
+          used.
 
         EXAMPLES::
 
@@ -5792,7 +5795,7 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [ACFLSS04] F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
+        .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
           Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
           the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
           2004: 62-69.
@@ -6407,7 +6410,7 @@ class Graph(GenericGraph):
           International Journal of Foundations of Computer Science
           vol. 10 n2 pp.147--170, 1999
 
-        .. [CapHabMont02] C. Capelle, M. Habib et F. de Montgolfier
+        .. [CapHabMont02] \C. Capelle, M. Habib et F. de Montgolfier
           Graph decomposition and Factorising Permutations
           Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
 

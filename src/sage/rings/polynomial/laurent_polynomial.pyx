@@ -1351,7 +1351,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]}) > 20
             True
+
+        Check that :trac:`20490` is fixed::
+
+            sage: R.<a,b> = LaurentPolynomialRing(ZZ)
+            sage: p = a*~a
+            sage: p._fraction_pair()
+            (a, a)
+            sage: p == R.one()
+            True
+            sage: hash(p) == hash(R.one())
+            True
         """
+        self._normalize()
         return hash(self._poly) ^ hash(self._mon)
 
     cdef _new_c(self):

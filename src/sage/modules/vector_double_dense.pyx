@@ -754,10 +754,10 @@ cdef class Vector_double_dense(FreeModuleElement):
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
-            sage: v.stats_kurtosis()  # rel tol 5e-16
-            -1.2300000000000002
-            sage: w.stats_kurtosis()  # rel tol 5e-16
-            -1.2300000000000002
+            sage: v.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
+            sage: w.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
         """
         import scipy.stats
         return self._sage_dtype(scipy.stats.kurtosis(self._vector_numpy))

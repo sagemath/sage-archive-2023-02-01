@@ -48,7 +48,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     REFERENCES:
 
-    .. [KN94] M. Kashiwara and T. Nakashima.
+    .. [KN94] \M. Kashiwara and T. Nakashima.
        Crystal graphs for representations of the `q`-analogue of classical Lie
        algebras.
        J. Algebra **165**, no. 2, pp. 295--345, 1994.

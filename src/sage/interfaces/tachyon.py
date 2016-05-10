@@ -14,6 +14,7 @@ AUTHOR:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 
@@ -83,7 +84,7 @@ class TachyonRT(SageObject):
 
             sage: from sage.interfaces.tachyon import TachyonRT
             sage: t = TachyonRT()
-            sage: print t.__repr__()
+            sage: print(t.__repr__())
             John Stone's Tachyon Ray Tracer
         """
         return "John Stone's Tachyon Ray Tracer"
@@ -175,7 +176,7 @@ class TachyonRT(SageObject):
         if use_pager == True:
             pager()(r)
         else:
-            print r
+            print(r)
 
     def help(self, use_pager=True):
         """

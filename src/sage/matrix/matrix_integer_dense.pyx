@@ -54,6 +54,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.stdint cimport int64_t
 include "sage/ext/cdefs.pxi"
@@ -84,9 +85,7 @@ include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 
-from sage.ext.multi_modular import MultiModularBasis
-from sage.ext.multi_modular cimport MultiModularBasis
-
+from sage.arith.multi_modular cimport MultiModularBasis
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -2754,11 +2753,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [SH95] C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
+        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
            Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology
            - EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
 
-        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*.
+        .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
            3rd edition, Johns Hopkins Univ. Press, 1996.
 
         """
@@ -5296,11 +5295,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: type(A)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
@@ -5636,7 +5635,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
         [-3  0 -1  6]
         [ 1 -1  0 -2]
 
-        sage: from sage.ext.multi_modular import MultiModularBasis
+        sage: from sage.arith.multi_modular import MultiModularBasis
         sage: mm = MultiModularBasis([5,7,11])
         sage: _lift_crt(Matrix(ZZ, 4, 4), [T1, T2, T3], mm)
         [ 1  4 -1  0]
@@ -5649,7 +5648,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     for ``Matrix_modn_dense_double`` to be able to represent the
     ``residues`` ::
 
-        sage: from sage.ext.multi_modular import MAX_MODULUS as MAX_multi_modular
+        sage: from sage.arith.multi_modular import MAX_MODULUS as MAX_multi_modular
         sage: from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_modn_dense_double
         sage: MAX_MODULUS = min(MAX_multi_modular, MAX_modn_dense_double)
         sage: p0 = previous_prime(MAX_MODULUS)

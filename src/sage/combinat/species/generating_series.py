@@ -60,7 +60,7 @@ weighted degree where each variable x_i has weight i.
 
 REFERENCES:
 
-.. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+.. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
@@ -752,7 +752,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
            :arXiv:`math/0503436v2`.
 
@@ -1355,7 +1355,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
+    .. [Labelle] \G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_gen(R))

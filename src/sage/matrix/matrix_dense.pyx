@@ -7,6 +7,7 @@ TESTS::
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: TestSuite(m).run()
 """
+from __future__ import print_function
 
 cimport matrix
 
@@ -137,10 +138,10 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: M = MatrixSpace(QQ,  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [1 3]
             [2 4]
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
 

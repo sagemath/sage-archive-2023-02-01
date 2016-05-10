@@ -41,7 +41,7 @@ For tests see the file ``sage.modular.arithgroup.tests``.
 
 REFERENCES:
 
-.. [AtSD71] A. O. L. Atkin and H. P. F. Swinnerton-Dyer, "Modular forms on
+.. [AtSD71] \A. O. L. Atkin and H. P. F. Swinnerton-Dyer, "Modular forms on
    noncongruence subgroups", Proc. Symp. Pure Math., Combinatorics (T. S. Motzkin,
    ed.), vol. 19, AMS, Providence 1971
 

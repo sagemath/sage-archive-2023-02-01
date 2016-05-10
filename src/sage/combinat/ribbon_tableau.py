@@ -15,6 +15,8 @@ Ribbon Tableaux
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -28,6 +30,7 @@ from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
 import permutation
 import functools
+
 
 class RibbonTableau(SkewTableau):
     r"""
@@ -106,20 +109,20 @@ class RibbonTableau(SkewTableau):
             sage: RibbonTableau([[1,0],[2,0]]).length()
             2
         """
-        if self.to_expr() == [[],[]]:
+        if self.to_expr() == [[], []]:
             return 0
 
         tableau = self.to_expr()[1]
         l = 0
         t = 0
         for k in range(len(tableau)):
-            t += len( [ x for x in tableau[k] if x is not None and x > -1 ] )
-            l += len( [ x for x in tableau[k] if x is not None and x > 0  ] )
+            t += len([ x for x in tableau[k] if x is not None and x > -1])
+            l += len([ x for x in tableau[k] if x is not None and x > 0])
 
         if l == 0:
             return t
         else:
-            return t/l
+            return t // l
 
     def to_word(self):
         """

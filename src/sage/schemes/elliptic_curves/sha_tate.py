@@ -445,7 +445,7 @@ class Sha(SageObject):
 
         REFERENCES:
 
-        .. [MTT] B. Mazur, J. Tate, and J. Teitelbaum, On `p`-adic
+        .. [MTT] \B. Mazur, J. Tate, and J. Teitelbaum, On `p`-adic
            analogues of the conjectures of Birch and Swinnerton-Dyer,
            Inventiones mathematicae 84, (1986), 1-48.
 
@@ -1078,10 +1078,10 @@ class Sha(SageObject):
            applications arithmétiques III, Astérisque vol 295, SMF,
            Paris, 2004.
 
-        .. [Gri] G. Grigorov, Kato's Euler System and the Main Conjecture,
+        .. [Gri] \G. Grigorov, Kato's Euler System and the Main Conjecture,
            Harvard Ph.D. Thesis (2005).
 
-        .. [GJPST] G. Grigorov, A. Jorza, S. Patrikis, W. A. Stein,
+        .. [GJPST] \G. Grigorov, A. Jorza, S. Patrikis, W. A. Stein,
            and C. Tarniţǎ, Computational verification of the Birch and
            Swinnerton-Dyer conjecture for individual elliptic curves,
            Math. Comp. 78 (2009), 2397-2425.

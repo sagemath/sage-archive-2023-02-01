@@ -95,7 +95,7 @@ This module is used for the recognition of Interval Graphs (see
 
 REFERENCES:
 
-.. [Haj] M. Hajiaghayi
+.. [Haj] \M. Hajiaghayi
    http://www-math.mit.edu/~hajiagha/pp11.ps
 
 Authors:

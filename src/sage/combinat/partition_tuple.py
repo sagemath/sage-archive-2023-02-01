@@ -268,6 +268,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
 from sage.rings.all import NN, ZZ
 from sage.rings.integer import Integer
+from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -1458,7 +1459,7 @@ class PartitionTuple(CombinatorialElement):
 #--------------------------------------------------
 class PartitionTuples(UniqueRepresentation, Parent):
     """
-    List of all partition tuples.
+    Class of all partition tuples.
 
     For more information about partition tuples, see :class:`PartitionTuple`.
 
@@ -1471,7 +1472,8 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
     - ``size``  -- the total number of cells
 
-    - ``regular`` -- the maximum number of duplicate rows in a component
+    - ``regular`` -- the highest multiplicity an entry may have in a
+      component plus `1`
 
     TESTS::
 
@@ -1575,7 +1577,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             ValueError: [[1, 2]] is not a Partition tuples of level 3
         """
         # one way or another these two cases need to be treated separately
-        if mu == []  or mu == () or mu == [[]]:
+        if mu == [] or mu == () or mu == [[]]:
             if mu not in self:
                 raise ValueError('{} is not a {}'.format(mu, self))
             return self.element_class(self, [Partition([])])
@@ -1585,7 +1587,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             mu = [Partition(mu)]
         except ValueError:
             try:
-                mu = map(Partition, mu)
+                mu = [Partition(nu) for nu in mu]
             except ValueError:
                 raise ValueError('{} is not a {}'.format(mu, self))
 
@@ -1593,7 +1595,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             raise ValueError('{} is not a {}'.format(mu, self))
         return self.element_class(self, mu)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if `\mu` is in ``self``.
 
@@ -1732,7 +1734,7 @@ class PartitionTuples_all(PartitionTuples):
 
     def _repr_(self):
         r"""
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -1812,7 +1814,7 @@ class PartitionTuples_level(PartitionTuples):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -1821,7 +1823,7 @@ class PartitionTuples_level(PartitionTuples):
         """
         return 'Partition tuples of level {}'.format(self._level)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if `\mu` is in ``self``.
 
@@ -1915,7 +1917,7 @@ class PartitionTuples_size(PartitionTuples):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -1924,7 +1926,7 @@ class PartitionTuples_size(PartitionTuples):
         """
         return 'Partition tuples of size {}'.format(self._size)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if `\mu` is in ``self``.
 
@@ -2018,7 +2020,7 @@ class PartitionTuples_level_size(PartitionTuples):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2029,7 +2031,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         return 'Partition tuples of level {} and size {}'.format(self._level, self._size)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if ``mu`` is in ``self``.
 
@@ -2171,7 +2173,7 @@ class RegularPartitionTuples(PartitionTuples):
             sage: RPT = PartitionTuples(regular=3)
             sage: TestSuite(RPT).run()
         """
-        if regular not in ZZ or regular <= 1:
+        if regular not in ZZ or regular < 1:
             raise ValueError("regular must be an integer greater than 1")
         self._ell = regular
         PartitionTuples.__init__(self, **kwds)
@@ -2203,9 +2205,9 @@ class RegularPartitionTuples(PartitionTuples):
         if not PartitionTuples.__contains__(self, mu):
             return False
         if isinstance(mu, Partition):
-            return max(mu.to_exp(1)) < self._ell
+            return max(mu.to_exp() + [0]) < self._ell
         if isinstance(mu, PartitionTuple):
-            return all(max(nu.to_exp(1)) < self._ell for nu in mu)
+            return all(max(nu.to_exp() + [0]) < self._ell for nu in mu)
         if len(mu) == 0:
             return True
         if mu in _Partitions:
@@ -2249,7 +2251,7 @@ class RegularPartitionTuples_all(RegularPartitionTuples):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2260,35 +2262,35 @@ class RegularPartitionTuples_all(RegularPartitionTuples):
 
     def __iter__(self):
         r"""
-        Iterate through the finite class of `\ell`-regular partition tuples.
+        Iterate through the class of `\ell`-regular partition tuples.
 
         EXAMPLES::
 
             sage: PartitionTuples(regular=2)[:20]
             [([]),
+             ([], []),
              ([1]),
+             ([], [], []),
              ([1], []),
              ([], [1]),
              ([2]),
+             ([], [], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
              ([2], []),
              ([1], [1]),
              ([], [2]),
-             ([2], [], []),
-             ([1], [1], []),
-             ([1], [], [1]),
-             ([], [2], []),
-             ([], [1], [1]),
-             ([], [], [2]),
              ([3]),
              ([2, 1]),
-             ([3], []),
-             ([2, 1], []),
-             ([2], [1]),
-             ([1], [2])]
+             ([], [], [], [], []),
+             ([1], [], [], []),
+             ([], [1], [], []),
+             ([], [], [1], [])]
         """
-        for size in NN:
-            for level in range(size+1):
-                for mu in RegularPartitionTuples_level_size(level+1, size, self._ell):
+        for N in NN:
+            for size in range(N+1):
+                for mu in RegularPartitionTuples_level_size(N-size+1, size, self._ell):
                     yield self.element_class(self, list(mu))
 
 class RegularPartitionTuples_level(RegularPartitionTuples):
@@ -2304,14 +2306,18 @@ class RegularPartitionTuples_level(RegularPartitionTuples):
             sage: RPT = PartitionTuples(level=4, regular=3)
             sage: TestSuite(RPT).run()
         """
-        if level not in NN:
-            raise ValueError('level must be a non-negative integer')
-        RegularPartitionTuples.__init__(self, regular, category=InfiniteEnumeratedSets())
+        if level not in ZZ or level <= 0:
+            raise ValueError('level must be a positive integer')
+        if regular > 1:
+            category = InfiniteEnumeratedSets()
+        else:
+            category = FiniteEnumeratedSets()
+        RegularPartitionTuples.__init__(self, regular, category=category)
         self._level = level
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2343,7 +2349,7 @@ class RegularPartitionTuples_level(RegularPartitionTuples):
 
     def __iter__(self):
         r"""
-        Iterate through the finite class of `\ell`-regular partition tuples
+        Iterate through the class of `\ell`-regular partition tuples
         of a fixed level.
 
         EXAMPLES::
@@ -2394,7 +2400,7 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2403,7 +2409,7 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
         """
         return '{}-Regular partition tuples of size {}'.format(self._ell, self._size)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if ``mu`` is in ``self``.
 
@@ -2437,7 +2443,7 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
 
     def __iter__(self):
         r"""
-        Iterate through the finite class of `\ell`-regular partition tuples
+        Iterate through the class of `\ell`-regular partition tuples
         of a fixed size.
 
         EXAMPLES::
@@ -2454,7 +2460,7 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
              ([1], [2, 1]),
              ([], [4])]
         """
-        for level in NN:
+        for level in PositiveIntegers():
             for mu in RegularPartitionTuples_level_size(level, self._size, self._ell):
                 yield self.element_class(self, list(mu))
 
@@ -2472,15 +2478,17 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
             sage: RPT = PartitionTuples(4,2,3)
             sage: TestSuite(RPT).run()
         """
-        if not (level in NN and size in NN):
-            raise ValueError('n and level must be non-negative integers')
+        if size not in NN:
+            raise ValueError('size must be a non-negative integer')
+        if not (level in ZZ and level > 0):
+            raise ValueError('level must be a positive integer')
         RegularPartitionTuples.__init__(self, regular, category=FiniteEnumeratedSets())
         self._level = level
         self._size = size
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2491,7 +2499,7 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
         """
         return '{}-Regular partition tuples of level {} and size {}'.format(self._ell, self._level, self._size)
 
-    def __contains__(self,mu):
+    def __contains__(self, mu):
         r"""
         Return ``True`` if `\mu` is in ``self``.
 
@@ -2536,8 +2544,8 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
              ([], [], [3]),
              ([], [], [2, 1])]
         """
-        p = [RegularPartitions_n(i, self._ell) for i in range(self.size()+1)]
-        for iv in IntegerVectors(self.size(),self.level()):
+        p = [RegularPartitions_n(i, self._ell) for i in range(self._size+1)]
+        for iv in IntegerVectors(self._size, self._level):
             for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 

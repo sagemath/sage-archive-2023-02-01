@@ -6709,7 +6709,7 @@ class RegularPartitions(Partitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
     - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
       partitions is infinite
     """
@@ -6762,7 +6762,7 @@ class RegularPartitions(Partitions):
         if not Partitions.__contains__(self, x):
             return False
         if isinstance(x, Partition):
-            return max(x.to_exp(1)) < self._ell
+            return max(x.to_exp() + [0]) < self._ell
         return all(x.count(i) < self._ell for i in set(x) if i > 0)
 
     def _fast_iterator(self, n, max_part):
@@ -6798,7 +6798,7 @@ class RegularPartitions_all(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
 
     .. SEEALSO::
 

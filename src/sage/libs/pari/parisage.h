@@ -3,6 +3,7 @@
 #include <pari/pari.h>
 
 #undef coeff  /* Conflicts with NTL */
+#undef ulong  /* Conflicts with FLINT */
 
 
 /* Array element assignment */

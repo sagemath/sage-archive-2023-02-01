@@ -6579,7 +6579,7 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         The greedy algorithm. If a weight function is given, then sort the elements 
-        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        of ``X`` by increasing weight, and otherwise use the ordering in which ``X`` 
         lists its elements. Then greedily select elements if they are coindependent
         of all that was selected before. If an element is not coindependent of the
         previously selected elements, then we check if it is coindependent with the
@@ -6663,7 +6663,7 @@ cdef class Matroid(SageObject):
                 except (TypeError, ValueError):
                     raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
 
-            wt = sorted(wt, reverse=True)
+            wt = sorted(wt)
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
@@ -6686,7 +6686,7 @@ cdef class Matroid(SageObject):
         smres = []
         for e in Y:
             if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
-                if wt_dic[e] < wt_dic[res[-1]]:
+                if wt_dic[e] > wt_dic[res[-1]]:
                     smres=res[:]
             res.append(e)
             if self._corank(res) > r:

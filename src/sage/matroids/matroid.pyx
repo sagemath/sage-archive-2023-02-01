@@ -6459,6 +6459,19 @@ cdef class Matroid(SageObject):
             True
             sage: M.is_max_weight_independent_generic()
             False
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_independent_generic()
+            False
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
+            False
         """
         res = []
         r = 0
@@ -6587,6 +6600,19 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_coindependent_generic(weights={x: x for x in M.groundset()})
             True
             sage: M.is_max_weight_coindependent_generic()
+            False
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_coindependent_generic()
+            False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
             False
         """
         res = []

@@ -240,7 +240,7 @@ class TCrystal(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type, weight):
+    def __classcall_private__(cls, cartan_type, weight=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -250,16 +250,15 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
             sage: wts = RootSystem(ct).ambient_space().fundamental_weights()
             sage: X = crystals.elementary.T(['A',3], la[1])
-            sage: Y = crystals.elementary.T(ct, wts[1])
+            sage: Y = crystals.elementary.T(la[1])
             sage: X is Y
             True
         """
+        if weight is None:
+            weight = cartan_type
+            cartan_type = weight.parent().cartan_type()
         cartan_type = CartanType(cartan_type)
-        F = RootSystem(cartan_type).ambient_space()
-        if F is None:
-            F = RootSystem(cartan_type).weight_space()
-        La = F(weight)
-        return super(TCrystal, cls).__classcall__(cls, cartan_type, La)
+        return super(TCrystal, cls).__classcall__(cls, cartan_type, weight)
 
     def __init__(self, cartan_type, weight):
         r"""
@@ -285,7 +284,7 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: la = RootSystem(['E',6]).weight_lattice().fundamental_weights()
             sage: B = crystals.elementary.T(['E',6], la[6])
             sage: B
-            The T crystal of type ['E', 6] and weight (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)
+            The T crystal of type ['E', 6] and weight Lambda[6]
         """
         return "The T crystal of type {1!s} and weight {0!s}".format(self._weight,self._cartan_type)
 
@@ -302,7 +301,7 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: la = RootSystem("E8").weight_lattice().fundamental_weights()
             sage: T = crystals.elementary.T("E8",la[7]+la[8])
             sage: T(la[7]+la[8])
-            (0, 0, 0, 0, 0, 1, 2, 3)
+            Lambda[7] + Lambda[8]
         """
         if weight != self._weight:
             raise ValueError("Only element is t(%s)"%self._weight)
@@ -331,13 +330,13 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
             sage: T = crystals.elementary.T(['C',12], La[9])
             sage: T.weight_lattice_realization()
-            Ambient space of the Root system of type ['C', 12]
+            Weight lattice of the Root system of type ['C', 12]
 
             sage: ct = CartanMatrix([[2, -4], [-5, 2]])
             sage: La = RootSystem(ct).weight_lattice().fundamental_weights()
             sage: T = crystals.elementary.T(ct, La[1])
             sage: T.weight_lattice_realization()
-            Weight space over the Rational Field of the Root system of type
+            Weight lattice of the Root system of type
             [ 2 -4]
             [-5  2]
         """
@@ -356,7 +355,7 @@ class TCrystal(UniqueRepresentation, Parent):
                 sage: T = crystals.elementary.T(ct,2*la[1]-3*la[3])
                 sage: t = T.highest_weight_vector()
                 sage: t
-                (-5/2, 1/2, -3/2, -3/2)
+                2*Lambda[1] - 3*Lambda[3]
             """
             return repr(self.parent()._weight)
 
@@ -424,7 +423,7 @@ class TCrystal(UniqueRepresentation, Parent):
                 sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: t.weight()
-                (0, 1, 2, 2, 1)
+                -Lambda[1] - Lambda[2] + Lambda[4] + Lambda[5]
             """
             return self.parent()._weight
 
@@ -494,7 +493,7 @@ class RCrystal(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type, weight):
+    def __classcall_private__(cls, cartan_type, weight=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -502,18 +501,16 @@ class RCrystal(UniqueRepresentation, Parent):
 
             sage: ct = CartanType(['A',3])
             sage: la = RootSystem(ct).weight_lattice().fundamental_weights()
-            sage: wts = RootSystem(ct).ambient_space().fundamental_weights()
             sage: X = crystals.elementary.R(['A',3], la[1])
-            sage: Y = crystals.elementary.R(ct, wts[1])
+            sage: Y = crystals.elementary.R(la[1])
             sage: X is Y
             True
         """
+        if weight is None:
+            weight = cartan_type
+            cartan_type = weight.parent().cartan_type()
         cartan_type = CartanType(cartan_type)
-        F = RootSystem(cartan_type).ambient_space()
-        if F is None:
-            F = RootSystem(cartan_type).weight_space()
-        La = F(weight)
-        return super(RCrystal, cls).__classcall__(cls, cartan_type, La)
+        return super(RCrystal, cls).__classcall__(cls, cartan_type, weight)
 
     def __init__(self, cartan_type, weight):
         r"""
@@ -539,7 +536,7 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: la = RootSystem(['E',6]).weight_lattice().fundamental_weights()
             sage: B = crystals.elementary.R(['E',6],la[6])
             sage: B
-            The R crystal of weight (0, 0, 0, 0, 1, -1/3, -1/3, 1/3) and type ['E', 6]
+            The R crystal of weight Lambda[6] and type ['E', 6]
         """
         return "The R crystal of weight {0!s} and type {1!s}".format(self._weight,self._cartan_type)
 
@@ -556,7 +553,7 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: la = RootSystem("E8").weight_lattice().fundamental_weights()
             sage: R = crystals.elementary.R("E8",la[7]+la[8])
             sage: R(la[7]+la[8])
-            (0, 0, 0, 0, 0, 1, 2, 3)
+            Lambda[7] + Lambda[8]
         """
         if weight != self._weight:
             raise ValueError("Only element is r(%s)"%self._weight)
@@ -585,13 +582,13 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: La = RootSystem(['C',12]).weight_lattice().fundamental_weights()
             sage: R = crystals.elementary.R(['C',12], La[9])
             sage: R.weight_lattice_realization()
-            Ambient space of the Root system of type ['C', 12]
+            Weight lattice of the Root system of type ['C', 12]
 
             sage: ct = CartanMatrix([[2, -4], [-5, 2]])
             sage: La = RootSystem(ct).weight_lattice().fundamental_weights()
             sage: R = crystals.elementary.R(ct, La[1])
             sage: R.weight_lattice_realization()
-            Weight space over the Rational Field of the Root system of type
+            Weight lattice of the Root system of type
             [ 2 -4]
             [-5  2]
         """
@@ -610,7 +607,7 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: T = crystals.elementary.T(ct,2*la[1]-3*la[3])
                 sage: t = T.highest_weight_vector()
                 sage: t
-                (-5/2, 1/2, -3/2, -3/2)
+                2*Lambda[1] - 3*Lambda[3]
             """
             return repr(self.parent()._weight)
 
@@ -624,7 +621,7 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: R = crystals.elementary.R("G2",la[1])
                 sage: r = R.highest_weight_vector()
                 sage: latex(r)
-                {r_{e_{0} - e_{2}}}
+                {r_{\Lambda_{1}}}
             """
             return "{r_{"+self.parent()._weight._latex_()+"}}"
 
@@ -647,11 +644,11 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: [r.epsilon(i) for i in R.index_set()]
                 [-1, 0]
             """
-            P = self.cartan_type().root_system().ambient_space()
+            P = self.parent().weight_lattice_realization()
             h = P.simple_coroots()
-            return -1*P(self.weight()).scalar(h[i])
+            return -P(self.weight()).scalar(h[i])
 
-        def phi(self,i):
+        def phi(self, i):
             r"""
             Return `\varphi_i` of ``self``, which is `0` for all `i`.
 
@@ -667,7 +664,7 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: [r.phi(i) for i in R.index_set()]
                 [0, 0, 0, 0, 0]
             """
-            return 0
+            return ZZ.zero()
 
         def weight(self):
             r"""
@@ -680,7 +677,7 @@ class RCrystal(UniqueRepresentation, Parent):
                 sage: T = crystals.elementary.T(ct,la[4]+la[5]-la[1]-la[2])
                 sage: t = T.highest_weight_vector()
                 sage: t.weight()
-                (0, 1, 2, 2, 1)
+                -Lambda[1] - Lambda[2] + Lambda[4] + Lambda[5]
             """
             return self.parent()._weight
 

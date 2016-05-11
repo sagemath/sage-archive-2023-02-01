@@ -478,34 +478,6 @@ ex pseries::eval_integ() const
 	return *this;
 }
 
-ex pseries::evalm() const
-{
-	// evalm each coefficient
-	epvector newseq;
-	bool something_changed = false;
-	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		if (something_changed) {
-			ex newcoeff = i->rest.evalm();
-			if (!newcoeff.is_zero())
-				newseq.push_back(expair(newcoeff, i->coeff));
-		}
-		else {
-			ex newcoeff = i->rest.evalm();
-			if (!are_ex_trivially_equal(newcoeff, i->rest)) {
-				something_changed = true;
-				newseq.reserve(seq.size());
-				std::copy(seq.begin(), i, std::back_inserter<epvector>(newseq));
-				if (!newcoeff.is_zero())
-					newseq.push_back(expair(newcoeff, i->coeff));
-			}
-		}
-	}
-	if (something_changed)
-		return (new pseries(var==point, newseq))->setflag(status_flags::dynallocated);
-	else
-		return *this;
-}
-
 ex pseries::subs(const exmap & m, unsigned options) const
 {
 	// If expansion variable is being substituted, convert the series to a

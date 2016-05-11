@@ -26,7 +26,6 @@
 #include "mul.h"
 #include "ncmul.h"
 #include "numeric.h"
-#include "matrix.h"
 #include "power.h"
 #include "lst.h"
 #include "function.h"

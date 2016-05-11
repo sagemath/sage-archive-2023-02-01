@@ -60,7 +60,6 @@ public:
 	ex evalf(int level=0, PyObject* parent=nullptr) const override;
 	ex real_part() const override;
 	ex imag_part() const override;
-	ex evalm() const override;
 	ex series(const relational & s, int order, unsigned options = 0) const override;
 	ex normal(exmap & repl, exmap & rev_lookup, int level = 0) const override;
 	numeric integer_content() const override;

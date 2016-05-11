@@ -24,7 +24,6 @@
 #include "mul.h"
 #include "archive.h"
 #include "operators.h"
-#include "matrix.h"
 #include "utils.h"
 #include "clifford.h"
 #include "ncmul.h"
@@ -451,36 +450,6 @@ ex add::eval_infinity(epvector::const_iterator infinity_iter) const
 	return result;
 }
 
-
-ex add::evalm() const
-{
-	// Evaluate children first and add up all matrices. Stop if there's one
-	// term that is not a matrix.
-	epvector s;
-	s.reserve(seq.size());
-
-	bool all_matrices = true;
-	bool first_term = true;
-	matrix sum;
-
-	for (const auto & elem : seq) {
-		const ex &m = recombine_pair_to_ex(elem).evalm();
-		s.push_back(split_ex_to_pair(m));
-		if (is_exactly_a<matrix>(m)) {
-			if (first_term) {
-				sum = ex_to<matrix>(m);
-				first_term = false;
-			} else
-				sum = sum.add(ex_to<matrix>(m));
-		} else
-			all_matrices = false;
-	}
-
-	if (all_matrices)
-		return sum + overall_coeff;
-	else
-		return (new add(s, overall_coeff))->setflag(status_flags::dynallocated);
-}
 
 ex add::conjugate() const
 {

@@ -23,7 +23,6 @@
 #include "mul.h"
 #include "add.h"
 #include "operators.h"
-#include "matrix.h"
 #include "indexed.h"
 #include "lst.h"
 #include "archive.h"
@@ -902,44 +901,6 @@ ex mul::imag_part() const
 	ex rp, ip;
 	find_real_imag(rp, ip);
 	return ip;
-}
-
-ex mul::evalm() const
-{
-	// numeric*matrix
-	if (seq.size() == 1 && seq[0].coeff.is_equal(_ex1)
-	 && is_exactly_a<matrix>(seq[0].rest))
-		return ex_to<matrix>(seq[0].rest).mul(ex_to<numeric>(overall_coeff));
-
-	// Evaluate children first, look whether there are any matrices at all
-	// (there can be either no matrices or one matrix; if there were more
-	// than one matrix, it would be a non-commutative product)
-	epvector s;
-	s.reserve(seq.size());
-
-	bool have_matrix = false;
-	epvector::iterator the_matrix;
-
-        for (const auto & elem : seq) {
-		const ex &m = recombine_pair_to_ex(elem).evalm();
-		s.push_back(split_ex_to_pair(m));
-		if (is_exactly_a<matrix>(m)) {
-			have_matrix = true;
-			the_matrix = s.end() - 1;
-		}
-	}
-
-	if (have_matrix) {
-
-		// The product contained a matrix. We will multiply all other factors
-		// into that matrix.
-		matrix m = ex_to<matrix>(the_matrix->rest);
-		s.erase(the_matrix);
-		ex scalar = (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
-		return m.mul_scalar(scalar);
-
-	} else
-		return (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex mul::eval_ncmul(const exvector & v) const

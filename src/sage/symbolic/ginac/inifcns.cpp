@@ -24,7 +24,6 @@
 #include "ex.h"
 #include "constant.h"
 #include "lst.h"
-#include "matrix.h"
 #include "mul.h"
 #include "power.h"
 #include "operators.h"
@@ -986,6 +985,7 @@ REGISTER_FUNCTION(Order, eval_func(Order_eval).
                          real_part_func(Order_real_part).
                          imag_part_func(Order_imag_part));
 
+/*
 //////////
 // Solve linear system
 //////////
@@ -1170,7 +1170,7 @@ fsolve(const ex& f_in, const symbol& x, const numeric& x1, const numeric& x2,
 	} while (xxprev!=xx[side]);
 	return xxprev;
 }
-
+*/
 
 /* Force inclusion of functions from inifcns_gamma and inifcns_zeta
  * for static lib (so ginsh will see them). */

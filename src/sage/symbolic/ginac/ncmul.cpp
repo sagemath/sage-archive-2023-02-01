@@ -452,7 +452,8 @@ ex ncmul::evalm() const
 	s->reserve(seq.size());
 	auto it = seq.begin(), itend = seq.end();
 	while (it != itend) {
-		s->push_back(it->evalm());
+		s->push_back(*it);
+	//	s->push_back(it->evalm());
 		it++;
 	}
 

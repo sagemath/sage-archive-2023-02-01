@@ -453,18 +453,10 @@ ex basic::evalf(int level, PyObject* parent) const
 	}
 }
 
-/** Function object to be applied by basic::evalm(). */
-struct evalm_map_function : public map_function {
-	ex operator()(const ex & e) override { return evalm(e); }
-} map_evalm;
-
 /** Evaluate sums, products and integer powers of matrices. */
 ex basic::evalm() const
 {
-	if (nops() == 0)
-		return *this;
-	else
-		return map(map_evalm);
+	return *this;
 }
 
 /** Function object to be applied by basic::eval_integ(). */

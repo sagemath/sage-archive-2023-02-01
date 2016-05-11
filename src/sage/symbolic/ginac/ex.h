@@ -128,7 +128,6 @@ public:
 	ex eval(int level = 0) const { return bp->eval(level); }
 	ex evalf(int level = 0, PyObject* parent=nullptr) const 
 	{ return bp->evalf(level, parent); }
-	ex evalm() const { return bp->evalm(); }
 	ex eval_ncmul(const exvector & v) const { return bp->eval_ncmul(v); }
 	ex eval_integ() const { return bp->eval_integ(); }
 
@@ -733,9 +732,6 @@ inline ex eval(const ex & thisex, int level = 0)
 
 inline ex evalf(const ex & thisex, int level = 0, PyObject* parent=nullptr)
 { return thisex.evalf(level, parent); }
-
-inline ex evalm(const ex & thisex)
-{ return thisex.evalm(); }
 
 inline ex eval_integ(const ex & thisex)
 { return thisex.eval_integ(); }

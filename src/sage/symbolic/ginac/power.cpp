@@ -31,7 +31,6 @@
 #include "infinity.h"
 #include "operators.h"
 #include "inifcns.h" // for log() in power::derivative() and exp for printing
-#include "matrix.h"
 #include "indexed.h"
 #include "symbol.h"
 #include "lst.h"
@@ -720,13 +719,6 @@ ex power::eval(int level) const
 				}
 			}
 		}
-
-		// ^(nc,c1) -> ncmul(nc,nc,...) (c1 positive integer, unless nc is a matrix)
-		if (ebasis.return_type() != return_types::commutative &&
-                    num_exponent.is_pos_integer() &&
-                    !is_exactly_a<matrix>(ebasis)) {
-			return ncmul(exvector(num_exponent.to_int(), ebasis), true);
-		}
 	}
 
 	// Reduce x^(c/log(x)) to exp(c) if x is positive
@@ -768,18 +760,6 @@ ex power::evalf(int level, PyObject* parent) const
 	}
 
 	return power(ebasis,eexponent);
-}
-
-ex power::evalm() const
-{
-	const ex ebasis = basis.evalm();
-	const ex eexponent = exponent.evalm();
-	if (is_a<matrix>(ebasis)) {
-		if (is_exactly_a<numeric>(eexponent)) {
-			return (new matrix(ex_to<matrix>(ebasis).pow(eexponent)))->setflag(status_flags::dynallocated);
-		}
-	}
-	return (new power(ebasis, eexponent))->setflag(status_flags::dynallocated);
 }
 
 bool power::has(const ex & other, unsigned options) const

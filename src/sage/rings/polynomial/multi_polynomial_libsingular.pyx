@@ -4428,6 +4428,55 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         id_Delete(&_I,r)
         return new_MP(parent,res)
 
+    def divides(self, other):
+        """
+        Return `True` if this polynomial divides `other`.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: p = 3*x*y + 2*y*z + x*z
+            sage: q = x + y + z + 1
+            sage: r = p * q
+            sage: p.divides(r)
+            True
+            sage: q.divides(p)
+            False
+            sage: r.divides(0)
+            True
+            sage: R.zero().divides(r)
+            False
+            sage: R.zero().divides(0)
+            True
+        """
+        if self.is_zero():
+            return other.is_zero()
+        cdef ideal *_I
+        cdef MPolynomialRing_libsingular parent = self._parent
+        cdef ring *r = self._parent_ring
+        cdef poly *rem
+
+        if r!=currRing: rChangeCurrRing(r)
+
+        _I = idInit(1, 1)
+        if not (isinstance(other,MPolynomial_libsingular) \
+               and (<MPolynomial_libsingular>other)._parent is parent):
+            try:
+                other = parent._coerce_c(other)
+            except TypeError as msg:
+                id_Delete(&_I,r)
+                raise TypeError, msg
+
+        _I.m[0] = p_Copy(self._poly, r)
+
+        if r!=currRing: rChangeCurrRing(r)
+        sig_on()
+        rem = kNF(_I, NULL, (<MPolynomial_libsingular>other)._poly, 0, 1)
+        sig_off()
+        id_Delete(&_I, r)
+        res = new_MP(parent, rem).is_zero()
+        return res
+
     @coerce_binop
     def gcd(self, right, algorithm=None, **kwds):
         """

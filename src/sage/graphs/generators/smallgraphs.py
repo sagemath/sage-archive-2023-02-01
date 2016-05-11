@@ -14,7 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -674,7 +674,7 @@ def HallJankoGraph(from_string=True):
         ....:     nv = set(g.neighbors(v))
         ....:     nv.discard(0)
         ....:     if len(nu & nv) != expected:
-        ....:         print "Something is wrong here!!!"
+        ....:         print("Something is wrong here!!!")
         ....:         break
 
     Some other properties that we know how to check::

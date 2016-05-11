@@ -227,7 +227,6 @@ public:
 	int compare(const ex & other) const;
 	bool is_equal(const ex & other) const;
 	bool is_zero() const;
-	bool is_zero_matrix() const;
         bool is_integer_one() const;
         bool is_integer_pmone() const;
 	

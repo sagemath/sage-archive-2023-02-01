@@ -6472,6 +6472,8 @@ cdef class Matroid(SageObject):
             True
             sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
             False
+            sage: M.is_max_weight_independent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            True
         """
         res = []
         r = 0
@@ -6614,6 +6616,8 @@ cdef class Matroid(SageObject):
             True
             sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
             False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            True
         """
         res = []
         r = 0

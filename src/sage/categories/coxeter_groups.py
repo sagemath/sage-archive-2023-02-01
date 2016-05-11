@@ -697,8 +697,8 @@ class CoxeterGroups(Category_singleton):
             tester.assert_(len(self.one().descents(side='left')) == 0)
             for i in self.index_set():
                 si = s[i]
-                tester.assert_(i in si.descents(side='left'))
-                tester.assert_(i in si.descents(side='right'))
+                tester.assert_([i] == si.descents(side='left'))
+                tester.assert_([i] == si.descents(side='right'))
                 tester.assert_(i not in si.descents(positive=True, side='left'))
                 tester.assert_(i not in si.descents(positive=True, side='right'))
 

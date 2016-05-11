@@ -2957,8 +2957,8 @@ class Permutation(CombinatorialElement):
         """
         if len(self) == 0:
             return Composition([])
-        d = [0] + self.descents(from_zero=False) + [len(self)]
-        return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
+        d = [0] + self.descents(from_zero=False, final_descent=True)
+        return Composition([d[i + 1] - d[i] for i in range(len(d) - 1)])
 
     def descent_polynomial(self):
         r"""

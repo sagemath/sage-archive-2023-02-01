@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 # To do: implement morphisms of cubical complexes, with methods
 #   - domain
@@ -395,7 +396,7 @@ class InducedHomologyMorphism(Morphism):
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: K = simplicial_complexes.Simplex(2)
             sage: f = Hom(S1, K)({0: 0, 1:1, 2:2})
-            sage: print f.induced_homology_morphism()._repr_defn()
+            sage: print(f.induced_homology_morphism()._repr_defn())
             induced by:
               Simplicial complex morphism:
                 From: Minimal triangulation of the 1-sphere

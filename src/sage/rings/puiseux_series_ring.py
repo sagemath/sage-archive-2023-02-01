@@ -287,7 +287,7 @@ class PuiseuxSeriesRing_generic(CommutativeRing):
         #    part should be coercible to the laurent series ring of self
         elif isinstance(x, self.element_class):
             l = self.laurent_series_ring()(x.laurent_part)
-            e = x.ramification_index
+            e = x.ramification_index()
         # 3. x is a member of the base ring then convert x to a laurent series
         #    and set the ramification index of the Puiseux series to 1.
         elif P is self.base_ring():

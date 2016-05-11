@@ -4239,6 +4239,7 @@ def hilbert_conductor(a, b):
 def hilbert_conductor_inverse(d):
     """
     Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
+
     The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)
     discriminant `d`.
 
@@ -4276,7 +4277,7 @@ def hilbert_conductor_inverse(d):
         sage: for i in xrange(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
-        ....:         print("hilbert_conductor_inverse failed for d ={}".format(d))
+        ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
     """
     Z = ZZ
     d = Z(d)

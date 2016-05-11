@@ -85,7 +85,7 @@ ntl_configure()
     # If SAGE_FAT_BINARY is enabled we don't want ntl to be built with cpu specific 
     # instructions such as avx and fma.
     if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-        DISABLE_NATIVE="NATIVE=off"
+       DISABLE_NATIVE="NATIVE=off"
     else
        DISABLE_NATIVE=""
     fi

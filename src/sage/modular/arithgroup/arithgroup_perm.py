@@ -1551,7 +1551,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: for H in G.surgroups():
             ....:     l.append(H.index())
             ....:     assert G.is_subgroup(H) and H.is_congruence()
-            sage: print(l)
+            sage: l
             [6, 3, 4, 8, 4, 8, 4, 12, 4, 6, 6, 8, 8]
         """
         from sage.interfaces.gap import gap

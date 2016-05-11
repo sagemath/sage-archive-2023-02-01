@@ -2784,23 +2784,29 @@ class Permutation(CombinatorialElement):
         A descent of a permutation `p` is an integer `i` such that
         `p(i) > p(i+1)`.
 
-        By default, the descents are returned as python indices,
-        starting at zero.
+        .. WARNING::
+
+            By default, the descents are returned as python indices,
+            starting at zero. If you want them to start at 1,
+            set the keyword ``from_zero`` to ``False``.
 
         INPUT:
 
-        - ``final_descent`` -- optional boolean (default ``False``)
-          If ``True``, the last position of a non-empty
-          permutation is also considered as a descent.
+        - ``final_descent`` -- boolean (default ``False``);
+          if ``True``, the last position of a non-empty
+          permutation is also considered as a descent
 
-        - ``side`` -- optional, ``'right'`` (default) or ``'left'``
-          If ``'left'``, return the descents of the inverse permutation.
+        - ``side`` -- ``'right'`` (default) or ``'left'``;
+          if ``'left'``, return the descents of the inverse permutation
 
-        - ``positive`` -- optional boolean (default ``False``)
-          If ``True``, return the positions that are not descents.
+        - ``positive`` -- boolean (default ``False``);
+          if ``True``, return the positions that are not descents
 
-        - ``from_zero`` -- optional boolean (default ``True``)
-          If ``False``, return the positions starting from `1`
+        - ``from_zero`` -- boolean (default ``True``);
+          if ``False``, return the positions starting from `1`
+
+        After a deprecation period starting from :trac:`20555`, the default
+        value of the parameter ``from_zero`` shall be changed to ``False``.
 
         EXAMPLES::
 
@@ -2848,17 +2854,23 @@ class Permutation(CombinatorialElement):
         A descent of a permutation ``p`` is an integer ``i`` such that
         ``p(i) > p(i+1)``.
 
-        By default, the idescents are returned as python indices,
-        starting at zero.
+        .. WARNING::
+
+            By default, the idescents are returned as python indices,
+            starting at zero. If you want them to start at 1,
+            set the keyword ``from_zero`` to ``False``.
 
         INPUT:
 
-        - ``final_descent`` -- optional boolean (default ``False``)
-          If ``True``, the last position of a non-empty
-          permutation is also considered as a descent.
+        - ``final_descent`` -- boolean (default ``False``);
+          if ``True``, the last position of a non-empty
+          permutation is also considered as a descent
 
-        - ``from_zero`` -- optional boolean (default ``True``)
-          If ``False``, return the positions starting from `1`
+        - ``from_zero`` -- optional boolean (default ``True``);
+          if ``False``, return the positions starting from `1`
+
+        After a deprecation period starting from :trac:`20555`, the default
+        value of the parameter ``from_zero`` shall be changed to ``False``.
 
         EXAMPLES::
 

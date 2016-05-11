@@ -693,14 +693,14 @@ class CoxeterGroups(Category_singleton):
             """
             tester = self._tester(**options)
             s = self.simple_reflections()
-            tester.assert_(len(self.one().descents(side='right')) == 0)
-            tester.assert_(len(self.one().descents(side='left')) == 0)
+            tester.assertEqual(len(self.one().descents(side='right')), 0)
+            tester.assertEqual(len(self.one().descents(side='left')), 0)
             for i in self.index_set():
                 si = s[i]
-                tester.assert_([i] == si.descents(side='left'))
-                tester.assert_([i] == si.descents(side='right'))
-                tester.assert_(i not in si.descents(positive=True, side='left'))
-                tester.assert_(i not in si.descents(positive=True, side='right'))
+                tester.assertEqual([i], si.descents(side='left'))
+                tester.assertEqual([i], si.descents(side='right'))
+                tester.assertNotIn(i, si.descents(positive=True, side='left'))
+                tester.assertNotIn(i, si.descents(positive=True, side='right'))
 
     class ElementMethods:
         def has_descent(self, i, side = 'right', positive=False):

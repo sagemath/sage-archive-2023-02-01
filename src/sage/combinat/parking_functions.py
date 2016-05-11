@@ -1010,7 +1010,11 @@ class ParkingFunction_class(CombinatorialObject):
         Return the :meth:`~sage.combinat.permutation.Permutation.descents` sequence
         of the inverse of the :meth:`diagonal_reading_word` of ``self``.
 
-        Here we use the convention that descent labels start at `1`.
+        .. WARNING::
+
+            Here we use the standard convention that descent labels
+            start at `1`. This behaviour has been changed in
+            :trac:`20555`.
 
         For example, ``ides(PF) = [2, 3, 4, 6]`` means that descents are at the 2nd, 3rd,
         4th and 6th positions in the inverse of the

@@ -1675,7 +1675,7 @@ cdef class Matroid(SageObject):
 
     cpdef max_coindependent(self, X):
         """
-        Compute a maximal coindependent subset.
+        Compute a maximal coindependent subset of ``X``.
 
         A set is *coindependent* if it is independent in the dual matroid.
         A set is coindependent if and only if the complement is *spanning*
@@ -1710,7 +1710,7 @@ cdef class Matroid(SageObject):
 
     cpdef coclosure(self, X):
         """
-        Return the coclosure of a set.
+        Return the coclosure of a set ``X``.
 
         A set is *coclosed* if it is closed in the dual matroid. The
         *coclosure* of `X` is the smallest coclosed set containing `X`.
@@ -1833,7 +1833,8 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of loops of the matroid.
 
-        A *loop* is a one-element dependent set.
+        A *loop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is dependent.
 
         OUTPUT:
 
@@ -2062,8 +2063,9 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of coloops of the matroid.
 
-        A *coloop* is a one-element cocircuit. It is a loop of the dual of the
-        matroid.
+        A *coloop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is a cocircuit. In other words, a coloop
+        is a loop of the dual of the matroid.
 
         OUTPUT:
 
@@ -6422,7 +6424,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: the ground set of ``self``) a subset of
-          ``self.groundset()`` (given as an iterable).
+          ``self.groundset()`` (given as a list, tuple or set).
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -6468,7 +6470,8 @@ cdef class Matroid(SageObject):
         if len(X) == 0:
             return True
 
-        # If there are no weights, then our elements are already in weakly decreasing order
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
         if weights is None:
             Y = list(X)
             for e in Y:
@@ -6484,7 +6487,7 @@ cdef class Matroid(SageObject):
 
         # Construct ``Y``: a list of all elements of ``X``
         # in order of weakly decreasing weight.
-        # and a dictionary that gives the weights of the elementns of X.
+        # and a dictionary that gives the weights of the elements of ``X``.
         else:
             wt = []
             wt_dic = {}
@@ -6506,14 +6509,24 @@ cdef class Matroid(SageObject):
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
 
-        # res is a partally built maximal weighted basis. smres, when used is the elements of
-        # e that are strictly larger than e, together with e itself.
-        # If smres is independent when e was not added to res, then it could have been added to res
-        # if we made different choices in the greedy algorithm, so our building or res does not result
-        # in a unique maximal weight basis.
+        # ``res`` is a partially built maximal weighted basis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted basis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is independent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight basis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but dependent on ``res`` at the time of its iteration is
+        # already dependent on ``smres``, the our maximal weight basis is
+        # unique.
         smres = []
         for e in Y:
-            if len(res) >= 1:                  #This guarantees that smres is the elements of res that are strictly larger than e.
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
                 if wt_dic[e] < wt_dic[res[-1]]:
                     smres=res[:]
             res.append(e)
@@ -6540,7 +6553,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: the ground set of ``self``) a subset of
-          ``self.groundset()`` (given as an iterable).
+          ``self.groundset()`` (given as a list, tuple or set).
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -6586,7 +6599,8 @@ cdef class Matroid(SageObject):
         if len(X) == 0:
             return True
 
-        # If there are no weights, then our elements are already in weakly decreasing order
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
         if weights is None:
             Y = list(X)
             for e in Y:
@@ -6624,14 +6638,24 @@ cdef class Matroid(SageObject):
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
 
-        # res is a partally built maximal weighted cobasis. smres, when used is the elements of
-        # e that are strictly larger than e, together with e itself.
-        # If smres is coindependent when e was not added to res, then it could have been added to res
-        # if we made different choices in the greedy algorithm, so our building or res does not result
-        # in a unique maximal weight cobasis.
+        # ``res`` is a partially built maximal weighted cobasis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted cobasis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is coindependent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight cobasis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but codependent on ``res`` at the time of its iteration is
+        # already codependent on ``smres``, the our maximal weight cobasis
+        # is unique.
         smres = []
         for e in Y:
-            if len(res) >= 1:                  #This guarantees that smres is the elements of res that are strictly larger than e.
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
                 if wt_dic[e] < wt_dic[res[-1]]:
                     smres=res[:]
             res.append(e)

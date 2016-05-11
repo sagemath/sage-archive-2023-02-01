@@ -13,7 +13,7 @@ REFERENCES:
 
 .. [GriRei2014] Darij Grinberg, Victor Reiner,
    *Hopf algebras in combinatorics*,
-   30 September 2014. :arxiv:`1409.8356v3`.
+   25 August 2015. :arxiv:`1409.8356v3`.
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,

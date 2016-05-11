@@ -1449,7 +1449,7 @@ cdef class Matroid(SageObject):
 
     cpdef closure(self, X):
         """
-        Return the closure of a set.
+        Return the closure of a set ``X``.
 
         A set is *closed* if adding any extra element to it will increase the
         rank of the set. The *closure* of a set is the smallest closed set
@@ -1482,9 +1482,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the ``k``-closure of ``X``.
 
-        A set `S` is `k`-*closed* if the closure of any `k` element subsets
-        is contained in `S`. The `k`-*closure* of a set `X` is the smallest
-        `k`-closed set containing `X`.
+        A subset `S` of the groundset is `k`-*closed* if the closure of
+        any subset `T` of `S` satisfying `|T| \leq k` is contained in `S`.
+        The `k`-*closure* of a set `X` is the smallest `k`-closed set
+        containing `X`.
 
         INPUT:
 
@@ -1852,7 +1853,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_independent(self, X):
         r"""
-        Check if a subset is independent in the matroid.
+        Check if a subset ``X`` is independent in the matroid.
 
         INPUT:
 
@@ -1880,7 +1881,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_dependent(self, X):
         r"""
-        Check if a subset is dependent in the matroid.
+        Check if a subset ``X`` is dependent in the matroid.
 
         INPUT:
 

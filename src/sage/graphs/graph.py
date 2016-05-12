@@ -3982,7 +3982,7 @@ class Graph(GenericGraph):
 
                sage: g = graphs.CycleGraph(10)
                sage: mapping = g.has_homomorphism_to(g, core = True)
-               sage: print("The size of the core is {}".foormat(len(set(mapping.values())))
+               sage: print("The size of the core is {}".format(len(set(mapping.values()))))
                The size of the core is 2
 
         OUTPUT:

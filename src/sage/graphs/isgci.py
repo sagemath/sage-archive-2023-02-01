@@ -643,14 +643,14 @@ class GraphClass(SageObject, CachedRepresentation):
 
         for key, value in cls.iteritems():
             if value != "" and key != "problem":
-                print("{0:30} : {}".format(key, value))
+                print("{:30} : {}".format(key, value))
 
         print("\nProblems :")
         print("-" * 11)
 
         for pbname,data in sorted(cls["problem"].items()):
             if "complexity" in data:
-                print("{0:30} : {}".format(pbname, data["complexity"]))
+                print("{:30} : {}".format(pbname, data["complexity"]))
 
 from sage.misc.cachefunc import cached_method
 

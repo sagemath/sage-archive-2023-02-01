@@ -626,7 +626,7 @@ class GraphGenerators():
     ::
 
         sage: L = list(graphs(5,augment='vertices',loops=True))               # long time
-        sage: for i in [0..5]:
+        sage: for i in [0..5]:  # long time
         ....:     print((i, len([g for g in L if g.order() == i]))) # long time
         (0, 1)
         (1, 2)

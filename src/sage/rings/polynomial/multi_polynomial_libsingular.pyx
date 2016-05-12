@@ -4430,7 +4430,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def divides(self, other):
         """
-        Return `True` if this polynomial divides `other`.
+        Return ``True`` if this polynomial divides ``other``.
 
         EXAMPLES::
 
@@ -4456,7 +4456,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *r = self._parent_ring
         cdef poly *rem
 
-        if r!=currRing: rChangeCurrRing(r)
+        if r != currRing:
+            rChangeCurrRing(r)
 
         _I = idInit(1, 1)
         if not (isinstance(other,MPolynomial_libsingular) \
@@ -4469,7 +4470,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         _I.m[0] = p_Copy(self._poly, r)
 
-        if r!=currRing: rChangeCurrRing(r)
+        if r != currRing:
+            rChangeCurrRing(r)
         sig_on()
         rem = kNF(_I, NULL, (<MPolynomial_libsingular>other)._poly, 0, 1)
         sig_off()

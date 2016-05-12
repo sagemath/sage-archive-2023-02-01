@@ -2466,7 +2466,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: def naive_height(P):
             ...       return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
             sage: for n in [1..10]:
-            ...       print(naive_height(2^n*P)/4^n)
+            ....:     print(naive_height(2^n*P)/4^n)
             0.000000000000000
             0.0433216987849966
             0.0502949347635656

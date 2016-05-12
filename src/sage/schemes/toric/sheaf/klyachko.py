@@ -704,13 +704,13 @@ class KlyachkoBundle_class(SageObject):
             ....:       HH = V.cohomology(weight=(i,j), dim=True)
             ....:       if HH.is_zero(): continue
             ....:       print('H^*i(P^2, TP^2)_M({}, {}) = {}'.format(i,j,HH))
-            H^*i(P^2, TP^2)_M(-1,0) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(-1,1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(0,-1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(0,0) = (2, 0, 0)
-            H^*i(P^2, TP^2)_M(0,1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(1,-1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(1,0) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(-1, 0) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(-1, 1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(0, -1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(0, 0) = (2, 0, 0)
+            H^*i(P^2, TP^2)_M(0, 1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(1, -1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(1, 0) = (1, 0, 0)
         """
         from sage.modules.all import FreeModule
         if weight is None:

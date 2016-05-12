@@ -87,7 +87,7 @@ ntl_configure()
     if [ "$SAGE_FAT_BINARY" = "yes" ]; then
        DISABLE_NATIVE="NATIVE=off"
     else
-       DISABLE_NATIVE=""
+       DISABLE_NATIVE="NATIVE=on"
     fi
     
     ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \

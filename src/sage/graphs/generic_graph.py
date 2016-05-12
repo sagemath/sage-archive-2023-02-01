@@ -9404,7 +9404,7 @@ class GenericGraph(GenericGraph_pyx):
             next(it)
         return next(it)
 
-    def random_vertex_iterator(self, **kwds):
+    def random_vertex_iterator(self, *args, **kwds):
         r"""
         Return an iterator over random vertices of self.
 
@@ -9414,7 +9414,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``**kwds`` - arguments to be passed down to the
+        - ``*args`` and ``**kwds`` - arguments to be passed down to the
           :meth:`vertex_iterator` method.
 
         EXAMPLE:
@@ -9441,7 +9441,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import choice
         if self.order():
-            V = list(self.vertex_iterator(**kwds))
+            V = list(self.vertex_iterator(*args, **kwds))
             while True:
                 yield choice(V)
 
@@ -9476,7 +9476,7 @@ class GenericGraph(GenericGraph_pyx):
             next(it)
         return next(it)
 
-    def random_edge_iterator(self, **kwds):
+    def random_edge_iterator(self, *args, **kwds):
         r"""
         Return an iterator over random edges of self.
 
@@ -9485,8 +9485,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``**kwds`` - arguments to be passed down to the :meth:`edge_iterator`
-          method.
+        - ``*args`` and ``**kwds`` - arguments to be passed down to the
+         :meth:`edge_iterator` method.
 
         EXAMPLE:
 
@@ -9501,9 +9501,9 @@ class GenericGraph(GenericGraph_pyx):
         triple ``(u,v,l)`` of values, in which ``l`` is the label of edge
         `(u,v)`::
 
-            sage: print(next(g.random_edge_iterator()))
+            sage: print(next(g.random_edge_iterator())) # random
             (0, 5, None)
-            sage: print(next(g.random_edge_iterator(labels=False)))
+            sage: print(next(g.random_edge_iterator(labels=False))) # random
             (5, 7)
 
         TESTS:
@@ -9521,7 +9521,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.prandom import choice
         if self.size():
-            E = list(self.edge_iterator(**kwds))
+            E = list(self.edge_iterator(*args, **kwds))
             while True:
                 yield choice(E)
 

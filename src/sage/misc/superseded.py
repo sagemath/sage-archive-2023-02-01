@@ -22,6 +22,7 @@ Functions and classes
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from warnings import warn, resetwarnings
 import inspect
@@ -193,7 +194,7 @@ class experimental(object):
 
             sage: @sage.misc.superseded.experimental(trac_number=79997)
             ....: def foo(*args, **kwargs):
-            ....:     print args, kwargs
+            ....:     print("{} {}".format(args, kwargs))
             sage: foo(7, what='Hello')
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
@@ -206,7 +207,7 @@ class experimental(object):
             sage: class bird(SageObject):
             ....:     @sage.misc.superseded.experimental(trac_number=99999)
             ....:     def __init__(self, *args, **kwargs):
-            ....:         print "piep", args, kwargs
+            ....:         print("piep {} {}".format(args, kwargs))
             sage: _ = bird(99)
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
@@ -238,7 +239,7 @@ class experimental(object):
         TESTS::
 
             sage: def foo(*args, **kwargs):
-            ....:     print args, kwargs
+            ....:     print("{} {}".format(args, kwargs))
             sage: from sage.misc.superseded import experimental
             sage: ex_foo = experimental(trac_number=99399)(foo)
             sage: ex_foo(3, what='Hello')

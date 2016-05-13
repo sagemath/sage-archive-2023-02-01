@@ -6556,7 +6556,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
         r"""
-        Test if only one basis of the subset ``X`` has maximal
+        Test if only one cobasis of the subset ``X`` has maximal
         weight.
 
         The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.

@@ -49,6 +49,23 @@ which is anyway set to raise an error::
     Traceback (most recent call last):
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
+
+Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+
+For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
+
+    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
+    sin(x)
+
+Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
+
+    sage:  maxima_calculus("besselexpand:false")
+    false
+    sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
+    1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
+    sage:  maxima_calculus("besselexpand:true")
+    true
+
 """
 
 #*****************************************************************************
@@ -858,27 +875,6 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
-
-
-	Changed besselexpand to true in init_code(see :trac:'20595')
-	-- automatically simplify bessel functions to trig functions when appropriate when true.
-
-	Examples:
-
-	For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
-
-	sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-	sin(x)
-
-	Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
-
-	sage:  maxima_calculus("besselexpand:false")
-	false
-	sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
-	1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
-	sage:  maxima_calculus("besselexpand:true")
-	true
-
 
         """
         try:

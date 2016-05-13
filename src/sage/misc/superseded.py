@@ -214,6 +214,12 @@ class experimental(object):
             See http://trac.sagemath.org/99999 for details.
             piep (99,) {}
 
+
+        Experimental warnings are issued only once (see #20601)::
+
+            sage: _ = bird(98)
+            piep (98,) {}
+
         .. SEEALSO::
 
             :func:`experimental`,
@@ -252,13 +258,16 @@ class experimental(object):
         @sage_wraps(func)
         def wrapper(*args, **kwds):
             from sage.misc.superseded import experimental_warning
-            experimental_warning(self.trac_number,
-                         'This class/method/function is marked as '
-                         'experimental. It, its functionality or its '
-                         'interface might change without a '
-                         'formal deprecation.',
-                         self.stacklevel)
+            if not wrapper._already_issued:
+                experimental_warning(self.trac_number,
+                            'This class/method/function is marked as '
+                            'experimental. It, its functionality or its '
+                            'interface might change without a '
+                            'formal deprecation.',
+                            self.stacklevel)
+                wrapper._already_issued = True
             return func(*args, **kwds)
+        wrapper._already_issued = False
 
         return wrapper
 

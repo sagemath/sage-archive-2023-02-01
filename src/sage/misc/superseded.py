@@ -217,8 +217,8 @@ class experimental(object):
         TESTS:
 
         The following test works together with the doc-test for
-        `__experimental_self_test` to demonstrate that warnings are issued only
-        once, even in doc-tests (see #20601).
+        :method:`__experimental_self_test` to demonstrate that warnings are issued only
+        once, even in doc-tests (see :trac:`20601`).
         ::
 
             sage: from sage.misc.superseded import __experimental_self_test
@@ -284,7 +284,7 @@ from sage.structure.sage_object import SageObject
 class __experimental_self_test(SageObject):
     r"""
     This is a class only to demonstrate with a doc-test that the @experimental
-    decorator only issues a warning message once (see #20601).
+    decorator only issues a warning message once (see :trac:`20601`).
 
     The test below does not issue a warning message because that warning has
     already been issued by a previous doc-test in the @experimental code. Note

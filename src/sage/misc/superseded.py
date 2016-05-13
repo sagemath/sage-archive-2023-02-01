@@ -217,7 +217,7 @@ class experimental(object):
         TESTS:
 
         The following test works together with the doc-test for
-        :method:`__experimental_self_test` to demonstrate that warnings are issued only
+        :meth:`__experimental_self_test` to demonstrate that warnings are issued only
         once, even in doc-tests (see :trac:`20601`).
         ::
 

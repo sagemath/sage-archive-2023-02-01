@@ -214,11 +214,20 @@ class experimental(object):
             See http://trac.sagemath.org/99999 for details.
             piep (99,) {}
 
+        TESTS:
 
-        Experimental warnings are issued only once (see #20601)::
+        The following test works together with the doc-test for
+        `__experimental_self_test` to demonstrate that warnings are issued only
+        once, even in doc-tests (see #20601).
+        ::
 
-            sage: _ = bird(98)
-            piep (98,) {}
+            sage: from sage.misc.superseded import __experimental_self_test
+            sage: _ = __experimental_self_test("A")
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/88888 for details.
+            I'm A
 
         .. SEEALSO::
 
@@ -270,6 +279,27 @@ class experimental(object):
         wrapper._already_issued = False
 
         return wrapper
+
+from sage.structure.sage_object import SageObject
+class __experimental_self_test(SageObject):
+    r"""
+    This is a class only to demonstrate with a doc-test that the @experimental
+    decorator only issues a warning message once (see #20601).
+
+    The test below does not issue a warning message because that warning has
+    already been issued by a previous doc-test in the @experimental code. Note
+    that this behaviour can not be demonstrated within a single documentation
+    string: Sphinx will itself supress multiple issued warnings.
+    
+    TESTS::
+
+        sage: from sage.misc.superseded import __experimental_self_test
+        sage: _ = __experimental_self_test("B")
+        I'm B
+    """
+    @experimental(trac_number=88888)
+    def __init__(self, x):
+        print("I'm " + x)
 
 
 class DeprecatedFunctionAlias(object):

@@ -38,7 +38,7 @@ heavily modified:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
@@ -312,11 +312,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: z.bisection()
             (3.? - 5.?*I, 3.? - 5.?*I, 3.? - 5.?*I, 3.? - 5.?*I)
             sage: for z in z.bisection():
-            ...       print z.real().endpoints(), z.imag().endpoints()
-            (2.00000000000000, 2.50000000000000) (-5.00000000000000, -4.50000000000000)
-            (2.50000000000000, 3.00000000000000) (-5.00000000000000, -4.50000000000000)
-            (2.00000000000000, 2.50000000000000) (-4.50000000000000, -4.00000000000000)
-            (2.50000000000000, 3.00000000000000) (-4.50000000000000, -4.00000000000000)
+            ....:     print(z.real().endpoints())
+            ....:     print(z.imag().endpoints())
+            (2.00000000000000, 2.50000000000000)
+            (-5.00000000000000, -4.50000000000000)
+            (2.50000000000000, 3.00000000000000)
+            (-5.00000000000000, -4.50000000000000)
+            (2.00000000000000, 2.50000000000000)
+            (-4.50000000000000, -4.00000000000000)
+            (2.50000000000000, 3.00000000000000)
+            (-4.50000000000000, -4.00000000000000)
 
             sage: z = CIF(RIF(sqrt(2), sqrt(3)), RIF(e, pi))
             sage: a, b, c, d = z.bisection()
@@ -850,19 +855,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Note that ``x^2`` is not the same as ``x*x``::
 
             sage: a = CIF(RIF(-1,1))
-            sage: print (a^2).str(style="brackets")
+            sage: print((a^2).str(style="brackets"))
             [0.00000000000000000 .. 1.0000000000000000]
-            sage: print (a*a).str(style="brackets")
+            sage: print((a*a).str(style="brackets"))
             [-1.0000000000000000 .. 1.0000000000000000]
             sage: a = CIF(0, RIF(-1,1))
-            sage: print (a^2).str(style="brackets")
+            sage: print((a^2).str(style="brackets"))
             [-1.0000000000000000 .. -0.00000000000000000]
-            sage: print (a*a).str(style="brackets")
+            sage: print((a*a).str(style="brackets"))
             [-1.0000000000000000 .. 1.0000000000000000]
             sage: a = CIF(RIF(-1,1), RIF(-1,1))
-            sage: print (a^2).str(style="brackets")
+            sage: print((a^2).str(style="brackets"))
             [-1.0000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I
-            sage: print (a*a).str(style="brackets")
+            sage: print((a*a).str(style="brackets"))
             [-2.0000000000000000 .. 2.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I
 
         We can take very high powers::
@@ -872,7 +877,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: s = RealField(27, rnd="RNDZ")(1/2)^(1/3)
             sage: a = CIF(RIF(-s/2,s/2), RIF(-s, s))
             sage: r = a^(10^10000)
-            sage: print r.str(style="brackets")
+            sage: print(r.str(style="brackets"))
             [-2.107553304e1028 .. 2.107553304e1028] + [-2.107553304e1028 .. 2.107553304e1028]*I
 
         TESTS::

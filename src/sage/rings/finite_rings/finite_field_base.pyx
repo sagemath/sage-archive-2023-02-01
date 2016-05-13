@@ -87,7 +87,7 @@ cdef class FiniteFieldIterator:
             sage: K.<a> = GF(5^9)
             sage: for x in K:
             ....:     if x == a+3: break
-            ....:     print x
+            ....:     print(x)
             0
             1
             2

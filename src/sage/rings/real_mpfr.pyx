@@ -110,6 +110,7 @@ Make sure we don't have a new field for every new literal::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import math # for log
 import sys
@@ -1849,13 +1850,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Test various bases::
 
-            sage: print (65536.0).str(base=2)
+            sage: print((65536.0).str(base=2))
             1.0000000000000000000000000000000000000000000000000000e16
-            sage: print (65536.0).str(base=36)
+            sage: print((65536.0).str(base=36))
             1ekg.00000000
-            sage: print (65536.0).str(base=62)
+            sage: print((65536.0).str(base=62))
             H32.0000000
-            sage: print (65536.0).str(base=63)
+            sage: print((65536.0).str(base=63))
             Traceback (most recent call last):
             ...
             ValueError: base (=63) must be an integer between 2 and 62

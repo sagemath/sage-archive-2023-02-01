@@ -67,7 +67,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -174,7 +174,6 @@ def IntegerMod(parent, value):
             a = modulus.lookup(res)
             if (<Element>a)._parent is not parent:
                (<Element>a)._parent = parent
-#                print (<Element>a)._parent, " is not ", parent
             return a
     if modulus.int32 != -1:
         return IntegerMod_int(parent, value)
@@ -822,7 +821,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:             for _ in range(2):
             ....:                 a = Zmod(n).random_element()
             ....:                 if a.is_square().__xor__(a._pari_().issquare()):
-            ....:                     print a, n
+            ....:                     print(a, n)
 
         ALGORITHM: Calculate the Jacobi symbol
         `(\mathtt{self}/p)` at each prime `p`
@@ -1190,17 +1189,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
 
             sage: for t in xrange(200):
-            ...       n = randint(1,2^63)
-            ...       K = Integers(n)
-            ...       b = K.random_element()
-            ...       e = randint(-2^62, 2^63)
-            ...       try:
-            ...           a = b.nth_root(e)
-            ...           if a^e != b:
-            ...               print n, b, e, a
-            ...               raise NotImplementedError
-            ...       except ValueError:
-            ...           pass
+            ....:     n = randint(1,2^63)
+            ....:     K = Integers(n)
+            ....:     b = K.random_element()
+            ....:     e = randint(-2^62, 2^63)
+            ....:     try:
+            ....:         a = b.nth_root(e)
+            ....:         if a^e != b:
+            ....:             print(n, b, e, a)
+            ....:             raise NotImplementedError
+            ....:     except ValueError:
+            ....:         pass
 
         We check that :trac:`13172` is resolved::
 
@@ -1356,9 +1355,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:                 L = [-1]
             ....:             M = b._nth_root_naive(e)
             ....:             if sorted(L) != M:
-            ....:                 print "mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)"%(a,n,e,a,n,e)
+            ....:                 print("mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)" % (a,n,e,a,n,e))
             ....:             if len(L) > 0 and (c not in L):
-            ....:                 print "mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)"%(a,n,e,a,n,e)
+            ....:                 print("mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)" % (a,n,e,a,n,e))
         """
         L = []
         for a in self.parent():
@@ -1530,7 +1529,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...                 a = Zmod(n).random_element()
             ...                 if not a.is_unit(): continue
             ...                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
-            ...                     print "mod(%s,%s) incorrect"%(a,n)
+            ...                     print("mod(%s,%s) incorrect" % (a, n))
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()
@@ -4167,7 +4166,6 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             a = self.modulus.lookup(res)
 #            if a._parent is not self._codomain:
             a._parent = self._codomain
-#                print (<Element>a)._parent, " is not ", parent
             return a
         else:
             a = self.zero._new_c_from_long(0)

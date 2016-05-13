@@ -39,6 +39,7 @@ Test NumPy conversions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.float cimport *
@@ -1085,9 +1086,9 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: print RDF(-2/3)
+            sage: print(RDF(-2/3))
             -0.666666666667
-            sage: print RDF(oo)
+            sage: print(RDF(oo))
             +infinity
         """
         return double_str(self._value)
@@ -1979,8 +1980,8 @@ cdef class RealDoubleElement(FieldElement):
             ....:   diff = R(log_RDF) - log_RR
             ....:   if abs(diff) < log_RDF.ulp():
             ....:       return True
-            ....:   print "logarithm check failed for %s (diff = %s ulp)"% \
-            ....:       (x, diff/log_RDF.ulp())
+            ....:   print("logarithm check failed for %s (diff = %s ulp)"% \
+            ....:       (x, diff/log_RDF.ulp()))
             ....:   return False
             sage: all( check_error(2^x) for x in range(-100,100) )
             True
@@ -2814,8 +2815,8 @@ def pool_stats():
         Used pool 0 / 0 times
         Pool contains 1 / 50 items
     """
-    print "Used pool %s / %s times" % (use_pool, total_alloc)
-    print "Pool contains %s / %s items" % (element_pool_count, element_pool_size)
+    print("Used pool %s / %s times" % (use_pool, total_alloc))
+    print("Pool contains %s / %s items" % (element_pool_count, element_pool_size))
 
 cdef double_repr(double x):
     """

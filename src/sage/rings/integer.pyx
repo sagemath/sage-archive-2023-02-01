@@ -126,6 +126,7 @@ real field R::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
@@ -1133,13 +1134,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print hex(Integer(15))
+            sage: print(hex(Integer(15)))
             f
-            sage: print hex(Integer(16))
+            sage: print(hex(Integer(16)))
             10
-            sage: print hex(Integer(16938402384092843092843098243))
+            sage: print(hex(Integer(16938402384092843092843098243)))
             36bb1e3929d1a8fe2802f083
-            sage: print hex(long(16938402384092843092843098243))
+            sage: print(hex(long(16938402384092843092843098243)))
             0x36bb1e3929d1a8fe2802f083L
         """
         return self.str(16)
@@ -1159,15 +1160,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print oct(Integer(800))
+            sage: print(oct(Integer(800)))
             1440
-            sage: print oct(Integer(8))
+            sage: print(oct(Integer(8)))
             10
-            sage: print oct(Integer(-50))
+            sage: print(oct(Integer(-50)))
             -62
-            sage: print oct(Integer(-899))
+            sage: print(oct(Integer(-899)))
             -1603
-            sage: print oct(Integer(16938402384092843092843098243))
+            sage: print(oct(Integer(16938402384092843092843098243)))
             15535436162247215217705000570203
 
         Behavior of Sage integers vs. Python integers::
@@ -1189,11 +1190,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: print Integer(15).binary()
+            sage: print(Integer(15).binary())
             1111
-            sage: print Integer(16).binary()
+            sage: print(Integer(16).binary())
             10000
-            sage: print Integer(16938402384092843092843098243).binary()
+            sage: print(Integer(16938402384092843092843098243).binary())
             1101101011101100011110001110010010100111010001101010001111111000101000000000101111000010000011
         """
         return self.str(2)
@@ -2074,7 +2075,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_set_ui(accum,1)
             l = 0
             while l_min != l_max:
-                # print "self=...",m,l_min,l_max
                 if l_min + 1 == l_max:
                     mpz_pow_ui(temp_exp,m.value,l_min+1-l)
                     # This might over-shoot and make accum > self, but
@@ -2175,13 +2175,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # if middle was an exact power of 2, adjust down
             if (1 << (pow_2-1)) == upper-lower:
                 pow_2 -= 1
-            #print upper, lower, pow_2
             pow_2_things = [rif_m]*pow_2
             for i from 1<=i<pow_2:
                 pow_2_things[i] = pow_2_things[i-1]**2
             for i from pow_2>i>=0:
                 middle = lower + int(2)**i
-                #print "Upper:  %i;  Lower:  %i;  Middle:  %i" % (upper,lower, middle)
                 exp = min_power*pow_2_things[i]
                 if exp > rif_self:
                     upper = middle
@@ -3927,7 +3925,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: for n in srange(7):
-            ...    print n, n.factorial()
+            ....:     print("{} {}".format(n, n.factorial()))
             0 1
             1 1
             2 2
@@ -4171,7 +4169,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: for n in srange(-2,3):
-            ...    print n, n.is_unit()
+            ....:     print("{} {}".format(n, n.is_unit()))
             -2 False
             -1 True
             0 False
@@ -6740,7 +6738,7 @@ cdef class int_to_Z(Morphism):
         TESTS::
 
             sage: f = ZZ.coerce_map_from(int)
-            sage: print f
+            sage: print(f)
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring

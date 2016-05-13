@@ -23,7 +23,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
@@ -859,8 +859,7 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         sage: R(45)
         4*5 + 5^2 + O(5^21)
         sage: with local_print_mode(R, 'val-unit'):
-        ...       print R(45)
-        ...
+        ....:     print(R(45))
         5 * 9 + O(5^21)
 
     NOTES::

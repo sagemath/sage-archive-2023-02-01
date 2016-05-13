@@ -21,8 +21,8 @@ other types will also coerce to the integers, when it makes sense.
 
 ::
 
-    sage: a = Z(1234); b = Z(5678); print a, b
-    1234 5678
+    sage: a = Z(1234); b = Z(5678); a, b
+    (1234, 5678)
     sage: type(a)
     <type 'sage.rings.integer.Integer'>
     sage: a + b
@@ -40,7 +40,7 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
@@ -176,8 +176,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     We next illustrate basic arithmetic in `\ZZ`::
 
-        sage: a = Z(1234); b = Z(5678); print a, b
-        1234 5678
+        sage: a = Z(1234); b = Z(5678); a, b
+        (1234, 5678)
         sage: type(a)
         <type 'sage.rings.integer.Integer'>
         sage: a + b
@@ -545,7 +545,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ....:  if n < 3: print n
+            ....:  if n < 3: print(n)
             ....:  else: break
             0
             1

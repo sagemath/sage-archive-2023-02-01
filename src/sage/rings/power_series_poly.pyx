@@ -4,6 +4,7 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
+from __future__ import print_function
 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -449,8 +450,8 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: R.<t> = QQ[[]]
             sage: f = t + 17/5*t^3 + 2*t^4 + O(t^5)
-            sage: for a in f: print a,
-            0 1 0 17/5 2
+            sage: [a for a in f]
+            [0, 1, 0, 17/5, 2]
         """
         return iter(self.__f)
 

@@ -22,7 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import math
 import operator
@@ -270,8 +270,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...               _ = sage_input(fld(v) * var, verify=True)
             sage: x = polygen(CC)
             sage: for v1 in [-2, 0, 2]:
-            ...       for v2 in [-2, -1, 0, 1, 2]:
-            ...           print str(sage_input(x + CC(v1, v2))).splitlines()[1]
+            ....:     for v2 in [-2, -1, 0, 1, 2]:
+            ....:         print(str(sage_input(x + CC(v1, v2))).splitlines()[1])
             x + CC(-2 - RR(2)*I)
             x + CC(-2 - RR(1)*I)
             x - 2

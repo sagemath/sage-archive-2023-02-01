@@ -2777,7 +2777,7 @@ class Permutation(CombinatorialElement):
     ############
 
     def descents(self, final_descent=False, side='right', positive=False,
-                 from_zero=True):
+                 from_zero=None):
         r"""
         Return the list of the descents of ``self``.
 
@@ -2821,9 +2821,10 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).descents(from_zero=False)
             [2, 3]
         """
-        if from_zero:
+        if from_zero is None:
             from sage.misc.superseded import deprecation
             deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
+            from_zero = True
         
         if side == 'right':
             p = self
@@ -2846,7 +2847,7 @@ class Permutation(CombinatorialElement):
 
         return descents
 
-    def idescents(self, final_descent=False, from_zero=True):
+    def idescents(self, final_descent=False, from_zero=None):
         """
         Return a list of the idescents of ``self``, that is the list of
         the descents of ``self``'s inverse.

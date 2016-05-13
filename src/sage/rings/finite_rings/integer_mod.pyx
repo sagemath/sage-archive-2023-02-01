@@ -1521,15 +1521,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         TESTS::
 
             sage: for p in prime_range(3,12):
-            ...     for k in range(1,4):
-            ...         for even in [1,2]:
-            ...             n = even*p^k
-            ...             phin = euler_phi(n)
-            ...             for _ in range(6):
-            ...                 a = Zmod(n).random_element()
-            ...                 if not a.is_unit(): continue
-            ...                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
-            ...                     print("mod(%s,%s) incorrect" % (a, n))
+            ....:     for k in range(1,4):
+            ....:         for even in [1,2]:
+            ....:             n = even*p^k
+            ....:             phin = euler_phi(n)
+            ....:             for _ in range(6):
+            ....:                 a = Zmod(n).random_element()
+            ....:                 if not a.is_unit(): continue
+            ....:                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
+            ....:                     print("mod(%s,%s) incorrect" % (a, n))
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()

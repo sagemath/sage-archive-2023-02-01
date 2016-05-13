@@ -354,6 +354,21 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         else:
             return(cmp(self._components,right._components))
 
+    def components(self):
+        r"""
+        Return the components of this product of projective spaces.
+
+        OUTPUT: A list of projective spaces.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,u,v> = ProductProjectiveSpaces(QQ,[2,1])
+            sage: P.components()
+            [Projective Space of dimension 2 over Rational Field,
+            Projective Space of dimension 1 over Rational Field]
+        """
+        return self._components
+
     def dimension_relative(self):
         r"""
         Return the relative dimension of the product of projective spaces.
@@ -1074,7 +1089,7 @@ class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
 
     def rational_points(self, F=None):
         r"""
-        Return the list of `F`-rational points on the affine space of this space,
+        Return the list of `F`-rational points on this product of projective spaces,
         where `F` is a given finite field, or the base ring of this space.
 
         EXAMPLES::

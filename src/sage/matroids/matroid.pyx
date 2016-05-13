@@ -6605,6 +6605,15 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_coindependent_generic()
             False
 
+            sage: M=matroids.Uniform(2,5) 
+            sage: wt={0: 1, 1: 1, 2: 1, 3: 2, 4: 2}
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.dual().is_max_weight_coindependent_generic(weights=wt)
+            True
+
+
+
         Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
@@ -6664,7 +6673,7 @@ cdef class Matroid(SageObject):
                 except (TypeError, ValueError):
                     raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
 
-            wt = sorted(wt)
+            wt = sorted(wt, reverse = True)
             if wt[-1][1] < 0:
                 raise ValueError("nonnegative weights were expected.")
             Y = [e for (w, e) in wt]
@@ -6687,7 +6696,7 @@ cdef class Matroid(SageObject):
         smres = []
         for e in Y:
             if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
-                if wt_dic[e] > wt_dic[res[-1]]:
+                if wt_dic[e] < wt_dic[res[-1]]:
                     smres=res[:]
             res.append(e)
             if self._corank(res) > r:

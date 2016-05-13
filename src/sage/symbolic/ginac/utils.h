@@ -24,7 +24,7 @@
 #ifndef __GINAC_UTILS_H__
 #define __GINAC_UTILS_H__
 
-#include "config.h"
+#include "pynac-config.h"
 
 #include <string>
 #include <functional>
@@ -58,11 +58,11 @@ inline int compare_pointers(const T * a, const T * b)
 	return 0;
 }
 
-#if SIZEOF_VOID_P == SIZEOF_INT
+#if PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_INT
 typedef unsigned int p_int;
-#elif SIZEOF_VOID_P == SIZEOF_LONG
+#elif PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_LONG
 typedef unsigned long p_int;
-#elif SIZEOF_VOID_P == SIZEOF_LONG_LONG
+#elif PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_LONG_LONG
 typedef unsigned long long p_int;
 #else
 typedef unsigned long p_int;
@@ -73,12 +73,12 @@ inline unsigned golden_ratio_hash(p_int n)
 {
 	// This function works much better when fast arithmetic with at
 	// least 64 significant bits is available.
-#if SIZEOF_LONG >= 8
+#if PYNAC_SIZEOF_LONG >= 8
 	// So 'long' has 64 bits.  Excellent!  We prefer it because it might be
 	// more efficient than 'long long'.
 	unsigned long l = n * 0x4f1bbcddUL;
 	return (unsigned)l;
-#elif SIZEOF_LONG_LONG >= 8
+#elif PYNAC_SIZEOF_LONG_LONG >= 8
 	// This requires 'long long' (or an equivalent 64 bit type)---which is,
 	// unfortunately, not ANSI-C++-compliant.
 	// (Yet C99 demands it, which is reason for hope.)

@@ -25,7 +25,7 @@
 #include "ex.h"
 #include "lst.h"
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "pynac-config.h"
 #endif
 #include "tostring.h"
 
@@ -216,7 +216,7 @@ std::ostream &operator<<(std::ostream &os, const archive &ar)
 	os.put('A');
 	os.put('R');
 	os.put('C');
-	write_unsigned(os, ARCHIVE_VERSION);
+	write_unsigned(os, PYNAC_ARCHIVE_VERSION);
 
 	// Write atoms
 	unsigned num_atoms = ar.atoms.size();
@@ -264,8 +264,8 @@ std::istream &operator>>(std::istream &is, archive &ar)
 	if (c1 != 'G' || c2 != 'A' || c3 != 'R' || c4 != 'C')
 		throw (std::runtime_error("not a GiNaC archive (signature not found)"));
 	unsigned version = read_unsigned(is);
-	if (version > ARCHIVE_VERSION || version < ARCHIVE_VERSION - ARCHIVE_AGE)
-		throw (std::runtime_error("archive version " + ToString(version) + " cannot be read by this GiNaC library (which supports versions " + ToString(ARCHIVE_VERSION-ARCHIVE_AGE) + " thru " + ToString(ARCHIVE_VERSION)));
+	if (version > PYNAC_ARCHIVE_VERSION || version < PYNAC_ARCHIVE_VERSION - PYNAC_ARCHIVE_AGE)
+		throw (std::runtime_error("archive version " + ToString(version) + " cannot be read by this GiNaC library (which supports versions " + ToString(PYNAC_ARCHIVE_VERSION-PYNAC_ARCHIVE_AGE) + " thru " + ToString(PYNAC_ARCHIVE_VERSION)));
 
 	// Read atoms
 	unsigned num_atoms = read_unsigned(is);

@@ -322,7 +322,7 @@ class MainClass(object):
                     sage: from sage.misc.nested_class import MainClass
                     sage: print(MainClass.NestedClass.NestedSubClass.dummy.__doc__)
                     NestedSubClass.dummy(self, x, *args, r=(1, 2, 3.4), **kwds)
-                    File: sage/misc/nested_class.pyx (starting at line 314)
+                    File: sage/misc/nested_class.pyx (starting at line 315)
                     <BLANKLINE>
                                     A dummy method to demonstrate the embedding of
                                     method signature for nested classes.

@@ -3219,7 +3219,7 @@ class FileCache(object):
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
             sage: I = FC.items()
-            sage: I.sort(); print(I)
+            sage: I.sort(); I
             [(((), ()), 1), (((1,), (('a', 1),)), 3), (((1, 2), ()), 2)]
         """
         return [(k,self[k]) for k in self]
@@ -3238,7 +3238,7 @@ class FileCache(object):
             sage: FC[((1,),(('a',1),))] = 3
             sage: FC[((),(('a',1),))] = 4
             sage: v = FC.values()
-            sage: v.sort(); print(v)
+            sage: v.sort(); v
             [1, 2, 3, 4]
         """
         return [self[k] for k in self]
@@ -3275,7 +3275,7 @@ class FileCache(object):
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
             sage: K = FC.keys()
-            sage: K.sort(); print(K)
+            sage: K.sort(); K
             [((), ()), ((1,), (('a', 1),)), ((1, 2), ())]
         """
         cdef list K = []

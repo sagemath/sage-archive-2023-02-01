@@ -6419,8 +6419,6 @@ cdef class Matroid(SageObject):
 
         The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
 
-        The method :meth:`is_max_weight_coindependent_generic`
-        computes the same function using a different algorithm.
 
         INPUT:
 
@@ -6562,9 +6560,6 @@ cdef class Matroid(SageObject):
         weight.
 
         The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
-
-        The method :meth:`is_max_weight_independent_generic`
-        computes the same function using a different algorithm.
 
         INPUT:
 

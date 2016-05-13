@@ -21,8 +21,10 @@ other types will also coerce to the integers, when it makes sense.
 
 ::
 
-    sage: a = Z(1234); b = Z(5678); a, b
-    (1234, 5678)
+    sage: a = Z(1234); a
+    1234
+    sage: b = Z(5678); b
+    5678
     sage: type(a)
     <type 'sage.rings.integer.Integer'>
     sage: a + b
@@ -176,8 +178,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     We next illustrate basic arithmetic in `\ZZ`::
 
-        sage: a = Z(1234); b = Z(5678); a, b
-        (1234, 5678)
+        sage: a = Z(1234); a
+        1234
+        sage: b = Z(5678); b
+        5678
         sage: type(a)
         <type 'sage.rings.integer.Integer'>
         sage: a + b

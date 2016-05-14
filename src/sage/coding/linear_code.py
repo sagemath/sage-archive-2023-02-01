@@ -292,34 +292,27 @@ def code2leon(C):
     f.close()
     return file_loc
 
-def wtdist_gap(Gmat, n, F):
+def _weight_distribution(Gmat, n, F):
     r"""
+    Returns the weight distribution of the associated code. Uses the C programs 
+    available in the kernel of GAP and thus is fairly fast.
+
+    The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
+    where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
+
     INPUT:
-
-    -  ``Gmat`` - String representing a GAP generator matrix G of a linear code
-
-    -  ``n`` - Integer greater than 1, representing the number of columns of G
-       (i.e., the length of the linear code)
-
-    -  ``F`` - Finite field (in Sage), base field the code
+    - ``Gmat`` -- generator matrix of the associated code
+    - ``n`` -- length of the associated code
+    - ``F`` -- finite field of the associated code
 
     OUTPUT:
-
-    -  Spectrum of the associated code
+    - a vector of integers, the weight distribution of the code
 
     EXAMPLES::
-
         sage: Gstr = 'Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]'
         sage: F = GF(2)
-        sage: sage.coding.linear_code.wtdist_gap(Gstr, 7, F)
+        sage: sage.coding.linear_code._weight_distribution(Gstr, 7, F)
         [1, 0, 0, 7, 7, 0, 0, 1]
-
-    Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
-
-    ALGORITHM:
-
-    Uses C programs written by Steve Linton in the kernel of GAP, so is fairly
-    fast.
 
     AUTHORS:
 
@@ -3339,7 +3332,7 @@ class AbstractLinearCode(module.Module):
         G = self.generator_matrix()
         if algorithm=="gap":
             Gstr = G._gap_init_()
-            spec = wtdist_gap(Gstr,n,F)
+            spec = _weight_distribution(Gstr,n,F)
             return spec
         elif algorithm=="binary":
             from sage.coding.binary_code import weight_dist

@@ -225,6 +225,7 @@ Classes and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -959,7 +960,7 @@ class Permutation(CombinatorialElement):
             sage: for n in range(1,6):
             ....:    for p in Permutations(n):
             ....:       if from_cycles(n, p.to_cycles()) != p:
-            ....:          print "There is a problem with ",p
+            ....:          print("There is a problem with {}".format(p))
             ....:          break
             sage: size = 10000
             sage: sample = (Permutations(size).random_element() for i in range(5))
@@ -972,7 +973,7 @@ class Permutation(CombinatorialElement):
         following benchmarks. For small permutations::
 
             sage: for size in range(9): # not tested
-            ....:  print size
+            ....:  print(size)
             ....:  lp = Permutations(size).list()
             ....:  timeit('[p.to_cycles(False) for p in lp]')
             ....:  timeit('[p._to_cycles_set(False) for p in lp]')
@@ -4038,8 +4039,7 @@ class Permutation(CombinatorialElement):
             sage: pl= [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
             sage: for q in pl:
             ....:     s=p.simion_schmidt(q)
-            ....:     print s, s.has_pattern(q)
-            ....:
+            ....:     print("{} {}".format(s, s.has_pattern(q)))
             [4, 6, 1, 5, 3, 2] False
             [4, 2, 1, 3, 5, 6] False
             [4, 5, 3, 6, 2, 1] False
@@ -6853,7 +6853,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
         sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
         sage: M = sum([c * p.to_matrix() for (c,p) in L])
         sage: decomp = bistochastic_as_sum_of_permutations(M)
-        sage: print decomp
+        sage: print(decomp)
         2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
 
     An exception is raised when the matrix is not positive and bistochastic::

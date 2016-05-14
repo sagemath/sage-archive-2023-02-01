@@ -240,7 +240,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1279,7 +1279,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
-            sage: print P._latex_() #optional - dot2tex graphviz
+            sage: print(P._latex_()) #optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
@@ -2864,7 +2864,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
             ....:     if r(v) != r(u) + 1:
-            ....:         print "Bug in rank_function!"
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -3104,7 +3104,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             6
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         ::
 
@@ -3389,7 +3389,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = Posets.PentagonPoset()
             sage: for P in N5.isomorphic_subposets_iterator(D):
-            ....:     print P.cover_relations()
+            ....:     print(P.cover_relations())
             [[0, 1], [0, 2], [1, 4], [2, 4]]
             [[0, 1], [0, 3], [1, 4], [3, 4]]
             [[0, 1], [0, 2], [1, 4], [2, 4]]
@@ -3424,7 +3424,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2=Poset({0:[1]})
             sage: C3=Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2): print x.cover_relations()
+            sage: for x in C3.isomorphic_subposets(C2):
+            ....:     print(x.cover_relations())
             [['b', 'c']]
             [['a', 'c']]
             [['a', 'b']]
@@ -4443,7 +4444,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]})
-            sage: print P.graphviz_string()
+            sage: print(P.graphviz_string())
             graph {
             "f";"d";"b";"a";"c";"e";
             "f"--"e";"d"--"c";"b"--"a";"d"--"b";"f"--"d";
@@ -6355,7 +6356,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         sage: P = Posets(3)
         sage: P.cardinality()
         5
-        sage: for p in P: print p.cover_relations()
+        sage: for p in P: print(p.cover_relations())
         []
         [[1, 2]]
         [[0, 1], [0, 2]]

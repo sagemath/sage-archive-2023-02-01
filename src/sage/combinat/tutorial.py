@@ -1167,7 +1167,7 @@ Alternatively, we could construct an iterator on the counter-examples::
 
     ::
 
-        sage: for p in GL(2, 2): print(p); print("\n")
+        sage: for p in GL(2, 2): print(p); print("")
         [1 0]
         [0 1]
         <BLANKLINE>

@@ -12,7 +12,7 @@ Sage example in ./polynomes.tex, line 55 (in svn rev 1261)::
 Sage example in ./polynomes.tex, line 69::
 
   sage: x = polygen(QQ, 'x'); p = (2*x+1)*(x+2)*(x^4-1)
-  sage: print("{} est de degré {}".format(p, p.degree(x)))
+  sage: print("{} est de degré {}".format(p, p.degree()))
   2*x^6 + 5*x^5 + 2*x^4 - 2*x^2 - 5*x - 2 est de degré 6
 
 Sage example in ./polynomes.tex, line 97::

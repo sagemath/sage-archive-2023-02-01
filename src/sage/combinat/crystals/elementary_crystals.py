@@ -80,8 +80,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.root_system import RootSystem
+from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
+from sage.combinat.root_system.ambient_space import AmbientSpace
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
@@ -318,7 +319,7 @@ class TCrystal(UniqueRepresentation, Parent):
             sage: T.cardinality()
             1
         """
-        return Integer(1)
+        return ZZ.one()
 
     def weight_lattice_realization(self):
         """
@@ -570,7 +571,7 @@ class RCrystal(UniqueRepresentation, Parent):
             sage: R.cardinality()
             1
         """
-        return Integer(1)
+        return ZZ.one()
 
     def weight_lattice_realization(self):
         """
@@ -1023,11 +1024,11 @@ class ComponentCrystal(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``cartan_type`` -- A Cartan type
+    - ``cartan_type`` -- a Cartan type
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type):
+    def __classcall_private__(cls, cartan_type, P=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -1037,11 +1038,22 @@ class ComponentCrystal(UniqueRepresentation, Parent):
             sage: D = crystals.elementary.Component(CartanType(['A',2]))
             sage: C is D
             True
+            sage: AS = RootSystem(['A',2]).ambient_space()
+            sage: E = crystals.elementary.Component(AS)
+            sage: F = crystals.elementary.Component(CartanType(['A',2]), AS)
+            sage: C is E and C is F
+            True
         """
-        cartan_type = CartanType(cartan_type)
-        return super(ComponentCrystal, cls).__classcall__(cls, cartan_type)
+        if cartan_type in RootLatticeRealizations:
+            P = cartan_type
+        elif P is None:
+            cartan_type = CartanType(cartan_type)
+            P = cartan_type.root_system().ambient_space()
+            if P is None:
+                P = cartan_type.root_system().weight_lattice()
+        return super(ComponentCrystal, cls).__classcall__(cls, P)
 
-    def __init__(self, cartan_type):
+    def __init__(self, P):
         r"""
         Initialize ``self``.
 
@@ -1051,7 +1063,8 @@ class ComponentCrystal(UniqueRepresentation, Parent):
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = ClassicalCrystals())
-        self._cartan_type = cartan_type
+        self._weight_lattice_realization = P
+        self._cartan_type = P.cartan_type()
         self.module_generators = (self.element_class(self),)
 
     def _repr_(self):
@@ -1077,8 +1090,8 @@ class ComponentCrystal(UniqueRepresentation, Parent):
             sage: c
             c
         """
-        if weight != self._weight:
-            raise ValueError("Only element is c")
+        if weight != self.weight_lattice_realization().zero():
+            raise ValueError("only element is c")
         return self.element_class(self)
 
     def cardinality(self):
@@ -1092,7 +1105,24 @@ class ComponentCrystal(UniqueRepresentation, Parent):
             sage: C.cardinality()
             1
         """
-        return Integer(1)
+        return ZZ.one()
+
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.elementary.Component("A2")
+            sage: C.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 2]
+
+            sage: P = RootSystem(['A',2]).weight_lattice()
+            sage: C = crystals.elementary.Component(P)
+            sage: C.weight_lattice_realization() is P
+            True
+        """
+        return self._weight_lattice_realization
 
     class Element(AbstractSingleCrystalElement):
         r"""

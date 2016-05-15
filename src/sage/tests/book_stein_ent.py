@@ -317,16 +317,16 @@ sage: p = 726377359
 sage: Mod(3, p)^((p-1)//2)
 726377358
 sage: def gauss(a, p):
-...    # make the list of numbers reduced modulo p
-...    v = [(n*a)%p for n in range(1, (p-1)//2 + 1)]
-...    # normalize them to be in the range -p/2 to p/2
-...    v = [(x if (x < p/2) else x - p) for x in v]
-...    # sort and print the resulting numbers
-...    v.sort()
-...    print(v)
-...    # count the number that are negative
-...    num_neg = len([x for x in v if x < 0])
-...    return (-1)^num_neg
+....:     # make the list of numbers reduced modulo p
+....:     v = [(n*a)%p for n in range(1, (p-1)//2 + 1)]
+....:     # normalize them to be in the range -p/2 to p/2
+....:     v = [(x if (x < p/2) else x - p) for x in v]
+....:     # sort and print the resulting numbers
+....:     v.sort()
+....:     print(v)
+....:     # count the number that are negative
+....:     num_neg = len([x for x in v if x < 0])
+....:     return (-1)^num_neg
 sage: gauss(2, 13)
 [-5, -3, -1, 2, 4, 6]
 -1
@@ -415,7 +415,7 @@ sage: [c.convergent(i) for i in xrange(5)]
 [3, 22/7, 333/106, 355/113, 103993/33102]
 sage: [c.p(n)*c.q(n-1) - c.q(n)*c.p(n-1) for n in range(-1, 13)]
 [1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1]
-sage: [c.p(n)*c.q(n-2) - c.q(n)*c.p(n-2)for n in range(13)]
+sage: [c.p(n)*c.q(n-2) - c.q(n)*c.p(n-2) for n in range(13)]
 [3, -7, 15, -1, 292, -1, 1, -1, 2, -1, 3, -1, 14]
 sage: c = continued_fraction([1,2,3,4,5])
 sage: c.convergents()

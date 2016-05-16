@@ -266,6 +266,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
@@ -2433,7 +2434,7 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
-        sage: KleshchevPartitions(5,[3,2,1],size=3)[:]
+        sage: KleshchevPartitions(5,[3,2,1],3)[:]
         [([], [], [2, 1]),
         ([1], [], [1, 1]),
         ([], [], [1, 1, 1]),
@@ -2450,7 +2451,7 @@ class KleshchevPartitions(PartitionTuples):
         ([1, 1], [1], []),
         ([2], [1], []),
         ([3], [], [])]
-        sage: KleshchevPartitions(5,[3,2,1],size=3,direction="down")[:]
+        sage: KleshchevPartitions(5,[3,2,1],3,direction="down")[:]
         [([], [1], [1, 1]),
         ([1], [], [1, 1]),
         ([], [], [1, 1, 1]),
@@ -2471,7 +2472,7 @@ class KleshchevPartitions(PartitionTuples):
         ([3], [], [])]
     """
     @staticmethod
-    def __classcall_private__(klass, e, multicharge=(0,),direction='up', size=None):
+    def __classcall_private__(klass, e, multicharge=(0,), size=None, direction='up'):
         r"""
         This is a factory class which returns the appropriate parent based on
         the values of `level` and `size`.
@@ -2481,9 +2482,9 @@ class KleshchevPartitions(PartitionTuples):
             multicharge=(0,)
 
         if size is None:
-            return KleshchevPartitions_all(e,tuple(multicharge),direction)
+            return KleshchevPartitions_all(e, tuple(multicharge), direction)
         else:
-            return KleshchevPartitions_size(e,tuple(multicharge),direction, size)
+            return KleshchevPartitions_size(e, tuple(multicharge), size, direction)
 
 
 class KleshchevPartitions_all(KleshchevPartitions):
@@ -2560,13 +2561,13 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(2,[0,1],0)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=0)[:] #indirect doctest
             [([], [])]
-            sage: KleshchevPartitions(2,[0,1],1)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=1)[:] #indirect doctest
             [([1], []), ([], [1])]
-            sage: KleshchevPartitions(2,[0,1],2)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,1],size=2)[:] #indirect doctest
             [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,1,2],2)[:] #indirect doctest
+            sage: KleshchevPartitions(3,[0,1,2],size=2)[:] #indirect doctest
             [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
         """
         for size in NonNegativeIntegers():
@@ -2590,7 +2591,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
     Class of all Kleshchev partitions.
     """
 
-    def __init__(self, e, multicharge=(0,), direction='up', size=0):
+    def __init__(self, e, multicharge=(0,), size=0, direction='up'):
         r"""
         Initializes classes of KleshchevPartitions.
 
@@ -2674,8 +2675,14 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._size==0:
                 yield Partition([])
+        elif self._direction!='up':
+            # For level one restriction, with direction not up, means that the
+            # partition is `e`-regular, which means that no non-zero part
+            # appears with multiplicity greater or equal to e.
+            for mu in Partitions(self._size, regular=self.e):
+                yield mu
         else:
-            # for level one restriction simply means that the difference of 
+            # For level one restriction simply means that the difference of 
             # consecutive parts is always less than e
             for mu in Partitions(self._size, min_slope=1-self.e):
                 if mu[-1]<self.e: yield mu
@@ -2702,7 +2709,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
             # by adding on co-good nodes to smaller restricted partition. To avoid over 
             # counting we return a new restricted partition only if we added on its lowest
             # good node.
-            for mu in KleshchevPartitions_size(self.e,self._multicharge, direction=self._direction,size=self._size-1):
+            for mu in KleshchevPartitions_size(self.e,self._multicharge,size=self._size-1, direction=self._direction):
                 for cell in mu.cogood_cells(self.e, multicharge=self._multicharge, direction=self._direction).values():
                     if cell is not None:
                         nu=mu.add_cell(*cell)
@@ -2720,6 +2727,8 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
             sage: KleshchevPartitions(3,3)[:]            #indirect doctest
             [[2, 1], [1, 1, 1]]
+            sage: KleshchevPartitions(3,3, direction='down')[:]            #indirect doctest
+            [[3], [2, 1]]
             sage: KleshchevPartitions(3,[0],3)[:]        #indirect doctest
             [[2, 1], [1, 1, 1]]
             sage: KleshchevPartitions(3,[0,0],3)[:]      #indirect doctest

@@ -1557,16 +1557,15 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLE::
 
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
-            {0: (1, 2, 1), 2: (1, 1, 2)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
-            (1, 2, 1)
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
-            {0: (1, 2, 1), 2: (0, 1, 3)}
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],0,direction='down')
-            (1, 2, 1)
-            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
-            True
+            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(3,[0,1])
+            {0: (1, 1, 3), 1: (1, 3, 0), 2: (1, 0, 4)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(3,[0,1],0)
+            (1, 1, 3)
+            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4,[0,1],direction='down')
+            {1: (0, 0, 5), 2: (0, 2, 0), 3: (0, 1, 4)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4,[0,1],0,direction='down')
+            sage: PartitionTuple([[5,4],[4,3,2]]).cogood_cells(4,[0,1],1,direction='down') is None
+            False
         """
         conormal_cells=self.conormal_cells(e,multicharge,i,direction)
         if i==None:
@@ -1732,6 +1731,10 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
+            sage: Partition([3,1,1]).is_regular(2)
+            False
+            sage: Partition([3,1,1]).is_regular(3)
+            True
         """
         for cell in self.good_cells(e,multicharge,direction='down'):
             if not cell is None:
@@ -1745,7 +1748,10 @@ class PartitionTuple(CombinatorialElement):
         cells.
 
         EXAMPLES::
-
+            sage: Partition([3,1,1]).is_restricted(2)
+            False
+            sage: Partition([3,1,1]).is_restricted(3)
+            True
         """
         if self.size()==0: return True
         for cell in self.good_cells(e,multicharge).values():
@@ -2434,6 +2440,10 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
+        sage: KleshchevPartitions(5,[3,2,1],1,direction='up')[:]
+        [([], [], [1]), ([], [1], []), ([1], [], [])]
+        sage: KleshchevPartitions(5,[3,2,1],1,direction='down')[:]
+        [([], [], [1]), ([], [1], []), ([1], [], [])]
         sage: KleshchevPartitions(5,[3,2,1],3)[:]
         [([], [], [2, 1]),
         ([1], [], [1, 1]),
@@ -2476,6 +2486,13 @@ class KleshchevPartitions(PartitionTuples):
         r"""
         This is a factory class which returns the appropriate parent based on
         the values of `level` and `size`.
+        
+        EXAMPLES::
+
+            sage: KleshchevPartitions(5,[3,2,1],1,direction='up')[:]
+            [([], [], [1]), ([], [1], []), ([1], [], [])]
+            sage: KleshchevPartitions(5,[3,2,1],1,direction='down')[:]
+            [([], [], [1]), ([], [1], []), ([1], [], [])]
         """
         if size is None and isinstance(multicharge,(int,Integer)):
             size=multicharge

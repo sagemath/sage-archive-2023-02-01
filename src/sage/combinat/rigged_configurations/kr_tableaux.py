@@ -50,8 +50,7 @@ from sage.misc.flatten import flatten
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 
-from sage.categories.finite_crystals import FiniteCrystals
-from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
 
 from sage.combinat.crystals.letters import CrystalOfLetters, EmptyLetter
 from sage.combinat.root_system.cartan_type import CartanType
@@ -279,7 +278,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         EXAMPLES::
 
             sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
-            sage: TestSuite(KRT).run()  # long time
+            sage: TestSuite(KRT).run()
             sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
             sage: TestSuite(KRT).run()  # long time
             sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1, model='KR'); KRT
@@ -290,7 +289,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         self._s = s
         self._cartan_type = cartan_type
 
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
 
         self.letters = CrystalOfLetters(cartan_type.classical())
         self.module_generators = self._build_module_generators()
@@ -459,7 +458,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             # Check to make sure it can be converted
             if lst[0].cartan_type() != self.cartan_type() \
               or lst[0].parent().r() != self._r or lst[0].parent().s() != self._s:
-                raise ValueError("The Kirillov-Reshetikhin crystal must have the same Cartan type and (r,s)")
+                raise ValueError("the Kirillov-Reshetikhin crystal must have the same Cartan type and (r,s)")
             return self.from_kirillov_reshetikhin_crystal(lst[0])
 
         return self.element_class(self, list(lst), **options)
@@ -503,19 +502,6 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             Kirillov-Reshetikhin crystal of type ['A', 4, 1] with (r,s)=(2,1)
         """
         return KashiwaraNakashimaTableaux(self._cartan_type, self._r, self._s)
-
-    def affinization(self):
-        """
-        Return the corresponding affinization crystal of ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1, model='KR')
-            sage: K.affinization()
-            Affinization of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and shape (1, 1)
-        """
-        from sage.combinat.crystals.affinization import AffinizationOfCrystal
-        return AffinizationOfCrystal(self)
 
     def classical_decomposition(self):
         """
@@ -1033,9 +1019,9 @@ class KRTableauxBn(KRTableauxTypeHorizonal):
         f_str = reversed(to_hw[1])
         wt = to_hw[0].weight()
         for x in self.module_generators:
-            if x.classical_weight() / 2 == wt:
+            if x.classical_weight() == wt:
                 return x.f_string(f_str)
-        raise ValueError("No matching highest weight element found")
+        raise ValueError("no matching highest weight element found")
 
 class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     r"""
@@ -1309,8 +1295,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             WLR = F.weight_lattice()
         else:
             WLR = F.ambient_space()
-        weight = lambda x: x.weight()
-        return sum((weight(self[j]) for j in range(len(self))), WLR.zero())
+        return sum((self[j].weight() for j in range(len(self))), WLR.zero())
 
     def e(self, i):
         """
@@ -1390,28 +1375,6 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         if i == self.parent()._cartan_type.special_node():
             return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
-
-    def lusztig_involution(self):
-        r"""
-        Return the result of the classical Lusztig involution on ``self``.
-
-        EXAMPLES::
-
-            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
-            sage: mg = KRT.module_generators[1]
-            sage: mg.lusztig_involution()
-            [[-2, -2, 1], [-1, -1, 2]]
-            sage: elt = mg.f_string([2,1,3,2]); elt
-            [[3, -2, 1], [4, -1, 2]]
-            sage: elt.lusztig_involution()
-            [[-4, -2, 1], [-3, -1, 2]]
-        """
-        Cl = self.parent().cartan_type().classical()
-        I = Cl.index_set()
-        aut = Cl.opposition_automorphism()
-        hw = self.to_highest_weight(I)[1]
-        hw.reverse()
-        return self.to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
 
     def left_split(self):
         r"""
@@ -1634,6 +1597,26 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         rf = TP.crystals[1](*(self[h:]))
         return TP(lf, rf)
 
+    # FIXME: This is a copy of the above classical weight, and cached_method
+    #   overwrites this method if it is called via super.
+    @cached_method
+    def classical_weight(self):
+        r"""
+        Return the classical weight of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1, model='KR')
+            sage: KRT.module_generators[0].classical_weight()
+            (1/2, 1/2, 1/2, 1/2)
+        """
+        F = self.cartan_type().classical().root_system()
+        if F.ambient_space() is None:
+            WLR = F.weight_lattice()
+        else:
+            WLR = F.ambient_space()
+        return sum((self[j].weight() for j in range(len(self))), WLR.zero()) / 2
+
 KRTableauxBn.Element = KRTableauxSpinElement
 KRTableauxSpin.Element = KRTableauxSpinElement
 
@@ -1781,7 +1764,7 @@ class KRTableauxTypeDTri2(KirillovReshetikhinTableaux):
         self._r = r
         self._s = s
         self._cartan_type = cartan_type
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
         self.letters = CrystalOfLetters(cartan_type.classical())
 
     @lazy_attribute

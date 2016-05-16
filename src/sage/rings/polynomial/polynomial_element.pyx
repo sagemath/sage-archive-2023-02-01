@@ -7869,6 +7869,81 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) < 2
 
+    def nth_root(self, n):
+        r"""
+        Return a `n`-th root of this element.
+
+        This method relies on factorization.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: a = 27 * (x+3)**6 * (x+5)**3
+            sage: a.nth_root(3)
+            3*x^3 + 33*x^2 + 117*x + 135
+
+            sage: b = 25 * (x^2 + x + 1)
+            sage: b.nth_root(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (25*x^2 + 25*x + 25)^(1/2) does not lie in
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R(0).nth_root(3)
+            0
+            sage: R.<x> = QQ[]
+            sage: a = 1/4 * (x/7 + 3/2)^2 * (x/2 + 5/3)^4
+            sage: a.nth_root(2)
+            1/56*x^3 + 103/336*x^2 + 365/252*x + 25/12
+
+            sage: R.<x> = NumberField(QQ['x'].gen()^2 - 2)
+            sage: a = (1 + x)^3 * (2*x - 5)^6
+            sage: b = a.nth_root(3); b
+            13*x - 7
+            sage: b^3 == a
+            True
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: parent(R.one().nth_root(3))
+            Univariate Polynomial Ring in x over Integer Ring
+        """
+        # note: this code is duplicated in
+        # sage.rings.polynomial.multi_polynomial.MPolynomial.nth_root
+        from sage.rings.integer_ring import ZZ
+
+        n = ZZ.coerce(n)
+
+        if n <= 0:
+            raise ValueError("n (={}) must be positive".format(n))
+        elif n.is_one() or self.is_zero():
+            return self
+        elif self.degree() % n:
+            raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
+        else:
+            f = self.factor()
+            u = self.base_ring()(f.unit())
+
+            if u.is_one():
+                ans = self.parent().one()
+            else:
+                # try to compute a n-th root of the unit in the
+                # base ring. the `nth_root` method thus has to be
+                # implemented in the base ring.
+                try:
+                    ans = self.parent(u.nth_root(n))
+                except AttributeError:
+                    raise NotImplementedError("nth root not implemented for {}".format(u.parent()))
+
+            for (v, exp) in f:
+                if exp % n:
+                    raise ValueError("({})^(1/{}) does not lie in {}".format(self, n, self.parent()))
+                ans *= v ** (exp // n)
+
+            return ans
+
+
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

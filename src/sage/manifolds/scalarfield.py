@@ -37,7 +37,6 @@ REFERENCES:
 #******************************************************************************
 
 from sage.structure.element import CommutativeAlgebraElement
-from sage.rings.integer import Integer
 from sage.symbolic.expression import Expression
 from sage.manifolds.coord_func import CoordFunction
 
@@ -1572,8 +1571,6 @@ class ScalarField(CommutativeAlgebraElement):
         """
         if not isinstance(other, ScalarField):
             raise TypeError("the second argument must be a scalar field")
-        dom1 = self._domain
-        dom2 = other._domain
         coord_changes = self._manifold._coord_changes
         resu = []
         #

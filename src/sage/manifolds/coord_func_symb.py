@@ -41,11 +41,10 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.symbolic.ring import SR
-from sage.structure.element import RingElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
+from sage.manifolds.coord_func import CoordFunction
 from sage.manifolds.utilities import (ExpressionNice, simplify_chain_real,
                                       simplify_chain_generic)
 

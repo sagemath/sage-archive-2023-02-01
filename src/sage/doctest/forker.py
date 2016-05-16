@@ -17,13 +17,15 @@ The following examples are used in doctesting this file::
 AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
+
+- Jeroen Demeyer (2013 and 2015) -- major improvements to forking and logging
 """
 
 #*****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          William Stein <wstein@gmail.com>
-#       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2013-2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -625,6 +627,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         if out is None:
             def out(s):
                 self.msgfile.write(s)
+                self.msgfile.flush()
 
         self._fakeout.start_spoofing()
         # If self.options.initial is set, we show only the first failure in each doctest block.
@@ -1354,6 +1357,7 @@ def dummy_handler(sig, frame):
     """
     pass
 
+
 class DocTestDispatcher(SageObject):
     """
     Creates parallel :class:`DocTestWorker` processes and dispatches
@@ -1406,10 +1410,11 @@ class DocTestDispatcher(SageObject):
                 [... tests, ... s]
         """
         for source in self.controller.sources:
-            head = self.controller.reporter.report_head(source)
-            self.controller.log(head)
+            heading = self.controller.reporter.report_head(source)
+            self.controller.log(heading)
             outtmpfile = tempfile.TemporaryFile()
-            result = DocTestTask(source)(self.controller.options, outtmpfile)
+            result = DocTestTask(source)(self.controller.options,
+                    outtmpfile, self.controller.logger)
             outtmpfile.seek(0)
             output = outtmpfile.read()
             self.controller.reporter.report(source, False, 0, result, output)
@@ -1555,8 +1560,6 @@ class DocTestDispatcher(SageObject):
                             new_finished.append(w)
                         else:
                             # Report the completion of this worker
-                            if w.heading is not None:
-                                log(w.heading)
                             log(w.messages, end="")
                             self.controller.reporter.report(
                                 w.source,
@@ -1578,13 +1581,11 @@ class DocTestDispatcher(SageObject):
                         else:
                             # Start a new worker.
                             w = DocTestWorker(source, options=opt, funclist=[sel_exit])
-                            w.heading = self.controller.reporter.report_head(w.source)
-                            if opt.nthreads == 1:
-                                # With 1 process, the child prints
-                                # directly to stdout, so we need to
-                                # log the heading now.
-                                log(w.heading)
-                                w.heading = None
+                            heading = self.controller.reporter.report_head(w.source)
+                            w.messages = heading + "\n"
+                            # Store length of heading to detect if the
+                            # worker has something interesting to report.
+                            w.heading_len = len(w.messages)
                             w.start()  # This might take some time
                             w.deadline = time.time() + opt.timeout
                             workers.append(w)
@@ -1615,21 +1616,19 @@ class DocTestDispatcher(SageObject):
 
                     # Find a worker to follow: if there is only one worker,
                     # always follow it. Otherwise, take the worker with
-                    # the earliest deadline of all workers with messages.
+                    # the earliest deadline of all workers whose
+                    # messages are more than just the heading.
                     if follow is None:
                         if len(workers) == 1:
                             follow = workers[0]
                         else:
                             for w in workers:
-                                if w.messages:
+                                if len(w.messages) > w.heading_len:
                                     if follow is None or w.deadline < follow.deadline:
                                         follow = w
 
                     # Write messages of followed worker
                     if follow is not None:
-                        if follow.heading is not None:
-                            log(follow.heading)
-                            follow.heading = None
                         log(follow.messages, end="")
                         follow.messages = ""
         finally:
@@ -1836,17 +1835,9 @@ class DocTestWorker(multiprocessing.Process):
         os.close(self.rmessages)
         msgpipe = os.fdopen(self.wmessages, "w")
         try:
-            # If we have only one process, we print directly to stdout
-            # without using the message pipe. This is mainly needed to
-            # support the --debug option.
-            if self.options.nthreads == 1:
-                msgpipe.close()
-                msgpipe = None
-
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
-            if msgpipe is not None:
-                msgpipe.close()
+            msgpipe.close()
 
     def start(self):
         """
@@ -2065,7 +2056,7 @@ class DocTestTask(object):
         - ``options`` -- an object representing doctest options.
 
         - ``outtmpfile`` -- a seekable file that's used by the doctest
-          runner to redirect stdout and stderr.
+          runner to redirect stdout and stderr of the doctests.
 
         - ``msgfile`` -- a file or pipe to send doctest messages about
           doctest failures (or all tests in verbose mode).

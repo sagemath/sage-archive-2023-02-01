@@ -139,7 +139,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
     sage: from copy import deepcopy
     sage: kwds2 = deepcopy(kwds)
     sage: kwds2['env']['SAGE_TIMEOUT'] = "3"
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "99seconds.rst"], **kwds2)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "99seconds.rst"], **kwds2)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 99seconds.rst
@@ -155,7 +155,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
 
 Test handling of ``KeyboardInterrupt`` in doctests::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "keyboardinterrupt.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "keyboardinterrupt.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 keyboardinterrupt.rst
@@ -177,10 +177,9 @@ Test handling of ``KeyboardInterrupt`` in doctests::
 
 Interrupt the doctester::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "interrupt.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "interrupt.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
-    sage -t --warn-long 0.0 interrupt.rst
     Killing test interrupt.rst
     ----------------------------------------------------------------------
     Doctests interrupted: 0/1 files tested
@@ -223,7 +222,7 @@ in max(20, 120 * 0.05) = 20 seconds::
 
 Test a doctest failing with ``abort()``::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "abort.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "abort.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 abort.rst
@@ -246,7 +245,7 @@ Test a doctest failing with ``abort()``::
 
 A different kind of crash::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "fail_and_die.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "fail_and_die.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 fail_and_die.rst
@@ -270,7 +269,7 @@ A different kind of crash::
 
 Test that ``sig_on_count`` is checked correctly::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "sig_on.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "sig_on.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 sig_on.rst
@@ -292,9 +291,58 @@ Test that ``sig_on_count`` is checked correctly::
     ...
     1
 
+Test logfiles in serial and parallel mode (see :trac:`19271`)::
+
+    sage: t = tmp_filename()
+    sage: subprocess.call(["sage", "-t", "--serial", "--warn-long", "0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
+    1
+    sage: print(open(t).read())  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 simple_failure.rst
+    **********************************************************************
+    File "simple_failure.rst", line 7, in sage.doctest.tests.simple_failure
+    Failed example:
+        a * b
+    Expected:
+        20
+    Got:
+        15
+    **********************************************************************
+    1 item had failures:
+       1 of   5 in sage.doctest.tests.simple_failure
+        [4 tests, 1 failure, ...]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 0.0 simple_failure.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
+    1
+    sage: print(open(t).read())  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 simple_failure.rst
+    **********************************************************************
+    File "simple_failure.rst", line 7, in sage.doctest.tests.simple_failure
+    Failed example:
+        a * b
+    Expected:
+        20
+    Got:
+        15
+    **********************************************************************
+    1 item had failures:
+       1 of   5 in sage.doctest.tests.simple_failure
+        [4 tests, 1 failure, ...]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 0.0 simple_failure.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+
 Test the ``--debug`` option::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--debug", "simple_failure.rst"], stdin=open(os.devnull), **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--debug", "simple_failure.rst"], stdin=open(os.devnull), **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --warn-long 0.0 simple_failure.rst
@@ -331,7 +379,7 @@ Test running under gdb, without and with a timeout::
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
-    sage -t... 1second.rst
+    sage -t... 1second.rst...
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
@@ -349,7 +397,7 @@ gdb might need a long time to start up, so we allow 30 seconds::
 
 Test the ``--show-skipped`` option::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--show-skipped", "show_skipped.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--show-skipped", "show_skipped.rst"], **kwds)  # long time
     Running doctests ...
     Doctesting 1 file.
     sage -t --warn-long 0.0 show_skipped.rst
@@ -367,7 +415,7 @@ Test the ``--show-skipped`` option::
 
 Optional tests are run correctly::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--long", "--show-skipped", "--optional=sage,gap", "show_skipped.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "--show-skipped", "--optional=sage,gap", "show_skipped.rst"], **kwds)  # long time
     Running doctests ...
     Doctesting 1 file.
     sage -t --long --warn-long 0.0 show_skipped.rst
@@ -381,7 +429,7 @@ Optional tests are run correctly::
     ...
     0
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--long", "--show-skipped", "--optional=gAp", "show_skipped.rst"], **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--long", "--show-skipped", "--optional=gAp", "show_skipped.rst"], **kwds)  # long time
     Running doctests ...
     Doctesting 1 file.
     sage -t --long --warn-long 0.0 show_skipped.rst
@@ -398,7 +446,7 @@ Optional tests are run correctly::
 
 Test an invalid value for ``--optional``::
 
-    sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--optional=bad-option", "show_skipped.rst"], **kwds)
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--optional=bad-option", "show_skipped.rst"], **kwds)
     Traceback (most recent call last):
     ...
     ValueError: invalid optional tag 'bad-option'

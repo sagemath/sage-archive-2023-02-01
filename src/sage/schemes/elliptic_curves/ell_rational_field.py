@@ -566,7 +566,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #  Access to PARI curves related to this curve.
     ####################################################################
 
-    def pari_curve(self, prec=None, factor=1):
+    def pari_curve(self):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
@@ -618,32 +618,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [4382696457564794691603442338788106497, 28, 3992, 16777216, 298, ...]
             sage: E.minimal_model()
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 7686423934083797390675981169229171907674183588326184511391146727143672423167091484392497987721106542488224058921302964259990799229848935835464702*x + 8202280443553761483773108648734271851215988504820214784899752662100459663011709992446860978259617135893103951840830254045837355547141096270521198994389833928471736723050112419004202643591202131091441454709193394358885 over Rational Field
-
-        The arguments ``prec`` and ``factor`` are deprecated::
-
-            sage: E.pari_curve(prec=128)
-            doctest:...: DeprecationWarning: The prec argument to pari_curve() is deprecated and no longer used
-            See http://trac.sagemath.org/15767 for details.
-            [4382696457564794691603442338788106497, 28, 3992, 16777216, 298, ...]
-            sage: E.pari_curve(factor=2)
-            doctest:...: DeprecationWarning: The factor argument to pari_curve() is deprecated and no longer used
-            See http://trac.sagemath.org/15767 for details.
-            [4382696457564794691603442338788106497, 28, 3992, 16777216, 298, ...]
         """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'The prec argument to pari_curve() is deprecated and no longer used')
-        if factor != 1:
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'The factor argument to pari_curve() is deprecated and no longer used')
-
         try:
             return self._pari_curve
         except AttributeError:
             self._pari_curve = pari(self.a_invariants()).ellinit()
             return self._pari_curve
 
-    def pari_mincurve(self, prec=None, factor=1):
+    def pari_mincurve(self):
         """
         Return the PARI curve corresponding to a minimal model for this
         elliptic curve.
@@ -665,13 +647,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.ellglobalred()
             [47232, [1, 0, 0, 0], 2, [2, 7; 3, 2; 41, 1], [[7, 2, 0, 1], [2, -3, 0, 2], [1, 5, 0, 1]]]
         """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'The prec argument to pari_mincurve() is deprecated and no longer used')
-        if factor != 1:
-            from sage.misc.superseded import deprecation
-            deprecation(15767, 'The factor argument to pari_mincurve() is deprecated and no longer used')
-
         try:
             return self._pari_mincurve
         except AttributeError:

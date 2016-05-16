@@ -1,4 +1,5 @@
-r"""
+
+"""
 Partition tuples
 
 A :class:`PartitionTuple` is a tuple of partitions. That is, an ordered
@@ -2432,9 +2433,45 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
+        sage: KleshchevPartitions(5,[3,2,1],size=3)[:]
+        [([], [], [2, 1]),
+        ([1], [], [1, 1]),
+        ([], [], [1, 1, 1]),
+        ([], [1], [2]),
+        ([], [], [3]),
+        ([1], [], [2]),
+        ([2], [], [1]),
+        ([], [1], [1, 1]),
+        ([], [1, 1], [1]),
+        ([], [2], [1]),
+        ([1], [2], []),
+        ([], [3], []),
+        ([1], [1], [1]),
+        ([1, 1], [1], []),
+        ([2], [1], []),
+        ([3], [], [])]
+        sage: KleshchevPartitions(5,[3,2,1],size=3,direction="down")[:]
+        [([], [1], [1, 1]),
+        ([1], [], [1, 1]),
+        ([], [], [1, 1, 1]),
+        ([], [1, 1], [1]),
+        ([], [1], [2]),
+        ([1], [1], [1]),
+        ([1, 1], [], [1]),
+        ([2], [], [1]),
+        ([], [1, 1, 1], []),
+        ([], [1, 1], [1]),
+        ([1], [1, 1], []),
+        ([1, 1], [1], []),
+        ([1], [2], []),
+        ([2], [1], []),
+        ([1, 1, 1], [], []),
+        ([1, 1], [1], []),
+        ([2, 1], [], []),
+        ([3], [], [])]
     """
     @staticmethod
-    def __classcall_private__(klass, e, multicharge=(0,),size=None):
+    def __classcall_private__(klass, e, multicharge=(0,),direction='up', size=None):
         r"""
         This is a factory class which returns the appropriate parent based on
         the values of `level` and `size`.
@@ -2444,16 +2481,16 @@ class KleshchevPartitions(PartitionTuples):
             multicharge=(0,)
 
         if size is None:
-            return KleshchevPartitions_all(e,tuple(multicharge))
+            return KleshchevPartitions_all(e,tuple(multicharge),direction)
         else:
-            return KleshchevPartitions_size(e,tuple(multicharge),size)
+            return KleshchevPartitions_size(e,tuple(multicharge),direction, size)
 
 
 class KleshchevPartitions_all(KleshchevPartitions):
     """
     Class of all Kleshchev partitions.
     """
-    def __init__(self, e, multicharge=(0,)):
+    def __init__(self, e, multicharge=(0,), direction='up'):
         r"""
         Initializes classes of PartitionTuples.
 
@@ -2468,6 +2505,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
         self.e=e   # for printing
         self._I=IntegerModRing(e)
         self._multicharge=tuple(self._I(m) for m in multicharge)
+        self._direction=direction
 
 
     def _repr_(self):
@@ -2552,7 +2590,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
     Class of all Kleshchev partitions.
     """
 
-    def __init__(self, e, multicharge=(0,), size=0):
+    def __init__(self, e, multicharge=(0,), direction='up', size=0):
         r"""
         Initializes classes of KleshchevPartitions.
 
@@ -2572,6 +2610,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
         self.e=e
         self._I=IntegerModRing(e)
         self._multicharge=tuple(self._I(m) for m in multicharge)
+        self._direction=direction
         if self._level==1:
             self.__iter__=self.__iter__level_one
         else:
@@ -2663,292 +2702,11 @@ class KleshchevPartitions_size(KleshchevPartitions):
             # by adding on co-good nodes to smaller restricted partition. To avoid over 
             # counting we return a new restricted partition only if we added on its lowest
             # good node.
-            for mu in KleshchevPartitions_size(self.e,self._multicharge,self._size-1):
-                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge).values():
+            for mu in KleshchevPartitions_size(self.e,self._multicharge, direction=self._direction,size=self._size-1):
+                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge, direction=self._direction).values():
                     if cell is not None:
                         nu=mu.add_cell(*cell)
-                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge).values() if c is not None):
-                            yield nu
-        return   # all done
-
-    @lazy_attribute
-    def __iter__(self):
-        """
-        Wrapper to return the correct iterator which is different for :class:`Partitions`
-        (level 1) and for :class:PartitionTuples` (higher levels).
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(3,3)[:]            #indirect doctest
-            [[2, 1], [1, 1, 1]]
-            sage: KleshchevPartitions(3,[0],3)[:]        #indirect doctest
-            [[2, 1], [1, 1, 1]]
-            sage: KleshchevPartitions(3,[0,0],3)[:]      #indirect doctest
-            [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
-        """
-        if self.level()==1:
-            return self.__iter__level_one
-        else:
-            return self.__iter__higher_levels
-
-    def _an_element_(self):
-        """
-        Return a generic element.
-
-        EXAMPLES::
-            sage: KleshchevPartitions(4,[0,0,0,0],4).an_element()  # indirect doctest
-            ([1], [1], [1], [1])
-
-        """
-        return self[0]
-
-#--------------------------------------------------
-# Kleshchev partitions - parent classes
-#--------------------------------------------------
-class KleshchevPartitions(PartitionTuples):
-    """
-    A partition (tuple) `\mu` is restricted if it can be recursively obtained by
-    adding a sequence of good nodes to the empty :class:`PartitionTuple:` of the
-    same :meth:`~PartitionTuple.level`.
-
-    EXAMPLES::
-
-    """
-    @staticmethod
-    def __classcall_private__(klass, e, multicharge=(0,),size=None):
-        r"""
-        This is a factory class which returns the appropriate parent based on
-        the values of `level` and `size`.
-        """
-        if size is None and isinstance(multicharge,(int,Integer)):
-            size=multicharge
-            multicharge=(0,)
-
-        if size is None:
-            return KleshchevPartitions_all(e,tuple(multicharge))
-        else:
-            return KleshchevPartitions_size(e,tuple(multicharge),size)
-
-
-class KleshchevPartitions_all(KleshchevPartitions):
-    """
-    Class of all Kleshchev partitions.
-    """
-    def __init__(self, e, multicharge=(0,)):
-        r"""
-        Initializes classes of PartitionTuples.
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(4,2)
-            Kleshchev partitions with e=4 and size 2
-        """
-        assert e in NN and ( e==0 or e>1), 'e must belong to {0,2,3,4,5,6,...}'
-        super(KleshchevPartitions_all, self).__init__(category=InfiniteEnumeratedSets())
-        self._level=len(multicharge)
-        self.e=e   # for printing
-        self._I=IntegerModRing(e)
-        self._multicharge=tuple(self._I(m) for m in multicharge)
-
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: KleshchevPartitions(4,2)
-            Kleshchev partitions with e=4 and size 2
-            sage: KleshchevPartitions(3,[0,0,0])
-            Kleshchev partitions with e=3 and multicharge=(0,0,0)
-            sage: KleshchevPartitions(3,[0,0,1])
-            Kleshchev partitions with e=3 and multicharge=(0,0,1)
-        """
-        if self._level==1:
-            return 'Kleshchev partitions with e=%s' % (self.e)
-        else:
-            return 'Kleshchev partitions with e=%s and multicharge=(%s)' % (
-                    self.e,','.join('%s'%m for m in self._multicharge))
-
-
-    def __contains__(self,mu):
-        """
-        Containment test for the class KleshchevPartitions()
-
-        EXAMPLES::
-
-            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0], 7)
-            False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,0,1], 7)
-            False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 7)
-            False
-            sage: PartitionTuple([[],[2,1],[3,2]]) in KleshchevPartitions(5,[0,1,1], 8)
-            True
-            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(2,[0,0,0],8))
-            True
-        """
-        if isinstance(mu,PartitionTuple) and mu.level()==self.level():
-            return mu.is_restricted(self.e,self._multicharge)
-
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return mu.level()==self.level() and mu.is_restricted(self.e,self._multicharge)
-
-
-    def __iter__(self):
-        r"""
-        Returns an iterator for the finite class of PartitionTuples of a fixed level
-        and a fixed size.
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(2,[0,1],0)[:] #indirect doctest
-            [([], [])]
-            sage: KleshchevPartitions(2,[0,1],1)[:] #indirect doctest
-            [([1], []), ([], [1])]
-            sage: KleshchevPartitions(2,[0,1],2)[:] #indirect doctest
-            [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,1,2],2)[:] #indirect doctest
-            [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
-        """
-        for size in NonNegativeIntegers():
-            for mu in KleshchevPartitions_size(self.e,self._multicharge,size):
-                yield mu
-
-    def _an_element_(self):
-        """
-        Return a generic element.
-
-        EXAMPLES::
-            sage: KleshchevPartitions(3,[0,0,0,0],size=4).an_element()  # indirect doctest
-            ([1], [1], [1], [1])
-
-        """
-        return self[12]
-
-
-class KleshchevPartitions_size(KleshchevPartitions):
-    """
-    Class of all Kleshchev partitions.
-    """
-
-    def __init__(self, e, multicharge=(0,), size=0):
-        r"""
-        Initializes classes of KleshchevPartitions.
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(4,2)
-            Kleshchev partitions with e=4 and size 2
-        """
-        super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())
-        self._size=size
-        self._level=len(multicharge)
-        # As lists do not take negative indices the case e=0 needs to be handled
-        # differently. Rather than doing this we set e equal to a "really big"
-        # number. Mathematically, this is equivalent and it means that we don't
-        # have an exception to cater for.
-        self.e=e
-        self.e=e
-        self._I=IntegerModRing(e)
-        self._multicharge=tuple(self._I(m) for m in multicharge)
-        if self._level==1:
-            self.__iter__=self.__iter__level_one
-        else:
-            self.__iter__=self.__iter__higher_levels
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: KleshchevPartitions(4,[0,0],3)
-            Kleshchev partitions with e=4 and multicharge=(0,0) and size 3
-        """
-        if self._level==1:
-            return 'Kleshchev partitions with e=%s and size %s' % (self.e, self._size)
-        else:
-            return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
-                    self.e,','.join('%s'%m for m in self._multicharge), self._size) 
-
-    def __contains__(self,mu):
-        """
-        Containment test for the class PartitionTuples_level_size()
-
-        TESTS::
-
-            sage: PartitionTuple([[3,2],[2]]) in KleshchevPartitions(2,[0,0],7)
-            False
-            sage: PartitionTuple([[3,2],[],[],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
-            False
-            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
-            False
-            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in KleshchevPartitions(2,[0,0,0,0,0],9)
-            False
-            sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(0,[0,0,0],8))
-            True
-        """
-        if isinstance(mu,PartitionTuple) and mu.level()==self._level and mu.size()==self._size:
-            return PartitionTuple(mu).is_restricted(self.e,self._multicharge)
-
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return mu.level()==self._level and mu.is_restricted(self.e,self._multicharge) and mu.size()==self._size
-
-
-    def __iter__level_one(self):
-        r"""
-        Returns an iterator for the finite class of KleshchevPartitions of level one 
-        and a fixed size.
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(2,0)[:] #indirect doctest
-            [[]]
-            sage: KleshchevPartitions(2,1)[:] #indirect doctest
-            [[1]]
-            sage: KleshchevPartitions(2,2)[:] #indirect doctest
-            [[1, 1]]
-            sage: KleshchevPartitions(3,2)[:] #indirect doctest
-            [[2], [1, 1]]
-        """
-        if self._size==0:
-                yield Partition([])
-        else:
-            # for level one restriction simply means that the difference of 
-            # consecutive parts is always less than e
-            for mu in Partitions(self._size, min_slope=1-self.e):
-                if mu[-1]<self.e: yield mu
-        return   # all done
-
-    def __iter__higher_levels(self):
-        r"""
-        Returns an iterator for the finite class of KleshchevPartitions of a fixed 
-        :meth:`level` greater than 1 and a fixed size.
-
-        EXAMPLES::
-
-            sage: KleshchevPartitions(2,[0,0],1)[:] #indirect doctest
-            [([], [1])]
-            sage: KleshchevPartitions(2,[0,0],2)[:] #indirect doctest
-            [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,0],2)[:] #indirect doctest
-            [([1], [1]), ([], [2]), ([], [1, 1])]
-        """
-        if self._size==0:
-            yield PartitionTuples_level_size(level=self._level,size=0)[0]
-        else:
-            # For higher levels we have to recursively construct the restricted partitions
-            # by adding on co-good nodes to smaller restricted partition. To avoid over 
-            # counting we return a new restricted partition only if we added on its lowest
-            # good node.
-            for mu in KleshchevPartitions_size(self.e,self._multicharge,self._size-1):
-                for cell in mu.cogood_cells(self.e, multicharge=self._multicharge).values():
-                    if cell is not None:
-                        nu=mu.add_cell(*cell)
-                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge).values() if c is not None):
+                        if all(cell<=c for c in nu.good_cells(self.e,multicharge=self._multicharge, direction=self._direction).values() if c is not None):
                             yield nu
         return   # all done
 

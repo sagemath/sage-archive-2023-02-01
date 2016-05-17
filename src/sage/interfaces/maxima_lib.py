@@ -59,11 +59,11 @@ For some infinite sums, a closed expression can be found. By default, "maxima" i
 
 Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
 
-    sage:  maxima_calculus("besselexpand:false")
+    sage: maxima_calculus("besselexpand:false")
     false
     sage: sum(((-1)^n)*((x)^(2*n+1))/factorial(2*n+1),n,0,oo)
     1/2*sqrt(2)*sqrt(pi)*sqrt(x)*bessel_J(1/2, x)
-    sage:  maxima_calculus("besselexpand:true")
+    sage: maxima_calculus("besselexpand:true")
     true
 
 """

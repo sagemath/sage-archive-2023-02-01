@@ -287,6 +287,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -1003,28 +1004,18 @@ class TopologicalManifold(ManifoldSubset):
         Index range on a 4-dimensional manifold::
 
             sage: M = Manifold(4, 'M', structure='topological')
-            sage: for i in M.irange():
-            ....:     print i,
-            ....:
-            0 1 2 3
-            sage: for i in M.irange(2):
-            ....:     print i,
-            ....:
-            2 3
             sage: list(M.irange())
             [0, 1, 2, 3]
+            sage: list(M.irange(2))
+            [2, 3]
 
         Index range on a 4-dimensional manifold with starting index=1::
 
             sage: M = Manifold(4, 'M', structure='topological', start_index=1)
-            sage: for i in M.irange():
-            ....:     print i,
-            ....:
-            1 2 3 4
-            sage: for i in M.irange(2):
-            ....:    print i,
-            ....:
-            2 3 4
+            sage: list(M.irange())
+            [1, 2, 3, 4]
+            sage: list(M.irange(2))
+            [2, 3, 4]
 
         In general, one has always::
 
@@ -1060,27 +1051,17 @@ class TopologicalManifold(ManifoldSubset):
         Indices on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M', structure='topological', start_index=1)
-            sage: for ind in M.index_generator(2):
-            ....:     print ind
-            ....:
-            (1, 1)
-            (1, 2)
-            (2, 1)
-            (2, 2)
+            sage: list(M.index_generator(2))
+            [(1, 1), (1, 2), (2, 1), (2, 2)]
 
         Loops can be nested::
 
             sage: for ind1 in M.index_generator(2):
-            ....:     print ind1, " : ",
-            ....:     for ind2 in M.index_generator(2):
-            ....:         print ind2,
-            ....:     print ""
-            ....:
-            (1, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (1, 2)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (2, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-            (2, 2)  :  (1, 1) (1, 2) (2, 1) (2, 2)
-
+            ....:     print("{} : {}".format(ind1, list(M.index_generator(2))))
+            (1, 1) : [(1, 1), (1, 2), (2, 1), (2, 2)]
+            (1, 2) : [(1, 1), (1, 2), (2, 1), (2, 2)]
+            (2, 1) : [(1, 1), (1, 2), (2, 1), (2, 2)]
+            (2, 2) : [(1, 1), (1, 2), (2, 1), (2, 2)]
         """
         si = self._sindex
         imax = self._dim - 1 + si

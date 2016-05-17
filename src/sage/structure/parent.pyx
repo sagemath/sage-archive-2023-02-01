@@ -236,7 +236,6 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(category_object.CategoryObject):
-
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  gens=None, names=None, normalize=True, facade=None, **kwds):
         """

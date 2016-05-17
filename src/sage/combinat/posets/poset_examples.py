@@ -22,11 +22,12 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
+    :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
-    :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
+    :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
@@ -239,9 +240,9 @@ class Posets(object):
         INPUT:
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -274,12 +275,12 @@ class Posets(object):
 
         INPUT:
 
-        - ``n`` - number of vertices, an integer at least 3.
+        - ``n`` -- number of elements, an integer at least 3
 
         - ``facade`` (boolean) -- whether to make the returned poset a
-          facade poset (see :mod:`sage.categories.facade_sets`). The
+          facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
-          the :func:`~sage.combinat.posets.posets.Poset` constructor).
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
 
         EXAMPLES::
 
@@ -296,6 +297,47 @@ class Posets(object):
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
         return LatticePoset(c, facade = facade)
+
+    @staticmethod
+    def DivisorLattice(n, facade=None):
+        """
+        Return the divisor lattice of an integer.
+
+        Elements of the lattice are divisors of `n` and
+        `x < y` in the lattice if `x` divides `y`.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: P = Posets.DivisorLattice(12)
+            sage: sorted(P.cover_relations())
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+
+            sage: P = Posets.DivisorLattice(10, facade=False)
+            sage: P(2) < P(5)
+            False
+
+        TESTS::
+
+            sage: Posets.DivisorLattice(1)
+            Finite lattice containing 1 elements
+        """
+        from sage.arith.misc import divisors
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n <= 0:
+            raise ValueError("n must be a positive integer")
+        return LatticePoset( (divisors(n), lambda x, y: y % x == 0),
+                             facade=facade, linear_extension=True)
 
     @staticmethod
     def IntegerCompositions(n):
@@ -437,31 +479,28 @@ class Posets(object):
     @staticmethod
     def RandomPoset(n, p):
         r"""
-        Generate a random poset on ``n`` vertices according to a
+        Generate a random poset on ``n`` elements according to a
         probability ``p``.
 
         INPUT:
 
-        - ``n`` - number of vertices, a non-negative integer
+        - ``n`` - number of elements, a non-negative integer
 
         - ``p`` - a probability, a real number between 0 and 1 (inclusive)
 
         OUTPUT:
 
-        A poset on ``n`` vertices.  The construction decides to make an
-        ordered pair of vertices comparable in the poset with probability
-        ``p``, however a pair is not made comparable if it would violate
-        the defining properties of a poset, such as transitivity.
-
-        So in practice, once the probability exceeds a small number the
-        generated posets may be very similar to a chain.  So to create
-        interesting examples, keep the probability small, perhaps on the
-        order of `1/n`.
+        A poset on `n` elements. The probability `p` roughly measures
+        width/height of the output: `p=0` always generates an antichain,
+        `p=1` will return a chain. To create interesting examples,
+        keep the probability small, perhaps on the order of `1/n`.
 
         EXAMPLES::
 
-            sage: Posets.RandomPoset(17,.15)
-            Finite poset containing 17 elements
+            sage: set_random_seed(0)  # Results are reproducible
+            sage: P = Posets.RandomPoset(5, 0.3)
+            sage: P.cover_relations()
+            [[5, 4], [4, 2], [1, 2]]
 
         TESTS::
 
@@ -484,8 +523,12 @@ class Posets(object):
             Traceback (most recent call last):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
+
+            sage: Posets.RandomPoset(0, 0.5)
+            Finite poset containing 0 elements
         """
         from sage.misc.prandom import random
+
         try:
             n = Integer(n)
         except TypeError:
@@ -499,15 +542,14 @@ class Posets(object):
         if p < 0 or p> 1:
             raise ValueError("probability must be between 0 and 1, not {0}".format(p))
 
-        D = DiGraph(loops=False,multiedges=False)
+        D = DiGraph(loops=False, multiedges=False)
         D.add_vertices(range(n))
         for i in range(n):
-            for j in range(n):
+            for j in range(i+1, n):
                 if random() < p:
-                    D.add_edge(i,j)
-                    if not D.is_directed_acyclic():
-                        D.delete_edge(i,j)
-        return Poset(D,cover_relations=False)
+                    D.add_edge(i, j)
+        D.relabel(list(Permutations(n).random_element()))
+        return Poset(D, cover_relations=False)
 
     @staticmethod
     def SetPartitions(n):
@@ -617,10 +659,10 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Rosen] K. Rosen *Handbook of Discrete and Combinatorial
+        .. [Rosen] \K. Rosen *Handbook of Discrete and Combinatorial
            Mathematics* (1999), Chapman and Hall.
 
-        .. [Garg] V. Garg *Introduction to Lattice Theory with Computer
+        .. [Garg] \V. Garg *Introduction to Lattice Theory with Computer
            Science Applications* (2015), Wiley.
 
         TESTS::
@@ -794,7 +836,7 @@ class Posets(object):
         
         REFERENCES:
 
-        .. [Striker2011] J. Striker. *A unifying poset perpective on 
+        .. [Striker2011] \J. Striker. *A unifying poset perpective on 
            alternating sign matrices, plane partitions, Catalan objects, 
            tournaments, and tableaux*, Advances in Applied Mathematics 46 
            (2011), no. 4, 583-609. :arXiv:`1408.5391`

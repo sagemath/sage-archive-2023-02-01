@@ -211,6 +211,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+# python3
+from __future__ import division
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -1184,7 +1186,7 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowts:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
@@ -1193,11 +1195,11 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowtsp:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         if s<=d-t:
-            des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
+            des = [[t,(n,w,wts[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowts]
             ans = ans + ["weights from C: ",nonzerowts,"designs from C: ",des]
-            desp = [[t,(n,w,wtsp[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowtsp]
+            desp = [[t,(n,w,wtsp[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowtsp]
             ans = ans + ["weights from C*: ",nonzerowtsp,"designs from C*: ",desp]
             return ans
         return 0
@@ -1273,7 +1275,7 @@ class AbstractLinearCode(module.Module):
         if i<d:
             return 0
         if i>n-dp and i<=n:
-            return binomial(n,i)*(q**(i+k-n) -1)/(q-1)
+            return binomial(n,i)*(q**(i+k-n) -1)//(q-1)
         P = SetPartitions(J,2).list()
         b = QQ(0)
         for p in P:
@@ -1282,7 +1284,7 @@ class AbstractLinearCode(module.Module):
             if len(S)==n-i:
                 C_S = self.shortened(S)
                 k_S = C_S.dimension()
-                b = b + (q**(k_S) -1)/(q-1)
+                b = b + (q**(k_S) -1)//(q-1)
         return b
 
     @cached_method
@@ -1787,7 +1789,7 @@ class AbstractLinearCode(module.Module):
 
         REFERENCE:
 
-        .. [BS11] E. Byrne and A. Sneyd,
+        .. [BS11] \E. Byrne and A. Sneyd,
            On the Parameters of Codes with Two Homogeneous Weights.
            WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
            https://hal.inria.fr/inria-00607341/document
@@ -3053,7 +3055,7 @@ class AbstractLinearCode(module.Module):
 
         REFERENCES:
 
-        .. [D] I. Duursma, "Extremal weight enumerators and ultraspherical
+        .. [D] \I. Duursma, "Extremal weight enumerators and ultraspherical
            polynomials"
 
         EXAMPLES::
@@ -4562,16 +4564,15 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decode the received word ``r`` to the nearest element in associated code of ``self``.
+        Corrects the errors in ``word`` and returns a codeword.
 
         INPUT:
 
-        - ``r`` -- a vector of same length as the length of the associated
-          code of ``self`` and over the base field of the associated code of ``self``
+        - ``r`` -- a codeword of ``self``
 
         OUTPUT:
 
-        - a codeword of the associated code of ``self``
+        - a vector of ``self``'s message space
 
         EXAMPLES::
 
@@ -4580,18 +4581,17 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
             sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
-            sage: D.decode_to_code(word)
+            sage: D.decode_to_code(w_err)
             (1, 1, 0, 0, 1, 1, 0)
         """
-        V = self.input_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
-        diffs.sort(key=lambda x: x[1])
-        c = diffs[0][0] + r
-        c.set_immutable()
-        return c
+        c_min = self.code().zero()
+        h_min = r.hamming_weight()
+        for c in self.code():
+            if (c-r).hamming_weight() < h_min:
+                h_min = (c-r).hamming_weight()
+                c_min = c
+        c_min.set_immutable()
+        return c_min
 
     def decoding_radius(self):
         r"""

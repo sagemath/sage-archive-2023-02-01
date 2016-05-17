@@ -1579,7 +1579,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 mpz_neg(q.b, self.b)
             return q
 
-    def _coefficients(self):
+    cpdef list _coefficients(self):
         """
         EXAMPLES::
 

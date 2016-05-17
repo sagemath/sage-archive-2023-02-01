@@ -4938,7 +4938,9 @@ Help
 
 Documentation for each method is available through the Sage online help system:
 
-.. code-block:: python
+.. skip
+
+::
 
     sage: SandpileConfig.fire_vertex?
     Base Class:     <type 'instancemethod'>

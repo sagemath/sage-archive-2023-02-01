@@ -987,7 +987,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     ::
 
        expr.limit(x = a)
-       expr.limit(x = a, dir='above')
+       expr.limit(x = a, dir='+')
 
     INPUT:
 

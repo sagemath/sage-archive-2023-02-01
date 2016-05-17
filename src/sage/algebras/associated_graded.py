@@ -139,10 +139,10 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     ``grA`` are isomorphic::
 
         sage: grA(A.an_element())
-        bar(U['x']^2*U['y']^2*U['z']^3)
+        bar(U['x']^2*U['y']^2*U['z']^3) + 2*bar(U['x']) + 3*bar(U['y']) + bar(1)
         sage: elt = A.an_element() + A.algebra_generators()['x'] + 2
         sage: grelt = grA(elt); grelt
-        bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+        bar(U['x']^2*U['y']^2*U['z']^3) + 3*bar(U['x']) + 3*bar(U['y']) + 3*bar(1)
         sage: A(grelt) == elt
         True
 
@@ -241,8 +241,10 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: grA = A.graded_algebra()
             sage: grA(A.an_element())
             bar(U['x']^2*U['y']^2*U['z']^3)
+             + 2*bar(U['x']) + 3*bar(U['y']) + bar(1)
             sage: grA(A.an_element() + A.algebra_generators()['x'] + 2)
-            bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+            bar(U['x']^2*U['y']^2*U['z']^3)
+             + 3*bar(U['x']) + 3*bar(U['y']) + 3*bar(1)
         """
         if isinstance(x, CombinatorialFreeModule.Element):
             if x.parent() is self._A:

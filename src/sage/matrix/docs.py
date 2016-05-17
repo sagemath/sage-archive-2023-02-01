@@ -347,6 +347,7 @@ Class Diagram (an x means that class is currently supported)::
           Matrix_CC_dense
     x     Matrix_real_double_dense
     x     Matrix_complex_double_dense
+    x     Matrix_complex_ball_dense
 
 The corresponding files in the sage/matrix library code directory
 are named

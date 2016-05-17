@@ -1732,7 +1732,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         REFERENCES:
 
-        .. [Bob-13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        .. [Bob-13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
            ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """

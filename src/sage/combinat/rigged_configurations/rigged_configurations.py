@@ -20,6 +20,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 import itertools
 
@@ -213,7 +215,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+    .. [HKOTT2002] \G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
        Paths, Crystals and Fermionic Formulae.
        Prog. Math. Phys. **23** (2002) Pages 205-272.
 
@@ -1652,7 +1654,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                     vac_num += min(dim[1], i)
 
         for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) / 2
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) // 2
 
         return vac_num
 

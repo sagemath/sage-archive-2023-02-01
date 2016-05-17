@@ -287,23 +287,23 @@ Testing. Note that the abstract base class does not support pickling::
 REFERENCES
 ==========
 
-..  [BC79] R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
-..  [Cunningham86] W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
-..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
-..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
-..  [Cunningham] W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
+..  [BC79] \R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
+..  [Cunningham86] \W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
+..  [CMO11] \C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
+..  [CMO12] \C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
+..  [Cunningham] \W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
-..  [GR01] C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
+..  [GR01] \C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
 ..  [Hlineny] Petr Hlineny, "Equivalence-free exhaustive generation of matroid representations", Discrete Applied Mathematics 154 (2006), pp. 1210-1222.
 ..  [Hochstaettler] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid", preprint.
-..  [Lyons] R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
+..  [Lyons] \R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
 ..  [Oxley1] James Oxley, "Matroid theory", Oxford University Press, 1992.
 ..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
-..  [Pen12] R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
-..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid 
+..  [Pen12] \R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
+..  [PvZ] \R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid
     representations over partial fields, Journal of Combinatorial Theory, 
     Series B, Volume 100, Issue 1, January 2010, Pages 36-67
-..  [Rajan] A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
+..  [Rajan] \A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
 
 AUTHORS:
 
@@ -3006,7 +3006,7 @@ cdef class Matroid(SageObject):
 
         REFERENCE:
 
-        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+        .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
           of matroid polytopes and polymatroids. Discrete & Computational
           Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
           :doi:`10.1007/s00454-008-9120-8`

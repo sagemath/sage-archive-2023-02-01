@@ -138,6 +138,11 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
             True
+
+            sage: SR.has_coerce_map_from(AA)
+            True
+            sage: SR.has_coerce_map_from(QQbar)
+            True
         """
         if isinstance(R, type):
             if R in [int, float, long, complex, bool]:
@@ -179,14 +184,8 @@ cdef class SymbolicRing(CommutativeRing):
             from subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precision of CC
-
-                # In order to have coercion from SR to AA or QQbar,
-                # we disable coercion in the reverse direction.
-                # This makes the following work:
-                # sage: QQbar(sqrt(2)) + sqrt(3)
-                # 3.146264369941973?
-                return R not in (RLF, CLF, AA, QQbar)
+                # Almost anything with a coercion into any precision of CC
+                return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
@@ -294,6 +293,14 @@ cdef class SymbolicRing(CommutativeRing):
             3*x^5*log(y)
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
+
+        Check that :trac:`20162` is fixed::
+
+            sage: k.<a> = GF(9)
+            sage: SR(a).is_real()
+            False
+            sage: SR(a).is_positive()
+            False
         """
         cdef GEx exp
         if is_Expression(x):

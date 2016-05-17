@@ -218,7 +218,7 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
     checks and parent-extraction have been done. Most of the inputs corresponds
     to the output of ``_sanitise_rootfinding_input``.
 
-    INPUT::
+    INPUT:
 
     - ``Q``, a modified version of ``Q``, where all monomials have been
       truncated to ``precision``. Represented as an `F[x]` list.
@@ -238,7 +238,7 @@ def _roth_ruckenstein_i(Q, F, Rx, x, maxd, precision):
       sought precision for modular roots of `Q`. Otherwise, we will find
       unconditional roots.
 
-    OUTPUT::
+    OUTPUT:
 
     - a list, containing all `F[x]` roots of `Q(x,y)`, possibly modular. If
     ``precision`` is given, we return a list of pairs `(f, h)`, where `f \in

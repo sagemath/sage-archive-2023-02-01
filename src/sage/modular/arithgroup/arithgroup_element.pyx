@@ -426,3 +426,45 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         from all import SL2Z
         return SL2Z, (self.__x,)
+
+    def multiplicative_order(self):
+        r"""
+        Return the multiplicative order of this element.
+
+        EXAMPLES::
+
+            sage: SL2Z.one().multiplicative_order()
+            1
+            sage: SL2Z([-1,0,0,-1]).multiplicative_order()
+            2
+            sage: s,t = SL2Z.gens()
+            sage: ((t^3*s*t^2) * s * ~(t^3*s*t^2)).multiplicative_order()
+            4
+            sage: (t^3 * s * t * t^-3).multiplicative_order()
+            6
+            sage: (t^3 * s * t * s * t^-2).multiplicative_order()
+            3
+            sage: SL2Z([2,1,1,1]).multiplicative_order()
+            +Infinity
+            sage: SL2Z([-2,1,1,-1]).multiplicative_order()
+            +Infinity
+        """
+        m = self.matrix()
+
+        if m.is_one():
+            return ZZ(1)
+        elif (-m).is_one():
+            return ZZ(2)
+
+        t = m.trace()
+        if t <= -2 or t >= 2:
+            from sage.rings.infinity import infinity
+            return infinity
+        elif t == 0:
+            return ZZ(4)
+        elif t == 1:
+            return ZZ(6)
+        elif t == -1:
+            return ZZ(3)
+
+        raise RuntimeError

@@ -198,7 +198,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
 
         REFERENCE:
 
-        .. [HL99] L. Heath and N. Loehr (1999).  New algorithms for
+        .. [HL99] \L. Heath and N. Loehr (1999).  New algorithms for
            generating Conway polynomials over finite fields.
            Proceedings of the tenth annual ACM-SIAM symposium on
            discrete algorithms, pp. 429-437.

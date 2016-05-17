@@ -694,7 +694,7 @@ class Braid(FinitelyPresentedGroupElement):
         REFERENCES:
 
         .. [Big99] Stephen J. Bigelow. The Burau representation is
-           not faithful for `n = 5`. Geom. Topol., 3:397–404, 1999.
+           not faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
         .. [JonesNotes] Vaughan Jones. The Jones Polynomial.
            https://math.berkeley.edu/~vfr/jones.pdf
         """
@@ -735,9 +735,9 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
+        .. [Dynnikov07] \I. Dynnikov and B. Wiest, On the complexity of braids,
            J. Europ. Math. Soc. 9 (2007)
-        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
+        .. [Dehornoy] \P. Dehornoy, Le probleme d'isotopie des tresses, in
            lecons de mathematiques d'aujourd'hui vol. 4
         """
         coord = [0, 1] * self.strands()

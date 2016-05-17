@@ -5316,7 +5316,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     REFERENCES:
 
-    .. [Apostol] T. Apostol, Modular functions and Dirichlet series
+    .. [Apostol] \T. Apostol, Modular functions and Dirichlet series
        in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
     - :wikipedia:`Dedekind\_sum`

@@ -50,6 +50,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -108,10 +109,10 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ....:     # fails.  # We catch this with the ... in the
             ....:     # doctest result. The * is needed because a
             ....:     # result cannot start with ...
-            ....:     print "*"
+            ....:     print("*")
             ....:     Vector_rational_dense(QQ^(2^56))
             ....: except (MemoryError, OverflowError):
-            ....:     print "allocation failed"
+            ....:     print("allocation failed")
             *...
             allocation failed
         """

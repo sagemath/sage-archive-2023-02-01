@@ -1304,12 +1304,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):
@@ -1509,12 +1511,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):

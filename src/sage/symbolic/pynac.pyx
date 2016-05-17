@@ -81,10 +81,10 @@ cdef object exprseq_to_PyTuple(GEx seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         ....:         for i, a in enumerate(args):
         ....:             if isinstance(a, tuple):
-        ....:                 print "argument %s is a tuple, with types %s"%(str(i), str(map(type, a)))
+        ....:                 print("argument %s is a tuple, with types %s"%(str(i), str(map(type, a))))
         ....:
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
@@ -143,7 +143,7 @@ cdef object exvector_to_PyTuple(GExVector seq):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _eval_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
         sage: tfunc(u, x, 3.0, 5.0r)
@@ -266,7 +266,7 @@ def get_fn_serial():
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: get_fn_serial() > 125
         True
-        sage: print get_sfunction_from_serial(get_fn_serial())
+        sage: print(get_sfunction_from_serial(get_fn_serial()))
         None
         sage: get_sfunction_from_serial(get_fn_serial() - 1) is not None
         True
@@ -285,7 +285,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
         ....:
         ....:     def _subs_(self, *args):
-        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         print("len(args): %s, types: %s"%(len(args), str(map(type, args))))
         ....:         return args[-1]
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
@@ -609,7 +609,7 @@ def py_print_fderivative_for_doctests(id, params, args):
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -621,7 +621,7 @@ def py_print_fderivative_for_doctests(id, params, args):
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_func=my_print)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -1100,6 +1100,14 @@ cdef bint py_is_real(object a) except +:
     if type(a) is int or isinstance(a, Integer) or\
             type(a) is long or type(a) is float:
         return True
+    try:
+        P = parent_c(a)
+        if P.is_field() and P.is_finite():
+            return False
+    except NotImplementedError:
+        return False
+    except AttributeError:
+        pass
     return py_imag(a) == 0
 
 cdef bint py_is_prime(object n) except +:

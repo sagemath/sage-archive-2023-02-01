@@ -14,6 +14,10 @@ This file contains the following elements:
     - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
     - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
+    - :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using Berlekamp-Welch algorithm
+    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
+    - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
+    - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
 """
 
 #*****************************************************************************
@@ -482,6 +486,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
+
+####################### encoders ###############################
 
 
 ####################### encoders ###############################
@@ -961,9 +967,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             raise ValueError("The word to decode has to be in the ambient space of the code")
         n, k = C.length(), C.dimension()
         if n == k:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
         if r in C:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
         col_mults = C.column_multipliers()
 
         r_list = copy(r)
@@ -1040,6 +1046,17 @@ class GRSBerlekampWelchDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
+
+        The bug detailed in :trac:`20340` has been fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: c = C.random_element()
+            sage: D = C.decoder("BerlekampWelch")
+            sage: E = D.connected_encoder()
+            sage: m = E.message_space().random_element()
+            sage: c = E.encode(m)
+            sage: D.decode_to_message(c) == m
+            True
         """
         return self._decode_to_code_and_message(r)[1]
 
@@ -1090,6 +1107,14 @@ class GRSBerlekampWelchDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
+
+        The bug detailed in :trac:`20340` has been fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: c = C.random_element()
+            sage: D = C.decoder("BerlekampWelch")
+            sage: D.decode_to_code(c) == c
+            True
         """
         return self._decode_to_code_and_message(r)[0]
 
@@ -1334,7 +1359,7 @@ class GRSGaoDecoder(Decoder):
         n = C.length()
 
         if n == C.dimension() or r in C:
-            return self.connected_encoder().unencode_nocheck(r)
+            return r, self.connected_encoder().unencode_nocheck(r)
 
         points = [(alphas[i], r[i]/col_mults[i]) for i in
                 range(0, n)]
@@ -1400,6 +1425,17 @@ class GRSGaoDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
+
+        The bug detailed in :trac:`20340` has been fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: c = C.random_element()
+            sage: D = C.decoder("Gao")
+            sage: E = D.connected_encoder()
+            sage: m = E.message_space().random_element()
+            sage: c = E.encode(m)
+            sage: D.decode_to_message(c) == m
+            True
         """
         return self._decode_to_code_and_message(r)[1]
 
@@ -1451,6 +1487,15 @@ class GRSGaoDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: The word to decode has to be in the ambient space of the code
+
+        The bug detailed in :trac:`20340` has been fixed::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: c = C.random_element()
+            sage: D = C.decoder("Gao")
+            sage: c = C.random_element()
+            sage: D.decode_to_code(c) == c
+            True
         """
         return self._decode_to_code_and_message(r)[0]
 

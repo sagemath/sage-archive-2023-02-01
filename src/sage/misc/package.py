@@ -172,7 +172,7 @@ def install_package(package=None, force=None):
         sage: install_package()
         doctest:...: DeprecationWarning: use installed_packages() to list all installed packages
         See http://trac.sagemath.org/16759 for details.
-        [...'atlas...'python...]
+        [...'arb...'python...]
         sage: install_package("autotools")
         Traceback (most recent call last):
         ...
@@ -195,7 +195,7 @@ def installed_packages():
     EXAMPLES::
 
         sage: installed_packages()
-        [...'atlas...'python...]
+        [...'arb...'python...]
 
     .. seealso::
 

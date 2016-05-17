@@ -34,6 +34,7 @@ def merge_environment(app, env):
     """
     Merges the following attributes of the sub-docs environment into the main
     environment:
+    - titles                      # Titles
     - todo_all_todos              # ToDo's
     - indexentries                # global python index
     - all_docs                    # needed by the js index
@@ -53,35 +54,37 @@ def merge_environment(app, env):
                     len(docenv.citations)
                     ), nonl=1)
 
+            # merge titles
+            for t in docenv.titles:
+                env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
             for dct in docenv.todo_all_todos:
-                dct['docname']=fixpath(dct['docname'])
+                dct['docname'] = fixpath(dct['docname'])
             env.todo_all_todos += docenv.todo_all_todos
             # merge the html index links
             newindex = {}
             for ind in docenv.indexentries:
                 if ind.startswith('sage/'):
-                    newind = fixpath(ind)
-                    newindex[newind] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = docenv.indexentries[ind]
                 else:
                     newindex[ind] = docenv.indexentries[ind]
             env.indexentries.update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
-                newalldoc[fixpath(ind)]=docenv.all_docs[ind]
+                newalldoc[fixpath(ind)] = docenv.all_docs[ind]
             env.all_docs.update(newalldoc)
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
-                md = env.metadata.get(ind, set())
-                md.add('orphan')
+                md = env.metadata.get(ind, dict())
+                md['orphan'] = 1
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
             for ind, (path, tag) in docenv.citations.iteritems():
                 # TODO: Warn on conflicts
-                newcite[ind]=(fixpath(path), tag)
+                newcite[ind] = (fixpath(path), tag)
             env.citations.update(newcite)
             # merge the py:module indexes
             newmodules = {}

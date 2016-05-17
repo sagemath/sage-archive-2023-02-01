@@ -49,6 +49,8 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
+# python3
+from __future__ import division
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -660,7 +662,7 @@ def v_4_1_BIBD(v, check=True):
                 [16, 19, 25, 27], [16, 20, 22, 24], [17, 20, 21, 26]]
 
     # Step 2 : this is function PBD_4_5_8_9_12
-    PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
+    PBD = PBD_4_5_8_9_12((v-1)//(k-1),check=False)
 
     # Step 3 : Theorem 7.20
     bibd = BIBD_from_PBD(PBD,v,k,check=False)
@@ -1019,7 +1021,7 @@ def _get_r_s_t_u(v):
         sage: _get_r_s_t_u(25)
         (6, 0, 1, 1)
     """
-    r = int((v-1)/4)
+    r = int((v-1)//4)
     s = r//150
     x = r%150
 
@@ -1089,7 +1091,7 @@ def BIBD_5q_5_for_q_prime_power(q):
     if q%4 != 1 or not is_prime_power(q):
         raise ValueError("q is not a prime power or q%4!=1.")
 
-    d = (q-1)/4
+    d = (q-1)//4
     B = []
     F = FiniteField(q,'x')
     a = F.primitive_element()
@@ -1162,7 +1164,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
 
     REFERENCE:
 
-    .. [Denniston69] R. H. F. Denniston,
+    .. [Denniston69] \R. H. F. Denniston,
        Some maximal arcs in finite projective planes.
        Journal of Combinatorial Theory 6, no. 3 (1969): 317-319.
        http://dx.doi.org/10.1016/S0021-9800(69)80095-5
@@ -1396,7 +1398,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         intersect the blocks in either 0 or `s` points. Or equivalently that the
         traces are again BIBD::
 
-            sage: r = (21-1)/(5-1)
+            sage: r = (21-1)//(5-1)
             sage: 1 + r*1
             6
             sage: 1 + r*3
@@ -1411,7 +1413,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
             sage: B = designs.balanced_incomplete_block_design(25, 4)
             sage: a2 = B.arc(2)
-            sage: r = (25-1)/(4-1)
+            sage: r = (25-1)//(4-1)
             sage: print len(a2), 1 + r
             8 9
             sage: sa2 = set(a2)

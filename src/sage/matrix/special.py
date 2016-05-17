@@ -675,7 +675,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A = diagonal_matrix(ZZ, entries); A
         Traceback (most recent call last):
         ...
-        TypeError: Cannot convert non-integral float to integer
+        TypeError: unable to convert 4.1 to an element of Integer Ring
 
     By default returned matrices have a sparse implementation.  This can be changed
     when using any of the formats.  ::

@@ -1922,7 +1922,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.distances([1,2,sqrt(2)])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to a rational
+            TypeError: unable to convert sqrt(2) to an element of Rational Field
 
         Now we create a non-spanning polytope::
 

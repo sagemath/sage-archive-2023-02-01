@@ -75,6 +75,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
@@ -485,8 +486,7 @@ cdef class localvars:
 
         sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: with localvars(R, 'z,w'):
-        ...       print x^3 + y^3 - x*y
-        ...
+        ....:     print(x^3 + y^3 - x*y)
         z^3 + w^3 - z*w
 
     .. note::

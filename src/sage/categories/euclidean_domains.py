@@ -92,15 +92,15 @@ class EuclideanDomains(Category_singleton):
             EXAMPLES::
 
                 sage: ZZ.gcd_free_basis([1])
-                set()
+                []
                 sage: ZZ.gcd_free_basis([4, 30, 14, 49])
-                {2, 7, 15}
+                [2, 15, 7]
 
                 sage: Pol.<x> = QQ[]
                 sage: Pol.gcd_free_basis([
                 ....:     (x+1)^3*(x+2)^3*(x+3), (x+1)*(x+2)*(x+3),
                 ....:     (x+1)*(x+2)*(x+4)])
-                {x + 3, x + 4, x^2 + 3*x + 2}
+                [x + 3, x + 4, x^2 + 3*x + 2]
             """
             def refine(a, b):
                 g = a.gcd(b)
@@ -124,7 +124,7 @@ class EuclideanDomains(Category_singleton):
                 res.add(r)
             units = [x for x in res if x.is_unit()]
             res.difference_update(units)
-            return res
+            return Sequence(res, universe=self, check=False)
 
         def _test_euclidean_degree(self, **options):
             r"""

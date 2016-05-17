@@ -224,13 +224,13 @@ class CombinatorialFreeModuleElement(Element):
         function on elements of the support::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
-            ...                               generator_reverse=True)
+            ....:                             generator_reverse=True)
             sage: e = F.basis()
             sage: e['a'] + 3*e['b'] + 2*e['c']
             2*B['c'] + 3*B['b'] + B['a']
 
             sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
-            ...                               generator_key=lambda x: x[1])
+            ....:                             generator_key=lambda x: x[1])
             sage: e = F.basis()
             sage: e['ac'] + 3*e['ba'] + 2*e['cb']
             3*B['ba'] + 2*B['cb'] + B['ac']
@@ -329,13 +329,13 @@ class CombinatorialFreeModuleElement(Element):
         function on elements of the support::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
-            ...                               generator_reverse=True)
+            ....:                             generator_reverse=True)
             sage: e = F.basis()
             sage: latex(e['a'] + 3*e['b'] + 2*e['c'])
             2B_{c} + 3B_{b} + B_{a}
 
             sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
-            ...                               generator_key=lambda x: x[1])
+            ....:                             generator_key=lambda x: x[1])
             sage: e = F.basis()
             sage: latex(e['ac'] + 3*e['ba'] + 2*e['cb'])
             3B_{ba} + 2B_{cb} + B_{ac}

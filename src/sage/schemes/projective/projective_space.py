@@ -924,7 +924,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         - ``n`` -- a non-negative integer.
     
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
-        to generate. Defaults to ``first``.
+          to generate. Defaults to ``first``.
     
         OUTPUT: :class:`SchemeMorphism_polynomial_projective_space`
     

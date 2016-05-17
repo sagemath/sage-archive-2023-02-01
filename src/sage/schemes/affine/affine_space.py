@@ -729,7 +729,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         - ``n`` -- a non-negative integer.
     
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
-        to generate. Defaults to ``first``.
+          to generate. Defaults to ``first``.
     
         OUTPUT: :class:`SchemeMorphism_polynomial_affine_space`
     

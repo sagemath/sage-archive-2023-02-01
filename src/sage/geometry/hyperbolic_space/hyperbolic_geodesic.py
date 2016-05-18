@@ -1174,7 +1174,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: UHP = HyperbolicPlane().UHP()
             sage: g = UHP.get_geodesic(CC(0,1), CC(2,2))
             sage: g.midpoint()
-            Point in UHP 0.666666666666666 + 1.69967317119759*I
+            Point in UHP 0.666666666666667 + 1.69967317119760*I
             sage: parent(g.midpoint().coordinates())
             Complex Field with 53 bits of precision
 
@@ -1334,19 +1334,27 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         """
         from sage.structure.element import Element
         from sage.symbolic.expression import Expression
-        if isinstance(a, complex):
-            return matrix([[complex(1), complex(0)],
-                           [complex(0), -complex("j")]])
-        elif isinstance(a, Expression):
-            return matrix([[SR(1), SR(0)],
-                           [SR(0), -SR("I")]])
-        elif isinstance(a, Element):
-            return matrix([[-a.parent().gen() * a.parent().gen(),
-                            a.parent().gen() - a.parent().gen()],
-                           [a.parent().gen() - a.parent().gen(),
-                            -a.parent().gen()]])
+        from sage.rings.complex_double import CDF
+
+        if isinstance(a, (int,float,complex)):  # Python number
+            a = CDF(a)
+
+        if isinstance(a, Expression):           # symbolic
+            P = SR
+            zero = SR.zero()
+            one = SR.one()
+            I = SR("I")
+        elif isinstance(a, Element):            # Sage number
+            P = a.parent()
+            zero = P.zero()
+            one = P.one()
+            I = P.gen()
+            if I.is_one() or (I*I).is_one() or not (-I*I).is_one():
+                raise ValueError("invalid number")
         else:
             raise ValueError("not a complex number")
+
+        return matrix(P, 2, [one, zero, zero, -I])
 
     def _to_std_geod(self, p):
         r"""
@@ -1388,7 +1396,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         """
 
         [s, e] = [k.coordinates() for k in self.complete().endpoints()]
-        B = HyperbolicGeodesicUHP._get_B(s)
+        B = HyperbolicGeodesicUHP._get_B(p)
         # outmat below will be returned after we normalize the determinant.
         outmat = B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
         outmat = outmat / outmat.det().sqrt()

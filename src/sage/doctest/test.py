@@ -53,7 +53,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print ":-("    # abs tol 0.1
+        print(":-(")    # abs tol 0.1
     Expected:
         :-)
     Got:
@@ -61,7 +61,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print "1.0 2.0 3.0"  # abs tol 0.1
+        print("1.0 2.0 3.0")  # abs tol 0.1
     Expected:
         4.0 5.0
     Got:
@@ -69,7 +69,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print "Hello"  # abs tol 0.1
+        print("Hello")  # abs tol 0.1
     Expected:
         1.0
     Got:
@@ -77,7 +77,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print "1.0"  # abs tol 0.1
+        print("1.0")  # abs tol 0.1
     Expected:
         Hello
     Got:
@@ -85,7 +85,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print "Hello 1.1"  # abs tol 0.1
+        print("Hello 1.1")  # abs tol 0.1
     Expected:
         Goodbye 1.0
     Got:
@@ -93,7 +93,7 @@ Check handling of tolerances::
     **********************************************************************
     File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
-        print "Hello 1.0"  # rel tol 1e-6
+        print("Hello 1.0")  # rel tol 1e-6
     Expected:
         Goodbye 0.999999
     Got:

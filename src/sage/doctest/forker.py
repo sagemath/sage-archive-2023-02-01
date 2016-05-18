@@ -83,7 +83,7 @@ def init_sage():
         sage: from sympy import sympify
         sage: from sympy.printing.pretty.pretty import PrettyPrinter
         sage: s = sympify('+x^'.join(str(i) for i in range(30)))
-        sage: print PrettyPrinter(settings={'wrap_line':True}).doprint(s)
+        sage: print(PrettyPrinter(settings={'wrap_line':True}).doprint(s))
          29    28    27    26    25    24    23    22    21    20    19    18    17
         x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   +
         <BLANKLINE>
@@ -238,9 +238,9 @@ class SageSpoofInOut(SageObject):
             sage: from sage.doctest.forker import SageSpoofInOut
             sage: spoof = SageSpoofInOut()
             sage: spoof.start_spoofing()
-            sage: print "Spoofed!"  # No output
+            sage: print("Spoofed!")  # No output
             sage: del spoof
-            sage: print "Not spoofed!"
+            sage: print("Not spoofed!")
             Not spoofed!
         """
         self.stop_spoofing()
@@ -305,11 +305,11 @@ class SageSpoofInOut(SageObject):
             sage: S = SageSpoofInOut()
             sage: try:
             ....:     S.start_spoofing()
-            ....:     print "this is not printed"
+            ....:     print("this is not printed")
             ....: finally:
             ....:     S.stop_spoofing()
             ....:
-            sage: print "this is now printed"
+            sage: print("this is now printed")
             this is now printed
         """
         if self.spoofing:
@@ -333,7 +333,7 @@ class SageSpoofInOut(SageObject):
             sage: S = SageSpoofInOut()
             sage: try:
             ....:     S.start_spoofing()
-            ....:     print "step 1"
+            ....:     print("step 1")
             ....: finally:
             ....:     S.stop_spoofing()
             ....:
@@ -341,7 +341,7 @@ class SageSpoofInOut(SageObject):
             'step 1\n'
             sage: try:
             ....:     S.start_spoofing()
-            ....:     print "step 2"
+            ....:     print("step 2")
             ....: finally:
             ....:     S.stop_spoofing()
             ....:
@@ -904,7 +904,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
-            sage: print DTR._failure_header(doctests[0], ex)
+            sage: print(DTR._failure_header(doctests[0], ex))
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
@@ -914,7 +914,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
        Without the source swapping::
 
             sage: import doctest
-            sage: print doctest.DocTestRunner._failure_header(DTR, doctests[0], ex)
+            sage: print(doctest.DocTestRunner._failure_header(DTR, doctests[0], ex))
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
@@ -923,7 +923,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         The ``'Failed example:'`` message can be customized::
 
-            sage: print DTR._failure_header(doctests[0], ex, message='Hello there!')
+            sage: print(DTR._failure_header(doctests[0], ex, message='Hello there!'))
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Hello there!
@@ -1095,7 +1095,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("DT = doctest.DocTest([ex1,ex2], globals(), 'doubling', None, 0, None)")
             sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
             sage: sage0._prompt = r"debug: "
-            sage: print sage0.eval("DTR.run(DT, clear_globs=False)") # indirect doctest
+            sage: print(sage0.eval("DTR.run(DT, clear_globs=False)")) # indirect doctest
             **********************************************************************
             Line 1, in doubling
             Failed example:
@@ -1858,7 +1858,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: try:
             ....:     os.fstat(W.wmessages)
             ....: except OSError:
-            ....:     print "Write end of pipe successfully closed"
+            ....:     print("Write end of pipe successfully closed")
             Write end of pipe successfully closed
             sage: W.join()  # Wait for worker to finish
         """

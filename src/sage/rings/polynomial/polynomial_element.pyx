@@ -5712,35 +5712,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.sylvester_matrix(other).det()
 
     def composed_op(p1, p2, op, algorithm=None, monic=False):
-        """
-        Return the composed sum, difference, product or division of this
+        r"""
+        Return the composed sum, difference, product or quotient of this
         polynomial with another one.
 
-        The operation considered is the following. Given two monic polynomials `p_1`
-        and `p_2` on an integral domain we define
+        In the case of two monic polynomials `p_1` and `p_2` over an integral
+        domain, the composed sum, difference, etc. are given by
 
         .. MATH::
 
-            \prod_{p_1(a)=p_2(b)=0}(x - (a op b))
+            \prod_{p_1(a)=p_2(b)=0}(x - (a \ast b)), \qquad
+            \ast ∈ \{ +, -, ×, / \}
 
-        where `op` is either the addition, the difference, the product or the
-        division and the roots `a` and `b` are to be considered in the algebraic
-        closure of the fraction field of the coefficients. If the polynomials
-        are not monic this quantity is multiplied by `\\alpha_1^{deg(p_2)}
-        \\alpha_2^{deg(p_1)}` where `\\alpha_1` and `\\alpha_2` are the leading
-        coefficients of `p_1` and `p_2` respectively.
-
-        Such computation is straightforward using resultants. Indeed for the
-        composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
-        from [BFSS]_ using series expansions is asymptotically much faster.
-
-        Note that the algorithm `BFSS` with polynomials with coefficients in
-        `\ZZ` needs to perform operations over `\QQ`.
+        where the roots `a` and `b` are to be considered in the algebraic
+        closure of the fraction field of the coefficients and counted with
+        multiplicities. If the polynomials are not monic this quantity is
+        multiplied by `\\alpha_1^{deg(p_2)} \\alpha_2^{deg(p_1)}` where
+        `\\alpha_1` and `\\alpha_2` are the leading coefficients of `p_1` and
+        `p_2` respectively.
 
         INPUT:
 
-        - ``p2`` -- univariate polynomial over the same polynomial ring as this
-          polynomial
+        - ``p2`` -- univariate polynomial belonging to the same polynomial ring
+          as this polynomial
 
         - ``op`` -- ``operator.OP`` where ``OP=add`` or ``sub`` or ``mul`` or
           ``div``.
@@ -5753,6 +5747,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - ``monic`` -- whether to return a monic polynomial. If ``True`` the
           coefficients of the result belong to the fraction field of the
           coefficients.
+
+        ALGORITHM:
+
+        The computation is straightforward using resultants. Indeed for the
+        composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
+        from [BFSS]_ using series expansions is asymptotically much faster.
+
+        Note that the algorithm ``BFSS`` with polynomials with coefficients in
+        `\ZZ` needs to perform operations over `\QQ`.
 
         .. TODO::
 
@@ -5778,8 +5781,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p1.composed_op(p2, operator.div)
             x^8 - 2*x^4 + 1
 
-        This function works over any fields. However for base ring different
-        from `\ZZ` or `\QQ` only the resultant algorithm is available::
+        This function works over any field. However for base rings other than
+        `\ZZ` and `\QQ` only the resultant algorithm is available::
 
             sage: x = polygen(QQbar)
             sage: p1 = x**2 - AA(2).sqrt()

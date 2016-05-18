@@ -59,7 +59,7 @@ Now it takes much less than a second::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import math
 import types
@@ -1271,17 +1271,17 @@ cdef class gen(gen_auto):
 
         EXAMPLES::
 
-            sage: print hex(pari(0))
+            sage: print(hex(pari(0)))
             0
-            sage: print hex(pari(15))
+            sage: print(hex(pari(15)))
             f
-            sage: print hex(pari(16))
+            sage: print(hex(pari(16)))
             10
-            sage: print hex(pari(16938402384092843092843098243))
+            sage: print(hex(pari(16938402384092843092843098243)))
             36bb1e3929d1a8fe2802f083
-            sage: print hex(long(16938402384092843092843098243))
+            sage: print(hex(long(16938402384092843092843098243)))
             0x36bb1e3929d1a8fe2802f083L
-            sage: print hex(pari(-16938402384092843092843098243))
+            sage: print(hex(pari(-16938402384092843092843098243)))
             -36bb1e3929d1a8fe2802f083
         """
         cdef GEN x
@@ -2116,7 +2116,7 @@ cdef class gen(gen_auto):
             sage: x = pari([1, 2, 3, 4, 5])
             sage: x.Ser()
             1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^16)
-            sage: f = x.Ser('v'); print f
+            sage: f = x.Ser('v'); print(f)
             1 + 2*v + 3*v^2 + 4*v^3 + 5*v^4 + O(v^16)
             sage: pari(1)/f
             1 - 2*v + v^2 + 6*v^5 - 17*v^6 + 16*v^7 - 5*v^8 + 36*v^10 - 132*v^11 + 181*v^12 - 110*v^13 + 25*v^14 + 216*v^15 + O(v^16)
@@ -3109,11 +3109,11 @@ cdef class gen(gen_auto):
         TESTS::
 
             sage: v = e.ellaplist(1)
-            sage: print v, type(v)
-            [] <type 'sage.libs.pari.gen.gen'>
+            sage: v, type(v)
+            ([], <type 'sage.libs.pari.gen.gen'>)
             sage: v = e.ellaplist(1, python_ints=True)
-            sage: print v, type(v)
-            [] <type 'list'>
+            sage: v, type(v)
+            ([], <type 'list'>)
         """
         if python_ints:
             return [int(x) for x in self.ellaplist(n)]

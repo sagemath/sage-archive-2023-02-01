@@ -48,7 +48,7 @@ Finally, clear the current line for the remaining doctests::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 
 cdef extern from 'readline/readline.h':
@@ -82,8 +82,8 @@ def print_status():
         catch_signals: 1
         catch_sigwinch: 1
     """
-    print 'catch_signals:', rl_catch_signals
-    print 'catch_sigwinch:', rl_catch_sigwinch
+    print('catch_signals:', rl_catch_signals)
+    print('catch_sigwinch:', rl_catch_sigwinch)
 
 def set_signals():
     """
@@ -260,7 +260,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         pass
@@ -273,7 +273,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         self._saved_point = rl_point;
@@ -291,7 +291,7 @@ class interleaved_output:
 
             sage: from sage.libs.readline import interleaved_output
             sage: with interleaved_output():
-            ....:     print 'output'
+            ....:     print('output')
             output
         """
         rl_set_signals()

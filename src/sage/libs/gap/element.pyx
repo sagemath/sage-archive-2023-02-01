@@ -14,6 +14,7 @@ elements. For general information about libGAP, you should read the
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from cpython.object cimport *
@@ -1743,13 +1744,13 @@ cdef class GapElement_Boolean(GapElement):
 
             sage: gap_bool = [libgap.eval('true'), libgap.eval('false'), libgap.eval('fail')]
             sage: for x in gap_bool:
-            ...       if x:     # this calls __nonzero__
-            ...           print x, type(x)
+            ....:     if x:     # this calls __nonzero__
+            ....:         print("{} {}".format(x, type(x)))
             true <type 'sage.libs.gap.element.GapElement_Boolean'>
 
             sage: for x in gap_bool:
-            ...       if not x:     # this calls __nonzero__
-            ...           print x, type(x)
+            ....:     if not x:     # this calls __nonzero__
+            ....:         print("{} {}".format( x, type(x)))
             false <type 'sage.libs.gap.element.GapElement_Boolean'>
             fail <type 'sage.libs.gap.element.GapElement_Boolean'>
        """
@@ -1787,7 +1788,7 @@ cdef class GapElement_String(GapElement):
         <type 'sage.libs.gap.element.GapElement_String'>
         sage: s
         "string"
-        sage: print s
+        sage: print(s)
         string
     """
     def __str__(self):
@@ -1956,15 +1957,15 @@ cdef class GapElement_Function(GapElement):
             Error, no 1st choice method found for `SumOp' on 2 arguments
 
             sage: for i in range(0,100):
-            ...       rnd = [ randint(-10,10) for i in range(0,randint(0,7)) ]
-            ...       # compute the sum in GAP
-            ...       _ = libgap.Sum(rnd)
-            ...       try:
-            ...           libgap.Sum(*rnd)
-            ...           print 'This should have triggered a ValueError'
-            ...           print 'because Sum needs a list as argument'
-            ...       except ValueError:
-            ...           pass
+            ....:     rnd = [ randint(-10,10) for i in range(0,randint(0,7)) ]
+            ....:     # compute the sum in GAP
+            ....:     _ = libgap.Sum(rnd)
+            ....:     try:
+            ....:         libgap.Sum(*rnd)
+            ....:         print('This should have triggered a ValueError')
+            ....:         print('because Sum needs a list as argument')
+            ....:     except ValueError:
+            ....:         pass
 
             sage: libgap_exec = libgap.eval("Exec")
             sage: libgap_exec('echo hello from the shell > /dev/null')

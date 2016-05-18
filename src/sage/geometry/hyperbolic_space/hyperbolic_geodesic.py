@@ -38,14 +38,14 @@ the same::
 """
 
 
-# ***********************************************************************
+#***********************************************************************
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-# ***********************************************************************
+#***********************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.symbolic.pynac import I
@@ -97,9 +97,9 @@ class HyperbolicGeodesic(SageObject):
 
     """
 
-    # ####################
+    #####################
     # "Private" Methods #
-    # ####################
+    #####################
 
     def __init__(self, model, start, end, **graphics_options):
         r"""
@@ -209,9 +209,9 @@ class HyperbolicGeodesic(SageObject):
                 self._start == other._start and
                 self._end == other._end)
 
-    # ######################
-    # Setters and Getters  #
-    # ######################
+    #######################
+    # Setters and Getters #
+    #######################
 
     def start(self):
         r"""
@@ -352,9 +352,9 @@ class HyperbolicGeodesic(SageObject):
             self._graphics_options = {}
         self._graphics_options.update(**options)
 
-    # ##################
-    # Boolean Methods  #
-    # ##################
+    ###################
+    # Boolean Methods #
+    ###################
 
     def is_complete(self):
         r"""
@@ -843,9 +843,9 @@ class HyperbolicGeodesic(SageObject):
         return self._model._dist_points(self._start.coordinates(),
                                         self._end.coordinates())
 
-# ***********************************************************************
+#***********************************************************************
 #                       UHP geodesics
-# ***********************************************************************
+#***********************************************************************
 
 
 class HyperbolicGeodesicUHP(HyperbolicGeodesic):
@@ -1281,9 +1281,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             return 0
         return real(arccos((b1 + b2) / abs(b2 - b1)))
 
-    # ################
+    ##################
     # Helper methods #
-    # ################
+    ##################
 
     @staticmethod
     def _get_B(a):
@@ -1447,9 +1447,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         return matrix([[p1 - p2, (p1 - p2)*(-p0)],
                        [p1 - p0, (p1 - p0)*(-p2)]])
 
-# ***********************************************************************
+#***********************************************************************
 #                       Other geodesics
-# ***********************************************************************
+#***********************************************************************
 
 
 class HyperbolicGeodesicPD(HyperbolicGeodesic):

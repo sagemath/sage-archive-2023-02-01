@@ -5841,32 +5841,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef long prec
 
         if op not in (operator.add, operator.sub, operator.mul, operator.div):
-            raise ValueError("op` must be `operator.OP` where `OP=add, sub, mul` or `div`.")
+            raise ValueError("op must be operator.OP where OP=add, sub, mul or div")
 
+        if not isinstance(p2, Polynomial):
+            raise TypeError("p2 must be a polynomial")
+        p1, p2 = coercion_model.canonical_coercion(p1, p2)
         K = p1.parent()
+        assert is_PolynomialRing(p1.parent())
         S = K.base_ring()
-        if p2.parent() is not K:
-            K2 = p2.parent()
-            if not is_PolynomialRing(K2):
-                raise TypeError("p2 must be a polynomial")
-            from sage.structure.element import get_coercion_model
-            cm = sage.structure.element.get_coercion_model()
-            K = cm.common_parent(K, p2.parent())
-            if not is_PolynomialRing(K):
-                raise ValueError("not able to build a common polynomial ring from the input")
-            S = K.base_ring()
-            p1 = p1.change_ring(S)
-            p2 = p2.change_ring(S)
+        Sf = S.fraction_field()
 
         cdef long d1 = p1.degree()
         cdef long d2 = p2.degree()
         if d1 <= 0 or d2 <= 0:
             raise ValueError('the polynomials must have positive degree')
 
-        Sf = S.fraction_field()
-
         if op is operator.div and p2.valuation() > 0:
-            raise ZeroDivisionError('p2 must have zero valuation.')
+            raise ZeroDivisionError('p2 must have zero valuation')
         if algorithm is None:
             # choose the algorithm observing that the "resultant" one
             # is fast when there are few terms and the degrees are not high
@@ -5951,7 +5942,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         p2.leading_coefficient()**p1.degree() * q).change_ring(S)
 
         else:
-            raise ValueError('algorithm must be "resultant" or "BFSS".')
+            raise ValueError('algorithm must be "resultant" or "BFSS"')
 
     def discriminant(self):
         r"""

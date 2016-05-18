@@ -9,9 +9,9 @@ See :mod:`~sage.combinat.crystals.elementary_crystals`.
 * :class:`R <sage.combinat.crystals.elementary_crystals.RCrystal>`
 * :class:`T <sage.combinat.crystals.elementary_crystals.TCrystal>`
 """
-from elementary_crystals import TCrystal as T
-from elementary_crystals import RCrystal as R
-from elementary_crystals import ElementaryCrystal as Elementary
-from elementary_crystals import ElementaryCrystal as B
-from elementary_crystals import ComponentCrystal as Component
+from .elementary_crystals import TCrystal as T
+from .elementary_crystals import RCrystal as R
+from .elementary_crystals import ElementaryCrystal as Elementary
+from .elementary_crystals import ElementaryCrystal as B
+from .elementary_crystals import ComponentCrystal as Component
 

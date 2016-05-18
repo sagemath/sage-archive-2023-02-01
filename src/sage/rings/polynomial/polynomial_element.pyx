@@ -5791,13 +5791,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1.000000000000000?*x^6 - 4.242640687119285?*x^4 -
             3.464101615137755?*x^3 + 6.000000000000000?*x^2 -
             14.69693845669907?*x + 0.1715728752538099?
-            sage: [p(x+y) for x in r1 for y in r2]
-            [0.?e-16,
-             0.?e-13 + 0.?e-13*I,
-             0.?e-13 + 0.?e-13*I,
-             0.?e-13,
-             0.?e-14 + 0.?e-14*I,
-             0.?e-14 + 0.?e-14*I]
+            sage: all(p(x+y).is_zero() for x in r1 for y in r2)
+            True
 
             sage: x = polygen(GF(2))
             sage: p1 = x**2 + x - 1

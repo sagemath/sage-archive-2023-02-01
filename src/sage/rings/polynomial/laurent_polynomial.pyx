@@ -393,25 +393,25 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         EXAMPLES::
 
-        sage: R.<x> = LaurentPolynomialRing(QQ)
-        sage: f = x^3 + 2/x
-        sage: g = f._symbolic_(SR); g
-        (x^4 + 2)/x
-        sage: g(x=2)
-        9
+            sage: R.<x> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + 2/x
+            sage: g = f._symbolic_(SR); g
+            (x^4 + 2)/x
+            sage: g(x=2)
+            9
 
-        sage: g = SR(f)
-        sage: g(x=2)
-        9
+            sage: g = SR(f)
+            sage: g(x=2)
+            9
 
         The polynomial does not have to be over a field of
         characteristic 0::
 
-        sage: R.<w> = LaurentPolynomialRing(GF(7))
-        sage: f = SR(2*w^3 + 1); f
-        2*w^3 + 1
-        sage: f.variables()
-        (w,)
+            sage: R.<w> = LaurentPolynomialRing(GF(7))
+            sage: f = SR(2*w^3 + 1); f
+            2*w^3 + 1
+            sage: f.variables()
+            (w,)
         """
         d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
         return self.subs(**d)
@@ -2373,16 +2373,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         EXAMPLES::
 
-        sage: R.<x,y> = LaurentPolynomialRing(QQ)
-        sage: f = x^3 + y/x
-        sage: g = f._symbolic_(SR); g
-        x^3 + y/x
-        sage: g(x=2,y=2)
-        9
+            sage: R.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + y/x
+            sage: g = f._symbolic_(SR); g
+            x^3 + y/x
+            sage: g(x=2,y=2)
+            9
 
-        sage: g = SR(f)
-        sage: g(x=2,y=2)
-        9
+            sage: g = SR(f)
+            sage: g(x=2,y=2)
+            9
         """
         d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
         return self.subs(**d)

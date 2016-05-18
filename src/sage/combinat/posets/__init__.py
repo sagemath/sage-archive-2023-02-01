@@ -31,5 +31,4 @@ If you are looking for Poset-related :ref:`categories
 :class:`~sage.categories.finite_lattice_posets.FiniteLatticePosets`.
 
   """
-
-import all
+from . import all

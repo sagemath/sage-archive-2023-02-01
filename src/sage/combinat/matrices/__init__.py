@@ -7,4 +7,4 @@ Combinatorics on matrices
 - :ref:`sage.combinat.matrices.hadamard_matrix`
 - :ref:`sage.combinat.matrices.latin`
 """
-import all
+from . import all

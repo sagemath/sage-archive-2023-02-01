@@ -25,4 +25,4 @@ See also
 - :ref:`sage.combinat.root_system`
 """
 
-import all
+from . import all

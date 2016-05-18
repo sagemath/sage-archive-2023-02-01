@@ -17,4 +17,4 @@ Words
 - :ref:`sage.combinat.words.paths`
 """
 # Is this really needed?
-import all
+from . import all

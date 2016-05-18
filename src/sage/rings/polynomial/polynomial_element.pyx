@@ -38,7 +38,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
@@ -6490,7 +6490,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:     for algo in (None, 'pari', 'numpy'):
             ....:         rts = f.roots(ring=fld_out, multiplicities=False)
             ....:         if fld_in == fld_out and algo is None:
-            ....:             print fld_in, rts
+            ....:             print("{} {}".format(fld_in, rts))
             ....:         for rt in rts:
             ....:             assert(abs(f2(rt)) <= 1e-10)
             ....:             assert(rt.parent() == fld_out)

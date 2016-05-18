@@ -1,6 +1,7 @@
 r"""
 Base class for elements of multivariate polynomial rings
 """
+from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -1131,7 +1132,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = (y + 1)*x + 3*x**2
             sage: g = (y + 2)*x + 4*x**2
             sage: M = f.sylvester_matrix(g, x)
-            sage: print M
+            sage: M
             [    3 y + 1     0     0]
             [    0     3 y + 1     0]
             [    4 y + 2     0     0]

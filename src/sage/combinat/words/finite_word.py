@@ -103,9 +103,9 @@ of them::
 
 ::
 
-    sage: print w.lyndon_factorization()
+    sage: print(w.lyndon_factorization())
     (ab, aabbb, a)
-    sage: print w.crochemore_factorization()
+    sage: print(w.crochemore_factorization())
     (a, b, a, ab, bb, a)
 
 ::
@@ -191,6 +191,8 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
@@ -230,13 +232,13 @@ class FiniteWord_class(Word_class):
 
         With the print statement::
 
-            sage: print w
+            sage: print(w)
             01234
 
         No truncation is done for finite words::
 
             sage: w = Word([i % 5 for i in range(60)])
-            sage: print w
+            sage: print(w)
             012340123401234012340123401234012340123401234012340123401234
         """
         global word_options
@@ -1309,7 +1311,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:100]
             sage: topo = w.topological_entropy
-            sage: for i in range(0, 41, 5): print i, n(topo(i), digits=5)
+            sage: for i in range(0, 41, 5):
+            ....:     print("{} {}".format(i, n(topo(i), digits=5)))
             0 1.0000
             5 0.71699
             10 0.48074
@@ -1615,7 +1618,8 @@ class FiniteWord_class(Word_class):
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: for i in range(5): print i, sorted(w.left_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i))))
             0 [word: ]
             1 [word: 0]
             2 [word: 00, word: 01]
@@ -1679,7 +1683,8 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(5): print i, sorted(w.right_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -1704,8 +1709,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in sorted(w.bispecial_factors_iterator(i)):
-            ...         print i,u
+            ....:     for u in sorted(w.bispecial_factors_iterator(i)):
+            ....:         print("{} {}".format(i,u))
             0
             1 0
             1 1
@@ -1773,7 +1778,8 @@ class FiniteWord_class(Word_class):
         ::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(10): print i, sorted(w.bispecial_factors(i))
+            sage: for i in range(10):
+            ....:     print("{} {}".format(i, sorted(w.bispecial_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -3654,7 +3660,7 @@ class FiniteWord_class(Word_class):
             sage: for n in range(1,10):
             ....:     lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
             ....:     lw2 = LyndonWords(3,n)
-            ....:     if set(lw1) != set(lw2): print False
+            ....:     if set(lw1) != set(lw2): print(False)
 
         Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
         words, and compare with the :class:`LyndonWords` generator after

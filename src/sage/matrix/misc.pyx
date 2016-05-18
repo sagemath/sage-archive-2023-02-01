@@ -10,7 +10,7 @@ Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 
 from sage.ext.mod_int cimport *
@@ -35,7 +35,7 @@ from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
 
 from sage.rings.integer cimport Integer
-from sage.rings.arith import previous_prime, CRT_basis
+from sage.arith.all import previous_prime, CRT_basis
 
 from sage.rings.real_mpfr import  is_RealField
 from sage.rings.real_mpfr cimport RealNumber
@@ -65,7 +65,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
 
     TEST:
 
-    Check that ticket #9345 is fixed::
+    Check that :trac:`9345` is fixed::
 
         sage: A = random_matrix(ZZ, 3)
         sage: sage.matrix.misc.matrix_integer_dense_rational_reconstruction(A, 0)
@@ -148,7 +148,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
 
     TEST:
 
-    Check that ticket #9345 is fixed::
+    Check that :trac:`9345` is fixed::
 
         sage: A = random_matrix(ZZ, 3, sparse=True)
         sage: sage.matrix.misc.matrix_integer_sparse_rational_reconstruction(A, 0)

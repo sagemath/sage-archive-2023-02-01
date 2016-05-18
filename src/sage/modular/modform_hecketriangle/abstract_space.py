@@ -748,7 +748,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: T = MF.group().T()
             sage: S = MF.group().S()
-            sage: z = AlgebraicField()(1+i/2)
+            sage: i = AlgebraicField()(i)
+            sage: z = 1 + i/2
 
             sage: MF.aut_factor(S, z)
             3/2*I - 7/16
@@ -766,7 +767,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF = ModularForms(n=7, k=14/5, ep=-1)
             sage: T = MF.group().T()
             sage: S = MF.group().S()
-            sage: z = AlgebraicField()(1+i/2)
 
             sage: MF.aut_factor(S, z)
             1.3655215324256...? + 0.056805991182877...?*I

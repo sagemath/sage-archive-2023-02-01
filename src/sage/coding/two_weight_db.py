@@ -7,7 +7,7 @@ This module stores a database of two-weight codes.
 
 REFERENCE:
 
-.. [BS03] I. Bouyukliev and J. Simonis,
+.. [BS03] \I. Bouyukliev and J. Simonis,
    Some new results on optimal codes over `F_5`,
    Designs, Codes and Cryptography 30, no. 1 (2003): 97-111,
    http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf,
@@ -16,12 +16,12 @@ REFERENCE:
    Online database of two-weight codes,
    http://moodle.tec.hkr.se/~chen/research/2-weight-codes/search.php
 
-.. [Kohnert07] A. Kohnert,
+.. [Kohnert07] \A. Kohnert,
    Constructing two-weight codes with prescribed groups of automorphisms,
    Discrete applied mathematics 155, no. 11 (2007): 1451-1457.
    http://linearcodes.uni-bayreuth.de/twoweight/
 
-.. [Disset00] L. Dissett,
+.. [Disset00] \L. Dissett,
    Combinatorial and computational aspects of finite geometries,
    2000,
    https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
@@ -39,7 +39,7 @@ Check the data's consistency::
     ....:     assert (code['w1'], code['w2']) == (w1, w2)
 
 """
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.constructor import Matrix
 from sage.coding.linear_code import LinearCode
 

@@ -48,7 +48,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
     - ``n`` -- Determinant size, primal:`det(L) = q^n`, dual:`det(L) = q^{m-n}`.
       For ideal lattices this is also the degree of the quotient polynomial.
     - ``m`` -- Lattice dimension, `L \subseteq Z^m`.
-    - ``q`` -- Coefficent size, `q-Z^m \subseteq L`.
+    - ``q`` -- Coefficient size, `q-Z^m \subseteq L`.
     - ``seed`` -- Randomness seed.
     - ``quotient`` -- For the type ideal, this determines the quotient
       polynomial. Ignored for all other types.
@@ -271,7 +271,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
             A = A.stack(R.random_element().matrix())
 
     elif type == 'cyclotomic':
-        from sage.rings.arith import euler_phi
+        from sage.arith.all import euler_phi
         from sage.misc.functional import cyclotomic_polynomial
 
         # we assume that n+1 <= min( euler_phi^{-1}(n) ) <= 2*n

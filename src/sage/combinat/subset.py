@@ -38,7 +38,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 
 from sage.sets.set import Set, Set_object_enumerated
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 import combination

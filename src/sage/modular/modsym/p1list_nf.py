@@ -294,7 +294,7 @@ class MSymbol(SageObject):
         INPUT:
 
         - ``n`` -- integer (0 or 1, since the list defined by an M-symbol has
-        length 2)
+          length 2)
 
         EXAMPLES::
 
@@ -992,7 +992,7 @@ def p1NFlist(N):
     #N.residues() = iterator through the residues mod N
     L = L+[MSymbol(N, k(1), r, check=False) for r in N.residues()]
 
-    from sage.rings.arith import divisors
+    from sage.arith.all import divisors
     for D in divisors(N):
         if not D.is_trivial() and D!=N:
             #we find Dp ideal coprime to N, in inverse class to D

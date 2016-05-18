@@ -33,7 +33,7 @@ from __builtin__ import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.infinity import PlusInfinity
 import functools
 from sage.combinat.integer_lists import IntegerListsLex
@@ -299,9 +299,9 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
         REFERENCES:
 
-        ..  [Ryser63] H. J. Ryser, Combinatorial Mathematics,
+        ..  [Ryser63] \H. J. Ryser, Combinatorial Mathematics,
             Carus Monographs, MAA, 1963.
-        ..  [Gale57] D. Gale, A theorem on flows in networks, Pacific J. Math.
+        ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
             7(1957)1073-1082.
         """
         from sage.combinat.partition import Partition
@@ -779,10 +779,21 @@ class IntegerVectors_nk(CombinatorialClass):
             yield [self.n]
             return
 
-        for nbar in range(self.n+1):
-            n = self.n-nbar
-            for rest in IntegerVectors_nk(nbar , self.k-1):
-                yield [n] + rest
+        rem = -1 # Amount remaining
+        cur = [self.n+1]
+        k = int(self.k)
+        while cur:
+            cur[-1] -= 1
+            rem += 1
+            if rem == 0:
+                yield cur + [Integer(0)] * (k - len(cur))
+            elif cur[-1] < 0:
+                rem += cur.pop()
+            elif len(cur) == k - 1:
+                yield cur + [Integer(rem)]
+            else:
+                cur.append(rem + 1)
+                rem = -1
 
     def __repr__(self):
         """

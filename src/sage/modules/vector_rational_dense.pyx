@@ -50,10 +50,10 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
-from sage.ext.memory cimport check_allocarray
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -109,10 +109,10 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ....:     # fails.  # We catch this with the ... in the
             ....:     # doctest result. The * is needed because a
             ....:     # result cannot start with ...
-            ....:     print "*"
+            ....:     print("*")
             ....:     Vector_rational_dense(QQ^(2^56))
             ....: except (MemoryError, OverflowError):
-            ....:     print "allocation failed"
+            ....:     print("allocation failed")
             *...
             allocation failed
         """
@@ -149,7 +149,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             # cannot raise exceptions!
             for i from 0 <= i < self._degree:
                 mpq_clear(self._entries[i])
-            sage_free(self._entries)
+            sig_free(self._entries)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

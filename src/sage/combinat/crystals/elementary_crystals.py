@@ -48,11 +48,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Kashiwara93] M. Kashiwara.
+.. [Kashiwara93] \M. Kashiwara.
    The Crystal Base and Littelmann's Refined Demazure Character Formula.
    Duke Math. J. **71** (3), pp. 839--858, 1993.
 
-.. [NZ97] T. Nakashima and A. Zelevinsky.
+.. [NZ97] \T. Nakashima and A. Zelevinsky.
    Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
    Adv. Math. **131**, pp. 253--278, 1997.
 """

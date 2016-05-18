@@ -111,6 +111,17 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def change_labels(self, labels):
         """
+        Return a relabelled structure.
+
+        INPUT:
+
+        - ``labels``, a list of labels.
+
+        OUTPUT:
+
+        A structure with the i-th label of self replaced with the i-th
+        label of the list.
+
         EXAMPLES::
 
             sage: p = PermutationGroupElement((2,3))

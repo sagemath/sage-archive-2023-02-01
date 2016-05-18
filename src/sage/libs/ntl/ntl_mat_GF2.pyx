@@ -26,10 +26,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
@@ -538,7 +539,7 @@ cdef class ntl_mat_GF2(object):
             [0 0 0 1 1 1]
             [0 0 1 1 1 1]
         """
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.matrix.constructor import Matrix
         m =  Matrix(FiniteField(2),self.x.NumRows(),self.x.NumCols())
 

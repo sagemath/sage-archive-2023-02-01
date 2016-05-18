@@ -15,6 +15,7 @@ usage() {
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
     echo "  -experimental       -- list all experimental packages that can be installed"
     echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gap3 [...]         -- run Sage's Gap3 with given arguments"
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
@@ -92,6 +93,7 @@ usage_advanced() {
     echo "  -cython [...]       -- run Cython with given arguments"
     echo "  -ecl [...]          -- run Common Lisp"
     echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gap3 [...]         -- run Sage's Gap3 with given arguments"
     echo "  -gdb                -- run Sage under the control of gdb"
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
@@ -209,7 +211,6 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
-    echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
     echo "  -sdist              -- build a source distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
@@ -364,7 +365,9 @@ sage_setup() {
     fi
 
     # Display the startup banner
-    if [ "$SAGE_BANNER" != "no" ]; then
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
         cat "$SAGE_LOCAL/bin/sage-banner"
     fi
 
@@ -407,7 +410,7 @@ fi
 
 if [ "$1" = '-q' ]; then
     shift
-    export SAGE_BANNER="no"
+    export SAGE_BANNER=no
 fi
 
 if [ $# -eq 0 ]; then
@@ -430,7 +433,7 @@ fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
 	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo "SageMath Version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+	echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
 	exit 0
 fi
 
@@ -451,6 +454,11 @@ fi
 if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
     shift
     exec gap "$@"
+fi
+
+if [ "$1" = '-gap3' -o "$1" = '--gap3' ]; then
+    shift
+    exec gap3 "$@"
 fi
 
 if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
@@ -772,8 +780,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
         echo >&2 "init.sage does not exist ... creating"
         touch "$DOT_SAGE"/init.sage
     fi
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
@@ -789,24 +796,21 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
         build_sage
     fi
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 
 if [ "$1" = '-c' ]; then
     shift
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     unset TERM  # See Trac #12263
     exec sage-eval "$@"
 fi
@@ -919,15 +923,9 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
     exec sage-rsyncdist $2
 fi
 
-if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    maybe_sage_location
-    shift
-    exec sage-bdist "$@"
-fi
-
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     shift
-    exec python "$SAGE_DOC/common/builder.py" "$@"
+    exec python -m "sage_setup.docbuild" "$@"
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
@@ -1003,8 +1001,7 @@ if [ $# -ge 1 ]; then
     if [ "$T" = "spkg" ]; then
         install "$@"
     fi
-    SAGE_BANNER="no"
-    sage_setup
+    SAGE_BANNER=no sage_setup
     unset TERM  # See Trac #12263
     exec sage-run "$@"
 fi

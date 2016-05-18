@@ -13,13 +13,14 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/pkgs/*/*
+build/make/Makefile: configure build/make/deps build/pkgs/*/*
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
@@ -41,6 +42,9 @@ download:
 	export SAGE_ROOT=$$(pwd) && \
 	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
 	./src/bin/sage-download-upstream
+
+dist: build/make/Makefile
+	./sage --sdist
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
@@ -90,34 +94,37 @@ test: all
 check: test
 
 testall: all
-	$(TESTALL) --optional=all --logfile=logs/testall.log
+	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
+	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
+	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
 
+testoptional: all
+	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
 
-testoptional: testall # just an alias
+testoptionallong: all
+	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
 
-testoptionallong: testalllong # just an alias
+ptestoptional: all
+	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
 
-ptestoptional: ptestall # just an alias
-
-ptestoptionallong: ptestalllong # just an alias
+ptestoptionallong: all
+	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d

@@ -18,7 +18,9 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#****************************************************************************
+# python3
+from __future__ import division
 
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -39,6 +41,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
+
 
 BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
     doc=r"""
@@ -282,7 +285,7 @@ class AbstractPartitionDiagram(SetPartition):
         """
         if self._base_diagram:
             tst = sorted(flatten(self._base_diagram))
-            if len(tst) % 2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst) % 2 or tst != range(-len(tst)//2,0) + range(1,len(tst)//2+1):
                 raise ValueError("this does not represent two rows of vertices")
 
     def __eq__(self, other):
@@ -502,7 +505,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         r"""
         Return the involution permutation triple of ``self``.
 
-        From Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram
+        From Graham-Lehrer (see :class:`BrauerDiagrams`), a Brauer diagram
         is a triple `(D_1, D_2, \pi)`, where:
 
         - `D_1` is a partition of the top nodes;
@@ -744,7 +747,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 return False
         if len(obj.base_diagram()) > 0:
             tst = sorted(flatten(obj.base_diagram()))
-            if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+            if len(tst) % 2 or tst != range(-len(tst)//2,0) + range(1,len(tst)//2+1):
                 return False
             return True
         return self.order == 0
@@ -814,7 +817,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     r"""
     This class represents all Brauer diagrams of integer or integer
     `+1/2` order. For more information on Brauer diagrams,
-    see `class: BrauerAlgebra`.
+    see :class:`BrauerAlgebra`.
 
     EXAMPLES::
 
@@ -965,7 +968,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
         REFERENCES:
 
-        .. [GL1996] J.J. Graham and G.I. Lehrer, Cellular algebras.
+        .. [GL1996] \J.J. Graham and G.I. Lehrer, Cellular algebras.
            Inventiones mathematicae 123 (1996), 1--34.
 
         EXAMPLES::
@@ -999,7 +1002,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     All Temperley-Lieb diagrams of integer or integer `+1/2` order.
 
     For more information on Temperley-Lieb diagrams, see
-    `class: TemperleyLiebAlgebra`.
+    :class:`TemperleyLiebAlgebra`.
 
     EXAMPLES::
 

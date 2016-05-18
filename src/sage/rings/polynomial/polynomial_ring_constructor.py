@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -40,6 +40,9 @@ from sage.categories.unique_factorization_domains import UniqueFactorizationDoma
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+_CompleteDiscreteValuationRings = CompleteDiscreteValuationRings()
+_CompleteDiscreteValuationFields = CompleteDiscreteValuationFields()
 
 import sage.misc.weak_dict
 _cache = sage.misc.weak_dict.WeakValueDictionary()
@@ -524,6 +527,12 @@ def _single_variate(base_ring, name, sparse, implementation):
         elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
+        elif base_ring in _CompleteDiscreteValuationRings:
+            R = m.PolynomialRing_cdvr(base_ring, name, sparse)
+
+        elif base_ring in _CompleteDiscreteValuationFields:
+            R = m.PolynomialRing_cdvf(base_ring, name, sparse)
+
         elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)
 
@@ -567,7 +576,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         return R
 
     from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-    if m.integral_domain.is_IntegralDomain(base_ring):
+    if isinstance(base_ring, ring.IntegralDomain):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
         else:

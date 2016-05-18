@@ -216,7 +216,7 @@ The interface is loaded by a cell containing the sole code :
 
 "%load_ext rpy2.ipython"
 
-After executon of this code, the %R and %%R magics are available :
+After execution of this code, the %R and %%R magics are available :
 
 - %R allows the execution of a single line of R code. Data exchange is
    possible via the -i and -o options. Do "%R?" in a standalone cell
@@ -263,6 +263,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
@@ -270,6 +271,9 @@ import re
 import six
 import sage.rings.integer
 from sage.structure.element import parent
+from sage.misc.cachefunc import cached_method
+from sage.interfaces.tab_completion import ExtraTabCompletion
+
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -283,7 +287,7 @@ RFilteredPackages = ['.GlobalEnv']
 # but package:base should cover this. i think.
 RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
 
-class R(Expect):
+class R(ExtraTabCompletion, Expect):
     def __init__(self,
                  maxread=None, script_subdirectory=None,
                  server_tmpdir = None,
@@ -486,7 +490,7 @@ class R(Expect):
         """
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
-        print "Please restart Sage in order to use '%s'."%package_name
+        print("Please restart Sage in order to use '%s'." % package_name)
 
     def __repr__(self):
         """
@@ -574,7 +578,7 @@ class R(Expect):
         """
         EXAMPLES::
 
-            sage: print r._install_hints()
+            sage: print(r._install_hints())
             R is currently installed with Sage.
         """
         return "R is currently installed with Sage.\n"
@@ -589,7 +593,7 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r._source("c")
+            sage: print(r._source("c"))
             function (..., recursive = FALSE)  .Primitive("c")
         """
         if s[-2:] == "()":
@@ -608,7 +612,7 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r.source("c")
+            sage: print(r.source("c"))
             function (..., recursive = FALSE)  .Primitive("c")
         """
         return self._source(s)
@@ -669,10 +673,10 @@ class R(Expect):
         else:
             try:
                 # We need to rebuild keywords!
-                del self.__trait_names
+                del self.__tab_completion
             except AttributeError:
                 pass
-            self.trait_names(verbose=False, use_disk_cache=False)
+            self._tab_completion(verbose=False, use_disk_cache=False)
 
     require = library #overwrites require
 
@@ -952,11 +956,11 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: dummy = r.trait_names(use_disk_cache=False)    #clean doctest
+            sage: dummy = r._tab_completion(use_disk_cache=False)    #clean doctest
             sage: r.completions('tes')
             ['testInheritedMethods', 'testPlatformEquivalence', 'testVirtual']
         """
-        return [name for name in self.trait_names() if name[:len(s)] == s]
+        return [name for name in self._tab_completion() if name[:len(s)] == s]
 
     def _commands(self):
         """
@@ -1004,7 +1008,7 @@ class R(Expect):
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Return list of all R functions.
 
@@ -1012,32 +1016,32 @@ class R(Expect):
 
         - verbose -- bool (default: True); if True, display debugging information
         - use_disk_cache -- bool (default: True); if True, use the disk cache of
-          trait names to save time.
+          tab completions to save time.
 
         OUTPUT: list -- list of string
 
         EXAMPLES::
 
-            sage: t = r.trait_names(verbose=False)
+            sage: t = r._tab_completion(verbose=False)
             sage: len(t) > 200
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose and use_disk_cache:
-                print "\nBuilding R command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding R command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200 and use_disk_cache:
                 sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
@@ -1250,9 +1254,9 @@ rel_re_integer = re.compile('([^\d])([\d]+)L')
 rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
-class RElement(ExpectElement):
+class RElement(ExtraTabCompletion, ExpectElement):
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return a list of all methods of this object.
 
@@ -1263,12 +1267,12 @@ class RElement(ExpectElement):
         EXAMPLES::
 
             sage: a = r([1,2,3])
-            sage: t = a.trait_names()
+            sage: t = a._tab_completion()
             sage: len(t) > 200
             True
         """
         # TODO: rewrite it, just take methods(class=class(self))
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def tilde(self, x):
         """
@@ -1938,7 +1942,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_doc_()
+            sage: print(length._sage_doc_())
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1954,7 +1958,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
         """
         M = self._obj.parent()
@@ -2017,7 +2021,7 @@ class RFunction(ExpectFunction):
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_doc_()
+            sage: print(length._sage_doc_())
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -2032,7 +2036,7 @@ class RFunction(ExpectFunction):
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
 
         """
@@ -2097,6 +2101,9 @@ def r_console():
             ISBN 3-900051-07-0
             ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%r magics instead.')
     # This will only spawn local processes
     os.system('R --vanilla')
 

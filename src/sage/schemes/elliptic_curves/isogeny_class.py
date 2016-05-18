@@ -402,7 +402,7 @@ class IsogenyClass_EC(SageObject):
 
         REFERENCES:
 
-        .. [M78] B. Mazur.  Rational Isogenies of Prime Degree.
+        .. [M78] \B. Mazur.  Rational Isogenies of Prime Degree.
           *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph
@@ -1186,7 +1186,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
         from sage.libs.pari.all import pari
         from sage.sets.all import Set
-        from sage.rings.arith import kronecker_symbol
+        from sage.arith.all import kronecker_symbol
 
         n = E.base_field().absolute_degree()
         if not E.has_rational_cm():

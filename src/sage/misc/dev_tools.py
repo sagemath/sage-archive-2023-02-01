@@ -395,7 +395,7 @@ def import_statements(*objects, **kwds):
         from sage.rings.integer_ring import Z
 
         sage: import_statements(euler_phi)
-        from sage.rings.arith import euler_phi
+        from sage.arith.misc import euler_phi
 
         sage: import_statements(x)
         from sage.calculus.predefined import x

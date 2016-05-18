@@ -192,7 +192,7 @@ import weakref
 
 from sage.misc.latex import latex
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
@@ -381,7 +381,9 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: sqrtn3 + zeta
         2*zeta^5 + zeta + 1
 
-    Comparison depends on the (real) embedding specified (or the one selected by default).::
+    Comparison depends on the (real) embedding specified (or the one selected by default).
+    Note that the codomain of the embedding must be `QQbar` or `AA` for this to work
+    (see :trac:`20184`)::
 
         sage: N.<g> = NumberField(x^3+2,embedding=1)
         sage: 1 < g
@@ -854,7 +856,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         sage: latex(QuadraticField(-1, 'a', latex_name=None).gen())
         a
 
-    The name of the generator does not interfere with Sage preparser, see #1135::
+    The name of the generator does not interfere with Sage preparser, see :trac:`1135`::
 
         sage: K1 = QuadraticField(5, 'x')
         sage: K2.<x> = QuadraticField(5)
@@ -4900,6 +4902,37 @@ class NumberField_generic(number_field_base.NumberField):
             self.__gen = self._element_class(self, X)
             return self.__gen
 
+    @cached_method
+    def _generator_matrix(self):
+        """
+        Return the matrix form of the generator of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.number_field.number_field_element.NumberFieldElement.matrix`
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: K.<v> = NumberField(x^4 + 514*x^2 + 64321)
+            sage: R.<r> = NumberField(x^2 + 4*v*x + 5*v^2 + 514)
+            sage: R._generator_matrix()
+            [           0            1]
+            [-5*v^2 - 514         -4*v]
+        """
+        x = self.gen()
+        a = x
+        d = self.relative_degree()
+        v = x.list()
+        for n in range(d-1):
+            a *= x
+            v += a.list()
+        from sage.matrix.matrix_space import MatrixSpace
+        M = MatrixSpace(self.base_ring(), d)
+        ret = M(v)
+        ret.set_immutable()
+        return ret
+
     def is_field(self, proof=True):
         """
         Return True since a number field is a field.
@@ -5163,13 +5196,13 @@ class NumberField_generic(number_field_base.NumberField):
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
-                # Trial divide the discriminant
-                m = self.pari_polynomial().poldisc().abs().factor(limit=0)
+                # Trial divide the discriminant with primes up to 10^6
+                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
                 # Since we only need a *squarefree* factorization for
                 # primes with exponent 1, we need trial division up to D^(1/3)
                 # instead of D^(1/2).
-                trialdivlimit2 = pari(pari._primelimit()**2)
-                trialdivlimit3 = pari(pari._primelimit()**3)
+                trialdivlimit2 = pari(10**12)
+                trialdivlimit3 = pari(10**18)
                 if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:
@@ -6202,7 +6235,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         # First check if the degree of K is compatible with an
         # inclusion QQ(\zeta_n) -> K.
-        if sage.rings.arith.euler_phi(n).divides(K.absolute_degree()):
+        if sage.arith.all.euler_phi(n).divides(K.absolute_degree()):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
             factors = pari.polcyclo(n).factornf(f).component(1)
@@ -7149,18 +7182,18 @@ class NumberField_absolute(NumberField_generic):
               From: Number Field in a0 with defining polynomial x
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
               Defn: 0 |--> 0, None),
-            (Number Field in a1 with defining polynomial x^2 + 4, Ring morphism:
-              From: Number Field in a1 with defining polynomial x^2 + 4
+            (Number Field in a1 with defining polynomial x^2 - 2, Ring morphism:
+              From: Number Field in a1 with defining polynomial x^2 - 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a1 |--> 2*a^3 + 7*a, None),
-            (Number Field in a2 with defining polynomial x^2 + 2, Ring morphism:
-              From: Number Field in a2 with defining polynomial x^2 + 2
+              Defn: a1 |--> a^2 + 3/2, None),
+            (Number Field in a2 with defining polynomial x^2 + 4, Ring morphism:
+              From: Number Field in a2 with defining polynomial x^2 + 4
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a2 |--> 2*a^3 + 5*a, None),
-            (Number Field in a3 with defining polynomial x^2 - 2, Ring morphism:
-              From: Number Field in a3 with defining polynomial x^2 - 2
+              Defn: a2 |--> 2*a^3 + 7*a, None),
+            (Number Field in a3 with defining polynomial x^2 + 2, Ring morphism:
+              From: Number Field in a3 with defining polynomial x^2 + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: a3 |--> a^2 + 3/2, None),
+              Defn: a3 |--> 2*a^3 + 5*a, None),
             (Number Field in a4 with defining polynomial x^4 + 1, Ring morphism:
               From: Number Field in a4 with defining polynomial x^4 + 1
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
@@ -8141,7 +8174,11 @@ class NumberField_absolute(NumberField_generic):
 
             sage: L = NumberField(x^4 + 1, 'a')
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
-            [Number Field in c with defining polynomial x^4 + 1 over its base field, Number Field in c with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c with defining polynomial x - a4 over its base field]
+            [Number Field in c with defining polynomial x^4 + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - a1*x + 1 over its base field,
+             Number Field in c with defining polynomial x^2 - 1/2*a2 over its base field,
+             Number Field in c with defining polynomial x^2 - a3*x - 1 over its base field,
+             Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::
 
@@ -8974,8 +9011,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         The following was the motivating example to introduce
         a genuine representation of cyclotomic fields in the
-        GAP interface -- see ticket #5618.
-        ::
+        GAP interface -- see :trac:`5618`. ::
 
             sage: H = AlternatingGroup(4)
             sage: g = H.list()[1]
@@ -9400,7 +9436,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         # Find the smallest power r >= 1 of the generator g of K that is in self,
 ##         # i.e., find the smallest r such that g^r has order dividing m.
 
-##         d = sage.rings.arith.gcd(m,n)
+##         d = sage.arith.all.gcd(m,n)
 ##         r = n // d
 
 ##         # Since we use the power basis for cyclomotic fields, if every
@@ -9516,14 +9552,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             1
             sage: F(b[1,2])
             1
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
 
         It also word with libGAP instead of GAP::
 
             sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
         """

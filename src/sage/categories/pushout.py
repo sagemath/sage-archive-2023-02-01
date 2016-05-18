@@ -730,7 +730,7 @@ class PolynomialFunctor(ConstructionFunctor):
         sage: P(f)((x+y)*P(R).0)
         (-x + y)*t
 
-    By trac ticket #9944, the construction functor distinguishes sparse and
+    By :trac:`9944`, the construction functor distinguishes sparse and
     dense polynomial rings. Before, the following example failed::
 
         sage: R.<x> = PolynomialRing(GF(5), sparse=True)
@@ -1470,7 +1470,7 @@ class MatrixFunctor(ConstructionFunctor):
 
         TEST:
 
-        The following is a test against a bug discussed at ticket #8800
+        The following is a test against a bug discussed at :trac:`8800`::
 
             sage: F = MatrixSpace(ZZ,2,3).construction()[0]
             sage: F(RR)         # indirect doctest
@@ -2606,7 +2606,7 @@ class QuotientFunctor(ConstructionFunctor):
             sage: pushout(Q1,Q2)    # indirect doctest
             Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^4 + 2*x^2 + 1
 
-        The following was fixed in trac ticket #8800::
+        The following was fixed in :trac:`8800`::
 
             sage: pushout(GF(5), Integers(5))
             Finite Field of size 5
@@ -2851,14 +2851,14 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         The following demonstrate coercions for finite fields using Conway or
         pseudo-Conway polynomials::
 
-            sage: k = GF(3^2, conway=True, prefix='z'); a = k.gen()
-            sage: l = GF(3^3, conway=True, prefix='z'); b = l.gen()
+            sage: k = GF(3^2, prefix='z'); a = k.gen()
+            sage: l = GF(3^3, prefix='z'); b = l.gen()
             sage: a + b # indirect doctest
             z6^5 + 2*z6^4 + 2*z6^3 + z6^2 + 2*z6 + 1
 
         Note that embeddings are compatible in lattices of such finite fields::
 
-            sage: m = GF(3^5, conway=True, prefix='z'); c = m.gen()
+            sage: m = GF(3^5, prefix='z'); c = m.gen()
             sage: (a+b)+c == a+(b+c) # indirect doctest
             True
             sage: from sage.categories.pushout import pushout

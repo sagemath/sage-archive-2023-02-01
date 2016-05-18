@@ -20,6 +20,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -240,8 +242,8 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         """
         vac_num = 0
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(i)
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -334,10 +336,11 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         vac_num = 0
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
+        g = gamma[ia]
+        for b in range(self._cartan_matrix.ncols()):
             ib = I[b]
-            q = partitions[b].get_num_cells_to_column(gamma[ia]*i, gamma[ib])
-            vac_num -= value * q / gamma[ib]
+            q = partitions[b].get_num_cells_to_column(g*i, gamma[ib])
+            vac_num -= self._cartan_matrix[a,b] * q // gamma[ib]
 
         return vac_num
 
@@ -397,7 +400,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
                 partitions[k] = [row_len*gamma[a] for row_len in rp._list]
                 riggings[k] = [rig_val*gamma[a] for rig_val in rp.rigging]
         return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings)
+                                          rigging_list=riggings)
 
     def from_virtual(self, vrc):
         """
@@ -432,7 +435,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         for a in range(n):
             index = vindex.index(sigma[a][0])
             partitions[a] = [row_len // gamma[a] for row_len in vrc[index]._list]
-            riggings[a] = [rig_val / gamma[a] for rig_val in vrc[index].rigging]
+            riggings[a] = [rig_val // gamma[a] for rig_val in vrc[index].rigging]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings)
 

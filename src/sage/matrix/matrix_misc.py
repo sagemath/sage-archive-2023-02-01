@@ -101,7 +101,7 @@ def row_reduced_form(M,transformation=False):
 
     # calculate least-common denominator of matrix entries and clear
     # denominators. The result lies in R
-    from sage.rings.arith import lcm
+    from sage.arith.all import lcm
     from sage.matrix.constructor import matrix
     from sage.misc.functional import numerator
     if R0 in _Fields:
@@ -435,7 +435,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
 
     REFERENCES:
 
-    .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
+    .. [ButPer] \P. Butera and M. Pernici "Sums of permanental minors
        using Grassmann algebra", :arxiv:`1406.5337`
     """
     if permanent_only:

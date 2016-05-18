@@ -20,7 +20,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.
@@ -31,15 +31,14 @@ Functions
 """
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.arith import is_square
-from sage.rings.arith import is_prime_power
+from sage.arith.all import is_square, is_prime_power, divisors
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.orthogonal_arrays import orthogonal_array
 from sage.combinat.designs.bibd import balanced_incomplete_block_design
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
@@ -185,7 +184,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Pa92] D. V. Pasechnik,
+    .. [Pa92] \D. V. Pasechnik,
       Skew-symmetric association schemes with two classes and strongly
       regular graphs of type `L_{2n-1}(4n- 1)`,
       Acta Applicandaie Math. 29(1992), 129-138
@@ -318,7 +317,6 @@ def is_affine_polar(int v,int k,int l,int mu):
 
         sage: t = is_affine_polar(5,5,5,5); t
     """
-    from sage.rings.arith import divisors
     # Using notations from http://www.win.tue.nl/~aeb/graphs/VO.html
     #
     # VO+(2e,q) has parameters: v = q^(2e), k = (q^(e−1) + 1)(q^e − 1), λ =
@@ -386,7 +384,6 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
         (<function OrthogonalPolarGraph at ...>, 6, 3, '+')
 
     """
-    from sage.rings.arith import divisors
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
         return
@@ -969,7 +966,7 @@ def is_polhill(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Polhill09] J. Polhill,
+    .. [Polhill09] \J. Polhill,
        Negative Latin square type partial difference sets and
        amorphic association schemes with Galois rings,
        Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
@@ -1138,7 +1135,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    some graphs ::
 
         sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
         sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
@@ -1147,6 +1146,16 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         True
         sage: SRG_from_RSHCD(144, 65, 28, 30)
         Graph on 144 vertices
+
+    an example with vertex-transitive automorphism group, found during the
+    implementation of the case `v=324` ::
+
+        sage: G=SRG_from_RSHCD(324,152,70,72)  # long time
+        sage: a=G.automorphism_group()         # long time
+        sage: a.order()                        # long time
+        2592
+        sage: len(a.orbits())                  # long time
+        1
 
     TESTS::
 
@@ -1797,7 +1806,7 @@ def SRG_100_44_18_20():
 
     REFERENCES:
 
-    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+    .. [JK03] \L. K. Jørgensen, M. Klin, M.,
       Switching of edges in strongly regular graphs.
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
@@ -1848,12 +1857,12 @@ def SRG_105_32_4_12():
 
     REFERENCES:
 
-    .. [GS70] J.-M. Goethals and J. J. Seidel,
+    .. [GS70] \J.-M. Goethals and J. J. Seidel,
        Strongly regular graphs derived from combinatorial designs,
        Can. J. Math. 22 (1970) 597-614.
        http://dx.doi.org/10.4153/CJM-1970-067-9
 
-    .. [Co06] K. Coolsaet,
+    .. [Co06] \K. Coolsaet,
        The uniqueness of the strongly regular graph srg(105,32,4,12),
        Bull. Belg. Math. Soc. 12(2006), 707-718.
        http://projecteuclid.org/euclid.bbms/1136902608
@@ -1939,7 +1948,7 @@ def SRG_176_49_12_14():
 
     REFERENCE:
 
-    .. [BrouwerPolarities82] A. Brouwer,
+    .. [BrouwerPolarities82] \A. Brouwer,
        Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
        Aequationes mathematicae 25, no. 1 (1982): 77-82.
     """
@@ -2004,12 +2013,12 @@ def SRG_210_99_48_45():
 
     REFERENCES:
 
-    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+    .. [KPRWZ10] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
        Examples of computer experimentation in algebraic combinatorics,
        ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
        http://amc-journal.eu/index.php/amc/article/viewFile/119/118
 
-    .. [COCO] I. A. Faradjev and M. H. Klin,
+    .. [COCO] \I. A. Faradjev and M. H. Klin,
        Computer package for computations with coherent configurations,
        Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
        code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
@@ -2060,7 +2069,7 @@ def SRG_243_110_37_60():
 
     REFERENCE:
 
-    .. [GS75] J.M. Goethals, and J. J. Seidel,
+    .. [GS75] \J.M. Goethals, and J. J. Seidel,
        The regular two-graph on 276 vertices,
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
@@ -2107,7 +2116,7 @@ def SRG_196_91_42_42():
 
     REFERENCE:
 
-    .. [IS06] Y.J. Ionin, S. Shrikhande,
+    .. [IS06] \Y.J. Ionin, S. Shrikhande,
       Combinatorics of symmetric designs.
       Cambridge University Press, 2006.
     """
@@ -2170,7 +2179,7 @@ def SRG_276_140_58_84():
 
     REFERENCE:
 
-    .. [HT96] W. H. Haemers and V. D. Tonchev,
+    .. [HT96] \W. H. Haemers and V. D. Tonchev,
       Spreads in strongly regular graphs,
       Designs, Codes and Cryptography 8 (1996) 145-157.
     """
@@ -2240,7 +2249,7 @@ def SRG_280_117_44_52():
 
     REFERENCE:
 
-    .. [MR85] R. Mathon and A. Rosa,
+    .. [MR85] \R. Mathon and A. Rosa,
        A new strongly regular graph,
        Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
        http://dx.doi.org/10.1016/0097-3165(85)90025-1
@@ -2290,7 +2299,7 @@ def strongly_regular_from_two_weight_code(L):
 
     REFERENCES:
 
-    .. [vLintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
+    .. [vLintSchrijver81] \J. H. van Lint, and A. Schrijver (1981),
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.
@@ -2400,7 +2409,7 @@ def strongly_regular_from_two_intersection_set(M):
 
     REFERENCES:
 
-    .. [CDB13] I. Cardinali and B. De Bruyn,
+    .. [CDB13] \I. Cardinali and B. De Bruyn,
       Spin-embeddings, two-intersection sets and two-weight codes,
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
@@ -2581,7 +2590,7 @@ def SRG_1288_792_476_504():
 
     REFERENCE:
 
-    .. [BvE92] A. Brouwer and C. Van Eijl,
+    .. [BvE92] \A. Brouwer and C. Van Eijl,
       On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
@@ -3011,7 +3020,7 @@ def _build_small_srg_database():
 
     REFERENCES:
 
-    .. [CK86] R. Calderbank, W.M. Kantor,
+    .. [CK86] \R. Calderbank, W.M. Kantor,
       The geometry of two-weight codes,
       Bull. London Math. Soc. 18(1986) 97-122
     """

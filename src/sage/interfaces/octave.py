@@ -150,6 +150,7 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 from expect import Expect, ExpectElement
@@ -245,7 +246,7 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: print octave._install_hints()
+            sage: print(octave._install_hints())
             You must get ...
         """
         return """
@@ -284,7 +285,7 @@ class Octave(Expect):
         # to signals.
         if not self._expect is None:
             if verbose:
-                print "Exiting spawned %s process." % self
+                print("Exiting spawned %s process." % self)
         return
 
     def _start(self):
@@ -773,6 +774,9 @@ def octave_console():
     octave, like Sage, remembers its history from one session to
     another.
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%octave magics instead.')
     os.system('octave')
 
 

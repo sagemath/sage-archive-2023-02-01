@@ -139,10 +139,10 @@ import sys
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_malloc, check_allocarray
+include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -153,7 +153,6 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent_c, coercion_model)
 include "sage/ext/python_debug.pxi"
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -1054,7 +1053,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_get_str(s, base, self.value)
         sig_off()
         k = <bytes>s
-        sage_free(s)
+        sig_free(s)
         return k
 
     def __format__(self, *args, **kwargs):
@@ -1459,7 +1458,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # functions
             if not digits is None:
                 # list objects have fastest access in the innermost loop
-                if not PyList_CheckExact(digits):
+                if type(digits) is not list:
                     digits = [digits[i] for i in range(_base)]
             elif mpz_cmp_ui(_base.value,s) < 0 and mpz_cmp_ui(_base.value,10000):
                 # We can get a speed boost by pre-allocating digit values in
@@ -1732,7 +1731,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    def __floordiv__(x, y):
+    cpdef RingElement _floordiv_(self, RingElement right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 
@@ -1769,34 +1768,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: [int(a) // b for a,b in signs] == control
             True
         """
+        if not mpz_sgn((<Integer>right).value):
+            raise ZeroDivisionError("Integer division by zero")
+
         cdef Integer z = <Integer>PY_NEW(Integer)
-        cdef long yy, res
-        if type(x) is type(y):
-            if not mpz_sgn((<Integer>y).value):
-                raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
-                sig_on()
-                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
-                sig_off()
-            else:
-                mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
-            return z
-
-        elif PyInt_CheckExact(y):
-            yy = PyInt_AS_LONG(y)
-            if yy > 0:
-                mpz_fdiv_q_ui(z.value, (<Integer>x).value, yy)
-            elif yy == 0:
-                raise ZeroDivisionError, "Integer division by zero"
-            else:
-                res = mpz_fdiv_q_ui(z.value, (<Integer>x).value, -yy)
-                mpz_neg(z.value, z.value)
-                if res:
-                    mpz_sub_ui(z.value, z.value, 1)
-            return z
-
+        if mpz_size(self.value) > 1000:
+            sig_on()
+            mpz_fdiv_q(z.value, self.value, (<Integer>right).value)
+            sig_off()
         else:
-            return bin_op(x, y, operator.floordiv)
+            mpz_fdiv_q(z.value, self.value, (<Integer>right).value)
+        return z
 
     def __pow__(self, n, modulus):
         r"""
@@ -2591,9 +2573,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef list output
 
         try:
-            pari_catch_sig_on()
+            sig_on()
             d = divisorsu(n)
-            pari_catch_sig_off()
+            sig_off()
             output = [smallInteger(d[i]) for i in range(1,lg(d))]
             return output
         finally:
@@ -2747,7 +2729,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         mpz_set_ui(z.value, sorted_c[i])
                         sorted.append(z)
                     fits_c = False
-                    sage_free(ptr)
+                    sig_free(ptr)
                     ptr = NULL
 
                 # The two cases below are essentially the same algorithm, one
@@ -2827,7 +2809,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_set_ui(z.value, sorted_c[i])
                     sorted.append(z)
         finally:
-            sage_free(ptr)
+            sig_free(ptr)
 
         return sorted
 
@@ -2949,7 +2931,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return z
 
         # next: Integer % python int
-        elif PyInt_CheckExact(y):
+        elif type(y) is int:
             yy = PyInt_AS_LONG(y)
             if yy > 0:
                 mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
@@ -3025,7 +3007,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer r = PY_NEW(Integer)
         cdef long d, res
 
-        if PyInt_CheckExact(other):
+        if type(other) is int:
             d = PyInt_AS_LONG(other)
             if d > 0:
                 mpz_fdiv_qr_ui(q.value, r.value, self.value, d)
@@ -3625,7 +3607,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if self.is_zero():
             raise ArithmeticError, "Support of 0 not defined."
-        return sage.rings.arith.prime_factors(self)
+        return sage.arith.all.prime_factors(self)
 
     def coprime_integers(self, m):
         """
@@ -4060,7 +4042,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         for i from 0 <= i < prod_count:
             mpz_clear(sub_prods[i])
-        sage_free(sub_prods)
+        sig_free(sub_prods)
 
         return z
 
@@ -5928,7 +5910,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef long n
 
-        if PyInt_CheckExact(y):
+        if type(y) is int:
             # For a Python int, we can just use the Python/C API.
             n = PyInt_AS_LONG(y)
         else:
@@ -6147,12 +6129,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ZeroDivisionError: Inverse does not exist.
 
-        We check that #10625 is fixed::
+        We check that :trac:`10625` is fixed::
 
             sage: ZZ(2).inverse_mod(ZZ.ideal(3))
             2
 
-        We check that #9955 is fixed::
+        We check that :trac:`9955` is fixed::
 
             sage: Rational(3)%Rational(-1)
             0
@@ -6353,7 +6335,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         For PARI, we try 10 interrupts with increasing intervals to
         check for reliable interrupting, see :trac:`18919`::
 
-            sage: from sage.ext.interrupt import AlarmInterrupt
+            sage: from cysignals import AlarmInterrupt
             sage: for i in [1..10]:  # long time (5s)
             ....:     try:
             ....:         alarm(i/11)
@@ -6924,7 +6906,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     # Again, we move to the mpz_t and clear it. As in fast_tp_new,
     # we free the memory directly.
-    sage_free(o_mpz._mp_d)
+    sig_free(o_mpz._mp_d)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
@@ -6938,7 +6920,7 @@ cdef hook_fast_tp_functions():
     """
     global global_dummy_Integer, sizeof_Integer, integer_pool
 
-    integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
+    integer_pool = <PyObject**>sig_malloc(integer_pool_size * sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer
@@ -6972,7 +6954,7 @@ def free_integer_pool():
 
     integer_pool_size = 0
     integer_pool_count = 0
-    sage_free(integer_pool)
+    sig_free(integer_pool)
 
 # Replace default allocation and deletion with faster custom ones
 hook_fast_tp_functions()

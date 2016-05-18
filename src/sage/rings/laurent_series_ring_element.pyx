@@ -134,7 +134,6 @@ cdef class LaurentSeries(AlgebraElement):
 
 
         # self is that t^n * u:
-        cdef long val
         if not f:
             if n == infinity:
                 self.__n = 0
@@ -144,7 +143,10 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f
         else:
             val = f.valuation()
-            if val == 0:
+            if val == infinity:
+                self.__n = 0
+                self.__u = f
+            elif val == 0:
                 self.__n = n    # power of the variable
                 self.__u = f    # unit part
             else:
@@ -303,7 +305,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: latex(f)
             \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(x^{7})
 
-        Verify that trac #6656 has been fixed::
+        Verify that :trac:`6656` has been fixed::
 
             sage: R.<a,b>=PolynomialRing(QQ)
             sage: T.<x>=LaurentSeriesRing(R)
@@ -385,7 +387,12 @@ cdef class LaurentSeries(AlgebraElement):
             0
             sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3 + O(t^5); f
             -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3 + O(t^5)
+
+        Slicing is deprecated::
+
             sage: f[-10:2]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -5*t^-10 + 1/3 + t + O(t^5)
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3 + O(t^5)
@@ -394,14 +401,12 @@ cdef class LaurentSeries(AlgebraElement):
             start, stop, step = i.start, i.stop, i.step
             if start is None:
                 start = 0
-            if step is None:
-                step = 1
             if stop > self.__u.degree() or stop is None:
                 stop = self.__u.degree()
-            f = self.__u[start-self.__n:stop-self.__n:step]
+            f = self.__u[start-self.__n:stop-self.__n:step]  # deprecation(18940)
             return LaurentSeries(self._parent, f, self.__n)
-        else:
-            return self.__u[i-self.__n]
+
+        return self.__u[i - self.__n]
 
     def __iter__(self):
         """

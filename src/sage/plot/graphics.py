@@ -27,6 +27,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 from math import isnan
@@ -38,7 +39,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
-ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
+ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 def show_default(default=None):
@@ -85,6 +86,7 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
+
 class Graphics(WithEqualityById, SageObject):
     """
     The Graphics object is an empty list of graphics objects. It is
@@ -93,10 +95,10 @@ class Graphics(WithEqualityById, SageObject):
 
     EXAMPLES::
 
-        sage: G = Graphics(); print G
+        sage: G = Graphics(); print(G)
         Graphics object consisting of 0 graphics primitives
         sage: c = circle((1,1), 1)
-        sage: G+=c; print G
+        sage: G+=c; print(G)
         Graphics object consisting of 1 graphics primitive
 
     Here we make a graphic of embedded isosceles triangles, coloring
@@ -918,7 +920,7 @@ class Graphics(WithEqualityById, SageObject):
             'Graphics object consisting of 1 graphics primitive'
             sage: str(S)
             'Graphics object consisting of 1 graphics primitive'
-            sage: print S
+            sage: print(S)
             Graphics object consisting of 1 graphics primitive
         """
         s = "Graphics object consisting of %s graphics primitives"%(len(self))
@@ -932,7 +934,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLE::
 
-            sage: G = circle((1,1),2) + circle((2,2),5); print G
+            sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives
             sage: G[1]
             Circle defined by (2.0,2.0) with r=5.0
@@ -946,7 +948,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
@@ -960,12 +962,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
             sage: del(G[2])
-            sage: print G
+            sage: print(G)
             Graphics object consisting of 2 graphics primitives
             sage: len(G)
             2
@@ -979,12 +981,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
 
         ::
 
-            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print p
+            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print(p)
             Graphics object consisting of 1 graphics primitive
 
         ::
@@ -1009,15 +1011,15 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: S = circle((0,0), 2)
-            sage: print int(0) + S
+            sage: print(int(0) + S)
             Graphics object consisting of 1 graphics primitive
-            sage: print S + int(0)
+            sage: print(S + int(0))
             Graphics object consisting of 1 graphics primitive
 
         The following would fail were it not for this function::
 
             sage: v = [circle((0,0), 2), circle((2,3), 1)]
-            sage: print sum(v)
+            sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
         if isinstance(other, (int, long)) and other == 0:
@@ -1964,19 +1966,19 @@ class Graphics(WithEqualityById, SageObject):
         be run or doctested::
 
             sage: p = ellipse((0,0),4,1)
-            sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            sage: p.show(figsize=[232,232],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
-            sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            sage: p.show(figsize=[327,181],dpi=100)  # not tested
             ------------------------------------------------------------------------
-            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage has a bug
+            Unhandled SIGSEGV: A segmentation fault occurred.
+            This probably occurred because a *compiled* module has a bug
             in it and is not properly wrapped with sig_on(), sig_off().
-            Sage will now terminate.
+            Python will now terminate.
             ------------------------------------------------------------------------
 
         The following tests ensure we give a good error message for
@@ -2503,7 +2505,7 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1),1)
-            sage: print c.matplotlib()
+            sage: print(c.matplotlib())
             Figure(640x480)
 
         To obtain the first matplotlib axes object inside of the
@@ -2874,7 +2876,7 @@ class Graphics(WithEqualityById, SageObject):
             elif xscale == 'linear':
                 subplot.xaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basex
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.xaxis.set_minor_locator(LogLocator(base=basex,
@@ -2884,7 +2886,7 @@ class Graphics(WithEqualityById, SageObject):
             elif yscale == 'linear':
                 subplot.yaxis.set_minor_locator(AutoMinorLocator())
             else: # log scale
-                from sage.misc.misc import srange
+                from sage.arith.srange import srange
                 base_inv = 1.0/basey
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.yaxis.set_minor_locator(LogLocator(base=basey,
@@ -3088,6 +3090,8 @@ class Graphics(WithEqualityById, SageObject):
 
             * ``.pdf``,
 
+            * ``.pgf``,
+           
             * ``.png``,
 
             * ``.ps``,
@@ -3184,14 +3188,45 @@ class Graphics(WithEqualityById, SageObject):
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                          rcParams['text.usetex']) # save the rcParams
             figure = self.matplotlib(**options)
-            # You can output in PNG, PS, EPS, PDF, or SVG format, depending
+            # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
             # on the file extension.
+            # PGF is handled by a different backend
+            if ext == '.pgf':
+                from sage.misc.sage_ostools import have_program
+                latex_implementations = [i for i in ["xelatex", "pdflatex",
+                                                     "lualatex"]
+                                         if have_program(i)]
+                if not latex_implementations:
+                    raise ValueError("Matplotlib requires either xelatex, "
+                                     "lualatex, or pdflatex.")
+                if latex_implementations[0] == "pdflatex":
+                    # use pdflatex and set font encoding as per
+                    # matplotlib documentation:
+                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    pgf_options= {
+                            "pgf.texsystem": "pdflatex",
+                            "pgf.preamble": [
+                                         r"\usepackage[utf8x]{inputenc}",
+                                         r"\usepackage[T1]{fontenc}",
+                                         #r"\usepackage{cmbright}",
+                                         ]
+                    }
+                else:
+                    pgf_options = {
+                            "pgf.texsystem": latex_implementations[0],
+                    }
+                from matplotlib import rcParams
+                rcParams.update(pgf_options)
+                from matplotlib.backends.backend_pgf import FigureCanvasPgf
+                figure.set_canvas(FigureCanvasPgf(figure))
+
             # matplotlib looks at the file extension to see what the renderer should be.
             # The default is FigureCanvasAgg for PNG's because this is by far the most
             # common type of files rendered, like in the notebook, for example.
             # if the file extension is not '.png', then matplotlib will handle it.
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
-            figure.set_canvas(FigureCanvasAgg(figure))
+            else:
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
+                figure.set_canvas(FigureCanvasAgg(figure))
             # this messes up the aspect ratio!
             #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
 
@@ -3210,6 +3245,32 @@ class Graphics(WithEqualityById, SageObject):
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                                            rcParams['text.usetex']) = rc_backup
 
+    def _latex_(self, **kwds):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: L = line([(0,0), (1,1)], axes=False)
+            sage: L._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **kwds)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        from sage.misc.latex import latex
+        latex.add_package_to_preamble_if_available('pgf')
+        return ''.join(latex_list)
+
     def description(self):
         r"""
         Print a textual description to stdout.
@@ -3218,7 +3279,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: print polytopes.hypercube(2).plot().description()
+            sage: print(polytopes.hypercube(2).plot().description())
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
@@ -3609,7 +3670,7 @@ class GraphicsArray(WithEqualityById, SageObject):
         :meth:`save` method of self, passing along all arguments and
         keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3621,6 +3682,31 @@ class GraphicsArray(WithEqualityById, SageObject):
             sage: G.save_image(tmp_filename(ext='.png'))
         """
         self.save(filename, *args, **kwds)
+
+    def _latex_(self, dpi=DEFAULT_DPI, figsize=None, axes=None, **args):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: A = graphics_array([[plot(sin), plot(cos)],
+            ....:   [plot(tan), plot(sec)]])
+            sage: A._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **args)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        return ''.join(latex_list)
 
     def show(self, **kwds):
         r"""
@@ -3663,3 +3749,18 @@ class GraphicsArray(WithEqualityById, SageObject):
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
+
+    def plot(self):
+        """
+        Draw a 2D plot of this graphics object, which just returns this
+        object since this is already a 2D graphics object.
+
+        EXAMPLES::
+
+            sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
+            sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
+            sage: S = graphics_array([g1, g2], 2, 1)
+            sage: S.plot() is S
+            True
+        """
+        return self

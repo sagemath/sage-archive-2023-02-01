@@ -7,11 +7,11 @@ for computing cup products and cohomology operations.
 
 REFERENCES:
 
-.. [G-DR03] R. González-Díaz and P. Réal, *Computation of cohomology
+.. [G-DR03] \R. González-Díaz and P. Réal, *Computation of cohomology
    operations on finite simplicial complexes* in Homology,
    Homotopy and Applications 5 (2003), 83-93.
 
-.. [G-DR99] R. González-Díaz and P. Réal, *A combinatorial method for
+.. [G-DR99] \R. González-Díaz and P. Réal, *A combinatorial method for
    computing Steenrod squares* in J. Pure Appl. Algebra 139 (1999), 89-108.
 
 AUTHORS:
@@ -144,7 +144,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: b.cup_product(b)
         h^{2,0}
     """
-    def __init__(self, base_ring, cell_complex, cohomology=False, cat=None):
+    def __init__(self, base_ring, cell_complex, cohomology=False, category=None):
         """
         Initialize ``self``.
 
@@ -170,7 +170,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             # We only need the rank of M in each degree, and since
             # we're working over a field, we don't need to dualize M
             # if working with cohomology.
-        cat = Modules(base_ring).WithBasis().Graded().or_subcategory(cat)
+        category = Modules(base_ring).WithBasis().Graded().FiniteDimensional().or_subcategory(category)
         self._contraction = phi
         self._complex = cell_complex
         self._cohomology = cohomology
@@ -178,7 +178,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                                 for deg in range(cell_complex.dimension()+1)}
         indices = [(deg, i) for deg in self._graded_indices
                    for i in self._graded_indices[deg]]
-        CombinatorialFreeModule.__init__(self, base_ring, indices, category=cat)
+        CombinatorialFreeModule.__init__(self, base_ring, indices, category=category)
 
     def basis(self, d=None):
         """
@@ -435,7 +435,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: H = RP2.cohomology_ring(GF(5))
             sage: TestSuite(H).run()
         """
-        cat = Algebras(base_ring).WithBasis().Graded()
+        cat = Algebras(base_ring).WithBasis().Graded().FiniteDimensional()
         HomologyVectorSpaceWithBasis.__init__(self, base_ring, cell_complex, True, cat)
 
     def _repr_(self):
@@ -553,33 +553,11 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
         for gamma_index in H._graded_indices.get(deg_tot, []):
             gamma_coeff = base_ring.zero()
             for cell, coeff in H._to_cycle_on_basis((deg_tot, gamma_index)):
-                if hasattr(cell, 'alexander_whitney'):
-                    # Simplicial and cubical case: each cell has a
-                    # method 'alexander_whitney' which computes
-                    # the appropriate faces.
-                    for (c, left_cell, right_cell) in cell.alexander_whitney(deg_left):
+                for (c, left_cell, right_cell) in scomplex.alexander_whitney(cell, deg_left):
+                    if c:
                         left = n_chains_left(left_cell)
                         right = n_chains_right(right_cell)
                         gamma_coeff += c * coeff * left_cycle.eval(left) * right_cycle.eval(right)
-                else:
-                    # Delta complex case: each "cell" in n_chains
-                    # is just a pair (integer, tuple), where the
-                    # integer is its index in the list, and the
-                    # jth entry of the tuple is the index of its
-                    # jth face in the list of (n-1)-chains. Use
-                    # this data to compute the appropriate faces
-                    # by hand.
-                    left_cell = cell
-                    for i in range(deg_tot, deg_left, -1):
-                        idx = left_cell[1][i]
-                        left_cell = (idx, scomplex.n_cells(i-1)[idx])
-                    right_cell = cell
-                    for i in range(deg_tot, deg_right, -1):
-                        idx = right_cell[1][0]
-                        right_cell = (idx, scomplex.n_cells(i-1)[idx])
-                    left = n_chains_left(left_cell)
-                    right = n_chains_right(right_cell)
-                    gamma_coeff += coeff * left_cycle.eval(left) * right_cycle.eval(right)
             if gamma_coeff != base_ring.zero():
                 result[(deg_tot, gamma_index)] = gamma_coeff
         return self._from_dict(result, remove_zeros=False)
@@ -760,29 +738,29 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                                 while indices:
                                     right_endpoint = indices[0] - 1
                                     for k in range(left_endpoint, indices.pop(0), -1):
-                                        left = left.face(k)
+                                        left = scomplex.face(left, k)
                                     try:
                                         left_endpoint = indices[0] - 1
                                         for k in range(right_endpoint, indices.pop(0), -1):
-                                            right = right.face(k)
+                                            right = scomplex.face(right, k)
                                     except IndexError:
                                         pass
                                 for k in range(right_endpoint, -1, -1):
-                                    right = right.face(k)
+                                    right = scomplex.face(right, k)
                             else:
                                 right_endpoint = m
                                 while indices:
                                     left_endpoint = indices[0] - 1
                                     try:
                                         for k in range(right_endpoint, indices.pop(0), -1):
-                                            right = right.face(k)
+                                            right = scomplex.face(right, k)
                                         right_endpoint = indices[0] - 1
                                     except IndexError:
                                         pass
                                     for k in range(left_endpoint, indices.pop(0), -1):
-                                        left = left.face(k)
+                                        left = scomplex.face(left, k)
                                 for k in range(right_endpoint, -1, -1):
-                                    right = right.face(k)
+                                    right = scomplex.face(right, k)
 
                             left = n_chains(left)
                             right = n_chains(right)

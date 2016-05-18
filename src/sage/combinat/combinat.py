@@ -57,7 +57,7 @@ docstrings.
 
 **Implemented in other modules (listed for completeness):**
 
-The ``sage.rings.arith`` module contains the following
+The ``sage.arith.all`` module contains the following
 combinatorial functions:
 
 -  binomial the binomial coefficient (wrapped from PARI)
@@ -146,7 +146,7 @@ Functions and classes
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
-from sage.rings.arith import bernoulli, binomial
+from sage.arith.all import bernoulli, binomial, factorial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.libs.all import pari
 from sage.misc.prandom import randint
@@ -1553,7 +1553,7 @@ class CombinatorialClass(Parent):
 
     def __iterator_from_next(self):
         """
-        An iterator to use when .first() and .next() are provided.
+        An iterator to use when the .first() and .next(x) methods are provided.
 
         EXAMPLES::
 
@@ -1569,7 +1569,7 @@ class CombinatorialClass(Parent):
         while True:
             try:
                 f = self.next(f)
-            except (TypeError, ValueError ):
+            except (TypeError, ValueError):
                 break
 
             if f is None or f is False :
@@ -1670,18 +1670,18 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: iterator called but not implemented
         """
-        #Check to see if .first() and .next() are overridden in the subclass
+        # Check whether .first() and .next(x) are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
              self.next  != self.__next_from_iterator ):
             return self.__iterator_from_next()
-        #Check to see if .last() and .previous() are overridden in the subclass
+        # Check whether .last() and .previous() are overridden in the subclass
         elif ( self.last != self.__last_from_iterator and
                self.previous != self.__previous_from_iterator):
             return self.__iterator_from_previous()
-        #Check to see if .unrank() is overridden in the subclass
+        # Check whether .unrank() is overridden in the subclass
         elif self.unrank != self.__unrank_from_iterator:
             return self.__iterator_from_unrank()
-        #Finally, check to see if .list() is overridden in the subclass
+        # Check whether .list() is overridden in the subclass
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
@@ -2685,7 +2685,6 @@ def bell_polynomial(n, k):
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
-    from sage.rings.arith import factorial
     R = PolynomialRing(ZZ, 'x', n-k+1)
     vars = R.gens()
     result = R.zero()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Dense matrices over the integer ring
 
@@ -45,6 +46,7 @@ TESTS::
 #       Copyright (C) 2006,2007 William Stein
 #       Copyright (C) 2014 Marc Masdeu
 #       Copyright (C) 2014 Jeroen Demeyer
+#       Copyright (C) 2015,2016 Vincent Delecroix
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,6 +54,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.stdint cimport int64_t
 include "sage/ext/cdefs.pxi"
@@ -60,7 +63,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
-from sage.rings.arith import previous_prime
+from sage.arith.all import previous_prime
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
@@ -76,17 +79,13 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
-
 #########################################################
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
 
-from sage.ext.multi_modular import MultiModularBasis
-from sage.ext.multi_modular cimport MultiModularBasis
-
+from sage.arith.multi_modular cimport MultiModularBasis
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -234,12 +233,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, j, k
 
         sig_on()
-        self._rows = <mpz_t **> sage_malloc(sizeof(mpz_t*) * self._nrows)
+        self._rows = <mpz_t **> sig_malloc(sizeof(mpz_t*) * self._nrows)
         if not self._rows:
             raise MemoryError
-        self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * self._nrows * self._ncols)
+        self._entries = <mpz_t *> sig_malloc(sizeof(mpz_t) * self._nrows * self._ncols)
         if not self._entries:
-            sage_free(self._rows)
+            sig_free(self._rows)
             raise MemoryError
         k = 0
         for i in range(self._nrows):
@@ -258,8 +257,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t k
         for k in range(self._nrows * self._ncols):
             mpz_clear(self._entries[k])
-        sage_free(self._rows)
-        sage_free(self._entries)
+        sig_free(self._rows)
+        sig_free(self._entries)
         self._initialized_mpz = False
 
     def __hash__(self):
@@ -624,7 +623,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -636,9 +635,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     if len_so_far + m + 2 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> sage_malloc(n * sizeof(char))
+                        tmp = <char*> sig_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        sage_free(s)
+                        sig_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -651,7 +650,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     t = t + 1
             sig_off()
             data = str(s)[:-1]
-            sage_free(s)
+            sig_free(s)
         return data
 
     def _unpickle(self, data, int version):
@@ -756,7 +755,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __nonzero__(self):
         r"""
-        Tests whether self is the zero matrix.
+        Tests whether self is not the zero matrix.
 
         EXAMPLES::
 
@@ -781,6 +780,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
+
+    def is_one(self):
+        r"""
+        Tests whether self is the identity matrix.
+
+        EXAMPLES::
+
+            sage: matrix(2, [1,0,0,1]).is_one()
+            True
+            sage: matrix(2, [1,1,0,1]).is_one()
+            False
+            sage: matrix(2, 3, [1,0,0,0,1,0]).is_one()
+            False
+        """
+        return self.is_square() and fmpz_mat_is_one(self._matrix)
 
     def _multiply_linbox(self, Matrix_integer_dense right):
         """
@@ -1520,7 +1534,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         nc = self._ncols
 
         cdef mod_int *entry_list
-        entry_list = <mod_int*>sage_malloc(sizeof(mod_int) * n)
+        entry_list = <mod_int*>sig_malloc(sizeof(mod_int) * n)
         if entry_list == NULL:
             raise MemoryError("out of memory allocating multi-modular coefficient list")
 
@@ -1536,7 +1550,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k])%(<Matrix_modn_dense_double>res[k]).p
         sig_off()
         mpz_clear(tmp)
-        sage_free(entry_list)
+        sig_free(entry_list)
         return res
 
     def _echelon_in_place_classical(self):
@@ -2294,7 +2308,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 2]
             [0 0]
 
-        Empty matrices are handled sensibly (see trac #3068)::
+        Empty matrices are handled sensibly (see :trac:`3068`)::
 
             sage: m = MatrixSpace(ZZ, 2,0)(0); d,u,v = m.smith_form(); u*m*v == d
             True
@@ -2739,11 +2753,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [SH95] C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
+        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
            Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology
            - EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
 
-        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*.
+        .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
            3rd edition, Johns Hopkins Univ. Press, 1996.
 
         """
@@ -3610,7 +3624,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._det_pari(1)
             0
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = <Integer>PY_NEW(Integer)
@@ -3659,7 +3673,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 fmpz_set_mpz(fmpz_mat_entry(M._matrix,i,j), mp_N[k])
                 mpz_clear(mp_N[k])
                 k += 1
-        sage_free(mp_N)
+        sig_free(mp_N)
         verbose("finished computing null space", time)
         return M
 
@@ -4167,7 +4181,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         sig_check()
         verbose("Initializing mp_N and mp_D")
-        mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+        mp_N = <mpz_t *> sig_malloc( n * m * sizeof(mpz_t) )
         for i from 0 <= i < n * m:
             mpz_init(mp_N[i])
         mpz_init(mp_D)
@@ -4192,7 +4206,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_clear(mp_D)
             for i from 0 <= i < n*m:
                 mpz_clear(mp_N[i])
-            sage_free(mp_N)
+            sig_free(mp_N)
 
     def _solve_flint(self, Matrix_integer_dense B, right=True):
         """
@@ -4758,7 +4772,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 res.set_unsafe_si(i,j,res_l[k])
                 k += 1
-        sage_free(res_l)
+        sig_free(res_l)
 
 
     cdef int* _hnf_modn_impl(Matrix_integer_dense self, unsigned int det,
@@ -4777,34 +4791,34 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int u, v, d
 
         # allocate memory for result matrix
-        res = <int*> sage_malloc(sizeof(int)*ncols*nrows)
+        res = <int*> sig_malloc(sizeof(int)*ncols*nrows)
         if res == NULL:
             raise MemoryError("out of memory allocating a matrix")
-        res_rows = <int**> sage_malloc(sizeof(int*)*nrows)
+        res_rows = <int**> sig_malloc(sizeof(int*)*nrows)
         if res_rows == NULL:
-            sage_free(res)
+            sig_free(res)
             raise MemoryError("out of memory allocating a matrix")
 
         # allocate memory for temporary matrix
-        T_ent = <int*> sage_malloc(sizeof(int)*ncols*nrows)
+        T_ent = <int*> sig_malloc(sizeof(int)*ncols*nrows)
         if T_ent == NULL:
-            sage_free(res)
-            sage_free(res_rows)
+            sig_free(res)
+            sig_free(res_rows)
             raise MemoryError("out of memory allocating a matrix")
-        T_rows = <int**> sage_malloc(sizeof(int*)*nrows)
+        T_rows = <int**> sig_malloc(sizeof(int*)*nrows)
         if T_rows == NULL:
-            sage_free(res)
-            sage_free(res_rows)
-            sage_free(T_ent)
+            sig_free(res)
+            sig_free(res_rows)
+            sig_free(T_ent)
             raise MemoryError("out of memory allocating a matrix")
 
         # allocate memory for temporary row vector
-        B = <int*>sage_malloc(sizeof(int)*nrows)
+        B = <int*>sig_malloc(sizeof(int)*nrows)
         if B == NULL:
-            sage_free(res)
-            sage_free(res_rows)
-            sage_free(T_ent)
-            sage_free(T_rows)
+            sig_free(res)
+            sig_free(res_rows)
+            sig_free(T_ent)
+            sig_free(T_rows)
             raise MemoryError("out of memory allocating a matrix")
 
         # initialize the row pointers
@@ -4880,10 +4894,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 for k from i <= k < ncols:
                     T_rows[i][k] = B[k]
 
-        sage_free(B)
-        sage_free(res_rows)
-        sage_free(T_ent)
-        sage_free(T_rows)
+        sig_free(B)
+        sig_free(res_rows)
+        sig_free(T_ent)
+        sig_free(T_rows)
         return res
 
 
@@ -5281,11 +5295,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: type(A)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
@@ -5393,7 +5407,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -5460,11 +5474,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [Mat(1), [1, 0; 0, 1]]
         """
         cdef GEN A
-        pari_catch_sig_on()
+        sig_on()
         A = pari._new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        pari.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls sig_off()
         return B
 
 
@@ -5523,9 +5537,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef gen H = pari.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
-        pari_catch_sig_on()
+        sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
-        pari.clear_stack()  # This calls pari_catch_sig_off()
+        pari.clear_stack()  # This calls sig_off()
         return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
@@ -5621,7 +5635,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
         [-3  0 -1  6]
         [ 1 -1  0 -2]
 
-        sage: from sage.ext.multi_modular import MultiModularBasis
+        sage: from sage.arith.multi_modular import MultiModularBasis
         sage: mm = MultiModularBasis([5,7,11])
         sage: _lift_crt(Matrix(ZZ, 4, 4), [T1, T2, T3], mm)
         [ 1  4 -1  0]
@@ -5634,7 +5648,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     for ``Matrix_modn_dense_double`` to be able to represent the
     ``residues`` ::
 
-        sage: from sage.ext.multi_modular import MAX_MODULUS as MAX_multi_modular
+        sage: from sage.arith.multi_modular import MAX_MODULUS as MAX_multi_modular
         sage: from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_modn_dense_double
         sage: MAX_MODULUS = min(MAX_multi_modular, MAX_modn_dense_double)
         sage: p0 = previous_prime(MAX_MODULUS)
@@ -5647,7 +5661,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
 
     cdef size_t i, j, k
     cdef Py_ssize_t nr, n
-    cdef mpz_t *tmp = <mpz_t *>sage_malloc(sizeof(mpz_t) * M._ncols)
+    cdef mpz_t *tmp = <mpz_t *>sig_malloc(sizeof(mpz_t) * M._ncols)
     n = len(residues)
     if n == 0:   # special case: obviously residues[0] wouldn't make sense here.
         return M
@@ -5669,13 +5683,13 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
             raise TypeError("Can only perform CRT on list of matrices mod n.")
 
     cdef mod_int **row_list
-    row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
+    row_list = <mod_int**>sig_malloc(sizeof(mod_int*) * n)
     if row_list == NULL:
         raise MemoryError("out of memory allocating multi-modular coefficient list")
 
     sig_on()
     for k in range(n):
-        row_list[k] = <mod_int *>sage_malloc(sizeof(mod_int) * nc)
+        row_list[k] = <mod_int *>sig_malloc(sizeof(mod_int) * nc)
         if row_list[k] == NULL:
             raise MemoryError("out of memory allocating multi-modular coefficient list")
 
@@ -5690,11 +5704,11 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
             M.set_unsafe_mpz(i,j,tmp[j])
 
     for k in range(n):
-        sage_free(row_list[k])
+        sig_free(row_list[k])
     for j in range(M._ncols):
         mpz_clear(tmp[j])
-    sage_free(row_list)
-    sage_free(tmp)
+    sig_free(row_list)
+    sig_free(tmp)
     sig_off()
     return M
 

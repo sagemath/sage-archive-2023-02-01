@@ -21,8 +21,8 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from sage.rings.arith import is_prime_power
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.arith.all import is_prime_power
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -688,7 +688,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
 
     REFERENCE:
 
-    .. [Hu75] X. L. Hubaut.
+    .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
       http://dx.doi.org/10.1016/0012-365X(75)90057-6
@@ -809,7 +809,7 @@ def SymplecticDualPolarGraph(m, q):
 
     REFERENCE:
 
-    .. [Co81] A. M. Cohen,
+    .. [Co81] \A. M. Cohen,
       `A synopsis of known distance-regular graphs with large diameters
       <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
       Stichting Mathematisch Centrum, 1981.
@@ -833,7 +833,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
     This graph admits a partition into cliques of size `q`, which are useful in
-    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`,
+    :func:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographSRG`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
@@ -919,7 +919,7 @@ def TaylorTwographSRG(q):
 
     .. SEEALSO::
 
-        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG>`
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographDescendantSRG`
 
     EXAMPLES::
 
@@ -972,7 +972,7 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
     .. [GQwiki] `Generalized quadrangle
       <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
 
-    .. [PT09] S. Payne, J. A. Thas.
+    .. [PT09] \S. Payne, J. A. Thas.
       Finite generalized quadrangles.
       European Mathematical Society,
       2nd edition, 2009.
@@ -1181,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
 
     """
     from sage.modules.free_module_element import free_module_element as vector
-    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from itertools import combinations
 
     p, k = is_prime_power(q,get_data=True)
@@ -1278,7 +1278,7 @@ def CossidentePenttilaGraph(q):
 
     REFERENCES:
 
-    .. [CP05] A.Cossidente and T.Penttila
+    .. [CP05] \A.Cossidente and T.Penttila
        Hemisystems on the Hermitian surface
        Journal of London Math. Soc. 72(2005), 731-741
     """

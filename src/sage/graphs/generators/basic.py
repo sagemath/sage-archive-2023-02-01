@@ -548,12 +548,50 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
+    
+    n = sum(l) #getting the number of vertices
+    r = len(l) #getting the number of partitions
+    positions = {}
+
+    if r > 2: #position code gives bad results on bipartite or isolated graphs
+
+        '''
+        Produce a layout of the vertices so that vertices in the same
+        vertex set are adjecent and clearly separated from vertices in other
+        vertex sets.
+
+        This is done by calculating the vertices of an r-gon then
+        calculating the slope between adjacent vertices. We then 'walk'
+        around the r-gon placing graph vertices in regular intervals between 
+        adjacent vertices of the r-gon.
+
+        Makes a nicely organized graph like in this picture: 
+        https://commons.wikimedia.org/wiki/File:Turan_13-4.svg
+        '''
+
+        points = [[cos(2*pi*i/r),sin(2*pi*i/r)] for i in range(r)]
+        slopes = [[(points[(i+1)%r][0]-points[i%r][0]),
+                   (points[(i+1)%r][1]-points[i%r][1])] for i in range(r)]
+
+        counter = 0
+
+        for i in range(len(l)):
+            vertex_set_size = l[i]+1
+            for j in range(1,vertex_set_size):
+                x = points[i][0]+slopes[i][0]*j/(vertex_set_size)
+                y = points[i][1]+slopes[i][1]*j/(vertex_set_size)
+                positions[counter] = (x,y)
+                counter += 1
+
     g = Graph()
     for i in l:
         g = g + CompleteGraph(i)
 
     g = g.complement()
+    g.set_pos(positions)
     g.name("Multipartite Graph with set sizes "+str(l))
+
+
 
     return g
 

@@ -694,7 +694,7 @@ class Braid(FinitelyPresentedGroupElement):
         REFERENCES:
 
         .. [Big99] Stephen J. Bigelow. The Burau representation is
-           not faithful for `n = 5`. Geom. Topol., 3:397–404, 1999.
+           not faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
         .. [JonesNotes] Vaughan Jones. The Jones Polynomial.
            https://math.berkeley.edu/~vfr/jones.pdf
         """
@@ -735,9 +735,9 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
+        .. [Dynnikov07] \I. Dynnikov and B. Wiest, On the complexity of braids,
            J. Europ. Math. Soc. 9 (2007)
-        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
+        .. [Dehornoy] \P. Dehornoy, Le probleme d'isotopie des tresses, in
            lecons de mathematiques d'aujourd'hui vol. 4
         """
         coord = [0, 1] * self.strands()
@@ -1803,7 +1803,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def _get_action_(self, S, op, self_on_left):
         """
-        Let the coercion system discover actions of the braid group on free groups.
+        Let the coercion system discover actions of the braid group on free groups. ::
 
             sage: B.<b0,b1,b2> = BraidGroup()
             sage: F.<f0,f1,f2,f3> = FreeGroup()
@@ -1822,10 +1822,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
             Unknown result parent.
         """
         import operator
-        if is_FreeGroup(S) and op==operator.mul and not self_on_left:
+        if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-
 
 
 def BraidGroup(n=None, names='s'):

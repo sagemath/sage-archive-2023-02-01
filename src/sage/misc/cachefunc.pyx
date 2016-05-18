@@ -426,7 +426,7 @@ in caches. This can be achieved by defining an appropriate method
     sage: hash(b)
     Traceback (most recent call last):
     ...
-    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
     sage: @cached_method
     ....: def f(x): return x == a
     sage: f(b)
@@ -973,6 +973,33 @@ cdef class CachedFunction(object):
             w = self.f(*args, **kwds)
             self.cache[k] = w
             return w
+
+    def cached(self, *args, **kwds):
+        """
+        Return the result from the cache if available. If the value is
+        not cached, raise ``KeyError``.
+
+        EXAMPLES::
+
+            sage: @cached_function
+            ....: def f(x):
+            ....:     return x
+            sage: f.cached(5)
+            Traceback (most recent call last):
+            ...
+            KeyError: ((5,), ())
+            sage: f(5)
+            5
+            sage: f.cached(5)
+            5
+        """
+        k = self.get_key_args_kwds(args, kwds)
+
+        try:
+            return self.cache[k]
+        except TypeError:  # k is not hashable
+            k = dict_key(k)
+            return self.cache[k]
 
     def get_cache(self):
         """
@@ -1883,6 +1910,47 @@ cdef class CachedMethodCaller(CachedFunction):
             cache[k] = w
             return w
 
+    def cached(self, *args, **kwds):
+        """
+        Return the result from the cache if available. If the value is
+        not cached, raise ``KeyError``.
+
+        EXAMPLES::
+
+            sage: class CachedMethodTest(object):
+            ....:     @cached_method
+            ....:     def f(self, x):
+            ....:         return x
+            sage: o = CachedMethodTest()
+            sage: CachedMethodTest.f.cached(o, 5)
+            Traceback (most recent call last):
+            ...
+            KeyError: ((5,), ())
+            sage: o.f.cached(5)
+            Traceback (most recent call last):
+            ...
+            KeyError: ((5,), ())
+            sage: o.f(5)
+            5
+            sage: CachedMethodTest.f.cached(o, 5)
+            5
+            sage: o.f.cached(5)
+            5
+        """
+        if self._instance is None:
+            # cached method bound to a class
+            instance = args[0]
+            args = args[1:]
+            return self._cachedmethod.__get__(instance).cached(*args, **kwds)
+
+        k = self.get_key_args_kwds(args, kwds)
+
+        try:
+            return self.cache[k]
+        except TypeError:  # k is not hashable
+            k = dict_key(k)
+            return self.cache[k]
+
     def __get__(self, inst, cls):
         r"""
         Get a :class:`CachedMethodCaller` bound to a specific
@@ -2425,6 +2493,27 @@ cdef class CachedMethod(object):
         sage: a = A()
         sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
         True
+
+    Cached methods can not be copied like usual methods, see :trac:`12603`.
+    Copying them can lead to very surprising results::
+
+        sage: class A:
+        ....:     @cached_method
+        ....:     def f(self):
+        ....:         return 1
+        sage: class B:
+        ....:     g=A.f
+        ....:     def f(self):
+        ....:         return 2
+
+        sage: b=B()
+        sage: b.f()
+        2
+        sage: b.g()
+        1
+        sage: b.f()
+        1
+
     """
     def __init__(self, f, name=None, key=None):
         """
@@ -2506,12 +2595,12 @@ cdef class CachedMethod(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: class Foo(object):
-            ...       def __init__(self, x):
-            ...           self._x = x
-            ...       @cached_method
-            ...       def f(self,n=2):
-            ...           return self._x^n
-            ...       g = deprecated_function_alias(57, f)
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
+            ....:     g = deprecated_function_alias(57, f)
             sage: a = Foo(2)
             sage: Foo.__dict__['f'](a)
             4

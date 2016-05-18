@@ -14,6 +14,7 @@ overridden by subclasses.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
@@ -21,6 +22,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
+from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -493,10 +495,10 @@ class InterfaceInit(Converter):
             sage: f = function('f')
             sage: a = f(x).diff(x); a
             D[0](f)(x)
-            sage: print m.derivative(a, a.operator())
+            sage: print(m.derivative(a, a.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
-            sage: print m.derivative(b, b.operator())
+            sage: print(m.derivative(b, b.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a
@@ -840,7 +842,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -902,8 +904,8 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+            if (res - ex).is_trivial_zero():
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -923,7 +925,7 @@ def algebraic(ex, field):
         sage: type(QQbar(a))
         <class 'sage.rings.qqbar.AlgebraicNumber'>
         sage: QQbar(i)
-        1*I
+        I
         sage: AA(golden_ratio)
         1.618033988749895?
         sage: QQbar(golden_ratio)
@@ -1298,7 +1300,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError("free variable: %s" % repr(ex))
+            raise NotImplementedError, "free variable: %s" % repr(ex)
 
     def arithmetic(self, ex, operator):
         """

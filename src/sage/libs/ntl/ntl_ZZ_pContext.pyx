@@ -13,7 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 import weakref

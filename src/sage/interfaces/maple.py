@@ -234,6 +234,7 @@ loaded.
 #
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
 import os
 
@@ -243,10 +244,12 @@ import pexpect
 
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
-class Maple(Expect):
+
+class Maple(ExtraTabCompletion, Expect):
     """
     Interface to the Maple interpreter.
 
@@ -325,7 +328,7 @@ class Maple(Expect):
             ...
             RuntimeError: Ctrl-c pressed while running Maple
         """
-        print "Interrupting %s..." % self
+        print("Interrupting %s..." % self)
         self._expect.sendline(chr(3))  # send ctrl-c
         self._expect.expect(self._prompt)
         raise RuntimeError("Ctrl-c pressed while running %s" % self)
@@ -392,7 +395,7 @@ class Maple(Expect):
 
         EXAMPLES::
 
-            sage: print maple._install_hints()
+            sage: print(maple._install_hints())
             In order...
         """
         return """
@@ -401,7 +404,7 @@ In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
 command-line version of Maple.  Alternatively, you could use a remote
 connection to a server running Maple; for hints, type
-    print maple._install_hints_ssh()
+    print(maple._install_hints_ssh())
 
   (1) You might have to buy Maple (http://webstore.maplesoft.com/).
 
@@ -516,43 +519,43 @@ connection to a server running Maple; for hints, type
             v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
                 sum([self.completions(chr(97+n)) for n in range(26)], [])
         except RuntimeError:
-            print "\n"*3
-            print "*"*70
-            print "WARNING: You do not have a working version of Maple installed!"
-            print "*"*70
+            print("\n" * 3)
+            print("*" * 70)
+            print("WARNING: You do not have a working version of Maple installed!")
+            print("*" * 70)
             v = []
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Returns a list of all the commands defined in Maple and optionally
         (per default) store them to disk.
 
         EXAMPLES::
 
-            sage: c = maple.trait_names(use_disk_cache=False, verbose=False) # optional - maple
+            sage: c = maple._tab_completion(use_disk_cache=False, verbose=False) # optional - maple
             sage: len(c) > 100  # optional - maple
             True
             sage: 'dilog' in c  # optional - maple
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding Maple command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding Maple command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200:
                 # Maple is actually installed.
                 sage.misc.persist.save(v, COMMANDS_CACHE)
@@ -715,7 +718,7 @@ connection to a server running Maple; for hints, type
 
         EXAMPLES::
 
-            sage: print maple._source('curry').strip()  # optional - maple
+            sage: print(maple._source('curry').strip())  # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple._source('ZZZ')                  #not tested
             Traceback (most recent call last):
@@ -858,7 +861,7 @@ class MapleFunction(ExpectFunction):
 
         EXAMPLES::
 
-            sage: print maple.curry._sage_src_().strip() # optional - maple
+            sage: print(maple.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple.ZZZ._sage_src_()                 #not tested 
             Traceback (most recent call last):
@@ -892,7 +895,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: g = maple('gcd')                   # optional - maple
-            sage: print g.curry._sage_src_().strip() # optional - maple
+            sage: print(g.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: m = maple('2')                     # optional - maple
             sage: m.ZZZ._sage_src_()                 #not tested 
@@ -902,7 +905,9 @@ class MapleFunctionElement(FunctionElement):
         """
         return self._obj.parent()._source(self._name)
 
-class MapleElement(ExpectElement):
+    
+class MapleElement(ExtraTabCompletion, ExpectElement):
+    
     def __float__(self):
         """
         Returns a floating point version of self.
@@ -1056,15 +1061,15 @@ class MapleElement(ExpectElement):
         except Exception as msg:
             raise TypeError(msg)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
             sage: a = maple(2) # optional - maple
-            sage: 'sin' in a.trait_names() # optional - maple
+            sage: 'sin' in a._tab_completion() # optional - maple
             True
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def __repr__(self):
         """
@@ -1093,11 +1098,11 @@ class MapleElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional - maple
+            sage: print(latex(maple('(x^4 - y)/(y^2-3*x)')))   # optional - maple
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
-            sage: print latex(maple(pi - e^3))                   # optional - maple
+            sage: print(latex(maple(pi - e^3)))                 # optional - maple
             \pi-{{\rm e}^{3}}
-            sage: print maple(pi - e^3)._latex_()                # optional - maple
+            sage: print(maple(pi - e^3)._latex_())              # optional - maple
             \pi-{{\rm e}^{3}}
  
         .. note::
@@ -1169,6 +1174,9 @@ def maple_console():
               |       Type ? for help.
         >
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%maple magics instead.')
     os.system('maple')
 
 

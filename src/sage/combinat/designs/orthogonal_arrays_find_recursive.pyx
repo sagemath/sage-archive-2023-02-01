@@ -47,7 +47,7 @@ Functions
 from sage.misc.cachefunc import cached_function
 from orthogonal_arrays import orthogonal_array
 from sage.rings.integer cimport Integer, smallInteger
-from sage.rings.arith import prime_powers
+from sage.arith.all import prime_powers
 
 @cached_function
 def find_recursive_construction(k, n):

@@ -175,7 +175,6 @@ cdef object BuiltinMethodType = type(repr)
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include 'sage/ext/stdsage.pxi'
 
 
 def is_Parent(x):
@@ -237,7 +236,6 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(category_object.CategoryObject):
-
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  gens=None, names=None, normalize=True, facade=None, **kwds):
         """
@@ -1570,7 +1568,7 @@ cdef class Parent(category_object.CategoryObject):
 
         TESTS:
 
-        We test the workaround described in #12956 to let categories
+        We test the workaround described in :trac:`12956` to let categories
         override this default implementation::
 
             sage: class As(Category):

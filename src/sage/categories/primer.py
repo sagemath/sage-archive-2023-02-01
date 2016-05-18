@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 
@@ -462,16 +462,18 @@ together with their operations, and designing an appropriate hierarchy
 of classes for organizing the code. As we have seen above, the design
 of the class hierarchy is easy since it can be modelled upon the
 hierarchy of categories (bookshelves). Here is for example a piece of
-the hierarchy of classes for an element of a group of matrices::
+the hierarchy of classes for an element of a group of permutations::
 
-    sage: G = GL(2,ZZ)
-    sage: m = G.an_element()
-    sage: for cls in m.__class__.mro(): print cls
-    <class 'sage.groups.matrix_gps.group_element.LinearMatrixGroup_gap_with_category.element_class'>
-    <class 'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap'>
+    sage: P = Permutations(4)
+    sage: m = P.an_element()
+    sage: for cls in m.__class__.mro(): print(cls)
+    <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
+    <class 'sage.combinat.permutation.StandardPermutations_n.Element'>
+    <class 'sage.combinat.permutation.Permutation'>
     ...
     <class 'sage.categories.groups.Groups.element_class'>
     <class 'sage.categories.monoids.Monoids.element_class'>
+    ...
     <class 'sage.categories.semigroups.Semigroups.element_class'>
     ...
 
@@ -524,7 +526,7 @@ group `G` is an instance of the following class::
 
 Here is a piece of the hierarchy of classes above it::
 
-    sage: for cls in G.__class__.mro(): print cls
+    sage: for cls in G.__class__.mro(): print(cls)
     <class 'sage.groups.matrix_gps.linear.LinearMatrixGroup_gap_with_category'>
     ...
     <class 'sage.categories.groups.Groups.parent_class'>
@@ -649,14 +651,14 @@ parallel to the hierarchy of categories::
      Category of sets,
      ...]
 
-    sage: for cls in Groups().element_class.mro(): print cls
+    sage: for cls in Groups().element_class.mro(): print(cls)
     <class 'sage.categories.groups.Groups.element_class'>
     <class 'sage.categories.monoids.Monoids.element_class'>
     <class 'sage.categories.semigroups.Semigroups.element_class'>
     ...
     <class 'sage.categories.magmas.Magmas.element_class'>
     ...
-    sage: for cls in Groups().parent_class.mro(): print cls
+    sage: for cls in Groups().parent_class.mro(): print(cls)
     <class 'sage.categories.groups.Groups.parent_class'>
     <class 'sage.categories.monoids.Monoids.parent_class'>
     <class 'sage.categories.semigroups.Semigroups.parent_class'>
@@ -1016,9 +1018,9 @@ for the parents or the elements, without touching the code base::
     ....:     def super_categories(self):
     ....:          return [PermutationGroups().Finite().Commutative()]
     ....:     class ParentMethods:
-    ....:         def foo(self): print "foo"
+    ....:         def foo(self): print("foo")
     ....:     class ElementMethods:
-    ....:         def bar(self): print "bar"
+    ....:         def bar(self): print("bar")
 
     sage: P = PermutationGroup([[(1,2,3)]], category=Foos())
     sage: P.foo()

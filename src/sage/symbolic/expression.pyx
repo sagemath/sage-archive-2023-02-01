@@ -20,7 +20,7 @@ Notice that squaring the relation squares both sides.
     sage: eqn.expand()
     x^2 - 2*x + 1 <= x^2 - 2*x + 3
 
-The can transform a true relational into a false one::
+This can transform a true relation into a false one::
 
     sage: eqn = SR(-5) < SR(-3); eqn
     -5 < -3
@@ -31,7 +31,7 @@ The can transform a true relational into a false one::
     sage: bool(eqn^2)
     False
 
-We can do arithmetic with relationals::
+We can do arithmetic with relations::
 
     sage: e = x+1 <= x-2
     sage: e + 2
@@ -53,7 +53,7 @@ We can do arithmetic with relationals::
     sage: -2/e
     -2/(x + 1) <= -2/(x - 2)
 
-We can even add together two relations, so long as the operators are
+We can even add together two relations, as long as the operators are
 the same::
 
     sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
@@ -123,26 +123,32 @@ Test if :trac:`9947` is fixed::
     2*sqrt(10)/(sqrt(3) + 5)
 """
 
-###############################################################################
-#   Sage: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/python.pxi"
+include "cysignals/signals.pxi"
 
 import operator
 import ring
 import sage.rings.integer
 import sage.rings.rational
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
+from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
+cimport sage.symbolic.comparison
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.misc.superseded import deprecated_function_alias
@@ -150,6 +156,7 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
+
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -1528,9 +1535,20 @@ cdef class Expression(CommutativeRingElement):
             ...           deriv = f.diff(*s)
             ...           h = hash(deriv)
             ...           if h in hashes:
-            ...               print "deriv: %s, hash:%s"%(deriv,h)
+            ...               print("deriv: %s, hash:%s" % (deriv, h))
             ...           else:
             ...               hashes.add(n)
+
+        Check whether `oo` keeps its hash in `SR` (:trac:`19918`)::
+
+            sage: hash(oo) == hash(SR(oo))
+            True
+            sage: hash(oo) == hash((-x).subs(x=-oo))
+            True
+            sage: hash(-oo) == hash(SR(-oo))
+            True
+            sage: hash(-oo) == hash((-x).subs(x=oo))
+            True
         """
         return self._gobj.gethash()
 
@@ -2031,9 +2049,10 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_symbol(self._gobj)
 
-    def is_constant(self):
+    def _is_registered_constant_(self):
         """
-        Return True if this symbolic expression is a constant.
+        Return True if this symbolic expression is interally represented as
+        a constant.
 
         This function is intended to provide an interface to query the internal
         representation of the expression. In this sense, the word ``constant``
@@ -2042,21 +2061,51 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: pi.is_constant()
+            sage: pi._is_registered_constant_()
             True
-            sage: x.is_constant()
+            sage: x._is_registered_constant_()
             False
-            sage: SR(1).is_constant()
+            sage: SR(1)._is_registered_constant_()
             False
 
         Note that the complex I is not a constant::
 
-            sage: I.is_constant()
+            sage: I._is_registered_constant_()
             False
             sage: I.is_numeric()
             True
         """
         return is_a_constant(self._gobj)
+
+    def is_constant(self):
+        """
+        Return whether this symbolic expression is a constant.
+
+        A symbolic expression is constant if it does not contain
+        any variables.
+
+        EXAMPLES::
+
+            sage: pi.is_constant()
+            True
+            sage: SR(1).is_constant()
+            True
+            sage: SR(2).is_constant()
+            True
+            sage: log(2).is_constant()
+            True
+            sage: I.is_constant()
+            True
+            sage: x.is_constant()
+            False
+
+        TESTS::
+
+            sage: P.<p> = ZZ[]
+            sage: SR(42).is_constant() == P(2).is_constant()
+            True
+        """
+        return not self.variables()
 
     def is_numeric(self):
         """
@@ -2079,60 +2128,23 @@ cdef class Expression(CommutativeRingElement):
 
     def is_series(self):
         """
-        Return True if ``self`` is a series.
+        TESTS::
 
-        Series are special kinds of symbolic expressions that are
-        constructed via the :meth:`series` method. They usually have
-        an ``Order()`` term unless the series representation is exact,
-        see :meth:`is_terminating_series`.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is a series symbolic
-        expression. Usually, this means that it was constructed by the
-        :meth:`series` method.
-
-        Returns ``False`` if only a subexpression of the symbolic
-        expression is a series.
-
-        EXAMPLES::
-
-            sage: SR(5).is_series()
-            False
-            sage: var('x')
-            x
             sage: x.is_series()
-            False
-            sage: exp(x).is_series()
-            False
-            sage: exp(x).series(x,10).is_series()
-            True
-
-        Laurent series are series, too::
-
-            sage: laurent_series = (cos(x)/x).series(x, 5)
-            sage: laurent_series
-            1*x^(-1) + (-1/2)*x + 1/24*x^3 + Order(x^5)
-            sage: laurent_series.is_series()
-            True
-
-        Something only containing a series as a subexpression is not a
-        series::
-
-            sage: sum_expr = 1 + exp(x).series(x,5); sum_expr
-            (1 + 1*x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + Order(x^5)) + 1
-            sage: sum_expr.is_series()
+            doctest:...: DeprecationWarning: ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead
+            See http://trac.sagemath.org/17659 for details.
             False
         """
-        return is_a_series(self._gobj)
+        from sage.misc.superseded import deprecation
+        deprecation(17659, "ex.is_series() is deprecated. Use isinstance(ex, sage.symbolic.series.SymbolicSeries) instead")
+        return False
 
     def is_terminating_series(self):
         """
         Return True if ``self`` is a series without order term.
 
         A series is terminating if it can be represented exactly,
-        without requiring an order term. See also :meth:`is_series`
-        for general series.
+        without requiring an order term.
 
         OUTPUT:
 
@@ -2143,8 +2155,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x^5+x^2+1).series(x,10)
             1 + 1*x^2 + 1*x^5
-            sage: (x^5+x^2+1).series(x,10).is_series()
-            True
             sage: (x^5+x^2+1).series(x,10).is_terminating_series()
             True
             sage: SR(5).is_terminating_series()
@@ -2156,7 +2166,7 @@ cdef class Expression(CommutativeRingElement):
             sage: exp(x).series(x,10).is_terminating_series()
             False
         """
-        return g_is_a_terminating_series(self._gobj)
+        return False
 
     cpdef bint is_polynomial(self, var):
         """
@@ -2488,6 +2498,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = matrix()
             sage: bool(f(x) - f(x) == 0)
             True
+
+        Check that we catch exceptions from Pynac (:trac:`19904`)::
+
+            sage: bool(SR(QQbar(I)) == I)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s)...
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3159,7 +3176,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (-1.0*x)*(1.0/x)
             -1.00000000000000
             sage: sin(1.0*pi)
-            sin(1.00000000000000*pi)
+            0
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3305,8 +3322,8 @@ cdef class Expression(CommutativeRingElement):
             1/x
             sage: ~SR(3)
             1/3
-            sage: v1=var('v1'); a = (2*erf(2*v1*arcsech(0))/v1); ~a
-            1/2*v1/erf(2*v1*arcsech(0))
+            sage: v1=var('v1'); a = (2*erf(2*v1*arcsech(1/2))/v1); ~a
+            1/2*v1/erf(2*v1*arcsech(1/2))
         """
         return 1/self
 
@@ -3411,7 +3428,7 @@ cdef class Expression(CommutativeRingElement):
             38
 
             sage: x,y,z = var('x y z');
-            sage: print (-x+z)*(3*x-3*z)
+            sage: print((-x+z)*(3*x-3*z))
             -3*(x - z)^2
 
             sage: t = var('t')
@@ -3445,8 +3462,25 @@ cdef class Expression(CommutativeRingElement):
             I*x - 1/2
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
+
+        Check if :trac:`16397` is fixed:
+
+            sage: cmp(1, sqrt(2))
+            -1
+            sage: cmp(SR(1), sqrt(2))
+            -1
+            sage: cmp(log(8), 3*log(2))
+            0
+            sage: RLF(1) < RLF(sqrt(2))
+            True
+            sage: RealSet((0, pi),[pi, pi],(pi,4))
+            (0, 4)
+            sage: RealSet((0, pi),[0, pi],(pi,4))
+            [0, 4)
+            sage: RealSet((0, pi),[0, 3.5],(pi,4))
+            [0, 4)
         """
-        return print_order_compare(left._gobj, (<Expression>right)._gobj)
+        return mixed_order(left, right)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:
         """
@@ -3570,6 +3604,22 @@ cdef class Expression(CommutativeRingElement):
             (e^sqrt(x))^x
             sage: latex(ex)
             \left(e^{\sqrt{x}}\right)^{x}
+
+        Test simplification of powers involving the reciprocal
+        logarithm of the (positive) base::
+
+            sage: 2^(1/log(2))
+            e
+            sage: 2^(x/log(2))
+            e^x
+            sage: 2^(-x^2/2/log(2))
+            e^(-1/2*x^2)
+            sage: x^(x/log(x))
+            x^(x/log(x))
+            sage: assume(x > 0)
+            sage: x^(x/log(x))
+            e^x
+            sage: forget()
 
         Test base a Python numeric type::
 
@@ -3992,6 +4042,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
+        cdef SymbolicSeries nex
         cdef int prec
         if order is None:
             from sage.misc.defaults import series_precision
@@ -4001,9 +4052,12 @@ cdef class Expression(CommutativeRingElement):
         sig_on()
         try:
             x = self._gobj.expand(0).series(symbol0._gobj, prec, 0)
+            nex = SymbolicSeries.__new__(SymbolicSeries)
+            nex._parent = self._parent
+            GEx_construct_ex(&nex._gobj, x)
         finally:
             sig_off()
-        return new_Expression_from_GEx(self._parent, x)
+        return nex
 
     def residue(self, symbol):
         """
@@ -4168,9 +4222,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x==1,3).truncate().expand()
             -2*x^2*cos(1) + 5/2*x^2*sin(1) + 5*x*cos(1) - 7*x*sin(1) - 3*cos(1) + 11/2*sin(1)
         """
-        if not is_a_series(self._gobj):
-            return self
-        return new_Expression_from_GEx(self._parent, series_to_poly(self._gobj))
+        return self
 
     def expand(Expression self, side=None):
         """
@@ -4198,7 +4250,15 @@ cdef class Expression(CommutativeRingElement):
             sage: expand((x-1)^3/(y-1))
             x^3/(y - 1) - 3*x^2/(y - 1) + 3*x/(y - 1) - 1/(y - 1)
             sage: expand((x+sin((x+y)^2))^2)
-            x^2 + 2*x*sin((x + y)^2) + sin((x + y)^2)^2
+            x^2 + 2*x*sin(x^2 + 2*x*y + y^2) + sin(x^2 + 2*x*y + y^2)^2
+
+        Observe that :meth:`expand` also expands function arguments::
+
+            sage: f(x) = function('f')(x)
+            sage: fx = f(x*(x+1)); fx
+            f((x + 1)*x)
+            sage: fx.expand()
+            f(x^2 + x)
 
         We can expand individual sides of a relation::
 
@@ -4403,12 +4463,12 @@ cdef class Expression(CommutativeRingElement):
             sage: w0 = SR.wild(0); w1 = SR.wild(1); w2 = SR.wild(2)
             sage: ((x+y)^a).match((x+y)^a)  # no wildcards, so empty dict
             {}
-            sage: print ((x+y)^a).match((x+y)^b)
+            sage: print(((x+y)^a).match((x+y)^b))
             None
             sage: t = ((x+y)^a).match(w0^w1)
             sage: t[w0], t[w1]
             (x + y, a)
-            sage: print ((x+y)^a).match(w0^w0)
+            sage: print(((x+y)^a).match(w0^w0))
             None
             sage: ((x+y)^(x+y)).match(w0^w0)
             {$0: x + y}
@@ -4420,12 +4480,12 @@ cdef class Expression(CommutativeRingElement):
             sage: t = ((a+b)*(a+c)).match((w0+w1)*(w0+w2))
             sage: t[w0], t[w1], t[w2]
             (a, c, b)
-            sage: print ((a+b)*(a+c)).match((w0+w1)*(w1+w2))
+            sage: print(((a+b)*(a+c)).match((w0+w1)*(w1+w2)))
             None
             sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
             sage: t[w0], t[w1]
             (x + y, a*z + b)
-            sage: print (a+b+c+d+f+g).match(c)
+            sage: print((a+b+c+d+f+g).match(c))
             None
             sage: (a+b+c+d+f+g).has(c)
             True
@@ -4435,7 +4495,7 @@ cdef class Expression(CommutativeRingElement):
             {$0: a + b + d + f}
             sage: (a+b).match(a+b+w0)
             {$0: 0}
-            sage: print (a*b^2).match(a^w0*b^w1)
+            sage: print((a*b^2).match(a^w0*b^w1))
             None
             sage: (a*b^2).match(a*b^w1)
             {$1: 2}
@@ -4445,7 +4505,7 @@ cdef class Expression(CommutativeRingElement):
         Beware that behind-the-scenes simplification can lead to
         surprising results in matching::
 
-            sage: print (x+x).match(w0+w1)
+            sage: print((x+x).match(w0+w1))
             None
             sage: t = x+x; t
             2*x
@@ -4503,6 +4563,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x^y)^z).find(w0^w1)
             [(x^y)^z]
         """
+        from sage.symbolic.comparison import print_sorted
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList found
         self._gobj.find(p._gobj, found)
@@ -4511,7 +4572,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(found.end()):
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
-        res.sort(cmp)
+        res = print_sorted(res)
         return res
 
     def has(self, pattern):
@@ -4681,10 +4742,22 @@ cdef class Expression(CommutativeRingElement):
             sage: cmd = '{} /. {} -> {}'                    # optional - mathematica
             sage: for s1,s2 in subs:                        # optional - mathematica
             ....:     mathematica.eval(cmd.format(E,s1,s2)) # optional - mathematica
-            'y^4+y^2+y'
-            'x^4+y+x'
-            'x^4+y'
-            'y'
+                 2    4
+            y + y  + y
+                 4
+            x + x  + y
+             4
+            x  + y
+            y
+
+        The same, with formatting more suitable for cut and paste::
+
+            sage: for s1,s2 in subs:                        # optional - mathematica
+            ....:     mathematica(cmd.format(E,s1,s2))      # optional - mathematica
+            y + y^2 + y^4
+            x + x^4 + y
+            x^4 + y
+            y
 
         TESTS:
 
@@ -4920,6 +4993,7 @@ cdef class Expression(CommutativeRingElement):
 
         """
         from sage.symbolic.ring import SR
+        from sage.symbolic.comparison import print_sorted
         cdef GExSet sym_set
         g_list_symbols(self._gobj, sym_set)
         res = []
@@ -4927,7 +5001,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(sym_set.end()):
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
-        res.sort(cmp=lambda x,y: -cmp(x,y))
+        res = print_sorted(res)[::-1]
         return tuple(res)
 
     def arguments(self):
@@ -5317,22 +5391,44 @@ cdef class Expression(CommutativeRingElement):
             sage: all(len(str(e.n(digits=k)))-1 >= k for k in ks)
             True
 
+        Symbolic sums with definite endpoints are expanded (:trac:`9424`)::
+
+            sage: (k,n) = var('k,n')
+            sage: f(n) = sum(abs(-k*k+n),k,1,n)
+            sage: ex = f(n=8); ex
+            sum(abs(-k^2 + 8), k, 1, 8)
+            sage: ex.n()
+            162.000000000000
+            sage: (ex+1).n()
+            163.000000000000
         """
         if prec is None:
             if digits is None:
                 prec = 53
             else:
                 prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+
+        from sage.symbolic.expression_conversions import ExpressionTreeWalker
+        class DefiniteSumExpander(ExpressionTreeWalker):
+            def composition(self, ex, operator):
+                if hasattr(operator, 'name') and operator.name() == 'sum' and (
+                    is_a_numeric((<Expression>ex.operands()[2])._gobj)
+                and is_a_numeric((<Expression>ex.operands()[3])._gobj)):
+                    from sage.calculus.calculus import symbolic_sum
+                    return symbolic_sum(*(ex.operands()))
+                return super(DefiniteSumExpander, self).composition(ex, operator)
+
+        s = DefiniteSumExpander(self)
+        cdef Expression x = self._parent(s())
         from sage.rings.real_mpfr import RealField
         R = RealField(prec)
         kwds = {'parent': R, 'algorithm': algorithm}
-        cdef Expression x
         try:
-            x = self._convert(kwds)
+            x = x._convert(kwds)
         except TypeError: # numerical approximation for real number failed
             pass          # try again with complex
             kwds['parent'] = R.complex_field()
-            x = self._convert(kwds)
+            x = x._convert(kwds)
 
         # we have to consider constants as well, since infinity is a constant
         # in pynac
@@ -5363,7 +5459,7 @@ cdef class Expression(CommutativeRingElement):
             sage: u = sqrt(43203735824841025516773866131535024)
             sage: u.round()
             207855083711803945
-            sage: t = sqrt(Integer('1'*1000)).round(); print str(t)[-10:]
+            sage: t = sqrt(Integer('1'*1000)).round(); print(str(t)[-10:])
             3333333333
             sage: (-sqrt(110)).round()
             -10
@@ -5712,6 +5808,7 @@ cdef class Expression(CommutativeRingElement):
 
         Series coefficients are now handled correctly (:trac:`17399`)::
 
+
             sage: s=(1/(1-x)).series(x,6); s
             1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
             sage: s.coefficients()
@@ -5732,19 +5829,15 @@ cdef class Expression(CommutativeRingElement):
             [[t, 0], [3, 1], [1, 2]]
 
         """
+        f = self._maxima_()
+        maxima = f.parent()
+        maxima._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        if is_a_series(self._gobj):
-            l = [[self.coefficient(x, d), d] for d in xrange(self.degree(x))]
-        else:
-            f = self._maxima_()
-            maxima = f.parent()
-            maxima._eval_line('load(coeflist)')
-            G = f.coeffs(x)
-            from sage.calculus.calculus import symbolic_expression_from_maxima_string
-            S = symbolic_expression_from_maxima_string(repr(G))
-            l = S[1:]
-
+        G = f.coeffs(x)
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        S = symbolic_expression_from_maxima_string(repr(G))
+        l = S[1:]
         if sparse is True:
             return l
         else:
@@ -6226,7 +6319,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a
             x^3 + y + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
             sage: a.degree()
             0
 
@@ -6360,15 +6453,17 @@ cdef class Expression(CommutativeRingElement):
         return R(f, f.degree()+1)
 
     def gcd(self, b):
-        """
-        Return the gcd of self and b, which must be integers or polynomials over
-        the rational numbers.
+        r"""
+        Return the gcd of self and b, which must be integers or polynomials
+        over the rational numbers.
 
-        TODO: I tried the massive gcd from
-        http://trac.sagemath.org/sage_trac/ticket/694 on Ginac dies
-        after about 10 seconds.  Singular easily does that GCD now.
-        Since Ginac only handles poly gcd over QQ, we should change
-        ginac itself to use Singular.
+        .. TODO::
+
+            I tried the massive gcd from
+            :trac:`694` on Ginac dies
+            after about 10 seconds.  Singular easily does that GCD now.
+            Since Ginac only handles poly gcd over `\QQ`, we should change
+            ginac itself to use Singular.
 
         EXAMPLES::
 
@@ -8771,8 +8866,8 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        There are two square roots of `$(x + 1)^2$`, so this should
-        not be simplified to `$x + 1$`, :trac:`12737`::
+        There are two square roots of `(x + 1)^2`, so this should
+        not be simplified to `x + 1`, see :trac:`12737`::
 
             sage: f = sqrt((x + 1)^2)
             sage: f.simplify_full()
@@ -9334,9 +9429,7 @@ cdef class Expression(CommutativeRingElement):
         an error::
 
             sage: f(8).n()
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot evaluate symbolic expression numerically
+            31.7752256945384
         """
         return self.parent()(self._maxima_().simplify_sum())
 
@@ -10645,19 +10738,18 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y,z = var('x,y,z')
             sage: sol=solve_diophantine(x^2-y==0); sol
             (t, t^2)
-            sage: print [(sol[0].subs(t=t),sol[1].subs(t=t)) for t in range(-3,4)]
+            sage: [(sol[0].subs(t=t),sol[1].subs(t=t)) for t in range(-3,4)]
             [(-3, 9), (-2, 4), (-1, 1), (0, 0), (1, 1), (2, 4), (3, 9)]
             sage: sol = solve_diophantine(x^2 + y^2 == z^2); sol
             (2*p*q, p^2 - q^2, p^2 + q^2)
-            sage: print [(sol[0].subs(p=p,q=q),sol[1].subs(p=p,q=q),sol[2].subs(p=p,q=q)) for p in range(1,4) for q in range(1,4)]
+            sage: [(sol[0].subs(p=p,q=q),sol[1].subs(p=p,q=q),sol[2].subs(p=p,q=q)) for p in range(1,4) for q in range(1,4)]
             [(2, 0, 2), (4, -3, 5), (6, -8, 10), (4, 3, 5), (8, 0, 8), (12, -5, 13), (6, 8, 10), (12, 5, 13), (18, 0, 18)]
 
         Solve Brahmagupta-Pell equations::
 
             sage: sol = solve_diophantine(x^2 - 2*y^2 == 1); sol
-            (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
-             3/4*sqrt(2)*(2*sqrt(2) + 3)^t - 3/4*sqrt(2)*(-2*sqrt(2) + 3)^t + (2*sqrt(2) + 3)^t + (-2*sqrt(2) + 3)^t)
-            sage: print [(sol[0].subs(t=t).simplify_full(),sol[1].subs(t=t).simplify_full()) for t in range(-1,5)]
+            [(-sqrt(2)*(2*sqrt(2) + 3)^t + sqrt(2)*(-2*sqrt(2) + 3)^t - 3/2*(2*sqrt(2) + 3)^t - 3/2*(-2*sqrt(2) + 3)^t,...
+            sage: [(sol[1][0].subs(t=t).simplify_full(),sol[1][1].subs(t=t).simplify_full()) for t in range(-1,5)]
             [(1, 0), (3, 2), (17, 12), (99, 70), (577, 408), (3363, 2378)]
 
         TESTS::
@@ -11634,8 +11726,10 @@ def solve_diophantine(f,  *args, **kwds):
         sage: solve_diophantine(a^2-3*b^2+1)
         []
         sage: solve_diophantine(a^2-3*b^2+2)
-        (1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
-         1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t)
+        [(1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
+          1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t),
+         (-1/2*sqrt(3)*(sqrt(3) + 2)^t + 1/2*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t,
+          -1/6*sqrt(3)*(sqrt(3) + 2)^t + 1/6*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t)]
     """
     from sage.symbolic.ring import SR
 
@@ -11840,3 +11934,4 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
        return greater
     else:
         raise TypeError("incompatible relations")
+

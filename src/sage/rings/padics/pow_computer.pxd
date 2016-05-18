@@ -5,7 +5,8 @@ from sage.rings.integer cimport Integer
 cdef class PowComputer_class(SageObject):
     cdef Integer prime
     cdef bint in_field
-    cdef int _initialized
+    cdef int __allocated
+    cdef public object _prec_type
 
     # the following three should be set by the subclasses
     cdef long ram_prec_cap # = prec_cap * e
@@ -16,11 +17,10 @@ cdef class PowComputer_class(SageObject):
     cdef unsigned long cache_limit
     cdef unsigned long prec_cap
 
-    cdef mpz_t temp_m
-
     cdef Integer pow_Integer(self, long n)
     cdef mpz_srcptr pow_mpz_t_top(self)
-    cdef mpz_srcptr pow_mpz_t_tmp(self, long n)
+    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n)
+    cdef mpz_t temp_m
 
 cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t* small_powers

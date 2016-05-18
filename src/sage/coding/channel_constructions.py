@@ -5,6 +5,29 @@ Given an input space and an output space, a channel takes element from
 the input space (the message) and transforms it into an element of the output space
 (the transmitted message).
 
+In Sage, Channels simulate error-prone transmission over communication
+channels, and we borrow the nomenclature from communication theory, such as
+"transmission" and "positions" as the elements of transmitted vectors.
+Transmission can be achieved with two methods:
+
+- :meth:`Channel.transmit`. Considering a channel ``Chan`` and a message
+  ``msg``, transmitting ``msg`` with ``Chan`` can be done this way::
+
+    Chan.transmit(msg)
+
+  It can also be written in a more convenient way::
+
+    Chan(msg)
+
+- :meth:`transmit_unsafe`. This does the exact same thing as
+  :meth:`transmit` except that it does not check if ``msg`` belongs to the
+  input space of ``Chan``::
+
+    Chan.transmit_unsafe(msg)
+
+This is useful in e.g. an inner-loop of a long simulation as a
+lighter-weight alternative to :meth:`Channel.transmit`.
+
 This file contains the following elements:
 
     - :class:`Channel`, the abstract class for Channels
@@ -26,12 +49,13 @@ This file contains the following elements:
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.prandom import randint, random, sample
 from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module import VectorSpace
+from sage.functions.other import binomial
 from copy import copy
 
 def random_error_vector(n, F, error_positions):
@@ -272,24 +296,6 @@ class StaticErrorRateChannel(Channel):
 
     The input space and the output space of this channel are the same.
 
-    The main purpose of communication channels is to transmit messages, which can be achieved with
-    two methods:
-
-    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
-      and a message ``msg``, transmitting
-      ``msg`` with ``Chan`` can be done this way::
-
-        Chan.transmit(msg)
-
-      It can also be written in a more convenient way::
-
-        Chan(msg)
-
-    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
-      that it does not check if ``msg`` belongs to the input space of ``Chan``::
-
-        Chan.transmit_unsafe(msg)
-
     INPUT:
 
     - ``space`` -- the space of both input and output
@@ -447,24 +453,6 @@ class ErrorErasureChannel(Channel):
 
     The output space of this channel is a Cartesian product
     between its input space and a VectorSpace of the same dimension over GF(2)
-
-    The main purpose of communication channels is to transmit messages, which can be achieved with
-    two methods:
-
-    - with the method :meth:`Channel.transmit`. Considering a channel ``Chan``
-      and a message ``msg``, transmitting
-      ``msg`` with ``Chan`` can be done this way::
-
-        Chan.transmit(msg)
-
-      It can also be written in a more convenient way::
-
-        Chan(msg)
-
-    - with the method :meth:`transmit_unsafe`. It does the exact same thing as :meth:`transmit` except
-      that it does not check if ``msg`` belongs to the input space of ``Chan``::
-
-        Chan.transmit_unsafe(msg)
 
     INPUT:
 
@@ -658,3 +646,197 @@ class ErrorErasureChannel(Channel):
             (3, 3)
         """
         return self._number_erasures
+
+
+
+
+
+
+
+
+
+
+class QarySymmetricChannel(Channel):
+    r"""
+    The q-ary symmetric, memoryless communication channel.
+
+    Given an alphabet `\Sigma` with `|\Sigma| = q` and an error probability
+    `\epsilon`, a q-ary symmetric channel sends an element of `\Sigma` into the
+    same element with probability `1 - \epsilon`, and any one of the other `q -
+    1` elements with probability `\frac{\epsilon}{q - 1}`. This implementation
+    operates over vectors in `\Sigma^n`, and "transmits" each element of the
+    vector independently in the above manner.
+
+    Though `\Sigma` is usually taken to be a finite field, this implementation
+    allows any structure for which Sage can represent `\Sigma^n` and for which
+    `\Sigma` has a `random_element()` method. However, beware that if `\Sigma`
+    is infinite, errors will not be uniformly distributed (since
+    `random_element()` does not draw uniformly at random).
+
+    The input space and the output space of this channel are the same:
+    `\Sigma^n`.
+
+    INPUT:
+
+    - ``space`` -- the input and output space of the channel. It has to be
+      `GF(q)^n` for some finite field `GF(q)`.
+
+    - ``epsilon`` -- the transmission error probability of the individual elements.
+
+    EXAMPLES:
+
+    We construct a QarySymmetricChannel which corrupts 30% of all transmitted
+    symbols::
+
+        sage: epsilon = 0.3
+        sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+        sage: Chan
+        q-ary symmetric channel with error probability 0.300000000000000,
+        of input and output space Vector space of dimension 50 over Finite Field of size 59
+    """
+
+    def __init__(self, space, epsilon):
+        r"""
+        TESTS:
+
+        If ``space`` is not a vector space, an error is raised::
+
+            sage: epsilon = 0.42
+            sage: Chan = channels.QarySymmetricChannel(GF(59), epsilon)
+            Traceback (most recent call last):
+            ...
+            ValueError: space has to be of the form Sigma^n, where Sigma has a random_element() method
+
+        If ``epsilon`` is not between 0 and 1, an error is raised::
+
+            sage: epsilon = 42
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            Traceback (most recent call last):
+            ...
+            ValueError: Error probability must be between 0 and 1
+        """
+        if epsilon >= 1 or epsilon <= 0:
+            raise ValueError("Error probability must be between 0 and 1")
+
+        super(QarySymmetricChannel, self).__init__(space, space)
+        self._epsilon = epsilon
+        try:
+            self.transmit_unsafe(space.random_element())
+        except:
+            raise ValueError("space has to be of the form Sigma^n, where Sigma has a random_element() method")
+
+    def __repr__(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan
+            q-ary symmetric channel with error probability 0.300000000000000,
+            of input and output space Vector space of dimension 50 over Finite Field of size 59
+        """
+        return "q-ary symmetric channel with error probability %s, of input and output space %s"\
+                    % (self.error_probability(), self.input_space())
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: latex(Chan)
+            \textnormal{q-ary symmetric channel with error probability 0.300000000000000,
+            of input and output space Vector space of dimension 50 over Finite Field of size 59}
+        """
+        return "\\textnormal{q-ary symmetric channel with error probability %s, of input and output space %s}"\
+                    % (self.error_probability(), self.input_space())
+
+    def transmit_unsafe(self, message):
+        r"""
+        Returns ``message`` where each of the symbols has been changed to another from the alphabet with
+        probability :meth:`error_probability`.
+
+        This method does not check if ``message`` belongs to the input space of``self``.
+
+        INPUT:
+
+        - ``message`` -- a vector
+
+        EXAMPLES::
+
+            sage: F = GF(59)^11
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(F, epsilon)
+            sage: msg = F((3, 14, 15, 9, 26, 53, 58, 9, 7, 9, 3))
+            sage: set_random_seed(10)
+            sage: Chan.transmit_unsafe(msg)
+            (3, 14, 15, 53, 12, 53, 58, 9, 55, 9, 3)
+        """
+        epsilon = self.error_probability()
+        V = self.input_space()
+        F = V.base_ring()
+        msg = copy(message.list())
+        for i in range(len(msg)):
+            if random() <= epsilon:
+                a = F.random_element()
+                while a == msg[i]:
+                    a = F.random_element()
+                msg[i] = a
+        return V(msg)
+
+    def error_probability(self):
+        r"""
+        Returns the error probability of a single symbol transmission of
+        ``self``.
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.error_probability()
+            0.300000000000000
+        """
+        return self._epsilon
+
+    def probability_of_exactly_t_errors(self, t):
+        r"""
+        Returns the probability ``self`` has to return
+        exactly ``t`` errors.
+
+        INPUT:
+
+        - ``t`` -- an integer
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.probability_of_exactly_t_errors(15)
+            0.122346861835401
+        """
+        n = self.input_space().dimension()
+        epsilon = self.error_probability()
+        return binomial(n, t) * epsilon**t * (1-epsilon)**(n-t)
+
+    def probability_of_at_most_t_errors(self, t):
+        r"""
+        Returns the probability ``self`` has to return
+        at most ``t`` errors.
+
+        INPUT:
+
+        - ``t`` -- an integer
+
+        EXAMPLES::
+
+            sage: epsilon = 0.3
+            sage: Chan = channels.QarySymmetricChannel(GF(59)^50, epsilon)
+            sage: Chan.probability_of_at_most_t_errors(20)
+            0.952236164579467
+        """
+        return sum(self.probability_of_exactly_t_errors(i)
+                for i in range(t+1))

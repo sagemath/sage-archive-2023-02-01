@@ -48,11 +48,11 @@ over all triples.
 References
 ----------
 
-.. [Koh04] E. Kohler. *Recognizing graphs without asteroidal triples*. Journal of
+.. [Koh04] \E. Kohler. *Recognizing graphs without asteroidal triples*. Journal of
       Discrete Algorithms 2(4):439-452, Dec. 2004
       http://dx.doi.org/10.1016/j.jda.2004.04.005
 
-.. [LB62] C. G. Lekkerkerker, J. Ch. Boland. *Representation of a finite graph
+.. [LB62] \C. G. Lekkerkerker, J. Ch. Boland. *Representation of a finite graph
       by a set of intervals on the real line*. Fundamenta Mathematicae,
       51:45-64, 1962.
 
@@ -67,7 +67,7 @@ Functions
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from libc.stdint cimport uint32_t

@@ -237,7 +237,7 @@ from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -966,7 +966,6 @@ class Permutation(CombinatorialElement):
             sage: all(from_cycles(size, p.to_cycles()) == p for p in sample)
             True
 
-
         Note: there is an alternative implementation called ``_to_cycle_set``
         which could be slightly (10%) faster for some input (typically for
         permutations of size in the range [100, 10000]). You can run the
@@ -995,17 +994,17 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
-        #Go through until we've considered every number between 1 and len(l)
+        # Go through until we've considered every number between 1 and len(l)
         for i in range(len(l)):
-            if l[i] == False:
+            if not l[i]:
                 continue
-            cycleFirst = i+1
-            cycle = [ cycleFirst ]
+            cycleFirst = i + 1
+            cycle = [cycleFirst]
             l[i], next = False, l[i]
             while next != cycleFirst:
                 cycle.append( next )
                 l[next - 1], next  = False, l[next - 1]
-            #Add the cycle to the list of cycles
+            # Add the cycle to the list of cycles
             if singletons or len(cycle) > 1:
                 cycles.append(tuple(cycle))
         return cycles
@@ -1864,6 +1863,24 @@ class Permutation(CombinatorialElement):
             6
         """
         return self.number_of_inversions()
+
+    def absolute_length(self):
+        """
+        Return the absolute length of ``self``
+
+        The absolute length is the length of the shortest expression
+        of the element as a product of reflections.
+
+        For permutations in the symmetric groups, the absolute
+        length is the size minus the number of its disjoint
+        cycles.
+
+        EXAMPLES::
+
+            sage: Permutation([4,2,3,1]).absolute_length()
+            1
+        """
+        return self.size() - len(self.cycle_type())
 
     @combinatorial_map(order=2,name='inverse')
     def inverse(self):
@@ -2912,7 +2929,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [GarStan1984] A. M. Garsia, Dennis Stanton.
+        .. [GarStan1984] \A. M. Garsia, Dennis Stanton.
            *Group actions on Stanley-Reisner rings and invariants of
            permutation groups*. Adv. in Math. **51** (1984), 107-201.
            http://www.sciencedirect.com/science/article/pii/0001870884900057
@@ -4618,7 +4635,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [OkounkovVershik2] A. M. Vershik, A. Yu. Okounkov.
+        .. [OkounkovVershik2] \A. M. Vershik, A. Yu. Okounkov.
            *A New Approach to the Representation Theory of the Symmetric
            Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
 
@@ -4710,7 +4727,7 @@ class Permutation(CombinatorialElement):
 
         REFERENCES:
 
-        .. [Mcd] I. G. Macdonald. Symmetric functions and Hall
+        .. [Mcd] \I. G. Macdonald. Symmetric functions and Hall
            polynomials. Oxford University Press, second edition, 1995.
         """
         from sage.combinat.perfect_matching import PerfectMatchings
@@ -5972,7 +5989,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: TestSuite(P).run()
             sage: P.global_options.reset()
         """
-        cat = FiniteWeylGroups() & FinitePermutationGroups()
+        cat = FiniteWeylGroups().Irreducible() & FinitePermutationGroups()
         StandardPermutations_n_abstract.__init__(self, n, category=cat)
 
     def _repr_(self):
@@ -6083,9 +6100,19 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         else:
             return from_rank(self.n, r)
 
-    def rank(self, p):
+    def rank(self, p=None):
         """
+        Return the rank of ``self`` or ``p`` depending on input.
+
+        If a permutation ``p`` is given, return the rank of ``p``
+        in ``self``. Otherwise return the dimension of the
+        underlying vector space spanned by the (simple) roots.
+
         EXAMPLES::
+
+            sage: P = Permutations(5)
+            sage: P.rank()
+            4
 
             sage: SP3 = Permutations(3)
             sage: map(SP3.rank, SP3)
@@ -6094,6 +6121,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: map(SP0.rank, SP0)
             [0]
         """
+        if p is None:
+            return self.n - 1
         if p in self:
             return Permutation(p).rank()
         raise ValueError("x not in self")
@@ -6121,6 +6150,35 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             24
         """
         return factorial(self.n)
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        These are the degrees of the fundamental invariants of the
+        ring of polynomial invariants.
+
+        EXAMPLES::
+
+            sage: Permutations(3).degrees()
+            (2, 3)
+            sage: Permutations(7).degrees()
+            (2, 3, 4, 5, 6, 7)
+        """
+        return tuple(Integer(i) for i in range(2, self.n+1))
+
+    def codegrees(self):
+        """
+        Return the codegrees of ``self``.
+
+        EXAMPLES::
+
+            sage: Permutations(3).codegrees()
+            (0, 1)
+            sage: Permutations(7).codegrees()
+            (0, 1, 2, 3, 4, 5)
+        """
+        return tuple(Integer(i) for i in range(self.n-1))
 
     def element_in_conjugacy_classes(self, nu):
         r"""
@@ -7511,10 +7569,17 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 # Patterns #
 ############
+from sage.combinat.words.finite_word import evaluation_dict
 
-def to_standard(p):
+def to_standard(p, cmp=None):
     r"""
-    Return a standard permutation corresponding to the list ``p``.
+    Return a standard permutation corresponding to the iterable ``p``.
+
+    INPUT:
+
+    - ``p`` -- an iterable
+    - ``cmp`` -- (optional) a comparison function for the two elements
+      ``x`` and ``y`` of ``p`` (return an integer according to the outcome)
 
     EXAMPLES::
 
@@ -7525,6 +7590,10 @@ def to_standard(p):
         [1, 2, 3]
         sage: permutation.to_standard([])
         []
+        sage: permutation.to_standard([1,2,3], cmp=lambda x,y: int(-1)*cmp(x,y))
+        [3, 2, 1]
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        [2, 1, 4, 3]
 
     TESTS:
 
@@ -7535,22 +7604,38 @@ def to_standard(p):
         [1, 2, 3]
         sage: a
         [1, 2, 4]
+
+    We check against the naive method::
+
+        sage: def std(p):
+        ....:     s = [0]*len(p)
+        ....:     c = p[:]
+        ....:     biggest = max(p) + 1
+        ....:     i = 1
+        ....:     for _ in range(len(c)):
+        ....:         smallest = min(c)
+        ....:         smallest_index = c.index(smallest)
+        ....:         s[smallest_index] = i
+        ....:         i += 1
+        ....:         c[smallest_index] = biggest
+        ....:     return Permutations()(s)
+        sage: p = list(Words(100, 1000).random_element())
+        sage: std(p) == permutation.to_standard(p)
+        True
+
     """
-    if not p:
-        return Permutations()([])
-    s = [0]*len(p)
-    c = p[:]
-    biggest = max(p) + 1
-    i = 1
-    for _ in range(len(c)):
-        smallest = min(c)
-        smallest_index = c.index(smallest)
-        s[smallest_index] = i
-        i += 1
-        c[smallest_index] = biggest
-
-    return Permutations()(s)
-
+    ev_dict = evaluation_dict(p)
+    ordered_alphabet = sorted(ev_dict, cmp=cmp)
+    offset = 0
+    for k in ordered_alphabet:
+        temp = ev_dict[k]
+        ev_dict[k] = offset
+        offset += temp
+    result = []
+    for l in p:
+        ev_dict[l] += 1
+        result.append(ev_dict[l])
+    return Permutations(len(result))(result)
 
 
 ##########################################################

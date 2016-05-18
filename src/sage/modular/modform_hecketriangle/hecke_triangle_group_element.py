@@ -428,7 +428,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             S*T^3*S*T^(-2)
         """
         if   method == "default":
-            return super(MatrixGroupElement_generic, self)._repr_()
+            return MatrixGroupElement_generic._repr_(self)
         elif method == "basic":
             (L, sgn) = self._word_S_T_data()
 
@@ -2974,7 +2974,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             (1/2*e, -1/2*e)
             sage: p = (-G.S()).fixed_points(embedded=True)[0]
             sage: p
-            1*I
+            I
             sage: (-G.S()).acton(p) == p
             True
             sage: (-G.V(2)).fixed_points()
@@ -2992,7 +2992,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             (1/2*e, -1/2*e)
             sage: p = (-G.S()).fixed_points(embedded=True)[1]
             sage: p
-            -1*I
+            -I
             sage: (-G.S()).acton(p) == p
             True
             sage: (G.U()^4).fixed_points()
@@ -3312,4 +3312,4 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
         """
 
-        return HyperbolicPlane().UHP().get_isometry(self.matrix()).to_model(model)
+        return HyperbolicPlane().UHP().get_isometry(self._matrix).to_model(model)

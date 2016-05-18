@@ -55,20 +55,29 @@ Check lazy import of ``interacts``::
 #*****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
 #*****************************************************************************
+
+# Future statements which apply to this module. We delete the
+# future globals because we do not want these to appear in the sage.all
+# namespace. This deleting does not affect the parsing of this module.
+from __future__ import absolute_import, division, print_function
+del absolute_import, division, print_function
 
 import os
 import sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(SAGE_SRC)
 
 
 ###################################################################
@@ -192,10 +201,6 @@ from copy import copy, deepcopy
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
-
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(sage.env.SAGE_SRC)
 
 
 ###########################################################

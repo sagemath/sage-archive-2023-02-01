@@ -1596,7 +1596,7 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
 
     while k < n:
         if verbose:
-            print "complete from", j0
+            print("complete from {}".format(j0))
         # initialize at j0
         mapping[j0] = k
         waiting[0].append(j0)
@@ -1609,11 +1609,11 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
             k += 1
             j = x[j]
         if verbose:
-            print "completed cycle mapping=", mapping
+            print("completed cycle mapping = {}".format(mapping))
 
         # find another guy
         if verbose:
-            print "try to find somebody in", waiting
+            print("try to find somebody in {}".format(waiting))
         l = 0
         while l < len(waiting):
             i = 0

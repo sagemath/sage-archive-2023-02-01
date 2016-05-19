@@ -572,7 +572,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             This matches with :wikipedia:`Root_systems`::
 
                 sage: for T in CartanType.samples(finite = True, crystallographic = True):
-                ...       print("%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots())))
+                ....:     print("%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots())))
                 ['A', 1]   2   2
                 ['A', 5]  30  30
                 ['B', 1]   2   2
@@ -1671,7 +1671,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             The action on all almost positive roots::
 
                 sage: for root in L.almost_positive_roots():
-                ...      print('tau({:<41}) ='.format(root), tau(root))
+                ....:     print('tau({:<41}) = {}'.format(root, tau(root)))
                 tau(-alpha[1]                                ) = alpha[1]
                 tau(alpha[1]                                 ) = -alpha[1]
                 tau(alpha[1] + alpha[2]                      ) = alpha[2] + alpha[3]
@@ -1692,7 +1692,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['B',3]).ambient_space()
                 sage: tau = L.tau_epsilon_operator_on_almost_positive_roots([1,3])
                 sage: for root in L.almost_positive_roots():
-                ....:     print('tau({:<41}) ='.format(root), tau(root))
+                ....:     print('tau({:<41}) = {}'.format(root, tau(root)))
                 tau((-1, 1, 0)                               ) = (1, -1, 0)
                 tau((1, 0, 0)                                ) = (0, 1, 0)
                 tau((1, -1, 0)                               ) = (-1, 1, 0)

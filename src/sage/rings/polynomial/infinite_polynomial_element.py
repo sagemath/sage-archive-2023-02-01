@@ -347,8 +347,11 @@ class InfinitePolynomial_sparse(RingElement):
             sage: import sagenb.misc.support as s
             sage: p = x[3]*x[2]
             sage: s.completions('p.co',globals(),system='python') # indirect doctest
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
-
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
         """
         return dir(self._p)
 
@@ -362,7 +365,11 @@ class InfinitePolynomial_sparse(RingElement):
             sage: import sagenb.misc.support as s
             sage: p = x[3]*x[2]
             sage: s.completions('p.co',globals(),system='python') # indirect doc test
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
             sage: 'constant_coefficient' in dir(p) # indirect doctest
             True
         """
@@ -394,7 +401,11 @@ class InfinitePolynomial_sparse(RingElement):
             sage: import sagenb.misc.support as s
             sage: p = alpha[3]*alpha[2]^2
             sage: s.completions('p.co',globals(),system='python') # indirect doc test
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
             sage: 'constant_coefficient' in dir(p) # indirect doctest
             True
 

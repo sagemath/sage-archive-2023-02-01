@@ -1134,9 +1134,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: R.<theta> = QQ[]
             sage: K.<a> = NumberField(theta^2 + 1)
             sage: K.galois_group(type='pari')
-            Traceback (most recent call last):
-            ...
-            PariError: theta already exists with incompatible valence
+            Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in a with defining polynomial theta^2 + 1
 
         """
         if v is None:

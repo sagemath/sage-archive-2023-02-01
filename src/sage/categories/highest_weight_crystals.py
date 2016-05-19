@@ -632,9 +632,11 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi = H({Bp.lowest_weight_vectors()[0]: x})
             sage: psi
             ['A', 2] Crystal morphism:
-              From: Full tensor product of the crystals [The T crystal of type ['A', 2] and weight (1, 1, 0), The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
+              From: Full tensor product of the crystals
+                [The T crystal of type ['A', 2] and weight Lambda[2],
+                 The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
               To:   The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
-              Defn: [(1, 1, 0), [[3]]] |--> [2, 1, 3]
+              Defn: [Lambda[2], [[3]]] |--> [2, 1, 3]
             sage: psi(Bp.highest_weight_vector())
             [[1, 1], [2]]
         """

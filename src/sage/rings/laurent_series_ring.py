@@ -17,12 +17,13 @@ EXAMPLES::
 
     * :func:`sage.misc.defaults.set_series_precision`
 """
+from __future__ import absolute_import
 
 import weakref
 
-import laurent_series_ring_element
-import power_series_ring
-import polynomial
+from . import laurent_series_ring_element
+from . import power_series_ring
+from . import polynomial
 from . import ring
 
 from sage.libs.pari.all import pari_gen

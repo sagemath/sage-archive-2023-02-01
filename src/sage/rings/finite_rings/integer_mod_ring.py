@@ -58,12 +58,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.misc.prandom as random
 
 from sage.arith.all import factor, primitive_root, CRT_basis
 import sage.rings.ring as ring
-import integer_mod
+from . import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring

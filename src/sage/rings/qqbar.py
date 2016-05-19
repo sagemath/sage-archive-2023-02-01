@@ -499,6 +499,8 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
+from __future__ import absolute_import
+
 import itertools
 import operator
 
@@ -519,7 +521,7 @@ from sage.rings.number_field.number_field import NumberField, QuadraticField, Cy
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
 from sage.structure.element import generic_power, canonical_coercion
-import infinity
+from . import infinity
 from sage.misc.functional import cyclotomic_polynomial
 
 CC = ComplexField()

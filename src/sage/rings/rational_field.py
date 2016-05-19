@@ -49,10 +49,11 @@ AUTHORS:
   Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
+from __future__ import absolute_import
 
-import rational
-import integer
-import infinity
+from . import rational
+from . import integer
+from . import infinity
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens

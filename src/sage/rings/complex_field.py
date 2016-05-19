@@ -18,12 +18,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import complex_number
-import complex_double
-import ring
-import integer
-import real_mpfr
+from . import complex_number
+from . import complex_double
+from . import ring
+from . import integer
+from . import real_mpfr
 import weakref
 from sage.misc.sage_eval import sage_eval
 

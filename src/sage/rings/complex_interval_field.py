@@ -32,14 +32,15 @@ heavily modified:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import complex_double
-import ring
-import integer
+from . import complex_double
+from . import ring
+from . import integer
 import weakref
-import real_mpfi
-import complex_interval
-import complex_field
+from . import real_mpfi
+from . import complex_interval
+from . import complex_field
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens

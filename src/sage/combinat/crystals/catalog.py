@@ -46,6 +46,8 @@ Functorial constructions:
 * :class:`DirectSum <sage.combinat.crystals.direct_sum.DirectSumOfCrystals>`
 * :class:`TensorProduct <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
 """
+from __future__ import absolute_import
+
 from .letters import CrystalOfLetters as Letters
 from .spins import CrystalOfSpins as Spins
 from .spins import CrystalOfSpinsPlus as SpinsPlus

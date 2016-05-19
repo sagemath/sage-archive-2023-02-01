@@ -110,7 +110,7 @@ Root system data and code for specific Cartan types
 - :ref:`sage.combinat.root_system.type_G_affine`
 - :ref:`sage.combinat.root_system.type_BC_affine`
 """
-
+from __future__ import absolute_import
 # currently needed to activate the backward compatibility register_unpickle_override
 from . import type_A
 from . import type_B

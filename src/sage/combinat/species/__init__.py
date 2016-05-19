@@ -50,4 +50,6 @@ Miscellaneous
 - :ref:`sage.combinat.species.misc`
 - :ref:`sage.combinat.species.combinatorial_logarithm`
 """
+from __future__ import absolute_import
+
 from . import all

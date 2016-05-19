@@ -16,5 +16,7 @@ Words
 - :ref:`sage.combinat.words.morphism`
 - :ref:`sage.combinat.words.paths`
 """
+from __future__ import absolute_import
+
 # Is this really needed?
 from . import all

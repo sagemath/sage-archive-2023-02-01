@@ -43,6 +43,8 @@ Related topics
 - :ref:`sage.graphs`
 
 """
+from __future__ import absolute_import
+
 #import demo
 #import demo_short
 #import demo_algebraic_combinatorics

@@ -1,3 +1,4 @@
+.. -*- coding: utf-8 -*-
 .. _tutorial-implementing-algebraic-structures:
 
 ===========================================
@@ -6,15 +7,15 @@ Tutorial: Implementing Algebraic Structures
 
 .. linkall
 
-.. MODULEAUTHOR:: Nicolas M. Thiéry <nthiery at users.sf.net> et al.
+.. MODULEAUTHOR:: Nicolas M. Thiéry <nthiery at users.sf.net>,
+   Jason Bandlow <jbandlow@gmail.com> et al.
 
-This tutorial will discuss five concepts:
+This tutorial will discuss four concepts:
 
-* constructing and manipulating new modules/vector spaces
-* adding more algebraic structure
+* endowing free modules and vector spaces with additional algebraic structure
 * defining morphisms
 * defining coercions and conversions
-* algebraic structures with several realizations
+* implementing algebraic structures with several realizations
 
 At the end of this tutorial, the reader should be able to reimplement
 by himself the example of algebra with several realizations::
@@ -38,9 +39,7 @@ represented by their expansion in this basis. In the running exercises
 we will progressively implement this algebra and its three
 realizations, with coercions and mixed arithmetic between them.
 
-
 This tutorial heavily depends on :ref:`sage.modules.tutorial_free_modules`.
-
 
 Subclassing free modules and including category information
 ===========================================================
@@ -72,9 +71,9 @@ a category where multiplication makes sense, which is not yet the
 case::
 
     sage: A.category()
-    Category of vector spaces with basis over Rational Field
+    Category of finite dimensional vector spaces with basis over Rational Field
 
-.. TODO:: how to use a proper link here and below?
+.. TODO:: link to the local documentation below. How?
 
 We can look at the available categories from the documentation in the
 reference manual: http://sagemath.com/doc/reference/categories.html
@@ -90,7 +89,7 @@ Once we have chosen an appropriate category (here
     sage: E = AlgebrasWithBasis(QQ).example(); E
     An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
     sage: e = E.an_element(); e
-    2*B[word: ] + 2*B[word: a] + 3*B[word: b]
+    B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
 
 and browse through its code::
 
@@ -104,9 +103,10 @@ ask the category (TODO: find a slicker idiom for this)::
 
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class)
-    {'required': ['__nonzero__'], 'optional': ['_add_', '_mul_']}
+    {'optional': ['_add_', '_mul_'],
+     'required': ['__nonzero__', 'monomial_coefficients']}
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).parent_class)
-    {'required': ['__contains__'], 'optional': ['algebra_generators', 'one_basis', 'product_on_basis']}
+    {'optional': ['one_basis', 'product_on_basis'], 'required': ['__contains__']}
 
 .. WARNING::
 
@@ -191,6 +191,7 @@ Ok, let's run the tests::
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_distributivity() . . . pass
@@ -245,7 +246,6 @@ Exercises
    Add the hopf algebra structure. Hint: look at the example::
 
        sage: C = HopfAlgebrasWithBasis(QQ).example()
-
 
 
 #. Given a set `S`, say::
@@ -461,14 +461,14 @@ Use the inverse of ``phi`` to implement the inverse coercion from
 method making it use ``phi`` and its inverse.
 
 
-Application: new basis and quotients of symmetric functions
-===========================================================
+A digression: new bases and quotients of symmetric functions
+============================================================
 
+As an application, we show how to combine what we have learned to
+implement a new basis and a quotient of the algebra of symmetric
+functions::
 
-In the sequel, we show how to combine everything we have seen to
-implement a new basis of the algebra of symmetric functions::
-
-    sage: SF = SymmetricFunctions(QQ);  # A GradedHopfAlgebraWithBasis
+    sage: SF = SymmetricFunctions(QQ);  # A graded Hopf algebra
     sage: h  = SF.homogeneous()         # A particular basis, indexed by partitions (with some additional magic)
 
 `h` is a graded algebra whose basis is indexed by partitions. Namely
@@ -482,7 +482,8 @@ and ``h(\mu) = prod( h(p) for p in mu )``::
     sage: h([3,2,2,1]) == h([3]) * h([2]) * h([2]) * h([1])
     True
 
-::
+    Here we define a new basis `(X_\lambda)_\lambda` by triangularity
+    w.r.t. `h`; namely, we set `X_\lambda = \sum_{\mu\geq \lambda, |\mu|=|\nu|} h_\mu`.
 
     sage: class MySFBasis(CombinatorialFreeModule):
     ....:     r"""
@@ -519,12 +520,16 @@ and ``h(\mu) = prod( h(p) for p in mu )``::
     sage: h(f)
     h[2, 1, 1] - 2*h[2, 2]
     sage: f*f*f
-    x[[2, 2, 2, 1, 1, 1, 1, 1, 1]] - 7*x[[2, 2, 2, 2, 1, 1, 1, 1]] + 18*x[[2, 2, 2, 2, 2, 1, 1]] - 20*x[[2, 2, 2, 2, 2, 2]] + 8*x[[3, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+    x[[2, 2, 2, 1, 1, 1, 1, 1, 1]] - 7*x[[2, 2, 2, 2, 1, 1, 1, 1]] + 18*x[[2, 2, 2, 2, 2, 1, 1]]
+    - 20*x[[2, 2, 2, 2, 2, 2]] + 8*x[[3, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
     sage: h(f*f)
     h[2, 2, 1, 1, 1, 1] - 4*h[2, 2, 2, 1, 1] + 4*h[2, 2, 2, 2]
 
-As a final example, we implement a quotient of the algebra of
-symmetric functions::
+We now implement a quotient of the algebra of symmetric functions
+obtained by killing any monomial symmetric function `m_\lambda` such
+that the first part of `\lambda` exceeds `k`. See
+:meth:`Sets.SubcategoryMethods.Subquotients` for details about
+implementing quotients::
 
     sage: class MySFQuotient(CombinatorialFreeModule):
     ....:     r"""
@@ -534,11 +539,10 @@ symmetric functions::
     ....:     """
     ....:
     ....:     def __init__(self, R, k, prefix=None, *args, **kwargs):
-    ....:
     ....:         CombinatorialFreeModule.__init__(self, R,
     ....:             Partitions(NonNegativeIntegers(), max_part=k),
     ....:             prefix = 'mm',
-    ....:             category = GradedHopfAlgebrasWithBasis(R), *args, **kwargs)
+    ....:             category = Algebras(R).Graded().WithBasis().Quotients(), *args, **kwargs)
     ....:
     ....:         self._k = k
     ....:         self._m = SymmetricFunctions(R).monomial()
@@ -549,33 +553,35 @@ symmetric functions::
     ....:         self.lift.register_as_coercion()
     ....:         self.retract.register_as_coercion()
     ....:
-    ....:     def _retract_on_basis(self, mu):
-    ....:         r""" Takes the index of a basis element of a monomial
-    ....:         symmetric function, and returns the projection of that
-    ....:         element to the quotient."""
+    ....:     def ambient(self):
+    ....:         return self._m
     ....:
+    ....:     def _retract_on_basis(self, mu):
+    ....:         r"""
+    ....:         Takes the index of a basis element of a monomial
+    ....:         symmetric function, and returns the projection of that
+    ....:         element to the quotient.
+    ....:         """
     ....:         if len(mu) > 0 and mu[0] > self._k:
     ....:             return self.zero()
     ....:         return self.monomial(mu)
     ....:
-    ....:     @cached_method
-    ....:     def one_basis(self):
-    ....:         return Partition([])
-    ....:
-    ....:     def product(self, left, right):
-    ....:         return self( self._m(left) * self._m(right) )
     sage: MM = MySFQuotient(QQ, 3)
     sage: mm = MM.basis()
     sage: m = SymmetricFunctions(QQ).monomial()
     sage: P = Partition
-    sage: f = mm[P([3,2,1])] + 2*mm[P([3,3])]
-    sage: f
+    sage: g = m[P([3,2,1])] + 2*m[P([3,3])] + m[P[4,2]]; g
+    sage: f = mm(f); f
     mm[[3, 2, 1]] + 2*mm[[3, 3]]
     sage: m(f)
     m[3, 2, 1] + 2*m[3, 3]
 
     sage: (m(f))^2
-    8*m[3, 3, 2, 2, 1, 1] + 12*m[3, 3, 2, 2, 2] + 24*m[3, 3, 3, 2, 1] + 48*m[3, 3, 3, 3] + 4*m[4, 3, 2, 2, 1] + 4*m[4, 3, 3, 1, 1] + 14*m[4, 3, 3, 2] + 4*m[4, 4, 2, 2] + 4*m[4, 4, 3, 1] + 6*m[4, 4, 4] + 4*m[5, 3, 2, 1, 1] + 4*m[5, 3, 2, 2] + 12*m[5, 3, 3, 1] + 2*m[5, 4, 2, 1] + 6*m[5, 4, 3] + 4*m[5, 5, 1, 1] + 2*m[5, 5, 2] + 4*m[6, 2, 2, 1, 1] + 6*m[6, 2, 2, 2] + 6*m[6, 3, 2, 1] + 10*m[6, 3, 3] + 2*m[6, 4, 1, 1] + 5*m[6, 4, 2] + 4*m[6, 5, 1] + 4*m[6, 6]
+    8*m[3, 3, 2, 2, 1, 1] + 12*m[3, 3, 2, 2, 2] + 24*m[3, 3, 3, 2, 1] + 48*m[3, 3, 3, 3]
+    + 4*m[4, 3, 2, 2, 1] + 4*m[4, 3, 3, 1, 1] + 14*m[4, 3, 3, 2] + 4*m[4, 4, 2, 2]
+    + 4*m[4, 4, 3, 1] + 6*m[4, 4, 4] + 4*m[5, 3, 2, 1, 1] + 4*m[5, 3, 2, 2]
+    + 12*m[5, 3, 3, 1] + 2*m[5, 4, 2, 1] + 6*m[5, 4, 3] + 4*m[5, 5, 1, 1] + 2*m[5, 5, 2]
+    + 4*m[6, 2, 2, 1, 1] + 6*m[6, 2, 2, 2] + 6*m[6, 3, 2, 1] + 10*m[6, 3, 3] + 2*m[6, 4, 1, 1] + 5*m[6, 4, 2] + 4*m[6, 5, 1] + 4*m[6, 6]
 
     sage: f^2
     8*mm[[3, 3, 2, 2, 1, 1]] + 12*mm[[3, 3, 2, 2, 2]] + 24*mm[[3, 3, 3, 2, 1]] + 48*mm[[3, 3, 3, 3]]
@@ -586,4 +592,53 @@ symmetric functions::
     sage: MM( (m(f))^2 - m(f^2) )
     0
 
+Implementing algebraic structures with several realizations
+===========================================================
 
+Let us come back to the subset algebra. We have implemented separately
+its ``F``, ``In`` and ``Out`` bases and coercions between them. It's
+convenient to tie them together by implementing an object `R` that
+model the abstract algebra. Beside some goodies, this:
+
+- Provides a single entry point for the user
+- Allows for the construction of larger structures (e.g. polynomials)
+  that accept elements from any of the basis (e.g. as coefficients).
+
+We first illustrate those features using the preimplemented example::
+
+
+    sage: A = Sets().WithRealizations().example(); R
+    The subset algebra of {1, 2, 3} over Rational Field
+    sage: A.inject_shorthands()
+    ...
+    sage: In[{1}]
+    In[{1}]
+
+    sage: P = A['x']; P
+    Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field
+    sage: x = P.gen()
+
+    sage: P.one()
+    F[{}]
+    sage: (P.an_element() + 1)^2
+    F[{}]*x^2 + 2*F[{}]*x + F[{}]
+
+    Alas the natural notation does not yet work::
+
+    sage: In[{1}] * x
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '*': 'The subset algebra of {1, 2, 3} over Rational Field in the In basis' and 'Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field'
+
+    But we can still create a polynomial with mixed coefficients, and
+    computer with it::
+
+    sage: p = P([1, In[{1}], Out[{2}] ])
+    sage: p.map_coefficients(In)
+    (-4*In[{}] + 2*In[{1}] + 4*In[{2}] + 2*In[{3}] - 2*In[{1, 2}] - In[{1, 3}] - 2*In[{2, 3}] + In[{1, 2, 3}])*x^2 + In[{1}]*x + In[{}]
+    sage: p^2
+    Out[{2}]*x^4
+    + (-8*In[{}] + 4*In[{1}] + 8*In[{2}] + 4*In[{3}] - 4*In[{1, 2}] - 2*In[{1, 3}] - 4*In[{2, 3}] + 2*In[{1, 2, 3}])*x^3
+    + (F[{}] + 3*F[{1}] + 2*F[{2}] - 2*F[{1, 2}] - 2*F[{2, 3}] + 2*F[{1, 2, 3}])*x^2
+    + (2*F[{}] + 2*F[{1}])*x
+    + F[{}]

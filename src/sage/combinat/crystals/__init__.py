@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 __doc__ = r"""
 Crystals
 ========
@@ -24,6 +26,5 @@ See also
 - The categories for crystals: :class:`Crystals`, :class:`HighestWeightCrystals`, :class:`FiniteCrystals`, :class:`ClassicalCrystals`, :class:`RegularCrystals` -- The categories for crystals
 - :ref:`sage.combinat.root_system`
 """
-from __future__ import absolute_import
 
 from . import all

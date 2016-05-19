@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 __doc__ = r"""
 Combinatorial Designs and Incidence Structures
 ==============================================

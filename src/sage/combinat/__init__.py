@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 __doc__ = r"""
 Combinatorics
 =============
@@ -43,7 +45,6 @@ Related topics
 - :ref:`sage.graphs`
 
 """
-from __future__ import absolute_import
 
 #import demo
 #import demo_short

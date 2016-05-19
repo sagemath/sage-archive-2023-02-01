@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 __doc__ = r"""
 Combinatorial Species
 =====================
@@ -50,6 +52,5 @@ Miscellaneous
 - :ref:`sage.combinat.species.misc`
 - :ref:`sage.combinat.species.combinatorial_logarithm`
 """
-from __future__ import absolute_import
 
 from . import all

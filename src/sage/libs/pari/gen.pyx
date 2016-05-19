@@ -4273,9 +4273,7 @@ cdef class gen(gen_auto):
             sage: f.subst("x", "I")
             0
         """
-        sig_on()
         cdef long n = P.get_var(var)
-        sig_off()
         if varn(self.g) == n:
             return self
         if typ(self.g) != t_POL and typ(self.g) != t_SER:

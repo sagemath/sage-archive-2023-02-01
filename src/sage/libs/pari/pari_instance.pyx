@@ -1080,8 +1080,7 @@ cdef class PariInstance(PariInstance_auto):
         self.set_real_precision(old_prec)
         return x
 
-
-    cdef long get_var(self, v):
+    cdef long get_var(self, v) except -2:
         """
         Convert ``v`` into a PARI variable number.
 
@@ -1126,6 +1125,19 @@ cdef class PariInstance(PariInstance_auto):
             Traceback (most recent call last):
             ...
             PariError: incorrect priority in gtopoly: variable x <= xx
+
+        TESTS:
+
+        The following example caused Sage to crash before
+        :trac:`20630`::
+
+            sage: R.<theta> = QQ[]
+            sage: K.<a> = NumberField(theta^2 + 1)
+            sage: K.galois_group(type='pari')
+            Traceback (most recent call last):
+            ...
+            PariError: theta already exists with incompatible valence
+
         """
         if v is None:
             return -1
@@ -1141,7 +1153,10 @@ cdef class PariInstance(PariInstance_auto):
         if v == -1:
             return -1
         cdef bytes s = bytes(v)
-        return fetch_user_var(s)
+        sig_on()
+        varno = fetch_user_var(s)
+        sig_off()
+        return varno
 
     ############################################################
     # Initialization

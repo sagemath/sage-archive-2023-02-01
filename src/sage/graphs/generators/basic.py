@@ -14,6 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -670,7 +671,7 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid is not ::
 
         sage: tgrid = graphs.ToroidalGrid2dGraph(8,9)
-        sage: print tgrid
+        sage: print(tgrid)
         Toroidal 2D Grid Graph with parameters 8,9
         sage: grid = graphs.Grid2dGraph(8,9)
         sage: grid.is_regular()

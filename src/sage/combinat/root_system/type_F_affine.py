@@ -9,6 +9,7 @@ Root system data for (untwisted) type F affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
@@ -76,7 +77,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4,1])._latex_dynkin_diagram()
+            sage: print(CartanType(['F',4,1])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (2 cm,0);
             {
             \pgftransformxshift{2 cm}
@@ -107,7 +108,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['F',4,1]).ascii_art(label = lambda x: x+2))
             O---O---O=>=O---O
             2   3   4   5   6
         """

@@ -33,4 +33,3 @@ lazy_import("sage.modules",
 lazy_import('sage.modules.filtered_vector_space', 'FilteredVectorSpace')
 lazy_import('sage.modules.multi_filtered_vector_space', 'MultiFilteredVectorSpace')
 
-lazy_import("tutorial_free_modules")

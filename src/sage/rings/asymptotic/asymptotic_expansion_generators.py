@@ -92,6 +92,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
@@ -422,8 +423,8 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
             sage: for p in range(5):
-            ....:     print asymptotic_expansions.HarmonicNumber(
-            ....:         'n', precision=p)
+            ....:     print(asymptotic_expansions.HarmonicNumber(
+            ....:         'n', precision=p))
             O(log(n))
             log(n) + O(1)
             log(n) + euler_gamma + O(n^(-1))

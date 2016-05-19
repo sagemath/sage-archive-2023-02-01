@@ -51,6 +51,7 @@ AUTHORS:
 
 - Robert Bradshaw: Cython version
 """
+from __future__ import print_function
 
 import operator
 
@@ -418,7 +419,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0

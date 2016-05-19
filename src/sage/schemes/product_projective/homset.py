@@ -61,10 +61,11 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
 class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_product_projective_spaces_ring):
     def points(self, B=0, prec=53):
         r"""
-        Return some or all rational points of a projective scheme. A list of points. Over a finite field,
-        all points are returned. Over an infinite field, all points satisfying the bound are returned. For
-        a zero-dimensional subscheme, all points are returned regardless of whether the base ring is a field
-        or not.
+        Return some or all rational points of a projective scheme.
+
+        Over a finite field, all points are returned. Over an infinite field, all points satisfying the bound
+        are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the base
+        ring is a field or not.
 
         INPUT:
 
@@ -74,7 +75,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         OUTPUT:
 
-        - all points with height at most the bound are returned.
+        - a list of rational points of a projective scheme.
 
         .. WARNING::
 
@@ -134,8 +135,6 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
         if not is_ProductProjectiveSpaces(X) and X.base_ring() in Fields():
-            points = set()
-            dim_ideal = X.defining_ideal().dimension()
             # no points
             if X.dimension() == -1:
                 return []

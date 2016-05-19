@@ -52,8 +52,11 @@ from sage.rings.polynomial.polydict import ETuple
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_product_projective
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace, ProjectiveSpace_ring
-from sage.schemes.product_projective.homset import SchemeHomset_points_product_projective_spaces_ring, SchemeHomset_points_product_projective_spaces_field
-from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring, ProductProjectiveSpaces_point_field, ProductProjectiveSpaces_point_finite_field
+from sage.schemes.product_projective.homset import (SchemeHomset_points_product_projective_spaces_ring,
+                                                    SchemeHomset_points_product_projective_spaces_field)
+from sage.schemes.product_projective.point import (ProductProjectiveSpaces_point_ring,
+                                                   ProductProjectiveSpaces_point_field,
+                                                   ProductProjectiveSpaces_point_finite_field)
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
 
 
@@ -568,7 +571,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1],ZZ)
+            sage: P.<x,y,z,w> = ProductProjectiveSpaces([1,1], ZZ)
             sage: P._point_homset(Spec(ZZ), P)
             Set of rational points of Product of projective spaces P^1 x P^1 over
             Integer Ring
@@ -971,9 +974,10 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
     def points_of_bounded_height(self,bound, prec=53):
         r"""
         Returns an iterator of the points in this product of projective spaces with the absolute heights of the
-        components of at most the given bound. Bound check is strict for the rational field. Requires the base
-        field of this space to be a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
-        up to a given height [Doyle-Krumm]_.
+        components of at most the given bound.
+
+        Bound check is strict for the rational field. Requires the base field of this space to be a number field.
+        Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
         INPUT:
 

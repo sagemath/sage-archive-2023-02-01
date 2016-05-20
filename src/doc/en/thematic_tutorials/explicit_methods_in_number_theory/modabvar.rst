@@ -76,6 +76,7 @@ abelian variety.
     of dimension 2 of J0(91)
     sage: for x in R.gens():
     ....:     print(x.matrix())
+    ....:     print("")
     [1 0 0 0]
     [0 1 0 0]
     [0 0 1 0]

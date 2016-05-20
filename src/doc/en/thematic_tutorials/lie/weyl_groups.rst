@@ -59,10 +59,8 @@ trivial::
     ....:     w0 = W.long_element()
     ....:     sr = W.domain().simple_roots()
     ....:     return all(a == -w0.action(a) for a in sr)
-    ....:
-    sage: for ct in [CartanType(['D',r]) for r in [2..8]]:
-    ....:     print("{} {}.format(ct,roots_not_permuted(ct)))
-    ....:
+    sage: for ct in [CartanType(['D', r]) for r in [2..8]]:
+    ....:     print("{} {}".format(ct, roots_not_permuted(ct)))
     ['D', 2] True
     ['D', 3] False
     ['D', 4] True

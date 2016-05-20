@@ -146,7 +146,7 @@ learn about how to drill down into Python lists. ::
     sage: exponent = secondterm[1]
     sage: print("Base is "+str(base))
     Base is 5
-    sage: print("Exponent is"+str(exponent))
+    sage: print("Exponent is "+str(exponent))
     Exponent is 2
     sage: thirdbase = decomposition[2][0]
     sage: thirdexponent = decomposition[2][1]

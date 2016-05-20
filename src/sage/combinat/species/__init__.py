@@ -50,5 +50,3 @@ Miscellaneous
 - :ref:`sage.combinat.species.misc`
 - :ref:`sage.combinat.species.combinatorial_logarithm`
 """
-
-from . import all

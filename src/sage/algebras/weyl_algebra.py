@@ -209,51 +209,35 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: x0,x1,x2,dx0,dx1,dx2 = W.gens()
             sage: latex( ((x0^3-x2)*dx0 + dx1)^2 )
             \frac{\partial^{2}}{\partial x_{1}^{2}}
-            + 2 x_{0}^{3} \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-            - 2 x_{2} \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-            + x_{0}^{6} \frac{\partial^{2}}{\partial x_{0}^{2}}
-            - 2 x_{0}^{3} x_{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
-            + x_{2}^{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
-            + 3 x_{0}^{5} \frac{\partial}{\partial x_{0}}
-            - 3 x_{0}^{2} x_{2} \frac{\partial}{\partial x_{0}}
+             + 2 x_{0}^{3} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             - 2 x_{2} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             + x_{0}^{6} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             - 2 x_{0}^{3} x_{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + x_{2}^{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + 3 x_{0}^{5} \frac{\partial}{\partial x_{0}}
+             - 3 x_{0}^{2} x_{2} \frac{\partial}{\partial x_{0}}
         """
         def term(m):
-            def half_term(m, polynomial=True):
-                R = self.parent()._poly_ring
-                total = sum(m)
-                ret = ''
+            R = self.parent()._poly_ring
+            exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
+            def half_term(mon, polynomial):
+                total = sum(mon)
                 if total == 0:
-                    return '1' 
+                    return '1'
+                ret = ' '.join('{}{}'.format(latex(R.gen(i)), exp(power)) if polynomial
+                               else '\\partial {}{}'.format(latex(R.gen(i)), exp(power))
+                               for i,power in enumerate(mon) if power > 0)
                 if not polynomial:
-                    if total == 1:
-                        ret += '\\frac{\\partial}{'
-                    else:
-                        ret += '\\frac{\\partial^{' + repr(total) + '}}{'
-                for i, power in enumerate(m):
-                    if power == 0:
-                        continue
-                    name = R.gen(i)
-                    if power == 1:
-                        if polynomial:
-                            ret += latex(name)
-                        else:
-                            ret += '\\partial {0}'.format(latex(name))
-                    else:
-                        if polynomial:
-                            ret += '{0}^{{{1}}}'.format(latex(name), power)
-                        else:
-                            ret += '\\partial {0}^{{{1}}}'.format(latex(name), power)
-                if not polynomial:
-                    ret += '}' # closing \frac
+                    return '\\frac{{\\partial{}}}{{{}}}'.format(exp(total), ret)
                 return ret
-            p =  half_term(m[0], True)
-            d =  half_term(m[1], False)
-            if p == '1':
+            p = half_term(m[0], True)
+            d = half_term(m[1], False)
+            if p == '1': # No polynomial part
                 return d
-            elif d == '1':
+            elif d == '1': # No differiental part
                 return p
             else:
-                return p + ' '  + d
+                return p + ' ' + d
         return repr_from_monomials(self.list(), term, True)
 
     # Copied from CombinatorialFreeModuleElement

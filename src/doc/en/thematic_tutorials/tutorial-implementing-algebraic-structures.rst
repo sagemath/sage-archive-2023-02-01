@@ -10,7 +10,7 @@ Tutorial: Implementing Algebraic Structures
 .. MODULEAUTHOR:: Nicolas M. Thiéry <nthiery at users.sf.net>,
    Jason Bandlow <jbandlow@gmail.com> et al.
 
-This tutorial will discuss four concepts:
+This tutorial will cover four concepts:
 
 * endowing free modules and vector spaces with additional algebraic structure
 * defining morphisms
@@ -40,6 +40,8 @@ we will progressively implement this algebra and its three
 realizations, with coercions and mixed arithmetic between them.
 
 This tutorial heavily depends on :ref:`sage.modules.tutorial_free_modules`.
+You may also want to read the less specialized thematic tutorial
+:ref:`How to implement new algebraic structures <coercion_and_categories>`.
 
 Subclassing free modules and including category information
 ===========================================================
@@ -596,49 +598,33 @@ Implementing algebraic structures with several realizations
 ===========================================================
 
 Let us come back to the subset algebra. We have implemented separately
-its ``F``, ``In`` and ``Out`` bases and coercions between them. It's
-convenient to tie them together by implementing an object `R` that
-model the abstract algebra. Beside some goodies, this:
+its ``F``, ``In``, and ``Out`` bases, as well as coercions between
+them. It is convenient to tie those parents together by implementing an
+object ``A`` that models the abstract algebra itself. Then, the parents
+``F``, ``In`` and ``Out`` will be *realizations* of ``A``, while ``A``
+will be a *parent with realizations*. See
+:func:`Sets().WithRealizations <sage.categories.with_realizations.WithRealizations>`
+for the expected user interface and the rationale.
 
-- Provides a single entry point for the user
-- Allows for the construction of larger structures (e.g. polynomials)
-  that accept elements from any of the basis (e.g. as coefficients).
+Here is a brief template highlighting the overall structure:
 
-We first illustrate those features using the preimplemented example::
+.. TODO::
 
+    - Andrew: insert your template here
+    - Nicolas: explain some of the technical details
 
-    sage: A = Sets().WithRealizations().example(); R
+We now urge the reader to browse the full code of the example, which is
+meant as a template for constructing new parents with realizations::
+
+    sage: A = Sets().WithRealizations().example()
     The subset algebra of {1, 2, 3} over Rational Field
-    sage: A.inject_shorthands()
-    ...
-    sage: In[{1}]
-    In[{1}]
 
-    sage: P = A['x']; P
-    Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field
-    sage: x = P.gen()
+    sage: A??                                     # not implemented
 
-    sage: P.one()
-    F[{}]
-    sage: (P.an_element() + 1)^2
-    F[{}]*x^2 + 2*F[{}]*x + F[{}]
 
-    Alas the natural notation does not yet work::
+Review
+======
 
-    sage: In[{1}] * x
-    Traceback (most recent call last):
-    ...
-    TypeError: unsupported operand parent(s) for '*': 'The subset algebra of {1, 2, 3} over Rational Field in the In basis' and 'Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field'
-
-    But we can still create a polynomial with mixed coefficients, and
-    computer with it::
-
-    sage: p = P([1, In[{1}], Out[{2}] ])
-    sage: p.map_coefficients(In)
-    (-4*In[{}] + 2*In[{1}] + 4*In[{2}] + 2*In[{3}] - 2*In[{1, 2}] - In[{1, 3}] - 2*In[{2, 3}] + In[{1, 2, 3}])*x^2 + In[{1}]*x + In[{}]
-    sage: p^2
-    Out[{2}]*x^4
-    + (-8*In[{}] + 4*In[{1}] + 8*In[{2}] + 4*In[{3}] - 4*In[{1, 2}] - 2*In[{1, 3}] - 4*In[{2, 3}] + 2*In[{1, 2, 3}])*x^3
-    + (F[{}] + 3*F[{1}] + 2*F[{2}] - 2*F[{1, 2}] - 2*F[{2, 3}] + 2*F[{1, 2, 3}])*x^2
-    + (2*F[{}] + 2*F[{1}])*x
-    + F[{}]
+We have now been through a complete tour of the features needed to
+implement an algebra with several realizations. Congratulations on
+reading this far!

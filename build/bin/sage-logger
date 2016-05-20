@@ -31,7 +31,7 @@ mkdir -p "$logdir"
 # We trap SIGINT such that SIGINT interrupts the main process being
 # run, not the logging.
 ( exec 2>&1; eval "$cmd" ) | ( trap '' SIGINT; tee -a "$logfile" ) | \
-    (while read line; do echo [${logname}] $line; done)
+    (while read line; do echo "[${logname}] $line"; done)
 
 pipestatus=(${PIPESTATUS[*]})
 

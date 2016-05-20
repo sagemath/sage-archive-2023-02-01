@@ -161,9 +161,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-import free_module_element
+from . import free_module_element
 import sage.matrix.matrix_space
 import sage.misc.latex as latex
 

@@ -1,4 +1,4 @@
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.rings.fast_arith cimport arith_llong
@@ -68,7 +68,7 @@ def bqf_theta_series(Q, long bound, var=None):
     a, b, c = Q
     cdef long* terms = bqf_theta_series_c(NULL, bound, a, b, c)
     L = [terms[i] for i from 0 <= i <= bound]
-    sage_free(terms)
+    sig_free(terms)
     return to_series(L, var)
 
 
@@ -152,7 +152,7 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
     try:
         terms = <long*>check_allocarray(bound, sizeof(long))
     except MemoryError:
-        sage_free(con_terms)
+        sig_free(con_terms)
         raise
     i = 0
     for an in an_list:
@@ -172,6 +172,6 @@ def gross_zagier_L_series(an_list, Q, long N, long u, var=None):
                 n += 1
     sig_off()
     L = [terms[i] for i in range(bound - 1)]
-    sage_free(con_terms)
-    sage_free(terms)
+    sig_free(con_terms)
+    sig_free(terms)
     return to_series(L, var)

@@ -427,7 +427,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -444,6 +444,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -503,7 +504,7 @@ class Function_ceil(BuiltinFunction):
 
             sage: h(x) = ceil(x)
             sage: h(pi)._numerical_approx()
-            4
+            4.00000000000000
         """
         return self._eval_(x)
 
@@ -590,7 +591,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -607,6 +608,7 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -664,7 +666,7 @@ class Function_floor(BuiltinFunction):
 
             sage: h(x) = floor(x)
             sage: h(pi)._numerical_approx()
-            3
+            3.00000000000000
         """
         return self._eval_(x)
 
@@ -849,7 +851,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -864,7 +866,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -876,7 +878,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -1301,13 +1303,6 @@ def gamma(a, *args, **kwds):
 
     Symbolic functions convert the arguments to symbolic expressions if they
     are in QQbar or AA::
-
-        sage: gamma(QQbar(I))
-        -0.154949828301811 - 0.498015668118356*I
-
-    .. SEEALSO::
-
-        :meth:`sage.functions.other.Function_gamma`
 
     .. SEEALSO::
 
@@ -1758,7 +1753,7 @@ class Function_binomial(GinacFunction):
             sage: loads(dumps(binomial(n,k)))
             binomial(n, k)
         """
-        GinacFunction.__init__(self, "binomial", nargs=2,
+        GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial'))

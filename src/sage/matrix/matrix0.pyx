@@ -21,6 +21,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython cimport *
 
@@ -793,7 +794,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         If we're given lists as arguments, we should throw an
         appropriate error when those lists do not contain valid
-        indices (trac #6569)::
+        indices (:trac:`6569`)::
 
             sage: A = matrix(4, range(1,17))
             sage: A[[1.5], [1]]
@@ -809,7 +810,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
-        Before trac #6569 was fixed, sparse/dense matrices behaved
+        Before :trac:`6569` was fixed, sparse/dense matrices behaved
         differently due to implementation details. Given invalid
         indices, they should fail in the same manner. These tests
         just repeat the previous set with a sparse matrix::
@@ -1634,7 +1635,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = matrix([[1,2], [3,4], [5,6]])
             sage: A.__repr__()
             '[1 2]\n[3 4]\n[5 6]'
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
             [5 6]
@@ -1644,7 +1645,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
             '100 x 100 dense matrix over Integer Ring'
-            sage: print A
+            sage: print(A)
             100 x 100 dense matrix over Integer Ring
 
         When a big matrix returned, include a hint on how to get the entries.
@@ -1766,7 +1767,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: K = (A-e).kernel()
             sage: P = K.basis_matrix()
             sage: P.str()
-            '[             1.000000000000000? + 0.?e-17*I -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.288602340904754?*I -0.4847545623533090? - 1.871890760086142?*I]'
+            '[              1.000000000000000? + 0.?e-17*I  -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.2886023409047535?*I  -0.4847545623533090? - 1.871890760086142?*I]'
 
         Use single-row delimiters where appropriate::
 
@@ -4202,7 +4203,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        .. [MulSto] T. Mulders, A. Storjohann, "On lattice reduction
+        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
           for polynomial matrices", J. Symbolic Comput. 35 (2003),
           no. 4, 377--401
 
@@ -4239,7 +4240,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT: a tuple of Python integers: the position of the
         first nonzero entry in each row of the echelon form.
 
-        This returns a tuple so it is immutable; see #10752.
+        This returns a tuple so it is immutable; see :trac:`10752`.
 
         EXAMPLES::
 
@@ -4252,9 +4253,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            print self
-            print self.nrows()
-            print self.dict()
+            print(self)
+            print(self.nrows())
+            print(self.dict())
             raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
         return tuple(x)
 
@@ -5185,7 +5186,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(~1)
             Rational Field
 
-        A matrix with 0 rows and 0 columns is invertible (see trac #3734)::
+        A matrix with 0 rows and 0 columns is invertible (see :trac:`3734`)::
 
             sage: M = MatrixSpace(RR,0,0)(0); M
             []
@@ -5222,7 +5223,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             ZeroDivisionError: input matrix must be nonsingular
 
-        Check to make sure that trac #2256 is still fixed::
+        Check to make sure that :trac:`2256` is still fixed::
 
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M

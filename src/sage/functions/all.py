@@ -1,4 +1,7 @@
-from piecewise import piecewise, Piecewise
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
+lazy_import('sage.functions.piecewise', 'piecewise')
 
 from trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,
@@ -21,13 +24,14 @@ from other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     arg, real_part, real,
                     imag_part, imag, imaginary, conjugate)
 
-from log import (exp, log, ln, polylog, dilog, lambert_w)
+from log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w)
 
 
 from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
+from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                                   Bessel, struve_H, struve_L)
 
 from special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,

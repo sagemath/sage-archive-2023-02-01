@@ -1164,7 +1164,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ]
 
         We verify that the irrelevant ideal isn't accidently returned
-        (see trac 6920)::
+        (see :trac:`6920`)::
 
             sage: PP.<x,y,z,w> = ProjectiveSpace(3,QQ)
             sage: f = x^3 + y^3 + z^3 + w^3
@@ -1231,9 +1231,18 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [   y -2*x    w    0]
             [   z   -y   -x    w]
             [   0    z -2*y    x]
+            
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian_matrix().base_ring() == P3.coordinate_ring()
+            True
         """
         R = self.ambient_space().coordinate_ring()
-        return jacobian(self.defining_polynomials(), R.gens())
+        l = self.defining_polynomials()
+        if len(l) == 0:
+            return sage.matrix.constructor.Matrix(R, 0)
+        return jacobian(l, R.gens())
 
     def Jacobian(self):
         r"""
@@ -1272,6 +1281,12 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
+        
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian() == P3.coordinate_ring().unit_ideal()
+            True
         """
         d = self.codimension()
         minors = self.Jacobian_matrix().minors(d)

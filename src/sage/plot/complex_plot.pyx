@@ -275,20 +275,36 @@ def complex_plot(f, xrange, yrange, **options):
         sage: complex_plot(sqrt(x), (-5, 5), (-5, 5))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(sqrt(x), (-5, 5), (-5, 5)))
+
     ::
 
         sage: complex_plot(sin(x), (-5, 5), (-5, 5))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(sin(x), (-5, 5), (-5, 5)))
 
     ::
 
         sage: complex_plot(log(x), (-10, 10), (-10, 10))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(log(x), (-10, 10), (-10, 10)))
+
     ::
 
         sage: complex_plot(exp(x), (-10, 10), (-10, 10))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(exp(x), (-10, 10), (-10, 10)))
 
     A function with some nice zeros and a pole::
 
@@ -296,15 +312,28 @@ def complex_plot(f, xrange, yrange, **options):
         sage: complex_plot(f, (-3, 3), (-3, 3))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3)))
+
     Here is the identity, useful for seeing what values map to what colors::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(complex_plot(lambda z: z, (-3, 3), (-3, 3)))
+
     The Riemann Zeta function::
 
         sage: complex_plot(zeta, (-30,30), (-30,30))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(zeta, (-30,30), (-30,30)))
 
     Extra options will get passed on to show(), as long as they are valid::
 

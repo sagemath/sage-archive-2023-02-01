@@ -112,3 +112,8 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
         exit 1
     fi
 fi
+
+# Delete tests that rely on the non-GPL small group library
+rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
+rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
+rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst 

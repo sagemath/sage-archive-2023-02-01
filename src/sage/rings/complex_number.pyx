@@ -1092,18 +1092,18 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
+            TypeError: unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
             sage: a.__float__()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
+            TypeError: unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
             sage: float(abs(ComplexNumber(1,1)))
             1.4142135623730951
         """
         if mpfr_zero_p(self.__im):
             return mpfr_get_d(self.__re, rnd)
         else:
-            raise TypeError, "Unable to convert %s to float; use abs() or real_part() as desired"%self
+            raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))
 
     def __complex__(self):
         r"""

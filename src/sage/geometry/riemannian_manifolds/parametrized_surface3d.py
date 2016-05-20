@@ -1521,9 +1521,9 @@ class ParametrizedSurface3D(SageObject):
         fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
 
         geodesic_ode = ode_solver()
-        geodesic_ode.function = \
-                              lambda t, (u1, u2, v1, v2) : \
-                              [v1, v2, fun1(u1, u2, v1, v2), fun2(u1, u2, v1, v2)]
+        geodesic_ode.function = (
+                              lambda t, u1_u2_v1_v2:
+                              [u1_u2_v1_v2[2], u1_u2_v1_v2[3], fun1(*u1_u2_v1_v2), fun2(*u1_u2_v1_v2)])
         return geodesic_ode
 
 
@@ -1642,7 +1642,7 @@ class ParametrizedSurface3D(SageObject):
         fun2 = fast_float(dv2, str(t), str(v1), str(v2))
 
         pt_ode = ode_solver()
-        pt_ode.function = lambda t, (v1, v2): [fun1(t, v1, v2), fun2(t, v1, v2)]
+        pt_ode.function = lambda t, v1_v2: [fun1(t, v1_v2[0], v1_v2[1]), fun2(t, v1_v2[0], v1_v2[1])]
         return pt_ode
 
 

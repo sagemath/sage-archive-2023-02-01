@@ -48,6 +48,7 @@ and library interfaces to Maxima.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
@@ -277,7 +278,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
-            print s,
+            print(s, end="")
             sys.stdout.flush()
         # in Maxima 5.19.1, apropos returns all commands that contain
         # the given string, instead of all commands that start with
@@ -349,12 +350,12 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding Maxima command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding Maxima command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands(verbose=verbose)
             if verbose:
-                print "\nDone!"
+                print("\nDone!")
             self.__tab_completion = v
             sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
@@ -891,7 +892,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
             sage: f
             f(x)=x*%e^x*('at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
-            sage: print f
+            sage: print(f)
                                                !
                                    x  d        !                  x          x
                         f(x) = x %e  (-- (f(x))!     ) - f(0) x %e  + f(0) %e
@@ -1064,7 +1065,6 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
                 cmd = cmd+'[discrete,'+str(pts_list[i][0])+','+str(pts_list[i][1])+'],'
             if i==n-1:
                 cmd = cmd+'[discrete,'+str(pts_list[i][0])+','+str(pts_list[i][1])+']]'
-        #print cmd
         if options is None:
             self('plot2d('+cmd+')')
         else:
@@ -1101,7 +1101,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
 
             sage: f = maxima('1/(x-1)^3'); f
             1/(x-1)^3
-            sage: print f
+            sage: print(f)
                                                   1
                                                --------
                                                       3
@@ -1872,7 +1872,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: f = maxima('1/((1+x)*(x-1))')
             sage: f.partial_fraction_decomposition('x')
             1/(2*(x-1))-1/(2*(x+1))
-            sage: print f.partial_fraction_decomposition('x')
+            sage: print(f.partial_fraction_decomposition('x'))
                                  1           1
                              --------- - ---------
                              2 (x - 1)   2 (x + 1)

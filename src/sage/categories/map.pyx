@@ -22,6 +22,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
 import homset
@@ -196,7 +197,7 @@ cdef class Map(Element):
 
             sage: Q = QuadraticField(-5)
             sage: phi = CDF._internal_convert_map_from(Q)
-            sage: print phi.parent()
+            sage: print(phi.parent())
             Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
 
         We now demonstrate that the reference to the coercion map `\phi` does
@@ -215,7 +216,7 @@ cdef class Map(Element):
 
             sage: Q = QuadraticField(-5)
             sage: phi = CDF.convert_map_from(Q)
-            sage: print phi.parent()
+            sage: print(phi.parent())
             Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
             sage: import gc
             sage: del Q
@@ -258,7 +259,7 @@ cdef class Map(Element):
             sage: phi.domain
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
-            sage: print phi.domain
+            sage: print(phi.domain)
             The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
 
         Now, as there is a strong reference, `Q` cannot be garbage collected::
@@ -320,7 +321,7 @@ cdef class Map(Element):
             sage: phi.domain
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
-            sage: print phi.domain
+            sage: print(phi.domain)
             The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
 
         Now, as there is a strong reference, `Q` cannot be garbage collected::
@@ -490,11 +491,11 @@ cdef class Map(Element):
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: print f._repr_type()
+            sage: print(f._repr_type())
             Generic
             sage: R.<x,y> = QQ[]
             sage: phi = R.hom([x+y, x-y], R)
-            sage: print phi._repr_type()
+            sage: print(phi._repr_type())
             Ring
         """
         if self._repr_type_str is None:
@@ -518,7 +519,7 @@ cdef class Map(Element):
             True
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             x |--> x + y
             y |--> x - y
         """
@@ -696,7 +697,7 @@ cdef class Map(Element):
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
-        by :meth:`pushforward` (see trac ticket #10496)::
+        by :meth:`pushforward` (see :trac:`10496`)::
 
             sage: D = {(0, 2): -1, (0, 0): -1, (1, 1): 7, (2, 0): 1/3}
             sage: phi(D)
@@ -716,16 +717,15 @@ cdef class Map(Element):
         above (that was fixed in :trac:`10496`)::
 
             sage: class FOO(Map):
-            ...     def _call_(self, x):
-            ...         print "_call_", parent(x)
-            ...         return self.codomain()(x)
-            ...     def _call_with_args(self, x, args=(), kwds={}):
-            ...         print "_call_with_args", parent(x)
-            ...         return self.codomain()(x)^kwds.get('exponent', 1)
-            ...     def pushforward(self, x, exponent=1):
-            ...         print "pushforward", parent(x)
-            ...         return self.codomain()(1/x)^exponent
-            ...
+            ....:   def _call_(self, x):
+            ....:       print("_call_ {}".format(parent(x)))
+            ....:       return self.codomain()(x)
+            ....:   def _call_with_args(self, x, args=(), kwds={}):
+            ....:       print("_call_with_args {}".format(parent(x)))
+            ....:       return self.codomain()(x)^kwds.get('exponent', 1)
+            ....:   def pushforward(self, x, exponent=1):
+            ....:       print("pushforward {}".format(parent(x)))
+            ....:       return self.codomain()(1/x)^exponent
             sage: f = FOO(ZZ, QQ)
             sage: f(1/1)   #indirect doctest
             pushforward Rational Field
@@ -1272,7 +1272,7 @@ cdef class Map(Element):
 
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
-            sage: print f.section()
+            sage: print(f.section())
             None
 
             sage: f = QQ.coerce_map_from(ZZ); f
@@ -1700,11 +1700,11 @@ cdef class FormalCompositeMap(Map):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x, *args, **kwds):
-            ...    print 'foo called with', args, kwds
-            ...    return x
+            ....:     print('foo called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: def bar(x, *args, **kwds):
-            ...    print 'bar called with', args, kwds
-            ...    return x
+            ....:     print('bar called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: f = SetMorphism(Hom(R, R, Rings()), foo)
             sage: b = SetMorphism(Hom(R, R, Rings()), bar)
             sage: c = b*f
@@ -1909,8 +1909,8 @@ cdef class FormalCompositeMap(Map):
         Otherwise, surjectivity of the composition cannot be determined::
 
             sage: FormalCompositeMap(Hom(V2, V1, phi32.category_for()),
-            ...     V2.hom(Matrix([[1, 1], [1, 1]]), V2),
-            ...     V2.hom(Matrix([[1], [1]]), V1)).is_surjective()
+            ....:     V2.hom(Matrix([[1, 1], [1, 1]]), V2),
+            ....:     V2.hom(Matrix([[1], [1]]), V1)).is_surjective()
             Traceback (most recent call last):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.

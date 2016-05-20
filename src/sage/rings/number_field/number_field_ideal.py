@@ -747,7 +747,7 @@ class NumberFieldIdeal(Ideal_generic):
         TESTS:
 
         Sage can find the free module associated to quite large ideals
-        quickly (see trac #4627)::
+        quickly (see :trac:`4627`)::
 
             sage: y = polygen(ZZ)
             sage: M.<a> = NumberField(y^20 - 2*y^19 + 10*y^17 - 15*y^16 + 40*y^14 - 64*y^13 + 46*y^12 + 8*y^11 - 32*y^10 + 8*y^9 + 46*y^8 - 64*y^7 + 40*y^6 - 15*y^4 + 10*y^3 - 2*y + 1)
@@ -983,7 +983,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         TESTS:
 
-        Test that this works with non-integral ideals (#10767)::
+        Test that this works with non-integral ideals (:trac:`10767`)::
 
             sage: K = QuadraticField(-2)
             sage: I = K.ideal(1/2)
@@ -993,7 +993,7 @@ class NumberFieldIdeal(Ideal_generic):
         L = self.number_field()
         other = L.ideal(other)
         nf = L.pari_nf()
-        hnf = nf.idealintersection(self.pari_hnf(), other.pari_hnf())
+        hnf = nf.idealintersect(self.pari_hnf(), other.pari_hnf())
         I = L.ideal(self._NumberFieldIdeal__elements_from_hnf(hnf))
         I.__pari_hnf = hnf
         return I
@@ -1386,7 +1386,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.smallest_integer()
             0
 
-            # See trac\# 4392:
+        See :trac:`4392`::
+
             sage: K.<a>=QuadraticField(-5)
             sage: I=K.ideal(7)
             sage: I.smallest_integer()
@@ -1447,18 +1448,20 @@ class NumberFieldIdeal(Ideal_generic):
             sage: i.valuation(0)
             Traceback (most recent call last):
             ...
-            ValueError: p (= 0) must be nonzero
+            ValueError: p (= Ideal (0) of Number Field in a with defining polynomial x^5 + 2) must be nonzero
+            sage: K.ideal(0).valuation(K.factor(2)[0][0])
+            +Infinity
         """
-        if p==0:
-            raise ValueError("p (= %s) must be nonzero"%p)
-        if not isinstance(p, NumberFieldFractionalIdeal):
+        if not isinstance(p, NumberFieldIdeal):
             p = self.number_field().ideal(p)
+        if not p:
+            raise ValueError("p (= %s) must be nonzero"%p)
         if not p.is_prime():
             raise ValueError("p (= %s) must be a prime"%p)
         if p.ring() != self.number_field():
             raise ValueError("p (= %s) must be an ideal in %s"%self.number_field())
         nf = self.number_field().pari_nf()
-        return ZZ(nf.idealval(self.pari_hnf(), p.pari_prime()))
+        return nf.idealval(self.pari_hnf(), p.pari_prime()).sage()
 
     def decomposition_group(self):
         r"""
@@ -2422,7 +2425,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: I.is_coprime(6+i)
             True
 
-            # See trac \# 4536:
+        See :trac:`4536`::
+
             sage: E.<a> = NumberField(x^5 + 7*x^4 + 18*x^2 + x - 3)
             sage: OE = E.ring_of_integers()
             sage: i,j,k = [u[0] for u in factor(3*OE)]

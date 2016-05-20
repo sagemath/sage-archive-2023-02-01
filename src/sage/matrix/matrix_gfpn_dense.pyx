@@ -26,7 +26,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
@@ -55,12 +55,11 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
 from libc.stdlib cimport free
-from sage.ext.memory cimport check_realloc
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 ####################
 #
@@ -309,7 +308,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     EXAMPLES::
 
         sage: M = MatrixSpace(GF(25,'z'),2,3)([1,2,3,4,5,6])
-        sage: print M
+        sage: print(M)
         [1 2 3]
         [4 0 1]
         sage: type(M)     # optional: meataxe
@@ -550,7 +549,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: M = MatrixSpace(GF(25,'x'), 3, 20)([20*[0],20*[0],[1]+19*[0]])
             sage: N = copy(M)   # indirect doctest
-            sage: print N
+            sage: print(N)
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -793,7 +792,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 #        for i in range(r_min, r_max):
 #            p = FfGetPtr(self.Data.Data, i)
 #            for j from 0<=j<self.Data.RowSize:
-#                print "%3.3d"%p[j],
+#                print("%3.3d" % p[j])
 #            print
 
 ##################

@@ -123,6 +123,7 @@ remove_old_version()
     rm -f "$SAGE_LOCAL"/bin/Singular*
     rm -f "$SAGE_LOCAL/include/factory.h"
     rm -f "$SAGE_LOCAL/include/factoryconf.h"
+    rm -rf "$SAGE_LOCAL/include/factory"
     rm -rf "$SAGE_LOCAL/include/singular"
 }
 

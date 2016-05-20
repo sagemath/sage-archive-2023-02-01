@@ -457,7 +457,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         try:
             return self.element_class(self, self.__ring(x), check=False)
         except TypeError:
-            raise TypeError("unable to convert %s into an element of %s"%(x,repr(self)))
+            raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
         """

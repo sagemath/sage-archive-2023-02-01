@@ -37,7 +37,7 @@ Hecke triangle groups and elements:
       sage: G.is_arithmetic()
       False
       sage: G.dvalue()
-      e^(2*euler_gamma - 2*sqrt(6)*pi/(sqrt(3) + 3) + psi(19/24) + psi(17/24))
+      e^(2*euler_gamma - 4*pi/(sqrt(6) + sqrt(2)) + psi(19/24) + psi(17/24))
       sage: AA(G.lam())
       1.9318516525781...?
 

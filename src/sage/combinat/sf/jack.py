@@ -8,11 +8,11 @@ implementation in sage.
 
 REFERENCES:
 
-.. [Jack1970] H. Jack,
+.. [Jack1970] \H. Jack,
    *A class of symmetric functions with a parameter*,
    Proc. R. Soc. Edinburgh (A), 69, 1-18.
 
-.. [Ma1995] I. G. Macdonald,
+.. [Ma1995] \I. G. Macdonald,
    *Symmetric functions and Hall polynomials*,
    second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
@@ -989,7 +989,7 @@ class JackPolynomials_p(JackPolynomials_generic):
 
         REFRENCES:
 
-            .. [Mc1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+            .. [Mc1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
                The Clarendon Press, Oxford University Press, New York, 1995, With contributions
                by A. Zelevinsky, Oxford Science Publications.
 
@@ -1399,14 +1399,6 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
             P = self.parent()._P
             return P(self).scalar_jack(P(x),2)
 
-#############
-#   Cache   #
-#############
-#from sage.misc.cache import Cache
-#cache_p = Cache(JackPolynomials_p)
-#cache_j = Cache(JackPolynomials_j)
-#cache_q = Cache(JackPolynomials_q)
-#cache_z = Cache(SymmetricFunctionAlgebra_zonal)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

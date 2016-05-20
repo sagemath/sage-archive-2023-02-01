@@ -11,6 +11,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cpdef NumberFieldElement galois_conjugate(self)
     cdef bint is_sqrt_disc(self)
 
+    cpdef list _coefficients(self)
+
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1
 
 

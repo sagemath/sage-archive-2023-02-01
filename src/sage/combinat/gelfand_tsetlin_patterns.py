@@ -7,15 +7,15 @@ AUTHORS:
 
 REFERENCES:
 
-.. [BBF] B. Brubaker, D. Bump, and S. Friedberg.
+.. [BBF] \B. Brubaker, D. Bump, and S. Friedberg.
    Weyl Group Multiple Dirichlet Series: Type A Combinatorial Theory.
    Ann. of Math. Stud., vol. 175, Princeton Univ. Press, New Jersey, 2011.
 
-.. [GC50] I. M. Gelfand and M. L. Cetlin.
+.. [GC50] \I. M. Gelfand and M. L. Cetlin.
    Finite-Dimensional Representations of the Group of Unimodular Matrices.
    Dokl. Akad. Nauk SSSR **71**, pp. 825--828, 1950.
 
-.. [Tok88] T. Tokuyama.
+.. [Tok88] \T. Tokuyama.
    A Generating Function of Strict Gelfand Patterns and Some Formulas on
    Characters of General Linear Groups.
    J. Math. Soc. Japan **40** (4), pp. 671--685, 1988.
@@ -50,6 +50,7 @@ from sage.combinat.partition import Partitions
 from sage.combinat.tableau import Tableau, SemistandardTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.all import prod
+
 
 class GelfandTsetlinPattern(ClonableArray):
     r"""
@@ -502,8 +503,8 @@ class GelfandTsetlinPattern(ClonableArray):
         """
         R = PolynomialRing(ZZ, name)
         t = R.gen(0)
-        if self.is_strict() == False:
-            return R(0)
+        if not self.is_strict():
+            return R.zero()
         return (t+1)**(self.number_of_special_entries()) * t**(self.number_of_boxes())
 
 
@@ -1017,12 +1018,21 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        The set of Gelfand-Tsetlin patterns can partially ordered by elementwise
-        domination.  The partial order has unique maximum and minimum elements
-        that are computed by the methods ``_cftp_upper`` and ``_cftp_lower``.
-        We then run the Markov chain that randomly toggles each element up or
-        down from the past until the state reached from the upper and lower start
+        The set of Gelfand-Tsetlin patterns can partially ordered by
+        elementwise domination.  The partial order has unique maximum
+        and minimum elements that are computed by the methods
+        :meth:`_cftp_upper` and :meth:`_cftp_lower`. We then run the Markov
+        chain that randomly toggles each element up or down from the
+        past until the state reached from the upper and lower start
         points coalesce as described in [Propp1997]_.
+
+        EXAMPLES::
+
+            sage: G = GelfandTsetlinPatterns(3, 5)
+            sage: G._cftp(0)  # random
+            [[5, 3, 2], [4, 2], [3]]
+            sage: G._cftp(0) in G
+            True
         """
         from sage.misc.randstate import current_randstate
         from sage.misc.randstate import seed

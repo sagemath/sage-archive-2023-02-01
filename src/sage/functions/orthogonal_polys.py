@@ -317,7 +317,7 @@ from sage.calculus.calculus import maxima
 
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
@@ -1238,7 +1238,7 @@ def gen_legendre_Q(n, m, x):
         return ((n-m+1)*x*gen_legendre_Q(n,m-1,x)-(n+m-1)*gen_legendre_Q(n-1,m-1,x))/sqrt(1-x**2)
 
 
-def hermite(n, x):
+class Func_hermite(GinacFunction):
     """
     Returns the Hermite polynomial for integers `n > -1`.
 
@@ -1263,7 +1263,7 @@ def hermite(n, x):
         8*y^6 - 12*y^2
         sage: w = var('w')
         sage: hermite(3,2*w)
-        8*(8*w^2 - 3)*w
+        64*w^3 - 24*w
 
     Check that :trac:`17192` is fixed::
 
@@ -1274,19 +1274,27 @@ def hermite(n, x):
         sage: hermite(-1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -1
+        RuntimeError: hermite_eval: The index n must be a nonnegative integer
 
         sage: hermite(-7,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -7
+        RuntimeError: hermite_eval: The index n must be a nonnegative integer
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+    def __init__(self):
+        r"""
+        Init method for the Hermite polynomials.
 
-    _init()
-    return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
+        EXAMPLES::
 
+            sage: loads(dumps(hermite))
+            hermite
+        """
+        GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
+                conversions={'maxima':'hermite', 'mathematica':'HermiteH',
+                    'maple':'HermiteH'}, preserved_arg=2)
+
+hermite = Func_hermite()
 
 def jacobi_P(n, a, b, x):
     r"""
@@ -1381,7 +1389,7 @@ def legendre_Q(n, x):
     return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
 
 
-def ultraspherical(n, a, x):
+class Func_ultraspherical(GinacFunction):
     """
     Returns the ultraspherical (or Gegenbauer) polynomial for integers
     `n > -1`.
@@ -1394,6 +1402,8 @@ def ultraspherical(n, a, x):
 
     EXAMPLES::
 
+        sage: ultraspherical(8, 101/11, x)
+        795972057547264/214358881*x^8 - 62604543852032/19487171*x^6...
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: ultraspherical(2,3/2,x)
         15/2*x^2 - 3/2
@@ -1404,6 +1414,12 @@ def ultraspherical(n, a, x):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
+        sage: var('x')
+        x
+        sage: for N in range(100):
+        ....:     n = ZZ.random_element().abs() + 5
+        ....:     a = QQ.random_element().abs() + 5
+        ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
 
     Check that :trac:`17192` is fixed::
 
@@ -1414,20 +1430,28 @@ def ultraspherical(n, a, x):
         sage: ultraspherical(-1,1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -1
+        RuntimeError: gegenb_eval: The index n must be a nonnegative integer
 
         sage: ultraspherical(-7,1,x)
         Traceback (most recent call last):
         ...
-        ValueError: n must be greater than -1, got n = -7
+        RuntimeError: gegenb_eval: The index n must be a nonnegative integer
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
+    def __init__(self):
+        r"""
+        Init method for the ultraspherical polynomials.
 
-    _init()
-    return sage_eval(maxima.eval('ultraspherical(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
+        EXAMPLES::
 
-gegenbauer = ultraspherical
+            sage: loads(dumps(ultraspherical))
+            gegenbauer
+        """
+        GinacFunction.__init__(self, "gegenbauer", nargs=3, latex_name=r"C",
+                conversions={'maxima':'ultraspherical', 'mathematica':'GegenbauerC',
+                    'maple':'GegenbauerC'})
+
+ultraspherical = Func_ultraspherical()
+gegenbauer = Func_ultraspherical()
 
 
 class Func_laguerre(OrthogonalFunction):

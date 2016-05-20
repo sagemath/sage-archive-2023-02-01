@@ -134,7 +134,6 @@ cdef class LaurentSeries(AlgebraElement):
 
 
         # self is that t^n * u:
-        cdef long val
         if not f:
             if n == infinity:
                 self.__n = 0
@@ -144,7 +143,10 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f
         else:
             val = f.valuation()
-            if val == 0:
+            if val == infinity:
+                self.__n = 0
+                self.__u = f
+            elif val == 0:
                 self.__n = n    # power of the variable
                 self.__u = f    # unit part
             else:
@@ -303,7 +305,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: latex(f)
             \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(x^{7})
 
-        Verify that trac #6656 has been fixed::
+        Verify that :trac:`6656` has been fixed::
 
             sage: R.<a,b>=PolynomialRing(QQ)
             sage: T.<x>=LaurentSeriesRing(R)

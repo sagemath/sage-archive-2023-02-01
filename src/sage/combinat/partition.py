@@ -76,8 +76,8 @@ number::
     sage: Partitions(4).first()
     [4]
 
-Using the method ``.next()``, we can calculate the 'next' partition.
-When we are at the last partition, ``None`` will be returned::
+Using the method ``.next(p)``, we can calculate the 'next' partition
+after `p`. When we are at the last partition, ``None`` will be returned::
 
     sage: Partitions(4).next([4])
     [3, 1]
@@ -582,7 +582,7 @@ class Partition(CombinatorialElement):
         raise ValueError('incorrect syntax for Partition()')
 
     def __setstate__(self, state):
-        """
+        r"""
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from ``Partition_class`` we have to override the default
         ``__setstate__``.
@@ -3093,7 +3093,7 @@ class Partition(CombinatorialElement):
 
            \prod_i m_i! i^{m_i}.
 
-        Including the optional parameters `t` and `q` gives the `q - t` analog
+        Including the optional parameters `t` and `q` gives the `q,t` analog,
         which is the former product times
 
         .. MATH::
@@ -3115,10 +3115,11 @@ class Partition(CombinatorialElement):
             sage: Partition([]).centralizer_size(q=2, t=4)
             1
         """
-        p = self
-        a = p.to_exp()
-        size = prod([(i+1)**a[i]*factorial(a[i]) for i in range(len(a))])
-        size *= prod( [ (1-q**j)/(1-t**j) for j in p ] )
+        size = prod(i ** mi * factorial(mi)
+                    for i, mi in self.to_exp_dict().iteritems())
+        if t or q:
+            size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
+                         for j in self)
 
         return size
 
@@ -6818,7 +6819,7 @@ class RegularPartitions_all(RegularPartitions):
 
             sage: P = Partitions(regular=3)
             sage: it = P.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
         """
         n = 0
@@ -6896,7 +6897,7 @@ class RegularPartitions_truncated(RegularPartitions):
 
             sage: P = Partitions(regular=3, max_length=2)
             sage: it = P.__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [5]]
         """
         n = 0

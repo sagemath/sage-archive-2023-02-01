@@ -5234,7 +5234,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         REFERENCES:
 
-        .. [SZ2001] M. Shimozono, M. Zabrocki,
+        .. [SZ2001] \M. Shimozono, M. Zabrocki,
            Hall-Littlewood vertex operators and generalized Kostka polynomials.
            Adv. Math. 158 (2001), no. 1, 66-85.
 

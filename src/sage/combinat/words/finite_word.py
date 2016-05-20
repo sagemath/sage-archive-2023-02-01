@@ -2963,21 +2963,21 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+        .. [BBGL08] \A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
            Combinatorial properties of f -palindromes in the Thue-Morse
            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+        .. [BHNR04] \S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
            Palindromic Complexity of Infinite Words, in J. Berstel, J.
            Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
            International Journal of Foundation of Computer Science, Vol. 15,
            No. 2 (2004) 293--306.
 
-        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+        .. [DJP01] \X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
            (2001), no. 1--2, 539--553.
 
-        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        .. [Sta11] \Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
            Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -3342,8 +3342,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
-            Ser. A 13:90–99, 1972.
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+           Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))
 
@@ -4621,10 +4621,7 @@ class FiniteWord_class(Word_class):
             sage: f['3'] == 1
             True
         """
-        d = {}
-        for a in self:
-            d[a] = d.get(a,0) + 1
-        return d
+        return evaluation_dict(self)
 
     def evaluation_sparse(self):
         r"""
@@ -4915,20 +4912,8 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, cmp=self.parent().cmp_letters)
 
     def _s(self, i):
         r"""
@@ -5710,12 +5695,12 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+        .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
-           Intelligencer, 7(3):20–29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
+           Intelligencer, 7(3):20--29, 1985.
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
@@ -5775,7 +5760,7 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+        .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
            at LaCIM2010.
 
         AUTHOR:
@@ -6883,7 +6868,7 @@ class FiniteWord_class(Word_class):
             some recent results). In S. Bozapalidis and G. Rahonis, editors,
             CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
             pages 23-47. Springer-Verlag, 2007.
-        .. [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+        .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
             words: Christoffel words and repetitions in words, CRM Monograph 
             Series, 27. American Mathematical Society, Providence, RI, 2009. 
             xii+147 pp. ISBN: 978-0-8218-4480-9
@@ -6966,4 +6951,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

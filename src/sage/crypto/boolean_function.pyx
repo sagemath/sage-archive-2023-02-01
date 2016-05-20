@@ -688,14 +688,14 @@ cdef class BooleanFunction(SageObject):
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
-            sage_free(temp)
+            sig_free(temp)
 
         return self._walsh_hadamard_transform
 
@@ -862,7 +862,7 @@ cdef class BooleanFunction(SageObject):
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
             for 0<= i < n:
@@ -870,7 +870,7 @@ cdef class BooleanFunction(SageObject):
 
             walsh_hadamard(temp, self._nvariables)
             self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
-            sage_free(temp)
+            sig_free(temp)
 
         return self._autocorrelation
 

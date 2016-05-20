@@ -1612,8 +1612,8 @@ class FSMState(sage.structure.sage_object.SageObject):
 
             sage: A.state((0, 0)).final_word_out = []
             sage: A.state((0, 0)).is_final = False
-            sage: A.state((0, 0)).is_final == False
-            True
+            sage: A.state((0, 0)).is_final
+            False
 
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
@@ -3897,7 +3897,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 kwargs['automatic_output_type'] = not 'format_output' in kwargs
             input_tape = args[0]
             if hasattr(input_tape, 'is_finite') and \
-                    input_tape.is_finite() == False:
+                    not input_tape.is_finite():
                 if not 'iterator_type' in kwargs:
                     kwargs['iterator_type'] = 'simple'
                 return self.iter_process(*args, **kwargs)
@@ -6283,7 +6283,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     for out in it_output]
 
         # process output: cannot return output to due input parameters
-        if options['list_of_outputs'] == False:
+        if options['list_of_outputs'] is False:
             if not it_output and only_accepted:
                 raise ValueError('No accepting output was found but according '
                                  'to the given options, an accepting output '
@@ -10488,7 +10488,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,
-           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81–96,
+           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81--96,
            :doi:`10.1007/s10998-007-3081-z`.
         """
         from sage.calculus.functional import derivative
@@ -11984,8 +11984,8 @@ class Automaton(FiniteStateMachine):
         options = copy(self._process_default_options_)
         options.update(kwargs)
 
-        condensed_output = (options['list_of_outputs'] == False and
-                            options['full_output'] == False)
+        condensed_output = (options['list_of_outputs'] is False and
+                            not options['full_output'])
 
         if condensed_output:
             options['list_of_outputs'] = True
@@ -13171,8 +13171,8 @@ class Transducer(FiniteStateMachine):
         options = copy(self._process_default_options_)
         options.update(kwargs)
 
-        condensed_output = (options['list_of_outputs'] == False and
-                            options['full_output'] == False)
+        condensed_output = (options['list_of_outputs'] is False and
+                            not options['full_output'])
 
         if condensed_output:
             options['list_of_outputs'] = True
@@ -13189,7 +13189,6 @@ class Transducer(FiniteStateMachine):
         if condensed_output:
             return result[0]
         return result
-
 
     def _process_convert_output_(self, output_data, **kwargs):
         """

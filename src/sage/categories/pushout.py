@@ -730,7 +730,7 @@ class PolynomialFunctor(ConstructionFunctor):
         sage: P(f)((x+y)*P(R).0)
         (-x + y)*t
 
-    By trac ticket #9944, the construction functor distinguishes sparse and
+    By :trac:`9944`, the construction functor distinguishes sparse and
     dense polynomial rings. Before, the following example failed::
 
         sage: R.<x> = PolynomialRing(GF(5), sparse=True)
@@ -1470,7 +1470,7 @@ class MatrixFunctor(ConstructionFunctor):
 
         TEST:
 
-        The following is a test against a bug discussed at ticket #8800
+        The following is a test against a bug discussed at :trac:`8800`::
 
             sage: F = MatrixSpace(ZZ,2,3).construction()[0]
             sage: F(RR)         # indirect doctest
@@ -2606,7 +2606,7 @@ class QuotientFunctor(ConstructionFunctor):
             sage: pushout(Q1,Q2)    # indirect doctest
             Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^4 + 2*x^2 + 1
 
-        The following was fixed in trac ticket #8800::
+        The following was fixed in :trac:`8800`::
 
             sage: pushout(GF(5), Integers(5))
             Finite Field of size 5

@@ -1637,11 +1637,13 @@ class GenericGraph(GenericGraph_pyx):
         return d
 
     def adjacency_matrix(self, sparse=None, vertices=None):
-        """
+        r""" 
         Returns the adjacency matrix of the (di)graph.
 
-        The matrix returned is over the integers. If a different ring is
-        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring` method or :func:`matrix`
+        The matrix returned is over the integers. If a different ring
+        is desired, use either
+        :meth:`sage.matrix.matrix0.Matrix.change_ring` method or
+        :class:`matrix <sage.matrix.constructor.MatrixFactory>`
         function.
 
         INPUT:
@@ -5040,7 +5042,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [Tarjan72] R.E. Tarjan. Depth-First Search and Linear Graph
+        .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
         if not self: # empty graph
@@ -5187,9 +5189,9 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCES:
 
-        .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
+        .. [HarPri] \F. Harary and G. Prins. The block-cutpoint-tree of
            a graph. Publ. Math. Debrecen 13 1966 103-107.
-        .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
+        .. [Gallai] \T. Gallai, Elementare Relationen bezueglich der
            Glieder und trennenden Punkte von Graphen, Magyar
            Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
         """
@@ -9459,6 +9461,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({0:[1,2], 3:[0]})
             sage: D.vertex_boundary([0])
             [1, 2]
+
+
+        TESTS:
+
+        When vertices2 is None, then vertices2 is the complement of vertices 1.
+        Corrected in ticket :trac:`20479`::
+
+            sage: P = graphs.PathGraph(3)
+            sage: P.vertex_boundary([0,1])
+            [2]
+            sage: P.vertex_boundary([0,1], set(P.vertices()).difference([0,1]))
+            [2]
+            sage: Q = DiGraph(P)
+            sage: Q.vertex_boundary([0,1])
+            [2]
+            sage: Q.vertex_boundary([0,1], set(Q.vertices()).difference([0,1]))
+            [2]
         """
         vertices1 = [v for v in vertices1 if v in self]
         output = set()
@@ -9468,7 +9487,9 @@ class GenericGraph(GenericGraph_pyx):
         else:
             for v in vertices1:
                 output.update(self.neighbor_iterator(v))
-        if vertices2 is not None:
+        if vertices2 is None:
+            output.difference_update(vertices1)
+        else:
             output.intersection_update(vertices2)
         return list(output)
 
@@ -15671,7 +15692,9 @@ class GenericGraph(GenericGraph_pyx):
     def wiener_index(self, by_weight=False, algorithm=None,
                      weight_function=None, check_weight=True):
         r"""
-        Returns the Wiener index of the graph.
+        Return the Wiener index of the graph.
+
+        The graph is expected to have no cycles of negative weight.
 
         The Wiener index of a graph `G` is
         `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
@@ -15688,28 +15711,32 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` (string) - the algorithm to use:
 
-          - ``'BFS'`` - the computation is done through a BFS centered on each
-            vertex successively. Works only if ``by_weight==False``.
+          - For ``by_weight==False`` only:
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+            - ``'BFS'`` - the computation is done through a BFS centered on
+              each vertex successively.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works also with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+            - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+              the Floyd-Warshall algorithm. Usually slower than ``'BFS'``.
 
-          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
-            NetworkX. It works with weighted graphs, but no negative weight is
-            allowed.
+          - For graphs without negative weights:
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
-            (works only with positive weights).
+            - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in
+              Boost.
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
+            - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+              NetworkX. Usually slower than ``'Dijkstra_Boost'``.
+
+          - For graphs with negative weights:
+
+            - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+              Boost.
+
+            - ``'Floyd-Warshall-Python'`` - the Python implementation of
+              the Floyd-Warshall algorithm. Usually slower than
+              ``'Johnson_Boost'``.
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
             unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
@@ -15842,7 +15869,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        .. [GYLL93] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+        .. [GYLL93] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 
@@ -19114,6 +19141,11 @@ class GenericGraph(GenericGraph_pyx):
         A list of the eigenvalues, including multiplicities, sorted
         with the largest eigenvalue first.
 
+        .. SEEALSO::
+
+            The method :meth:`spectral_radius` returns floating point
+            approximation of the maximum eigenvalue.
+
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
@@ -20986,6 +21018,9 @@ GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all
 from sage.graphs.base.boost_graph import dominator_tree
 GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
+from sage.graphs.base.static_sparse_graph import spectral_radius
+GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
+
 # From Python modules
 import sage.graphs.line_graph
 GenericGraph.line_graph = sage.graphs.line_graph.line_graph
@@ -21089,8 +21124,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     - ``g`` -- Graph or DiGraph
     - ``partition`` -- (default:None) if given, the partition of the vertices is as well relabeled
     - ``standard_label`` -- (default:None) the standard label is not considered to be changed
-    - ``return_relabeling`` -- (defaut:False) if True, a dictionary containing the relabeling is returned
-    - ``return_edge_labels`` -- (defaut:False) if True, the different edge_labels are returned (useful if inplace is True)
+    - ``return_relabeling`` -- (default: False) if True, a dictionary containing the relabeling is returned
+    - ``return_edge_labels`` -- (default: False) if True, the different edge_labels are returned (useful if inplace is True)
     - ``inplace`` -- (default:False) if True, g is modified, otherwise the result is returned. Note that attributes of g are *not* copied for speed issues, only edges and vertices.
 
     OUTPUT:

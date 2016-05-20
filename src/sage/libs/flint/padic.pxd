@@ -17,7 +17,7 @@ cdef extern from "flint/padic.h":
     long padic_val(padic_t)
 
     # Context ******************************************************************
-    void padic_ctx_init(padic_ctx_t ctx, fmpz_t p, long N, padic_print_mode mode)
+    void padic_ctx_init(padic_ctx_t ctx, fmpz_t p, long min, long max, padic_print_mode mode)
     void padic_ctx_clear(padic_ctx_t ctx)
     int _padic_ctx_pow_ui(fmpz_t rop, unsigned long e, padic_ctx_t ctx)
 

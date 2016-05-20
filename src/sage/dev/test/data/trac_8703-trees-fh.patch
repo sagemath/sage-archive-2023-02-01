@@ -1516,7 +1516,7 @@ new file mode 100644
 +
 +        REFERENCES:
 +
-+            .. [DG] S. Dulucq and O, Guibert. Mots de piles, tableaux
++            .. [DG] \S. Dulucq and O, Guibert. Mots de piles, tableaux
 +               standards et permutations de Baxter, proceedings of
 +               Formal Power Series and Algebraic Combinatorics, 1994.
 +        """

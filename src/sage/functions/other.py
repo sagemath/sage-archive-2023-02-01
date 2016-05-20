@@ -1293,20 +1293,9 @@ def gamma(a, *args, **kwds):
         ...
         TypeError: cannot coerce arguments: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Symbolic Ring
 
-    We make an exception for elements of AA or QQbar, which cannot be
-    coerced into symbolic expressions to allow this usage::
-
-        sage: t = QQbar(sqrt(2)) + sqrt(3); t
-        3.146264369941973?
-        sage: t.parent()
-        Algebraic Field
-
-    Symbolic functions convert the arguments to symbolic expressions if they
-    are in QQbar or AA::
-
     .. SEEALSO::
 
-        :meth:`sage.functions.other.Function_gamma_inc`
+        :meth:`sage.functions.other.Function_gamma`
         """
     if not args:
         return gamma1(a, **kwds)

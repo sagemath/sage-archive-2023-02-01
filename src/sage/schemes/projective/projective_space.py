@@ -92,7 +92,7 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 _Fields = Fields()
 
-from sage.categories.homset import Hom
+from sage.categories.homset import Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.categories.map import Map
 
@@ -910,6 +910,74 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.product_projective.space import ProductProjectiveSpaces
         return ProductProjectiveSpaces([self, other])
 
+    def chebyshev_polynomial(self, n, kind='first'):
+        """
+        Generates an endomorphism of this projective line by a Chebyshev polynomial.
+    
+        Chebyshev polynomials are a sequence of recursively defined orthogonal
+        polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
+        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
+        the second kind are defined as `U_0(x) = 1`,
+        `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
+    
+        INPUT:
+    
+        - ``n`` -- a non-negative integer.
+    
+        - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
+          to generate. Defaults to ``first``.
+    
+        OUTPUT: :class:`SchemeMorphism_polynomial_projective_space`
+    
+        EXAMPLES::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(5, 'first')
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x : y) to
+            (16*x^5 - 20*x^3*y^2 + 5*x*y^4 : y^5)
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(3, 'second')
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x : y) to
+            (8*x^3 - 4*x*y^2 : y^3)
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: keyword 'kind' must have a value of either 'first' or 'second'
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(-4, 'second')
+            Traceback (most recent call last):
+            ...
+            ValueError: first parameter 'n' must be a non-negative integer
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 2, 'x')
+            sage: P.chebyshev_polynomial(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: projective space must be of dimension 1
+        """
+        if self.dimension_relative() != 1:
+            raise TypeError("projective space must be of dimension 1")
+        n = ZZ(n)
+        if (n < 0):
+            raise ValueError("first parameter 'n' must be a non-negative integer")
+        #use the affine version and then homogenize.        
+        A = self.affine_patch(1)
+        f = A.chebyshev_polynomial(n, kind)
+        return f.homogenize(1)
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

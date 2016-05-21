@@ -1294,7 +1294,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         OUTPUT:
 
-        - A new :class: `SchemeMorphism_polynomial` which is this map coerced to ``R``.
+        - A new :class:`SchemeMorphism_polynomial` which is this map coerced to ``R``.
 
         EXAMPLES::
 

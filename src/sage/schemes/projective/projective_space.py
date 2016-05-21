@@ -963,7 +963,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         Bound check is strict for the rational field. Requires self to be projective space
         over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
-        up to a given height [Doyle-Krumm].
+        up to a given height [Doyle-Krumm]_.
 
         INPUT:
 
@@ -977,7 +977,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         .. WARNING::
 
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
            cannot be guaranteed to be correct due to the necessity of floating point
            computations. In some cases, the default 53-bit precision is
            considerably lower than would be required for the algorithm to

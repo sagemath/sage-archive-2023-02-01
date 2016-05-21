@@ -2,10 +2,7 @@ r"""
 Optimised Cython code for counting congruence solutions
 """
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
-
-from sage.rings.arith import valuation, kronecker_symbol, is_prime
+from sage.arith.all import valuation, kronecker_symbol, is_prime
 from sage.rings.finite_rings.integer_mod import IntegerMod, Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
@@ -290,7 +287,7 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     ## Check if the solution satisfies the zvec "zero" congruence conditions
     ## (either zvec is empty or its components index the zero vector mod p)
-    if (zvec == None) or (len(zvec) == 0):
+    if (zvec is None) or (len(zvec) == 0):
         zero_flag = True
     else:
         zero_flag = False
@@ -313,7 +310,7 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     ## Check if the solution satisfies the nzvec "nonzero" congruence conditions
     ## (nzvec is non-empty and its components index a non-zero vector mod p)
-    if (nzvec == None):
+    if (nzvec is None):
         nonzero_flag = True
     elif (len(nzvec) == 0):
         nonzero_flag = False           ## Trivially no solutions in this case!

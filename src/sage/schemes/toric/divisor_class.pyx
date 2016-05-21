@@ -56,8 +56,7 @@ divisor representing a divisor class::
 #*****************************************************************************
 
 
-include 'sage/ext/cdefs.pxi'   # Needed for mpq* stuff
-include 'sage/ext/stdsage.pxi' # Needed for PY_NEW
+from sage.libs.gmp.mpq cimport *
 
 from sage.misc.all import latex
 from sage.modules.all import vector
@@ -141,7 +140,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
 
     cdef _new_c(self):
         cdef ToricRationalDivisorClass y
-        y = PY_NEW(ToricRationalDivisorClass)
+        y = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
         y._init(self._degree, self._parent)
         return y
 
@@ -332,7 +331,7 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
         Divisor class [1, -2, 3, -4]
     """
     cdef ToricRationalDivisorClass v
-    v = PY_NEW(ToricRationalDivisorClass)
+    v = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
     v._init(degree, parent)
     cdef Rational z
     for i from 0 <= i < degree:

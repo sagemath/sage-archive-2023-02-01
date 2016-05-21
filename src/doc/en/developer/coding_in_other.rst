@@ -43,7 +43,7 @@ polynomial or matrix, will have our new method. So you can do
 ``PariError`` in this case.
 
 The ``gen`` class is defined in
-:file:`SAGE_ROOT/devel/sage/sage/libs/pari/gen.pyx`, and this is where we
+:file:`SAGE_ROOT/src/sage/libs/pari/gen.pyx`, and this is where we
 add the method ``matfrobenius``::
 
     def matfrobenius(self, flag=0):
@@ -67,7 +67,8 @@ add the method ``matfrobenius``::
         sig_on()
         return self.new_gen(matfrobenius(self.g, flag, 0))
 
-Note the use of the :ref:`sig_on() statement <section_sig_on>`.
+Note the use of the
+`sig_on() statement <http://cysignals.readthedocs.org/en/latest/#using-sig-on-and-sig-off>`_.
 
 The ``matfrobenius`` call is just a call to the PARI C library
 function ``matfrobenius`` with the appropriate parameters.
@@ -188,7 +189,7 @@ Note the ``'"G"'`` which is evaluated in GAP as the string ``"G"``.
 The purpose of this section is to use this example to show how one
 might write a Python/Sage program whose input is, say, ``('G',2)`` and
 whose output is the matrix above (but as a Sage Matrix---see the code
-in the directory :file:`SAGE_ROOT/devel/sage/sage/matrix/` and the
+in the directory :file:`SAGE_ROOT/src/sage/matrix/` and the
 corresponding parts of the Sage reference manual).
 
 First, the input must be converted into strings consisting of legal
@@ -422,9 +423,9 @@ interface to Singular::
     Total number of rational places : 6
     <BLANKLINE>
     sage: singular.eval("def R=X3[1][5];")
-    'def R=X3[1][5];'
+    ''
     sage: singular.eval("setring R;")
-    'setring R;'
+    ''
     sage: L = singular.eval("POINTS;")
 
     sage: print L
@@ -437,11 +438,9 @@ interface to Singular::
           0
     [2]:
        [1]:
-          2    # 32-bit
-          -2   # 64-bit
+          -2
        [2]:
-          2    # 32-bit
-          1    # 64-bit
+          -1
        [3]:
           1
     ...
@@ -650,13 +649,12 @@ basic class for interfaces. The third line defines the class
 ``Octave``; it derives from ``Expect`` as well. After this comes a
 docstring, which we omit here (see the file for details). Next comes::
 
-        def __init__(self, maxread=100, script_subdirectory="", logfile=None,
+        def __init__(self, script_subdirectory="", logfile=None,
                      server=None, server_tmpdir=None):
             Expect.__init__(self,
                             name = 'octave',
                             prompt = '>',
                             command = "octave --no-line-editing --silent",
-                            maxread = maxread,
                             server = server,
                             server_tmpdir = server_tmpdir,
                             script_subdirectory = script_subdirectory,

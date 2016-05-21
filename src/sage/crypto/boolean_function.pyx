@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Boolean functions
 
@@ -26,17 +27,18 @@ AUTHOR:
 
 """
 
-from sage.structure.sage_object cimport SageObject
+from libc.string cimport memcpy
 
+from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.pbori import BooleanPolynomial
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 from cpython.string cimport *
 
 # for details about the implementation of hamming_weight_int,
@@ -105,9 +107,9 @@ cdef long yellow_code(unsigned long a):
         m ^= (m<<s)
     return r
 
-cdef reed_muller(unsigned long *f, int ldn):
+cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
-    The Reed Muller transform (also known as binary Moebius transform)
+    The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
 
     .. math:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)
@@ -284,7 +286,7 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: the length of the truth table must be a power of 2
         """
-        if PyString_Check(x):
+        if isinstance(x, str):
             L = ZZ(len(x))
             if L.is_power_of(2):
                 x = ZZ("0x"+x).digits(base=2,padto=4*L)
@@ -555,11 +557,11 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: unknown output format
         """
-        if format is 'bin':
+        if format == 'bin':
             return tuple(self)
-        if format is 'int':
+        if format == 'int':
             return tuple(map(int,self))
-        if format is 'hex':
+        if format == 'hex':
             S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
@@ -686,14 +688,14 @@ cdef class BooleanFunction(SageObject):
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
-            sage_free(temp)
+            sig_free(temp)
 
         return self._walsh_hadamard_transform
 
@@ -860,7 +862,7 @@ cdef class BooleanFunction(SageObject):
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
             for 0<= i < n:
@@ -868,7 +870,7 @@ cdef class BooleanFunction(SageObject):
 
             walsh_hadamard(temp, self._nvariables)
             self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
-            sage_free(temp)
+            sig_free(temp)
 
         return self._autocorrelation
 
@@ -947,7 +949,7 @@ cdef class BooleanFunction(SageObject):
             True
             sage: g = BooleanFunction( f.annihilator(3) )
             sage: set([ fi*g(i) for i,fi in enumerate(f) ])
-            set([0])
+            {0}
         """
         # NOTE: this is a toy implementation
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
@@ -959,10 +961,10 @@ cdef class BooleanFunction(SageObject):
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
 
         from sage.matrix.constructor import Matrix
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
 
         for i in xrange(1,d+1):
@@ -1060,7 +1062,7 @@ cdef class BooleanFunction(SageObject):
             sage: [ int(B[i]) for i in range(len(B)) ]
             [0, 1, 1, 1]
         """
-        return self.__call__(i)
+        return self(i)
 
     def _clear_cache(self):
         """
@@ -1149,7 +1151,7 @@ cdef class BooleanFunctionIterator:
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
             sage: I = B.__iter__()
-            sage: I.next()
+            sage: next(I)
             False
         """
         if self.index == self.last:

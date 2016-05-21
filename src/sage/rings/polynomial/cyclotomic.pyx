@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Fast calculation of cyclotomic polynomials
 
@@ -26,16 +27,18 @@ method of univariate polynomial ring objects and the top-level
 
 import sys
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
+from libc.string cimport memset
 
-from sage.rings.arith import factor
+from sage.structure.element cimport parent_c
+
+from sage.arith.all import factor
 from sage.rings.infinity import infinity
-from sage.misc.misc import prod, subsets
+from sage.rings.integer_ring import ZZ
+from sage.misc.all import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.libs.pari.gen cimport gen
 from sage.libs.pari.all import pari
 
 def cyclotomic_coeffs(nn, sparse=None):
@@ -47,7 +50,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 
-    where `\\mu(d)` is the Moebius function that is 1 if d has an even
+    where `\\mu(d)` is the Möbius function that is 1 if d has an even
     number of distinct prime divisors, -1 if it has an odd number of
     distinct prime divisors, and 0 if d is not squarefree.
 
@@ -63,7 +66,7 @@ def cyclotomic_coeffs(nn, sparse=None):
         sage: cyclotomic_coeffs(30)
         [1, 1, 0, -1, -1, -1, 0, 1, 1]
         sage: cyclotomic_coeffs(10^5)
-        {0: 1, 10000: -1, 40000: 1, 30000: -1, 20000: 1}
+        {0: 1, 10000: -1, 20000: 1, 30000: -1, 40000: 1}
         sage: R = QQ['x']
         sage: R(cyclotomic_coeffs(30))
         x^8 + x^7 - x^5 - x^4 - x^3 + x + 1
@@ -146,7 +149,7 @@ def cyclotomic_coeffs(nn, sparse=None):
 
     if (<object>max_deg)*sizeof(long) > sys.maxsize:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
-    cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
+    cdef long* coeffs = <long*>sig_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     memset(coeffs, 0, sizeof(long) * (max_deg+1))
@@ -192,7 +195,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     else:
         L = [coeffs[k] for k from offset <= k <= deg]
 
-    sage_free(coeffs)
+    sig_free(coeffs)
     return L
 
 def cyclotomic_value(n, x):
@@ -225,7 +228,7 @@ def cyclotomic_value(n, x):
 
         \Phi_n(x) = \prod_{d | n} (x^d - 1)^{\mu(n / d)},
 
-    where `\mu` is the Moebius function.
+    where `\mu` is the Möbius function.
 
     - Handles the case that x^d = 1 for some d, but not the case that
       x^d - 1 is non-invertible: in this case polynomial evaluation is
@@ -247,13 +250,16 @@ def cyclotomic_value(n, x):
 
     TESTS::
 
-        sage: K.<i> = NumberField(polygen(QQ)^2 + 1)
         sage: R.<x> = QQ[]
-        sage: for y in [-1, 0, 1, 2, 1/2, mod(3, 8), GF(9,'a').gen(), Zp(3)(54), i, x^2+2]:
-        ...       for n in range(1, 61):
-        ...           val1 = cyclotomic_value(n, y)
-        ...           val2 = cyclotomic_polynomial(n)(y)
-        ...           assert val1 == val2 and val1.parent() is val2.parent()
+        sage: K.<i> = NumberField(x^2 + 1)
+        sage: for y in [-1, 0, 1, 2, 1/2, Mod(3, 8), Mod(3,11), GF(9,'a').gen(), Zp(3)(54), i, x^2+2]:
+        ....:     for n in [1..60]:
+        ....:         val1 = cyclotomic_value(n, y)
+        ....:         val2 = cyclotomic_polynomial(n)(y)
+        ....:         if val1 != val2:
+        ....:             print "Wrong value for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
+        ....:         if val1.parent() is not val2.parent():
+        ....:             print "Wrong parent for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
 
         sage: cyclotomic_value(20, I)
         5
@@ -273,22 +279,42 @@ def cyclotomic_value(n, x):
         -t^7 - t^6 - t^5 + t^2 + t + 1
         sage: cyclotomic_value(10,mod(3,4))
         1
+
+    Check that the issue with symbolic element in :trac:`14982` is fixed::
+
+        sage: a = cyclotomic_value(3, I)
+        sage: a.pyobject()
+        I
+        sage: parent(_)
+        Number Field in I with defining polynomial x^2 + 1
     """
-    n = int(n)
-    if n == 1:
-        return x - 1
-    if n <= 0:
-        raise ValueError, "n must be positive"
+    n = ZZ(n)
+    if n < 3:
+        if n == 1:
+            return x - ZZ.one()
+        if n == 2:
+            return x + ZZ.one()
+        raise ValueError("n must be positive")
+
+    P = parent_c(x)
     try:
-        return x.parent()(pari.polcyclo_eval(n, x._pari_()))
+        return P(pari.polcyclo(n, x).sage())
     except Exception:
         pass
-    # The following is modeled on the implementation in Pari
-    factors = factor(n)
+    one = P(1)
+
+    # The following is modeled on the implementation in PARI and is
+    # used for cases for which PARI doesn't work. These are in
+    # particular:
+    # - n does not fit in a C long;
+    # - x is some Sage type which cannot be converted to PARI;
+    # - PARI's algorithm encounters a zero-divisor which is not zero.
+
+    factors = n.factor()
     cdef Py_ssize_t i, j, ti, L, root_of_unity = -1
     primes = [p for p, e in factors]
     L = len(primes)
-    if any([e != 1 for p, e in factors]):
+    if any(e != 1 for p, e in factors):
         # If there are primes that occur in the factorization with multiplicity
         # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
         # primes dividing a divide r.
@@ -304,8 +330,7 @@ def cyclotomic_value(n, x):
             return x
     xd = [x] # the x^d for d | n
     cdef char mu
-    cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
-    one = x.parent()(1)
+    cdef char* md = <char*>sig_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
     try:
         md[0] = 1
         if L & 1:
@@ -333,7 +358,7 @@ def cyclotomic_value(n, x):
                 else:
                     den *= xpow - one
     finally:
-        sage_free(md)
+        sig_free(md)
     try:
         ans = num / den
     except ZeroDivisionError:

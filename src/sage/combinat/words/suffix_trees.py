@@ -462,6 +462,7 @@ class SuffixTrie(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("cacao")).plot()
+            Graphics object consisting of 38 graphics primitives
 
         TESTS::
 
@@ -629,7 +630,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1),letter)
-        while end_state == False:
+        while not end_state:
             # adjoin a new state rr and create a transition from r to rr
             rr = len(self._transition_function)
             self._transition_function[rr] = {}
@@ -818,7 +819,7 @@ class ImplicitSuffixTree(SageObject):
 
         INPUT:
 
-        -  ``word_labels`` - boolean (defaut: ``False``) if ``False``, labels
+        -  ``word_labels`` - boolean (default: ``False``) if ``False``, labels
            the edges by pairs `(i, j)`; if ``True``, labels the edges by
            ``word[i:j]``.
 
@@ -838,7 +839,7 @@ class ImplicitSuffixTree(SageObject):
             for (v,(i,j)) in d[u].iteritems():
                 if word_labels:
                     d[u][v] = self._word[i:j]
-                elif j == None:
+                elif j is None:
                     d[u][v] = (i,len(self._letters))
         return DiGraph(d)
 
@@ -851,20 +852,22 @@ class ImplicitSuffixTree(SageObject):
 
         INPUT:
 
-        -  ``word_labels`` - boolean (defaut: ``False``) if ``False``, labels
+        -  ``word_labels`` - boolean (default: ``False``) if ``False``, labels
            the edges by pairs `(i, j)`; if ``True``, labels the edges by
            ``word[i:j]``.
-        -  ``layout`` - (defaut: ``'tree'``)
-        -  ``tree_root`` - (defaut: 0)
-        -  ``tree_orientation`` - (defaut: ``'up'``)
-        -  ``vertex_colors`` - (defaut: ``None``)
-        -  ``edge_labels`` - (defaut: ``True``)
+        -  ``layout`` - (default: ``'tree'``)
+        -  ``tree_root`` - (default: 0)
+        -  ``tree_orientation`` - (default: ``'up'``)
+        -  ``vertex_colors`` - (default: ``None``)
+        -  ``edge_labels`` - (default: ``True``)
 
         EXAMPLES::
 
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=True)
+            Graphics object consisting of 23 graphics primitives
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=False)
+            Graphics object consisting of 23 graphics primitives
 
         TESTS::
 
@@ -1093,7 +1096,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1), end_of_string)
-        while end_state == False:
+        while not end_state:
             (s, k) = self._canonize(self._suffix_link[s], (k,i-1))
             (end_state, r) = self._test_and_split(s, (k,i-1), end_of_string)
         # remove the end of string symbol from the word
@@ -1185,7 +1188,7 @@ class ImplicitSuffixTree(SageObject):
             length_word = self.word().length()
             num_factors = 1 # empty word
             for (u,v,(i,j)) in self.edge_iterator():
-                if j == None:
+                if j is None:
                     num_factors += length_word - i
                 else:
                     num_factors += j - i
@@ -1200,7 +1203,7 @@ class ImplicitSuffixTree(SageObject):
                 if l < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - l:
                                 num_factors += 1
@@ -1253,7 +1256,7 @@ class ImplicitSuffixTree(SageObject):
                 yield w
                 if self._transition_function[v] != {}:
                     for ((i,j),u) in self._transition_function[v].iteritems():
-                        if j == None:
+                        if j is None:
                             j = self.word().length()
                         for k in range(i,j):
                             yield w * self.word()[i-1:k]
@@ -1268,7 +1271,7 @@ class ImplicitSuffixTree(SageObject):
                 if length_w < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - length_w:
                                 yield w*self.word()[i-1:i-1+n-length_w]

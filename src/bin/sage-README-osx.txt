@@ -102,11 +102,12 @@ edit terminal session arguments before they are run.
 You may also set default parameters for terminal sessions.  For
 example to send -b to gap (to inhibit the initial banner), type gap as
 the session (lowercase as you see it in the menus--use "sage" (without
-quotes) for sage sessions), -b as the argument and hit Apply.
-Unfortunately, due to a bug in the Cocoa framework, choosing the
-session with the mouse does not correctly update the Default Arguments
-field.  Instead please select a previous session with the keyboard.
-The same applies to the Terminal Emulator selection.
+quotes) for sage sessions, and "notebook" for starting the notebook
+server), -b as the argument and hit Apply.  Unfortunately, due to a
+bug in the Cocoa framework, choosing the session with the mouse does
+not correctly update the Default Arguments field.  Instead please
+select a previous session with the keyboard.  The same applies to the
+Terminal Emulator selection.
 
 You may select a method of running terminal sessions.  If you do not
 see your favorite terminal emulator here, please let know what it is,
@@ -147,12 +148,13 @@ You will of course have to restart Sage.app
 Building
 --------
 
-If you wish to build a copy of Sage.app for yourself, you can run
+To build Sage.app yourself, you just have to run "make" in the
+SAGE_ROOT/src/mac-app directory. This app will only work locally
+because the contained Sage is not relocatable. To build a binary
+distribution that can be installed to a different directory you must
+use https://github.com/sagemath/binary-pkg
 
-SAGE_APP_BUNDLE=yes sage -bdist VERSION
-
-which will create a version that is bundled with a binary
-distribution.  If you wish to make changes, or create a version which
+If you wish to make changes, or create a version which
 does not contain a distribution, then open
 src/mac-app/Sage.xcodeproj in Xcode.  If you are
 building on OS X 10.4, then you will need to change the SDK by opening

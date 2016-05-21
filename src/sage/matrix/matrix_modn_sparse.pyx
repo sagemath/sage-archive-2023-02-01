@@ -62,7 +62,8 @@ EXAMPLES::
     sage: a.rank()
     3
 
-TESTS:
+TESTS::
+
     sage: matrix(Integers(37),0,0,sparse=True).inverse()
     []
 """
@@ -75,8 +76,8 @@ TESTS:
 #############################################################################
 
 include "sage/ext/cdefs.pxi"
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
@@ -90,7 +91,7 @@ from sage.misc.misc import verbose, get_verbose
 import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
-from sage.rings.arith import is_prime
+from sage.arith.all import is_prime
 
 from sage.structure.element import is_Vector
 
@@ -127,7 +128,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     # x * __init__
     # x * set_unsafe
     # x * get_unsafe
-    # x * __richcmp__    -- always the same
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
@@ -142,7 +142,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.p = p
 
 
-        self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+        self.rows = <c_vector_modint*> sig_malloc(nr*sizeof(c_vector_modint))
         if self.rows == NULL:
             raise MemoryError, "error allocating memory for sparse matrix"
 
@@ -154,29 +154,32 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef int i
         for i from 0 <= i < self._nrows:
             clear_c_vector_modint(&self.rows[i])
-        sage_free(self.rows)
+        sig_free(self.rows)
 
     def __init__(self, parent, entries, copy, coerce):
         """
-        Create a sparse matrix modulo n.
+        Create a sparse matrix over the integers modulo ``n``.
 
         INPUT:
 
+        - ``parent`` -- a matrix space
 
-        -  ``parent`` - a matrix space
+        - ``entries`` -- can be one of the following:
 
-        -  ``entries``
+          * a Python dictionary whose items have the
+            form ``(i, j): x``, where ``0 <= i < nrows``,
+            ``0 <= j < ncols``, and ``x`` is coercible to
+            an element of the integers modulo ``n``.
+            The ``i,j`` entry of ``self`` is
+            set to ``x``.  The ``x``'s can be ``0``.
+          * Alternatively, entries can be a list of *all*
+            the entries of the sparse matrix, read
+            row-by-row from top to bottom (so they would
+            be mostly 0).
 
-           - a Python list of triples (i,j,x), where 0 <= i < nrows, 0 <=
-             j < ncols, and x is coercible to an int. The i,j entry of
-             self is set to x. The x's can be 0.
+        - ``copy`` -- ignored
 
-           - Alternatively, entries can be a list of *all* the
-             entries of the sparse matrix (so they would be mostly 0).
-
-        -  ``copy`` - ignored
-
-        -  ``coerce`` - ignored
+        - ``coerce`` -- ignored
         """
         cdef int s, z, p
         cdef Py_ssize_t i, j, k
@@ -206,7 +209,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             R = self._base_ring
             # Get fast access to the entries list.
             for i from 0 <= i < self._nrows:
-                for  j from 0 <= j < self._ncols:
+                for j from 0 <= j < self._ncols:
                     z = R(<object>X[k])
                     if z != 0:
                         set_entry(&self.rows[i], j, z)
@@ -232,8 +235,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         n.ivalue = get_entry(&self.rows[i], j)
         return n
 
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -244,7 +245,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     #   * def _unpickle
     #   * cdef _add_
     #   * cdef _mul_
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -256,7 +257,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef ModuleElement _add_(self, ModuleElement right):
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -275,7 +276,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
             sage: m = MS.random_element(density=0.002)
             sage: m._dict()
-            {(5, 25): 4, (4, 44): 7, (43, 43): 6, (26, 9): 9, (44, 38): 1}
+            {(4, 44): 7, (5, 25): 4, (26, 9): 9, (43, 43): 6, (44, 38): 1}
 
         TESTS::
 
@@ -558,98 +559,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if copy:
             return list(nzp)
         return nzp
-
-    def visualize_structure(self, filename=None, maxsize=512):
-        """
-        Write a PNG image to 'filename' which visualizes self by putting
-        black pixels in those positions which have nonzero entries.
-
-        White pixels are put at positions with zero entries. If 'maxsize'
-        is given, then the maximal dimension in either x or y direction is
-        set to 'maxsize' depending on which is bigger. If the image is
-        scaled, the darkness of the pixel reflects how many of the
-        represented entries are nonzero. So if e.g. one image pixel
-        actually represents a 2x2 submatrix, the dot is darker the more of
-        the four values are nonzero.
-
-        INPUT:
-
-
-        -  ``filename`` - either a path or None in which case a
-           filename in the current directory is chosen automatically
-           (default:None)
-
-        -  ``maxsize`` - maximal dimension in either x or y
-           direction of the resulting image. If None or a maxsize larger than
-           max(self.nrows(),self.ncols()) is given the image will have the
-           same pixelsize as the matrix dimensions (default: 512)
-
-        EXAMPLES::
-
-            sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
-            [0 0 0 1 0 0 0 0]
-            [0 1 0 0 0 0 1 0]
-            sage: M.visualize_structure()
-        """
-        import gd
-        import os
-
-        cdef Py_ssize_t i, j, k
-        cdef float blk,invblk
-        cdef int delta
-        cdef int x,y,r,g,b
-
-        mr, mc = self.nrows(), self.ncols()
-
-        if maxsize is None:
-
-            ir = mc
-            ic = mr
-            blk = 1.0
-            invblk = 1.0
-
-        elif max(mr,mc) > maxsize:
-
-            maxsize = float(maxsize)
-            ir = int(mc * maxsize/max(mr,mc))
-            ic = int(mr * maxsize/max(mr,mc))
-            blk = max(mr,mc)/maxsize
-            invblk = maxsize/max(mr,mc)
-
-        else:
-
-            ir = mc
-            ic = mr
-            blk = 1.0
-            invblk = 1.0
-
-        delta = <int>(255.0 / blk*blk)
-
-        im = gd.image((ir,ic),1)
-        white = im.colorExact((255,255,255))
-        im.fill((0,0),white)
-
-        colorComponents = im.colorComponents
-        getPixel = im.getPixel
-        setPixel = im.setPixel
-        colorExact = im.colorExact
-
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self.rows[i].num_nonzero:
-                x = <int>(invblk * self.rows[i].positions[j])
-                y = <int>(invblk * i)
-                r,g,b = colorComponents( getPixel((x,y)))
-                setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
-
-        if filename is None:
-            from sage.misc.temporary_file import graphics_filename, tmp_dir
-            from sage.doctest import DOCTEST_MODE
-            filename = graphics_filename()
-            if DOCTEST_MODE:
-                import os
-                filename = os.path.join(tmp_dir(), filename)
-
-        im.writePng(filename)
 
     def density(self):
         """
@@ -958,7 +867,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             if not B.is_sparse():
                 B = B.sparse_matrix()
-            if PY_TYPE_CHECK(B, Matrix_modn_sparse):
+            if isinstance(B, Matrix_modn_sparse):
                 b = B
             else:
                 raise TypeError, "B must be a matrix or vector over the same base as self"
@@ -1021,15 +930,15 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for i from 0 <= i < self._nrows:
             L_row = &(L._matrix[i])
             A_row = &(self.rows[i])
-            sage_free(L_row.entries)
-            L_row.entries = <mpz_t*> sage_malloc(sizeof(mpz_t)*A_row.num_nonzero)
+            sig_free(L_row.entries)
+            L_row.entries = <mpz_t*> sig_malloc(sizeof(mpz_t)*A_row.num_nonzero)
             L_row.num_nonzero = A_row.num_nonzero
             if L_row.entries == NULL:
                 raise MemoryError, "error allocating space for sparse vector during sparse lift"
-            sage_free(L_row.positions)
-            L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
+            sig_free(L_row.positions)
+            L_row.positions = <Py_ssize_t*> sig_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
             if L_row.positions == NULL:
-                sage_free(L_row.entries)
+                sig_free(L_row.entries)
                 L_row.entries = NULL
                 raise MemoryError, "error allocating space for sparse vector during sparse lift"
             for j from 0 <= j < A_row.num_nonzero:

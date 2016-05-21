@@ -36,24 +36,24 @@ AUTHOR:
 - William Stein
 """
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
-include "sage/ext/python_slice.pxi"
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+include "cysignals/memory.pxi"
 from cpython.string cimport *
-
-cdef extern from "math.h":
-    double exp(double)
-    double floor(double)
-    double log(double)
-    double pow(double, double)
-    double sqrt(double)
-
-cdef extern from "string.h":
-    void* memcpy(void* dst, void* src, size_t len)
+from libc.math cimport exp, floor, log, pow, sqrt
+from libc.string cimport memcpy
 
 cimport numpy as cnumpy
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
@@ -128,8 +128,8 @@ cdef class TimeSeries:
         if isinstance(values, (int, long, Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
-            if PY_TYPE_CHECK(values, Vector_real_double_dense):
+        elif isinstance(values, Vector_real_double_dense) or isinstance(values, cnumpy.ndarray):
+            if isinstance(values, Vector_real_double_dense):
                 np  = values._vector_numpy
             else:
                 np = values
@@ -145,7 +145,7 @@ cdef class TimeSeries:
             np = cnumpy.PyArray_GETCONTIGUOUS(np)
             np_data = <double*> cnumpy.PyArray_DATA(np)
             self._length = np.shape[0]
-            self._values = <double*> sage_malloc(sizeof(double) * self._length)
+            self._values = <double*> sig_malloc(sizeof(double) * self._length)
             if self._values == NULL:
                 raise MemoryError
 
@@ -155,7 +155,7 @@ cdef class TimeSeries:
             values = [float(x) for x in values]
             self._length = len(values)
 
-        self._values = <double*> sage_malloc(sizeof(double) * self._length)
+        self._values = <double*> sig_malloc(sizeof(double) * self._length)
         if self._values == NULL:
             raise MemoryError
         if not initialize: return
@@ -235,7 +235,7 @@ cdef class TimeSeries:
             sage: del v
         """
         if self._values:
-            sage_free(self._values)
+            sig_free(self._values)
 
     def vector(self):
         """
@@ -381,7 +381,7 @@ cdef class TimeSeries:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef TimeSeries t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step
@@ -703,12 +703,12 @@ cdef class TimeSeries:
         if len(right) == 0:
             return
         cdef TimeSeries T = right
-        cdef double* z = <double*> sage_malloc(sizeof(double)*(self._length + T._length))
+        cdef double* z = <double*> sig_malloc(sizeof(double)*(self._length + T._length))
         if z == NULL:
             raise MemoryError
         memcpy(z, self._values, sizeof(double)*self._length)
         memcpy(z + self._length, T._values, sizeof(double)*T._length)
-        sage_free(self._values)
+        sig_free(self._values)
         self._values = z
         self._length = self._length + T._length
 
@@ -997,7 +997,7 @@ cdef class TimeSeries:
             sage: v.add_entries([3,4,7,18.5])
             [4.0000, 6.0000, 2.0000, 18.5000]
         """
-        if not PY_TYPE_CHECK(t, TimeSeries):
+        if not isinstance(t, TimeSeries):
             t = TimeSeries(t)
         cdef Py_ssize_t i, n
         cdef TimeSeries T = t, shorter, longer
@@ -1033,6 +1033,7 @@ cdef class TimeSeries:
         Draw a plot of a time series::
 
             sage: finance.TimeSeries([1..10]).show()
+            Graphics object consisting of 1 graphics primitive
         """
         return self.plot(*args, **kwds)
 
@@ -1058,9 +1059,13 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([5,4,1.3,2,8,10,3,-5]); v
             [5.0000, 4.0000, 1.3000, 2.0000, 8.0000, 10.0000, 3.0000, -5.0000]
             sage: v.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: v.plot(points=True)
+            Graphics object consisting of 1 graphics primitive
             sage: v.plot() + v.plot(points=True, rgbcolor='red')
+            Graphics object consisting of 2 graphics primitives
             sage: v.plot() + v.plot(points=True, rgbcolor='red', pointsize=50)
+            Graphics object consisting of 2 graphics primitives
         """
         from sage.plot.all import line, point
         cdef Py_ssize_t s
@@ -1939,7 +1944,7 @@ cdef class TimeSeries:
             return counts, v
 
         cdef Py_ssize_t i
-        cdef Py_ssize_t* cnts = <Py_ssize_t*>sage_malloc(sizeof(Py_ssize_t)*bins)
+        cdef Py_ssize_t* cnts = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*bins)
         if cnts == NULL:
             raise MemoryError
         for i from 0 <= i < bins:
@@ -1956,7 +1961,7 @@ cdef class TimeSeries:
             counts = [cnts[i]*b for i in range(bins)]
         else:
             counts = [cnts[i] for i in range(bins)]
-        sage_free(cnts)
+        sig_free(cnts)
 
         return counts, v
 
@@ -1979,10 +1984,12 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries([1..50])
             sage: v.plot_histogram(bins=10)
+            Graphics object consisting of 10 graphics primitives
 
         ::
 
             sage: v.plot_histogram(bins=3,normalize=False,aspect_ratio=1)
+            Graphics object consisting of 3 graphics primitives
         """
         from sage.plot.all import polygon
         counts, intervals = self.histogram(bins, normalize=normalize)
@@ -2021,6 +2028,7 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries(1000).randomize()
             sage: v.plot_candlestick(bins=20)
+            Graphics object consisting of 40 graphics primitives
         """
         from sage.plot.all import line, polygon, Graphics
 
@@ -2548,9 +2556,9 @@ cdef new_time_series(Py_ssize_t length):
     """
     if length < 0:
         raise ValueError, "length must be nonnegative"
-    cdef TimeSeries t = PY_NEW(TimeSeries)
+    cdef TimeSeries t = TimeSeries.__new__(TimeSeries)
     t._length = length
-    t._values = <double*> sage_malloc(sizeof(double)*length)
+    t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
 def unpickle_time_series_v1(v, Py_ssize_t n):

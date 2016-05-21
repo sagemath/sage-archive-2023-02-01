@@ -1,18 +1,18 @@
 """
 Eisenstein Series (optimized compiled functions)
 """
-
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/gmp.pxi'
-include 'sage/libs/flint/fmpz_poly.pxi'
+include "cysignals/signals.pxi"
 
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer cimport Integer
-from sage.rings.arith import primes, bernoulli
+from sage.arith.all import primes, bernoulli
 from sage.rings.fast_arith cimport prime_range
+
+from cpython.list cimport PyList_GET_ITEM
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.gmp.mpz cimport *
 from sage.libs.flint.fmpz_poly cimport Fmpz_poly
 
 cpdef Ek_ZZ(int k, int prec=10):
@@ -158,19 +158,19 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
         sage: eisenstein_series_poly(12, prec=5)
         5  691 65520 134250480 11606736960 274945048560
     """
-    cdef mpz_t *val = <mpz_t *>sage_malloc(prec * sizeof(mpz_t))
+    cdef mpz_t *val = <mpz_t *>sig_malloc(prec * sizeof(mpz_t))
     cdef mpz_t one, mult, term, last, term_m1, last_m1
     cdef unsigned long int expt
     cdef long ind, ppow, int_p
     cdef int i
-    cdef Fmpz_poly res = PY_NEW(Fmpz_poly)
+    cdef Fmpz_poly res = Fmpz_poly.__new__(Fmpz_poly)
 
     if k%2 or k < 2:
         raise ValueError, "k (=%s) must be an even positive integer"%k
     if prec < 0:
         raise ValueError, "prec (=%s) must be an even nonnegative integer"%prec
     if (prec == 0):
-        return PY_NEW(Fmpz_poly)
+        return Fmpz_poly.__new__(Fmpz_poly)
 
     sig_on()
 
@@ -225,7 +225,7 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
     fmpz_poly_scalar_mul_mpz(res.poly, res.poly, (<Integer>(a0.denominator())).value)
     fmpz_poly_set_coeff_mpz(res.poly, 0, (<Integer>(a0.numerator())).value)
 
-    sage_free(val)
+    sig_free(val)
 
     sig_off()
 

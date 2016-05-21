@@ -108,7 +108,7 @@ class Test:
         self.congroups = []
         i = 1
         self.odd_probability = odd_probability
-        if index%2:
+        if index % 4:
             self.odd_probability=0
         while Gamma(i).index() < index_max:
             self.congroups.append(Gamma(i))
@@ -121,7 +121,7 @@ class Test:
         while Gamma1(i).index() < index_max:
             self.congroups.append(Gamma1(i))
             M = Zmod(i)
-            U = filter(lambda x: x.is_unit(), M)
+            U = [x for x in M if x.is_unit()]
             for j in xrange(1,len(U)-1):
                 self.congroups.append(GammaH(i,prandom.sample(U,j)))
             i += 1

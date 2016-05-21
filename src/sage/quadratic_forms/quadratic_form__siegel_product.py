@@ -1,20 +1,19 @@
 """
 Siegel Products
 """
+
 #*****************************************************************************
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import fundamental_discriminant
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import kronecker_symbol, bernoulli, prime_divisors
-#from sage.combinat.combinat import bernoulli_polynomial
+from sage.arith.all import kronecker_symbol, bernoulli, prime_divisors, fundamental_discriminant
 from sage.functions.all import sqrt
-#from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.quadratic_forms.special_values import QuadraticBernoulliNumber
 
 from sage.misc.misc import verbose
@@ -99,7 +98,7 @@ def siegel_product(self, u):
 
     ## Make the odd generic factors
     if ((n % 2) == 1):
-        m = (n-1) / 2
+        m = (n-1) // 2
         d1 = fundamental_discriminant(((-1)**m) * 2*d * u)     ## Replaced d by 2d here to compensate for the determinant
         f = abs(d1)                                            ## gaining an odd power of 2 by using the matrix of 2Q instead
                                                                ## of the matrix of Q.
@@ -124,7 +123,7 @@ def siegel_product(self, u):
 
     ## Make the even generic factor
     if ((n % 2) == 0):
-        m = n / 2
+        m = n // 2
         d1 = fundamental_discriminant(((-1)**m) * d)
         f = abs(d1)
 

@@ -43,7 +43,7 @@ from sage.graphs.all import Graph, graphs
 
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 from sage.schemes.all import ProjectiveSpace
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
@@ -774,13 +774,17 @@ def CompleteGraphic(n):
     return M
 
 
-def Wheel(n):
+def Wheel(n, field=None, ring=None):
     """
     Return the rank-`n` wheel.
 
     INPUT:
 
     - ``n`` -- a positive integer. The rank of the desired matroid.
+    - ``ring`` -- any ring. If provided, output will be a linear matroid 
+      over the ring or field ``ring``. If the ring is `\ZZ`, then output
+      will be a regular matroid.
+    - ``field`` -- any field. Same as ``ring``, but only fields are allowed.
 
     OUTPUT:
 
@@ -800,8 +804,24 @@ def Wheel(n):
         sage: M = matroids.Wheel(3)
         sage: M.is_isomorphic(matroids.CompleteGraphic(4))
         True
+        sage: M.is_isomorphic(matroids.Wheel(3,field=GF(3)))
+        True
+        sage: M = matroids.Wheel(3,field=GF(3)); M
+        Wheel(3): Ternary matroid of rank 3 on 6 elements, type 0+
     """
-    A = Matrix(ZZ, n, 2 * n, sparse=True)
+    base_ring = ZZ
+    if field != None and ring != None :
+        raise ValueError("only one of ring and field can be specified.")
+    if field != None :
+        base_ring = field
+        try:
+            if not base_ring.is_field():
+                raise TypeError("specified ``field`` is not a field.")
+        except AttributeError:
+            raise TypeError("specified ``field`` is not a field.")
+    if ring  != None :
+        base_ring = ring
+    A = Matrix(base_ring, n, 2 * n, sparse=True)
     for i in range(n):
         A[i, i] = 1
         A[i, n + i] = 1
@@ -809,7 +829,10 @@ def Wheel(n):
             A[i, i + n - 1] = -1
         else:
             A[i, 2 * n - 1] = -1
-    M = RegularMatroid(A)
+    if base_ring is ZZ:
+        M = RegularMatroid(A)
+    else:
+        M = Matroid(A)
     M.rename('Wheel(' + str(n) + '): ' + repr(M))
     return M
 
@@ -947,7 +970,7 @@ def PG(n, q, x=None):
         the Finite Field of size 7
     """
     if x is None:
-        x = var('x')
+        x = SR.var('x')
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P]).transpose()
@@ -991,7 +1014,7 @@ def AG(n, q, x=None):
 
     """
     if x is None:
-        x = var('x')
+        x = SR.var('x')
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P if not list(p)[0] == 0]).transpose()
@@ -1342,12 +1365,9 @@ def Block_9_4():
         sage: M = matroids.named_matroids.Block_9_4()
         sage: M.is_valid() # long time
         True
-        sage: C = M.nonspanning_circuits()
-        sage: D = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6,
-        ....:      'h': 7, 'i': 8}
-        sage: B = [[D[x] for x in L] for L in C]
-        sage: BlockDesign(9, B).is_block_design()
-        (True, [2, 9, 4, 3])
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (2, 9, 4, 3))
     """
     E = 'abcdefghi'
     CC = {
@@ -1369,12 +1389,9 @@ def Block_10_5():
         sage: M = matroids.named_matroids.Block_10_5()
         sage: M.is_valid() # long time
         True
-        sage: C = M.nonspanning_circuits()
-        sage: D = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6,
-        ....:      'h': 7, 'i': 8, 'j': 9}
-        sage: B = [[D[x] for x in L] for L in C]
-        sage: BlockDesign(10, B).is_block_design()
-        (True, [3, 10, 5, 3])
+        sage: BD = BlockDesign(M.groundset(), M.nonspanning_circuits())
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (3, 10, 5, 3))
     """
 
     E = 'abcdefghij'

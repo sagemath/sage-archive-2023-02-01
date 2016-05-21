@@ -14,7 +14,6 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
 from ginac cimport *
-include "sage/ext/stdsage.pxi"
 
 cdef extern from "pynac/constant.h":
     pass
@@ -192,10 +191,10 @@ cdef class E(Expression):
             1.1793740787340171819619895873183164984596816017589156131574
             sage: maxima(e).float()
             2.718281828459045
-            sage: t = mathematica(e)               # optional
-            sage: t                                # optional
+            sage: t = mathematica(e)               # optional - mathematica
+            sage: t                                # optional - mathematica
             E
-            sage: float(t)                         # optional
+            sage: float(t)                         # optional - mathematica
             2.718281828459045...
 
             sage: loads(dumps(e))
@@ -207,8 +206,8 @@ cdef class E(Expression):
             2.718281828459045...
             sage: e._mpfr_(RealField(100))
             2.7182818284590452353602874714
-            sage: e._real_double_(RDF)
-            2.71828182846
+            sage: e._real_double_(RDF)   # abs tol 5e-16
+            2.718281828459045
             sage: import sympy
             sage: sympy.E == e # indirect doctest
             True
@@ -230,7 +229,7 @@ cdef class E(Expression):
             [0 e]
         """
         global exp_one
-        exp_one = SR.one_element().exp()
+        exp_one = SR.one().exp()
         Expression.__init__(self, SR, exp_one)
 
     def __pow__(left, right, dummy):
@@ -264,12 +263,12 @@ cdef class E(Expression):
             [e 0]
             [0 e]
             sage: A = matrix(RDF, [[1,2],[3,4]])
-            sage: e^A
-            [51.9689561987  74.736564567]
-            [112.104846851 164.073803049]
+            sage: e^A  # rel tol 1e-15
+            [51.968956198705044  74.73656456700327]
+            [112.10484685050491 164.07380304920997]
         """
-        if PY_TYPE_CHECK(left, E):
-            if PY_TYPE_CHECK(right, E):
+        if isinstance(left, E):
+            if isinstance(right, E):
                 return exp_one.exp()
             try:
                 return right.exp()

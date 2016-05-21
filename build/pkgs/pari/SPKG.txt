@@ -18,20 +18,18 @@ Belabas with the help of many volunteer contributors.
 
 GPL version 2+
 
-== SPKG Maintainers ==
- * Robert Bradshaw
- * William Stein
- * David Kirkby
- * Jeroen Demeyer
-
 == Upstream Contact ==
  * http://pari.math.u-bordeaux.fr/
 
 == Dependencies ==
- * MPIR (in place of GMP)
+ * Perl
+ * MPIR or GMP
  * Readline
  * GNU patch (shipped with Sage)
 
 == Special Update/Build Instructions ==
 
 See patches/README.txt for a list of patches.
+
+The current upstream tarball was created from the PARI git repository
+by running "make snapshot".

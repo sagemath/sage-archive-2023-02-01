@@ -21,11 +21,12 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19761)
+cp "$SAGE_ROOT"/config/config.* build-aux
+
 ###############################################################################
 # Set up environment variables:
 ###############################################################################
-LD_CBLAS=`cat $SAGE_LOCAL/share/cblas_config`
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib $LD_CBLAS"
 
 export CFLAGS="$CFLAGS -g -fPIC"
 export CXXFLAGS="$CXXFLAGS -g -fPIC"

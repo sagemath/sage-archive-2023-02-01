@@ -14,8 +14,6 @@
 /config.log
 /config.status
 /configure
-/build/Makefile-auto
-/build/Makefile-auto.in
 
 ###################
 # Temporary Files #
@@ -29,13 +27,18 @@
 .\#*
 
 # Vim
-*.s[a-w][a-z]
+*.swp
+*.swo
+*.swn
 *.un~
 .netrwhist
 
 # PyCharm
 .idea
 .iml
+
+# XCode
+xcuserdata/
 
 # Eclipse
 *.pydevproject
@@ -65,3 +68,16 @@ $RECYCLE.BIN/
 
 # SublimeText
 *.sublime-workspace
+
+#################
+# SageMathCloud #
+#################
+*.sage-chat
+*.sage-history
+*.syncdoc*
+
+###########
+# Jupyter #
+###########
+.ipynb_checkpoints
+Untitled*.ipynb

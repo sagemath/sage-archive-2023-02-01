@@ -12,17 +12,17 @@
 # serve to show the default.
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC'])
+sys.path.append(os.environ['SAGE_DOC_SRC'])
 from common.conf import *
 
 # General information about the project.
-project = u'Une tournée de Sage'
+project = u'Sage en quelques mots'
 name = 'a_tour_of_sage'
 language = 'fr'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = project + " v"+release
+html_title = project + " v" + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name

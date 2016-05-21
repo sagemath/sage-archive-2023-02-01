@@ -82,6 +82,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     vectors, then return None.
 
     OUTPUT:
+
         vector or None
 
     EXAMPLES::
@@ -97,7 +98,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
     ## Initialize
     n = self.dim()
-    if v == None:
+    if v is None:
         w = vector([ZZ(0) for i in range(n-1)] + [ZZ(1)])
     else:
         w = deepcopy(v)

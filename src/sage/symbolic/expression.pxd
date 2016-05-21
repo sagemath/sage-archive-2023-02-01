@@ -1,5 +1,6 @@
 from ginac cimport *
 
+cdef class Expression
 from sage.structure.element cimport CommutativeRingElement
 
 cdef class Expression(CommutativeRingElement):
@@ -10,6 +11,8 @@ cdef class Expression(CommutativeRingElement):
     cpdef bint is_polynomial(self, var)
     cpdef bint is_relational(self)
     cpdef bint is_infinity(self)
+    cpdef bint is_positive_infinity(self)
+    cpdef bint is_negative_infinity(self)
     cpdef object pyobject(self)
     cpdef Expression _subs_expr(self, expr)
     cpdef int _cmp_add(Expression left, Expression right) except -2

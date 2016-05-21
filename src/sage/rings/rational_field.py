@@ -57,18 +57,9 @@ ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 import sage.rings.number_field.number_field_base as number_field_base
+from sage.misc.fast_methods import Singleton
 
-
-_obj = {}
-class _uniq(object):
-    def __new__(cls):
-        if 0 in _obj:
-            return _obj[0]
-        O = number_field_base.NumberField.__new__(cls)
-        _obj[0] = O
-        return O
-
-class RationalField(_uniq, number_field_base.NumberField):
+class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
 
@@ -94,9 +85,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ('sage')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert sage to a rational
+        TypeError: unable to convert 'sage' to a rational
 
-    Coercion from the reals to the rational is done by default using
+    Conversion from the reals to the rationals is done by default using
     continued fractions.
 
     ::
@@ -134,6 +125,23 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ(RealField(45)(t))
         1/5
     """
+    def __new__(cls):
+        """
+        This method actually is not needed for using :class:`RationalField`.
+        But it is used to unpickle some very old pickles.
+
+        TESTS::
+
+            sage: RationalField() in Fields() # indirect doctest
+            True
+
+        """
+        try:
+            from sage.rings.rational_field import QQ
+            return QQ
+        except BaseException:
+            import sage
+            return sage.rings.number_field.number_field_base.NumberField.__new__(cls)
 
     def __init__(self):
         r"""
@@ -146,7 +154,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: Q.is_field()
             True
             sage: Q.category()
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Q.zeta()
             -1
 
@@ -207,20 +215,9 @@ class RationalField(_uniq, number_field_base.NumberField):
             ('x',)
         """
         from sage.categories.basic import QuotientFields
-        ParentWithGens.__init__(self, self, category = QuotientFields())
+        ParentWithGens.__init__(self, self, category=QuotientFields().Metric())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
-
-    def __hash__(self):
-        """
-        Return hash value for ``self``.
-
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-        """
-        return -11115808
 
     def _repr_(self):
         """
@@ -404,35 +401,6 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: [a.height() for a in lst]
             [1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4]
         """
-
-        #The previous version of this function, implemented by Nils
-        #Bruin, used the sequence defined by $a_0=0$ and
-        #$a_{n+1}=\frac{1}{2\lfloor a_n\rfloor+1-a_n}$ and generated the
-        #sequence $$a_0,a_1,-a_1,a_2,-a_2,\ldots$$.  This is [A002487]
-        #in Sloane's encyclopedia, attributed to [Stern].  It is not
-        #monotone in height, but has other interesting properties
-        #described in [CalkinWilf].
-        #REFERENCES:
-        #  [A002487] Sloane's OLEIS,
-        #    http://oeis.org/classic/A002487
-        #  [CalkinWilf] N. Calkin and H.S. Wilf, Recounting the
-        #    rationals, American Mathematical Monthly 107 (2000),
-        #    360--363
-        #  [Stern] M.A. Stern, Ueber eine zahlentheoretische Funktion,
-        #    Journal fuer die reine und angewandte Mathematik 55
-        #    (1858), 193--220
-        #
-        # [beginning of Nils' code]
-        #from sage.rings.arith import integer_floor as floor
-        #
-        #n=self(0)
-        #yield n
-        #while True:
-        #  n=1/(2*floor(n)+1-n)
-        #  yield n
-        #  yield -n
-        # [end of Nils' code]
-
         yield self(0)
         yield self(1)
         yield self(-1)
@@ -498,6 +466,43 @@ class RationalField(_uniq, number_field_base.NumberField):
                     yield self(-other/height)
                     yield self(height/other)
                     yield self(-height/other)
+
+    def primes_of_bounded_norm_iter(self, B):
+        r"""
+        Iterator yielding all primes less than or equal to `B`.
+
+        INPUT:
+
+        - ``B`` -- a positive integer; upper bound on the primes generated.
+
+        OUTPUT:
+
+        An iterator over all integer primes less than or equal to `B`.
+
+        .. note::
+
+            This function exists for compatibility with the related number
+            field method, though it returns prime integers, not ideals.
+
+        EXAMPLES::
+
+            sage: it = QQ.primes_of_bounded_norm_iter(10)
+            sage: list(it)
+            [2, 3, 5, 7]
+            sage: list(QQ.primes_of_bounded_norm_iter(1))
+            []
+        """
+        try:
+            B = ZZ(B.ceil())
+        except (TypeError, AttributeError):
+            raise TypeError("%s is not valid bound on prime ideals" % B)
+
+        if B<2:
+            raise StopIteration
+
+        from sage.arith.all import primes
+        for p in primes(B+1):
+            yield p
 
     def discriminant(self):
         """
@@ -579,6 +584,56 @@ class RationalField(_uniq, number_field_base.NumberField):
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
+    def places(self, all_complex=False, prec=None):
+        r"""
+        Return the collection of all infinite places of self, which
+        in this case is just the embedding of self into `\RR`.
+
+        By default, this returns homomorphisms into ``RR``.  If
+        ``prec`` is not None, we simply return homomorphisms into
+        ``RealField(prec)`` (or ``RDF`` if ``prec=53``).
+
+        There is an optional flag ``all_complex``, which defaults to
+        False.  If ``all_complex`` is True, then the real embeddings
+        are returned as embeddings into the corresponding complex
+        field.
+
+        For consistency with non-trivial number fields.
+
+        EXAMPLES::
+
+            sage: QQ.places()
+            [Ring morphism:
+              From: Rational Field
+              To:   Real Field with 53 bits of precision
+              Defn: 1 |--> 1.00000000000000]
+            sage: QQ.places(prec=53)
+            [Ring morphism:
+              From: Rational Field
+              To:   Real Double Field
+              Defn: 1 |--> 1.0]
+            sage: QQ.places(prec=200, all_complex=True)
+            [Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 200 bits of precision
+              Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
+        """
+        import sage.rings.all
+        if prec is None:
+            R = sage.rings.all.RR
+            C = sage.rings.all.CC
+        elif prec == 53:
+            R = sage.rings.all.RDF
+            C = sage.rings.all.CDF
+        elif prec == infinity.Infinity:
+            R = sage.rings.all.AA
+            C = sage.rings.all.QQbar
+        else:
+            R = sage.rings.all.RealField(prec)
+            C = sage.rings.all.ComplexField(prec)
+        domain = C if all_complex else R
+        return [self.hom([domain(1)])]
+
     def complex_embedding(self, prec=53):
         """
         Return embedding of the rational numbers into the complex numbers.
@@ -599,6 +654,30 @@ class RationalField(_uniq, number_field_base.NumberField):
         import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
+
+    def residue_field(self, p, check=True):
+        r"""
+        Return the residue field of `\QQ` at the prime `p`, for
+        consistency with other number fields.
+
+        INPUT:
+
+        -  ``p`` - a prime integer.
+
+        -  ``check`` (default True) - if True check the primality of
+           `p`, else do not.
+
+        OUTPUT: The residue field at this prime.
+
+        EXAMPLES::
+
+            sage: QQ.residue_field(5)
+            Residue field of Integers modulo 5
+            sage: QQ.residue_field(next_prime(10^9))
+            Residue field of Integers modulo 1000000007
+        """
+        from sage.rings.finite_rings.residue_field import ResidueField
+        return ResidueField(ZZ.ideal(p), check=check)
 
     def gens(self):
         r"""
@@ -848,18 +927,92 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return rational.Rational((1,2))
 
+    def some_elements(self):
+        r"""
+        Return some elements of `\QQ`.
+
+        See :func:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator over 100 elements of `\QQ`.
+
+        EXAMPLES::
+
+            sage: tuple(QQ.some_elements())
+            (1/2, -1/2, 2, -2,
+             0, 1, -1, 42,
+             2/3, -2/3, 3/2, -3/2,
+             4/5, -4/5, 5/4, -5/4,
+             6/7, -6/7, 7/6, -7/6,
+             8/9, -8/9, 9/8, -9/8,
+             10/11, -10/11, 11/10, -11/10,
+             12/13, -12/13, 13/12, -13/12,
+             14/15, -14/15, 15/14, -15/14,
+             16/17, -16/17, 17/16, -17/16,
+             18/19, -18/19, 19/18, -19/18,
+             20/441, -20/441, 441/20, -441/20,
+             22/529, -22/529, 529/22, -529/22,
+             24/625, -24/625, 625/24, -625/24,
+             ...)
+        """
+        yield self.an_element()
+        yield -self.an_element()
+        yield 1/self.an_element()
+        yield -1/self.an_element()
+        yield self(0)
+        yield self(1)
+        yield self(-1)
+        yield self(42)
+        for n in range(1, 24):
+            a = 2*n
+            b = (2*n + 1)**(n//10 + 1)
+            yield rational.Rational((a, b))
+            yield rational.Rational((-a, b))
+            yield rational.Rational((b, a))
+            yield rational.Rational((-b, a))
+
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
         """
         Return an random element of `\QQ`.
 
+        Elements are constructed by randomly choosing integers
+        for the numerator and denominator, not neccessarily coprime.
+
+        INPUT:
+
+        -  ``num_bound`` -- a positive integer, specifying a bound
+           on the absolute value of the numerator.
+           If absent, no bound is enforced.
+
+        -  ``den_bound`` -- a positive integer, specifying a bound
+           on the value of the denominator.
+           If absent, the bound for the numerator will be reused.
+
+        Any extra positional or keyword arguments are passed through to
+        :meth:`sage.rings.integer_ring.IntegerRing_class.random_element`.
+
         EXAMPLES::
 
-            sage: QQ.random_element(10,10)
-            1/4
+            sage: QQ.random_element()
+            -4
+            sage: QQ.random_element()
+            0
+            sage: QQ.random_element()
+            -1/2
 
-        Passes extra positional or keyword arguments through::
+        In the following example, the resulting numbers range from
+        -5/1 to 5/1 (both inclusive),
+        while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(10,10, distribution='1/n')
+            sage: QQ.random_element(5, 10)
+            -2/7
+
+        Extra positional or keyword arguments are passed through::
+
+            sage: QQ.random_element(distribution='1/n')
+            0
+            sage: QQ.random_element(distribution='1/n')
             -1
 
         """
@@ -867,7 +1020,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
-        if num_bound == None:
+        if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
             den = ZZ.random_element(*args, **kwds)
             while den == 0: den = ZZ.random_element(*args, **kwds)
@@ -913,6 +1066,100 @@ class RationalField(_uniq, number_field_base.NumberField):
         else:
             raise ValueError("no n-th root of unity in rational field")
 
+
+    def selmer_group(self, S, m, proof=True, orders=False):
+        r"""
+        Compute the group `\QQ(S,m)`.
+
+        INPUT:
+
+        - ``S`` -- a set of primes
+
+        - ``m`` -- a positive integer
+
+        - ``proof`` -- ignored
+
+        - ``orders`` (default False) -- if True, output two lists, the
+          generators and their orders
+
+        OUTPUT:
+
+        A list of generators of `\QQ(S,m)` (and, optionally, their
+        orders in `\QQ^\times/(\QQ^\times)^m`).  This is the subgroup
+        of `\QQ^\times/(\QQ^\times)^m` consisting of elements `a` such
+        that the valuation of `a` is divisible by `m` at all primes
+        not in `S`.  It is equal to the group of `S`-units modulo
+        `m`-th powers.  The group `\QQ(S,m)` contains the subgroup of
+        those `a` such that `\QQ(\sqrt[m]{a})/\QQ` is unramified at
+        all primes of `\QQ` outside of `S`, but may contain it
+        properly when not all primes dividing `m` are in `S`.
+
+        EXAMPLES::
+
+            sage: QQ.selmer_group((), 2)
+            [-1]
+            sage: QQ.selmer_group((3,), 2)
+            [-1, 3]
+            sage: QQ.selmer_group((5,), 2)
+            [-1, 5]
+
+        The previous examples show that the group generated by the
+        output may be strictly larger than the 'true' Selmer group of
+        elements giving extensions unramified outside `S`.
+
+        When `m` is even, `-1` is a generator of order `2`::
+
+            sage: QQ.selmer_group((2,3,5,7,), 2, orders=True)
+            ([-1, 2, 3, 5, 7], [2, 2, 2, 2, 2])
+            sage: QQ.selmer_group((2,3,5,7,), 3, orders=True)
+            ([2, 3, 5, 7], [3, 3, 3, 3])
+        """
+        gens = list(S)
+        ords = [ZZ(m)] * len(S)
+        if m % 2 == 0:
+            gens = [ZZ(-1)] + gens
+            ords = [ZZ(2)] + ords
+        if orders:
+            return gens, ords
+        else:
+            return gens
+
+    def selmer_group_iterator(self, S, m, proof=True):
+        r"""
+        Return an iterator through elements of the finite group `\QQ(S,m)`.
+
+        INPUT:
+
+        - ``S`` -- a set of primes
+
+        - ``m`` -- a positive integer
+
+        - ``proof`` -- ignored
+
+        OUTPUT:
+
+        An iterator yielding the distinct elements of `\QQ(S,m)`.  See
+        the docstring for :meth:`selmer_group` for more information.
+
+        EXAMPLES::
+
+            sage: list(QQ.selmer_group_iterator((), 2))
+            [1, -1]
+            sage: list(QQ.selmer_group_iterator((2,), 2))
+            [1, 2, -1, -2]
+            sage: list(QQ.selmer_group_iterator((2,3), 2))
+            [1, 3, 2, 6, -1, -3, -2, -6]
+            sage: list(QQ.selmer_group_iterator((5,), 2))
+            [1, 5, -1, -5]
+        """
+        KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
+        one = self.one()
+        from sage.misc.all import prod
+        from itertools import product
+        for ev in product(*[range(o) for o in ords]):
+            yield prod((p**e for p,e in zip(KSgens, ev)), one)
+
+
     #################################
     ## Coercions to interfaces
     #################################
@@ -951,7 +1198,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: macaulay2(QQ)   # optional- macaulay2 # indirect doctest
+            sage: macaulay2(QQ)   # optional - macaulay2 # indirect doctest
             QQ
         """
         return "QQ"

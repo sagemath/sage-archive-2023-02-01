@@ -1,5 +1,11 @@
 """
 A weakref cache factory
+
+TESTS::
+
+    sage: from sage.misc.cache import Cache
+    doctest:...: DeprecationWarning: sage.misc.cache is deprecated, use sage.misc.cachefunc instead
+    See http://trac.sagemath.org/20318 for details.
 """
 
 #*****************************************************************************
@@ -9,6 +15,9 @@ A weakref cache factory
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.misc.superseded import deprecation
+deprecation(20318, "sage.misc.cache is deprecated, use sage.misc.cachefunc instead")
 
 import weakref
 
@@ -38,7 +47,7 @@ class Cache:
         Return the object from the cache defined by the arguments,
         or make it using the factoring function if it doesn't exist.
         """
-        #if self.canonical_params_function != None:
+        #if self.canonical_params_function is not None:
         #    args = self.canonical_params_function(*args, **kwds)
         #    kwds = {}
 

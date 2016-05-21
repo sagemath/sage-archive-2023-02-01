@@ -310,7 +310,10 @@ REFERENCES:
   Within the AES*\; in Advances in Cryptology \- CRYPTO 2002\; LNCS
   2442\; Springer Verlag 2002
 """
-from sage.rings.finite_rings.constructor import FiniteField as GF
+# python3
+from __future__ import division
+
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, BooleanPolynomialRing_constructor as BooleanPolynomialRing
 
@@ -1219,7 +1222,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         Both must be given as state arrays or coercible to state arrays.
 
-        INPUTS:
+        INPUT:
 
         - ``P`` - plaintext as state array or something coercible to a
           qstate array
@@ -1227,7 +1230,9 @@ class SR_generic(MPolynomialSystemGenerator):
         - ``K`` - key as state array or something coercible to a state
           array
 
-        TESTS: The official AES test vectors::
+        TESTS:
+
+        The official AES test vectors::
 
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True)
             sage: k = sr.base_ring()
@@ -1436,9 +1441,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for x in range(M.nrows()):
             for y in range(M.ncols()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             st.append("\n")
         return " ".join(st)
 
@@ -1467,9 +1472,9 @@ class SR_generic(MPolynomialSystemGenerator):
         for y in range(M.ncols()):
             for x in range(M.nrows()):
                 if e == 8:
-                    st.append("%02X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%02X" % M[x, y].integer_representation())
                 else:
-                    st.append("%X"%(int(str(M[x, y].int_repr()))))
+                    st.append("%X" % M[x, y].integer_representation())
             #st.append("\n")
         return "".join(st)
 
@@ -1634,19 +1639,49 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(1,1,1,4)
             sage: sr.variable_dict()
-            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
-             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
-             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
-             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
-             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+            {'k000': k000,
+             'k001': k001,
+             'k002': k002,
+             'k003': k003,
+             'k100': k100,
+             'k101': k101,
+             'k102': k102,
+             'k103': k103,
+             's000': s000,
+             's001': s001,
+             's002': s002,
+             's003': s003,
+             'w100': w100,
+             'w101': w101,
+             'w102': w102,
+             'w103': w103,
+             'x100': x100,
+             'x101': x101,
+             'x102': x102,
+             'x103': x103}
 
             sage: sr = mq.SR(1,1,1,4,gf2=True)
             sage: sr.variable_dict()
-            {'x101': x101, 'x100': x100, 'x103': x103, 'x102': x102,
-             's002': s002, 'w100': w100, 'w101': w101, 'w102': w102,
-             'w103': w103, 'k100': k100, 'k101': k101, 'k102': k102,
-             'k103': k103, 's003': s003, 's001': s001, 'k002': k002,
-             'k001': k001, 'k000': k000, 'k003': k003, 's000': s000}
+            {'k000': k000,
+             'k001': k001,
+             'k002': k002,
+             'k003': k003,
+             'k100': k100,
+             'k101': k101,
+             'k102': k102,
+             'k103': k103,
+             's000': s000,
+             's001': s001,
+             's002': s002,
+             's003': s003,
+             'w100': w100,
+             'w101': w101,
+             'w102': w102,
+             'w103': w103,
+             'x100': x100,
+             'x101': x101,
+             'x102': x102,
+             'x103': x103}
 
         """
         try:
@@ -2061,7 +2096,7 @@ class SR_generic(MPolynomialSystemGenerator):
                 data.append( None )
             elif isinstance(d, (tuple, list)):
                 if isinstance(d[0], (int,long)):
-                    d = map(GF(2),d)
+                    d = [GF(2)(_) for _ in d]
                 if len(d) == r*c*e and (d[0].parent() is R or d[0].parent() == R):
                     data.append( Matrix(R,r*c*e,1,d) )
                     continue
@@ -2206,10 +2241,7 @@ class SR_gf2n(SR_generic):
 
         INPUT:
 
-
-        -  ``l`` - a vector in the sense of
-           ``self.is_vector``
-
+        - ``l`` -- a vector in the sense of :meth:`is_vector`
 
         EXAMPLE::
 
@@ -2230,7 +2262,8 @@ class SR_gf2n(SR_generic):
         elif isinstance(l, tuple):
             return tuple(ret)
         elif is_Matrix(l):
-            return Matrix(self.base_ring(), l.ncols(), l.nrows()/self.e, ret).transpose()
+            return Matrix(self.base_ring(), l.ncols(), l.nrows() // self.e,
+                          ret).transpose()
         else:
             raise TypeError
 

@@ -4,6 +4,11 @@ for the book "k-Schur functions and affine Schubert calculus"
 by Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono,
 and Mike Zabrocki, :arxiv:`1301.3569`.
 The code was written by Anne Schilling and Mike Zabrocki, 2012 and 2013.
+
+IF IT BECOMES NECESSARY TO CHANGE ANY TESTS IN THIS FILE, THERE
+NEEDS TO BE A ONE-YEAR DEPRECATION PERIOD. ALSO, PLEASE IN THIS CASE
+CONTACT Anne Schilling (anne@math.ucdavis.edu) AND Mike Zabrocki
+(zabrocki@mathstat.yorku.ca) REGARDING THE CHANGES!
 """
 
 """
@@ -158,7 +163,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1082::
     sage: ord = lambda x,y: x.weak_le(y)
     sage: P = Poset([C, ord], cover_relations = False)  # long time (3.99 s, 2013)
     sage: H = P.hasse_diagram()                         # long time
-    sage: view(H)                                       #optional
+    sage: view(H)  # not tested
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 1253::
 
@@ -470,7 +475,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2799::
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 2810::
 
     sage: c = Partition([3,2,1]).to_core(3)
-    sage: for p in f.support():
+    sage: for p in sorted(f.support()):   # Sorted for consistant doctest ordering
     ....:   print p, SkewPartition([p.to_core(3).to_partition(),c.to_partition()])
     ....:
     [3, 1, 1, 1, 1] [[5, 2, 1, 1, 1], [5, 2, 1]]

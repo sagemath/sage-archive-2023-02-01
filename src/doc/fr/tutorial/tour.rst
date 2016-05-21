@@ -4,14 +4,14 @@ Visite guidée
 
 Cette partie présente une sélection des possibilités actuellement
 offertes par Sage. Pour plus d'exemples, on se reportera à *Sage
-Constructions* (« Construction d'objets en Sage »), dont le but est de
-répondre à la question récurrente du type « Comment faire pour
-construire ... ?  ».
+Constructions* (« Construction d'objets en Sage »), dont le but est de
+répondre à la question récurrente du type « Comment faire pour
+construire ... ?  ».
 
-On consultera aussi le *Sage Reference Manual* (« Manuel de référence
-pour Sage »), qui contient des milliers d'exemples supplémentaires.
+On consultera aussi le *Sage Reference Manual* (« Manuel de référence
+pour Sage »), qui contient des milliers d'exemples supplémentaires.
 Notez également que vous pouvez explorer interactivement ce tutoriel
-— ou sa version en anglais — en cliquant sur ``Help``  à partir du
+— ou sa version en anglais — en cliquant sur ``Help``  à partir du
 notebook de Sage.
 
 (Si vous lisez ce tutoriel à partir du *notebook* de Sage, appuyez sur

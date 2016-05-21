@@ -378,7 +378,7 @@ class AmbientSpace(CombinatorialFreeModule):
         return self
 
     def _plot_projection(self, x):
-        """
+        r"""
         Implements the default projection to be used for plots
 
         For affine ambient spaces, the default implementation is to
@@ -387,7 +387,9 @@ class AmbientSpace(CombinatorialFreeModule):
         keeping an extra coordinate for the coefficient of
         `\delta^\vee` to keep the level information.
 
-        .. SEEALSO:: :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
+        .. SEEALSO::
+
+            :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
 
         EXAMPLES::
 
@@ -447,6 +449,8 @@ class AmbientSpace(CombinatorialFreeModule):
 
             .. TODO:: Lift to CombinatorialFreeModule.Element as canonical_inner_product
             """
+            if self.parent() is not other.parent():
+                raise TypeError("the parents must be the same")
             return self.base_ring().sum( self[i] * c for (i,c) in other )
 
         scalar = inner_product

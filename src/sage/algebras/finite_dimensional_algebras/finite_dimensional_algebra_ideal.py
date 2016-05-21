@@ -21,6 +21,7 @@ from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebraIdeal(Ideal_generic):
@@ -83,7 +84,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
 
             sage: A2 = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A is A2
-            False
+            True
             sage: A == A2
             True
             sage: I2 = A.ideal(A([1,1]))
@@ -112,7 +113,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I != I + J
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, elt):
         """
@@ -163,7 +164,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I < I + J
             False
         """
-        return self.__ne__(other) and self.__le__(other)
+        return self != other and self <= other
 
     def __ge__(self, other):
         """
@@ -179,7 +180,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I >= I + J
             True
         """
-        return other.__le__(self)
+        return other <= self
 
     def __gt__(self, other):
         """
@@ -195,7 +196,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             sage: I > I + J
             False
         """
-        return other.__lt__(self)
+        return other < self
 
     def basis_matrix(self):
         """

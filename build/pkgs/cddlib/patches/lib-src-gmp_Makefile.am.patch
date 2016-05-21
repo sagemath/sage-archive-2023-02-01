@@ -12,3 +12,10 @@ index b3ab11a..a9673b8 100644
  
  include_HEADERS = \
  cdd.h \
+@@ -24,5 +25,5 @@
+ cddtypes_f.h \
+ setoper.h
+ 
+-AM_CPPFLAGS = -I$(gmpincludedir) -DGMPRATIONAL
++AM_CPPFLAGS = -DGMPRATIONAL
+ AM_LDFLAGS = -version-info 0:0:0

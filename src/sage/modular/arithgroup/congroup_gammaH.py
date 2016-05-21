@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_H(N)`
 
@@ -19,20 +20,15 @@ AUTHORS:
 #
 ################################################################################
 
-from sage.rings.arith import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor
+from sage.arith.all import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor
 from sage.modular.modsym.p1list import lift_to_sl2z
 from congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
-
-# Just for now until we make an SL_2 group type.
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
-
-Mat2Z = MatrixSpace(ZZ,2)
 
 
 _gammaH_cache = {}
@@ -114,9 +110,11 @@ def _normalize_H(H, level):
     Normalize representatives for a given subgroup H of the units
     modulo level.
 
-    NOTE: This function does *not* make any attempt to find a minimal
-    set of generators for H. It simply normalizes the inputs for use
-    in hashing.
+    .. NOTE::
+
+        This function does *not* make any attempt to find a minimal
+        set of generators for H. It simply normalizes the inputs for use
+        in hashing.
 
     EXAMPLES::
 
@@ -142,8 +140,8 @@ def _normalize_H(H, level):
         H.remove(1)
     return H
 
-class GammaH_class(CongruenceSubgroup):
 
+class GammaH_class(CongruenceSubgroup):
     r"""
     The congruence subgroup `\Gamma_H(N)` for some subgroup `H \trianglelefteq
     (\ZZ / N\ZZ)^\times`, which is the subgroup of `{\rm
@@ -152,7 +150,7 @@ class GammaH_class(CongruenceSubgroup):
 
     TESTS:
 
-    We test calculation of various invariants of the group: ::
+    We test calculation of various invariants of the group::
 
         sage: GammaH(33,[2]).projective_index()
         96
@@ -169,7 +167,7 @@ class GammaH_class(CongruenceSubgroup):
         sage: Gamma1(23).genus()
         12
 
-    We calculate the dimensions of some modular forms spaces: ::
+    We calculate the dimensions of some modular forms spaces::
 
         sage: GammaH(33,[2]).dimension_cusp_forms(2)
         5
@@ -180,7 +178,7 @@ class GammaH_class(CongruenceSubgroup):
         sage: GammaH(32079, [21676]).dimension_cusp_forms(20)
         180266112
 
-    We can sometimes show that there are no weight 1 cusp forms: ::
+    We can sometimes show that there are no weight 1 cusp forms::
 
         sage: GammaH(20, [9]).dimension_cusp_forms(1)
         0
@@ -188,8 +186,9 @@ class GammaH_class(CongruenceSubgroup):
 
     def __init__(self, level, H, Hlist=None):
         r"""
-        The congruence subgroup `\Gamma_H(N)`. The subgroup H
-        must be input as a list.
+        The congruence subgroup `\Gamma_H(N)`.
+
+        The subgroup `H` must be given as a list.
 
         EXAMPLES::
 
@@ -473,9 +472,9 @@ class GammaH_class(CongruenceSubgroup):
             return self.farey_symbol().generators()
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.ghlist import GHlist
-            from congroup_pyx import generators_helper
+            from congroup import generators_helper
             level = self.level()
-            gen_list = generators_helper(GHlist(self), level, Mat2Z)
+            gen_list = generators_helper(GHlist(self), level)
             return [self(g, check=False) for g in gen_list]
         else:
             raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)
@@ -488,13 +487,16 @@ class GammaH_class(CongruenceSubgroup):
         of the reduction step (the first coordinate).
 
         INPUT:
-            G -- a congruence subgroup Gamma_0(N), Gamma_1(N), or Gamma_H(N).
+
+        G -- a congruence subgroup Gamma_0(N), Gamma_1(N), or Gamma_H(N).
 
         OUTPUT:
-            A list v such that
-                v[u] = (min(u*h: h in H),
-                        gcd(u,N) ,
-                        an h such that h*u = min(u*h: h in H)).
+
+        A list v such that
+
+        v[u] = (min(u*h: h in H),
+        gcd(u,N) ,
+        an h such that h*u = min(u*h: h in H)).
 
         EXAMPLES::
 
@@ -563,17 +565,38 @@ class GammaH_class(CongruenceSubgroup):
         of the reduction step (the second coordinate).
 
         INPUT:
-            self
+
+        self
 
         OUTPUT:
-            a dictionary v with keys the divisors of N such that v[d]
-            is the subgroup {h in H : h = 1 (mod N/d)}.
+
+        a dictionary v with keys the divisors of N such that v[d]
+        is the subgroup {h in H : h = 1 (mod N/d)}.
 
         EXAMPLES::
 
             sage: G = GammaH(240,[7,239])
             sage: G._coset_reduction_data_second_coord()
-            {1: [1], 2: [1], 3: [1], 4: [1], 5: [1, 49], 6: [1], 48: [1, 191], 8: [1], 80: [1, 7, 49, 103], 10: [1, 49], 12: [1], 15: [1, 49], 240: [1, 7, 49, 103, 137, 191, 233, 239], 40: [1, 7, 49, 103], 20: [1, 49], 24: [1, 191], 120: [1, 7, 49, 103, 137, 191, 233, 239], 60: [1, 49, 137, 233], 30: [1, 49, 137, 233], 16: [1]}
+            {1: [1],
+             2: [1],
+             3: [1],
+             4: [1],
+             5: [1, 49],
+             6: [1],
+             8: [1],
+             10: [1, 49],
+             12: [1],
+             15: [1, 49],
+             16: [1],
+             20: [1, 49],
+             24: [1, 191],
+             30: [1, 49, 137, 233],
+             40: [1, 7, 49, 103],
+             48: [1, 191],
+             60: [1, 49, 137, 233],
+             80: [1, 7, 49, 103],
+             120: [1, 7, 49, 103, 137, 191, 233, 239],
+             240: [1, 7, 49, 103, 137, 191, 233, 239]}
             sage: G = GammaH(1200,[-1,7]); G
             Congruence Subgroup Gamma_H(1200) with H generated by [7, 1199]
             sage: K = G._coset_reduction_data_second_coord().keys() ; K.sort()
@@ -610,19 +633,24 @@ class GammaH_class(CongruenceSubgroup):
         Compute a canonical form for a given Manin symbol.
 
         INPUT:
+
         Two integers (uu,vv) that define an element of `(Z/NZ)^2`.
-            uu -- an integer
-            vv -- an integer
+
+        - uu -- an integer
+        - vv -- an integer
 
         OUTPUT:
-           pair of integers that are equivalent to (uu,vv).
 
-        NOTE: We do *not* require that gcd(uu,vv,N) = 1.  If the gcd is
-        not 1, we return (0,0).
+        pair of integers that are equivalent to (uu,vv).
+
+        .. NOTE::
+
+            We do *not* require that gcd(uu,vv,N) = 1.  If the gcd is
+            not 1, we return (0,0).
 
         EXAMPLES:
 
-        An example at level 9.::
+        An example at level 9::
 
             sage: G = GammaH(9,[7]); G
             Congruence Subgroup Gamma_H(9) with H generated by [7]
@@ -721,6 +749,7 @@ class GammaH_class(CongruenceSubgroup):
     def _reduce_cusp(self, c):
         r"""
         Compute a minimal representative for the given cusp c.
+
         Returns a pair (c', t), where c' is the minimal representative
         for the given cusp, and t is either 1 or -1, as explained
         below. Largely for internal use.
@@ -731,9 +760,13 @@ class GammaH_class(CongruenceSubgroup):
 
         Two cusps `u1/v1` and `u2/v2` are equivalent modulo `\Gamma_H(N)`
         if and only if
-            `v1 =  h*v2 (mod N)` and `u1 =  h^(-1)*u2 (mod gcd(v1,N))`
+
+        - `v1 =  h*v2 (mod N)` and `u1 =  h^(-1)*u2 (mod gcd(v1,N))`
+
         or
-            `v1 = -h*v2 (mod N)` and `u1 = -h^(-1)*u2 (mod gcd(v1,N))`
+
+        - `v1 = -h*v2 (mod N)` and `u1 = -h^(-1)*u2 (mod gcd(v1,N))`
+
         for some `h \in H`. Then t is 1 or -1 as c and c' fall into
         the first or second case, respectively.
 
@@ -1261,7 +1294,7 @@ def mumu(N):
     `(-2)^v` where `v` is the number of primes that
     exactly divide `N`.
 
-    This is similar to the Moebius function.
+    This is similar to the Möbius function.
 
     INPUT:
 

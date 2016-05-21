@@ -5,7 +5,7 @@ Literaturverzeichnis
 ..  [Cyt] Cython, http://www.cython.org/.
 
 ..  [Dive] Dive into Python, online frei verfügbar unter
-    http://diveintopython.org/.
+    http://www.diveintopython.net/.
 
 ..  [GAP] The GAP Group, GAP - Groups, Algorithms, and
     Programming, Version 4.4; 2005, http://www.gap-system.org/.
@@ -41,7 +41,7 @@ Literaturverzeichnis
 
 ..  [SA] Sage web site, http://www.sagemath.org/.
 
-..  [Si] W. Decker, G.-M. Greuel, G. Pfister, and
+..  [Si] \W. Decker, G.-M. Greuel, G. Pfister, and
     H. Schönemann. Singular 3.3.1. A Computer Algebra System for
     Polynomial Computations. University of Kaiserslautern (2010),
     http://www.singular.uni-kl.de/.

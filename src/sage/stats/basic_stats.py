@@ -339,10 +339,10 @@ def median(v):
         return NaN
     values = sorted(v)
     if len(values) % 2 == 1:
-        return values[((len(values))+1)/2-1]
+        return values[((len(values))+1)//2-1]
     else:
-        lower = values[(len(values)+1)/2-1]
-        upper = values[len(values)/2]
+        lower = values[(len(values)+1)//2-1]
+        upper = values[len(values)//2]
         return (lower + upper)/ZZ(2)
 
 def moving_average(v, n):

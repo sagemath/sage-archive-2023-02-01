@@ -19,11 +19,6 @@ IPython is a multiplatform, Free Software project (BSD licensed) that offers:
 
 BSD
 
-== SPKG Maintainers ==
-
- * Jason Grout
- * William Stein
-
 == Upstream Contact ==
 
 http://ipython.scipy.org/
@@ -31,13 +26,3 @@ http://ipython.scipy.org/
 ipython-dev@scipy.org
 
 ipython-user@scipy.org
-
-== Dependencies ==
-
- * Python
-
-== Patches ==
-
- * 0001-Allow-InputTransformers-to-raise-SyntaxErrors.patch: See
-   https://github.com/ipython/ipython/pull/4504. This patch allows
-   Sage to raise SyntaxErrors for our extensions to the Python language.

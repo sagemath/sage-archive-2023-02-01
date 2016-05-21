@@ -24,8 +24,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 # import operator
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
-# from sage.structure.element import MonoidElement
-from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
@@ -220,7 +218,7 @@ class StringMonoidElement(FreeMonoidElement):
         EXAMPLES::
 
             sage: t = AlphabeticStrings()('SHRUBBERY')
-            sage: t.__iter__().next()
+            sage: next(t.__iter__())
             S
             sage: list(t)
             [S, H, R, U, B, B, E, R, Y]
@@ -287,7 +285,7 @@ class StringMonoidElement(FreeMonoidElement):
         S = self.parent()
         if isinstance(S, string_monoid.AlphabeticStringMonoid):
             return ''.join([ chr(65+i) for i in self._element_list ])
-        n = self.__len__()
+        n = len(self)
         if isinstance(S, string_monoid.HexadecimalStringMonoid):
             if not n % 2 == 0:
                 "String %s must have even length to determine a byte character string." % str(self)
@@ -511,4 +509,5 @@ class StringMonoidElement(FreeMonoidElement):
                 X[c] = eps
         # Return a dictionary of probability distribution. This should
         # allow for easier parsing of the dictionary.
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(Alph, X, RR)

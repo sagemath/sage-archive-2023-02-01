@@ -20,7 +20,7 @@ AUTHORS:
 
 from copy import copy
 from sage.rings.all import ZZ, QQ
-from sage.rings.arith import lcm
+from sage.arith.all import lcm
 
 def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
     """

@@ -200,14 +200,21 @@ Methods
 -------
 """
 
-################################################################################
-#      Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>               #
-#                                                                              #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
-#                         http://www.gnu.org/licenses/                         #
-################################################################################
+#*****************************************************************************
+#       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+
+include "cysignals/memory.pxi"
+
+from copy import copy
+
 #####################
 # Greedy Algorithms #
 #####################
@@ -370,7 +377,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     elif not certificate:
         return True
 
-    gg = g.copy()
+    gg = copy(g)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
     h.add_vertices(gg.vertices())
@@ -737,7 +744,7 @@ def is_transitive(g, certificate = False):
         for i in range(n):
             if ((c_distances[i] != <unsigned short> -1) and
                 (c_distances[i] > 1)):
-                sage_free(distances)
+                sig_free(distances)
                 if certificate:
 
                     return int_to_vertex[j], int_to_vertex[i]
@@ -746,5 +753,5 @@ def is_transitive(g, certificate = False):
 
         c_distances += n
 
-    sage_free(distances)
+    sig_free(distances)
     return True

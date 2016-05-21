@@ -14,14 +14,16 @@ AUTHOR:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+import os
 
 from sage.misc.pager import pager
-from sage.misc.misc import tmp_filename
-from sage.misc.sagedoc import format
-import os
-import sys
+from sage.misc.temporary_file import tmp_filename
+from sage.structure.sage_object import SageObject
 
-class TachyonRT:
+
+class TachyonRT(SageObject):
     """
     The Tachyon Ray Tracer
 
@@ -64,7 +66,6 @@ class TachyonRT:
 
     OUTPUT:
 
-
     - Some text may be displayed onscreen.
 
     - The file outfile is created.
@@ -72,11 +73,10 @@ class TachyonRT:
 
     EXAMPLES:
 
-    AUTHORS:
-
-    - John E. Stone
+    
+    .. automethod:: __call__
     """
-    def __repr__(self):
+    def _repr_(self):
         """
         Returns a brief description of this interface object (the Tachyon raytracer written by John Stone).
 
@@ -84,18 +84,28 @@ class TachyonRT:
 
             sage: from sage.interfaces.tachyon import TachyonRT
             sage: t = TachyonRT()
-            sage: print t.__repr__()
+            sage: print(t.__repr__())
             John Stone's Tachyon Ray Tracer
         """
         return "John Stone's Tachyon Ray Tracer"
 
-    def __call__(self, model, outfile='sage.png',
-                 verbose=1, block=True, extra_opts=''):
+    def __call__(self, model, outfile='sage.png', verbose=1, extra_opts=''):
         """
         This executes the tachyon program, given a scene file input.
-        The default is to return the result as a PNG file called 'sage.png'.
 
-        TESTS::
+        INPUT:
+
+        - ``model`` -- string. The tachyon model.
+
+        - ``outfile`` -- string, default ``'sage.png'``. The filename
+          to save the model to.
+
+        - ``verbose`` -- 0, 1, (default) or 2. The verbosity level.
+
+        - ``extra_opts`` -- string (default: empty string). Extra
+          options that will be appended to the tachyon commandline.
+
+        EXAMPLES::
 
             sage: from sage.interfaces.tachyon import TachyonRT
             sage: tgen = Tachyon()
@@ -105,45 +115,51 @@ class TachyonRT:
             'resolution'
             sage: t = TachyonRT()
             sage: import os
-            sage: t(tgen.str(), outfile = os.devnull)
+            sage: t(tgen.str(), outfile=os.devnull)
             tachyon ...
             Tachyon Parallel/Multiprocessor Ray Tracer...
+
+        TESTS::
+
+            sage: from sage.env import SAGE_EXTCODE
+            sage: filename = os.path.join(SAGE_EXTCODE, 'doctest', 'invalid', 'syntax_error.tachyon')
+            sage: syntax_error = open(filename, 'r').read()
+            sage: t(syntax_error, outfile=os.devnull)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Tachyon Parallel/Multiprocessor Ray Tracer...
+            ...
+            Parser failed due to an input file syntax error.
+            Aborting render.
         """
         modelfile = tmp_filename(ext='.dat')
         open(modelfile,'w').write(model)
-        opts = ''
+        cmd = ['tachyon', modelfile]
         ext = outfile[-4:].lower()
         if ext == '.png':
-            opts += ' -format PNG '
+            cmd += ['-format', 'PNG']
         elif ext == '.tga':
-            opts += ' -format TARGA '
+            cmd += ['-format', 'TARGA']
         elif ext == '.bmp':
-            opts += ' -format BMP '
+            cmd += ['-format', 'BMP']
         elif ext == '.ppm':
-            opts += ' -format PPM '
+            cmd += ['-format', 'PPM']
         elif ext == '.rgb':
-            opts += ' -format RGB '
-
-        opts += ' -o %s '%outfile
-
-        opts += ' ' + extra_opts + ' '
-
+            cmd += ['-format', 'RGB']
+        cmd += ['-o', outfile]
+        cmd += extra_opts.split()
         if verbose >= 2:
-            opts += ' +V '
-        elif verbose == 0:
-            opts += '  1>/dev/null'
-
-        cmd = 'tachyon %s %s; rm -f "%s"'%(modelfile,opts, modelfile)
-
-        if not block:
-            cmd = '( ' + cmd + ' ) &'
-
+            cmd += ['+V']
         if verbose:
-            print cmd
-        # One should always flush before system()
-        sys.stdout.flush()
-        sys.stderr.flush()
-        os.system(cmd)
+            print(' '.join(cmd))
+        import subprocess
+        out = subprocess.check_output(cmd)
+        if verbose >= 1:
+            print(out)
+        if out.rstrip().endswith('Aborting render.'):
+            raise RuntimeError(out)
+        if outfile != os.devnull and os.stat(outfile).st_size == 0:
+            raise RuntimeError('tachyon did not abort but output file is empty')
 
     def usage(self, use_pager=True):
         """
@@ -160,7 +176,7 @@ class TachyonRT:
         if use_pager == True:
             pager()(r)
         else:
-            print r
+            print(r)
 
     def help(self, use_pager=True):
         """
@@ -762,6 +778,7 @@ Basically, the image maps require the center, rotate and scale
 parameters so that you can position the image map on the object
 properly.
 """
+        from sage.misc.sagedoc import format
         f = format(s)
         f = f.replace('{ ','').replace('}','').replace('{','')
         if use_pager == True:

@@ -15,6 +15,7 @@ AUTHOR:
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
+from __future__ import print_function
 
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
@@ -124,10 +125,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: set([x*y*z, z*y+x*z,x*y*z])  # indirect doctest
-            set([x*z + z*y, x*y*z])
+            {x*z + z*y, x*y*z}
 
         """
         return hash(self._poly)
+
     def __iter__(self):
         """
         Iterates over the pairs "tuple of exponents, coefficient".
@@ -141,6 +143,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return self._poly.dict().iteritems()
+
     def _repr_(self):
         """
         TEST::
@@ -154,9 +157,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
             sage: from sage.structure.parent_gens import localvars
             sage: with localvars(F, ['w', 'x','y']):
-            ...     print a+b*(z+1)-c
+            ....:     print(a+b*(z+1)-c)
             w + (z + 1)*x - y
-            sage: print a+b*(z+1)-c
+            sage: print(a+b*(z+1)-c)
             a + (z + 1)*b - c
 
         """
@@ -448,40 +451,18 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
                 return True
         return False
 
-    def __richcmp__(left, right, int op):
-        """
-        TEST::
-
-            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
-            sage: p = ((2*x+3*y-4*z)^2*(5*y+6*z))
-            sage: p-p.lt()<p    # indirect doctest
-            True
-
-        """
-        return (<Element>left)._richcmp(right, op)
-    def __cmp__(left, right):
-        """
-        TEST::
-
-            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
-            sage: p = ((2*x+3*y-4*z)^2*(5*y+6*z))
-            sage: cmp(p,p-p.lt())    # indirect doctest
-            1
-
-        """
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Auxiliary method for comparison.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: p = ((2*x+3*y-4*z)^2*(5*y+6*z))
-            sage: p-p.lt()<p    # indirect doctest
+            sage: p-p.lt() < p     # indirect doctest
             True
-
+            sage: cmp(p,p-p.lt())  # indirect doctest
+            1
         """
         cdef int c = cmp(type(self),type(other))
         if c: return c
@@ -710,7 +691,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = self._parent
         if not isinstance(G,(list,tuple)):
             if G==P:
-                return P.zero_element()
+                return P.zero()
             if not (isinstance(G,MPolynomialIdeal) and G.ring()==P._current_ring):
                 G = G.gens()
         C = P.current_ring()

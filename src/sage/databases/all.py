@@ -5,6 +5,8 @@ This file gathers together all the tables in Sage.
 
     * CremonaDatabase() - Cremona's tables of elliptic curves and related data.
 
+    * findstat -- The FindStat database (http://www.findstat.org/).
+
     * JonesDatabase() -- returns the John Jones table of number fields
       with bounded ramification and degree <= 6.
 
@@ -56,8 +58,6 @@ from jones import JonesDatabase
 
 from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 
-from install import database_install
-
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
 from sage.misc.lazy_import import lazy_import
@@ -65,12 +65,7 @@ lazy_import('sage.databases.oeis', 'oeis')
 
 from symbolic_data import SymbolicData
 
-# commented out, since it's broken -- nobody updated the parser
-# for the new format; nobody complained it didn't work, so it
-# can't be that important.
-#from lincodes import linear_code_bound
-
-from odlyzko import zeta_zeros
+lazy_import('sage.databases.odlyzko', 'zeta_zeros')
 
 from db_modular_polynomials import \
      ClassicalModularPolynomialDatabase, \
@@ -85,3 +80,6 @@ from db_class_polynomials import \
 from symbolic_data import SymbolicData
 
 from cunningham_tables import cunningham_prime_factors
+
+lazy_import('sage.databases.findstat', 'findstat')
+

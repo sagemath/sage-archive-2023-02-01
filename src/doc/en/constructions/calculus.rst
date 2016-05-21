@@ -81,7 +81,7 @@ You can find critical points of a piecewise defined function:
     sage: f2 = 1-x
     sage: f3 = 2*x
     sage: f4 = 10*x-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2), ((2,3),f3), ((3,10),f4)])
     sage: f.critical_points()
     [5.0]
 
@@ -90,33 +90,45 @@ You can find critical points of a piecewise defined function:
 Power series
 ------------
 
-Taylor series:
+Sage offers several ways to construct and work with power series.
 
-::
+To get Taylor series from function expressions use the method
+``.taylor()`` on the expression::
 
     sage: var('f0 k x')
     (f0, k, x)
     sage: g = f0/sinh(k*x)^4
     sage: g.taylor(x, 0, 3)
     -62/945*f0*k^2*x^2 + 11/45*f0 - 2/3*f0/(k^2*x^2) + f0/(k^4*x^4)
-    sage: maxima(g).powerseries('x',0)
-    16*f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*k^(2*i1-1)*x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
 
-Of course, you can view the LaTeX-ed version of this using
-``view(g.powerseries('x',0))``.
+Formal power series expansions of functions can be had with the
+``.series()`` method::
 
-The Maclaurin and power series of
-:math:`\log({\frac{\sin(x)}{x}})`:
+    sage: (1/(2-cos(x))).series(x,7)
+    1 + (-1/2)*x^2 + 7/24*x^4 + (-121/720)*x^6 + Order(x^7)
 
-::
+Certain manipulations on such series are hard to perform at the moment,
+however. There are two alternatives: either use the Maxima subsystem of
+Sage for full symbolic functionality::
 
     sage: f = log(sin(x)/x)
     sage: f.taylor(x, 0, 10)
     -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
-    sage: [bernoulli(2*i) for i in range(1,7)]
-    [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
-    sage: maxima(f).powerseries(x,0)
-    'sum((-1)^i2*2^(2*i2-1)*bern(2*i2)*x^(2*i2)/(i2*factorial(2*i2)),i2,1,inf)
+    sage: maxima(f).powerseries(x,0)._sage_()
+    sum(2^(2*i... - 1)*(-1)^i...*x^(2*i...)*bern(2*i...)/(i...*factorial(2*i...)), i..., 1, +Infinity)
+
+Or you can use the formal power series rings for fast computation.
+These are missing symbolic functions, on the other hand::
+
+    sage: R.<w> = QQ[[]]
+    sage: ps = w + 17/2*w^2 + 15/4*w^4 + O(w^6); ps
+    w + 17/2*w^2 + 15/4*w^4 + O(w^6)
+    sage: ps.exp()
+    1 + w + 9*w^2 + 26/3*w^3 + 265/6*w^4 + 413/10*w^5 + O(w^6)
+    sage: (1+ps).log()  
+    w + 8*w^2 - 49/6*w^3 - 193/8*w^4 + 301/5*w^5 + O(w^6)
+    sage: (ps^1000).coefficients()
+    [1, 8500, 36088875, 102047312625, 1729600092867375/8]
 
 .. index::
    pair: calculus; integration
@@ -165,9 +177,10 @@ where :math:`f(x)=1`, :math:`0<x<1`:
 ::
 
     sage: x = PolynomialRing(QQ, 'x').gen()
-    sage: f = Piecewise([[(0,1),1*x^0]])
+    sage: f = piecewise([((0,1),1*x^0)])
     sage: g = f.convolution(f)
     sage: h = f.convolution(g)
+    sage: set_verbose(-1)
     sage: P = f.plot(); Q = g.plot(rgbcolor=(1,1,0)); R = h.plot(rgbcolor=(0,1,1))
 
 To view this, type ``show(P+Q+R)``.
@@ -200,18 +213,13 @@ where :math:`f` is a piecewise defined function, can
 
     sage: f1(x) = x^2
     sage: f2(x) = 5-x^2
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-    sage: f.trapezoid(4)
-    Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x],
-    [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2],
-    [(3/2, 2), -7/2*x + 8]]
-    sage: f.riemann_sum_integral_approximation(6,mode="right")
-    19/6
-    sage: f.integral()
-    Piecewise defined function with 2 parts,
-    [[(0, 1), x |--> 1/3*x^3], [(1, 2), x |--> -1/3*x^3 + 5*x - 13/3]]
-    sage: f.integral(definite=True)
-    3
+    sage: f = piecewise([[[0,1], f1], [RealSet.open_closed(1,2), f2]])
+    sage: t = f.trapezoid(2); t
+    piecewise(x|-->1/2*x on (0, 1/2), x|-->3/2*x - 1/2 on (1/2, 1), x|-->7/2*x - 5/2 on (1, 3/2), x|-->-7/2*x + 8 on (3/2, 2); x)
+    sage: t.integral()
+    piecewise(x|-->1/4*x^2 on (0, 1/2), x|-->3/4*x^2 - 1/2*x + 1/8 on (1/2, 1), x|-->7/4*x^2 - 5/2*x + 9/8 on (1, 3/2), x|-->-7/4*x^2 + 8*x - 27/4 on (3/2, 2); x)
+    sage: t.integral(definite=True)
+    9/4
 
 .. index: Laplace transform
 
@@ -230,7 +238,7 @@ computation.
     (x, s)
     sage: f1(x) = 1
     sage: f2(x) = 1-x
-    sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+    sage: f = piecewise([((0,1),f1), ((1,2),f2)])
     sage: f.laplace(x, s)
     -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
 
@@ -276,20 +284,20 @@ with Octave (an experimental package), or routines in the GSL (Gnu
 Scientific Library).
 
 An example, how to solve ODE's symbolically in Sage using the Maxima interface
-(do not type the ``...``):
+(do not type the ``....:``):
 
 ::
 
-    sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
+    sage: y=function('y')(x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
     3*x - 2*e^(x - 1)
     sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
-    k2*e^(-x) + k1*e^x + 3*x
+    _K2*e^(-x) + _K1*e^x + 3*x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y)
-    (3*(x + 1)*e^(-x) + c)*e^x
+    (3*(x + 1)*e^(-x) + _C)*e^x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
     3*x - 5*e^(x - 1) + 3
 
-    sage: f=function('f',x); desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
+    sage: f=function('f')(x); desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
     x*e^x + e^x
 
     sage: desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f)
@@ -317,6 +325,7 @@ for :math:`0 <= t <= 2`. The same result can be obtained by using ``desolve_syst
     sage: p1 = list_plot([[i,j] for i,j,k in P], plotjoined=True)
     sage: p2 = list_plot([[i,k] for i,j,k in P], plotjoined=True, color='red')
     sage: p1+p2
+    Graphics object consisting of 2 graphics primitives
 
 Another way this system can be solved is to use the command ``desolve_system``.
 
@@ -369,7 +378,7 @@ illustrating how the Gibbs phenomenon is mollified).
 
     sage: f1 = lambda x: -1
     sage: f2 = lambda x: 2
-    sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+    sage: f = piecewise([((0,pi/2),f1), ((pi/2,pi),f2)])
     sage: f.fourier_series_cosine_coefficient(5,pi)
     -3/5/pi
     sage: f.fourier_series_sine_coefficient(2,pi)

@@ -100,7 +100,9 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
 
-from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_NumberFieldElement, is_NumberFieldFractionalIdeal
+from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
+from sage.rings.number_field.number_field_element import is_NumberFieldElement
+from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
 
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.ideal import is_Ideal
@@ -404,6 +406,21 @@ class EllipticCurveLocalData(SageObject):
         """
         return self._fp
 
+    def discriminant_valuation(self):
+        """
+        Return the valuation of the minimal discriminant from this local reduction data.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
+            sage: E = EllipticCurve([0,0,0,0,64]); E
+            Elliptic Curve defined by y^2 = x^3 + 64 over Rational Field
+            sage: data = EllipticCurveLocalData(E,2)
+            sage: data.discriminant_valuation()
+            4
+        """
+        return self._val_disc
+
     def kodaira_symbol(self):
         r"""
         Return the Kodaira symbol from this local reduction data.
@@ -469,8 +486,8 @@ class EllipticCurveLocalData(SageObject):
             return cp
         ks = self._KS
         if ks._roman==1 and ks._n%2==0 and ks._starred:
-            return 2
-        return 4
+            return ZZ(2)
+        return ZZ(4)
 
     def bad_reduction_type(self):
         r"""
@@ -688,7 +705,7 @@ class EllipticCurveLocalData(SageObject):
             sage: E.tamagawa_number(K.ideal(2))
             4
 
-        This is to show that the bug :trac: `11630` is fixed. (The computation of the class group would produce a warning)::
+        This is to show that the bug :trac:`11630` is fixed. (The computation of the class group would produce a warning)::
         
             sage: K.<t> = NumberField(x^7-2*x+177)
             sage: E = EllipticCurve([0,1,0,t,t])

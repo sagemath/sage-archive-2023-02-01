@@ -11,10 +11,6 @@ databases and computed by David R. Kohel.
 
 GPL version 2+
 
-== SPKG Maintainers ==
-
-* Jeroen Demeyer
-
 == Upstream Contact ==
 
 http://pari.math.u-bordeaux.fr/

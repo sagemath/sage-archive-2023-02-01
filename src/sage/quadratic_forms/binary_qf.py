@@ -36,22 +36,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006--2009 William Stein and Jon Hanke
+#       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.libs.pari.all import pari
-from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
+from sage.rings.all import ZZ, is_fundamental_discriminant
+from sage.arith.all import divisors, gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -240,6 +236,19 @@ class BinaryQF(SageObject):
             args = args[0]
         x, y = args
         return (self._a * x + self._b * y) * x + self._c * y**2
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(BinaryQF([2,2,3]))
+            802
+            sage: hash(BinaryQF([2,3,2]))
+            562
+            sage: hash(BinaryQF([3,2,2]))
+            547
+        """
+        return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
 
     def __cmp__(self, right):
         """
@@ -460,7 +469,6 @@ class BinaryQF(SageObject):
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
         """
-        from sage.rings.arith import gcd
         return gcd([self._a, self._b, self._c])==1
 
     @cached_method
@@ -599,8 +607,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
-        cx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -622,8 +630,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
-        bx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -638,6 +646,88 @@ class BinaryQF(SageObject):
         c1 = self(w)
         b1 = self(v + w) - a1 - c1
         return BinaryQF([a1, b1, c1])
+
+    def small_prime_value(self, Bmax=1000):
+        r"""
+        Returns a prime represented by this (primitive positive definite) binary form.
+
+        INPUT:
+
+        - ``Bmax`` -- a positive bound on the representing integers.
+
+        OUTPUT:
+
+        A prime number represented by the form.
+
+        .. note::
+
+            This is a very elementary implementation which just substitutes
+            values until a prime is found.
+
+        EXAMPLES::
+
+            sage: [Q.small_prime_value() for Q in BinaryQF_reduced_representatives(-23, primitive_only=True)]
+            [23, 2, 2]
+            sage: [Q.small_prime_value() for Q in BinaryQF_reduced_representatives(-47, primitive_only=True)]
+            [47, 2, 2, 3, 3]
+        """
+        from sage.sets.all import Set
+        from sage.arith.srange import xsrange
+        d = self.discriminant()
+        B = 10
+        while True:
+            llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))
+            llist = sorted([l for l in llist if l.is_prime()])
+            if llist:
+                return llist[0]
+            if B >= Bmax:
+                raise ValueError("Unable to find a prime value of %s" % self)
+            B += 10
+
+    def solve_integer(self, n):
+        r"""
+        Solve `Q(x,y) = n` in integers `x` and `y` where `Q` is this
+        quadratic form.
+
+        INPUT:
+
+        - ``Q`` (BinaryQF) -- a positive definite primitive integral
+          binary quadratic form
+
+        - ``n`` (int) -- a positive integer
+
+        OUTPUT:
+
+        A tuple (x,y) of integers satisfying `Q(x,y) = n` or ``None``
+        if no such `x` and `y` exist.
+
+        EXAMPLES::
+
+            sage: Qs = BinaryQF_reduced_representatives(-23,primitive_only=True)
+            sage: Qs
+            [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
+            sage: [Q.solve_integer(3) for Q in Qs]
+            [None, (0, 1), (0, 1)]
+            sage: [Q.solve_integer(5) for Q in Qs]
+            [None, None, None]
+            sage: [Q.solve_integer(6) for Q in Qs]
+            [(0, 1), (-1, 1), (1, 1)]
+        """
+        a, b, c = self
+        d = self.discriminant()
+        if d >= 0 or a <= 0:
+            raise ValueError("%s is not positive definite" % self)
+        ad = -d
+        an4 = 4*a*n
+        a2 = 2*a
+        from sage.arith.srange import xsrange
+        for y in xsrange(0, 1+an4//ad):
+            z2 = an4 + d*y**2
+            for z in z2.sqrt(extend=False, all=True):
+                if a2.divides(z-b*y):
+                    x = (z-b*y)//a2
+                    return (x,y)
+        return None
 
 def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""
@@ -727,8 +817,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
 
     form_list = []
 
-    from sage.misc.all import xsrange
-    from sage.rings.arith import gcd
+    from sage.arith.srange import xsrange
 
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2

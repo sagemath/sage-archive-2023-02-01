@@ -556,8 +556,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
     def has_finite_order(self):
         """
-        Return True if this point has finite additive order as an element
-        of the group of points on this curve.
+        Return ``True`` if this point has finite additive order as an
+        element of the group of points on this curve.
 
         For fields other than number fields and finite fields, this is
         NotImplemented unless self.is_zero().
@@ -624,6 +624,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3, 3), **args)
@@ -775,7 +776,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Q.xy()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if self[2] == 1:
             return self[0], self[1]
@@ -1293,7 +1294,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         if self.is_zero() or R.is_zero():
             if self == R:
-                return self.curve().base_field().one_element()
+                return self.curve().base_field().one()
             if self.is_zero():
                 return Q[0] - R[0]
             if R.is_zero():
@@ -1466,7 +1467,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             n = n.abs()
             n_is_negative = True
 
-        one = self.curve().base_field().one_element()
+        one = self.curve().base_field().one()
         t = one
         V = self
         S = 2*V
@@ -1577,7 +1578,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         if not ((n*P).is_zero() and (n*Q).is_zero()):
             raise ValueError("points must both be n-torsion")
 
-        one = E.base_field().one_element()
+        one = E.base_field().one()
 
         # Case where P = Q
         if P == Q:
@@ -2102,7 +2103,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
     def has_finite_order(self):
         """
-        Return True iff this point has finite order on the elliptic curve.
+        Return ``True`` iff this point has finite order on the elliptic curve.
 
         EXAMPLES::
 
@@ -2266,7 +2267,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.discriminant().support()
             [Fractional ideal (i + 1),
             Fractional ideal (-i - 2),
-            Fractional ideal (i - 2),
+            Fractional ideal (2*i + 1),
             Fractional ideal (3)]
             sage: [E.tamagawa_exponent(p) for p in E.discriminant().support()]
             [1, 4, 4, 4]
@@ -2651,7 +2652,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 Emin = E.minimal_model()
                 iso = E.isomorphism_to(Emin)
                 P = iso(self)
-                h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
+                h = Emin.pari_curve().ellheight(P, precision=precision)
                 height = rings.RealField(precision)(h)
             else:
                 height = (self.non_archimedean_local_height(prec=precision)
@@ -2748,6 +2749,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.archimedean_local_height()
             -0.2206607955468278492183362746930
 
+        See :trac:`19276`::
+
+            sage: K.<a> = NumberField(x^2-x-104)
+            sage: E = EllipticCurve([1, a - 1, 1, -816765673272*a - 7931030674178, 1478955604013312315*a + 14361086227143654561])
+            sage: P = E(5393511/49*a + 52372721/49 , -33896210324/343*a - 329141996591/343 )
+            sage: P.height()
+            0.974232017827740
         """
         E = self.curve()
         K = E.base_ring()
@@ -2775,14 +2783,24 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
         else:
             vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
+
+        absdisc = vv(E.discriminant()).abs()
+        while absdisc==0:
+            vv = refine_embedding(vv)
+            # print("doubling precision")
+            absdisc = vv(E.discriminant()).abs()
+        temp = 0 if absdisc>=1 else absdisc.log()/3
+
         b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
-        H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
+        H = max(vv(4), abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
+
         # The following comes from Silverman Theorem 4.2.  Silverman
         # uses decimal precision d, so his term (5/3)d =
         # (5/3)*(log(2)/log(10))*prec = 0.5017*prec, which we round
         # up.  The rest of the expression was wrongly transcribed in
         # Sage versions <5.6 (see #12509).
-        nterms = int(math.ceil(0.51*prec + 0.5 + 3*math.log(7+(4*math.log(H)+math.log(max(1, ~abs(v(E.discriminant())))))/3)/4))
+        nterms = int(math.ceil(0.51*prec + 0.5 + 0.75 * (7 + 4*H.log()/3 - temp).log()))
+
         b2p = b2 - 12
         b4p = b4 - b2 + 6
         b6p = b6 - 2*b4 + b2 - 4
@@ -2917,7 +2935,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             1/2*log(75923153929839865104)
 
             sage: F.<a> = NumberField(x^4 + 2*x^3 + 19*x^2 + 18*x + 288)
-            sage: F.ring_of_integers().gens()
+            sage: F.ring_of_integers().basis()
             [1, 5/6*a^3 + 1/6*a, 1/6*a^3 + 1/6*a^2, a^3]
             sage: F.class_number()
             12
@@ -3192,7 +3210,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             E_work = EllipticCurve(ai)  # defined over RR
             pt_pari = pari([emb(x), emb(y)])
         working_prec = precision
-        E_pari = E_work.pari_curve(prec=working_prec)
+        E_pari = E_work.pari_curve()
         log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
 
         while prec_words_to_bits(log_pari.precision()) < precision:
@@ -3206,7 +3224,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 ai = [emb(a) for a in E.a_invariants()]
                 E_work = EllipticCurve(ai)  # defined over RR
                 pt_pari = pari([emb(x), emb(y)])
-            E_pari = E_work.pari_curve(prec=working_prec)
+            E_pari = E_work.pari_curve()
             log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
 
         # normalization step
@@ -3419,6 +3437,22 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             return generic.discrete_log(Q, self, ord, operation='+')
         except Exception:
             raise ValueError("ECDLog problem has no solution")
+
+    def has_finite_order(self):
+        r"""
+        Return ``True`` if this point has finite additive order as an element
+        of the group of points on this curve.
+
+        Since the base field is finite, the answer will always be ``True``.
+
+        EXAMPLE::
+
+            sage: E = EllipticCurve(GF(7), [1,3])
+            sage: P = E.points()[3]
+            sage: P.has_finite_order()
+            True
+        """
+        return True
 
     def order(self):
         r"""

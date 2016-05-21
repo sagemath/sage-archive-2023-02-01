@@ -46,7 +46,7 @@ Classes and methods
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.rings.rational import Rational
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.combination import Combinations
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 
@@ -222,14 +222,17 @@ class CoveringDesign(SageObject):
             Lower bound: 7
             Method: Projective Plane
         """
-        repr =  '(%d,%d,%d)-covering design of size %d\n'%(self.__v,self.__k,self.__t,self.__size)
-        repr +=  'Lower bound: %d\n'%(self.__low_bd)
+        repr = '(%d,%d,%d)-covering design of size %d\n' % (self.__v,
+                                                            self.__k,
+                                                            self.__t,
+                                                            self.__size)
+        repr += 'Lower bound: %d\n' % (self.__low_bd)
         if self.__creator != '':
-            repr += 'Created by: %s\n'%(self.__creator)
+            repr += 'Created by: %s\n' % (self.__creator)
         if self.__method != '':
-            repr += 'Method: %s\n'%(self.__method)
+            repr += 'Method: %s\n' % (self.__method)
         if self.__timestamp != '':
-            repr += 'Submitted on: %s\n'%(self.__timestamp)
+            repr += 'Submitted on: %s\n' % (self.__timestamp)
 
         return repr
 
@@ -306,11 +309,10 @@ class CoveringDesign(SageObject):
                 tset[tuple(y)] = True
 
         for i in Svt:
-            if tset[tuple(i)] == False:     # uncovered
+            if not tset[tuple(i)]:     # uncovered
                 return False
 
         return True                  # everything was covered
-
 
     def v(self):
         """
@@ -439,7 +441,7 @@ class CoveringDesign(SageObject):
             sage: from sage.combinat.designs.covering_design import CoveringDesign
             sage: C=CoveringDesign(7,3,2,7,range(7),[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]],0, 'Projective Plane')
             sage: D = C.incidence_structure()
-            sage: D.points()
+            sage: D.ground_set()
             [0, 1, 2, 3, 4, 5, 6]
             sage: D.blocks()
             [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
@@ -483,7 +485,9 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     This function raises a ValueError if the ``(v,k,t)`` parameters are not
     found in the database.
     """
-    import urllib
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+
     from sage.misc.sage_eval import sage_eval
 
     v = int(v)
@@ -494,8 +498,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     url = "http://www.ccrwest.org/cover/get_cover.php"+param
     if verbose:
-        print "Looking up the bounds at %s"%url
-    f = urllib.urlopen(url)
+        print "Looking up the bounds at %s" % url
+    f = urlopen(url)
     s = f.read()
     f.close()
 

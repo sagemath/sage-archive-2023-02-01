@@ -33,19 +33,19 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
-from combinat import CombinatorialObject
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from combinat import CombinatorialElement
+from sage.categories.cartesian_product import cartesian_product
+
+from integer_lists import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
-class Composition(CombinatorialObject, Element):
+class Composition(CombinatorialElement):
     r"""
     Integer compositions
 
@@ -107,9 +107,12 @@ class Composition(CombinatorialObject, Element):
         [1, 1, 2, 1]
         sage: Composition(descents=({0,1,3},5))
         [1, 1, 2, 1]
-    """
-    __metaclass__ = ClasscallMetaclass
 
+    EXAMPLES::
+
+        sage: C = Composition([3,1,2])
+        sage: TestSuite(C).run()
+    """
     @staticmethod
     def __classcall_private__(cls, co=None, descents=None, code=None, from_subset=None):
         """
@@ -144,18 +147,6 @@ class Composition(CombinatorialObject, Element):
         else:
             return Compositions()(list(co))
 
-    def __init__(self, parent, lst):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = Composition([3,1,2])
-            sage: TestSuite(C).run()
-        """
-        CombinatorialObject.__init__(self, lst)
-        Element.__init__(self, parent)
-
     def _ascii_art_(self):
         """
         TESTS::
@@ -172,7 +163,7 @@ class Composition(CombinatorialObject, Element):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):
@@ -477,7 +468,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
@@ -609,7 +600,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         return Compositions()(factors)
                 if current_factor_size + i <= j:
@@ -729,7 +720,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(current_part)
                         return Compositions()(factors)
@@ -759,10 +750,16 @@ class Composition(CombinatorialObject, Element):
             sage: C = Composition([3,2]).finer()
             sage: C.cardinality()
             8
-            sage: list(C)
+            sage: C.list()
             [[1, 1, 1, 1, 1], [1, 1, 1, 2], [1, 2, 1, 1], [1, 2, 2], [2, 1, 1, 1], [2, 1, 2], [3, 1, 1], [3, 2]]
+
+            sage: Composition([]).finer()
+            {[]}
         """
-        return CartesianProduct(*[Compositions(i) for i in self]).map(Composition.sum)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 
     def is_finer(self, co2):
         """
@@ -948,9 +945,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
-
-    refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
+        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
 
     def major_index(self):
         """
@@ -1180,8 +1175,8 @@ class Composition(CombinatorialObject, Element):
             return SkewPartition([[],[]])
 
         return SkewPartition(
-            [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
-              filter(lambda x: x != 0, [l for l in reversed(inner)])])
+            [ [x for x in reversed(outer) if x != 0],
+              [x for x in reversed(inner) if x != 0] ])
 
 
     def shuffle_product(self, other, overlap=False):
@@ -1321,7 +1316,7 @@ class Composition(CombinatorialObject, Element):
 
 ##############################################################
 
-class Compositions(Parent, UniqueRepresentation):
+class Compositions(UniqueRepresentation, Parent):
     r"""
     Set of integer compositions.
 
@@ -1399,10 +1394,10 @@ class Compositions(Parent, UniqueRepresentation):
         sage: [4,1] in Compositions(5, inner=[2,1], max_slope = 0)
         True
 
-    Note that the given constraints should be compatible::
+    An example with incompatible constraints::
 
         sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
-        True
+        False
 
     The options ``length``, ``min_length``, and ``max_length`` can be used
     to set length constraints on the compositions. For example, the
@@ -1484,7 +1479,7 @@ class Compositions(Parent, UniqueRepresentation):
     preferably consider using ``IntegerVectors`` instead::
 
         sage: Compositions(2, length=3, min_part=0).list()
-        doctest:... RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
+        doctest:...: RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
 
         sage: list(IntegerVectors(2, 3))
@@ -1765,7 +1760,7 @@ class Compositions(Parent, UniqueRepresentation):
         if code == [0]:
             return []
 
-        L = filter(lambda x: code[x]==1, range(len(code))) #the positions of the letter 1
+        L = [x for x in range(len(code)) if code[x]==1] #the positions of the letter 1
         return self.element_class(self, [L[i]-L[i-1] for i in range(1, len(L))] + [len(code)-L[-1]])
 
 # Allows to unpickle old constrained Compositions_constraints objects.
@@ -1841,7 +1836,7 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: it = C.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
         n = 0
@@ -1927,6 +1922,33 @@ class Compositions_n(Compositions):
         else:
             return 0
 
+    def random_element(self):
+        r"""
+        Return a random ``Composition`` with uniform probability.
+
+        This method generates a random binary word starting with a 1
+        and then uses the bijection between compositions and their code.
+
+        EXAMPLES::
+
+            sage: Compositions(5).random_element() # random
+            [2, 1, 1, 1]
+            sage: Compositions(0).random_element()
+            []
+            sage: Compositions(1).random_element()
+            [1]
+
+        TESTS::
+
+            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            True
+        """
+        from sage.misc.prandom import choice
+
+        if self.n == 0:
+            return Compositions()([])
+        return Compositions().from_code([1] + [choice([0,1]) for _ in range(self.n - 1)])
+
     def __iter__(self):
         """
         Iterate over the compositions of `n`.
@@ -1938,67 +1960,40 @@ class Compositions_n(Compositions):
             sage: Compositions(0).list()
             [[]]
         """
-        if self.n == 0:
-            yield self.element_class(self, [])
-            return
+        for c in composition_iterator_fast(self.n):
+            yield self.element_class(self, c)
 
-        for i in range(1,self.n+1):
-            for c in Compositions_n(self.n-i):
-                yield self.element_class(self, [i]+list(c))
-
-def from_descents(descents, nps=None):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_descents()` instead.
-
-    EXAMPLES::
-
-        sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
-        [0, 1, 4, 8]
-        sage: sage.combinat.composition.from_descents([1,0,4,8],12)
-        doctest:1: DeprecationWarning: from_descents is deprecated. Use Compositions().from_descents instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
+def composition_iterator_fast(n):
     """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_descents is deprecated. Use Compositions().from_descents instead.')
-    return Compositions().from_descents(descents, nps)
+    Iterator over compositions of ``n`` yielded as lists.
 
-def composition_from_subset(S, n):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_subset()` instead.
+    TESTS::
 
-    EXAMPLES::
-
-        sage: from sage.combinat.composition import composition_from_subset
-        sage: composition_from_subset([2,1,5,9], 12)
-        doctest:1: DeprecationWarning: composition_from_subset is deprecated. Use Compositions().from_subset instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
+        sage: from sage.combinat.composition import composition_iterator_fast
+        sage: L = list(composition_iterator_fast(4)); L
+        [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+        sage: type(L[0])
+        <type 'list'>
     """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'composition_from_subset is deprecated. Use Compositions().from_subset instead.')
-    return Compositions().from_subset(S, n)
+    # Special cases
+    if n < 0:
+        return
+    if n == 0:
+        yield []
+        return
 
-def from_code(code):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_code()` instead.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.composition as composition
-        sage: Composition([4,1,2,3,5]).to_code()
-        [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-        sage: composition.from_code(_)
-        doctest:1: DeprecationWarning: from_code is deprecated. Use Compositions().from_code instead.
-        See http://trac.sagemath.org/14063 for details.
-        [4, 1, 2, 3, 5]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_code is deprecated. Use Compositions().from_code instead.')
-    return Compositions().from_code(code)
+    s = Integer(0) # Current sum
+    cur = [Integer(0)]
+    while cur:
+        cur[-1] += 1
+        s += 1
+        # Note that because we are adding 1 every time,
+        #   we will never have s > n
+        if s == n:
+            yield list(cur)
+            s -= cur.pop()
+        else:
+            cur.append(Integer(0))
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

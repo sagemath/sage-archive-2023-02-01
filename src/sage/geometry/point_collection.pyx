@@ -40,7 +40,7 @@ container for points of the same space that
 * allows (cached) access to alternative representations::
 
     sage: c.set()
-    frozenset([N(0, 1, 1), N(1, 1, 1), N(0, 0, 1), N(1, 0, 1)])
+    frozenset({N(0, 0, 1), N(0, 1, 1), N(1, 0, 1), N(1, 1, 1)})
 
 * allows introduction of additional methods::
 
@@ -888,7 +888,7 @@ cdef class PointCollection(SageObject):
 
             sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.set()
-            frozenset([N(0, 1, 1), N(1, 1, 1), N(0, 0, 1), N(1, 0, 1)])
+            frozenset({N(0, 0, 1), N(0, 1, 1), N(1, 0, 1), N(1, 1, 1)})
         """
         if self._set is None:
             self._set = frozenset(self._points)

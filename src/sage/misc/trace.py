@@ -42,7 +42,9 @@ def trace(code, preparse=True):
     For an article on how to use the Python debugger, see
     http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html
 
-    TESTS: The only real way to test this is via pexpect spawning a
+    TESTS:
+
+    The only real way to test this is via pexpect spawning a
     sage subprocess that uses IPython.
 
     ::
@@ -83,8 +85,8 @@ def trace(code, preparse=True):
     except NameError:
         raise NotImplementedError("the trace command can only be run from the Sage command-line")
 
-    import preparser
-    code = preparser.preparse(code)
+    from sage.repl.preparse import preparse
+    code = preparse(code)
     return pdb.run(code, ipython.user_ns)
 
     # this could also be useful; it drops

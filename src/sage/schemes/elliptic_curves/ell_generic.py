@@ -13,8 +13,8 @@ EXAMPLES:
 We construct an elliptic curve over an elaborate base ring::
 
     sage: p = 97; a=1; b=3
-    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
-    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: R.<u> = GF(p)[]
+    sage: S.<v> = R[]
     sage: T = S.fraction_field()
     sage: E = EllipticCurve(T, [a, b]); E
     Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
@@ -35,19 +35,15 @@ AUTHORS:
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#                     2014 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 
@@ -58,11 +54,12 @@ import sage.groups.generic as generic
 import sage.plot.all as plot
 from sage.plot.plot import generate_plot_points
 
-import sage.rings.arith as arith
+from sage.arith.all import lcm
 import sage.rings.all as rings
-from sage.rings.number_field.all import is_NumberField
-import sage.misc.misc as misc
+from sage.rings.number_field.number_field_base import is_NumberField
+from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.fast_methods import WithEqualityById
 
 # Schemes
 import sage.schemes.projective.projective_space as projective_space
@@ -75,11 +72,8 @@ import formal_group
 import weierstrass_morphism as wm
 
 
-factor = arith.factor
 sqrt = math.sqrt
 exp = math.exp
-mul = misc.mul
-next_prime = arith.next_prime
 
 oo = rings.infinity       # infinity
 O = rings.O         # big oh
@@ -101,7 +95,7 @@ def is_EllipticCurve(x):
     """
     return isinstance(x, EllipticCurve_generic)
 
-class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generic):
     r"""
     Elliptic curve over a generic base ring.
 
@@ -116,18 +110,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         sage: -5*P
         (179051/80089 : -91814227/22665187 : 1)
     """
-    def __init__(self, ainvs, extra=None):
+    def __init__(self, K, ainvs):
         r"""
-        Constructor from `a`-invariants (long or short Weierstrass coefficients).
+        Construct an elliptic curve from Weierstrass `a`-coefficients.
 
         INPUT:
 
-        - ``ainvs`` (list) -- either `[a_1,a_2,a_3,a_4,a_6]` or
-          `[a_4,a_6]` (with `a_1=a_2=a_3=0` in the second case).
+        - ``K`` -- a ring
 
-        .. note::
+        - ``ainvs`` -- a list or tuple `[a_1, a_2, a_3, a_4, a_6]` of
+          Weierstrass coefficients.
 
-           See constructor.py for more variants.
+        .. NOTE::
+
+            This class should not be called directly; use
+            :class:`sage.constructor.EllipticCurve` to construct
+            elliptic curves.
 
         EXAMPLES::
 
@@ -146,41 +144,26 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
         """
-        if extra != None:   # possibility of two arguments
-            K, ainvs = ainvs, extra
-        else:
-            K = ainvs[0].parent()
-        assert len(ainvs) == 2 or len(ainvs) == 5
         self.__base_ring = K
-        ainvs = [K(x) for x in ainvs]
-        if len(ainvs) == 2:
-            ainvs = [K(0),K(0),K(0)] + ainvs
-        self.__ainvs = tuple(ainvs)
+        self.__ainvs = tuple(K(a) for a in ainvs)
         if self.discriminant() == 0:
-            raise ArithmeticError("Invariants %s define a singular curve."%ainvs)
+            raise ArithmeticError("invariants " + str(ainvs) + " define a singular curve")
         PP = projective_space.ProjectiveSpace(2, K, names='xyz');
         x, y, z = PP.coordinate_ring().gens()
         a1, a2, a3, a4, a6 = ainvs
         f = y**2*z + (a1*x + a3*z)*y*z \
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
-        # TODO: cleanup, are these two point classes redundant?
 
         # See #1975: we deliberately set the class to
         # EllipticCurvePoint_finite_field for finite rings, so that we
         # can do some arithmetic on points over Z/NZ, for teaching
         # purposes.
-        from sage.rings.finite_rings.constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-        if is_FiniteField(K) or is_IntegerModRing(K):
-            self._morphism = self._point = ell_point.EllipticCurvePoint_finite_field
-        elif K.is_field():
-            if is_NumberField(K):
-                self._morphism = self._point = ell_point.EllipticCurvePoint_number_field
-            else:
-                self._morphism = self._point = ell_point.EllipticCurvePoint_field
-        else:
-            self._morphism = self._point = ell_point.EllipticCurvePoint
+        if is_IntegerModRing(K):
+            self._point = ell_point.EllipticCurvePoint_finite_field
+
+    _point = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
         r"""
@@ -197,19 +180,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             True
         """
         return (self.__base_ring, list(self.__ainvs))
-
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: E = EllipticCurve('37a')
-            sage: hash(E)
-            -1437250549             # 32-bit
-            -2189969105152029685    # 64-bit
-            sage: hash(E) != hash(E.change_ring(GF(7)))
-            True
-        """
-        return hash((self.__base_ring, self.__ainvs))
 
     def _repr_(self):
         """
@@ -427,25 +397,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x, y = SR.var('x, y')
         return y**2 + a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
 
-    def __cmp__(self, other):
-        """
-        Standard comparison function for elliptic curves, to allow sorting
-        and equality testing.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: F=EllipticCurve(QQ,[0,0,0,1,1])
-            sage: E==F
-            True
-        """
-        if not isinstance(other, EllipticCurve_generic):
-            return -1
-        t = cmp(self.base_ring(), other.base_ring())
-        if t:
-            return t
-        return cmp(self.ainvs(), other.ainvs())
-
     def __contains__(self, P):
         """
         Returns True if and only if P is a point on the elliptic curve. P
@@ -569,7 +520,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve([0,0,0,-49,0])
             sage: T = E.torsion_subgroup()
             sage: [E(t) for t in T]
-            [(0 : 1 : 0), (7 : 0 : 1), (0 : 0 : 1), (-7 : 0 : 1)]
+            [(0 : 1 : 0), (-7 : 0 : 1), (0 : 0 : 1), (7 : 0 : 1)]
 
         ::
 
@@ -601,23 +552,28 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def _reduce_point(self, R, p):
         r"""
-        Reduces a point R on an ellipitc curve to the corresponding point on
-        the elliptic curve reduced modulo p. Used to coerce points between
+        Reduces a point R on an elliptic curve to the corresponding point on
+        the elliptic curve reduced modulo p.
+
+        Used to coerce points between
         curves when p is a factor of the denominator of one of the
         coordinates.
 
-        This functionality is used internally in the \code{call} method for
+        This functionality is used internally in the ``call`` method for
         elliptic curves.
 
         INPUT:
-            R -- a point on an elliptic curve
-            p -- a prime
+
+        - R -- a point on an elliptic curve
+        - p -- a prime
 
         OUTPUT:
-            S -- the corresponding point of the elliptic curve containing R, but
-                 reduced modulo p
+
+        S -- the corresponding point of the elliptic curve containing
+           R, but reduced modulo p
 
         EXAMPLES:
+
         Suppose we have a point with large height on a rational elliptic curve
         whose denominator contains a factor of 11::
 
@@ -646,7 +602,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if R.is_zero():
             return R.curve().change_ring(rings.GF(p))(0)
         x, y = R.xy()
-        d = arith.LCM(x.denominator(), y.denominator())
+        d = lcm(x.denominator(), y.denominator())
         return R.curve().change_ring(rings.GF(p))([x*d, y*d, d])
 
     def is_x_coord(self, x):
@@ -852,6 +808,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E._point_homset(Spec(GF(5^10,'a'),GF(5)), E)
             Abelian group of points on Elliptic Curve defined
             by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
+
+        Point sets of elliptic curves are unique (see :trac:`17008`)::
+
+            sage: E = EllipticCurve([2, 3])
+            sage: E.point_homset() is E.point_homset(QQ)
+            True
+
+            sage: @fork
+            ....: def compute_E():
+            ....:     E = EllipticCurve([2, 3])
+            ....:     p = E(3, 6, 1)
+            ....:     return p
+            ....:
+            sage: p = compute_E()
+            sage: 2*p
+            (-23/144 : 2827/1728 : 1)
         """
         return SchemeHomset_points_abelian_variety_field(*args, **kwds)
 
@@ -2158,7 +2130,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         NOTE: This function is currently *much* slower than the
         result of ``self.multiplication_by_m()``, because
         constructing an isogeny precomputes a significant amount
-        of information. See trac tickets #7368 and #8014 for the
+        of information. See :trac:`7368` and :trac:`8014` for the
         status of improving this situation.
 
         INPUT:
@@ -2271,7 +2243,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: [ len(EllipticCurve_from_j(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
             [2, 24, 2, 12, 2, 6, 6, 6]
         """
-        if field==None:
+        if field is None:
             return [wm.WeierstrassIsomorphism(self, urst, self)
                     for urst in wm.isomorphisms(self,self)]
         E=self.change_ring(field)
@@ -2301,18 +2273,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
             sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F);
-            [Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+              Via:  (u,r,s,t) = (-1, 0, 0, -1),
+             Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
               Via:  (u,r,s,t) = (1, 0, 0, 0)]
-
 
         We can also find isomorphisms defined over extension fields::
 
@@ -2329,7 +2293,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x + 6 over Finite Field in a of size 7^2
             Via:  (u,r,s,t) = (6*a + 4, 0, 0, 0)]
         """
-        if field==None:
+        if field is None:
             return [wm.WeierstrassIsomorphism(self, urst, other)
                     for urst in wm.isomorphisms(self,other)]
         E=self.change_ring(field)
@@ -2366,20 +2330,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         if not is_EllipticCurve(other):
             return False
-        if field==None:
+        if field is None:
             if self.base_ring() != other.base_ring():
                 return False
             elif self.j_invariant() != other.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(self,other,True) != None
+                return wm.isomorphisms(self,other,True) is not None
         else:
             E=self.base_extend(field)
             F=other.base_extend(field)
             if E.j_invariant() != F.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(E,other,F) != None
+                return wm.isomorphisms(E,other,F) is not None
 
     def change_weierstrass_model(self, *urst):
         r"""
@@ -2447,7 +2411,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.short_weierstrass_model(complete_cube=False)
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
 
-        This used to be different see trac #3973::
+        This used to be different see :trac:`3973`::
 
             sage: E.short_weierstrass_model()
             Elliptic Curve defined by y^2 = x^3 + x + 2 over Finite Field of size 3
@@ -2506,6 +2470,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         Draw a graph of this elliptic curve.
 
+        The plot method is only implemented when there is a natural coercion
+        from the base ring of ``self`` to ``RR``. In this case, ``self`` is
+        plotted as if it was defined over ``RR``.
+
         INPUT:
 
         -  ``xmin, xmax`` - (optional) points will be computed at
@@ -2542,16 +2510,21 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
             sage: E = EllipticCurve([0,-1])
             sage: plot(E, rgbcolor=hue(0.7))
+            Graphics object consisting of 1 graphics primitive
             sage: E = EllipticCurve('37a')
             sage: plot(E)
+            Graphics object consisting of 2 graphics primitives
             sage: plot(E, xmin=25,xmax=26)
+            Graphics object consisting of 2 graphics primitives
 
         With #12766 we added the components keyword::
 
             sage: E.real_components()
             2
             sage: E.plot(components='bounded')
+            Graphics object consisting of 1 graphics primitive
             sage: E.plot(components='unbounded')
+            Graphics object consisting of 1 graphics primitive
 
         If there is only one component then specifying
         components='bounded' raises a ValueError::
@@ -2561,6 +2534,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Traceback (most recent call last):
             ...
             ValueError: no bounded component for this curve
+
+        An elliptic curve defined over the Complex Field can not be plotted::
+
+            sage: E = EllipticCurve(CC, [0,0,1,-1,0])
+            sage: E.plot()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()
@@ -2796,10 +2777,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
-        P1 = Epi.next()
-        while P1.is_zero(): P1 = Epi.next()
-        P2 = Epi.next()
-        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+        P1 = next(Epi)
+        while P1.is_zero(): P1 = next(Epi)
+        P2 = next(Epi)
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = next(Epi)
 
         k = 1
         log_order = 2
@@ -2916,26 +2897,24 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Over a finite field::
 
             sage: EllipticCurve(GF(41),[2,5]).pari_curve()
-            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
+            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), Vecsmall([3]), [41, [9, 31, [6, 0, 0, 0]]], [0, 0, 0, 0]]
 
         Over a `p`-adic field::
 
             sage: Qp = pAdicField(5, prec=3)
             sage: E = EllipticCurve(Qp,[3, 4])
             sage: E.pari_curve()
-            [O(5^3), O(5^3), O(5^3), 3 + O(5^3), 4 + O(5^3), O(5^3), 1 + 5 + O(5^3), 1 + 3*5 + O(5^3), 1 + 3*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 4 + 3*5 + 5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3*5^-1 + O(5), [4 + 4*5 + 4*5^2 + O(5^3)], 1 + 2*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3 + 3*5 + 3*5^2 + O(5^3), 0]
+            [0, 0, 0, 3, 4, 0, 6, 16, -9, -144, -3456, -8640, 1728/5, Vecsmall([2]), [O(5^3)], [0, 0]]
             sage: E.j_invariant()
             3*5^-1 + O(5)
 
-        The `j`-invariant must have negative `p`-adic valuation::
+        PARI no longer requires that the `j`-invariant has negative `p`-adic valuation::
 
             sage: E = EllipticCurve(Qp,[1, 1])
             sage: E.j_invariant() # the j-invariant is a p-adic integer
             2 + 4*5^2 + O(5^3)
             sage: E.pari_curve()
-            Traceback (most recent call last):
-            ...
-            PariError: valuation of j must be negative in p-adic ellinit
+            [0, 0, 0, 1, 1, 0, 2, 4, -1, -48, -864, -496, 6912/31, Vecsmall([2]), [O(5^3)], [0, 0]]
         """
         try:
             return self._pari_curve
@@ -2958,13 +2937,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
             sage: E = EllipticCurve('11a1')
             sage: pari(E)
-            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
-            sage: E.pari_curve(prec=64)
-            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
+            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, Vecsmall([1]), [Vecsmall([64, -1])], [0, 0, 0, 0, 0, 0, 0, 0]]
 
         Over a finite field::
 
             sage: EllipticCurve(GF(2), [0,0,1,1,1])._pari_()
-            [Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(0, 2), 0, 0, 0, 0, 0, 0]
+            [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, Vecsmall([4]), [1, [[Vecsmall([0, 1]), Vecsmall([0, 1]), Vecsmall([0, 1])], Vecsmall([0, 1]), [Vecsmall([0, 1]), Vecsmall([0]), Vecsmall([0]), Vecsmall([0])]]], [0, 0, 0, 0]]
         """
         return self.pari_curve()

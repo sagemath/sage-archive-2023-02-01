@@ -1,3 +1,5 @@
+"Access to Maxima methods"
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
@@ -82,8 +84,10 @@ class MaximaWrapper(SageObject):
         """
         if self._maxima_exp is None:
             self._maxima_exp = self._exp._maxima_()
-        if s == 'trait_names' or s[:1] == '_':
+        if s[0] == '_':
             return getattr(self._maxima_exp, s)
+        if s == 'trait_names':  # SageNB backward compatibility
+            return self._maxima_()._tab_completion
         else:
             # add a wrapper function which converts the result back to
             # a Sage expression
@@ -110,7 +114,9 @@ class MaximaWrapper(SageObject):
             sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
             log(sqrt(2) + 1) + log(sqrt(2) - 1)
             sage: u = t.maxima_methods()
-            sage: SR(u) is t # indirect doctest
+            sage: u._symbolic_(SR) is t
+            True
+            sage: SR(u) is t  # indirect doctest
             True
         """
         return parent(self._exp)

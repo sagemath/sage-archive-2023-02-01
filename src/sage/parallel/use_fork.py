@@ -2,17 +2,17 @@
 Parallel iterator built using the ``fork()`` system call
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of (any version of) the GNU
-#  General Public License (GPL). The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-from sage.ext.c_lib import AlarmInterrupt
-from sage.misc.misc import alarm, cancel_alarm
+from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 
 class p_iter_fork:
     """
@@ -228,7 +228,7 @@ class p_iter_fork:
             sage: sorted(list( F( (lambda x: x^2), [([10],{}), ([20],{})])))
             [(([10], {}), 100), (([20], {}), 400)]
         """
-        import os, sys
+        import imp, os, sys
         from sage.structure.sage_object import save
 
         try:
@@ -241,7 +241,7 @@ class p_iter_fork:
             # pid has changed (forcing a reload of
             # misc).
             import sage.misc.misc
-            reload(sage.misc.misc)
+            imp.reload(sage.misc.misc)
 
             # The pexpect interfaces (and objects defined in them) are
             # not valid.

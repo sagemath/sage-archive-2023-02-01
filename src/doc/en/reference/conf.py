@@ -12,19 +12,12 @@
 # serve to show the default.
 
 import sys, os
-from sage.env import SAGE_DOC
-sys.path.append(SAGE_DOC)
+from sage.env import SAGE_DOC_SRC, SAGE_DOC
+sys.path.append(SAGE_DOC_SRC)
 from common.conf import *
 
-# settings for the intersphinx extension:
-
-ref_src = os.path.join(SAGE_DOC, 'en', 'reference')
-ref_out = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference')
-intersphinx_mapping[ref_out] = None
-
-for doc in os.listdir(ref_src):
-    if os.path.exists(os.path.join(ref_src, doc, 'index.rst')):
-        intersphinx_mapping[os.path.join(ref_out, doc)] = None
+ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
+ref_out = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
 
 # General information about the project.
 project = u"Sage Reference Manual"
@@ -60,7 +53,7 @@ latex_elements['preamble'] += r'''
 '''
 
 #Ignore all .rst in the _sage subdirectory
-exclude_trees = exclude_trees + ['_sage']
+exclude_patterns = exclude_patterns + ['_sage']
 
 multidocs_is_master = True
 
@@ -74,6 +67,6 @@ multidocs_subdoc_list = sorted([x for x in os.listdir(ref_src)
 
 # List of directories, relative to source directory, that shouldn't be
 # searched for source files.
-exclude_trees += multidocs_subdoc_list + [
+exclude_patterns += multidocs_subdoc_list + [
     'sage', 'sagenb', 'options'
     ]

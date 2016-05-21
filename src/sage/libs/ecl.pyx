@@ -14,13 +14,16 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "sage/ext/signals.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
+
+from libc.stdlib cimport abort
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport raise_ as signal_raise
+from posix.signal cimport sigaction, sigaction_t
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.rational import Rational
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -40,11 +43,11 @@ cdef bint bint_rationalp(cl_object obj):
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
-    cdef Sigaction ecl_sigint_handler
-    cdef Sigaction ecl_sigbus_handler
-    cdef Sigaction ecl_sigsegv_handler
-    cdef mpz_t* ecl_mpz_from_bignum(cl_object obj)
-    cdef cl_object ecl_bignum_from_mpz(mpz_t* num)
+    cdef sigaction_t ecl_sigint_handler
+    cdef sigaction_t ecl_sigbus_handler
+    cdef sigaction_t ecl_sigsegv_handler
+    cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
+    cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -232,11 +235,11 @@ def init_ecl():
     global read_from_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
-    cdef Sigaction sage_action[32]
+    cdef sigaction_t sage_action[32]
     cdef int i
 
     if ecl_has_booted:
-        raise RuntimeError, "ECL is already initialized"
+        raise RuntimeError("ECL is already initialized")
 
     # we need it to stop handling SIGCHLD
     ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
@@ -262,7 +265,7 @@ def init_ecl():
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
     #verify that no SIGCHLD handler was installed
-    cdef Sigaction sig_test
+    cdef sigaction_t sig_test
     sigaction(SIGCHLD, NULL, &sig_test)
     assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
     assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
@@ -319,27 +322,29 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.tests.interrupt import *
+        sage: from cysignals.tests import interrupt_after_delay
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
-        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
         sage: interrupt_after_delay(1000)
         sage: inf_loop()
         Traceback (most recent call last):
         ...
         RuntimeError: ECL says: Console interrupt.
     """
+    cdef cl_object s
     ecl_sig_on()
     cl_funcall(2,safe_eval_clobj,form)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
-    cdef cl_object l
+    cdef cl_object l, s
     l = cl_cons(func,cl_cons(arg,Cnil));
 
     ecl_sig_on()
@@ -347,17 +352,20 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
+    cdef cl_object s
     ecl_sig_on()
     cl_funcall(3,safe_apply_clobj,func,args)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -407,10 +415,11 @@ def print_objects():
         HELLO
     """
 
-    cdef cl_object c
+    cdef cl_object c, s
     c = list_of_objects
     while True:
-        print ecl_base_string_pointer_safe(cl_write_to_string(1,cl_car(c)))
+        s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
+        print ecl_base_string_pointer_safe(s)
         c=cl_cadr(c)
         if c == Cnil:
             break
@@ -451,7 +460,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            return ecl_bignum_from_mpz( (<Integer>pyobj).get_value() )
+            return ecl_bignum_from_mpz( (<Integer>pyobj).value )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
                 python_to_ecl( (<Rational>pyobj).numerator()  ),
@@ -482,9 +491,10 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             cl_rplacd(ptr,python_to_ecl(pyobj[-1]))
             return L
     else:
-        raise TypeError,"Unimplemented type for python_to_ecl"
+        raise TypeError("Unimplemented type for python_to_ecl")
 
 cdef ecl_to_python(cl_object o):
+    cdef cl_object s
     cdef Integer N
     # conversions from an ecl object to a python object.
 
@@ -519,7 +529,8 @@ cdef ecl_to_python(cl_object o):
                 return tuple(L)
         return L
     else:
-        return ecl_base_string_pointer_safe(cl_write_to_string(1,o))
+        s = si_coerce_to_base_string(cl_write_to_string(1,o))
+        return ecl_base_string_pointer_safe(s)
 
 #Maxima's BFLOAT multiprecision float type can be read with:
 #def bfloat_to_python(e):
@@ -560,15 +571,15 @@ cdef class EclObject:
     Floats in Python are IEEE double, which LISP has as well. However,
     the printing of floating point types in LISP depends on settings::
 
-        sage: a = EclObject(float(10**40))
+        sage: a = EclObject(float(10^40))
         sage: ecl_eval("(setf *read-default-float-format* 'single-float)")
         <ECL: SINGLE-FLOAT>
         sage: a
-        <ECL: 9.999999999999999d39>
+        <ECL: 1.d40>
         sage: ecl_eval("(setf *read-default-float-format* 'double-float)")
         <ECL: DOUBLE-FLOAT>
         sage: a
-        <ECL: 9.999999999999999e39>
+        <ECL: 1.e40>
 
     Tuples are translated to dotted lists::
 
@@ -590,7 +601,7 @@ cdef class EclObject:
         sage: EclObject([1,2,EclObject([3])])
         <ECL: (1 2 (3))>
 
-    Calling an EclObject translates into the appropriate LISP ``apply'',
+    Calling an EclObject translates into the appropriate LISP ``apply``,
     where the argument is transformed into an EclObject itself, so one can
     flexibly apply LISP functions::
 
@@ -669,7 +680,7 @@ cdef class EclObject:
             ...
             NotImplementedError: EclObjects do not have a pickling method
         """
-        raise NotImplementedError, "EclObjects do not have a pickling method"
+        raise NotImplementedError("EclObjects do not have a pickling method")
 
     def python(self):
         r"""
@@ -735,7 +746,7 @@ cdef class EclObject:
 
         """
         cdef cl_object s
-        s = cl_write_to_string(1,self.obj)
+        s = si_coerce_to_base_string(cl_write_to_string(1,self.obj))
         return ecl_base_string_pointer_safe(s)
 
     def __hash__(self):
@@ -820,20 +831,7 @@ cdef class EclObject:
         #and does not have generic routines for doing that.
         #we could dispatch based on type here, but that seems
         #inappropriate for an *interface*.
-        raise NotImplementedError,"EclObjects can only be compared for equality"
-
-        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-        #    raise TypeError,"Can only compare EclObjects"
-        #if op == 0: # "<"
-        #    pass
-        #elif op == 1: # "<="
-        #    pass
-        #elif op == 4: # ">"
-        #    pass
-        #elif op == 5: # ">="
-        #    pass
-        #else:
-        #    raise ValueError,"richcmp received operation code %d"%op
+        raise NotImplementedError("EclObjects can only be compared for equality")
 
     def __iter__(self):
         r"""
@@ -905,7 +903,7 @@ cdef class EclObject:
         cdef cl_object o
         o=ecl_safe_eval(self.obj)
         if o == NULL:
-            raise RuntimeError,"ECL runtime error"
+            raise RuntimeError("ECL runtime error")
         return ecl_wrap(o)
 
     def cons(self,EclObject d):
@@ -940,7 +938,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplaca can only be applied to a cons"
+            raise TypeError("rplaca can only be applied to a cons")
         cl_rplaca(self.obj, d.obj)
 
 
@@ -961,7 +959,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplacd can only be applied to a cons"
+            raise TypeError("rplacd can only be applied to a cons")
         cl_rplacd(self.obj, d.obj)
 
     def car(self):
@@ -986,7 +984,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"car can only be applied to a cons"
+            raise TypeError("car can only be applied to a cons")
         return ecl_wrap(cl_car(self.obj))
 
     def cdr(self):
@@ -1011,7 +1009,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"cdr can only be applied to a cons"
+            raise TypeError("cdr can only be applied to a cons")
         return ecl_wrap(cl_cdr(self.obj))
 
     def caar(self):
@@ -1036,7 +1034,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"caar can only be applied to a cons"
+            raise TypeError("caar can only be applied to a cons")
         return ecl_wrap(cl_caar(self.obj))
 
     def cadr(self):
@@ -1061,7 +1059,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cadr can only be applied to a cons"
+            raise TypeError("cadr can only be applied to a cons")
         return ecl_wrap(cl_cadr(self.obj))
 
     def cdar(self):
@@ -1086,7 +1084,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"cdar can only be applied to a cons"
+            raise TypeError("cdar can only be applied to a cons")
         return ecl_wrap(cl_cdar(self.obj))
 
     def cddr(self):
@@ -1111,7 +1109,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cddr can only be applied to a cons"
+            raise TypeError("cddr can only be applied to a cons")
         return ecl_wrap(cl_cddr(self.obj))
 
     def fixnump(self):
@@ -1255,7 +1253,7 @@ cdef class EclListIterator:
 
         """
         if not o.listp():
-            raise TypeError,"ECL object is not iterable"
+            raise TypeError("ECL object is not iterable")
         self.current = ecl_wrap(o.obj)
 
     def __iter__(EclListIterator self):
@@ -1283,13 +1281,13 @@ cdef class EclListIterator:
 
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
-            sage: I.next()
+            sage: next(I)
             <ECL: 1>
-            sage: I.next()
+            sage: next(I)
             <ECL: 2>
-            sage: I.next()
+            sage: next(I)
             <ECL: 3>
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             StopIteration

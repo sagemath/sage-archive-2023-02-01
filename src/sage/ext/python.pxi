@@ -1,3 +1,6 @@
+from sage.misc.superseded import deprecation
+deprecation(20158, '''python.pxi is deprecated, use "from cpython cimport *" instead''')
+
 from cpython.ref cimport *
 from cpython.exc cimport *
 from cpython.module cimport *
@@ -20,5 +23,4 @@ from cpython.instance cimport *
 from cpython.function cimport *
 from cpython.method cimport *
 from cpython.set cimport *
-
-include 'python_slice.pxi'
+from cpython.slice cimport *

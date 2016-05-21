@@ -12,33 +12,24 @@ rings but rather quotients of them (see module
 :mod:`sage.rings.polynomial.pbori` for more details).
 """
 
-#################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-######################################################################
+#*****************************************************************************
 
 
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -46,11 +37,12 @@ from sage.misc.cachefunc import weak_cached_function
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
-_UFD = UniqueFactorizationDomains()
 from sage.categories.integral_domains import IntegralDomains
-_ID = IntegralDomains()
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+_CompleteDiscreteValuationRings = CompleteDiscreteValuationRings()
+_CompleteDiscreteValuationFields = CompleteDiscreteValuationFields()
 
 import sage.misc.weak_dict
 _cache = sage.misc.weak_dict.WeakValueDictionary()
@@ -295,6 +287,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: PolynomialRing(QQ, 'x', 10)
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9 over Rational Field
 
+        sage: PolynomialRing(QQ, 2, 'alpha0')
+        Multivariate Polynomial Ring in alpha00, alpha01 over Rational Field
+
         sage: PolynomialRing(GF(7), 'y', 5)
         Multivariate Polynomial Ring in y0, y1, y2, y3, y4 over Finite Field of size 7
 
@@ -470,13 +465,11 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             if not arg2 is None:
                 raise TypeError("invalid input to PolynomialRing function; please see the docstring for that function")
             names = arg1.split(',')
-            n = len(names)
-            R = _multi_variate(base_ring, names, n, sparse, order, implementation)
+            R = _multi_variate(base_ring, names, -1, sparse, order, implementation)
     elif isinstance(arg1, (list, tuple)):
             # PolynomialRing(base_ring, names (list or tuple), order='degrevlex'):
             names = arg1
-            n = len(names)
-            R = _multi_variate(base_ring, names, n, sparse, order, implementation)
+            R = _multi_variate(base_ring, names, -1, sparse, order, implementation)
 
     if arg1 is None and arg2 is None:
         raise TypeError("you *must* specify the indeterminates (as not None).")
@@ -534,6 +527,12 @@ def _single_variate(base_ring, name, sparse, implementation):
         elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
+        elif base_ring in _CompleteDiscreteValuationRings:
+            R = m.PolynomialRing_cdvr(base_ring, name, sparse)
+
+        elif base_ring in _CompleteDiscreteValuationFields:
+            R = m.PolynomialRing_cdvf(base_ring, name, sparse)
+
         elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)
 
@@ -564,6 +563,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         raise ValueError("The %s implementation is not known for multivariate polynomial rings"%implementation)
 
     names = normalize_names(n, names)
+    n = len(names)
 
     import sage.rings.polynomial.multi_polynomial_ring as m
     from sage.rings.polynomial.term_order import TermOrder
@@ -576,7 +576,7 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
         return R
 
     from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-    if m.integral_domain.is_IntegralDomain(base_ring):
+    if isinstance(base_ring, ring.IntegralDomain):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
         else:
@@ -608,36 +608,45 @@ _IntegralDomains = categories.integral_domains.IntegralDomains()
 _Rings = category = categories.rings.Rings()
 
 @weak_cached_function
-def polynomial_default_category(base_ring,multivariate):
+def polynomial_default_category(base_ring_category, multivariate):
     """
     Choose an appropriate category for a polynomial ring.
 
     INPUT:
 
-    - ``base_ring``: The ring over which the polynomial ring shall be defined.
+    - ``base_ring_category``: The category of ring over which the polynomial
+      ring shall be defined.
     - ``multivariate``: Will the polynomial ring be multivariate?
 
     EXAMPLES::
 
-        sage: QQ['t'].category() is Category.join([EuclideanDomains(), CommutativeAlgebras(QQ)])
+        sage: from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
+        sage: polynomial_default_category(Rings(), False) is Algebras(Rings())
         True
-        sage: QQ['s','t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ)])
+        sage: polynomial_default_category(Rings().Commutative(),False) is Algebras(Rings().Commutative()).Commutative()
         True
-        sage: QQ['s']['t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ['s'])])
+        sage: polynomial_default_category(Fields(),False) is EuclideanDomains() & Algebras(Fields())
+        True
+        sage: polynomial_default_category(Fields(),True) is UniqueFactorizationDomains() & CommutativeAlgebras(Fields())
         True
 
+        sage: QQ['t'].category() is EuclideanDomains() & CommutativeAlgebras(QQ.category())
+        True
+        sage: QQ['s','t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ.category())
+        True
+        sage: QQ['s']['t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ['s'].category())
+        True
     """
-    if base_ring in _Fields:
-        if multivariate:
-            return JoinCategory((_UniqueFactorizationDomains,CommutativeAlgebras(base_ring)))
-        return JoinCategory((_EuclideanDomains,CommutativeAlgebras(base_ring)))
-    if base_ring in _UFD: #base_ring.is_unique_factorization_domain():
-        return JoinCategory((_UniqueFactorizationDomains,CommutativeAlgebras(base_ring)))
-    if base_ring in _ID: #base_ring.is_integral_domain():
-        return JoinCategory((_IntegralDomains,CommutativeAlgebras(base_ring)))
-    if base_ring in _CommutativeRings: #base_ring.is_commutative():
-        return CommutativeAlgebras(base_ring)
-    return Algebras(base_ring)
+    category = Algebras(base_ring_category)
+    if base_ring_category.is_subcategory(_Fields) and not multivariate:
+        return category & _EuclideanDomains
+    elif base_ring_category.is_subcategory(_UniqueFactorizationDomains):
+        return category & _UniqueFactorizationDomains
+    elif base_ring_category.is_subcategory(_IntegralDomains):
+        return category & _IntegralDomains
+    elif base_ring_category.is_subcategory(_CommutativeRings):
+        return category & _CommutativeRings
+    return category
 
 def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     """
@@ -694,13 +703,12 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     if isinstance(n, str):
         names = n
-        n = 0
-    if n is None and names is not None:
-        n = 0
+        n = -1
+    elif n is None:
+        n = -1
 
     names = normalize_names(n, names)
-    if n is 0:
-        n = len(names)
+    n = len(names)
 
     from sage.rings.polynomial.term_order import TermOrder
 

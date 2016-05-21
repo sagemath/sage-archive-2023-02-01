@@ -285,6 +285,17 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if cache_matrices is False:
             self.representation_matrix = self._representation_matrix_uncached
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: spc1 = SymmetricGroupRepresentation([3], cache_matrices=True)
+            sage: hash(spc1)
+            -1137003014   # 32-bit
+            3430541866490 # 64-bit
+        """
+        return hash(self._ring) ^ hash(self._partition)
+
     def __eq__(self, other):
         r"""
         Test for equality.
@@ -320,22 +331,6 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         if not isinstance(other, type(other)):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
-#        # both self and other must have caching enabled
-#        if 'representation_matrix' in self.__dict__:
-#            if 'representation_matrix' not in other.__dict__:
-#                return False
-#            else:
-#                for key in self.__dict__:
-#                    if key != 'representation_matrix':
-#                        if self.__dict__[key] != other.__dict__[key]:
-#                            return False
-#                else:
-#                    return True
-#        else:
-#            if 'representation_matrix' in other.__dict__:
-#                return False
-#            else:
-#                return self.__dict__.__eq__(other.__dict__)
 
     def __call__(self, permutation):
         r"""
@@ -384,7 +379,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         for i in range(1,n):
             si = Permutation(range(1,i) + [i+1,i] + range(i+2,n+1))
             transpositions.append(si)
-        repn_matrices = map(self.representation_matrix, transpositions)
+        repn_matrices = [self.representation_matrix(_) for _ in transpositions]
         for (i,si) in enumerate(repn_matrices):
             for (j,sj) in enumerate(repn_matrices):
                 if i == j:
@@ -466,7 +461,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         r"""
         Return the irreducible representation corresponding to partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sp = SymmetricGroupRepresentations(3, "specht")
             sage: sp([1,1,1])
             Specht representation of the symmetric group corresponding to [1, 1, 1]
@@ -485,7 +481,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         Iterate through all the irreducible representations of the
         symmetric group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
             sage: for x in orth: print x
             Orthogonal representation of the symmetric group corresponding to [3]
@@ -537,7 +534,11 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
 
             sage: orth = SymmetricGroupRepresentation([3,2], "orthogonal")
             sage: orth._tableau_dict
-            {(0, 2, 1, -1, 0): [[1, 3, 4], [2, 5]], (2, 0, -1, 1, 0): [[1, 2, 5], [3, 4]], (2, 0, 1, -1, 0): [[1, 3, 5], [2, 4]], (0, 2, -1, 1, 0): [[1, 2, 4], [3, 5]], (0, -1, 2, 1, 0): [[1, 2, 3], [4, 5]]}
+            {(0, -1, 2, 1, 0): [[1, 2, 3], [4, 5]],
+             (0, 2, -1, 1, 0): [[1, 2, 4], [3, 5]],
+             (0, 2, 1, -1, 0): [[1, 3, 4], [2, 5]],
+             (2, 0, -1, 1, 0): [[1, 2, 5], [3, 4]],
+             (2, 0, 1, -1, 0): [[1, 3, 5], [2, 4]]}
         """
         # construct a dictionary pairing vertices with tableau
         t = StandardTableaux(self._partition).last()
@@ -545,7 +546,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         for (u,w,(i,beta)) in self._yang_baxter_graph._edges_in_bfs():
             # TODO: improve the following
             si = PermutationGroupElement((i,i+1))
-            tableau_dict[w] = Tableau([map(si, row) for row in tableau_dict[u]])
+            tableau_dict[w] = Tableau([[si(_) for _ in row] for row in tableau_dict[u]])
         return tableau_dict
 
     @lazy_attribute
@@ -558,11 +559,15 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
 
             sage: orth = SymmetricGroupRepresentation([3,2], "orthogonal")
             sage: orth._word_dict
-            {(0, 2, -1, 1, 0): [3, 5, 1, 2, 4], (2, 0, -1, 1, 0): [3, 4, 1, 2, 5], (2, 0, 1, -1, 0): [2, 4, 1, 3, 5], (0, 2, 1, -1, 0): [2, 5, 1, 3, 4], (0, -1, 2, 1, 0): [4, 5, 1, 2, 3]}
+            {(0, -1, 2, 1, 0): (4, 5, 1, 2, 3),
+             (0, 2, -1, 1, 0): (3, 5, 1, 2, 4),
+             (0, 2, 1, -1, 0): (2, 5, 1, 3, 4),
+             (2, 0, -1, 1, 0): (3, 4, 1, 2, 5),
+             (2, 0, 1, -1, 0): (2, 4, 1, 3, 5)}
         """
         word_dict = {}
         for (v,t) in self._tableau_dict.iteritems():
-            word_dict[v] = sum(reversed(t), [])
+            word_dict[v] = sum(reversed(t), ())
         return word_dict
 
     @cached_method

@@ -285,7 +285,7 @@ class OrderedAlphabet(object):
 
         sage: from sage.combinat.words.alphabet import OrderedAlphabet
         sage: A = OrderedAlphabet('ab'); A
-        doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+        doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
         See http://trac.sagemath.org/8920 for details.
         {'a', 'b'}
         sage: type(A)
@@ -297,7 +297,7 @@ class OrderedAlphabet(object):
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: A = OrderedAlphabet('ab'); A # indirect doctest
-            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
             See http://trac.sagemath.org/8920 for details.
             {'a', 'b'}
         """
@@ -330,7 +330,7 @@ class OrderedAlphabet_backward_compatibility(TotallyOrderedFiniteSet):
 
             sage: from sage.combinat.words.alphabet import OrderedAlphabet
             sage: O = OrderedAlphabet()
-            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
             See http://trac.sagemath.org/8920 for details.
             sage: O._alphabet = ['a', 'b']
             sage: O._elements

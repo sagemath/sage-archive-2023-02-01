@@ -24,14 +24,14 @@ dans un langage compilé. Python présente plusieurs avantages :
    les exemples donnés dans la documentation fonctionnent comme
    indiqué.
 
--  **Gestion de la mémoire :** Python possède désormais un gestionnaire
+-  **Gestion de la mémoire :** Python possède désormais un gestionnaire
    de mémoire bien pensé et robuste ainsi qu'un ramasse-miettes (*garbage
    collector*) qui traite correctement les références circulaires et
    tient compte des variables locales dans les fichiers.
 
 -  **Énormément de packages** d'ores et déjà disponibles pour Python
    pourraient se révéler d'un grand intérêt pour les utilisateurs de
-   Sage : analyse numérique et algèbre linéaire, visualisation 2D et 3D,
+   Sage : analyse numérique et algèbre linéaire, visualisation 2D et 3D,
    réseau (pour le calcul distribué, la mise en place de serveurs - par
    exemple twisted), bases de données, etc.
 
@@ -101,7 +101,7 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
        '3^2'
 
     Le ou exclusif bit à bit est quant à lui noté ``^^``, et l'opération en
-    place ``^^=`` fonctionne comme on s'y attend :
+    place ``^^=`` fonctionne comme on s'y attend :
 
     ::
 

@@ -1,24 +1,25 @@
-from category import    is_Category, Category, HomCategory
+from sage.misc.lazy_import import lazy_import
+
+from category import Category
 
 from category_types import(
                         Elements,
-                        Sequences,
-                        SimplicialComplexes,
                         ChainComplexes,
 )
+
+from sage.categories.simplicial_complexes import SimplicialComplexes
 
 from tensor     import tensor
 from cartesian_product import cartesian_product
 
-from functor  import (is_Functor,
-                      ForgetfulFunctor,
+from functor  import (ForgetfulFunctor,
                       IdentityFunctor)
 
-from homset   import (Hom, hom, is_Homset,
-                      End, end, is_Endset,
+from homset   import (Hom, hom,
+                      End, end,
                       Homset, HomsetWithBase)
 
-from morphism import Morphism, is_Morphism
+from morphism import Morphism
 
 from basic import *
 
@@ -31,8 +32,10 @@ from sets_with_partial_maps import SetsWithPartialMaps
 from sets_with_grading import SetsWithGrading
 
 from groupoid import Groupoid
+from permutation_groups import PermutationGroups
 
 # enumerated sets
+from finite_sets import FiniteSets
 from enumerated_sets import EnumeratedSets
 from finite_enumerated_sets import FiniteEnumeratedSets
 from infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -116,10 +119,9 @@ from graded_coalgebras_with_basis    import GradedCoalgebrasWithBasis
 from graded_bialgebras_with_basis    import GradedBialgebrasWithBasis
 from graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
-
 # Coxeter groups
 from coxeter_groups import CoxeterGroups
-from finite_coxeter_groups import FiniteCoxeterGroups
+lazy_import('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
 from weyl_groups import WeylGroups
 from finite_weyl_groups import FiniteWeylGroups
 from affine_weyl_groups import AffineWeylGroups
@@ -132,5 +134,4 @@ from finite_crystals import FiniteCrystals
 from classical_crystals import ClassicalCrystals
 
 # polyhedra
-from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.polyhedra', 'PolyhedralSets')

@@ -414,22 +414,30 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
     r"""
     Specific implementation of the bijection from rigged configurations to tensor products of KR tableaux for type `D_n^{(1)}`.
     """
-    def run(self, verbose=False):
+    def run(self, verbose=False, build_graph=False):
         """
         Run the bijection from rigged configurations to tensor product of KR
         tableaux for type `D_n^{(1)}`.
 
         INPUT:
 
-        - ``verbose`` -- (Default: ``False``) Display each step in the
+        - ``verbose`` -- (default: ``False``) display each step in the
           bijection
+        - ``build_graph`` -- (default: ``False``) build the graph of each
+          step of the bijection
 
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
+            sage: x = RC(partition_list=[[1],[1],[1],[1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import RCToKRTBijectionTypeD
-            sage: RCToKRTBijectionTypeD(RC(partition_list=[[1],[1],[1],[1]])).run()
+            sage: RCToKRTBijectionTypeD(x).run()
             [[2], [-3]]
+            sage: bij = RCToKRTBijectionTypeD(x)
+            sage: bij.run(build_graph=True)
+            [[2], [-3]]
+            sage: bij._graph
+            Digraph on 3 vertices
         """
         from sage.combinat.crystals.letters import CrystalOfLetters
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
@@ -455,20 +463,29 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                     for a in range(self.n):
                         self._update_vacancy_numbers(a)
 
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
+
                 # Check to see if we are a spinor
                 if dim[0] >= self.n - 1:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
                         print("Applying doubling map")
                     self.doubling_map()
+
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
+
                     if dim[0] == self.n - 1:
                         if verbose:
                             print("====================")
-                            print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                            print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                             print("--------------------")
                             print(ret_crystal_path)
                             print("--------------------\n")
@@ -477,10 +494,14 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                             b = -self.n
                         ret_crystal_path[-1].append(letters(b)) # Append the rank
 
+                        if build_graph:
+                            y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                            self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
+
                 while self.cur_dims[0][0] > 0:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -496,18 +517,35 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                     # Make sure we have a crystal letter
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
+
                 self.cur_dims.pop(0) # Pop off the leading column
 
                 # Check to see if we were a spinor
                 if dim[0] >= self.n-1:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
                         print("Applying halving map")
                     self.halving_map()
+
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), '1/2x'])
+
+        if build_graph:
+            self._graph.pop(0) # Remove the dummy at the start
+            from sage.graphs.digraph import DiGraph
+            from sage.graphs.dot2tex_utils import have_dot2tex
+            self._graph = DiGraph(self._graph, format="list_of_edges")
+            if have_dot2tex():
+                self._graph.set_latex_options(format="dot2tex", edge_labels=True)
+
         return self.KRT(pathlist=ret_crystal_path)
 
     def next_state(self, height):
@@ -654,17 +692,17 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
             sage: bijection = RCToKRTBijectionTypeD(RC(partition_list=[[],[],[],[1]]))
             sage: bijection.cur_partitions
             [(/)
-            , (/)
-            , (/)
-            , -1[ ]-1
-            ]
+             , (/)
+             , (/)
+             , -1[ ]-1
+             ]
             sage: bijection.doubling_map()
             sage: bijection.cur_partitions
             [(/)
-            , (/)
-            , (/)
-            , -2[ ][ ]-2
-            ]
+             , (/)
+             , (/)
+             , -2[ ][ ]-2
+             ]
         """
         # Skip the first column since it is a spinor
         for i in range(1, len(self.cur_dims)):

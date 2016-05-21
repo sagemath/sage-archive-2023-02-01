@@ -10,27 +10,18 @@ AUTHORS:
   ``is_blum_prime``, ``least_significant_bits``, ``random_blum_prime``.
 """
 
-###########################################################################
-# Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
+#*****************************************************************************
+#       Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# http://www.gnu.org/licenses/
-###########################################################################
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import is_prime
-from sage.rings.arith import lcm
-from sage.rings.arith import primes
-from sage.rings.arith import random_prime
+from sage.arith.all import is_prime, lcm, primes, random_prime
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod import Mod as mod
 
@@ -94,7 +85,7 @@ def ascii_integer(B):
     """
     if len(B) != 8:
         raise ValueError("B must consist of 8 bits.")
-    L = map(lambda x: int(str(x)), list(B))
+    L = [int(str(x)) for x in list(B)]
     return sum([L[7], L[6]*2, L[5]*4, L[4]*8,
                 L[3]*16, L[2]*32, L[1]*64, L[0]*128])
 
@@ -254,10 +245,10 @@ def bin_to_ascii(B):
     if mod(n, 8) != 0:
         raise ValueError("The number of bits in B must be a multiple of 8.")
     # perform conversion to ASCII string
-    b = map(lambda x: int(str(x)), list(B))
+    b = [int(str(x)) for x in list(B)]
     A = []
     # the number of 8-bit blocks
-    k = n / 8
+    k = n // 8
     for i in xrange(k):
         # Convert from 8-bit string to ASCII integer. Then convert the
         # ASCII integer to the corresponding ASCII character.
@@ -601,7 +592,7 @@ def least_significant_bits(n, k):
         sage: least_significant_bits(n, len(b))
         [1, 1, 1, 1, 0, 1, 1]
     """
-    return map(int, list(n.binary()[-k:]))
+    return [int(_) for _ in list(n.binary()[-k:])]
 
 def random_blum_prime(lbound, ubound, ntries=100):
     r"""

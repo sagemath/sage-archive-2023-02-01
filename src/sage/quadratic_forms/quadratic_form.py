@@ -10,15 +10,10 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -30,11 +25,10 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
-from sage.misc.functional import ideal, denominator, is_even, is_field
-from sage.rings.arith import GCD, LCM
-from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
-from sage.rings.ring import is_Ring
-from sage.matrix.matrix import is_Matrix
+from sage.misc.functional import denominator, is_even, is_field
+from sage.arith.all import GCD, LCM
+from sage.rings.all import Ideal
+from sage.rings.ring import is_Ring, PrincipalIdealDomain
 from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -70,9 +64,10 @@ def is_QuadraticForm(Q):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
-        sage: is_QuadraticForm(Q)  ##random -- deprecated
+        sage: from sage.quadratic_forms.quadratic_form import is_QuadraticForm
+        sage: is_QuadraticForm(Q)  ##random
         True
-        sage: is_QuadraticForm(2)  ##random -- deprecated
+        sage: is_QuadraticForm(2)  ##random
         False
 
     """
@@ -212,6 +207,7 @@ class QuadraticForm(SageObject):
     ## Routines to compute p-adic field invariants
     from sage.quadratic_forms.quadratic_form__local_field_invariants import \
             rational_diagonal_form, \
+            _rational_diagonal_form_and_transformation, \
             signature_vector, \
             signature, \
             hasse_invariant, \
@@ -360,25 +356,39 @@ class QuadraticForm(SageObject):
             basis_of_short_vectors, \
             short_vector_list_up_to_length, \
             short_primitive_vector_list_up_to_length, \
+            _compute_automorphisms, \
+            automorphism_group, \
             automorphisms, \
             number_of_automorphisms, \
-            number_of_automorphisms__souvigner, \
             set_number_of_automorphisms
 
     ## Routines to test the local and global equivalence/isometry of two quadratic forms.
     from sage.quadratic_forms.quadratic_form__equivalence_testing import \
-            is_globally_equivalent__souvigner, \
             is_globally_equivalent_to, \
             is_locally_equivalent_to, \
-            has_equivalent_Jordan_decomposition_at_prime
+            has_equivalent_Jordan_decomposition_at_prime, \
+            is_rationally_isometric
+
+    ## Routines for solving equations of the form Q(x) = c.
+    from sage.quadratic_forms.qfsolve import solve
+        
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """
         EXAMPLES::
 
             sage: s = QuadraticForm(ZZ, 4, range(10))
+            sage: s.dim()
+            4
+
+        TESTS::
+
             sage: s == loads(dumps(s))
             True
+            sage: QuadraticForm(ZZ, -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the size must be a non-negative integer, not -1
         """
         ## Deal with:  QuadraticForm(ring, matrix)
         matrix_init_flag = False
@@ -393,10 +403,8 @@ class QuadraticForm(SageObject):
                 M_ring = R
                 matrix_init_flag = True
 
-
         ## Deal with:  QuadraticForm(matrix)
-        if is_Matrix(R) and (n == None):
-
+        if n is None and is_Matrix(R):
             ## Test if R is symmetric and has even diagonal
             if not self._is_even_symmetric_matrix_(R):
                 raise TypeError("Oops!  The matrix is not a symmetric with even diagonal.")
@@ -407,8 +415,8 @@ class QuadraticForm(SageObject):
             matrix_init_flag = True
 
         ## Perform the quadratic form initialization
-        if matrix_init_flag == True:
-            self.__n = M.nrows()
+        if matrix_init_flag:
+            self.__n = ZZ(M.nrows())
             self.__base_ring = M_ring
             self.__coeffs = []
             for i in range(M.nrows()):
@@ -423,26 +431,23 @@ class QuadraticForm(SageObject):
         ## -----------------------------------------------------------
 
         ## Verify the size of the matrix is an integer >= 0
-        try:
-            n = int(n)
-        except Exception:
-            raise TypeError("Oops! The size " + str(n) + " must be an integer.")
-            if (n < 0):
-                raise TypeError("Oops! The size " + str(n) + " must be a non-negative integer.")
+        n = ZZ(n)
+        if n < 0:
+            raise ValueError("the size must be a non-negative integer, not {}".format(n))
 
         ## TODO: Verify that R is a ring...
 
         ## Store the relevant variables
-        N = int(n*(n+1))/2
-        self.__n = int(n)
+        N = n*(n+1) // 2
+        self.__n = n
         self.__base_ring = R
-        self.__coeffs = [self.__base_ring(0)  for i in range(N)]
+        self.__coeffs = [self.__base_ring(0) for i in range(N)]
 
         ## Check if entries is a list for the current size, and if so, write the upper-triangular matrix
         if isinstance(entries, list) and (len(entries) == N):
             for i in range(N):
                 self.__coeffs[i] = self.__base_ring(entries[i])
-        elif (entries != None):
+        elif (entries is not None):
             raise TypeError("Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2.")
 
         ## -----------------------------------------------------------
@@ -452,13 +457,13 @@ class QuadraticForm(SageObject):
         if unsafe_initialization:
 
             ## Set the number of automorphisms
-            if number_of_automorphisms != None:
+            if number_of_automorphisms is not None:
                 self.set_number_of_automorphisms(number_of_automorphisms)
                 #self.__number_of_automorphisms = number_of_automorphisms
                 #self.__external_initialization_list.append('number_of_automorphisms')
 
             ## Set the determinant
-            if determinant != None:
+            if determinant is not None:
                 self.__det = determinant
                 self._external_initialization_list.append('determinant')
 
@@ -601,7 +606,7 @@ class QuadraticForm(SageObject):
             i = j
             j = tmp
 
-        return self.__coeffs[i*self.__n - i*(i-1)/2 + j - i]
+        return self.__coeffs[i*self.__n - i*(i-1)//2 + j - i]
 
 
     def __setitem__(self, ij, coeff):
@@ -639,7 +644,7 @@ class QuadraticForm(SageObject):
 
         ## Set the entry
         try:
-            self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
+            self.__coeffs[i*self.__n - i*(i-1)//2 + j -i] = self.__base_ring(coeff)
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
@@ -647,6 +652,20 @@ class QuadraticForm(SageObject):
 ######################################
 # TO DO:    def __cmp__(self, other):
 ######################################
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: Q1 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q2 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q3 = QuadraticForm(QuadraticField(2), 2, [1,1,1])
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash(Q3)
+            False
+        """
+        return hash(self.__base_ring) ^ hash(tuple(self.__coeffs))
 
     def __eq__(self, right):
         """
@@ -925,7 +944,7 @@ class QuadraticForm(SageObject):
             raise TypeError("A is not a matrix.")
 
         ring_coerce_test = True
-        if R == None:            ## This allows us to omit the ring from the variables, and take it from the matrix
+        if R is None:            ## This allows us to omit the ring from the variables, and take it from the matrix
             R = A.base_ring()
             ring_coerce_test = False
 
@@ -1244,8 +1263,6 @@ class QuadraticForm(SageObject):
         """
         return QuadraticForm(self.Hessian_matrix().adjoint()).primitive()
 
-
-
     def dim(self):
         """
         Gives the number of variables of the quadratic form.
@@ -1255,10 +1272,15 @@ class QuadraticForm(SageObject):
             sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
             sage: Q.dim()
             2
-
+            sage: parent(Q.dim())
+            Integer Ring
+            sage: Q = QuadraticForm(Q.matrix())
+            sage: Q.dim()
+            2
+            sage: parent(Q.dim())
+            Integer Ring
         """
         return self.__n
-
 
     def base_ring(self):
         """
@@ -1414,7 +1436,7 @@ class QuadraticForm(SageObject):
         except AttributeError:
 
             ## Check that the base ring is a PID
-            if not is_PrincipalIdealDomain(self.base_ring()):
+            if not isinstance(self.base_ring(), PrincipalIdealDomain):
                 raise TypeError("Oops!  The level (as a number) is only defined over a Principal Ideal Domain.  Try using level_ideal().")
 
 
@@ -1439,7 +1461,7 @@ class QuadraticForm(SageObject):
                     else:
                         inv_denoms += [denominator(mat_inv[i,j])]
             lvl = LCM(inv_denoms)
-            lvl = ideal(self.base_ring()(lvl)).gen()
+            lvl = Ideal(self.base_ring()(lvl)).gen()
             ##############################################################
             ## To do this properly, the level should be the inverse of the
             ## fractional ideal (over R) generated by the entries whose
@@ -1491,7 +1513,7 @@ class QuadraticForm(SageObject):
         ## denominators we take above. =)
         ##############################################################
 
-        return ideal(self.base_ring()(self.level()))
+        return Ideal(self.base_ring()(self.level()))
 
     def bilinear_map(self,v,w):
         r"""

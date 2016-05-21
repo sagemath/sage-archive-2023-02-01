@@ -19,13 +19,15 @@ EXAMPLES::
 
 """
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import weakref
 import re
@@ -33,8 +35,6 @@ import re
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
-
-from sage.rings.commutative_ring import is_CommutativeRing
 
 import ambient_eps
 import ambient_g0
@@ -123,7 +123,7 @@ def canonical_parameters(group, level, weight, base_ring):
             raise ValueError("group and level do not match.")
         group = arithgroup.Gamma0(m)
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     # it is *very* important to include the level as part of the data
@@ -243,12 +243,12 @@ def ModularForms(group  = 1,
         sage: m.T(2).charpoly('x')
         x^4 - 917*x^2 - 42284
 
-    This came up in a subtle bug (trac #5923)::
+    This came up in a subtle bug (:trac:`5923`)::
 
         sage: ModularForms(gp(1), gap(12))
         Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
 
-    This came up in another bug (related to trac #8630)::
+    This came up in another bug (related to :trac:`8630`)::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))
@@ -278,9 +278,7 @@ def ModularForms(group  = 1,
         sage: M = ModularForms(Gamma1(57), 1); M
         Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
         sage: M.basis()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+        <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         sage: M.cuspidal_subspace().basis()
         Traceback (most recent call last):
         ...
@@ -430,7 +428,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
     base field that is not minimal for that character::
 
         sage: K.<i> = QuadraticField(-1)
-        sage: chi = DirichletGroup(5, K)[3]
+        sage: chi = DirichletGroup(5, K)[1]
         sage: len(Newforms(chi, 7, names='a'))
         1
         sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
@@ -439,11 +437,19 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
         True
 
+    TESTS:
+
     We test that :trac:`8630` is fixed::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))
         Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+
+    Check that :trac:`15486` is fixed (this used to take over a day)::
+
+        sage: N = Newforms(719, names='a'); len(N)  # long time (3 s)
+        3
+
     """
     return CuspForms(group, weight, base_ring).newforms(names)
 

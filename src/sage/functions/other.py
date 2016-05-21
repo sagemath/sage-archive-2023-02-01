@@ -15,10 +15,9 @@ import sage.structure.element
 coercion_model = sage.structure.element.get_coercion_model()
 
 # avoid name conflicts with `parent` as a function parameter
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 
 from sage.symbolic.constants import pi
-from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
@@ -152,10 +151,14 @@ class Function_erf(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: erf(2)
+            sage: maxima(erf(2))
+            erf(2)
+            sage: erf(2)._sympy_()
             erf(2)
         """
-        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
+        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
+                                 conversions=dict(maxima='erf',
+                                                  sympy='erf'))
 
     def _eval_(self, x):
         """
@@ -183,14 +186,11 @@ class Function_erf(BuiltinFunction):
             sage: erf(SR(0))
             0
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x, parent=s_parent(x))
-            elif x == Integer(0):
-                return Integer(0)
-        elif x.is_trivial_zero():
+        if isinstance(x, Expression):
+            if x.is_trivial_zero():
+                return x
+        elif not x:
             return x
-        return None
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """
@@ -236,14 +236,14 @@ class Function_erf(BuiltinFunction):
 
         TESTS:
 
-        Check if #8568 is fixed::
+        Check if :trac:`8568` is fixed::
 
             sage: var('c,x')
             (c, x)
             sage: derivative(erf(c*x),x)
             2*c*e^(-c^2*x^2)/sqrt(pi)
             sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(c)*(exp(((c)^(2))*((x)^(2))*(-1)))*(2)'
+            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
         """
         return 2*exp(-x**2)/sqrt(pi)
 
@@ -267,7 +267,7 @@ class Function_abs(GinacFunction):
             sage: sqrt(x^2)
             sqrt(x^2)
             sage: abs(sqrt(x))
-            abs(sqrt(x))
+            sqrt(abs(x))
             sage: complex(abs(3*I))
             (3+0j)
 
@@ -276,13 +276,57 @@ class Function_abs(GinacFunction):
             \mathrm{abs}
             sage: latex(abs(x))
             {\left| x \right|}
+            sage: abs(x)._sympy_()
+            Abs(x)
 
         Test pickling::
 
             sage: loads(dumps(abs(x)))
             abs(x)
+
+        TESTS:
+
+        Check that :trac:`12588` is fixed::
+
+            sage: abs(pi*I)
+            pi
+            sage: abs(pi*I*catalan)
+            catalan*pi
+            sage: abs(pi*catalan*x)
+            catalan*pi*abs(x)
+            sage: abs(pi*I*catalan*x)
+            catalan*pi*abs(x)
+            sage: abs(1.0j*pi)
+            1.00000000000000*pi
+            sage: abs(I*x)
+            abs(x)
+            sage: abs(I*pi)
+            pi
+            sage: abs(I*log(2))
+            log(2)
+            sage: abs(I*e^5)
+            e^5
+            sage: abs(log(1/2))
+            -log(1/2)
+            sage: abs(log(3/2))
+            log(3/2)
+            sage: abs(log(1/2)*log(1/3))
+            log(1/2)*log(1/3)
+            sage: abs(log(1/2)*log(1/3)*log(1/4))
+            -log(1/2)*log(1/3)*log(1/4)
+            sage: abs(log(1/2)*log(1/3)*log(1/4)*i)
+            -log(1/2)*log(1/3)*log(1/4)
+            sage: abs(log(x))
+            abs(log(x))
+            sage: abs(zeta(I))
+            abs(zeta(I))
+            sage: abs(e^2*x)
+            abs(x)*e^2
+            sage: abs((pi+e)*x)
+            (pi + e)*abs(x)
         """
-        GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}")
+        GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
+                               conversions=dict(sympy='Abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -354,6 +398,8 @@ class Function_ceil(BuiltinFunction):
 
             sage: latex(ceil(x))
             \left \lceil x \right \rceil
+            sage: ceil(x)._sympy_()
+            ceiling(x)
 
         ::
 
@@ -368,7 +414,8 @@ class Function_ceil(BuiltinFunction):
             ceil
         """
         BuiltinFunction.__init__(self, "ceil",
-                                   conversions=dict(maxima='ceiling'))
+                                   conversions=dict(maxima='ceiling',
+                                                    sympy='ceiling'))
 
     def _print_latex_(self, x):
         r"""
@@ -380,7 +427,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -394,7 +441,10 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: ceil(int(10^50))
             100000000000000000000000000000000000000000000000000
+            sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
+            -2
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -406,39 +456,29 @@ class Function_ceil(BuiltinFunction):
                 import numpy
                 return numpy.ceil(x)
 
-        x_original = x
-
         from sage.rings.all import RealIntervalField
-        # If x can be coerced into a real interval, then we should
-        # try increasing the number of bits of precision until
-        # we get the ceiling at each of the endpoints is the same.
-        # The precision will continue to be increased up to maximum_bits
-        # of precision at which point it will raise a value error.
+
         bits = 53
-        try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_ceil = x_interval.upper().ceil()
-            lower_ceil = x_interval.lower().ceil()
-
-            while upper_ceil != lower_ceil and bits < maximum_bits:
-                bits += 100
+        while bits < maximum_bits:
+            try:
                 x_interval = RealIntervalField(bits)(x)
-                upper_ceil = x_interval.upper().ceil()
-                lower_ceil = x_interval.lower().ceil()
+            except TypeError:
+                # If we cannot compute a numerical enclosure, leave the
+                # expression unevaluated.
+                return BuiltinFunction.__call__(self, SR(x))
+            try:
+                return x_interval.unique_ceil()
+            except ValueError:
+                bits *= 2
 
-            if bits < maximum_bits:
-                return lower_ceil
-            else:
-                try:
-                    return ceil(SR(x).full_simplify().simplify_radical())
-                except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
+        try:
+            return ceil(SR(x).full_simplify().canonicalize_radical())
+        except ValueError:
+            pass
 
-        except TypeError:
-            # If x cannot be coerced into a RealField, then
-            # it should be left as a symbolic expression.
-            return BuiltinFunction.__call__(self, SR(x_original))
+        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
+
+
 
     def _eval_(self, x):
         """
@@ -457,6 +497,16 @@ class Function_ceil(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = ceil(x)
+            sage: h(pi)._numerical_approx()
+            4.00000000000000
+        """
+        return self._eval_(x)
 
 ceil = Function_ceil()
 
@@ -496,7 +546,7 @@ class Function_floor(BuiltinFunction):
             sage: a = floor(5.4 + x); a
             floor(x + 5.40000000000000)
             sage: a.simplify()
-            floor(x + 0.4) + 5
+            floor(x + 0.4000000000000004) + 5
             sage: a(x=2)
             7
 
@@ -528,7 +578,8 @@ class Function_floor(BuiltinFunction):
             sage: loads(dumps(floor))
             floor
         """
-        BuiltinFunction.__init__(self, "floor")
+        BuiltinFunction.__init__(self, "floor",
+                                 conversions=dict(sympy='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -540,7 +591,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -554,7 +605,10 @@ class Function_floor(BuiltinFunction):
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
+            sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
+            -3
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -566,40 +620,27 @@ class Function_floor(BuiltinFunction):
                 import numpy
                 return numpy.floor(x)
 
-        x_original = x
-
         from sage.rings.all import RealIntervalField
 
-        # If x can be coerced into a real interval, then we should
-        # try increasing the number of bits of precision until
-        # we get the floor at each of the endpoints is the same.
-        # The precision will continue to be increased up to maximum_bits
-        # of precision at which point it will raise a value error.
         bits = 53
-        try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_floor = x_interval.upper().floor()
-            lower_floor = x_interval.lower().floor()
-
-            while upper_floor != lower_floor and bits < maximum_bits:
-                bits += 100
+        while bits < maximum_bits:
+            try:
                 x_interval = RealIntervalField(bits)(x)
-                upper_floor = x_interval.upper().floor()
-                lower_floor = x_interval.lower().floor()
+            except TypeError:
+                # If we cannot compute a numerical enclosure, leave the
+                # expression unevaluated.
+                return BuiltinFunction.__call__(self, SR(x))
+            try:
+                return x_interval.unique_floor()
+            except ValueError:
+                bits *= 2
 
-            if bits < maximum_bits:
-                return lower_floor
-            else:
-                try:
-                    return floor(SR(x).full_simplify().simplify_radical())
-                except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
+        try:
+            return floor(SR(x).full_simplify().canonicalize_radical())
+        except ValueError:
+            pass
 
-        except TypeError:
-            # If x cannot be coerced into a RealField, then
-            # it should be left as a symbolic expression.
-            return BuiltinFunction.__call__(self, SR(x_original))
+        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
 
     def _eval_(self, x):
         """
@@ -619,7 +660,50 @@ class Function_floor(BuiltinFunction):
                 return Integer(int(math.floor(x)))
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = floor(x)
+            sage: h(pi)._numerical_approx()
+            3.00000000000000
+        """
+        return self._eval_(x)
+
 floor = Function_floor()
+
+class Function_Order(GinacFunction):
+    def __init__(self):
+        r"""
+        The order function.
+
+        This function gives the order of magnitude of some expression,
+        similar to `O`-terms.
+
+        .. SEEALSO::
+
+            :meth:`~sage.symbolic.expression.Expression.Order`,
+            :mod:`~sage.rings.big_oh`
+
+        EXAMPLES::
+
+            sage: x = SR('x')
+            sage: x.Order()
+            Order(x)
+            sage: (x^2 + x).Order()
+            Order(x^2 + x)
+
+        TESTS:
+
+        Check that :trac:`19425` is resolved::
+
+            sage: x.Order().operator()
+            Order
+        """
+        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+
+Function_Order()
+
 
 class Function_gamma(GinacFunction):
     def __init__(self):
@@ -641,9 +725,9 @@ class Function_gamma(GinacFunction):
 
             sage: from sage.functions.other import gamma1
             sage: gamma1(CDF(0.5,14))
-            -4.05370307804e-10 - 5.77329983455e-10*I
+            -4.0537030780372815e-10 - 5.773299834553605e-10*I
             sage: gamma1(CDF(I))
-            -0.154949828302 - 0.498015668118*I
+            -0.15494982830181067 - 0.49801566811835607*I
 
         Recall that `\Gamma(n)` is `n-1` factorial::
 
@@ -660,8 +744,10 @@ class Function_gamma(GinacFunction):
             sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma1(float(6))
+            sage: gamma1(float(6))  # For ARM: rel tol 3e-16
             120.0
+            sage: gamma(6.)
+            120.000000000000
             sage: gamma1(x)
             gamma(x)
 
@@ -684,6 +770,7 @@ class Function_gamma(GinacFunction):
         ::
 
             sage: plot(gamma1(x),(x,1,5))
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -728,7 +815,7 @@ class Function_gamma(GinacFunction):
             sage: CDF(-1).gamma()
             Infinity
 
-        Check if #8297 is fixed::
+        Check if :trac:`8297` is fixed::
 
             sage: latex(gamma(1/4))
             \Gamma\left(\frac{1}{4}\right)
@@ -740,63 +827,9 @@ class Function_gamma(GinacFunction):
         """
         GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
                 ginac_name='tgamma',
-                conversions={'mathematica':'Gamma','maple':'GAMMA'})
-
-    def __call__(self, x, prec=None, coerce=True, hold=False):
-        """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
-
-            sage: t = gamma(RealField(100)(2.5)); t
-            1.3293403881791370204736256125
-            sage: t.prec()
-            100
-
-            sage: gamma(6, prec=53)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
-            120.000000000000
-
-        TESTS::
-
-            sage: gamma(pi,prec=100)
-            2.2880377953400324179595889091
-
-            sage: gamma(3/4,prec=100)
-            1.2254167024651776451290983034
-        """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
-            import mpmath
-            return mpmath_utils.call(mpmath.gamma, x, prec=prec)
-
-        # this is a kludge to keep
-        #     sage: Q.<i> = NumberField(x^2+1)
-        #     sage: gamma(i)
-        # working, since number field elements cannot be coerced into SR
-        # without specifying an explicit embedding into CC any more
-        try:
-            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError as err:
-            # the __call__() method returns a TypeError for fast float arguments
-            # as well, we only proceed if the error message says that
-            # the arguments cannot be coerced to SR
-            if not str(err).startswith("cannot coerce"):
-                raise
-
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.")
-            parent = RR if prec is None else RealField(prec)
-            try:
-                x = parent(x)
-            except (ValueError, TypeError):
-                x = parent.complex_field()(x)
-            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-
-        return res
+                conversions={'mathematica':'Gamma',
+                             'maple':'GAMMA',
+                             'sympy':'gamma'})
 
 gamma1 = Function_gamma()
 
@@ -814,7 +847,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -829,7 +862,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -841,7 +874,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -867,6 +900,8 @@ class Function_log_gamma(GinacFunction):
             4.78749174278205
             sage: log_gamma(CC(-2.5))
             -0.0562437164976740 + 3.14159265358979*I
+            sage: log_gamma(x)._sympy_()
+            loggamma(x)
 
         ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
         cut, which runs along the negative real axis.::
@@ -885,7 +920,9 @@ class Function_log_gamma(GinacFunction):
             +Infinity
         """
         GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
-                conversions={'mathematica':'LogGamma','maxima':'log_gamma'})
+                               conversions=dict(mathematica='LogGamma',
+                                                maxima='log_gamma',
+                                                sympy='loggamma'))
 
 log_gamma = Function_log_gamma()
 
@@ -897,9 +934,9 @@ class Function_gamma_inc(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc(CDF(0,1), 3)
-            0.00320857499337 + 0.0124061858119*I
+            0.0032085749933691158 + 0.012406185811871568*I
             sage: gamma_inc(RDF(1), 3)
-            0.0497870683679
+            0.049787068367863944
             sage: gamma_inc(3,2)
             gamma(3, 2)
             sage: gamma_inc(x,0)
@@ -938,11 +975,6 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(0,2)
             -Ei(-2)
         """
-        if not isinstance(x, Expression) and not isinstance(y, Expression) and \
-               (is_inexact(x) or is_inexact(y)):
-            x, y = coercion_model.canonical_coercion(x, y)
-            return self._evalf_(x, y, s_parent(x))
-
         if y == 0:
             return gamma(x)
         if x == 1:
@@ -963,17 +995,54 @@ class Function_gamma_inc(BuiltinFunction):
             0.0489005107080611
             sage: gamma_inc(3,2).n()
             1.35335283236613
+
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: R = RealField(1024)
+            sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
+            40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
+            sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
+            -1.110111598370794007949063502542063148294e-28
+
+        Check that :trac:`17328` is fixed::
+
+            sage: incomplete_gamma(float(-1), float(-1))
+            (-0.8231640121031085+3.141592653589793j)
+            sage: incomplete_gamma(RR(-1), RR(-1))
+            -0.823164012103109 + 3.14159265358979*I
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2))) # abs tol 1e-15
+            (1.2730972164471142+0j)
+
+        Check that :trac:`17130` is fixed::
+
+            sage: r = gamma_inc(float(0), float(1)); r
+            0.21938393439552029
+            sage: type(r)
+            <type 'float'>
         """
-        try:
-            return x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma_inc(y)
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
+            prec = 53
+            C = complex
+        else:
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
+        v = ComplexField(prec)(x).gamma_inc(y)
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
+
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1021,29 +1090,38 @@ def gamma(a, *args, **kwds):
         ::
 
             sage: gamma(CDF(0.5,14))
-            -4.05370307804e-10 - 5.77329983455e-10*I
+            -4.0537030780372815e-10 - 5.773299834553605e-10*I
             sage: gamma(CDF(I))
-            -0.154949828302 - 0.498015668118*I
+            -0.15494982830181067 - 0.49801566811835607*I
 
+        The precision for the result is deduced from the precision of the
+        input. Convert the input to a higher precision explicitly if a result
+        with higher precision is desired.::
+
+            sage: t = gamma(RealField(100)(2.5)); t
+            1.3293403881791370204736256125
+            sage: t.prec()
+            100
+
+            sage: gamma(6)
+            120
+
+            sage: gamma(pi).n(100)
+            2.2880377953400324179595889091
+
+            sage: gamma(3/4).n(100)
+            1.2254167024651776451290983034
+            
         The gamma function only works with input that can be coerced to the
         Symbolic Ring::
 
             sage: Q.<i> = NumberField(x^2+1)
             sage: gamma(i)
-            doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
-            See http://trac.sagemath.org/7490 for details.
-            -0.154949828301811 - 0.498015668118356*I
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I
@@ -1099,9 +1177,13 @@ class Function_psi1(GinacFunction):
             psi(x)
             sage: t.subs(x=.2)
             -5.28903989659219
+            sage: psi(x)._sympy_()
+            polygamma(0, x)
         """
         GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
-                conversions=dict(maxima='psi[0]', mathematica='PolyGamma'))
+                               conversions=dict(mathematica='PolyGamma',
+                                                maxima='psi[0]',
+                                                sympy='digamma'))
 
 class Function_psi2(GinacFunction):
     def __init__(self):
@@ -1135,7 +1217,7 @@ class Function_psi2(GinacFunction):
             sage: psi2(2, .5).n(100)
             -16.828796644234319995596334261
 
-        Tests::
+        TESTS::
 
             sage: psi2(n, x).derivative(n)
             Traceback (most recent call last):
@@ -1146,11 +1228,14 @@ class Function_psi2(GinacFunction):
             \psi\left(2, x\right)
             sage: loads(dumps(psi2(2,x)+1))
             psi(2, x) + 1
+            sage: psi(2, x)._sympy_()
+            polygamma(2, x)
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
-                conversions=dict(mathematica='PolyGamma'))
+                               conversions=dict(mathematica='PolyGamma',
+                                                sympy='polygamma'))
 
-    def _maxima_init_evaled_(self, n, x):
+    def _maxima_init_evaled_(self, *args):
         """
         EXAMPLES:
 
@@ -1158,10 +1243,19 @@ class Function_psi2(GinacFunction):
 
             sage: from sage.functions.other import psi2
             sage: psi2(2, x)._maxima_()
-            psi[2](x)
+            psi[2](_SAGE_VAR_x)
             sage: psi2(4, x)._maxima_()
-            psi[4](x)
+            psi[4](_SAGE_VAR_x)
         """
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        n, x = args_maxima
         return "psi[%s](%s)"%(n, x)
 
 psi1 = Function_psi1()
@@ -1286,7 +1380,7 @@ class Function_factorial(GinacFunction):
             sage: factorial._maxima_init_()
             'factorial'
             sage: maxima(factorial(z))
-            factorial(z)
+            factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
             sage: k = var('k')
@@ -1330,7 +1424,9 @@ class Function_factorial(GinacFunction):
             factorial
         """
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
-                conversions=dict(maxima='factorial', mathematica='Factorial'))
+                conversions=dict(maxima='factorial',
+                                 mathematica='Factorial',
+                                 sympy='factorial'))
 
     def _eval_(self, x):
         """
@@ -1358,11 +1454,20 @@ class Function_factorial(GinacFunction):
         """
         if isinstance(x, Rational):
             return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or \
-                (not isinstance(x, Expression) and is_inexact(x)):
+        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
             return py_factorial_py(x)
 
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = factorial(x)
+            sage: h(5)._numerical_approx()
+            120.000000000000
+        """
+        return self._eval_(x)
 
 factorial = Function_factorial()
 
@@ -1431,14 +1536,16 @@ class Function_binomial(GinacFunction):
             sage: SR(5).binomial(3, hold=True).simplify()
             10
 
-        TESTS: We verify that we can convert this function to Maxima and
+        TESTS:
+
+        We verify that we can convert this function to Maxima and
         bring it back into Sage.
 
         ::
 
             sage: n,k = var('n,k')
             sage: maxima(binomial(n,k))
-            binomial(n,k)
+            binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
             binomial(n, k)
             sage: binomial._maxima_init_()
@@ -1449,8 +1556,10 @@ class Function_binomial(GinacFunction):
             sage: loads(dumps(binomial(n,k)))
             binomial(n, k)
         """
-        GinacFunction.__init__(self, "binomial", nargs=2,
-                conversions=dict(maxima='binomial', mathematica='Binomial'))
+        GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
+                conversions=dict(maxima='binomial',
+                                 mathematica='Binomial',
+                                 sympy='binomial'))
 
     def _binomial_sym(self, n, k):
         """
@@ -1486,7 +1595,7 @@ class Function_binomial(GinacFunction):
         if k == 1:
             return n
 
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         return prod([n-i for i in xrange(k)])/factorial(k)
 
     def _eval_(self, n, k):
@@ -1510,7 +1619,7 @@ class Function_binomial(GinacFunction):
         if not isinstance(k, Expression):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
-                return self._evalf_(n, k, s_parent(n))
+                return self._evalf_(n, k)
             if k in ZZ:
                 return self._binomial_sym(n, k)
         if (n - k) in ZZ:
@@ -1535,7 +1644,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.rings.arith.binomial(n, k)
+        return sage.arith.all.binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -1598,24 +1707,23 @@ class Function_beta(GinacFunction):
             -1
             sage: beta(-1/2,-1/2)
             0
-            sage: beta(x/2,3)
-            beta(3, 1/2*x)
+            sage: ex = beta(x/2,3)
+            sage: set(ex.operands()) == set([1/2*x, 3])
+            True
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)
             0.400000000000000 - 0.200000000000000*I
-            sage: beta(3,x+I)
-            beta(3, x + I)
-
-        Note that the order of arguments does not matter::
-
-            sage: beta(1/2,3*x)
-            beta(1/2, 3*x)
+            sage: ex = beta(3,x+I)
+            sage: set(ex.operands()) == set([x+I, 3])
+            True
 
         The result is symbolic if exact input is given::
 
-            sage: beta(2,1+5*I)
-            beta(2, 5*I + 1)
+            sage: ex = beta(2,1+5*I); ex
+            beta(...
+            sage: set(ex.operands()) == set([1+5*I, 2])
+            True
             sage: beta(2, 2.)
             0.166666666666667
             sage: beta(I, 2.)
@@ -1631,7 +1739,9 @@ class Function_beta(GinacFunction):
             beta
         """
         GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta', mathematica='Beta'))
+                conversions=dict(maxima='beta',
+                                 mathematica='Beta',
+                                 sympy='beta'))
 
 beta = Function_beta()
 
@@ -1676,7 +1786,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
-        from sage.rings.all import RealField, ComplexField
         if prec:
             if x >= 0:
                  return RealField(prec)(x).sqrt(all=all)
@@ -1726,8 +1835,23 @@ def sqrt(x, *args, **kwds):
             [2, -2]
             sage: sqrt(x^2)
             sqrt(x^2)
+
+        For a non-symbolic square root, there are a few options.
+        The best is to numerically approximate afterward::
+
             sage: sqrt(2).n()
             1.41421356237310
+            sage: sqrt(2).n(prec=100)
+            1.4142135623730950488016887242
+
+        Or one can input a numerical type.
+
+            sage: sqrt(2.)
+            1.41421356237310
+            sage: sqrt(2.000000000000000000000000)
+            1.41421356237309504880169
+            sage: sqrt(4.0)
+            2.00000000000000
 
         To prevent automatic evaluation, one can use the ``hold`` parameter
         after coercing to the symbolic ring::
@@ -1806,7 +1930,7 @@ class Function_arg(BuiltinFunction):
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
-            atan2(0,x)
+            atan2(0,_SAGE_VAR_x)
             sage: maxima(arg(2+i))
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))
@@ -1830,7 +1954,9 @@ class Function_arg(BuiltinFunction):
             0.982793723247329
         """
         BuiltinFunction.__init__(self, "arg",
-                conversions=dict(maxima='carg', mathematica='Arg'))
+                conversions=dict(maxima='carg',
+                                 mathematica='Arg',
+                                 sympy='arg'))
 
     def _eval_(self, x):
         """
@@ -1856,18 +1982,14 @@ class Function_arg(BuiltinFunction):
             arg(sqrt(2) + I)
 
         """
-        if not isinstance(x,Expression): # x contains no variables
-            if s_parent(x)(0)==x: #compatibility with maxima
-                return s_parent(x)(0)
-            else:
-                if is_inexact(x): # inexact complex numbers, e.g. 2.0+i
-                    return self._evalf_(x, s_parent(x))
-                else:  # exact complex numbers, e.g. 2+i
-                    return arctan2(imag_part(x),real_part(x))
+        if isinstance(x,Expression):
+            if x.is_trivial_zero():
+                return x
         else:
-            # x contains variables, e.g. 2+i+y or 2.0+i+y
-            # or x involves an expression such as sqrt(2)
-            return None
+            if not x:
+                return x
+            else:
+                return arctan2(imag_part(x),real_part(x))
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """
@@ -1914,7 +2036,6 @@ class Function_arg(BuiltinFunction):
         try:
             parent = parent.complex_field()
         except AttributeError:
-            from sage.rings.complex_field import ComplexField
             try:
                 parent = ComplexField(x.prec())
             except AttributeError:
@@ -1966,18 +2087,21 @@ class Function_real_part(GinacFunction):
 
             sage: loads(dumps(real_part))
             real_part
+            sage: real_part(x)._sympy_()
+            re(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.real())
             \Re \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
         """
         GinacFunction.__init__(self, "real_part",
-                                   conversions=dict(maxima='realpart'))
+                               conversions=dict(maxima='realpart',
+                                                sympy='re'))
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2033,18 +2157,21 @@ class Function_imag_part(GinacFunction):
             4.0
             sage: loads(dumps(imag_part))
             imag_part
+            sage: imag_part(x)._sympy_()
+            im(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.imag())
             \Im \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).imag())
             \Im \left( f\left(x\right) \right)
         """
         GinacFunction.__init__(self, "imag_part",
-                                   conversions=dict(maxima='imagpart'))
+                               conversions=dict(maxima='imagpart',
+                                                sympy='im'))
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2103,7 +2230,7 @@ class Function_conjugate(GinacFunction):
             sage: f = function('f')
             sage: latex(f(x).conjugate())
             \overline{f\left(x\right)}
-            sage: f = function('psi',x,y)
+            sage: f = function('psi')(x,y)
             sage: latex(f.conjugate())
             \overline{\psi\left(x, y\right)}
             sage: x.conjugate().conjugate()
@@ -2113,7 +2240,7 @@ class Function_conjugate(GinacFunction):
             sage: x.conjugate().operator() == conjugate
             True
 
-        Check if #8755 is fixed::
+        Check if :trac:`8755` is fixed::
 
             sage: conjugate(sqrt(-3))
             conjugate(sqrt(-3))
@@ -2128,7 +2255,7 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(sqrt(y))
             sqrt(y)
 
-        Check if #10964 is fixed::
+        Check if :trac:`10964` is fixed::
 
             sage: z= I*sqrt(-3); z
             I*sqrt(-3)
@@ -2144,6 +2271,7 @@ class Function_conjugate(GinacFunction):
             sage: loads(dumps(conjugate))
             conjugate
         """
-        GinacFunction.__init__(self, "conjugate")
+        GinacFunction.__init__(self, "conjugate",
+                               conversions=dict(sympy='conjugate'))
 
 conjugate = Function_conjugate()

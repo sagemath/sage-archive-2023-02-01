@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.composition import Composition
@@ -405,15 +405,15 @@ class AffinePermutationTypeA(AffinePermutation):
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
-            sage: q=A([1,2,3])
+            sage: q=A([1,2,3])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Length of list must be k+1=8.
-            sage: q=A([1,2,3,4,5,6,7,0])
+            sage: q=A([1,2,3,4,5,6,7,0])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Window does not sum to 36.
-            sage: q=A([1,1,3,4,5,6,7,9])
+            sage: q=A([1,1,3,4,5,6,7,9])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Entries must have distinct residues.
@@ -778,16 +778,18 @@ class AffinePermutationTypeA(AffinePermutation):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   p.to_lehmer_code(a[0],a[1])
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders, sides):
+            ....:   p.to_lehmer_code(o,s)
             [2, 3, 2, 0, 1, 2, 0, 0]
             [2, 2, 0, 0, 2, 1, 0, 3]
             [3, 1, 0, 0, 2, 1, 0, 3]
             [0, 3, 3, 0, 1, 2, 0, 1]
-            sage: for a in CP:
+            sage: for a in itertools.product(orders, sides):
             ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]), a[0],a[1])==p
             True
             True
@@ -854,7 +856,7 @@ class AffinePermutationTypeA(AffinePermutation):
         m=-1
         for i in range(self.n):
             if c[i]>0:
-                if firstnonzero==None: firstnonzero=i
+                if firstnonzero is None: firstnonzero=i
                 if m!=-1 and c[i]-(i-m) >= c[m]: return False
                 m=i
         #now check m (the last non-zero) against firstnonzero.
@@ -982,7 +984,7 @@ class AffinePermutationTypeA(AffinePermutation):
         #check w is reduced....:should probably throw an exception otherwise.
         x0=prod([g[i] for i in w])
         if x0.length()!=len(w): raise ValueError("Word was not reduced.")
-        if alpha==None:
+        if alpha is None:
             alpha=Composition([1 for i in w])
         else:
             if sum(alpha)!=len(w): raise ValueError("Size of alpha must match length of w.")
@@ -1770,7 +1772,7 @@ def AffinePermutationGroup(cartan_type):
     REFERENCES:
 
     .. [BjBr] Bjorner and Brenti. Combinatorics of Coxeter Groups. Springer, 2005.
-    .. [Erik] H. Erikson.  Computational and Combinatorial Aspects of Coxeter
+    .. [Erik] \H. Erikson.  Computational and Combinatorial Aspects of Coxeter
        Groups.  Thesis, 1995.
 
     EXAMPLES::
@@ -1992,8 +1994,8 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: A._test_coxeter_relations(3)
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A._test_enumeration(3)
         """
         n1=len(list(self.elements_of_length(n)))
         W=self.weyl_group()
@@ -2082,7 +2084,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         r"""
         EXAMPLES::
 
-            sage: AffinePermutationGroup(['A',7,1]).index_set()
+            sage: AffinePermutationGroup(['A',7,1]).reflection_index_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
         return self.cartan_type().index_set()
@@ -2096,29 +2098,35 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
             sage: AffinePermutationGroup(['A',7,1]).rank()
             8
         """
-        return self.k+1
+        return self.k + 1
 
-    def random_element(self, n):
+    def random_element(self, n=None):
         r"""
-        Returns a random affine permutation of length `n`.
+        Return a random affine permutation of length ``n``.
+
+        If ``n`` is not specified, then ``n`` is chosen as a random
+        non-negative integer in `[0, 1000]`.
 
         Starts at the identity, then chooses an upper cover at random.
         Not very uniform: actually constructs a uniformly random reduced word
         of length `n`.  Thus we most likely get elements with lots of reduced
         words!
 
+        For the actual code, see
+        :meth:`sage.categories.coxeter_group.random_element_of_length`.
+
         EXAMPLES::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: p=A.random_element(10)
-            sage: p.length()==10
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A.random_element() # random
+            Type A affine permutation with window [-12, 16, 19, -1, -2, 10, -3, 9]
+            sage: p = A.random_element(10)
+            sage: p.length() == 10
             True
         """
-        x=self.one()
-        for i in xrange(1,n+1):
-            antiD=x.descents(positive=True)
-            x=x.apply_simple_reflection_right(antiD[ randint(0, len(antiD)-1) ])
-        return x
+        if n is None:
+            n = randint(0, 1000)
+        return self.random_element_of_length(n)
 
     def from_word(self, w):
         r"""
@@ -2148,20 +2156,6 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
         """
         return self.from_reduced_word(self.index_set())
-
-    def elements_of_length(self, n):
-        r"""
-        Returns all elements of length `n`.
-
-        EXAMPLES::
-
-            sage: A=AffinePermutationGroup(['A',2,1])
-            sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
-            [1, 3, 6, 9, 12, 15]
-        """
-        #Note: This is type-free, and should probably be included in Coxeter Groups.
-        I=self.weak_order_ideal(ConstantFunction(True), side='right')
-        return I.elements_of_depth_iterator(n)
 
 
 class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
@@ -2206,15 +2200,17 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
 
         EXAMPLES::
 
+            sage: import itertools
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p.to_lehmer_code()
             [0, 3, 3, 0, 1, 2, 0, 1]
             sage: A.from_lehmer_code(p.to_lehmer_code())==p
             True
-            sage: CP=CartesianProduct( ('increasing','decreasing'),('left','right') )
-            sage: for a in CP:
-            ....:   A.from_lehmer_code(p.to_lehmer_code(a[0],a[1]),a[0],a[1])==p
+            sage: orders = ('increasing','decreasing')
+            sage: sides = ('left','right')
+            sage: for o,s in itertools.product(orders,sides):
+            ....:   A.from_lehmer_code(p.to_lehmer_code(o,s),o,s)==p
             True
             True
             True

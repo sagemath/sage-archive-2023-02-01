@@ -82,10 +82,15 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import bz2, os, re, urllib
+import bz2
+import os
+import re
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlretrieve
 
 from sage.misc.all import verbose
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()
 from sage.misc.superseded import deprecation
@@ -186,10 +191,10 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
-        - ``oeis_url`` - string (default: "http://www.research.att.com...")
+        - ``oeis_url`` - string (default: "http://oeis.org...")
           The URL of the stripped.gz encyclopedia file.
 
-        - ``names_url`` - string (default: "http://www.research.att.com...")
+        - ``names_url`` - string (default: "http://oeis.org...")
           The URL of the names.gz encyclopedia file.  If you do not want to
           download this file, set names_url=None.
 
@@ -203,13 +208,13 @@ class SloaneEncyclopediaClass:
 
         tm = verbose("Downloading stripped version of Sloane encyclopedia")
         try:
-            fname, _ = urllib.urlretrieve(oeis_url);
+            fname, _ = urlretrieve(oeis_url);
         except IOError as msg:
             raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url))
 
         if not names_url is None:
             try:
-                nname, _ = urllib.urlretrieve(names_url);
+                nname, _ = urlretrieve(names_url);
             except IOError as msg:
                 raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, names_url))
         else:
@@ -377,9 +382,10 @@ def parse_sequence(text=''):
     which is now deprecated.
 
     TESTS::
+
         sage: from sage.databases.sloane import parse_sequence
         sage: parse_sequence()
-        doctest:1: DeprecationWarning: The function parse_sequence is not used anymore (2012-01-01).
+        doctest:...: DeprecationWarning: The function parse_sequence is not used anymore (2012-01-01).
         See http://trac.sagemath.org/10358 for details.
     """
     deprecation(10358, "The function parse_sequence is not used anymore (2012-01-01).")
@@ -394,7 +400,7 @@ def sloane_sequence(number=1, verbose=True):
     TESTS::
 
         sage: sloane_sequence(123)
-        doctest:1: DeprecationWarning: The function sloane_sequence is deprecated. Use oeis() instead (2012-01-01).
+        doctest:...: DeprecationWarning: The function sloane_sequence is deprecated. Use oeis() instead (2012-01-01).
         See http://trac.sagemath.org/10358 for details.
     """
     deprecation(10358,
@@ -411,7 +417,7 @@ def sloane_find(list=[], nresults=30, verbose=True):
     TESTS::
 
         sage: sloane_find([1,2,3])
-        doctest:1: DeprecationWarning: The function sloane_find is deprecated. Use oeis() instead (2012-01-01).
+        doctest:...: DeprecationWarning: The function sloane_find is deprecated. Use oeis() instead (2012-01-01).
         See http://trac.sagemath.org/10358 for details.
     """
     deprecation(10358,

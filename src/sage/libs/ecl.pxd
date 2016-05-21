@@ -134,6 +134,7 @@ cdef extern from "ecl/ecl.h":
     cl_object ecl_read_from_cstring_safe(char *s, cl_object err)
     cl_object cl_write_to_string(cl_narg narg, cl_object o)
     cl_object ecl_cstring_to_base_string_or_nil(char *s)
+    cl_object si_coerce_to_base_string(cl_object x)
 
     # S-expr evaluation and function calls
 

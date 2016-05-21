@@ -25,8 +25,6 @@ Maxima, Mathematica, Maple, Octave, and Singular::
     twinprime
     sage: mertens
     mertens
-    sage: brun
-    brun
 
 Support for coercion into the various systems means that if, e.g.,
 you want to create `\pi` in Maxima and Singular, you don't
@@ -44,13 +42,13 @@ type the following::
     3.1415926535897932384626433832795028842   # 64-bit
     sage: pari(pi)
     3.14159265358979
-    sage: kash(pi)                    # optional
+    sage: kash(pi)                    # optional - kash
     3.14159265358979323846264338328
-    sage: mathematica(pi)             # optional
+    sage: mathematica(pi)             # optional - mathematica
     Pi
-    sage: maple(pi)                   # optional
+    sage: maple(pi)                   # optional - maple
     Pi
-    sage: octave(pi)                  # optional
+    sage: octave(pi)                  # optional - octave
     3.14159
 
 Arithmetic operations with constants also yield constants, which
@@ -67,7 +65,7 @@ can be coerced into other systems or evaluated.
     sage: gp(a)
     5.316218116357029426750873360              # 32-bit
     5.3162181163570294267508733603616328824    # 64-bit
-    sage: print mathematica(a)                     # optional
+    sage: print mathematica(a)                     # optional - mathematica
      4 E
      --- + Pi
       5
@@ -183,22 +181,22 @@ floating point rings::
     mertens + twinprime + khinchin + log2 + golden_ratio + catalan + euler_gamma + pi + e
     sage: parent(a)
     Symbolic Ring
-    sage: RR(a) #abstol 1e11
+    sage: RR(a)  # abs tol 1e-13
     13.2713479401972
     sage: RealField(212)(a)
     13.2713479401972493100988191995758139408711068200030748178329712
     sage: RealField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
-    sage: CC(a) #abstol 1e11
+    sage: RDF(a)  # abs tol 1e-13
+    13.271347940197249
+    sage: CC(a)  # abs tol 1e-13
     13.2713479401972
-    sage: CDF(a)
-    13.2713479402
+    sage: CDF(a)  # abs tol 1e-13
+    13.271347940197249
     sage: ComplexField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
-    sage: RDF(a)
-    13.2713479402
 
-Test if #8237 is fixed::
+Check that :trac:`8237` is fixed::
 
     sage: maxima('infinity').sage()
     Infinity
@@ -359,6 +357,19 @@ class Constant(object):
         """
         return self._domain
 
+    def __lt__(self, other):
+        """
+        Perform float comparison with constant.
+
+        EXAMPLES::
+
+            sage: cmp(pi, 0)
+            1
+            sage: cmp(pi, SR(0))
+            1
+        """
+        return self.__float__() < other
+
     def expression(self):
         """
         Returns an expression for this constant.
@@ -375,6 +386,26 @@ class Constant(object):
             0
         """
         return self._pynac.expression()
+
+    def _symbolic_(self, SR):
+        """
+        Returns an expression for this constant.
+
+        INPUT:
+
+        - ``SR`` - a symbolic ring parent
+
+        EXAMPLES::
+
+            sage: SR(pi.pyobject())
+            pi
+            sage: pi.pyobject()._symbolic_(SR)
+            pi
+            sage: f(x,y) = 2
+            sage: f.parent()(pi.pyobject())
+            (x, y) |--> pi
+        """
+        return SR(self.expression())
 
     def name(self):
         """
@@ -564,7 +595,7 @@ class Pi(Constant):
          EXAMPLES::
 
              sage: pi._real_double_(RDF)
-             3.14159265359
+             3.141592653589793
          """
         return R.pi()
 
@@ -604,7 +635,7 @@ Note that conversions to real fields will give TypeErrors::
     sage: RR(I)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to convert x (='1.00000000000000*I') to real number.
+    TypeError: unable to convert '1.00000000000000*I' to a real number
 
 Expressions involving I that are real-valued can be converted to real fields::
 
@@ -638,7 +669,7 @@ We can convert to complex fields::
     1j
 
     sage: QQbar(I)
-    1*I
+    I
 
     sage: abs(I)
     1
@@ -782,7 +813,7 @@ class GoldenRatio(Constant):
         EXAMPLES::
 
             sage: RDF(golden_ratio)
-            1.61803398875
+            1.618033988749895
         """
         return R('1.61803398874989484820458')
 
@@ -848,10 +879,10 @@ class Log2(Constant):
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
-        .6931471805599453
+        0.6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
-        0.69314718055994530941723212145817656808   # 64-bit
+        0.69314718055994530941723212145817656807   # 64-bit
         sage: RealField(150)(2).log()
         0.69314718055994530941723212145817656807550013
     """
@@ -884,7 +915,7 @@ class Log2(Constant):
         EXAMPLES::
 
             sage: RDF(log2)
-            0.69314718056
+            0.6931471805599453
         """
         return R.log2()
 
@@ -959,7 +990,7 @@ class EulerGamma(Constant):
         EXAMPLES::
 
             sage: RDF(euler_gamma)
-            0.577215664902
+            0.5772156649015329
         """
         return R.euler_constant()
 
@@ -1019,7 +1050,7 @@ class Catalan(Constant):
         EXAMPLES: We coerce to the real double field::
 
             sage: RDF(catalan)
-            0.915965594177
+            0.915965594177219
         """
         return R('0.91596559417721901505460351493252')
 
@@ -1059,11 +1090,13 @@ class Khinchin(Constant):
         2.6854520010653062
         sage: khinchin.n(digits=60)
         2.68545200106530644530971483548179569382038229399446295305115
-        sage: m = mathematica(khinchin); m             # optional
+        sage: m = mathematica(khinchin); m             # optional - mathematica
         Khinchin
-        sage: m.N(200)                                 # optional
-        2.68545200106530644530971483548179569382038229399446295305115234555721885953715200280114117493184769799515346590528809008289767771641096305179253348325966838185231542133211949962603932852204481940961807          # 32-bit
-        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
+        sage: m.N(200)                                 # optional - mathematica
+            2.6854520010653064453097148354817956938203822939944629530511523455572
+        >    188595371520028011411749318476979951534659052880900828976777164109630517
+        >    925334832596683818523154213321194996260393285220448194096181
+
     """
     def __init__(self, name='khinchin'):
         """
@@ -1251,113 +1284,3 @@ class Glaisher(Constant):
 
 
 glaisher = Glaisher().expression()
-
-
-###############################
-# Limited precision constants #
-###############################
-
-# NOTE: LimitedPrecisionConstant is an *abstract base class*.  It is
-# not instantiated.  It doesn't make sense to pickle and unpickle
-# this, so there is no loads(dumps(...)) doctest below.
-
-class LimitedPrecisionConstant(Constant):
-    def __init__(self, name, value, **kwds):
-        """
-        A class for constants that are only known to a limited
-        precision.
-
-        EXAMPLES::
-
-            sage: from sage.symbolic.constants import LimitedPrecisionConstant
-            sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression(); a
-            a
-            sage: RDF(a)
-            1.23456789101
-            sage: RealField(200)(a)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: a is only available up to 59 bits
-        """
-        self._value = value
-        self._bits = len(self._value)*3-1 #FIXME
-        Constant.__init__(self, name, **kwds)
-
-    def _mpfr_(self, R):
-        """
-        EXAMPLES::
-
-            sage: RealField(41)(brun)
-            1.90216058310
-            sage: RealField(20000)(brun)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: brun is only available up to 41 bits
-        """
-        if R.precision() <= self._bits:
-            return R(self._value)
-        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
-
-    def _real_double_(self, R):
-        """
-        EXAMPLES::
-
-            sage: from sage.symbolic.constants import LimitedPrecisionConstant
-            sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression()
-            sage: RDF(a)
-            1.23456789101
-        """
-        if R.precision() <= self._bits:
-            return R(self._value)
-        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
-
-    def __float__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.symbolic.constants import LimitedPrecisionConstant
-            sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression()
-            sage: float(a)
-            1.2345678910111213
-
-        """
-        if self._bits < 53:
-            raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
-        return float(self._value)
-
-class Brun(LimitedPrecisionConstant):
-    """
-    Brun's constant is the sum of reciprocals of odd twin primes.
-
-    It is not known to very high precision; calculating the number
-    using twin primes up to `10^{16}` (Sebah 2002) gives the
-    number `1.9021605831040`.
-
-    EXAMPLES::
-
-        sage: float(brun)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: brun is only available up to 41 bits
-        sage: R = RealField(41); R
-        Real Field with 41 bits of precision
-        sage: R(brun)
-        1.90216058310
-    """
-    def __init__(self, name='brun'):
-        """
-        EXAMPLES::
-
-            sage: loads(dumps(brun))
-            brun
-        """
-        conversions = dict(maxima='brun')
-
-        # digits come from Sloane's tables at http://oeis.org/classic/table?a=65421&fmt=0
-        value = "1.902160583104"
-
-        LimitedPrecisionConstant.__init__(self, name, value,
-                                          conversions=conversions,
-                                          domain='positive')
-
-brun = Brun().expression()

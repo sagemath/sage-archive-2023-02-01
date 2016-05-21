@@ -14,24 +14,14 @@ AUTHOR:
 #*****************************************************************************
 #       Copyright (C) 2006 Joshua Kantor <jkantor@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#include 'gsl.pxi'
-
 import sage.plot.all
-
-#import gsl_array
-#cimport gsl_array
 
 def WaveletTransform(n, wavelet_type, wavelet_k):
     """
@@ -150,9 +140,9 @@ cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
         cdef double x
         v = []
         point = sage.plot.all.point
-        if xmin == None:
+        if xmin is None:
             x_min = 0
-        if xmax == None:
+        if xmax is None:
             x_max=self.n
         for i from x_min <=i < x_max:
             x = self.data[i]

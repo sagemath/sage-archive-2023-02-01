@@ -5,41 +5,26 @@ Rings
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring
-from commutative_ring import CommutativeRing
-from integral_domain import IntegralDomain
-from dedekind_domain import DedekindDomain
-from principal_ideal_domain import PrincipalIdealDomain
-from euclidean_domain import EuclideanDomain
-from field import Field
-
-from commutative_algebra_element import CommutativeAlgebraElement
+from ring import (Ring, Field, CommutativeRing, IntegralDomain,
+    DedekindDomain, PrincipalIdealDomain, EuclideanDomain)
 
 # Ring element base classes
-from ring_element import RingElement
-from commutative_ring_element import CommutativeRingElement
-from integral_domain_element import IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement
-from field_element import FieldElement
-
+from sage.structure.element import (CommutativeAlgebraElement,
+        RingElement, CommutativeRingElement, IntegralDomainElement,
+        DedekindDomainElement, PrincipalIdealDomainElement,
+        EuclideanDomainElement, FieldElement)
 
 # Ideals
 from ideal import Ideal
+ideal = Ideal
 
 # Quotient
 from quotient_ring import QuotientRing
@@ -70,6 +55,9 @@ from number_field.all import *
 # Function field
 from function_field.all import *
 
+# Finite residue fields
+from finite_rings.residue_field import ResidueField
+
 # p-adic field
 from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing
@@ -86,6 +74,8 @@ from real_double import RealDoubleField, RDF, RealDoubleElement
 
 from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 
+from sage.rings.real_arb import RealBallField, RBF
+
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
@@ -96,6 +86,7 @@ from qqbar import (AlgebraicRealField, AA,
                    AlgebraicField, QQbar,
                    AlgebraicNumber,
                    number_field_elements_from_algebraics)
+from universal_cyclotomic_field import UniversalCyclotomicField, E
 
 # Intervals
 from real_mpfi import (RealIntervalField,
@@ -112,6 +103,8 @@ from complex_interval import (create_ComplexIntervalFieldElement as ComplexInter
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 from complex_mpc import MPComplexField
+
+from sage.rings.complex_arb import ComplexBallField, CBF
 
 # Power series rings
 from power_series_ring import PowerSeriesRing
@@ -131,58 +124,33 @@ from big_oh import O
 from fraction_field import FractionField
 Frac = FractionField
 
-# continued fractions
-from contfrac import continued_fraction, CFF, ContinuedFractionField
-
-# Arithmetic
-from arith import algdep, bernoulli, is_prime, is_prime_power, \
-    is_pseudoprime, is_pseudoprime_small_power, valuation, \
-    prime_powers, primes_first_n, eratosthenes, primes, \
-    next_prime_power, next_probable_prime, next_prime, \
-    previous_prime, previous_prime_power, random_prime, \
-    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, \
-    inverse_mod, get_gcd, get_inverse_mod, power_mod, \
-    rational_reconstruction, mqrr_rational_reconstruction, \
-    trial_division, factor, prime_divisors, odd_part, prime_to_m_part, \
-    is_square, is_squarefree, euler_phi, crt, CRT, CRT_list, CRT_basis, \
-    CRT_vectors, multinomial, multinomial_coefficients, \
-    kronecker_symbol, kronecker, legendre_symbol, \
-    primitive_root, nth_prime, quadratic_residues, moebius, \
-    farey, continued_fraction_list, convergent, convergents, \
-    continuant, number_of_divisors, hilbert_symbol, hilbert_conductor, \
-    hilbert_conductor_inverse, falling_factorial, rising_factorial, \
-    integer_ceil, integer_floor, two_squares, four_squares, \
-    subfactorial, is_power_of_two, differences, \
-    sort_complex_numbers_for_display, \
-    fundamental_discriminant, squarefree_divisors, \
-    Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol, \
-    Moebius, Hirzebruch_Jung_continued_fraction_list, dedekind_sum, \
-    prime_factors
-
-
-from fast_arith import prime_range
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from monomials import monomials
 
-#from fast_polynomial.compiled_polynomial import compiled_polynomial
-
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-# i = I = QuadraticField(-1, 'I').gen()
-I = CC.gen()
-
-from residue_field import ResidueField
-
-
 from misc import composite_field
-
-import tests
-
-# Universal Cyclotomic Field
-from sage.rings.universal_cyclotomic_field.all import *
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')
+lazy_import('sage.arith.all', '*', deprecation=19879)
+
+from fast_arith import prime_range
+
+# continued fractions
+from sage.rings.continued_fraction import (farey, convergents,
+  continued_fraction, continued_fraction_list,
+   Hirzebruch_Jung_continued_fraction_list)
+# and deprecated continued fractions
+from sage.rings.contfrac import (CFF, ContinuedFractionField)
+
+# asymptotic ring
+from asymptotic.all import *
+
+# Register classes in numbers abc
+import numbers_abc

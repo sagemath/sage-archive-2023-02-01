@@ -33,7 +33,7 @@ We exclude the known files and check to see that there are no others::
     ....:         if nm in filename:
     ....:             break
     ....:     else:
-    ....:         print filename
+    ....:         print(filename)
     ....:
 
 Check that the Sage Notebook is not imported at startup (see
@@ -63,40 +63,40 @@ Check lazy import of ``interacts``::
 #
 #*****************************************************************************
 
-import os, sys
+import os
+import sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "Sage requires Python 2.5 or newer"
-    sys.exit(1)
 
 ###################################################################
 
-import sage.ext.c_lib
-sage.ext.c_lib._init_csage()
-sig_on_count = sage.ext.c_lib._sig_on_reset
+# This import also setups the interrupt handler
+from cysignals.signals import (AlarmInterrupt, SignalError,
+        sig_on_reset as sig_on_count)
 
 from time                import sleep
 
-from sage.ext.c_lib import AlarmInterrupt, SignalError
-
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.typeset.all    import *
 from sage.repl.all       import *
 
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
+from sage.data_structures.all import *
 from sage.doctest.all    import *
 try:
     from sage.dev.all    import *
 except ImportError:
     pass   # dev scripts are disabled
 
+from sage.structure.all  import *
 from sage.rings.all      import *
+from sage.arith.all      import *
 from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
@@ -106,11 +106,11 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.databases.all  import *
-from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
 from sage.probability.all import *
@@ -171,12 +171,20 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
+from sage.game_theory.all import *
+
+from sage.knots.all import *
+
+from sage.manifolds.all import *
+
+from cysignals.alarm import alarm, cancel_alarm
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
-lazy_import('sagenb.notebook.interact', 'interact')
 lazy_import('sage.interacts', 'all', 'interacts')
+lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
@@ -185,17 +193,9 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-#Deprecate the is_* functions from the top level
-#All of these functions should be removed from the top level
-#after a few releases, and this code should be removed.
-#--Mike Hansen 9/25/2008
-message = "\nUsing %(name)s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."
-sage.misc.superseded.deprecated_callable_import(
-    10107, None, globals(), locals(),
-    [name for name in globals().keys() if name.startswith('is_') and name[3].isupper()],
-    message)
-
-del message, name
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(sage.env.SAGE_SRC)
 
 
 ###########################################################
@@ -206,39 +206,14 @@ del message, name
 # when they are first needed.
 ###########################################################
 
-###################################################################
-
-# maximize memory resources
-#try:
-#    import resource   # unix only...
-#    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except Exception:
-#    pass
-
-# very useful 2-letter shortcuts
 CC = ComplexField()
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
-# NOTE: QQ, RR, and ZZ are used by the pre-parser, and should not be
-# overwritten by the user, unless they want to change the meaning of
-# int and real in the interpreter (which is a potentially valid thing
-# to do, and doesn't mess up anything else in the Sage library).
-# E.g., typing "int = ZZ" in the Sage interpreter makes int literals
-# acts as Python ints again.
 
-
-
-# Some shorter shortcuts:
-# Q = QQ
-# Z = ZZ
-# C = CC
-#i = CC.gen(0)
 true = True
 false = False
-
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
 
 from sage.misc.copying import license
 copying = license
@@ -256,11 +231,13 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1/60); t1s=t1-t1m*60
+        t1m = int(t1) // 60
+        t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
-               t1m,t1s,t2m,t2s)
+        t2m = int(t2) // 60
+        t2s = t2 - t2m * 60
+        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
+              (t1m, t1s, t2m, t2s))
 
     import gc
     gc.collect()
@@ -285,14 +262,15 @@ def quit_sage(verbose=True):
     # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
-    sage.rings.integer.clear_mpz_globals()
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -302,7 +280,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
@@ -332,16 +309,13 @@ def _write_started_file():
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-    # Do nothing if the file already exists
-    if os.path.isfile(started_file):
-        return
 
     # Current time with a resolution of 1 second
     import datetime
     t = datetime.datetime.now().replace(microsecond=0)
 
     O = open(started_file, 'w')
-    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
     O.close()
 
 

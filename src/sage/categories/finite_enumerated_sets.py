@@ -7,16 +7,20 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
+import itertools
 
-from category_types import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.sets_cat import Sets
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
-from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import sage_wraps
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.rings.integer", "Integer")
 
-class FiniteEnumeratedSets(Category):
+class FiniteEnumeratedSets(CategoryWithAxiom):
     """
     The category of finite enumerated sets
 
@@ -25,10 +29,11 @@ class FiniteEnumeratedSets(Category):
         sage: FiniteEnumeratedSets()
         Category of finite enumerated sets
         sage: FiniteEnumeratedSets().super_categories()
-        [Category of enumerated sets]
+        [Category of enumerated sets, Category of finite sets]
         sage: FiniteEnumeratedSets().all_super_categories()
         [Category of finite enumerated sets,
          Category of enumerated sets,
+         Category of finite sets,
          Category of sets,
          Category of sets with partial maps,
          Category of objects]
@@ -37,24 +42,17 @@ class FiniteEnumeratedSets(Category):
 
         sage: C = FiniteEnumeratedSets()
         sage: TestSuite(C).run()
+        sage: sorted(C.Algebras(QQ).super_categories(), key=str)
+        [Category of finite dimensional modules with basis over Rational Field,
+         Category of set algebras over Rational Field]
 
-    TODO:
+    .. TODO::
 
-    :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
-    not inherit from this class. If that is solved, then
-    :class:`FiniteEnumeratedSets` shall be turned into a subclass of
-    :class:`~sage.categories.category_singleton.Category_singleton`.
+        :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
+        not inherit from this class. If that is solved, then
+        :class:`FiniteEnumeratedSets` shall be turned into a subclass of
+        :class:`~sage.categories.category_singleton.Category_singleton`.
     """
-
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: FiniteEnumeratedSets().super_categories()
-            [Category of enumerated sets]
-        """
-        return [EnumeratedSets()]
 
     def _call_(self, X):
         """
@@ -82,18 +80,6 @@ class FiniteEnumeratedSets(Category):
         return EnumeratedSets()._call_(X)
 
     class ParentMethods:
-
-        def is_finite(self):
-            """
-            Returns ``True`` since self is finite.
-
-            EXAMPLES::
-
-                sage: C = FiniteEnumeratedSets().example()
-                sage: C.is_finite()
-                True
-            """
-            return True
 
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
@@ -155,15 +141,16 @@ class FiniteEnumeratedSets(Category):
                 [1]
                 sage: P.cardinality()
                 1
-                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
                 1
-                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
                 1
             """
             c = 0
             for _ in self:
                 c += 1
             return Integer(c)
+
         #Set cardinality to the default implementation
         cardinality = _cardinality_from_iterator
 
@@ -285,11 +272,11 @@ class FiniteEnumeratedSets(Category):
                 Let's take an example::
 
                     sage: class Example(Parent):
-                    ...       def __init__(self):
-                    ...           Parent.__init__(self, category = FiniteEnumeratedSets())
-                    ...       def __iter__(self):
-                    ...           print "hello!"
-                    ...           for x in [1,2,3]: yield x
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
                     hello!
@@ -462,22 +449,174 @@ class FiniteEnumeratedSets(Category):
                 Traceback (most recent call last):
                 ...
                 AssertionError: 4 != 3
-                sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return int(3)
-                sage: CC = CCls()
-                sage: CC._test_enumerated_set_iter_cardinality()
-                Traceback (most recent call last):
-                ...
-                AssertionError: False is not true
             """
+            # isinstance with LazyImported classes is not robust
+            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
-                tester.assert_(isinstance(card, Integer))
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            A Cartesian product of finite enumerated sets is a finite
+            enumerated set.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of finite enumerated sets]
+            """
+            return [FiniteEnumeratedSets()]
+
+        class ParentMethods:
+            r"""
+            TESTS:
+
+            Ideally, these tests should be just after the declaration of the
+            associated attributes. But doing this way, Sage will not consider
+            them as a doctest.
+
+            We check that Cartesian products of finite enumerated sets
+            inherit various methods from `Sets.CartesianProducts`
+            and not from :class:`EnumeratedSets.Finite`::
+
+                sage: C = cartesian_product([Partitions(10), Permutations(20)])
+                sage: C in EnumeratedSets().Finite()
+                True
+
+                sage: C.random_element.__module__
+                'sage.categories.sets_cat'
+
+                sage: C.cardinality.__module__
+                'sage.categories.sets_cat'
+
+                sage: C.__iter__.__module__
+                'sage.categories.sets_cat'
+            """
+
+            # Ambiguity resolution between methods inherited from
+            # Sets.CartesianProducts and from EnumeratedSets.Finite.
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
+            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+
+            def last(self):
+                r"""
+                Return the last element
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([Zmod(42), Partitions(10), IntegerRange(5)])
+                    sage: C.last()
+                    (41, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 4)
+                """
+                return self._cartesian_product_of_elements(
+                        tuple(c.last() for c in self.cartesian_factors()))
+
+            def rank(self, x):
+                r"""
+                Return the rank of an element of this Cartesian product.
+
+                The *rank* of ``x`` is its position in the
+                enumeration. It is an integer between ``0`` and
+                ``n-1`` where ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.rank`
+                    - :meth:`unrank`
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(2), GF(11), GF(7)])
+                    sage: C.rank(C((1,2,5)))
+                    96
+                    sage: C.rank(C((0,0,0)))
+                    0
+
+                    sage: for c in C: print(C.rank(c))
+                    0
+                    1
+                    2
+                    3
+                    4
+                    5
+                    ...
+                    150
+                    151
+                    152
+                    153
+
+                    sage: F1 = FiniteEnumeratedSet('abcdefgh')
+                    sage: F2 = IntegerRange(250)
+                    sage: F3 = Partitions(20)
+                    sage: C = cartesian_product([F1, F2, F3])
+                    sage: c = C(('a', 86, [7,5,4,4]))
+                    sage: C.rank(c)
+                    54213
+                    sage: C.unrank(54213)
+                    ('a', 86, [7, 5, 4, 4])
+                """
+                from sage.rings.integer_ring import ZZ
+                x = self(x)
+                b = ZZ.one()
+                rank = ZZ.zero()
+                for f,c in itertools.izip(reversed(x.cartesian_factors()),
+                                          reversed(self.cartesian_factors())):
+                    rank += b * c.rank(f)
+                    b *= c.cardinality()
+                return rank
+
+            def unrank(self, i):
+                r"""
+                Return the ``i``-th element of this Cartesian product.
+
+                INPUT:
+
+                - ``i`` -- integer between ``0`` and ``n-1`` where
+                  ``n`` is the cardinality of this set.
+
+                .. SEEALSO::
+
+                    - :meth:`EnumeratedSets.ParentMethods.unrank`
+                    - :meth:`rank`
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), GF(11), GF(7), GF(5)])
+                    sage: c = C.unrank(123); c
+                    (0, 3, 3, 3)
+                    sage: C.rank(c)
+                    123
+
+                    sage: c = C.unrank(857); c
+                    (2, 2, 3, 2)
+                    sage: C.rank(c)
+                    857
+
+                    sage: C.unrank(2500)
+                    Traceback (most recent call last):
+                    ...
+                    IndexError: index i (=2) is greater than the cardinality
+                """
+                from sage.rings.integer_ring import ZZ
+                i = ZZ(i)
+                if i < 0:
+                    raise IndexError("i (={}) must be a non-negative integer")
+                elt = []
+                for c in reversed(self.cartesian_factors()):
+                    card = c.cardinality()
+                    elt.insert(0, c.unrank(i % card))
+                    i //= card
+                if i:
+                    raise IndexError("index i (={}) is greater than the cardinality".format(i))
+                return self._cartesian_product_of_elements(elt)
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
 

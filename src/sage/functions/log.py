@@ -5,12 +5,15 @@ AUTHORS:
 
 - Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
 
+- Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
+
 """
-from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
+from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
+from sage.symbolic.constants import pi as const_pi
 
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.structure.coerce import parent as sage_structure_coerce_parent
+from sage.structure.all import parent as s_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
@@ -38,7 +41,9 @@ class Function_exp(GinacFunction):
             sage: exp(float(2.5))
             12.182493960703473
             sage: exp(RDF('2.5'))
-            12.1824939607
+            12.182493960703473
+            sage: exp(I*pi/12)
+            (1/4*I + 1/4)*sqrt(6) - (1/4*I - 1/4)*sqrt(2)
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -63,6 +68,17 @@ class Function_exp(GinacFunction):
             1
             sage: exp(7*pi*I/2)
             -I
+
+        The precision for the result is deduced from the precision of
+        the input. Convert the input to a higher precision explicitly
+        if a result with higher precision is desired::
+
+            sage: t = exp(RealField(100)(2)); t
+            7.3890560989306502272304274606
+            sage: t.prec()
+            100
+            sage: exp(2).n(100)
+            7.3890560989306502272304274606
 
         TEST::
 
@@ -106,47 +122,16 @@ class Function_exp(GinacFunction):
 
             sage: 2*sqrt(e)
             2*sqrt(e)
+
+        Check that :trac:`19918` is fixed::
+
+            sage: exp(-x^2).subs(x=oo)
+            0
+            sage: exp(-x).subs(x=-oo)
+            +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
-
-    def __call__(self, x, coerce=True, hold=False, prec=None,
-            dont_call_method_on_arg=False):
-        """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
-
-            sage: t = exp(RealField(100)(2)); t
-            7.3890560989306502272304274606
-            sage: t.prec()
-            100
-
-        TESTS::
-
-            sage: exp(2,prec=100)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
-            7.3890560989306502272304274606
-
-        Ensure that :trac:`13608` is fixed::
-
-            sage: import mpmath
-            sage: a = mpmath.mpf('0.5')
-            sage: exp(a)
-            mpf('1.6487212707001282')
-            sage: a.exp
-            -1
-        """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
-            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                    dont_call_method_on_arg=dont_call_method_on_arg)
-            return x.n(prec)
-        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                dont_call_method_on_arg=dont_call_method_on_arg)
 
 exp = Function_exp()
 
@@ -168,7 +153,7 @@ class Function_log(GinacFunction):
         ::
 
             sage: ln(RDF(10))
-            2.30258509299
+            2.302585092994046
             sage: ln(2.718)
             0.999896315728952
             sage: ln(2.0)
@@ -260,7 +245,7 @@ class Function_log(GinacFunction):
             sage: log(10, 4)
             log(10)/log(4)
             sage: RDF(log(10, 4))
-            1.66096404744
+            1.6609640474436813
             sage: log(10, 2)
             log(10)/log(2)
             sage: n(log(10, 2))
@@ -401,7 +386,7 @@ class Function_polylog(GinacFunction):
 
         TESTS:
 
-        Check if #8459 is fixed::
+        Check if :trac:`8459` is fixed::
 
             sage: t = maxima(polylog(5,x)).sage(); t
             polylog(5, x)
@@ -419,11 +404,20 @@ class Function_polylog(GinacFunction):
         These are indirect doctests for this function.::
 
             sage: polylog(2, x)._maxima_()
-            li[2](x)
+            li[2](_SAGE_VAR_x)
             sage: polylog(4, x)._maxima_()
-            polylog(4,x)
+            polylog(4,_SAGE_VAR_x)
         """
-        n, x = args
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+
+        n, x = args_maxima
         if int(n) in [1,2,3]:
             return 'li[%s](%s)'%(n, x)
         else:
@@ -563,7 +557,7 @@ class Function_lambert_w(BuiltinFunction):
         sage: integrate(lambert_w(x), x, 0, 1)
         (lambert_w(1)^2 - lambert_w(1) + 1)/lambert_w(1) - 1
         sage: integrate(lambert_w(x), x, 0, 1.0)
-        0.330366124762
+        0.3303661247616807
 
     Warning: The integral of a non-principal branch is not implemented,
     neither is numerical integration using GSL. The :meth:`numerical_integral`
@@ -583,8 +577,10 @@ class Function_lambert_w(BuiltinFunction):
             0.567143290409784
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
-                                 conversions={'mathematica':'ProductLog',
-                                              'maple':'LambertW'})
+                                 conversions={'mathematica': 'ProductLog',
+                                              'maple': 'LambertW',
+                                              'matlab': 'lambertw',
+                                              'maxima': 'generalized_lambert_w'})
 
     def __call__(self, *args, **kwds):
         r"""
@@ -644,21 +640,18 @@ class Function_lambert_w(BuiltinFunction):
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
-            Integer Ring
+            Symbolic Ring
         """
         if not isinstance(z, Expression):
-            if is_inexact(z):
-                return self._evalf_(n, z, parent=sage_structure_coerce_parent(z))
-            elif n == 0 and z == 0:
-                return sage_structure_coerce_parent(z)(Integer(0))
+            if n == 0 and z == 0:
+                return s_parent(z)(0)
         elif n == 0:
             if z.is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(0))
+                return s_parent(z)(Integer(0))
             elif (z-const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(1))
+                return s_parent(z)(Integer(1))
             elif (z+1/const_e).is_trivial_zero():
-                return sage_structure_coerce_parent(z)(Integer(-1))
-        return None
+                return s_parent(z)(Integer(-1))
 
     def _evalf_(self, n, z, parent=None, algorithm=None):
         """
@@ -672,12 +665,32 @@ class Function_lambert_w(BuiltinFunction):
         SciPy is used to evaluate for float, RDF, and CDF inputs::
 
             sage: lambert_w(RDF(1))
-            0.56714329041
+            0.5671432904097838
+            sage: lambert_w(float(1))
+            0.5671432904097838
+            sage: lambert_w(CDF(1))
+            0.5671432904097838
+            sage: lambert_w(complex(1))
+            (0.5671432904097838+0j)
+            sage: lambert_w(RDF(-1))  # abs tol 2e-16
+            -0.31813150520476413 + 1.3372357014306895*I
+            sage: lambert_w(float(-1))  # abs tol 2e-16
+            (-0.31813150520476413+1.3372357014306895j)
         """
-        R = parent or sage_structure_coerce_parent(z)
-        if R is float or R is complex or R is RDF or R is CDF:
-            import scipy.special
-            return scipy.special.lambertw(z, n)
+        R = parent or s_parent(z)
+        if R is float or R is RDF:
+            from scipy.special import lambertw
+            res = lambertw(z, n)
+            # SciPy always returns a complex value, make it real if possible
+            if not res.imag:
+                return R(res.real)
+            elif R is float:
+                return complex(res)
+            else:
+                return CDF(res)
+        elif R is complex or R is CDF:
+            from scipy.special import lambertw
+            return R(lambertw(z, n))
         else:
             import mpmath
             return mpmath_utils.call(mpmath.lambertw, z, n, parent=R)
@@ -717,17 +730,27 @@ class Function_lambert_w(BuiltinFunction):
         These are indirect doctests for this function.::
 
             sage: lambert_w(0, x)._maxima_()
-            lambert_w(x)
+            lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
-        """
-        if n == 0:
-            return "lambert_w(%s)" % z
-        else:
-            raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
+            generalized_lambert_w(1,_SAGE_VAR_x)
 
+        TESTS::
+
+            sage: lambert_w(x)._maxima_()._sage_()
+            lambert_w(x)
+            sage: lambert_w(2, x)._maxima_()._sage_()
+            lambert_w(2, x)
+        """
+        if isinstance(z, str):
+            maxima_z = z
+        elif hasattr(z, '_maxima_init_'):
+            maxima_z = z._maxima_init_()
+        else:
+            maxima_z = str(z)
+        if n == 0:
+            return "lambert_w(%s)" % maxima_z
+        else:
+            return "generalized_lambert_w(%s,%s)" % (n, maxima_z)
 
     def _print_(self, n, z):
         """
@@ -754,15 +777,121 @@ class Function_lambert_w(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(lambert_w(1))
-            \operatorname{W_0}(1)
+            \operatorname{W}({1})
             sage: latex(lambert_w(0,x))
-            \operatorname{W_0}(x)
+            \operatorname{W}({x})
             sage: latex(lambert_w(1,x))
-            \operatorname{W_{1}}(x)
+            \operatorname{W_{1}}({x})
+            sage: latex(lambert_w(1,x+exp(x)))
+            \operatorname{W_{1}}({x + e^{x}})
         """
         if n == 0:
-            return r"\operatorname{W_0}(%s)" % z
+            return r"\operatorname{W}({%s})" % z._latex_()
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n, z)
+            return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
 
 lambert_w = Function_lambert_w()
+
+class Function_exp_polar(BuiltinFunction):
+    def __init__(self):
+        r"""
+        Representation of a complex number in a polar form.
+
+        INPUT:
+
+        - ``z`` - a complex number `z = a + ib`.
+
+        OUTPUT:
+
+        A complex number with modulus `\exp(a)` and argument `b`.
+
+        If `-\pi < b \leq \pi` then `\operatorname{exp\_polar}(z)=\exp(z)`.
+        For other values of `b` the function is left unevaluated.
+
+        EXAMPLES:
+
+        The following expressions are evaluated using the exponential
+        function::
+
+            sage: exp_polar(pi*I/2)
+            I       
+            sage: x = var('x', domain='real')
+            sage: exp_polar(-1/2*I*pi + x)
+            e^(-1/2*I*pi + x)
+
+        The function is left unevaluated when the imaginary part of the
+        input `z` does not satisfy `-\pi < \Im(z) \leq \pi`::
+
+            sage: exp_polar(2*pi*I)
+            exp_polar(2*I*pi)
+            sage: exp_polar(-4*pi*I)
+            exp_polar(-4*I*pi)
+
+        This fixes :trac:`18085`::
+
+            sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
+            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+
+        SEEALSO:
+
+            `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
+            `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_
+
+        REFERENCES:
+
+            :wikipedia:`Complex_number#Polar_form`
+        """
+        BuiltinFunction.__init__(self, "exp_polar",
+                                latex_name=r"\operatorname{exp\_polar}",
+                                conversions=dict(sympy='exp_polar'))
+
+    def _evalf_(self, z, parent=None, algorithm=None):
+        r"""
+        EXAMPLES:
+
+        If the imaginary part of `z` obeys `-\pi < z \leq \pi`, then
+        `\operatorname{exp\_polar}(z)` is evaluated as `\exp(z)`::
+
+            sage: exp_polar(1.0 + 2.0*I)
+            -1.13120438375681 + 2.47172667200482*I
+
+        If the imaginary part of `z` is outside of that interval the
+        expression is left unevaluated::
+
+            sage: exp_polar(-5.0 + 8.0*I)
+            exp_polar(-5.00000000000000 + 8.00000000000000*I)
+
+        An attempt to numerically evaluate such an expression raises an error::
+
+            sage: exp_polar(-5.0 + 8.0*I).n()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
+
+        """
+        from sage.functions.other import imag
+
+        if (not isinstance(z, Expression)
+            and bool(-const_pi < imag(z) <= const_pi)):
+            return exp(z)
+        else:
+            return exp_polar(z)
+
+    def _eval_(self, z):
+        """
+        EXAMPLES::
+
+            sage: exp_polar(3*I*pi)
+            exp_polar(3*I*pi)
+            sage: x = var('x', domain='real')
+            sage: exp_polar(4*I*pi + x)
+            exp_polar(4*I*pi + x)
+
+        """
+        if (isinstance(z, Expression)
+            and bool(-const_pi < z.imag_part() <= const_pi)):
+            return exp(z)
+        else:
+            return None
+
+exp_polar = Function_exp_polar()

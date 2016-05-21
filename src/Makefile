@@ -1,12 +1,22 @@
+.PHONY: all sage clean
+
+all: sage
+
+sage: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
+	python -u setup.py install
+
 clean:
 	@echo "Deleting Sage library build artifacts..."
-	rm -f c_lib/.sconsign.dblite
-	find c_lib -name '*.os' | xargs rm -f
-	find c_lib -name '*.so' | xargs rm -f
-	rm -rf build
+	rm -rf c_lib build
 	find . -name '*.pyc' | xargs rm -f
-	find . -name '*.pyx' | sed 's/pyx$$/c/' | xargs rm -f
-	find . -name '*.pyx' | sed 's/pyx$$/cpp/' | xargs rm -f
-	rm -rf sage/modular/arithgroup/farey_symbol.h
-	rm -rf sage/rings/real_mpfi.h
-	rm -rf sage/symbolic/pynac.h
+	rm -f sage/libs/pari/auto_*
+	rm -rf sage/ext/interpreters
+
+
+# Auto-generated files
+sage/libs/pari/auto_gen.pxi: $(SAGE_LOCAL)/share/pari/pari.desc \
+        sage/libs/pari/decl.pxi sage_setup/autogen/pari/*.py
+	python -c "from sage_setup.autogen.pari import rebuild; rebuild()"
+
+sage/ext/interpreters/__init__.py: sage_setup/autogen/interpreters.py
+	python -c "from sage_setup.autogen.interpreters import rebuild; rebuild('sage/ext/interpreters')"

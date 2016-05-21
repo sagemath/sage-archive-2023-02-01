@@ -62,11 +62,12 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
 # inherit from SageObject to be able to inherit from Element or a subclass
@@ -641,7 +642,7 @@ class AbstractTree(object):
         stack = [self]
         while len(stack) > 0:
             node = stack[-1]
-            if node != None:
+            if node is not None:
                 # A "None" on the stack means that the node right before
                 # it on the stack has already been "exploded" into
                 # subtrees, and should not be exploded again, but instead
@@ -950,10 +951,10 @@ class AbstractTree(object):
         node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
 
         if self.is_empty():
-            from sage.misc.ascii_art import empty_ascii_art
+            from sage.typeset.ascii_art import empty_ascii_art
             return empty_ascii_art
 
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
             t_repr = AsciiArt( [node_to_str(self)] )
             t_repr._root = 1
@@ -980,7 +981,7 @@ class AbstractTree(object):
             if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
             else: lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid
@@ -1162,12 +1163,7 @@ class AbstractTree(object):
                   . the matrix
                   . and the edges
                 """
-                name = reduce(
-                    lambda x, y: x + y,
-                    map(
-                        lambda x: chr(ord(x) + 49),
-                        list(str(num[0]))),
-                    "")
+                name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 nodes.append((name,
                     (str(self.label()) if hasattr(self, "label") else ""))
@@ -1219,7 +1215,7 @@ class AbstractTree(object):
                     # ==> n & n & ... & n' & n' & ...
                     try:
                         mat[i] += sep + mat2[i]
-                    except:
+                    except Exception:
                         if i >= lmat:
                             if i != 0:
                                 # mat[i] does not exist but
@@ -1302,7 +1298,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1391,7 +1387,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1723,11 +1719,35 @@ class AbstractLabelledTree(AbstractTree):
             1[None[42[], 21[]]]
             sage: LabelledOrderedTree(OrderedTree([[],[[],[]],[]]))
             None[None[], None[None[], None[]], None[]]
+
+        We test that inheriting from `LabelledOrderedTree` allows construction from a
+        `LabelledOrderedTree` (:trac:`16314`)::
+
+            sage: LBTS = LabelledOrderedTrees()
+            sage: class Foo(LabelledOrderedTree):
+            ....:     def bar(self):
+            ....:         print "bar called"
+            sage: foo = Foo(LBTS, [], label=1); foo
+            1[]
+            sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
+            42[21[]]
+            sage: foo2 = Foo(LBTS, foo1); foo2
+            42[21[]]
+            sage: foo2[0]
+            21[]
+            sage: foo2.__class__
+            <class '__main__.Foo'>
+            sage: foo2[0].__class__
+            <class '__main__.Foo'>
+            sage: foo2.bar()
+            bar called
+            sage: foo2.label()
+            42
         """
         # We must initialize the label before the subtrees to allows rooted
         # trees canonization. Indeed it needs that ``self``._hash_() is working
         # at the end of the call super(..., self).__init__(...)
-        if isinstance(children, self.__class__):
+        if isinstance(children, AbstractLabelledTree):
             if label is None:
                 self._label = children._label
             else:
@@ -1892,7 +1912,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def shape(self):
         """
-        Returns the unlabelled tree associated to ``self``
+        Return the unlabelled tree associated to ``self``.
 
         EXAMPLES::
 
@@ -1901,6 +1921,11 @@ class AbstractLabelledTree(AbstractTree):
 
             sage: LabelledBinaryTree([[],[[],[]]], label = 25).shape()
             [[., .], [[., .], [., .]]]
+
+            sage: LRT = LabelledRootedTree
+            sage: tb = LRT([],label='b')
+            sage: LRT([tb, tb], label='a').shape()
+            [[], []]
 
         TESTS::
 
@@ -1940,7 +1965,7 @@ class AbstractLabelledTree(AbstractTree):
         from sage.graphs.digraph import DiGraph
         resu = dict([[self.label(),
                     [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())
@@ -1964,7 +1989,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         INPUT: ``label`` -- any Sage object
 
-        OUPUT: ``None``, ``self`` is modified in place
+        OUTPUT: ``None``, ``self`` is modified in place
 
         .. NOTE::
 
@@ -2025,7 +2050,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         - ``label`` -- any sage object
 
-        OUPUT: Nothing, ``self`` is modified in place
+        OUTPUT: Nothing, ``self`` is modified in place
 
         .. NOTE::
 

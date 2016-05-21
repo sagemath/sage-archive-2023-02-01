@@ -23,6 +23,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from __builtin__ import list as builtinlist
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -120,7 +121,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: C.__class__
             <class 'sage.combinat.integer_vector_weighted.WeightedIntegerVectors_all_with_category'>
             sage: C.category()
-            Join of Category of infinite enumerated sets and Category of sets with grading
+            Join of Category of sets with grading and Category of infinite enumerated sets
             sage: TestSuite(C).run()
         """
         self._weights = weights
@@ -155,9 +156,9 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: [3,-1,0] in WeightedIntegerVectors([2,1,1])
             False
         """
-        return isinstance(x, (builtinlist, Permutation)) and \
-            len(x) == len(self._weights)   and \
-            all(isinstance(i, (int, Integer)) and i>=0 for i in x)
+        return (isinstance(x, (builtinlist, Permutation))
+                and len(x) == len(self._weights)
+                and all(isinstance(i, (int, Integer)) and i >= 0 for i in x))
 
     def subset(self, size = None):
         """
@@ -245,27 +246,6 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
 
         return True
 
-    def _recfun(self, n, l):
-        """
-        EXAMPLES::
-
-            sage: w = WeightedIntegerVectors(3, [2,1,1])
-            sage: list(w._recfun(3, [1,1,2]))
-            [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
-        """
-        w = l[-1]
-        l = l[:-1]
-        if l == []:
-            d = int(n) / int(w)
-            if n % w == 0:
-                yield [d]
-                # Otherwise: bad branch
-            return
-
-        for d in range(int(n)/int(w), -1, -1):
-            for x in self._recfun(n-d*w, l):
-                yield x + [d]
-
     def __iter__(self):
         """
         TESTS::
@@ -288,13 +268,72 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
             sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
             True
         """
-        if len(self._weights) == 0:
+        if not self._weights:
             if self._n == 0:
                 yield []
             return
 
         perm = Word(self._weights).standard_permutation()
-        l = [x for x in sorted(self._weights)]
-        for x in self._recfun(self._n, l):
-            yield perm.action(x)
+        perm = [len(self._weights)-i for i in perm]
+        l = [x for x in sorted(self._weights, reverse=True)]
+        for x in iterator_fast(self._n, l):
+            yield [x[i] for i in perm]
+            #.action(x)
             #_left_to_right_multiply_on_right(Permutation(x))
+
+def iterator_fast(n, l):
+    """
+    Iterate over all ``l`` weighted integer vectors with total weight ``n``.
+
+    INPUT:
+
+    - ``n`` -- an integer
+    - ``l`` -- the weights in weakly decreasing order
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_vector_weighted import iterator_fast
+        sage: list(iterator_fast(3, [2,1,1]))
+        [[1, 1, 0], [1, 0, 1], [0, 3, 0], [0, 2, 1], [0, 1, 2], [0, 0, 3]]
+        sage: list(iterator_fast(2, [2]))
+        [[1]]
+
+    Test that :trac:`20491` is fixed::
+
+        sage: type(list(iterator_fast(2, [2]))[0][0])
+        <type 'sage.rings.integer.Integer'>
+    """
+    if n < 0:
+        return
+
+    zero = ZZ.zero()
+    one = ZZ.one()
+
+    if not l:
+        if n == 0:
+            yield []
+        return
+    if len(l) == 1:
+        if n % l[0] == 0:
+            yield [n // l[0]]
+        return
+
+    k = 0
+    cur = [n // l[k] + one]
+    rem = n - cur[-1] * l[k] # Amount remaining
+    while cur:
+        cur[-1] -= one
+        rem += l[k]
+        if rem == zero:
+            yield cur + [zero] * (len(l) - len(cur))
+        elif cur[-1] < zero or rem < zero:
+            rem += cur.pop() * l[k]
+            k -= 1
+        elif len(l) == len(cur) + 1:
+            if rem % l[-1] == zero:
+                yield cur + [rem // l[-1]]
+        else:
+            k += 1
+            cur.append(rem // l[k] + one)
+            rem -= cur[-1] * l[k]
+

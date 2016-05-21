@@ -53,7 +53,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Continued fraction of 3.1415926535
     sage: a = 3.1415926535
     sage: continued_fraction(a)
-    [3, 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
+    [3; 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
 
 ::
 
@@ -75,13 +75,13 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (NOT REALLY) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
+    sage: # (YES) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
     sage: a = sqrt(14+3*sqrt(3+2*sqrt(5-12*sqrt(3-2*sqrt(2)))))
     sage: b = 3+sqrt(2)
     sage: a, b
     (sqrt(3*sqrt(2*sqrt(-12*sqrt(-2*sqrt(2) + 3) + 5) + 3) + 14), sqrt(2) + 3)
     sage: bool(a==b)
-    False
+    True
     sage: abs(float(a-b)) < 1e-10
     True
     sage: # 2*Infinity-3=Infinity.
@@ -93,7 +93,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Standard deviation of the sample (1, 2, 3, 4, 5).
     sage: v = vector(RDF, 5, [1,2,3,4,5])
     sage: v.standard_deviation()
-    1.58113883008
+    1.5811388300841898
 
 ::
 
@@ -120,7 +120,7 @@ explicit calls to Maxima or other systems.
     (e^x - 1)/(e^(1/2*x) + 1)
     sage: g
     e^(1/2*x) - 1
-    sage: f.simplify_radical()
+    sage: f.canonicalize_radical()
     e^(1/2*x) - 1
     sage: g
     e^(1/2*x) - 1
@@ -364,9 +364,9 @@ explicit calls to Maxima or other systems.
     sage: a = tan(z); a
     tan(z)
     sage: a.real()
-    tan(real_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sin(2*real_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
     sage: a.imag()
-    tanh(imag_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
+    sinh(2*imag_part(z))/(cos(2*real_part(z)) + cosh(2*imag_part(z)))
 
 
 ::
@@ -526,7 +526,7 @@ explicit calls to Maxima or other systems.
     sage: #      Verify(Simplify(Integrate(x)
     sage: #        if(x<0) (-x) else x),
     sage: #        Simplify(if(x<0) (-x^2/2) else x^2/2));
-    sage: f = piecewise([ [[-10,0], -x], [[0,10], x]])
+    sage: f = piecewise([ ((-10,0), -x), ((0,10), x)])
     sage: f.integral(definite=True)
     100
 
@@ -582,7 +582,7 @@ explicit calls to Maxima or other systems.
     sage: f = sin(y) + cos(y)
     sage: g = f.taylor(y, 0, 10)
     sage: h = g.power_series(QQ)
-    sage: k = (h - 1).reversion()
+    sage: k = (h - 1).reverse()
     sage: print k
     y + 1/2*y^2 + 2/3*y^3 + y^4 + 17/10*y^5 + 37/12*y^6 + 41/7*y^7 + 23/2*y^8 + 1667/72*y^9 + 3803/80*y^10 + O(y^11)
 
@@ -617,9 +617,8 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Convert the above to Horner's form.
     sage: #      Verify(Horner(p, x), ((((a[5]*x+a[4])*x
     sage: #        +a[3])*x+a[2])*x+a[1])*x);
-    sage: # We use the trick of evaluating the algebraic poly at a symbolic variable:
     sage: restore('x')
-    sage: p(x)
+    sage: SR(p).horner(x)
     ((((a4*x + a3)*x + a2)*x + a1)*x + a0)*x
 
 ::

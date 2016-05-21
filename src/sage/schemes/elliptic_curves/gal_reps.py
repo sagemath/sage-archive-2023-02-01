@@ -126,8 +126,8 @@ AUTHORS:
 ######################################################################
 
 from sage.structure.sage_object import SageObject
-import sage.rings.arith as arith
-import sage.misc.misc as misc
+import sage.arith.all as arith
+import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -240,7 +240,7 @@ class GaloisRepresentation(SageObject):
         # isomorphism between rho and rho' unless E
         # is isomorphic to E'
         # Note that rho can not depend on the Weierstrass model
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self._E.is_isomorphic(other._E)
 
@@ -362,9 +362,14 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        isocls = self._E.isogeny_class()
-        X = set(isocls.matrix().list())
-        R = [p for p in X if arith.is_prime(p)]
+
+        E = self._E
+        j = E.j_invariant()
+        from isogeny_small_degree import sporadic_j
+        if j in sporadic_j: # includes all CM j-invariants
+            R = [sporadic_j[j]]
+        else:
+            R = [l for l in [2,3,5,7,13] if len(E.isogenies_prime_degree(l))>0]
         self.__reducible_primes = R
         return R
 

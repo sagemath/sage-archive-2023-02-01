@@ -312,7 +312,7 @@ Read in and execute ``example.sage`` file using the ``load`` command.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -324,7 +324,7 @@ You can also ``attach`` a Sage file to a running session:
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 
@@ -362,40 +362,6 @@ version of Sage (which is the "source" version, not the "binary").
 #. cd ``sage-*`` (we call this ``SAGE_ROOT``) and type ``make``. Now be
    patient because this process make take 2 hours or so.
 
-#. Optional: When the compilation is finished, type on the command
-   line in the Sage home directory:
-
-   ::
-
-       ./sage -i database_jones_numfield
-       ./sage -i database_gap-4.4.8
-       ./sage -i database_cremona_ellcurve-2005.11.03
-       ./sage -i gap_packages-4.4.8_1
-
-   This last package loads the GAP GPL'd packages braid, ctbllib,
-   DESIGN, FactInt, GAPDoc, GRAPE, LAGUNA, SONATA 2.3, and TORIC . It
-   also compiles (automatically) the C programs in GUAVA and GRAPE.
-
-   Other optional packages to install are at
-   http://modular.math.washington.edu/sage/packages/optional/.
-
-   .. index:: installation of packages
-
-   Another way: download packages from
-   http://sage.scipy.org/sage/packages/optional/ and save to the
-   directory ``SAGE_ROOT``. Type
-
-   ::
-
-       /sage -i sage-package.spkg
-
-   for each ``sage-package`` you download (use ``sage -f`` if you are
-   reinstalling.) This might be useful if you have a CD of these
-   packages but no (or a very slow) internet connection.
-
-#. If you want to build the documentation, ``cd devel/doc`` and type
-   ``./rebuild``. This requires having latex and latex2html installed.
-
 
 .. index:: Python and Sage
 
@@ -427,53 +393,14 @@ use an editor to read the code itself.
 "Special functions" in Sage
 ===========================
 
-Sage has several special functions:
+Sage has many special functions (see the reference
+manual at http://sagemath.org/doc/reference/functions/),
+and most of them can be
+manipulated symbolically. Where this is not implemented,
+it is possible that other symbolic packages have the
+functionality.
 
-
--  Bessel functions and Airy functions
-
--  spherical harmonic functions
-
--  spherical Bessel functions (of the 1st and 2nd kind)
-
--  spherical Hankel functions (of the 1st and 2nd kind)
-
--  Jacobi elliptic functions
-
--  complete/incomplete elliptic integrals
-
--  hyperbolic trig functions (for completeness, since they are
-   special cases of elliptic functions)
-
-
-and orthogonal polynomials
-
-
--  chebyshev\_T (n, x), chebyshev\_U (n, x) - the Chebyshev
-   polynomial of the first, second kind for integers
-   :math:`n > -1`.
-
--  laguerre (n, x), gen\_laguerre (n, a, x) - the (generalized)
-   Laguerre poly. for :math:`n > -1`.
-
--  legendre\_P (n, x), legendre\_Q (n, x), gen\_legendre\_P (n, x),
-   gen\_legendre\_Q (n, x) - the (generalized) Legendre function of
-   the first, second kind for integers :math:`n > -1`.
-
--  hermite (n,x) - the Hermite poly. for integers
-   :math:`n > -1`.
-
--  jacobi\_P (n, a, b, x) - the Jacobi polynomial for integers
-   :math:`n > -1` and :math:`a` and :math:`b` symbolic or
-   :math:`a > -1` and :math:`b > -1`.
-
--  ultraspherical (n,a,x) - the ultraspherical polynomials for
-   integers :math:`n > -1`. The ultraspherical polynomials are also
-   known as Gegenbauer polynomials.
-
-
-In Sage, these are restricted to numerical evaluation and plotting but
-via maxima, some symbolic manipulation is allowed:
+Via Maxima, some symbolic manipulation is allowed:
 
 ::
 

@@ -1,7 +1,18 @@
 r"""
 Common Digraphs
 
-Generators for common digraphs.
+All digraphs in Sage can be built through the ``digraphs`` object. In order to
+build a circuit on 15 elements, one can do::
+
+    sage: g = digraphs.Circuit(15)
+
+To get a circulant graph on 10 vertices in which a vertex `i` has `i+2` and
+`i+3` as outneighbors::
+
+    sage: p = digraphs.Circulant(10,[2,3])
+
+More interestingly, one can get the list of all digraphs that Sage knows how to
+build by typing ``digraphs.`` in Sage and then hitting tab.
 
 .. csv-table::
     :class: contentstable
@@ -11,6 +22,7 @@ Generators for common digraphs.
     :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
     :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
     :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
+    :meth:`~DiGraphGenerators.Complete`            | Return a complete digraph on `n` vertices.
     :meth:`~DiGraphGenerators.DeBruijn`            | Returns the De Bruijn digraph with parameters `k,n`.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
@@ -21,9 +33,11 @@ Generators for common digraphs.
     :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Returns a random digraph on `n` nodes.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
+    :meth:`~DiGraphGenerators.RandomSemiComplete`  | Return a random semi-complete digraph of order `n`.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
+
 
 AUTHORS:
 
@@ -71,8 +85,11 @@ class DiGraphGenerators():
                     - RandomDirectedGNP
                     - RandomDirectedGNM
                     - RandomDirectedGNR
+                    - RandomTournament
+                    - RandomSemiComplete
 
                 Families of Graphs:
+                    - Complete
                     - DeBruijn
                     - GeneralizedDeBruijn
                     - Kautz
@@ -262,21 +279,21 @@ class DiGraphGenerators():
         if vertices=='strings':
             if n>=31:
                 raise NotImplementedError("vertices='strings' is only valid for n<=30.")
-            from sage.graphs.generic_graph_pyx import binary
+            from sage.graphs.generic_graph_pyx import int_to_binary_string
             butterfly = {}
             for v in xrange(2**n):
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
-                    bv = binary(v)
-                    bw = binary(w)
+                    bv = int_to_binary_string(v)
+                    bw = int_to_binary_string(w)
                     # pad and reverse the strings
                     padded_bv = ('0'*(n-len(bv))+bv)[::-1]
                     padded_bw = ('0'*(n-len(bw))+bw)[::-1]
                     butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
         elif vertices=='vectors':
             from sage.modules.free_module import VectorSpace
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             from copy import copy
             butterfly = {}
             for v in VectorSpace(FiniteField(2),n):
@@ -373,6 +390,12 @@ class DiGraphGenerators():
 
         - ``n`` (integer) -- number of vertices.
 
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
+
         EXAMPLES::
 
             sage: T = digraphs.RandomTournament(10); T
@@ -432,22 +455,19 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: for g in digraphs.tournaments_nauty(4): # optional - nauty
-            ....:    print g.edges(labels = False)        # optional - nauty
+            sage: for g in digraphs.tournaments_nauty(4):
+            ....:    print g.edges(labels = False)
             [(1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
             [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(0, 2), (0, 3), (1, 0), (2, 1), (3, 1), (3, 2)]
             sage: tournaments = digraphs.tournaments_nauty
-            sage: [len(list(tournaments(x))) for x in range(1,8)] # optional - nauty
+            sage: [len(list(tournaments(x))) for x in range(1,8)]
             [1, 1, 2, 4, 12, 56, 456]
-            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)] # optional - nauty
+            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)]
             [1, 0, 1, 1, 6, 35, 353, 6008]
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("The optional nauty spkg does not seem to be installed")
 
         nauty_input = options
 
@@ -464,7 +484,7 @@ class DiGraphGenerators():
 
         nauty_input +=  " "+str(n) +" "
 
-        sp = subprocess.Popen("nauty-gentourng {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen("gentourng {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 
@@ -474,7 +494,7 @@ class DiGraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 
@@ -494,6 +514,53 @@ class DiGraphGenerators():
                     j += 1
 
             yield G
+
+
+    def Complete(self, n, loops=False):
+        r"""
+        Return the complete digraph on `n` vertices.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        - ``loops`` (boolean) -- whether to add loops or not, i.e., edges from
+          `u` to itself.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+
+        EXAMPLES::
+
+            sage: n = 10
+            sage: G = digraphs.Complete(n); G
+            Complete digraph: Digraph on 10 vertices
+            sage: G.size() == n*(n-1)
+            True
+            sage: G = digraphs.Complete(n, loops=True); G
+            Complete digraph with loops: Looped digraph on 10 vertices
+            sage: G.size() == n*n
+            True
+            sage: digraphs.Complete(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
+
+        if loops:
+            G.add_edges((u,u) for u in range(n))
+
+        G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(G, range(n))
+
+        return G
 
     def Circuit(self,n):
         r"""
@@ -651,7 +718,7 @@ class DiGraphGenerators():
         When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to the
         de Bruijn digraph of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -688,11 +755,11 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [RPK80] S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
+        .. [RPK80] \S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
           minimal diameter and maximal connectivity, School Eng., Oakland Univ.,
           Rochester MI, Tech. Rep., July 1980.
 
-        .. [RPK83] S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
+        .. [RPK83] \S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
           Processor Interconnection. *IEEE International Conference on Parallel
           Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
         """
@@ -725,7 +792,7 @@ class DiGraphGenerators():
         the digraph of Imase and Itoh is isomorphic to the Kautz digraph
         [Kautz68]_ of degree `d` and diameter `D`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- is the number of vertices of the digraph
 
@@ -761,7 +828,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [II83] M. Imase and M. Itoh. A design for directed graphs with
+        .. [II83] \M. Imase and M. Itoh. A design for directed graphs with
           minimum diameter, *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
         """
         if n < 2:
@@ -798,7 +865,7 @@ class DiGraphGenerators():
         See also the
         :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
 
-        INPUTS:
+        INPUT:
 
         - ``k`` -- Two possibilities for this parameter :
             - An integer equal to the degree of the digraph to be produced, that
@@ -818,7 +885,19 @@ class DiGraphGenerators():
 
             sage: K = digraphs.Kautz(2, 3)
             sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
-            (True, {'201': 5, '120': 9, '202': 4, '212': 7, '210': 6, '010': 0, '121': 8, '012': 1, '021': 2, '020': 3, '102': 10, '101': 11})
+            (True,
+             {'010': 0,
+              '012': 1,
+              '020': 3,
+              '021': 2,
+              '101': 11,
+              '102': 10,
+              '120': 9,
+              '121': 8,
+              '201': 5,
+              '202': 4,
+              '210': 6,
+              '212': 7})
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
             sage: K.edges()
@@ -853,7 +932,7 @@ class DiGraphGenerators():
 
         REFERENCE:
 
-        .. [Kautz68] W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
+        .. [Kautz68] \W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
           cellular logic networks and machines, AFCRL-68-0668, SRI Project 7258,
           Final Rep., pp. 20-28, 1968.
         """
@@ -864,7 +943,7 @@ class DiGraphGenerators():
         from sage.rings.integer import Integer
 
         my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.size_of_alphabet() < 2:
+        if my_alphabet.alphabet().cardinality() < 2:
             raise ValueError("Kautz digraphs are defined for degree at least one.")
 
         if vertices == 'strings':
@@ -890,7 +969,6 @@ class DiGraphGenerators():
 
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
-
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """
@@ -971,7 +1049,7 @@ class DiGraphGenerators():
         Returns a random digraph on `n` nodes. Each edge is inserted
         independently with probability `p`.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- number of nodes of the digraph
 
@@ -984,10 +1062,10 @@ class DiGraphGenerators():
 
         REFERENCES:
 
-        .. [1] P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
+        .. [1] \P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
                (1959).
 
-        .. [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+        .. [2] \E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
 
         PLOTTING: When plotting, this graph will use the default spring-layout
@@ -1176,6 +1254,63 @@ class DiGraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
+
+    def RandomSemiComplete(self, n):
+        r"""
+        Return a random semi-complete digraph on `n` vertices.
+
+        A directed graph `G=(V,E)` is *semi-complete* if for any pair of
+        vertices `u` and `v`, there is *at least* one arc between them.
+
+        To generate randomly a semi-complete digraph, we have to ensure, for any
+        pair of distinct vertices `u` and `v`, that with probability `1/3` we
+        have only arc `uv`, with probability `1/3` we have only arc `vu`, and
+        with probability `1/3` we have both arc `uv` and arc `vu`. We do so by
+        selecting a random integer `coin` in `[1,3]`. When `coin==1` we select
+        only arc `uv`, when `coin==3` we select only arc `vu`, and when
+        `coin==2` we select both arcs. In other words, we select arc `uv` when
+        `coin\leq 2` and arc `vu` when `coin\geq 2`.
+
+        INPUT:
+
+        - ``n`` (integer) -- the number of nodes
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
+
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+
+        EXAMPLES::
+
+            sage: SC = digraphs.RandomSemiComplete(10); SC
+            Random Semi-Complete digraph: Digraph on 10 vertices
+            sage: SC.size() >= binomial(10, 2)
+            True
+            sage: digraphs.RandomSemiComplete(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        G = DiGraph(n, name="Random Semi-Complete digraph")
+
+        # For each pair u,v we choose a randon number ``coin`` in [1,3].
+        # We select edge `(u,v)` if `coin==1` or `coin==2`.
+        # We select edge `(v,u)` if `coin==2` or `coin==3`.
+        import itertools
+        from sage.misc.prandom import randint
+        for u,v in itertools.combinations(range(n), 2):
+            coin = randint(1,3)
+            if coin<=2:
+                G.add_edge(u,v)
+            if coin>=2:
+                G.add_edge(v,u)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(G, range(n))
+
+        return G
 
 ################################################################################
 #   DiGraph Iterators

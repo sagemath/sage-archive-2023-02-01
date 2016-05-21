@@ -25,6 +25,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
+from functools import reduce
 
 class PartitionSpeciesStructure(GenericSpeciesStructure):
     def __init__(self, parent, labels, list):
@@ -110,6 +111,17 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
 
     def change_labels(self, labels):
         """
+        Return a relabelled structure.
+
+        INPUT:
+
+        - ``labels``, a list of labels.
+
+        OUTPUT:
+
+        A structure with the i-th label of self replaced with the i-th
+        label of the list.
+
         EXAMPLES::
 
             sage: p = PermutationGroupElement((2,3))
@@ -273,8 +285,7 @@ class PartitionSpecies(GenericCombinatorialSpecies):
              5/8*p[1, 1, 1, 1] + 7/4*p[2, 1, 1] + 7/8*p[2, 2] + p[3, 1] + 3/4*p[4]]
         """
         ciset = SetSpecies().cycle_index_series(base_ring)
-        CIS = ciset.parent()
-        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in _integers_from(ZZ(1))).exponential()
+        res = ciset.composition(ciset - 1)
         if self.is_weighted():
             res *= self._weight
         return res

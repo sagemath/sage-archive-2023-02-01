@@ -1,15 +1,8 @@
-include "sage/ext/stdsage.pxi"
+# distutils: libraries = flint
 
-from sage.libs.flint.flint cimport *
-
+from sage.libs.flint.types cimport n_factor_t
 
 cdef extern from "flint/ulong_extras.h":
-
-    ctypedef struct n_factor_t:
-        int num
-        unsigned long exp[15]
-        unsigned long p[15]
-
     cdef int n_jacobi(long x, unsigned long y)
 
     cdef int n_is_prime(unsigned long n)

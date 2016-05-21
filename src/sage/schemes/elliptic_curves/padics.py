@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Miscellaneous p-adic functions
+Miscellaneous `p`-adic functions
 
-p-adic functions from ell_rational_field.py, moved here to reduce
+`p`-adic functions from ell_rational_field.py, moved here to reduce
 crowding in that file.
 """
 
@@ -24,7 +24,7 @@ crowding in that file.
 
 import sage.rings.all as rings
 import padic_lseries as plseries
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.rings.all import (
     Qp, Zp,
     Integers,
@@ -46,6 +46,7 @@ def __check_padic_hypotheses(self, p):
     is an odd prime of good ordinary reduction.
 
     EXAMPLES::
+
         sage: E = EllipticCurve('11a1')
         sage: from sage.schemes.elliptic_curves.padics import __check_padic_hypotheses
         sage: __check_padic_hypotheses(E,5)
@@ -165,7 +166,7 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic p-adic regulator of this curve.
+    Computes the cyclotomic `p`-adic regulator of this curve.
 
 
     INPUT:
@@ -227,7 +228,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         sage: max_prec = 30    # make sure we get past p^2    # long time
         sage: full = E.padic_regulator(5, max_prec)           # long time
         sage: for prec in range(1, max_prec):                 # long time
-        ...       assert E.padic_regulator(5, prec) == full   # long time
+        ....:     assert E.padic_regulator(5, prec) == full   # long time
 
     A case where the generator belongs to the formal group already
     (trac #3632)::
@@ -444,15 +445,15 @@ def _multiply_point(E, R, P, m):
         sage: from sage.schemes.elliptic_curves.padics import _multiply_point
         sage: Q = P
         sage: for n in range(1, 25):
-        ...      naive = R(Q[0].numerator()),  \
-        ...              R(Q[1].numerator()),  \
-        ...              R(Q[0].denominator().sqrt())
-        ...      triple = _multiply_point(E, R, P, n)
-        ...      assert (triple[0] == naive[0]) and ( \
-        ...        (triple[1] == naive[1] and triple[2] == naive[2]) or \
-        ...        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
-        ...           "_multiply_point() gave an incorrect answer"
-        ...      Q = Q + P
+        ....:      naive = R(Q[0].numerator()), \
+        ....:              R(Q[1].numerator()), \
+        ....:              R(Q[0].denominator().sqrt())
+        ....:      triple = _multiply_point(E, R, P, n)
+        ....:      assert (triple[0] == naive[0]) and ( \
+        ....:        (triple[1] == naive[1] and triple[2] == naive[2]) or \
+        ....:        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
+        ....:           "_multiply_point() gave an incorrect answer"
+        ....:      Q = Q + P
     """
     assert m >= 1
 
@@ -605,7 +606,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: max_prec = 30    # make sure we get past p^2    # long time
         sage: full = E.padic_height(5, max_prec)(P)           # long time
         sage: for prec in range(1, max_prec):                 # long time
-        ...       assert E.padic_height(5, prec)(P) == full   # long time
+        ....:     assert E.padic_height(5, prec)(P) == full   # long time
 
     A supersingular prime for a curve::
 
@@ -797,7 +798,7 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
         sage: max_prec = 30    # make sure we get past p^2    # long time
         sage: full = E.padic_height(5, max_prec)(P)           # long time
         sage: for prec in range(2, max_prec):                 # long time
-        ...       assert E.padic_height_via_multiply(5, prec)(P) == full   # long time
+        ....:     assert E.padic_height_via_multiply(5, prec)(P) == full   # long time
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -981,8 +982,8 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         sage: E2 = E.padic_E2(5, max_N)                     # long time
         sage: max_sigma = E.padic_sigma(p, max_N, E2=E2)    # long time
         sage: for N in range(3, max_N):                     # long time
-        ...      sigma = E.padic_sigma(p, N, E2=E2)         # long time
-        ...      assert sigma == max_sigma
+        ....:    sigma = E.padic_sigma(p, N, E2=E2)         # long time
+        ....:    assert sigma == max_sigma
     """
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
@@ -1168,10 +1169,10 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
         sage: E = EllipticCurve([1, 2, 3, 4, 7])                            # long time
         sage: E2 = E.padic_E2(5, 50)                                        # long time
         sage: for N in range(2, 10):                                        # long time
-        ...      for lamb in range(10):                                     # long time
-        ...         correct = E.padic_sigma(5, N + 3*lamb, E2=E2)           # long time
-        ...         compare = E.padic_sigma_truncated(5, N=N, lamb=lamb, E2=E2)    # long time
-        ...         assert compare == correct                               # long time
+        ....:    for lamb in range(10):                                     # long time
+        ....:       correct = E.padic_sigma(5, N + 3*lamb, E2=E2)           # long time
+        ....:       compare = E.padic_sigma_truncated(5, N=N, lamb=lamb, E2=E2)    # long time
+        ....:       assert compare == correct                               # long time
     """
     if check_hypotheses:
         p = __check_padic_hypotheses(self, p)
@@ -1626,26 +1627,26 @@ def _brent(F, p, N):
 
         sage: brent = sage.schemes.elliptic_curves.padics._brent
         sage: for p in [2, 3, 5]:
-        ...     for N in [2, 3, 10, 50]:
-        ...       R = Integers(p**(N-1))
-        ...       Rx, x = PowerSeriesRing(R, "x").objgen()
-        ...       for _ in range(5):
-        ...         g = [R.random_element() for i in range(N)]
-        ...         g[0] = R(1)
-        ...         g = Rx(g, len(g))
-        ...         f = g.derivative() / g
-        ...         # perturb f by something whose integral is in I
-        ...         err = [R.random_element() * p**(N-i) for i in range(N+1)]
-        ...         err = Rx(err, len(err))
-        ...         err = err.derivative()
-        ...         F = f + err
-        ...         # run brent() and compare output modulo I
-        ...         G = brent(F, p, N)
-        ...         assert G.prec() >= N, "not enough output terms"
-        ...         err = (G - g).list()
-        ...         for i in range(len(err)):
-        ...           assert err[i].lift().valuation(p) >= (N - i), \
-        ...                  "incorrect precision output"
+        ....:   for N in [2, 3, 10, 50]:
+        ....:     R = Integers(p**(N-1))
+        ....:     Rx.<x> = PowerSeriesRing(R, "x")
+        ....:     for _ in range(5):
+        ....:       g = [R.random_element() for i in range(N)]
+        ....:       g[0] = R(1)
+        ....:       g = Rx(g, len(g))
+        ....:       f = g.derivative() / g
+        ....:       # perturb f by something whose integral is in I
+        ....:       err = [R.random_element() * p**(N-i) for i in range(N+1)]
+        ....:       err = Rx(err, len(err))
+        ....:       err = err.derivative()
+        ....:       F = f + err
+        ....:       # run brent() and compare output modulo I
+        ....:       G = brent(F, p, N)
+        ....:       assert G.prec() >= N, "not enough output terms"
+        ....:       err = (G - g).list()
+        ....:       for i in range(len(err)):
+        ....:         assert err[i].lift().valuation(p) >= (N - i), \
+        ....:                "incorrect precision output"
     """
     Rx = F.parent()           # Rx = power series ring over Z/p^{N-1} Z
     R = Rx.base_ring()        # R = Z/p^{N-1} Z

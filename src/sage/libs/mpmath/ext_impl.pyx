@@ -17,7 +17,7 @@ See if :trac:`15118` is fixed::
     ZeroDivisionError
 """
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
@@ -25,27 +25,21 @@ from cpython.float cimport *
 from cpython.complex cimport *
 from cpython.number cimport *
 
-cdef extern from "math.h":
-    cdef double fpow "pow" (double, double)
-    cdef double fsqrt "sqrt" (double)
-    cdef double frexp "frexp" (double, int*)
+from libc.math cimport sqrt as fsqrt
+from libc.math cimport frexp
 
 from sage.libs.gmp.all cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
+from sage.libs.gmp.pylong cimport *
 
 cdef mpz_set_integer(mpz_t v, x):
-    if PyInt_Check(x):
+    if isinstance(x, int):
         mpz_set_si(v, PyInt_AS_LONG(x))
-    elif PyLong_Check(x):
+    elif isinstance(x, long):
         mpz_set_pylong(v, x)
-    elif PY_TYPE_CHECK(x, Integer):
+    elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)
     else:
         raise TypeError("cannot convert %s to an integer" % x)
@@ -134,17 +128,12 @@ cdef inline rndmode_from_python(str rnd):
     if rnd == 'd': return ROUND_D
     if rnd == 'u': return ROUND_U
 
-cdef inline mpfr_rnd_t rndmode_to_mpfr(int rnd, int sign):
-    if rnd == ROUND_N: return GMP_RNDN
-    if rnd == ROUND_F: return GMP_RNDD
-    if rnd == ROUND_C: return GMP_RNDU
-    if rnd == ROUND_D: return GMP_RNDZ
-    if rnd == ROUND_U:
-        # return GMP_RNDA (unsupported)
-        if sign >= 0:
-            return GMP_RNDU
-        else:
-            return GMP_RNDD
+cdef inline mpfr_rnd_t rndmode_to_mpfr(int rnd):
+    if rnd == ROUND_N: return MPFR_RNDN
+    if rnd == ROUND_F: return MPFR_RNDD
+    if rnd == ROUND_C: return MPFR_RNDU
+    if rnd == ROUND_D: return MPFR_RNDZ
+    if rnd == ROUND_U: return MPFR_RNDA
 
 cdef inline int reciprocal_rnd(int rnd):
     if rnd == ROUND_N: return ROUND_N
@@ -273,7 +262,7 @@ cdef MPF_set_tuple(MPF *x, tuple value):
     #cdef int sign
     cdef Integer man
     sign, _man, exp, bc = value
-    if PY_TYPE_CHECK(_man, Integer):
+    if isinstance(_man, Integer):
         man = <Integer>_man
     else:
         # This is actually very unlikely; it should never happen
@@ -466,8 +455,8 @@ cdef MPF_normalize(MPF *x, MPopts opts):
     # Need to be careful about rounding
     if shift > 0 and opts.prec:
         if opts.rounding == ROUND_N:
-            if mpz_tstbit_abs(&x.man, shift-1):
-                if mpz_tstbit_abs(&x.man, shift) or mpz_scan1(x.man, 0) < (shift-1):
+            if mpz_tstbit_abs(x.man, shift-1):
+                if mpz_tstbit_abs(x.man, shift) or mpz_scan1(x.man, 0) < (shift-1):
                     if sign < 0:
                         mpz_fdiv_q_2exp(x.man, x.man, shift)
                     else:
@@ -640,7 +629,7 @@ cdef _add_perturbation(MPF *r, MPF *s, int sign, MPopts opts):
     if opts.rounding == ROUND_N:
         MPF_set(r, s)
     else:
-        shift = opts.prec - mpz_sizeinbase(s, 2) + 8
+        shift = opts.prec - mpz_sizeinbase(s.man, 2) + 8
         if shift < 0:
             shift = 8
         mpz_mul_2exp(r.man, s.man, shift)
@@ -668,8 +657,8 @@ cdef MPF_add(MPF *r, MPF *s, MPF *t, MPopts opts):
         if shift >= 0:
             # |s| >> |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + sbc - tbc > opts.prec+8:
                     _add_perturbation(r, s, mpz_sgn(t.man), opts)
                     return
@@ -682,8 +671,8 @@ cdef MPF_add(MPF *r, MPF *s, MPF *t, MPopts opts):
             shift = -shift
             # |s| << |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + tbc - sbc > opts.prec+8:
                     _add_perturbation(r, t, mpz_sgn(s.man), opts)
                     return
@@ -722,8 +711,8 @@ cdef MPF_sub(MPF *r, MPF *s, MPF *t, MPopts opts):
         if shift >= 0:
             # |s| >> |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + sbc - tbc > opts.prec+8:
                     _add_perturbation(r, s, -mpz_sgn(t.man), opts)
                     return
@@ -736,8 +725,8 @@ cdef MPF_sub(MPF *r, MPF *s, MPF *t, MPopts opts):
             shift = -shift
             # |s| << |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + tbc - sbc > opts.prec+8:
                     _add_perturbation(r, t, -mpz_sgn(s.man), opts)
                     MPF_neg(r, r)
@@ -1112,11 +1101,11 @@ cdef void _cy_exp_mpfr(mpz_t y, mpz_t x, int prec):
     cdef mpfr_t yf, xf
     mpfr_init2(xf, mpz_bitcount(x)+2)
     mpfr_init2(yf, prec+2)
-    mpfr_set_z(xf, x, GMP_RNDN)
-    mpfr_div_2exp(xf, xf, prec, GMP_RNDN)
-    mpfr_exp(yf, xf, GMP_RNDN)
-    mpfr_mul_2exp(yf, yf, prec, GMP_RNDN)
-    mpfr_get_z(y, yf, GMP_RNDN)
+    mpfr_set_z(xf, x, MPFR_RNDN)
+    mpfr_div_2exp(xf, xf, prec, MPFR_RNDN)
+    mpfr_exp(yf, xf, MPFR_RNDN)
+    mpfr_mul_2exp(yf, yf, prec, MPFR_RNDN)
+    mpfr_get_z(y, yf, MPFR_RNDN)
     mpfr_clear(yf)
     mpfr_clear(xf)
 
@@ -1147,6 +1136,7 @@ cdef cy_exp_basecase(mpz_t y, mpz_t x, int prec):
     mpz_fdiv_q_2exp(x2, x2, prec)
     mpz_set(a, x2)
     while mpz_sgn(a):
+        sig_check()
         mpz_fdiv_q_ui(a, a, k)
         mpz_add(s0, s0, a)
         k += 1
@@ -1160,6 +1150,7 @@ cdef cy_exp_basecase(mpz_t y, mpz_t x, int prec):
     mpz_add(s0, s0, s1)
     u = r
     while r:
+        sig_check()
         mpz_mul(s0, s0, s0)
         mpz_fdiv_q_2exp(s0, s0, prec)
         r -= 1
@@ -1293,7 +1284,7 @@ cdef int MPF_get_mpfr_overflow(mpfr_t y, MPF *x):
     cdef long prec, exp
     if x.special != S_NORMAL:
         if x.special == S_ZERO:
-            mpfr_set_ui(y, 0, GMP_RNDN)
+            mpfr_set_ui(y, 0, MPFR_RNDN)
         elif x.special == S_INF:
             mpfr_set_inf(y, 1)
         elif x.special == S_NINF:
@@ -1306,13 +1297,13 @@ cdef int MPF_get_mpfr_overflow(mpfr_t y, MPF *x):
     if prec < 2:
         prec = 2
     mpfr_set_prec(y, prec)
-    mpfr_set_z(y, x.man, GMP_RNDN)
+    mpfr_set_z(y, x.man, MPFR_RNDN)
     if mpz_reasonable_shift(x.exp):
         exp = mpz_get_si(x.exp)
         if exp >= 0:
-            mpfr_mul_2exp(y, y, exp, GMP_RNDN)
+            mpfr_mul_2exp(y, y, exp, MPFR_RNDN)
         else:
-            mpfr_div_2exp(y, y, -exp, GMP_RNDN)
+            mpfr_div_2exp(y, y, -exp, MPFR_RNDN)
         return 0
     else:
         return 1
@@ -1368,7 +1359,7 @@ cdef int MPF_log(MPF *y, MPF *x, MPopts opts):
     mpfr_init2(yy, opts.prec)
 
     overflow = MPF_get_mpfr_overflow(xx, x)
-    rndmode = rndmode_to_mpfr(opts.rounding, mpfr_cmp_ui(xx, 1))
+    rndmode = rndmode_to_mpfr(opts.rounding)
 
     if overflow:
         MPF_init(&t)
@@ -1376,7 +1367,7 @@ cdef int MPF_log(MPF *y, MPF *x, MPopts opts):
         mpz_set(t.exp, x.exp)
 
         # log(m * 2^e) = log(m) + e*log(2)
-        mpfr_abs(xx, xx, GMP_RNDN)
+        mpfr_abs(xx, xx, MPFR_RNDN)
         mpfr_log(yy, xx, rndmode)
         MPF_set_mpfr(y, yy, opts)
 
@@ -1388,7 +1379,7 @@ cdef int MPF_log(MPF *y, MPF *x, MPopts opts):
         MPF_add(y, y, &t, opts)
         MPF_clear(&t)
     else:
-        mpfr_abs(xx, xx, GMP_RNDN)
+        mpfr_abs(xx, xx, MPFR_RNDN)
         mpfr_log(yy, xx, rndmode)
         MPF_set_mpfr(y, yy, opts)
 
@@ -1469,15 +1460,15 @@ def cos_sin_fixed(Integer x, int prec, pi2=None):
     mpfr_init2(t, mpz_bitcount(x.value)+2)
     mpfr_init2(cf, prec)
     mpfr_init2(sf, prec)
-    mpfr_set_z(t, x.value, GMP_RNDN)
-    mpfr_div_2exp(t, t, prec, GMP_RNDN)
-    mpfr_sin_cos(sf, cf, t, GMP_RNDN)
-    mpfr_mul_2exp(cf, cf, prec, GMP_RNDN)
-    mpfr_mul_2exp(sf, sf, prec, GMP_RNDN)
+    mpfr_set_z(t, x.value, MPFR_RNDN)
+    mpfr_div_2exp(t, t, prec, MPFR_RNDN)
+    mpfr_sin_cos(sf, cf, t, MPFR_RNDN)
+    mpfr_mul_2exp(cf, cf, prec, MPFR_RNDN)
+    mpfr_mul_2exp(sf, sf, prec, MPFR_RNDN)
     cv = PY_NEW(Integer)
     sv = PY_NEW(Integer)
-    mpfr_get_z(cv.value, cf, GMP_RNDN)
-    mpfr_get_z(sv.value, sf, GMP_RNDN)
+    mpfr_get_z(cv.value, cf, MPFR_RNDN)
+    mpfr_get_z(sv.value, sf, MPFR_RNDN)
     mpfr_clear(t)
     mpfr_clear(cf)
     mpfr_clear(sf)
@@ -1496,10 +1487,10 @@ cdef mpz_log_int(mpz_t v, mpz_t n, int prec):
     """
     cdef mpfr_t f
     mpfr_init2(f, prec+15)
-    mpfr_set_z(f, n, GMP_RNDN)
-    mpfr_log(f, f, GMP_RNDN)
-    mpfr_mul_2exp(f, f, prec, GMP_RNDN)
-    mpfr_get_z(v, f, GMP_RNDN)
+    mpfr_set_z(f, n, MPFR_RNDN)
+    mpfr_log(f, f, MPFR_RNDN)
+    mpfr_mul_2exp(f, f, prec, MPFR_RNDN)
+    mpfr_get_z(v, f, MPFR_RNDN)
     mpfr_clear(f)
 
 def log_int_fixed(n, long prec, ln2=None):
@@ -1576,7 +1567,7 @@ cdef MPF_cos(MPF *c, MPF *x, MPopts opts):
     if overflow or opts.rounding == ROUND_U:
         _MPF_cos_python(c, x, opts)
     else:
-        mpfr_cos(cf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_cos(cf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(c, cf, opts)
     mpfr_clear(xf)
     mpfr_clear(cf)
@@ -1599,7 +1590,7 @@ cdef MPF_sin(MPF *s, MPF *x, MPopts opts):
     if overflow or opts.rounding == ROUND_U:
         _MPF_sin_python(s, x, opts)
     else:
-        mpfr_sin(sf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_sin(sf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(s, sf, opts)
     mpfr_clear(xf)
     mpfr_clear(sf)
@@ -1626,7 +1617,7 @@ cdef MPF_cos_sin(MPF *c, MPF *s, MPF *x, MPopts opts):
         _MPF_cos_python(c, x, opts)
         _MPF_sin_python(s, x, opts)
     else:
-        mpfr_sin_cos(sf, cf, xf, rndmode_to_mpfr(opts.rounding, 1))
+        mpfr_sin_cos(sf, cf, xf, rndmode_to_mpfr(opts.rounding))
         MPF_set_mpfr(s, sf, opts)
         MPF_set_mpfr(c, cf, opts)
     mpfr_clear(xf)
@@ -2037,6 +2028,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
     else:
         mpz_set_tuple_fixed(ZRE, z, wp)
     for i in range(0,p):
+        sig_check()
         if param_types[i] == 'Z':
             mpz_init(AINT[aint])
             mpz_set_integer(AINT[aint], coeffs[i])
@@ -2060,6 +2052,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
         else:
             raise ValueError
     for i in range(p,p+q):
+        sig_check()
         if param_types[i] == 'Z':
             mpz_init(BINT[bint])
             mpz_set_integer(BINT[bint], coeffs[i])
@@ -2113,22 +2106,28 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
 
         # Multiply real factors
         for k in range(0, cancellable_real):
+            sig_check()
             mpz_mul(PRE, PRE, AREAL[k])
             mpz_fdiv_q(PRE, PRE, BREAL[k])
         for k in range(cancellable_real, areal):
+            sig_check()
             mpz_mul(PRE, PRE, AREAL[k])
             mpz_fdiv_q_2exp(PRE, PRE, wp)
         for k in range(cancellable_real, breal):
+            sig_check()
             mpz_mul_2exp(PRE, PRE, wp)
             mpz_fdiv_q(PRE, PRE, BREAL[k])
         if have_complex:
             for k in range(0, cancellable_real):
+                sig_check()
                 mpz_mul(PIM, PIM, AREAL[k])
                 mpz_fdiv_q(PIM, PIM, BREAL[k])
             for k in range(cancellable_real, areal):
+                sig_check()
                 mpz_mul(PIM, PIM, AREAL[k])
                 mpz_fdiv_q_2exp(PIM, PIM, wp)
             for k in range(cancellable_real, breal):
+                sig_check()
                 mpz_mul_2exp(PIM, PIM, wp)
                 mpz_fdiv_q(PIM, PIM, BREAL[k])
 
@@ -2162,6 +2161,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
                 mpz_fdiv_q(PIM, PIM, DIV)
 
             for i in range(acomplex):
+                sig_check()
                 mpz_mul(TRE, PRE, ACRE[i])
                 mpz_submul(TRE, PIM, ACIM[i])
                 mpz_mul(TIM, PIM, ACRE[i])
@@ -2170,6 +2170,7 @@ cdef MPF_hypsum(MPF *a, MPF *b, int p, int q, param_types, str ztype, coeffs, z,
                 mpz_fdiv_q_2exp(PIM, TIM, wp)
 
             for i in range(bcomplex):
+                sig_check()
                 mpz_mul(URE, BCRE[i], BCRE[i])
                 mpz_addmul(URE, BCIM[i], BCIM[i])
                 mpz_mul(TRE, PRE, BCRE[i])

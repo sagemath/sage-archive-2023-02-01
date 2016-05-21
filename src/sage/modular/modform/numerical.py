@@ -2,13 +2,15 @@
 Numerical computation of newforms
 """
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
@@ -16,7 +18,8 @@ from sage.modular.modsym.all     import ModularSymbols
 from sage.modular.arithgroup.all import Gamma0
 from sage.modules.all            import vector
 from sage.misc.misc              import verbose
-from sage.rings.all              import CDF, Integer, QQ, next_prime, prime_range
+from sage.rings.all import CDF, Integer, QQ
+from sage.arith.all import next_prime, prime_range
 from sage.misc.prandom           import randint
 from sage.matrix.constructor     import matrix
 
@@ -65,12 +68,12 @@ class NumericalEigenforms(SageObject):
         sage: n = numerical_eigenforms(23)
         sage: n == loads(dumps(n))
         True
-        sage: n.ap(2)
-        [3.0, 0.61803398875, -1.61803398875]
-        sage: n.systems_of_eigenvalues(7)
+        sage: n.ap(2)  # rel tol 2e-15
+        [3.0, 0.6180339887498941, -1.618033988749895]
+        sage: n.systems_of_eigenvalues(7)  # rel tol 2e-15
         [
-        [-1.61803398875, 2.2360679775, -3.2360679775],
-        [0.61803398875, -2.2360679775, 1.2360679775],
+        [-1.618033988749895, 2.23606797749979, -3.23606797749979],
+        [0.6180339887498941, -2.2360679774997902, 1.2360679774997883],
         [3.0, 4.0, 6.0]
         ]
         sage: n.systems_of_abs(7)
@@ -79,10 +82,10 @@ class NumericalEigenforms(SageObject):
         [1.6180339887..., 2.236067977..., 3.236067977...],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.eigenvalues([2,3,5])
-        [[3.0, 0.61803398875, -1.61803398875],
-         [4.0, -2.2360679775, 2.2360679775],
-         [6.0, 1.2360679775, -3.2360679775]]
+        sage: n.eigenvalues([2,3,5])  # rel tol 2e-15
+        [[3.0, 0.6180339887498941, -1.618033988749895],
+         [4.0, -2.2360679774997902, 2.23606797749979],
+         [6.0, 1.2360679774997883, -3.23606797749979]]
     """
     def __init__(self, group, weight=2, eps=1e-20,
                  delta=1e-2, tp=[2,3,5]):
@@ -388,9 +391,9 @@ class NumericalEigenforms(SageObject):
             [28.0, 28.0, -7.92820323028, 5.92820323028]
             sage: m = n.modular_symbols()
             sage: x = polygen(QQ, 'x')
-            sage: m.T(2).charpoly(x).factor()
+            sage: m.T(2).charpoly('x').factor()
             (x - 9)^2 * (x^2 - 2*x - 2)
-            sage: m.T(3).charpoly(x).factor()
+            sage: m.T(3).charpoly('x').factor()
             (x - 28)^2 * (x^2 + 2*x - 47)
         """
         p = Integer(p)
@@ -423,8 +426,8 @@ class NumericalEigenforms(SageObject):
         EXAMPLES::
 
             sage: n = numerical_eigenforms(1,12)
-            sage: n.eigenvalues([3,5,13])
-            [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
+            sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+            [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
         """
         primes = [Integer(p) for p in primes]
         for p in primes:
@@ -440,8 +443,8 @@ class NumericalEigenforms(SageObject):
             EXAMPLES::
 
                 sage: n = numerical_eigenforms(1,12)  # indirect doctest
-                sage: n.eigenvalues([3,5,13])
-                [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.999...]]
+                sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+                [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
             """
             return y.element() * B
 
@@ -460,12 +463,12 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)
+            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 6e-14
             [
-            [-1.48119430409..., 0.806063433525..., 3.15632517466..., 0.675130870567...],
-            [-1.0..., -2.0..., -3.0..., 1.0...],
-            [0.311107817466..., 2.90321192591..., -2.52542756084..., -3.21431974338...],
-            [2.17008648663..., -1.70927535944..., -1.63089761382..., -0.460811127189...],
+            [-1.4811943040920152, 0.8060634335253695, 3.1563251746586642, 0.6751308705666477],
+            [-1.0, -2.0000000000000027, -3.000000000000003, 1.0000000000000044],
+            [0.3111078174659775, 2.903211925911551, -2.525427560843529, -3.214319743377552],
+            [2.170086486626034, -1.7092753594369208, -1.63089761381512, -0.46081112718908984],
             [3.0, 4.0, 6.0, 8.0]
             ]
         """
@@ -487,12 +490,12 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_abs(10)
+            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 6e-14
             [
-            [0.311107817466, 2.90321192591, 2.52542756084, 3.21431974338],
-            [1.0, 2.0, 3.0, 1.0],
-            [1.48119430409, 0.806063433525, 3.15632517466, 0.675130870567],
-            [2.17008648663, 1.70927535944, 1.63089761382, 0.460811127189],
+            [0.3111078174659775, 2.903211925911551, 2.525427560843529, 3.214319743377552],
+            [1.0, 2.0000000000000027, 3.000000000000003, 1.0000000000000044],
+            [1.4811943040920152, 0.8060634335253695, 3.1563251746586642, 0.6751308705666477],
+            [2.170086486626034, 1.7092753594369208, 1.63089761381512, 0.46081112718908984],
             [3.0, 4.0, 6.0, 8.0]
             ]
         """

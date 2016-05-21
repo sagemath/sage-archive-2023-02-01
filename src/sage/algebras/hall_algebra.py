@@ -5,13 +5,14 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-10-17): Initial version
 """
-
 #*****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
@@ -22,6 +23,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.hall_polynomial import hall_polynomial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
+from functools import reduce
 
 def transpose_cmp(x, y):
     r"""
@@ -249,7 +251,8 @@ class HallAlgebra(CombinatorialFreeModule):
         I = self.monomial_basis()
         M = I.module_morphism(I._to_natural_on_basis, codomain=self,
                               triangular='upper', unitriangular=True,
-                              inverse_on_support=lambda x: x.conjugate())
+                              inverse_on_support=lambda x: x.conjugate(),
+                              invertible=True)
         M.register_as_coercion()
         (~M).register_as_coercion()
 
@@ -377,7 +380,7 @@ class HallAlgebra(CombinatorialFreeModule):
         """
         if all(x == 1 for x in la):
             r = len(la)
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1) ** r * self._q ** (-(r * (r - 1)) // 2)
             return self._from_dict({p: q for p in Partitions(r)})
 
         I = HallAlgebraMonomials(self.base_ring(), self._q)
@@ -596,7 +599,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         # Coercions
         if hopf_structure:
             e = SymmetricFunctions(base_ring).e()
-            f = lambda la: q**sum(-(r*(r-1)/2) for r in la)
+            f = lambda la: q ** sum(-((r * (r - 1)) // 2) for r in la)
             M = self.module_morphism(diagonal=f, codomain=e)
             M.register_as_coercion()
             (~M).register_as_coercion()
@@ -711,7 +714,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         H = HallAlgebra(self.base_ring(), self._q)
         cur = self.one()
         for r in a:
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1) ** r * self._q ** (-(r * (r - 1)) // 2)
             cur *= self(H._from_dict({p: q for p in Partitions(r)}))
         return cur
 

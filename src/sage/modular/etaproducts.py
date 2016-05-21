@@ -13,7 +13,7 @@ where
 :math:`q^{1/24} \prod_{n = 1}^\infty(1-q^n)`. These are useful
 for obtaining explicit models of modular curves.
 
-See trac ticket #3934 for background.
+See :trac:`3934` for background.
 
 AUTHOR:
 
@@ -31,7 +31,7 @@ AUTHOR:
 from sage.structure.sage_object import SageObject
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import divisors, prime_divisors, is_square, euler_phi, gcd
+from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
 from sage.rings.all import Integer, IntegerRing, RationalField
 from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
@@ -42,7 +42,6 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module import FreeModule
 from sage.misc.misc import union
 
-from string import join
 import weakref
 
 ZZ = IntegerRing()
@@ -443,22 +442,22 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def __cmp__(self, other):
         r"""
-        Compare self to other. Eta products compare first according to
-        their levels, then according to their rdicts.
+        Compare self to other. Eta products are compared according to
+        their rdicts.
 
         EXAMPLES::
 
             sage: EtaProduct(2, {2:24,1:-24}) == 1
             False
-            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:24, 1:-24})
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:-24, 2:24})
             True
-            sage: EtaProduct(2, {2:24, 1:-24}) == EtaProduct(4, {2:24, 1:-24})
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:24, 2:-24})
             False
-            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:48, 1:-48})
+            sage: EtaProduct(6, {1:-24, 2:24}) < EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24})
             True
+            sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
+            False
         """
-        if not isinstance(other, EtaGroupElement):
-            return cmp(type(self), type(other))
         return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
 
     def _short_repr(self):
@@ -474,7 +473,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if self.degree() == 0:
             return "1"
         else:
-            return join(["(eta_%s)^%s" % (d,self.r(d)) for d in self._keys])
+            return " ".join("(eta_%s)^%s" % (d,self.r(d)) for d in self._keys)
 
     def _repr_(self):
         r"""
@@ -665,17 +664,15 @@ def num_cusps_of_width(N, d):
 
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
+        sage: num_cusps_of_width(4,8)
+        Traceback (most recent call last):
+        ...
+        ValueError: N and d must be positive integers with d|N
     """
-    try:
-        N = ZZ(N)
-        d = ZZ(d)
-        assert N>0
-        assert d>0
-        assert ((N % d) == 0)
-    except TypeError:
-        raise TypeError("N and d must be integers")
-    except AssertionError:
-        raise AssertionError("N and d must be positive integers with d|N")
+    N = ZZ(N)
+    d = ZZ(d)
+    if N <= 0 or d <= 0 or (N % d) != 0:
+        raise ValueError("N and d must be positive integers with d|N")
 
     return euler_phi(gcd(d, N//d))
 
@@ -693,14 +690,15 @@ def AllCusps(N):
 
         sage: AllCusps(18)
         [(Inf), (c_{2}), (c_{3,1}), (c_{3,2}), (c_{6,1}), (c_{6,2}), (c_{9}), (0)]
+        sage: AllCusps(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: N must be positive
     """
-    try:
-        N = ZZ(N)
-        assert N>0
-    except TypeError:
-        raise TypeError("N must be an integer")
-    except AssertionError:
-        raise AssertionError("N must be positive")
+    N = ZZ(N)
+    if N <= 0:
+        raise ValueError("N must be positive")
+
     c = []
     for d in divisors(N):
         n = num_cusps_of_width(N, d)
@@ -732,20 +730,16 @@ class CuspFamily(SageObject):
             sage: CuspFamily(16, 4, '1')
             (c_{4,1})
         """
-        try:
-            N = ZZ(N)
-            assert N>0
-        except TypeError:
-            raise TypeError("N must be an integer")
-        except AssertionError:
-            raise AssertionError("N must be positive")
+        N = ZZ(N)
+        if N <= 0:
+            raise ValueError("N must be positive")
         self._N = N
         self._width = width
         if (N % width):
             raise ValueError("Bad width")
-        if num_cusps_of_width(N, width) > 1 and label == None:
+        if num_cusps_of_width(N, width) > 1 and label is None:
             raise ValueError("There are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N,width), width, N))
-        if num_cusps_of_width(N, width) == 1 and label != None:
+        if num_cusps_of_width(N, width) == 1 and label is not None:
             raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
 
@@ -845,8 +839,8 @@ def qexp_eta(ps_ring, prec):
         n = 1
         while True:
             pm = -pm
-            v[n*(3*n-1)/2] = pm
-            v[n*(3*n+1)/2] = pm
+            v[n*(3*n-1)//2] = pm
+            v[n*(3*n+1)//2] = pm
             n += 1
     except IndexError:
         pass
@@ -856,7 +850,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
     Find polynomial relations between eta products.
 
-    INPUTS:
+    INPUT:
 
     - ``eta_elements`` - (list): a list of EtaGroupElement objects.
       Not implemented unless this list has precisely two elements. degree
@@ -868,7 +862,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     - ``verbose``` - (boolean, default False): if True, prints information as
       it goes.
 
-    OUTPUTS: a list of polynomials which is a Groebner basis for the
+    OUTPUT: a list of polynomials which is a Groebner basis for the
     part of the ideal of relations between eta_elements which is
     generated by elements up to the given degree; or None, if no
     relations were found.

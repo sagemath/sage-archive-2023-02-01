@@ -98,18 +98,18 @@ class SymmetricIdeal( Ideal_generic ):
     Buchberger type that computes a Groebner basis `G` for `I` that
     allows for computation of a unique normal form, that is zero
     precisely for the elements of `I` -- see [AB2008]_. See
-    :meth:`.groebner_basis` for more details.
+    :meth:`groebner_basis` for more details.
 
     Our implementation allows more than one generator and also
     provides degree lexicographic and degree reverse lexicographic
     monomial orderings -- we do, however, not guarantee termination of
     the Buchberger algorithm in these cases.
 
-    .. [AB2007] M. Aschenbrenner, C. Hillar,
+    .. [AB2007] \M. Aschenbrenner, C. Hillar,
        Finite generation of symmetric ideals.
        Trans. Amer. Math. Soc. 359 (2007), no. 11, 5171--5192.
 
-    .. [AB2008] M. Aschenbrenner, C. Hillar,
+    .. [AB2008] \M. Aschenbrenner, C. Hillar,
        `An Algorithm for Finding Symmetric Groebner Bases in Infinite Dimensional Rings.
        <http://de.arxiv.org/abs/0801.4439>`_
 
@@ -281,7 +281,7 @@ class SymmetricIdeal( Ideal_generic ):
         oGen = list(other.gens())
         SymL = oGen
         for i in range(sN):
-            oGen = [X.__pow__(P) for X in oGen]
+            oGen = [X ** P for X in oGen]
             SymL = SymL + oGen
         # Now, SymL contains all necessary permutations of the second factor
         OUT = []
@@ -636,7 +636,7 @@ class SymmetricIdeal( Ideal_generic ):
             N = Integer(N)
         if hasattr(R,'_max') and R._max<N:
             R.gen()[N]
-        if report!=None:
+        if report is not None:
             print "Symmetrise %d polynomials at level %d"%(len(newOUT.gens()),N)
         if use_full_group:
             from sage.combinat.permutation import Permutations
@@ -954,21 +954,17 @@ class SymmetricIdeal( Ideal_generic ):
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
             except Exception:
-                if report != None:
+                if report is not None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR
-            if hasattr(DenseIdeal,'groebner_basis'):
-                if report != None:
-                    print "Classical Groebner basis"
-                    if algorithm!='':
-                        print "(using %s)"%algorithm
-                newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
-                if report != None:
-                    print "->",len(newOUT.gens()),'generators'
-            else:
-                if report != None:
-                    print "Univariate polynomial ideal"
-                newOUT = DenseIdeal.gens()*PARENT
+
+            if report is not None:
+                print "Classical Groebner basis"
+                if algorithm!='':
+                    print "(using %s)"%algorithm
+            newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
+            if report is not None:
+                print "->",len(newOUT.gens()),'generators'
             # Symmetrise out to the next index:
             N += 1
             newOUT = newOUT.symmetrisation(N=N,tailreduce=tailreduce,report=report,use_full_group=use_full_group)

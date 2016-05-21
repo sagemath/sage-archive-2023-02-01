@@ -8,6 +8,8 @@ from sage.misc.all import verbose
 import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix
+from sage.rings.all import CyclotomicField
+from sage.arith.all import lcm, euler_phi
 
 
 import eis_series
@@ -336,7 +338,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             q^2 + 9*q^4 + 28*q^6 + 73*q^8 + 126*q^10 + 252*q^12 + 344*q^14 + O(q^15),
             q^11 + O(q^15)]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         else:
             prec = rings.Integer(prec)
@@ -563,8 +565,6 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         #B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
         #raise NotImplementedError, "must restrict scalars down correctly."
 
-
-from sage.rings.all import CyclotomicField, lcm, euler_phi
 
 def cyclotomic_restriction(L,K):
     r"""

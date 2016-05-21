@@ -9,7 +9,7 @@ AUTHORS:
 
 - Robert Bradshaw (2008-08): fast float integration
 
-- Jeroen Demeyer (2011-11-23): Trac #12047: return 0 when the
+- Jeroen Demeyer (2011-11-23): :trac:`12047`: return 0 when the
   integration interval is a point; reformat documentation and add to
   the reference manual.
 """
@@ -24,11 +24,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include 'gsl.pxi'
-
+include "cysignals/signals.pxi"
+from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
+
 
 cdef class PyFunctionWrapper:
    cdef object the_function
@@ -145,6 +144,13 @@ def numerical_integral(func, a, b=None,
          (0.10806674191683065, 1.1997818507228991e-15),
          (0.09745444625548845, 1.0819617008493815e-15),
          (0.088750683050217577, 9.8533051773561173e-16)]
+        sage: y = var('y')
+        sage: numerical_integral(x*y, 0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables (x, y),
+        and so cannot be integrated in one dimension. Please fix additional
+        variables with the 'params' argument
 
     Note the parameters are always a tuple even if they have one component.
 
@@ -181,7 +187,7 @@ def numerical_integral(func, a, b=None,
 
     If the interval of integration is a point, then the result is
     always zero (this makes sense within the Lebesgue theory of
-    integration), see Trac ticket #12047::
+    integration), see :trac:`12047`::
 
         sage: numerical_integral(log, 0, 0)
         (0.0, 0.0)
@@ -200,7 +206,7 @@ def numerical_integral(func, a, b=None,
     TESTS:
 
     Make sure that constant Expressions, not merely uncallable arguments,
-    can be integrated (trac #10088), at least if we can coerce them
+    can be integrated (:trac:`10088`), at least if we can coerce them
     to float::
 
         sage: f, g = x, x-1
@@ -249,7 +255,12 @@ def numerical_integral(func, a, b=None,
                return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
-                    raise ValueError, "Integrand has wrong number of parameters"
+                   raise ValueError(("The function to be integrated depends on "
+                                     "{} variables {}, and so cannot be "
+                                     "integrated in one dimension. Please fix "
+                                     "additional variables with the 'params' "
+                                     "argument").format(len(vars),tuple(vars)))
+
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
             func = func._fast_float_(str(vars[0]))

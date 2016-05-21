@@ -858,16 +858,18 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         def expand(self, n, alphabet='x'):
             """
             Expand the symmetric function ``self`` as a symmetric polynomial
-            in `n` variables.
+            in ``n`` variables.
 
             INPUT:
 
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
+
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
 
             OUTPUT:
 
-            - a monomial expansion of an instance of ``self`` in `n` variables
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -883,6 +885,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 2*y0^3 + 3*y0^2*y1 + 3*y0*y1^2 + 2*y1^3
                 sage: a.expand(2,alphabet='x,y')
                 2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
+                sage: h([1]).expand(0)
+                0
+                sage: (3*h([])).expand(0)
+                3
             """
             return self._dual.expand(n, alphabet)
 

@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend for access to GLPK graph functions
 
@@ -58,16 +59,21 @@ Classes and methods
 -------------------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2012 Christian Kuper <christian.kuper@t-online.de>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/memory.pxi"
 
 cdef class GLPKGraphBackend(object):
     """
@@ -191,7 +197,7 @@ cdef class GLPKGraphBackend(object):
 
         from sage.graphs.graph import Graph
 
-        self.graph = <_glp_graph*> glp_create_graph(sizeof(c_v_data),
+        self.graph = <glp_graph*> glp_create_graph(sizeof(c_v_data),
                        sizeof(c_a_data))
 
         if self.graph is NULL:
@@ -299,7 +305,7 @@ cdef class GLPKGraphBackend(object):
         cdef int n
         cdef int i
         cdef double rhs
-        cdef _glp_vertex* vert
+        cdef glp_vertex* vert
         cdef char* name
 
         verts = g.vertices()
@@ -384,7 +390,7 @@ cdef class GLPKGraphBackend(object):
         - ``vertex`` -- Name of the vertex
 
         - ``demand`` -- the numerical value representing demand of the vertex in
-          a mincost flow alorithm (it could be for instance `-1` to represent a
+          a mincost flow algorithm (it could be for instance `-1` to represent a
           sink, or `1` to represent a source and `0` for a neutral vertex). This
           can either be an ``int`` or ``float`` value.
 
@@ -408,7 +414,7 @@ cdef class GLPKGraphBackend(object):
         if n < 0:
             raise KeyError("Vertex " + vertex + " does not exist.")
 
-        cdef _glp_vertex* vert = self.graph.v[n+1]
+        cdef glp_vertex* vert = self.graph.v[n+1]
         cdef double val = demand
         (<c_v_data *>vert.data).rhs = val
 
@@ -476,7 +482,7 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             return None
 
-        cdef _glp_vertex* vert = self.graph.v[i+1]
+        cdef glp_vertex* vert = self.graph.v[i+1]
         cdef c_v_data * vdata = <c_v_data *> vert.data
 
         return {
@@ -595,7 +601,7 @@ cdef class GLPKGraphBackend(object):
             self.add_vertex(v)
             j = self._find_vertex(v)
 
-        cdef _glp_arc *a
+        cdef glp_arc *a
 
         a = glp_add_arc(self.graph, i+1, j+1)
 
@@ -665,21 +671,17 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
         """
-        cdef _glp_arc* a
+        cdef glp_arc* a
         cdef int u
         cdef int v
-        cdef char* u_name
-        cdef char* v_name
         cdef double cost
         cdef double cap
         cdef double low
         cdef int isdirected = g.is_directed()
 
         for (eu,ev,label) in g.edges():
-            s = str(eu)
-            u_name = s
-            s = str(ev)
-            v_name = s
+            u_name = str(eu)
+            v_name = str(ev)
             u = glp_find_vertex(self.graph, u_name)
             v = glp_find_vertex(self.graph, v_name)
             if u < 1 or v < 1:
@@ -751,9 +753,9 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return None
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
         while a is not NULL:
             if a.head == vert_v:
                 return (u, v, {"low":(<c_a_data *>a.data).low,
@@ -786,9 +788,9 @@ cdef class GLPKGraphBackend(object):
         """
 
         cdef int i = 1
-        cdef _glp_vertex* vert_u
-        cdef _glp_vertex* vert_v
-        cdef _glp_arc* a
+        cdef glp_vertex* vert_u
+        cdef glp_vertex* vert_v
+        cdef glp_arc* a
         edge_list = []
 
         while i <= self.graph.nv:
@@ -843,7 +845,7 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             raise RuntimeError("Vertex %s does not exist."%(vert))
 
-        cdef int * num = <int *> sage_malloc(2 * sizeof(int))
+        cdef int * num = <int *> sig_malloc(2 * sizeof(int))
         num[1] = i + 1
         cdef int ndel = 1
 
@@ -851,7 +853,7 @@ cdef class GLPKGraphBackend(object):
             raise MemoryError("Error allocating memory.")
 
         glp_del_vertices(self.graph, ndel, num)
-        sage_free(num)
+        sig_free(num)
 
     cpdef delete_vertices(self, list verts):
         r"""
@@ -887,7 +889,7 @@ cdef class GLPKGraphBackend(object):
             i = verts_val.index(-1)
             raise RuntimeError("Vertex %s does not exist."%(verts[i]))
 
-        cdef int * num = <int *> sage_malloc((len(verts_val)+1) * sizeof(int))
+        cdef int * num = <int *> sig_malloc((len(verts_val)+1) * sizeof(int))
         if not num:
             raise MemoryError("Error allocating memory.")
         cdef int ndel = len(verts_val)
@@ -897,7 +899,7 @@ cdef class GLPKGraphBackend(object):
 
         glp_del_vertices(self.graph, ndel, num)
 
-        sage_free(num)
+        sig_free(num)
 
     cpdef delete_edge(self, char* u, char* v, dict params=None):
         """
@@ -910,7 +912,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see meth:``add_edge``). If this parameter
+          parameters (see :meth:``add_edge``). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 
@@ -938,10 +940,10 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
-        cdef _glp_arc* a2 = a
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
+        cdef glp_arc* a2 = a
 
         cdef double low, cap, cost, x
 

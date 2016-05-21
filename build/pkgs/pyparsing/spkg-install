@@ -10,7 +10,8 @@ cd src
 
 for patch in ../patches/*.patch; do
     [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
+    # Apply patch as binary since source has incorrect line endings
+    patch -p1 --binary <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1

@@ -14,6 +14,7 @@ cdef inline cparent get_cparent(parent):
     return 0
 
 # first we include the definitions
+include "sage/libs/ntl/decl.pxi"
 include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
 
 # and then the interface
@@ -51,8 +52,8 @@ cdef class Polynomial_GF2X(Polynomial_template):
             0
         """
         try:
-            if (PY_TYPE_CHECK(x, int)
-                or PY_TYPE_CHECK(x, Integer)):
+            if (isinstance(x, int)
+                or isinstance(x, Integer)):
                 x = int(x % 2)
             elif (x.parent() is parent.base_ring()
                 or x.parent() == parent.base_ring()):
@@ -61,8 +62,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
             pass
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(2)[]
@@ -72,29 +75,13 @@ cdef class Polynomial_GF2X(Polynomial_template):
             1
             sage: f[1]
             0
-            sage: f[-5:50] == f
+            sage: f[:50] == f
             True
-            sage: f[1:]
-            x^3 + x^2
+            sage: f[:3]
+            x^2 + 1
         """
-        cdef long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            r = <Polynomial_template>PY_NEW(self.__class__)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < GF2X_NumBits(self.x):
-                c = GF2_conv_to_long(GF2X_coeff(self.x, i))
-            return self._parent.base_ring()(c)
+        cdef long c = GF2_conv_to_long(GF2X_coeff(self.x, i))
+        return self._parent._base(c)
 
     def _pari_(self, variable=None):
         """
@@ -157,7 +144,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         cdef GF2XModulus_c modulus
         GF2XModulus_build(modulus, (<Polynomial_GF2X>h).x)
 
-        res = <Polynomial_GF2X>PY_NEW(Polynomial_GF2X)
+        res = <Polynomial_GF2X>Polynomial_GF2X.__new__(Polynomial_GF2X)
         res._parent = self._parent
         res._cparent = self._cparent
 
@@ -300,7 +287,7 @@ def GF2X_BuildIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildIrred_list(33))
         x^33 + x^6 + x^3 + x + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildIrred(f, int(n))
@@ -320,7 +307,7 @@ def GF2X_BuildSparseIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildSparseIrred_list(33))
         x^33 + x^10 + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildSparseIrred(f, int(n))
@@ -340,7 +327,7 @@ def GF2X_BuildRandomIrred_list(n):
         True
     """
     from sage.misc.randstate import current_randstate
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c tmp, f
     GF2 = FiniteField(2)
     current_randstate().set_seed_ntl(False)

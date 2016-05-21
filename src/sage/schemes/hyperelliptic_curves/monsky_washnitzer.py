@@ -34,12 +34,16 @@ AUTHORS:
   algorithms
 
 - Robert Bradshaw (2007-04): generalization to hyperelliptic curves
+
+- Julian Rueth (2014-05-09): improved caching
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 David Harvey <dmharvey@math.harvard.edu>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -56,9 +60,11 @@ from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
-from sage.rings.arith import binomial, integer_ceil as ceil
+from sage.arith.all import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
@@ -113,9 +119,10 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
     Create elements directly from polynomials::
 
-        sage: A, z = R.poly_ring().objgen()
+        sage: A = R.poly_ring()
         sage: A
         Univariate Polynomial Ring in T over Ring of integers modulo 125
+        sage: z = A.gen()
         sage: R.create_element(z^2, z+1, 3)
         (T^2) + (T + 1)*x + (3)*x^2
 
@@ -374,7 +381,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: p.coeffs()
             [[0, 1, 0], [123, 0, 1], [3, 0, 0]]
         """
-        coeffs = [column.coeffs() for column in self._triple]
+        coeffs = [column.coefficients(sparse=False) for column in self._triple]
         degree = max([len(x) for x in coeffs])
         base_ring = self.parent().base_ring()
         for column in coeffs:
@@ -1721,12 +1728,12 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
 import weakref
 
-from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ
+from sage.rings.all import QQ, IntegralDomain
 
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-from sage.rings.integral_domain import is_IntegralDomain
 
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -1828,44 +1835,30 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     return M.transpose(), [f for f, a in reduced]
 
 
-# For uniqueness (as many of the non-trivial calculations are cached along the way).
-
-_special_ring_cache = {}
-_mw_cache = {}
-
-
-def SpecialHyperellipticQuotientRing(*args):
-    if args in _special_ring_cache:
-        R = _special_ring_cache[args]()
-        if R is not None:
-            return R
-    R = SpecialHyperellipticQuotientRing_class(*args)
-    _special_ring_cache[args] = weakref.ref(R)
-    return R
-
-
-def MonskyWashnitzerDifferentialRing(base_ring):
-    if base_ring in _mw_cache:
-        R = _mw_cache[base_ring]()
-        if R is not None:
-            return R
-
-    R = MonskyWashnitzerDifferentialRing_class(base_ring)
-    _mw_cache[base_ring] = weakref.ref(R)
-    return R
-
-
-class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
-
+class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra):
     _p = None
 
     def __init__(self, Q, R=None, invert_y=True):
+        r"""
+        Initialization.
+
+        TESTS:
+
+        Check that caching works::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing
+            sage: SpecialHyperellipticQuotientRing(E) is SpecialHyperellipticQuotientRing(E)
+            True
+
+        """
         if R is None:
             R = Q.base_ring()
 
         # Trac ticket #9138: CommutativeAlgebra.__init__ must not be
         # done so early.  It tries to register a coercion, but that
-        # requires the hash bein available.  But the hash, in its
+        # requires the hash being available.  But the hash, in its
         # default implementation, relies on the string representation,
         # which is not available at this point.
         #CommutativeAlgebra.__init__(self, R)  # moved to below.
@@ -1888,7 +1881,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         if is_Polynomial(Q):
             self._Q = Q.change_ring(R)
-            self._coeffs = self._Q.coeffs()
+            self._coeffs = self._Q.coefficients(sparse=False)
             if self._coeffs.pop() != 1:
                 raise NotImplementedError("Polynomial must be monic.")
             if not hasattr(self, '_curve'):
@@ -2169,7 +2162,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             False
         """
         return False
-
+SpecialHyperellipticQuotientRing_class = SpecialHyperellipticQuotientRing
 
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
@@ -2599,16 +2592,27 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         coeffs = transpose_list(coeffs)
         return [V(a) for a in coeffs], y_offset
 
-
-class MonskyWashnitzerDifferentialRing_class(Module):
-
+class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
+    r"""
+    A ring of Monsky--Washnitzer differentials over ``base_ring``.
+    """
     def __init__(self, base_ring):
         r"""
-        Class for the ring of Monsky--Washnitzer differentials over a given
-        base ring.
+        Initialization.
+
+        TESTS:
+
+        Check that caching works::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing, MonskyWashnitzerDifferentialRing
+            sage: S = SpecialHyperellipticQuotientRing(E)
+            sage: MonskyWashnitzerDifferentialRing(S) is MonskyWashnitzerDifferentialRing(S)
+            True
+
         """
         Module.__init__(self, base_ring)
-        self._cache = {}
 
     def invariant_differential(self):
         """
@@ -2724,6 +2728,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         """
         return self.base_ring().Q()
 
+    @cached_method
     def x_to_p(self, p):
         """
         Returns and caches `x^p`, reduced via the relations coming from the
@@ -2741,13 +2746,9 @@ class MonskyWashnitzerDifferentialRing_class(Module):
             sage: MW.x_to_p(101) is MW.x_to_p(101)
             True
         """
-        try:
-            return self._cache["x_to_p", p]
-        except KeyError:
-            x_to_p = self.base_ring().x() ** p
-            self._cache["x_to_p", p] = x_to_p
-            return x_to_p
+        return self.base_ring().x() ** p
 
+    @cached_method
     def frob_Q(self, p):
         """
         Returns and caches `Q(x^p)`, which is used in computing the image of
@@ -2765,13 +2766,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
             sage: MW.frob_Q(11) is MW.frob_Q(11)
             True
         """
-        try:
-            return self._cache["frobQ", p]
-        except KeyError:
-            x_to_p = self.x_to_p(p)
-            frobQ = self.base_ring()._Q.change_ring(self.base_ring())(x_to_p)
-            self._cache["frobQ", p] = frobQ
-            return frobQ
+        return self.base_ring()._Q.change_ring(self.base_ring())(self.x_to_p(p))
 
     def frob_invariant_differential(self, prec, p):
         r"""
@@ -2813,7 +2808,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         x_to_p = x*x_to_p_less_1
 
         # cache for future use
-        self._cache["x_to_p", p] = x_to_p
+        self.x_to_p.set_cache(p, x_to_p)
 
         prof("frob_Q")
         a = self.frob_Q(p) >> 2*p  # frobQ * y^{-2p}
@@ -2915,13 +2910,13 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         for i in range(n):
             L.append((y*x**i).diff().extract_pow_y(0))
         A = matrix(L).transpose()
-        if not is_IntegralDomain(A.base_ring()):
+        if not isinstance(A.base_ring(), IntegralDomain):
             # must be using integer_mod or something to approximate
             self._helper_matrix = (~A.change_ring(QQ)).change_ring(A.base_ring())
         else:
             self._helper_matrix = ~A
         return self._helper_matrix
-
+MonskyWashnitzerDifferentialRing_class = MonskyWashnitzerDifferentialRing
 
 class MonskyWashnitzerDifferential(ModuleElement):
 
@@ -2933,7 +2928,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         INPUT:
 
         - ``parent`` -- Monsky-Washnitzer differential ring (instance of class
-          :class:`~MonskyWashnitzerDifferentialRing_class`
+          :class:`~MonskyWashnitzerDifferentialRing`
 
         - ``val`` -- element of the base ring, or list of coefficients
 

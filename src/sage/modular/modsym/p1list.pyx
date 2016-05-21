@@ -13,8 +13,8 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
 
-include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 ###############################################################
 #
@@ -62,9 +62,8 @@ cdef int c_p1_normalize_int(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N
@@ -578,9 +577,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = 1
         return 0
 
-    if N<=0 or N > 46340:
-        raise OverflowError, "Modulus is too large (must be < 46340)"
-        return -1
+    if N <= 0 or 46340 < N:
+        raise OverflowError("Modulus is too large (must be <= 46340)")
 
     u = u % N
     v = v % N
@@ -692,11 +690,11 @@ cdef class P1List:
 
         # Allocate memory for xgcd table.
         self.g = NULL; self.s = NULL; self.t = NULL
-        self.g = <int*> sage_malloc(sizeof(int)*N)
+        self.g = <int*> sig_malloc(sizeof(int)*N)
         if not self.g: raise MemoryError
-        self.s = <int*> sage_malloc(sizeof(int)*N)
+        self.s = <int*> sig_malloc(sizeof(int)*N)
         if not self.s: raise MemoryError
-        self.t = <int*> sage_malloc(sizeof(int)*N)
+        self.t = <int*> sig_malloc(sizeof(int)*N)
         if not self.t: raise MemoryError
 
         # Initialize xgcd table
@@ -715,9 +713,9 @@ cdef class P1List:
         """
         Deallocates memory for an object of the class P1List.
         """
-        if self.g: sage_free(self.g)
-        if self.s: sage_free(self.s)
-        if self.t: sage_free(self.t)
+        if self.g: sig_free(self.g)
+        if self.s: sig_free(self.s)
+        if self.t: sig_free(self.t)
 
 
     def __cmp__(self, other):
@@ -766,8 +764,8 @@ cdef class P1List:
         return sage.modular.modsym.p1list._make_p1list, (self.__N, )
 
     def __getitem__(self, n):
-        """
-        Standard indexing/slicing function for the class P1List.
+        r"""
+        Standard indexing/slicing function for the class ``P1List``.
 
         EXAMPLES::
 

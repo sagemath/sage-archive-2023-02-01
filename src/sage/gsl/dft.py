@@ -79,7 +79,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.arith import factor
+from sage.arith.all import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import sin, cos
@@ -390,8 +390,7 @@ class IndexedSequence(SageObject):
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
-            <BLANKLINE>
-            Indexed sequence: [1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1]
+            Indexed sequence: [1/16*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + ...
             indexed by [0, 1, 2, 3, 4]
         """
         from sage.symbolic.constants import pi
@@ -585,7 +584,7 @@ class IndexedSequence(SageObject):
             ** elements are considered different if they differ
             by ``10^(-8)``, which is pretty arbitrary -- use with CAUTION!! **
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         S = self.list()
         T = other.list()
@@ -623,7 +622,9 @@ class IndexedSequence(SageObject):
             Indexed sequence: [5.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
                 indexed by [0, 1, 2, 3, 4]
         """
-        from sage.rings.all import I
+        from sage.rings.all import CC
+        I = CC.gen()
+
         # elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)
@@ -658,7 +659,9 @@ class IndexedSequence(SageObject):
             sage: t.ifft() == s
             1
         """
-        from sage.rings.all import I
+        from sage.rings.all import CC
+        I = CC.gen()
+
         # elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)

@@ -20,7 +20,7 @@ thématique couvrant ce point est disponible `ici <http://sagemath.org/doc/thema
 
 Une première approximation en Python de la notion mathématique d'anneau
 pourrait consister à définir une classe pour les éléments ``X`` de l'anneau
-concerné, de fournir les méthodes « double-underscore » nécessaires pour donner
+concerné, de fournir les méthodes « double-underscore » nécessaires pour donner
 un sens aux opérations de l'anneau, par exemple  ``__add__``, ``__sub__`` et
 ``__mul__``, et naturellement de s'assurer qu'elles respectent les axiomes de
 la structure d'anneau.
@@ -28,12 +28,12 @@ la structure d'anneau.
 Python étant un language (dynamiquement) fortement typé, on pourrait s'attendre
 à devoir implémenter une classe pour chaque anneau. Après tout, Python définit
 bien un type ``<int>`` pour les entiers, un type ``<float>`` pour les réels, et
-ainsi de suite. Mais cette approche ne peut pas fonctionner : il y a une
+ainsi de suite. Mais cette approche ne peut pas fonctionner : il y a une
 infinité d'anneaux différents, et l'on ne peut pas implémenter une infinité de
-classes !
+classes !
 
 Une autre idée est de créer une hiérarchie de classes destinées à implémenter
-les éléments des structures algébriques usuelles : éléments de groupes,
+les éléments des structures algébriques usuelles : éléments de groupes,
 d'anneaux, d'algèbres à division, d'anneaux commutatifs, de corps, d'algèbres,
 etc.
 
@@ -58,7 +58,7 @@ contre matrices creuses par exemple).
     sage: R.<c> = PolynomialRing(ZZ, implementation='NTL')
     sage: type(a); type(b); type(c)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
     <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
 
 Deux problèmes se posent alors. D'une part, si deux éléments sont instances de
@@ -72,7 +72,7 @@ instances de la même classe.
 La solution à ces difficultés est fournie par le mécanisme de *coercition*
 décrit ci-dessous.
 
-Mais avant tout, il est essentiel que chaque élément « sache » de quoi il est
+Mais avant tout, il est essentiel que chaque élément « sache » de quoi il est
 élément. Cette information est donnée par la méthode ``parent()``.
 
 .. link
@@ -92,8 +92,8 @@ En plus d'une hiérarchie de classes destinée à implémenter les éléments de
 structures algébriques, Sage fournit une hiérarchie similaire pour les
 structures elles-mêmes. Ces structures s'appellent en Sage des *parents*, et
 leurs classes dérivent d'une même classe de base. Celle-ci a des sous-classes
-« ensemble », « anneau », « corps », et ainsi de suite, dont la hiérarchie
-correspond à peu près à celle des concepts mathématiques qu'elles décrivent :
+« ensemble », « anneau », « corps », et ainsi de suite, dont la hiérarchie
+correspond à peu près à celle des concepts mathématiques qu'elles décrivent :
 
 ::
 
@@ -110,14 +110,16 @@ Or en algèbre, on regroupe les objets qui partagent le même genre de structure
 algébrique en ce que l'on appelle des *catégories*. Il y a donc un parallèle
 approximatif entre la hiérarchie des classes de Sage et la hiérarchie des
 catégories. Mais cette correspondance n'est pas parfaite, et Sage implémente
-par ailleurs les catégories en tant que telles :
+par ailleurs les catégories en tant que telles :
 
 ::
 
     sage: Rings()
     Category of rings
     sage: ZZ.category()
-    Category of euclidean domains
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
+        and Category of metric spaces
     sage: ZZ.category().is_subcategory(Rings())
     True
     sage: ZZ in Rings()
@@ -135,7 +137,7 @@ l'implémentation particulière d'un objet donné de la catégorie.
 
 Les parents en tant qu'objets Python doivent être uniques. Ainsi, lorsqu'un
 anneau de polynômes sur un anneau donné et avec une liste donnée de générateurs
-est construit, il est conservé en cache et réutilisé par la suite :
+est construit, il est conservé en cache et réutilisé par la suite :
 
 ::
 
@@ -146,21 +148,21 @@ est construit, il est conservé en cache et réutilisé par la suite :
 Types et parents
 ----------------
 
-Il ne faut pas confondre le type ``RingElement`` avec la notion mathématique
-d'élément d'anneau : il peut arriver que pour des raisons pratiques, un objet
-soit de type ``RingElement`` alors qu'il n'appartient pas à un anneau :
+Le type ``RingElement`` ne correspond pas parfaitement à la notion
+mathématique d'élément d'anneau. Par exemple, bien que les matrices carrées
+appartiennent à un anneau, elles ne sont pas de type ``RingElement`` :
 
 ::
 
-    sage: M = Matrix(ZZ,2,3); M
-    [0 0 0]
-    [0 0 0]
+    sage: M = Matrix(ZZ,2,2); M
+    [0 0]
+    [0 0]
     sage: isinstance(M, RingElement)
-    True
+    False
 
 Si les *parents* sont censés être uniques, des *éléments* égaux d'un parent ne
 sont pas nécessairement identiques. Le comportement de Sage diffère ici de
-celui de Python pour certains entiers (pas tous) :
+celui de Python pour certains entiers (pas tous) :
 
 ::
 
@@ -172,7 +174,7 @@ celui de Python pour certains entiers (pas tous) :
     False
 
 Il faut bien comprendre que les éléments d'anneaux différents ne se distinguent
-généralement pas par leur type, mais par leur parent :
+généralement pas par leur type, mais par leur parent :
 
 ::
 
@@ -196,10 +198,10 @@ d'un autre parent. Une telle conversion peut être explicite ou implicite. Les
 conversions implicites sont appelées *coercitions*.
 
 Le lecteur aura peut-être rencontré les notions de *conversion de type* et de
-*coercition de type* dans le contexte du langage C par exemple. En Sage, il
+*coercition de type* dans le contexte du langage C par exemple. En Sage, il
 existe aussi des notions de conversion et de coercition, mais elles
 s'appliquent aux *parents* et non aux types. Attention donc à ne pas confondre
-les conversions en Sage avec les conversions de type du C !
+les conversions en Sage avec les conversions de type du C !
 
 Nous nous limitons ici à une brève présentation, et renvoyons le lecteur à la
 section du manuel de référence consacrée aux coercitions ainsi qu'au
@@ -210,9 +212,9 @@ On peut adopter deux positions extrêmes sur les opérations arithmétiques entr
 éléments d'anneaux *différents* :
 
 * les anneaux différents sont des mondes indépendants, et l'addition ou la
-  multiplication entre éléments d'anneaux différents n'ont aucun sens ; même
+  multiplication entre éléments d'anneaux différents n'ont aucun sens ; même
   ``1 + 1/2`` n'a pas de sens puisque le premier terme est un entier et le
-  second un rationnel ;
+  second un rationnel ;
 
 ou
 
@@ -244,7 +246,7 @@ possible que si elle peut se faire *systématiquement* et de manière
 
 Une telle conversion implicite s'appelle une **coercition**. Si une coercition
 est définie entre deux parents, elle doit coïncider avec la conversion. De
-plus, les coercitions doivent obéir aux deux conditions suivantes :
+plus, les coercitions doivent obéir aux deux conditions suivantes :
 
 #. Une coercition de ``P1`` dans ``P2`` doit être un morphisme (par exemple
    un morphisme d'anneaux). Elle doit être définie pour *tous* les éléments de
@@ -263,7 +265,7 @@ n'existe pas de morphisme d'anneaux de ``GF(2)`` dans ``GF(5)``.
 Le second point — la cohérence des choix — est un peu plus compliqué à
 expliquer. Illustrons-le sur l'exemple des anneaux de polynômes multivariés.
 Dans les applications, il s'avère utile que les coercitions respectent les noms
-des variables. Nous avons donc :
+des variables. Nous avons donc :
 
 ::
 
@@ -279,7 +281,7 @@ des variables. Nous avons donc :
 En l'absence d'un morphisme d'anneau qui préserve les noms de variable, la
 coercition entre anneaux de polynômes multivariés n'est pas définie. Il peut
 tout de même exister une conversion qui envoie les variables d'un anneau sur
-celle de l'autre en fonction de leur position dans la liste des générateurs :
+celle de l'autre en fonction de leur position dans la liste des générateurs :
 
 .. link
 
@@ -293,7 +295,7 @@ celle de l'autre en fonction de leur position dans la liste des générateurs :
     sage: R3(y)
     x
 
-Mais une telle conversion ne répond pas aux critères pour être une coercition :
+Mais une telle conversion ne répond pas aux critères pour être une coercition :
 en effet, en composant l'application de ``ZZ['x','y']`` dans ``ZZ['y','x']``
 avec celle qui préserve les positions de ``ZZ['y','x']`` dans ``ZZ['a','b']``,
 nous obtiendrions une application qui ne préserve ni les noms ni les positions,
@@ -357,7 +359,7 @@ arriver qu'il n'existe pas de coercition entre ``P1`` et ``P2``, mais qu'il y
 ait un choix canonique de parent ``P3`` tel que ``P1`` et ``P2`` admettent tous
 deux des coercitions dans ``P3``. Dans ce cas aussi, la coercition a lieu. Un
 exemple typique de ce mécanisme est l'addition d'un rationnel et d'un polynôme
-à coefficients entiers, qui produit un polynôme à coefficients rationnels :
+à coefficients entiers, qui produit un polynôme à coefficients rationnels :
 
 ::
 
@@ -378,7 +380,7 @@ autres. La manière dont le choix est fait est décrite dans le `tutoriel
 <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_
 spécifique déjà mentionné.
 
-Dans l'exemple suivant, il n'y a pas de coercition vers un parent commun :
+Dans l'exemple suivant, il n'y a pas de coercition vers un parent commun :
 
 ::
 

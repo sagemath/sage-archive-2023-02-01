@@ -1,4 +1,4 @@
-__doc__ = r"""
+r"""
 Posets
 
 Common posets can be accessed through ``posets.<tab>`` and are listed in the

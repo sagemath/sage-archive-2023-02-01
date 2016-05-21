@@ -257,7 +257,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
         sage: RR = RealField(100)
         sage: for i in range(5):
-        ...       print("L({}, (-4/.)): {}".format(1+2*i, RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)))
+        ....:     print("L({}, (-4/.)): {}".format(1+2*i, RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)))
         L(1, (-4/.)):  0.000049999999500000024999996962707
         L(3, (-4/.)):  4.99999970000003...e-13
         L(5, (-4/.)):  4.99999922759382...e-21

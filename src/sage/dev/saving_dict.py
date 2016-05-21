@@ -379,7 +379,7 @@ class SavingDict(collections.MutableMapping):
             sage: sd = SavingDict(tmp_filename(), {'cow':'moo', 0:1}); sd
             {0: 1, 'cow': 'moo'}
             sage: for key in sd:
-            ...       print("{} {}".format(key, sd[key]))
+            ....:     print("{} {}".format(key, sd[key]))
             0 1
             cow moo
             sage: sd._erase()

@@ -610,6 +610,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
             + (6*c^5 + 12*c^4 + 6*c^3 + 5*c^2 + c)*x^2 + (c^4 + 2*c^3 + c^2 + 2*c)*x
             + c^6 + 3*c^5 + 3*c^4 + 3*c^3 + 2*c^2 + 1
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([z^2+3/z+1/7])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in z over Rational Field
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -619,14 +627,13 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
         F = self.homogenize(1).dynatomic_polynomial(period)
-        if F.denominator() == 1:
+        S = self.domain().coordinate_ring()
+        if S(F.denominator()).degree() == 0:
             R = F.parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))
         else:
             R = F.numerator().parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F.numerator())/phi(F.denominator()))
 

@@ -1,9 +1,8 @@
 r"""
 Hypergeometric Functions
 
-This module implements manipulation of generalized hypergeometric series
-represented in standard parametric form (as $\,_pF_q$ functions), as well as
-the confluent hypergeometric functions of the first and second kind.
+This module implements manipulation of infinite hypergeometric series
+represented in standard parametric form (as `\,_pF_q` functions).
 
 AUTHORS:
 
@@ -132,11 +131,11 @@ differential equations (example from `here <http://ask.sagemath.org/question/
 1168/how-can-one-use-maxima-kummer-confluent-functions>`_)::
 
     sage: m = var('m')
-    sage: y = function('y', x)
+    sage: y = function('y')(x)
     sage: desolve(diff(y, x, 2) + 2*x*diff(y, x) - 4*m*y, y,
     ....:         contrib_ode=true, ivar=x)
-    [y(x) == k1*hypergeometric_M(-m, 1/2, -x^2) +...
-     k2*hypergeometric_U(-m, 1/2, -x^2)]
+    [y(x) == _K1*hypergeometric_M(-m, 1/2, -x^2) +...
+     _K2*hypergeometric_U(-m, 1/2, -x^2)]
 
 Series expansions of confluent hypergeometric functions::
 
@@ -947,6 +946,14 @@ class Hypergeometric_M(BuiltinFunction):
         1/2*sqrt(pi)*erf(1)*e
     """
     def __init__(self):
+        """
+        TESTS::
+        
+            sage: maxima(hypergeometric_M(1,1,x))
+            kummer_m(1,1,_SAGE_VAR_x)
+            sage: latex(hypergeometric_M(1,1,x))
+            M\left(1, 1, x\right)
+        """
         BuiltinFunction.__init__(self, 'hypergeometric_M', nargs=3,
                                  conversions={'mathematica':
                                               'Hypergeometric1F1',
@@ -954,20 +961,38 @@ class Hypergeometric_M(BuiltinFunction):
                                  latex_name='M')
 
     def _eval_(self, a, b, z, **kwargs):
-        cm = get_coercion_model()
-        co = cm.canonical_coercion(cm.canonical_coercion(a, b)[0], z)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
+        """
+        TESTS::
+        
+            sage: (a,b)=var('a,b')
+            sage: hypergeometric_M(a,b,0)
+            1
+        """
         if not isinstance(z, Expression) and z == 0:
             return Integer(1)
         return
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
+        """
+        TESTS::
+        
+            sage: hypergeometric_M(1,1,1).n()
+            2.71828182845905
+        """
         from mpmath import hyp1f1
         return mpmath_utils.call(hyp1f1, a, b, z, parent=parent)
 
     def _derivative_(self, a, b, z, diff_param):
+        """
+        TESTS::
+        
+            sage: diff(hypergeometric_M(1,1,x),x,3)
+            hypergeometric_M(4, 4, x)
+            sage: diff(hypergeometric_M(x,1,1),x,3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative of hypergeometric function with respect to parameters
+        """
         if diff_param == 2:
             return (a / b) * hypergeometric_M(a + 1, b + 1, z)
         raise NotImplementedError('derivative of hypergeometric function '
@@ -1030,6 +1055,14 @@ class Hypergeometric_U(BuiltinFunction):
 
     """
     def __init__(self):
+        """
+        TESTS::
+        
+            sage: maxima(hypergeometric_U(1,1,x))
+            kummer_u(1,1,_SAGE_VAR_x)
+            sage: latex(hypergeometric_U(1,1,x))
+            U\left(1, 1, x\right)
+        """
         BuiltinFunction.__init__(self, 'hypergeometric_U', nargs=3,
                                  conversions={'mathematica':
                                               'HypergeometricU',
@@ -1037,18 +1070,29 @@ class Hypergeometric_U(BuiltinFunction):
                                  latex_name='U')
 
     def _eval_(self, a, b, z, **kwargs):
-        cm = get_coercion_model()
-        co = cm.canonical_coercion(cm.canonical_coercion(a, b)[0], z)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
         return
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
+        """
+        TESTS::
+        
+            sage: hypergeometric_U(1,1,1).n()
+            0.596347362323194
+        """
         from mpmath import hyperu
         return mpmath_utils.call(hyperu, a, b, z, parent=parent)
 
     def _derivative_(self, a, b, z, diff_param):
+        """
+        TESTS::
+        
+            sage: diff(hypergeometric_U(1,1,x),x,3)
+            -6*hypergeometric_U(4, 4, x)
+            sage: diff(hypergeometric_U(x,1,1),x,3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative of hypergeometric function with respect to parameters
+        """
         if diff_param == 2:
             return -a * hypergeometric_U(a + 1, b + 1, z)
         raise NotImplementedError('derivative of hypergeometric function '

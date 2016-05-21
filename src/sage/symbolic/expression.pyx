@@ -8925,7 +8925,7 @@ cdef class Expression(CommutativeRingElement):
     def simplify_hypergeometric(self, algorithm='maxima'):
         """
         Simplify an expression containing hypergeometric or confluent
-        hypergeometric functions
+        hypergeometric functions.
 
         INPUT:
 

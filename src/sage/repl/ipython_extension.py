@@ -15,6 +15,8 @@ A Sage extension which adds sage-specific features:
 
   - ``%mode`` (like ``%maxima``, etc.)
 
+  - ``%%cython``
+
 * preparsing of input
 
 * loading Sage library
@@ -56,7 +58,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
     sage: shell.quit()
 """
 
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
 from sage.repl.load import load_wrap
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
@@ -320,6 +322,38 @@ class SageMagics(Magics):
                 dm.preferences.text = arg0
             except ValueError as err:
                 print(err)  # do not show traceback
+
+    @cell_magic
+    def cython(self, line, cell):
+        """
+        Cython cell magic
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.cython_c.cython` function.
+
+        INPUT::
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Cython code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%cython
+            ....: def f():
+            ....:     print('test')
+            ....: ''')
+            ....: shell.run_cell('f()')
+        """
+        from sage.misc.cython_c import cython_compile
+        return cython_compile(cell)
 
 
 class SageCustomizations(object):

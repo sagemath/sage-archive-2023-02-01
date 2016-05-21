@@ -77,6 +77,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence import Sequence
@@ -838,7 +839,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: phi = R.hom([QQ(7)])
             sage: X = Spec(QQ); Y = Spec(R)
             sage: f = X.hom(phi)
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             Ring morphism:
               From: Univariate Polynomial Ring in x over Rational Field
               To:   Rational Field
@@ -1162,7 +1163,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: A.<x,y> = AffineSpace(R)
             sage: H = A.Hom(A)
             sage: f = H([y,x^2+y])
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             Defined on coordinates by sending (x, y) to
             (y, x^2 + y)
         """

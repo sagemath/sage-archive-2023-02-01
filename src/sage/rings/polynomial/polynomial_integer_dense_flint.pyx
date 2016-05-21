@@ -28,6 +28,7 @@ We check that the buggy gcd is fixed (see :trac:`17816`)::
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
+from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
@@ -181,7 +182,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Coercion from NTL polynomial::
 
             sage: f = ntl.ZZX([1, 2, 3])
-            sage: print R(f)
+            sage: print(R(f))
             3*x^2 + 2*x + 1
 
         Coercion from dictionary::
@@ -965,7 +966,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def __pow__(Polynomial_integer_dense_flint self, exp, ignored):
         """
-
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
@@ -998,38 +998,94 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            ValueError: (x)^(1/2) does not lie in Univariate
+            Polynomial Ring in x over Integer Ring
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
             OverflowError: Sage Integer too large to convert to C long
-        """
-        cdef Polynomial_integer_dense_flint res = self._new()
-        cdef long nn = pyobject_to_long(exp)
 
-        if self.is_zero():
-            if exp == 0:
-                fmpz_poly_set_coeff_si(res.__poly, 0, 1)
-                return res
-            elif exp < 0:
-                raise ZeroDivisionError("negative exponent in power of zero")
-            else:
-                return res
-        if exp < 0:
-            sig_on()
-            fmpz_poly_pow(res.__poly, self.__poly, -nn)
-            sig_off()
-            return ~res
+        Test fractional powers (:trac:`20086`)::
+
+            sage: P.<R> = ZZ[]
+            sage: (R^3 + 6*R^2 + 12*R + 8)^(1/3)
+            R + 2
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Integer Ring
+            sage: P(4)^(1/2)
+            2
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Integer Ring
+
+            sage: (R^2 + 3)^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (R^2 + 3)^(1/2) does not lie in Univariate
+            Polynomial Ring in R over Integer Ring
+
+            Ring in R over Integer Ring
+            sage: P(2)^P(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
+            sage: (R + 1)^P(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Integer Ring to Rational Field
+        """
+        cdef long nn
+        cdef Polynomial_integer_dense_flint res
+
+        try:
+            nn = pyobject_to_long(exp)
+        except TypeError:
+            n = QQ.coerce(exp)
+            num = n.numerator()
+            den = n.denominator()
+
+            if fmpz_poly_degree(self.__poly) == 0:
+                return self.parent()(self[0].nth_root(den) ** num)
+
+            return self.nth_root(den) ** num
+
         else:
-            if self is self._parent.gen():
+            res = self._new()
+
+            if self.is_zero():
+                if nn == 0:
+                    fmpz_poly_set_coeff_si(res.__poly, 0, 1)
+                    return res
+                elif nn < 0:
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                else:
+                    return res
+            if nn < 0:
                 sig_on()
-                fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
+                fmpz_poly_pow(res.__poly, self.__poly, -nn)
                 sig_off()
+                return ~res
             else:
-                sig_on()
-                fmpz_poly_pow(res.__poly, self.__poly, nn)
-                sig_off()
-            return res
+                if self is self._parent.gen():
+                    sig_on()
+                    fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
+                    sig_off()
+                else:
+                    sig_on()
+                    fmpz_poly_pow(res.__poly, self.__poly, nn)
+                    sig_off()
+                return res
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """

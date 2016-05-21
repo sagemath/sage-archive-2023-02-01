@@ -249,7 +249,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima.demo('cf') # not tested
-            read and interpret file: .../local/share/maxima/5.34.1/demo/cf.dem
+            read and interpret file: .../share/maxima/5.34.1/demo/cf.dem
 
             At the '_' prompt, type ';' and <enter> to get next demonstration.
             frac1:cf([1,2,3,4])

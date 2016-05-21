@@ -125,7 +125,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         EXAMPLE::
 
-        sage: R.<x> = QQ[]
+            sage: R.<x> = QQ[]
             sage: x._new_constant_poly(2/1,R)
             2
             sage: x._new_constant_poly(2,R)
@@ -136,7 +136,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: invalid literal for int() with base 10: '2.1'
-
         """
         cdef Polynomial_rational_flint res = Polynomial_rational_flint.__new__(Polynomial_rational_flint)
         res._parent = P
@@ -407,7 +406,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """
-        Sets the `n`th coefficient of self to value.
+        Sets the `n`-th coefficient of self to value.
 
         TESTS::
 
@@ -1099,19 +1098,19 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         Returns self raised to the power of exp.
 
-        The corner case of exp == 0 is handled by returning the constant
-        polynomial 1.  Note that this includes the case 0^0 == 1.
+        The corner case of ``exp == 0`` is handled by returning the constant
+        polynomial 1.  Note that this includes the case ``0^0 == 1``.
 
         This method only supports integral values for exp that fit into
-        a signed long int.
+        a signed long int (except when this is a constant polynomial).
 
         INPUT:
 
-        - exp - Exponent
+        - ``exp`` - Exponent
 
         OUTPUT:
 
-        - Polynomial; self raised to the power of exp
+        Polynomial; this polynomial raised to the power of ``exp``
 
         EXAMPLES::
 
@@ -1142,7 +1141,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            ValueError: (t + 1)^(1/3) does not lie in Univariate
+            Polynomial Ring in t over Rational Field
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1154,28 +1154,83 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             RuntimeError: FLINT exception
+
+        Test fractional powers (:trac:`20086`)::
+
+            sage: P.<R> = QQ[]
+            sage: (1/27*R^3 + 2/3*R^2 + 4*R + 8)^(2/3)
+            1/9*R^2 + 4/3*R + 4
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Rational Field
+            sage: P(1/4)^(1/2)
+            1/2
+            sage: _.parent()
+            Univariate Polynomial Ring in R over Rational Field
+
+            sage: (R+2)^(2/5)
+            Traceback (most recent call last):
+            ...
+            ValueError: (R + 2)^(1/5) does not lie in Univariate
+            Polynomial Ring in R over Rational Field
+
+            sage: P(1/3)^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a perfect 2nd power
+            sage: P(4)^P(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: (R + 1)^P(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Univariate Polynomial
+            Ring in R over Rational Field to Rational Field
         """
         cdef Polynomial_rational_flint res
+        cdef long n
 
-        cdef long n = pyobject_to_long(exp)
+        try:
+            n = pyobject_to_long(exp)
+        except TypeError:
+            r = QQ.coerce(exp)
+            num = r.numerator()
+            den = r.denominator()
 
-        if n < 0:
-            if fmpq_poly_is_zero(self.__poly):
-                raise ZeroDivisionError("negative exponent in power of zero")
-            res = self._new()
-            sig_str("FLINT exception")
-            fmpq_poly_pow(res.__poly, self.__poly, -n)
-            sig_off()
-            return ~res
+            if fmpq_poly_degree(self.__poly) == 0:
+                return self.parent()(self[0].nth_root(den) ** num)
+
+            return self.nth_root(den) ** num
+
         else:
-            res = self._new()
-            sig_str("FLINT exception")
-            if self._is_gen:
-                fmpq_poly_set_coeff_si(res.__poly, n, 1)
+            if n < 0:
+                if fmpq_poly_is_zero(self.__poly):
+                    raise ZeroDivisionError("negative exponent in power of zero")
+                res = self._new()
+                sig_str("FLINT exception")
+                fmpq_poly_pow(res.__poly, self.__poly, -n)
+                sig_off()
+                return ~res
             else:
-                fmpq_poly_pow(res.__poly, self.__poly, n)
-            sig_off()
-            return res
+                res = self._new()
+                sig_str("FLINT exception")
+                if self._is_gen:
+                    fmpq_poly_set_coeff_si(res.__poly, n, 1)
+                else:
+                    fmpq_poly_pow(res.__poly, self.__poly, n)
+                sig_off()
+                return res
 
     def __floordiv__(Polynomial_rational_flint self, right):
         """
@@ -1373,7 +1428,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Derivative as a ``Polynomial_rational_flint``
 
-        .. seealso:: :meth:`.derivative`
+        .. seealso:: :meth:`~Polynomial.derivative`
 
         EXAMPLES::
 

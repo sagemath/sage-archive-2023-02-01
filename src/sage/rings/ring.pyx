@@ -65,6 +65,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -390,7 +391,6 @@ cdef class Ring(ParentWithGens):
             gens = [self.zero()]
 
         if coerce:
-            #print [type(g) for g in gens]
             gens = [self(g) for g in gens]
         if isinstance(self, PrincipalIdealDomain):
             # Use GCD algorithm to obtain a principal ideal
@@ -1907,7 +1907,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = NumberField(x^2 - 2, 'a')
             sage: f = (x - a)*(x + a); g = (x - a)*(x^2 - 2)
-            sage: print f; print g
+            sage: print(f); print(g)
             x^2 - 2
             x^3 - a*x^2 - 2*x + 2*a
             sage: f in R

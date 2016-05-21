@@ -27,6 +27,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 
@@ -2699,7 +2700,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: a = 1/3 + (1/5)*z
-            sage: print a.denominator()
+            sage: a.denominator()
             15
         """
         return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)

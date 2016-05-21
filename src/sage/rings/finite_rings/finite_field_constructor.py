@@ -90,7 +90,7 @@ Finite Fields support iteration, starting with 0.
 ::
 
     sage: k = GF(9, 'a')
-    sage: for i,x in enumerate(k):  print i,x
+    sage: for i,x in enumerate(k):  print("{} {}".format(i, x))
     0 0
     1 a
     2 a + 1
@@ -101,7 +101,7 @@ Finite Fields support iteration, starting with 0.
     7 a + 2
     8 1
     sage: for a in GF(5):
-    ...    print a
+    ....:     print(a)
     0
     1
     2
@@ -165,6 +165,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import random
 

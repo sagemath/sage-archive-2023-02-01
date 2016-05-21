@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import division, print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -287,11 +287,11 @@ cdef class ntl_ZZ_pX(object):
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_pX([2, 3, 5, -7, 11], c)
             sage: i = x._getitem_as_int_doctest(3)
-            sage: print i
+            sage: i
             13
-            sage: print type(i)
+            sage: type(i)
             <type 'int'>
-            sage: print x._getitem_as_int_doctest(15)
+            sage: x._getitem_as_int_doctest(15)
             0
         """
         # self.c.restore_c() # restored in getitem_as_int()

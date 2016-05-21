@@ -1336,19 +1336,18 @@ class TableauTuple(CombinatorialElement):
             sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,2])
             3-residue sequence (2,0,1,2,0) with multicharge (0,2)
         """
-        Ze=IntegerModRing(e)
         res=[0]*self.size()
         for k in range(len(self)):
             for r in range(len(self[k])):
                 for c in range(len(self[k][r])):
-                    res[self[k][r][c]-1]=Ze( multicharge[k]-r+c )
+                    res[self[k][r][c]-1]=multicharge[k]-r+c
         return ResidueSequence(e,multicharge,res)
 
     def degree(self,e, multicharge):
         """
         INPUT: self.degree(e, multicharge)
 
-        Return the integer which is the Brundan-Kleshchev-Wang degree of the standard tableau t.
+        Return the integer which is the Brundan-Kleshchev-Wang [BKW]_ degree of a standard tableau.
 
         This is defined recursively by successively stripping off the number k,
         for k=n,n-1,...,1, and at stage adding the count of the number of addable cell
@@ -1729,12 +1728,11 @@ class StandardTableauTuple(TableauTuple):
             sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,2])
             3-residue sequence (2,0,1,2,0) with multicharge (0,2)
         """
-        Ze=IntegerModRing(e)
         res=[0]*self.size()
         for k in range(len(self)):
             for r in range(len(self[k])):
                 for c in range(len(self[k][r])):
-                    res[self[k][r][c]-1]=Ze( multicharge[k]-r+c )
+                    res[self[k][r][c]-1]=multicharge[k]-r+c
         return ResidueSequence(e,multicharge,res)
 
     def degree(self,e, multicharge):
@@ -3682,7 +3680,7 @@ class StandardTableaux_residue(StandardTableauTuples):
         """
         super(StandardTableaux_residue, self).__init__(category = FiniteEnumeratedSets())
         self._residue=residue
-        self._e=residue.e()
+        self._quantum_characteristic=residue.quantum_characteristic()
         self._multicharge=residue.multicharge()
         self._level=residue.level()
         self._size=residue.size()
@@ -3710,7 +3708,7 @@ class StandardTableaux_residue(StandardTableauTuples):
             except ValueError:
                 return False
 
-        return t.residue_sequence(self._e,self._multicharge)==self._residue
+        return t.residue_sequence(self._quantum_characteristic,self._multicharge)==self._residue
 
     def _repr_(self):
         """
@@ -3868,7 +3866,7 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
              ([[1, 2], [3]], [], [[4, 5], [6], [7]])]
         """
         super(StandardTableaux_residue_shape, self).__init__(category = FiniteEnumeratedSets())
-        self._e=residue.e()
+        self._quantum_characteristic=residue.quantum_characteristic()
         self._level=residue.level()
         self._multicharge=residue.multicharge()
         self._residue=residue
@@ -3893,7 +3891,7 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
                 t = StandardTableauTuple(t)
             except ValueError:
                 return False
-        return t.shape()==self._shape and t.residue_sequence(self._e,self._multicharge)==self._residue
+        return t.shape()==self._shape and t.residue_sequence(self._quantum_characteristic,self._multicharge)==self._residue
 
     def _repr_(self):
         """
@@ -3989,7 +3987,7 @@ class ResidueSequence(ClonableIntArray):
         sage: from sage.combinat.tableau_tuple import ResidueSequence
         sage: res=ResidueSequence(3,(0,0,1), [0,1,2,0]); res
         3-residue sequence (0,1,2,0) with multicharge (0,0,1)
-        sage: res.e()
+        sage: res.quantum_characteristic()
         3
         sage: res.level()
         3
@@ -4040,7 +4038,7 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3, [0,0,1], [0,0,1,1,2,2,3,3])  # indirect doctest
-            3-residue sequence (0,0,1,1,2,2,3,3) with multicharge (0,0,1)
+            3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
         """
         # if the multicharge is omitted it defaults to (0,) in level 1
         if residues is None:
@@ -4060,7 +4058,7 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])
-            3-residue sequence (0,0,1,1,2,2,3,3) with multicharge (0,0,1)
+            3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
 
         The TestSuite fails _test_pickling because __getitem__ does not support
         slices so we skip this.
@@ -4070,6 +4068,7 @@ class ResidueSequence(ClonableIntArray):
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: TestSuite(ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])).run(skip='_test_pickling')
         """
+        residues=tuple(parent._base_ring(i) for i in residues)
         super(ResidueSequence, self).__init__(parent, residues, check)
 
     def check(self):
@@ -4090,7 +4089,7 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])
-            3-residue sequence (0,0,1,1,2,2,3,3) with multicharge (0,0,1)
+            3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
         """
         return self.__str__()
 
@@ -4103,9 +4102,9 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).__str__()
-            '3-residue sequence (0,0,1,1,2,2,3,3) with multicharge (0,0,1)'
+            '3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)'
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).__str__('and')
-            '3-residue sequence (0,0,1,1,2,2,3,3) and multicharge (0,0,1)'
+            '3-residue sequence (0,0,1,1,2,2,0,0) and multicharge (0,0,1)'
         """
         return '{e}-residue sequence ({res}) {join} multicharge ({charge})'.format(
                   e=self.quantum_characteristic(),  res=','.join('%s'%r for r in self), 
@@ -4121,7 +4120,7 @@ class ResidueSequence(ClonableIntArray):
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])[4]
             1
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])[7]
-            3
+            0
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3])[9]
             Traceback (most recent call last):
             ...
@@ -4140,7 +4139,7 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).residues()
-            [0, 0, 1, 1, 2, 2, 3, 3]
+            [0, 0, 1, 1, 2, 2, 0, 0]
         """
         return self.list()   # return a copy
 
@@ -4152,7 +4151,7 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).restrict(7)
-            3-residue sequence (0,0,1,1,2,2,3) with multicharge (0,0,1)
+            3-residue sequence (0,0,1,1,2,2,0) with multicharge (0,0,1)
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).restrict(6)
             3-residue sequence (0,0,1,1,2,2) with multicharge (0,0,1)
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).restrict(4)
@@ -4170,9 +4169,9 @@ class ResidueSequence(ClonableIntArray):
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: res=ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]); res
-            3-residue sequence (0,0,1,1,2,2,3,3) with multicharge (0,0,1)
+            3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
             sage: ser=res.swap_residues(2,6); ser
-            3-residue sequence (0,2,1,1,2,0,3,3) with multicharge (0,0,1)
+            3-residue sequence (0,2,1,1,2,0,0,0) with multicharge (0,0,1)
             sage: res==ser
             False
 
@@ -4264,16 +4263,17 @@ class ResidueSequence(ClonableIntArray):
         """
         return self.parent()._base_ring
 
-    def e(self):
+    def quantum_characteristic(self):
         r"""
-        Return the quantum characteristic e for the residue sequence.
+        Return the quantum characteristic of the residue sequence.
 
         EXAMPLES::
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).e()
+            sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).quantum_characteristic()
+            3
         """
-        return self.parent()._e
+        return self.parent()._quantum_characteristic
 
     def multicharge(self):
         r"""
@@ -4356,8 +4356,8 @@ class ResidueSequences(UniqueRepresentation, Parent):
             sage: ResidueSequences(e=0, multicharge=(0,1,2)) == ResidueSequences(e=3, multicharge=(0,1,2))
             False
         """
-        self._e=e
-        self._base_ring=IntegerModRing(self._e)
+        self._quantum_characteristic=e
+        self._base_ring=IntegerModRing(self._quantum_characteristic)
         self._multicharge=tuple(self._base_ring(i) for i in multicharge)
         super(ResidueSequences, self).__init__(category=Sets())
 
@@ -4375,7 +4375,7 @@ class ResidueSequences(UniqueRepresentation, Parent):
             sage: ResidueSequences(2, (0,1,2,3))
             2-residue sequences with multicharge (0, 1, 0, 1)
         """
-        return '{}-residue sequences with multicharge {}'.format(self._e, self._multicharge)
+        return '{}-residue sequences with multicharge {}'.format(self._quantum_characteristic, self._multicharge)
 
     def an_element(self):
         r"""

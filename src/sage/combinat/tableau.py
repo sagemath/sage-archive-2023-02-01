@@ -76,6 +76,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
@@ -3860,11 +3861,10 @@ class Tableau(ClonableList):
             Residue sequence (0,1,3,0)
         """
         from tableau_tuple import ResidueSequence
-        Ze=IntegerModRing(e)
         res=[0]*self.size()
         for r in range(len(self)):
             for c in range(len(self[r])):
-                res[self[r][c]-1]=Ze(multicharge[0]-r+c )
+                res[self[r][c]-1]=multicharge[0]-r+c
         return ResidueSequence(e,multicharge,res)
 
     def degree(self,e, multicharge=(0,)):
@@ -6375,7 +6375,6 @@ class StandardTableaux(SemistandardTableaux):
         2
         sage: ST.list()
         [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
-
         sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
         Standard tableaux of residue (0,1,2,2,0)
     """

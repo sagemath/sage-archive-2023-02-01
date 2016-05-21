@@ -3734,7 +3734,6 @@ class Tableau(ClonableList):
     #################
     # seg and flush #
     #################
-
     def _segments(self):
         r"""
         Internal function returning the set of segments of a tableau as
@@ -3836,6 +3835,175 @@ class Tableau(ClonableList):
                             or (s[1] < 1 and self[s[0][0]+1][s[1]] != s[0][0]+2) ):
                         f += 1
         return f
+
+    def residue_sequence(self, e, multicharge=(0,)):
+        """
+       INPUT:
+            - an integer `k`, with 1\le k\le n,
+            - an integer `e` in {0,2,3,4,5,...} (not checked!)
+            - an (optional) sequence of integers the `multicharge` of length 1.
+
+        OUTPUT:
+
+        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
+
+        The `multicharge` is a list of length 1 which gives an offset for all of
+        the contents. It is included mainly for compatabilty with TableauTuples.
+
+        EXAMPLES::
+
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(2)
+            Residue sequence (0,1,1,0)
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(3)
+            Residue sequence (0,1,2,0)
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
+            Residue sequence (0,1,3,0)
+        """
+        from tableau_tuple import ResidueSequence
+        Ze=IntegerModRing(e)
+        res=[0]*self.size()
+        for r in range(len(self)):
+            for c in range(len(self[r])):
+                res[self[r][c]-1]=Ze(multicharge[0]-r+c )
+        return ResidueSequence(e,multicharge,res)
+
+    def degree(self,e, multicharge=(0,)):
+        """
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` - the multicharge (default: ``[0]``).
+
+        OUTPUT:
+
+        The **degree** of the tableau ``self`` which is a integer.
+
+        This is defined recursively by successively stripping off the number
+        `k`, for `k=n,n-1,...,1` and at stage adding the number of addable cell
+        of the same residue minus the number of removable cells of the same
+        residue as `k` and which are below `k` in the diagram.
+
+        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by ``self``.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,2,5],[3,4]]).degree(3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
+            1
+
+        REFERENCE:
+
+        .. [BKW]  J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
+                  J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        n=self.size()
+        if n==0: return 0
+
+        deg=self.shape()._initial_degree(e,multicharge)
+        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r]==res[r+1]: 
+                deg-=2
+            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
+                deg+=(e==2 and 2 or 1)
+            res=res.swap_residues(r,r+1)
+        return deg
+
+    def codegree(self,e, multicharge=(0,)):
+        """
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` - the multicharge (default: ``[0]``).
+
+        OUTPUT:
+
+        The **codegree** of the tableau ``self`` which is a integer.
+
+        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
+        standard tableau ``self``.
+
+        This is defined recursively by successively stripping off the number `k`,
+        for `k=n,n-1,...,1` and at stage adding the number of addable cell
+        of the same residue minus the number of removable cells of the same
+        residue as `k` and which are above `k` in the diagram.
+
+        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by ``self``.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,3,5],[2,4]]).codegree(3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).codegree(3)
+            1
+            sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
+            0
+
+        REFERENCE:
+            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
+              J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        if self==[]: return 0  # the trivial case
+
+        codeg=self.shape().conjugate()._initial_degree(e,multicharge)
+        res=self.shape().conjugate().initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r]==res[r+1]: 
+                codeg-=2
+            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
+                codeg+=(e==2 and 2 or 1)
+            res=res.swap_residues(r,r+1)
+        return codeg
+
+    def first_row_descent(self):
+        """ Given a tableau return the first cell where the tableau is not row
+        standard, where the cells are ordered left to right along the rows and
+        then top to bottom. That is, the cell (r,c) with r and c minimal such that
+        the entry in position (r,c) is bigger than the entry in position (r,c+1).
+
+        If there is no such cell then None is returned - in this case the
+        tableau is row strict.
+
+        EXAMPLES::
+
+            sage: t=Tableau([[1,3,2],[4]]); t.first_row_descent()
+            (0, 1)
+            sage: Tableau([[1,2,3],[4]]).first_row_descent() is  None
+            True
+        """
+        for row in xrange(len(self)):
+            for col in xrange(len(self[row])-1):
+                if self[row][col]>self[row][col+1]:
+                    return (row,col)
+        return None
+
+    def first_column_descent(self):
+        """
+        Given a tableau return the first row where the tableau is not column
+        standard. That is, the cell (r,c) with r and c minimal such that
+        the entry in position (r,c) is bigger than the entry in position (r,c+1).
+
+        If there is no such cell then None is returned - in this case the
+        tableau is column strict.
+
+        EXAMPLES::
+
+            sage: Tableau([[1,4,5],[2,3]]).first_column_descent()
+            (0, 1)
+            sage: Tableau([[1,2,3],[4]]).first_column_descent() is None
+            True
+        """
+        for row in xrange(len(self)-1):
+            col=0
+            while col<len(self[row+1]):
+                if self[row][col]>self[row+1][col]:
+                    return (row,col)
+                col+=1
+        return None
+
 
 
 class SemistandardTableau(Tableau):
@@ -4081,6 +4249,37 @@ class StandardTableau(SemistandardTableau):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
 
+    def dominates(self, t):
+        r"""
+        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
+        if the shape of the tableau restricted to `k` dominates the shape of
+        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
+
+        When the two tableaux have the same shape, then this ordering
+        coincides with the Bruhat ordering for the correspomding permutations.
+
+        INPUT:
+
+        - ``t`` -- A tableaux
+
+        EXAMPLES::
+
+            sage: s=StandardTableau([[1,2,3],[4,5]])
+            sage: t=StandardTableau([[1,2],[3,5],[4]])
+            sage: s.dominates(t)
+            True
+            sage: t.dominates(s)
+            False
+            sage: all(StandardTableau(s).dominates(t) for t in StandardTableaux([3,2]))
+            True
+            sage: s.dominates([[1,2,3,4,5]])
+            False
+
+        """
+        t=StandardTableau(t)
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
+                        for m in xrange(1,1+self.size()))
+
 
     def content(self, k, multicharge=[0]):
         """
@@ -4108,6 +4307,50 @@ class StandardTableau(SemistandardTableau):
           except ValueError:
             pass
         raise ValueError("%d does not appear in tableau"%k)
+
+
+    def residue(self, k, e, multicharge=[0]):
+        """
+       INPUT:
+            - an integer `k`, with 1\le k\le n,
+            - an integer `e` in {0,2,3,4,5,...} (not checked!)
+            - an (optional) `multicharge` which defaluts to [0]
+
+        Here l is the level of the shape and n is its size.
+
+        OUTPUT:
+
+        The residue of ``k`` in a standard tableau. That is, if
+        ``k`` appears in row `r` and column `c` of the tableau then we
+        return the image of `c-r+multicharge[k]` in Z/eZ.
+
+        The `multicharge` is a list of length 1 which gives an offset for all of
+        the contents. It is included mainly for compatabilty with TableauTuples.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(1,3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(2,3)
+            1
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(3,3)
+            2
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(4,3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(5,3)
+            2
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(6,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 does not appear in the tableau
+        """
+        for r in range(len(self)):
+          try:
+            return IntegerModRing(e)(self[r].index(k) - r + multicharge[0])
+          except ValueError:
+            pass
+        raise ValueError, '%d does not appear in the tableau'%k
+
 
     def dominates(self, t):
         r"""
@@ -6132,6 +6375,9 @@ class StandardTableaux(SemistandardTableaux):
         2
         sage: ST.list()
         [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
+
+        sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
+        Standard tableaux of residue (0,1,2,2,0)
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):

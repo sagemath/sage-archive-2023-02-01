@@ -3077,9 +3077,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
               (quotient fields and metric spaces)
         """
         if Y.base_ring().is_field():
-            import vector_space_homspace
+            from . import vector_space_homspace
             return vector_space_homspace.VectorSpaceHomspace(self, Y, category)
-        import free_module_homspace
+        from . import free_module_homspace
         return free_module_homspace.FreeModuleHomspace(self, Y, category)
 
     def scale(self, other):
@@ -3896,7 +3896,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("sub must be a subspace of self")
         A, L = self.__quotient_matrices(sub)
-        import quotient_module
+        from . import quotient_module
         return quotient_module.FreeModule_ambient_field_quotient(self, sub, A, L)
 
     def __quotient_matrices(self, sub):

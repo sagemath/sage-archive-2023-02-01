@@ -9,6 +9,7 @@ Affine `n` space over a ring
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
 from sage.rings.ring import is_Ring
@@ -271,7 +272,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         EXAMPLES::
 
-            sage: print latex(AffineSpace(1, ZZ, 'x'))
+            sage: print(latex(AffineSpace(1, ZZ, 'x')))
             \mathbf{A}_{\Bold{Z}}^1
 
         TESTS::

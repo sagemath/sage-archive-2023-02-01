@@ -289,6 +289,7 @@ from sage.symbolic.ring import var
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.skew_partition', 'SkewPartition')
+lazy_import('sage.combinat.partition_tuple', 'PartitionTuple')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
@@ -5076,10 +5077,23 @@ class Partitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Partitions()
-            sage: P([3,3,1]) # indirect doctest
+            sage: p = P([3,3,1]); p
             [3, 3, 1]
+            sage: P(p) is p
+            True
+            sage: P([3, 2, 1, 0])
+            [3, 2, 1]
+
+            sage: PT = PartitionTuples()
+            sage: elt = PT([[4,4,2,2,1]]); elt
+            ([4, 4, 2, 2, 1])
+            sage: P(elt)
+            [4, 4, 2, 2, 1]
         """
-        if isinstance(lst, Partition):
+        if isinstance(lst, PartitionTuple):
+            if lst.level() != 1:
+                raise ValueError('%s is not an element of %s'%(lst, self))
+            lst = lst[0]
             if lst.parent() is self:
                 return lst
         if lst in self:
@@ -6695,7 +6709,7 @@ class RegularPartitions(Partitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
     - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
       partitions is infinite
     """
@@ -6748,7 +6762,7 @@ class RegularPartitions(Partitions):
         if not Partitions.__contains__(self, x):
             return False
         if isinstance(x, Partition):
-            return max(x.to_exp(1)) < self._ell
+            return max(x.to_exp() + [0]) < self._ell
         return all(x.count(i) < self._ell for i in set(x) if i > 0)
 
     def _fast_iterator(self, n, max_part):
@@ -6784,7 +6798,7 @@ class RegularPartitions_all(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the integer `\ell`
+    - ``ell`` -- the positive integer `\ell`
 
     .. SEEALSO::
 

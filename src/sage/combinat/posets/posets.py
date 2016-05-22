@@ -239,8 +239,6 @@ Classes and functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-# python3
-from __future__ import division
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -2815,7 +2813,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             d.add_edges(combinations(l,2))
 
         # The only 2-cycles are the incomparable pair
-        if d.size() != (n * (n - 1)) // 2 + inc_graph.size():
+        if d.size() != (n*(n-1))/2+inc_graph.size():
             raise RuntimeError("Something went wrong. Please report this "
                                "bug to sage-devel@googlegroups.com")
 
@@ -5701,8 +5699,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise TypeError('the poset is not graded')
         levels = self._hasse_diagram.level_sets()
         h = len(levels)
-        for i in range(h // 2):
-            if len(levels[i]) != len(levels[h - 1 - i]):
+        for i in range(h/2):
+            if len(levels[i]) != len(levels[h-1-i]):
                 return False
         return True
 

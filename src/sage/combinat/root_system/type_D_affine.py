@@ -9,6 +9,7 @@ Root system data for (untwisted) type D affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
 class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
@@ -117,7 +118,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
 
         EXAMPLES::
 
-            sage: print CartanType(['D',4,1])._latex_dynkin_diagram()
+            sage: print(CartanType(['D',4,1])._latex_dynkin_diagram())
             \draw (0,0.7 cm) -- (2 cm,0);
             \draw (0,-0.7 cm) -- (2 cm,0);
             \draw (2 cm,0) -- (2 cm,0);
@@ -162,14 +163,14 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
 
         TESTS::
 
-            sage: print CartanType(['D',6,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['D',6,1]).ascii_art(label = lambda x: x+2))
               2 O       O 8
                 |       |
                 |       |
             O---O---O---O---O
             3   4   5   6   7
 
-            sage: print CartanType(['D',4,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['D',4,1]).ascii_art(label = lambda x: x+2))
                 O 6
                 |
                 |
@@ -178,7 +179,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
                 |
                 O 2
 
-            sage: print CartanType(['D',3,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['D',3,1]).ascii_art(label = lambda x: x+2))
             2
             O-------+
             |       |

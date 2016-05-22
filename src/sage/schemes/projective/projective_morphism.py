@@ -38,6 +38,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
@@ -1521,7 +1522,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([1/3*x^2+1/2*y^2, y^2])
-            sage: print f.primes_of_bad_reduction()
+            sage: f.primes_of_bad_reduction()
             [2, 3]
 
         ::

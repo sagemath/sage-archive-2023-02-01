@@ -21,6 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
@@ -828,13 +829,13 @@ cdef class pAdicPrinter_class(SageObject):
 
             sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a #indirect doctest
             7 * 52 + O(7^5)
-            sage: print a.str('terse')
+            sage: print(a.str('terse'))
             364 + O(7^5)
-            sage: print a.str('series')
+            sage: print(a.str('series'))
             3*7 + 7^3 + O(7^5)
             sage: K = Qp(7,4,'capped-rel','val-unit'); a = K(364); a
             7 * 52 + O(7^5)
-            sage: print a.str('series')
+            sage: print(a.str('series'))
             3*7 + 7^3 + O(7^5)
             sage: padic_printing.sep('')
             sage: K = Qp(7, print_mode='digits')

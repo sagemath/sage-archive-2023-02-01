@@ -26,6 +26,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from __future__ import print_function
+
 include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
@@ -354,14 +356,14 @@ cdef class GurobiBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver      # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                   # optional - Gurobi
             sage: p.problem_name("There once was a french fry")                       # optional - Gurobi
-            sage: print p.problem_name()                                              # optional - Gurobi
+            sage: print(p.problem_name())                                             # optional - Gurobi
             There once was a french fry
 
         TESTS::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
-            sage: print p.problem_name()                                            # optional - Gurobi
+            sage: print(p.problem_name())                                           # optional - Gurobi
         """
         cdef int error
         cdef char * pp_name[1]

@@ -313,8 +313,33 @@ class Magmas(Category_singleton):
             from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             return (self & MagmasAndAdditiveMagmas()).Distributive()
 
+        def JTrivial(self):
+            r"""
+            Return the full subcategory of the `J`-trivial objects of ``self``.
+
+            This axiom is in fact only meaningful for
+            :class:`semigroups <Semigroups>`. This stub definition is
+            here as a workaround for :trac:`20515`, in order to define
+            the `J`-trivial axiom as the intersection of the `L` and
+            `R`-trivial axioms.
+
+            .. SEEALSO:: :meth:`Semigroups.SubcategoryMethods.JTrivial`
+
+            TESTS::
+
+                sage: Magmas().JTrivial()
+                Category of j trivial magmas
+                sage: (Semigroups().RTrivial() & Semigroups().LTrivial()) is Semigroups().JTrivial()
+                True
+            """
+            return self._with_axiom('JTrivial')
+
     Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
     FinitelyGeneratedAsMagma = LazyImport('sage.categories.finitely_generated_magmas', 'FinitelyGeneratedMagmas')
+
+    class JTrivial(CategoryWithAxiom):
+        # Workaround for #20515; see also Magmas.SubcategoryMethods.JTrivial
+        pass
 
     class Algebras(AlgebrasCategory):
 

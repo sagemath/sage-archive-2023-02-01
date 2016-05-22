@@ -13,17 +13,14 @@ Pynac interface
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "pynac_cc.h":
-    long double sage_logl(long double)
-    long double sage_sqrtl(long double)
-    long double sage_tgammal(long double)
-    long double sage_lgammal(long double)
 
-include "sage/ext/cdefs.pxi"
-from sage.ext.stdsage cimport PY_NEW
 from cpython cimport *
-from ginac cimport *
+from libc cimport math
 
+from .ginac cimport *
+
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.libs.gsl.types cimport *
 from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
@@ -47,7 +44,6 @@ import ring
 
 from sage.rings.integer cimport Integer
 
-import math
 from sage.libs.mpmath import utils as mpmath_utils
 
 #################################################################
@@ -1295,7 +1291,7 @@ cdef object py_tgamma(object x) except +:
     if type(x) is int or type(x) is long:
         x = float(x)
     if type(x) is float:
-        return sage_tgammal(x)
+        return math.tgamma(PyFloat_AS_DOUBLE(x))
 
     # try / except blocks are faster than
     # if hasattr(x, 'gamma')
@@ -1566,7 +1562,7 @@ cdef object py_exp(object x) except +:
         0.540302305868140 + 0.841470984807897*I
     """
     if type(x) is float:
-        return math.exp(x)
+        return math.exp(PyFloat_AS_DOUBLE(x))
     try:
         return x.exp()
     except AttributeError:
@@ -1625,10 +1621,11 @@ cdef object py_log(object x) except +:
     if type(x) is int or type(x) is long:
         x = float(x)
     if type(x) is float:
-        if (<float>x) > 0:
-            return sage_logl(x)
-        elif x < 0:
-            res = gsl_complex_log(gsl_complex_rect(PyFloat_AsDouble(x), 0))
+        real = PyFloat_AS_DOUBLE(x)
+        if real > 0:
+            return math.log(real)
+        elif real < 0:
+            res = gsl_complex_log(gsl_complex_rect(real, 0))
             return PyComplex_FromDoubles(res.dat[0], res.dat[1])
         else:
             return float('-inf')
@@ -1756,7 +1753,7 @@ cdef object py_sinh(object x) except +:
 
 cdef object py_cosh(object x) except +:
     if type(x) is float:
-        return math.cosh(x)
+        return math.cosh(PyFloat_AS_DOUBLE(x))
     try:
         return x.cosh()
     except AttributeError:
@@ -1803,10 +1800,10 @@ cdef object py_lgamma(object x) except +:
         sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
         sage: py_lgamma(4)
         1.79175946922805
-        sage: py_lgamma(4.r)
-        1.791759469228055
-        sage: py_lgamma(4r)
-        1.791759469228055
+        sage: py_lgamma(4.r)  # abs tol 2e-16
+        1.7917594692280552
+        sage: py_lgamma(4r)  # abs tol 2e-16
+        1.7917594692280552
         sage: py_lgamma(CC.0)
         -0.650923199301856 - 1.87243664726243*I
         sage: py_lgamma(ComplexField(100).0)
@@ -1817,7 +1814,7 @@ cdef object py_lgamma(object x) except +:
     if type(x) is int or type(x) is long:
         x = float(x)
     if type(x) is float:
-         return sage_lgammal(x)
+         return math.lgamma(PyFloat_AS_DOUBLE(x))
     elif type(x) is complex:
         gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
         res = gsl_complex_polar(lnr.val, arg.val)
@@ -1859,7 +1856,7 @@ cdef object py_sqrt(object x) except +:
         # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
     except AttributeError as msg:
-        return sage_sqrtl(float(x))
+        return math.sqrt(float(x))
 
 cdef object py_abs(object x) except +:
     return abs(x)

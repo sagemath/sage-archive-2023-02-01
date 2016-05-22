@@ -26,8 +26,9 @@ Functions, Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import sage
+import sage   # WHAT !!!
 
 
 def repr_short_to_parent(s):
@@ -296,7 +297,7 @@ def repr_op(left, op, right=None, latex=False):
 
     ::
 
-        sage: print repr_op(r'\frac{1}{2}', '^', 'c', latex=True)
+        sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
     """
     left = str(left)

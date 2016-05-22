@@ -1,6 +1,7 @@
 """
 Real intervals with a fixed absolute precision
 """
+from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
 
@@ -197,7 +198,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(100)
-            sage: print R
+            sage: print(R)
             Real Interval Field with absolute precision 2^-100
             sage: R._repr_()
             'Real Interval Field with absolute precision 2^-100'
@@ -685,11 +686,11 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             sage: elts
             [-2.?, -1.?, 0.?e1, 0.?e1, -1.?, 0.?, 0.?e1, 1.?, 1.?, 2.?]
             sage: for a in elts:
-            ...   for b in elts:
-            ...         if (a*b).lower() != (a._real_mpfi_(RIF)*b._real_mpfi_(RIF)).lower():
-            ...             print a, b
-            ...         if (a*b).upper() != (a._real_mpfi_(RIF)*b._real_mpfi_(RIF)).upper():
-            ...             print a, b
+            ....:     for b in elts:
+            ....:         if (a*b).lower() != (a._real_mpfi_(RIF)*b._real_mpfi_(RIF)).lower():
+            ....:             print(a, b)
+            ....:         if (a*b).upper() != (a._real_mpfi_(RIF)*b._real_mpfi_(RIF)).upper():
+            ....:             print(a, b)
             sage: R(pi) * R(pi) - R(pi^2)
             0.00?
         """

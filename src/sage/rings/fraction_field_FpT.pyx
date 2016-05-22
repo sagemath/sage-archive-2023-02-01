@@ -1,4 +1,5 @@
 "Univariate rational functions over prime fields"
+from __future__ import print_function
 
 import sys
 
@@ -561,9 +562,8 @@ cdef class FpTElement(RingElement):
             sage: R.<t> = FpT(GF(3)['t'])
             sage: a = R(0)
             sage: for _ in range(30):
-            ...       a = a.next()
-            ...       print a
-            ...
+            ....:     a = a.next()
+            ....:     print(a)
             1
             2
             1/t
@@ -864,8 +864,8 @@ cdef class FpT_iter:
             sage: K = GF(11)['t'].fraction_field()
             sage: I = K.iter(2) # indirect doctest
             sage: for a in I:
-            ...       if a.denom()[0] == 3 and a.numer()[1] == 2:
-            ...           print a; break
+            ....:     if a.denom()[0] == 3 and a.numer()[1] == 2:
+            ....:         print(a); break
             2*t/(t + 3)
         """
         #if degree is None:
@@ -911,8 +911,8 @@ cdef class FpT_iter:
             sage: K = GF(3)['t'].fraction_field()
             sage: I = FpT_iter(K, 3)
             sage: for a in I: # indirect doctest
-            ...       if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
-            ...            print a; break
+            ....:     if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
+            ....:          print(a); break
             (t^2 + t + 1)/(t^2 + 2*t + 1)
         """
         return self

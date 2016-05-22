@@ -601,13 +601,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
     def __getitem__(self, v):
         r"""
         Returns the symbolic variable corresponding to the key
-        from a default dictionary.
+        from the default :class:`MIPVariable` instance.
 
-        It returns the element asked, and otherwise creates it.
-        If necessary, it also creates the default dictionary.
+        It returns the element asked, creating it if necessary.
+        If necessary, it also creates the default :class:`MIPVariable` instance.
 
-        This method lets the user define LinearProgram without having to
-        define independent dictionaries when it is not necessary for him.
+        See :meth:`new_variable` for a way to have separate :class:`MIPVariable`s
+        each of which have their own key space.
 
         EXAMPLE::
 
@@ -797,9 +797,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def _first_ngens(self, n):
         """
-        Construct the first `n` MIPVariables.
+        Construct the first `n` :class:`MIPVariable`s.
 
-        This method is used for the generater syntax (see below). You
+        This method is used for the generator syntax (see below). You
         probably shouldn't use it for anything else.
 
         INPUT:
@@ -808,8 +808,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         OUTPUT:
 
-        A tuple of not necessarily positive :class:`MIPVariable`
-        instances.
+        A tuple of :class:`MIPVariable` instances.
+        They are created as free continuous variables.
 
         EXAMPLES::
 

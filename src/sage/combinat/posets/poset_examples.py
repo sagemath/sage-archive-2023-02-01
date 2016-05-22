@@ -62,6 +62,7 @@ Constructions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
@@ -169,7 +170,7 @@ class Posets(object):
             sage: for i in range(5):
             ....:     for j in range(5):
             ....:         if C.covers(C(i),C(j)) and j != i+1:
-            ....:             print "TEST FAILED"
+            ....:             print("TEST FAILED")
 
         Check that :trac:`8422` is solved::
 
@@ -208,7 +209,7 @@ class Posets(object):
             sage: for i in range(5):
             ....:     for j in range(5):
             ....:         if A.covers(A(i),A(j)):
-            ....:             print "TEST FAILED"
+            ....:             print("TEST FAILED")
 
         TESTS:
 

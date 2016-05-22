@@ -95,7 +95,7 @@ one by one to save memory.  Note that when we do something like
     [3, 1]
     sage: next(g)
     [2, 2]
-    sage: for p in Partitions(4): print p
+    sage: for p in Partitions(4): print(p)
     [4]
     [3, 1]
     [2, 2]
@@ -277,6 +277,7 @@ We use the lexicographic ordering::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -355,7 +356,7 @@ PartitionOptions=GlobalOptions(name='partitions',
         ##
         #
         sage: Partitions.global_options(diagram_str="*", convention="french")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         *
         **
         **
@@ -369,7 +370,7 @@ PartitionOptions=GlobalOptions(name='partitions',
           4  5
           1  2  3
         sage: Tableaux.global_options(convention="english")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         ****
         **
         **
@@ -735,7 +736,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list())
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         """
         return '[%s]' % ', '.join('%s'%m for m in self)
@@ -747,9 +748,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low())
             1^7, 2, 3^2, 7^3
-            sage: print Partition([])._repr_exp_low()
+            sage: print(Partition([])._repr_exp_low())
             -
         """
         if not self._list:
@@ -765,10 +766,10 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high())
             7^3, 3^2, 2, 1^7
 
-            sage: print Partition([])._repr_exp_high()
+            sage: print(Partition([])._repr_exp_high())
             -
         """
         if not self._list:
@@ -785,9 +786,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low())
             1^7,2,3^2,7^3
-            sage: print Partition([])._repr_compact_low()
+            sage: print(Partition([])._repr_compact_low())
             -
         """
         if not self._list:
@@ -803,9 +804,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high())
             7^3,3^2,2,1^7
-            sage: print Partition([])._repr_compact_low()
+            sage: print(Partition([])._repr_compact_low())
             -
         """
         if not self._list:
@@ -821,7 +822,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_diagram()
+            sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_diagram())
             *******
             *******
             *******
@@ -921,14 +922,14 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_young_diagram()
+            sage: print(Partition([2, 1])._latex_young_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
-            sage: print Partition([])._latex_young_diagram()
+            sage: print(Partition([])._latex_young_diagram())
             {\emptyset}
         """
         if not self._list:
@@ -943,14 +944,14 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_diagram()
+            sage: print(Partition([2, 1])._latex_diagram())
             {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
             \lr{\ast}&\lr{\ast}\\
             \lr{\ast}\\
             \end{array}$}
             }
-            sage: print Partition([])._latex_diagram()
+            sage: print(Partition([])._latex_diagram())
             {\emptyset}
         """
         if not self._list:
@@ -966,9 +967,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2, 1])._latex_list()
+            sage: print(Partition([2, 1])._latex_list())
             [2, 1]
-            sage: print Partition([])._latex_list()
+            sage: print(Partition([])._latex_list())
             []
         """
         return repr(self._list)
@@ -979,9 +980,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2,2,1])._latex_exp_low()
+            sage: print(Partition([2,2,1])._latex_exp_low())
             1,2^{2}
-            sage: print Partition([])._latex_exp_low()
+            sage: print(Partition([])._latex_exp_low())
             {\emptyset}
         """
         if not self._list:
@@ -996,9 +997,9 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print Partition([2,2,1])._latex_exp_high()
+            sage: print(Partition([2,2,1])._latex_exp_high())
             2^{2},1
-            sage: print Partition([])._latex_exp_high()
+            sage: print(Partition([])._latex_exp_high())
             {\emptyset}
         """
         if not self._list:
@@ -1017,27 +1018,27 @@ class Partition(CombinatorialElement):
 
             sage: mu=Partition([5,5,2,1])
             sage: Partitions.global_options(diagram_str='*', convention="english")
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             *****
             *****
             **
             *
             sage: Partitions.global_options(diagram_str='#')
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             #####
             #####
             ##
             #
             sage: Partitions.global_options(convention="french")
-            sage: print mu.ferrers_diagram()
+            sage: print(mu.ferrers_diagram())
             #
             ##
             #####
             #####
-            sage: print Partition([]).ferrers_diagram()
+            sage: print(Partition([]).ferrers_diagram())
             -
             sage: Partitions.global_options(diagram_str='-')
-            sage: print Partition([]).ferrers_diagram()
+            sage: print(Partition([]).ferrers_diagram())
             (/)
             sage: Partitions.global_options.reset()
         """
@@ -1070,7 +1071,7 @@ class Partition(CombinatorialElement):
             *****
             sage: Partitions.global_options.reset()
         """
-        print self.ferrers_diagram()
+        print(self.ferrers_diagram())
 
     def __truediv__(self, p):
         """
@@ -2019,11 +2020,11 @@ class Partition(CombinatorialElement):
         The conjugate partition is obtained by transposing the Ferrers
         diagram of the partition (see :meth:`.ferrers_diagram`)::
 
-            sage: print Partition([6,3,1]).ferrers_diagram()
+            sage: print(Partition([6,3,1]).ferrers_diagram())
             ******
             ***
             *
-            sage: print Partition([6,3,1]).conjugate().ferrers_diagram()
+            sage: print(Partition([6,3,1]).conjugate().ferrers_diagram())
             ***
             **
             **
@@ -4913,7 +4914,7 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
-        ....:    print p
+        ....:    print(p)
         [3, 3, 2]
         [3, 2, 2, 1]
         [3, 2, 1, 1, 1]

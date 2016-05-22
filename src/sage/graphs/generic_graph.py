@@ -9437,7 +9437,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: next(it)
             Traceback (most recent call last):
             ...
-            StopIteration             
+            StopIteration
         """
         from sage.misc.prandom import choice
         if self.order():
@@ -9486,7 +9486,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``*args`` and ``**kwds`` - arguments to be passed down to the
-         :meth:`edge_iterator` method.
+          :meth:`edge_iterator` method.
 
         EXAMPLE:
 
@@ -9499,7 +9499,7 @@ class GenericGraph(GenericGraph_pyx):
 
         As the :meth:`edges` method would, this function returns by default a
         triple ``(u,v,l)`` of values, in which ``l`` is the label of edge
-        `(u,v)`::
+        ``(u,v)``::
 
             sage: print(next(g.random_edge_iterator())) # random
             (0, 5, None)
@@ -9517,7 +9517,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: next(it)
             Traceback (most recent call last):
             ...
-            StopIteration             
+            StopIteration
         """
         from sage.misc.prandom import choice
         if self.size():

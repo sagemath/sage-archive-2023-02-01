@@ -6622,7 +6622,7 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
             False
             sage: M.is_max_weight_coindependent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
-            True
+            False
         """
         res = []
         r = 0

@@ -2846,6 +2846,40 @@ cdef class MIPVariable(Element):
         self._dict[i] = v
         return v
 
+    def copy_for_mip(self, mip):
+        r"""
+        Returns a copy of ``self`` suitable for a new :class:`MixedIntegerLinearProgram`
+        instance ``mip``.
+
+        For this to make sense, ``mip`` should have been obtained as a copy of
+        ``self.mip()``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: pv = p.new_variable(nonnegative=True)
+            sage: pv[0]
+            x_0
+            sage: q = copy(p)
+            sage: qv = pv.copy_for_mip(q)
+            sage: pv[77]
+            x_1
+            sage: p.number_of_variables()
+            2
+            sage: q.number_of_variables()
+            1
+            sage: qv[33]
+            x_1
+            sage: p.number_of_variables()
+            2
+            sage: q.number_of_variables()
+            2
+        """
+        cdef MIPVariable cp = type(self)(self.parent(), mip, self._vtype,
+                                         self._name, self._lower_bound, self._upper_bound)
+        cp._dict = copy(self._dict)
+        return cp
+
     def set_min(self, min):
         r"""
         Sets a lower bound on the variable.

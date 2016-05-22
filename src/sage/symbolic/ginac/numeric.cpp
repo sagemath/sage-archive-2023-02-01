@@ -177,7 +177,6 @@ inline bool Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, cons
 #define PyInt_Check PyLong_Check
 #define PyInt_AsLong PyLong_AsLong
 #define PyInt_FromLong PyLong_FromLong
-#define PyObject_REPR PyObject_Repr
 #define PyString_FromString PyBytes_FromString
 
 inline int Pynac_PyObj_Cmp(PyObject *optr1, PyObject *optr2, const char *errmsg) {

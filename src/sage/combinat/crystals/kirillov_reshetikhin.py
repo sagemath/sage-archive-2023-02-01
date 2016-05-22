@@ -2938,7 +2938,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
         pm = self.parent().from_highest_weight_vector_to_pm_diagram(b)
         l1 = pm.pm_diagram[n-1][0]
         l4 = pm.pm_diagram[n][0]
-        return l1+l4/2
+        return l1 + l4 // 2
 
     def phi0(self):
         r"""

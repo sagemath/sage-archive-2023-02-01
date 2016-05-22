@@ -16,6 +16,7 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
@@ -493,8 +494,8 @@ class HasseDiagram(DiGraph):
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
-            ...    if r(v) != r(u) + 1:
-            ...        print "Bug in rank_function!"
+            ....:     if r(v) != r(u) + 1:
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -715,7 +716,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
         """
         try:
             return self._moebius_function_values[(i,j)]
@@ -795,7 +796,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         This uses ``self._moebius_function_matrix``, as computed by
         :meth:`moebius_function_matrix`.

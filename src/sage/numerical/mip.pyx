@@ -545,27 +545,37 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: q = copy(p)
             sage: q.number_of_constraints()
             1
+
+        TESTS:
+
+        Test that the default MIP variables are independent after copying::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: p[0]
+            x_0
+            sage: q = copy(p)
+            sage: q[0]
+            x_0
+            sage: q[1]
+            x_1
+            sage: p.number_of_variables()
+            1
+            sage: q.number_of_variables()
+            2
         """
         def copying_solver(**kwdargs):
             return (<GenericBackend> self._backend).copy()
 
         cdef MixedIntegerLinearProgram p = \
             MixedIntegerLinearProgram(solver=copying_solver)
-        try:
-            p._variables = copy(self._variables)
-        except AttributeError:
-            pass
 
-        try:
-            p._default_mipvariable = self._default_mipvariable
-        except AttributeError:
-            pass
+        p._variables = copy(self._variables)
 
-        try:
-            p._check_redundant = self._check_redundant
-            p._constraints = copy(self._constraints)
-        except AttributeError:
-            pass
+        if self._default_mipvariable is not None:
+            p._default_mipvariable = self._default_mipvariable.copy_for_mip(p)
+
+        p._check_redundant = self._check_redundant
+        p._constraints = copy(self._constraints)
 
         return p
 

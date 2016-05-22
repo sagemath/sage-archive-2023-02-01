@@ -616,12 +616,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p['x']
             x_0
         """
-
-        try:
-            return self._default_mipvariable[v]
-        except TypeError:
+        if self._default_mipvariable is None:
             self._default_mipvariable = self.new_variable()
-            return self._default_mipvariable[v]
+        return self._default_mipvariable[v]
 
     def base_ring(self):
         """

@@ -81,12 +81,10 @@ protected:
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 public:
-	virtual ex lhs() const;
-	virtual ex rhs() const;
-	virtual operators the_operator() const;
+	ex lhs() const;
+	ex rhs() const;
+	operators the_operator() const;
 
-	// non-virtual functions in this class
-public:
 	operator bool() const {
 		return decide() == result::True;
 	}

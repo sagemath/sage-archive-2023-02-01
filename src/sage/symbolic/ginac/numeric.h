@@ -206,6 +206,7 @@ public:
 		return (int)to_long();
 	}
 	long to_long() const;
+        bool get_mpz(mpz_t intialized_mpz) const;
 	double to_double() const;
 	PyObject* to_pyobject() const;
         bool is_pyobject() const

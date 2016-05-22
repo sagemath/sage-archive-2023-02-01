@@ -33,24 +33,6 @@ namespace GiNaC {
 class ex;
 class symbol;
 
-// Quotient q(x) of polynomials a(x) and b(x) in Q[x], so that a(x)=b(x)*q(x)+r(x)
-extern ex quo(const ex &a, const ex &b, const ex &x, bool check_args = true);
-
-// Remainder r(x) of polynomials a(x) and b(x) in Q[x], so that a(x)=b(x)*q(x)+r(x)
-extern ex rem(const ex &a, const ex &b, const ex &x, bool check_args = true);
-
-// Decompose rational function a(x)=N(x)/D(x) into Q(x)+R(x)/D(x) with degree(R, x) < degree(D, x)
-extern ex decomp_rational(const ex &a, const ex &x);
-
-// Pseudo-remainder of polynomials a(x) and b(x) in Q[x]
-extern ex prem(const ex &a, const ex &b, const ex &x, bool check_args = true);
-
-// Pseudo-remainder of polynomials a(x) and b(x) in Q[x]
-extern ex sprem(const ex &a, const ex &b, const ex &x, bool check_args = true);
-
-// Exact polynomial division of a(X) by b(X) in Q[X] (quotient returned in q), returns false when exact division fails
-extern bool divide(const ex &a, const ex &b, ex &q, bool check_args = true);
-
 // Polynomial GCD in Z[X], cofactors are returned in ca and cb, if desired
 extern ex gcd(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
 

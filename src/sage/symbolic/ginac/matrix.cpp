@@ -32,6 +32,7 @@
 #include "normal.h"
 #include "archive.h"
 #include "utils.h"
+#include "upoly.h"
 
 #include <string>
 #include <iostream>

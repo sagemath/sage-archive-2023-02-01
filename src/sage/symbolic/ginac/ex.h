@@ -30,6 +30,7 @@
 #include <iterator>
 #include <functional>
 #include <stack>
+#include <unordered_set>
 
 
 namespace GiNaC {
@@ -69,6 +70,9 @@ class scalar_products;
 class const_iterator;
 class const_preorder_iterator;
 class const_postorder_iterator;
+class symbol;
+class symbolhasher;
+using symbolset = std::unordered_set<symbol,symbolhasher>;
 
 /** Lightweight wrapper for GiNaC's symbolic objects.  It holds a pointer to
  *  the other object in order to do garbage collection by the method of
@@ -142,6 +146,7 @@ public:
 	// operand access
 	size_t nops() const { return bp->nops(); }
 	size_t nsymbols() const;
+        symbolset symbols() const;
 	ex op(size_t i) const { return bp->op(i); }
 	ex sorted_op(size_t i) const;
 	ex operator[](const ex & index) const { return (*bp)[index]; }

@@ -355,6 +355,22 @@ size_t ex::nsymbols() const
 	return res;
 }
 
+static void collect_symbols(const ex& e, symbolset& syms)
+{
+	if (is_exactly_a<symbol>(e))
+		syms.insert(ex_to<symbol>(e));
+	else
+		for (size_t i=0; i < e.nops(); i++)
+                        collect_symbols(e.op(i), syms);
+}
+
+symbolset ex::symbols() const
+{
+        symbolset the_set;
+        collect_symbols(*this, the_set);
+	return the_set;
+}
+
 ex ex::sorted_op(size_t i) const
 {
 	if (is_a<expairseq>(*this))

@@ -42,6 +42,7 @@ class symbol : public basic
 	GINAC_DECLARE_REGISTERED_CLASS(symbol, basic)
 
 	friend struct print_order;
+        friend struct symbolhasher;
 
 // types
 	
@@ -82,6 +83,7 @@ protected:
 public:
 	//void assign(const ex & value);
 	//void unassign();
+        bool operator==(const symbol& other) const { return serial == other.serial; }
 	void set_name(const std::string & n) { name = n; }
 	std::string get_name() const { return name; }
 	unsigned get_domain() const { return domain; }
@@ -112,6 +114,10 @@ private:
 	static unsigned next_serial;
 };
 
+struct symbolhasher {
+        std::size_t operator()(const symbol& sym) const { return sym.serial; }
+};
+using symbolset = std::unordered_set<symbol,symbolhasher>;
 
 // utility functions
 

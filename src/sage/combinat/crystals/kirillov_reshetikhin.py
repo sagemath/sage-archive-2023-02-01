@@ -20,6 +20,8 @@ Kirillov-Reshetikhin Crystals
 # Acknowledgment: most of the design and implementation of this
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
+# python3
+from __future__ import division, print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -752,7 +754,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         EXAMPLES::
 
             sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
-            sage: print C(2,1)._repr_diagram()
+            sage: print(C(2,1)._repr_diagram())
               1
               2
         """
@@ -3126,7 +3128,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ....:     print t, prom[t]
+            ....:     print("{} {}".format(t, prom[t]))
             [4, 3, 2, 1] [-1, 4, 3, 2]
             [4, -4, 3, 2] [-4, 4, 3, 2]
             [-1, -4, 3, 2] [-4, 3, 2, 1]
@@ -3136,7 +3138,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ....:     print t, prom[t]
+            ....:     print("{} {}".format(t, prom[t]))
             [++++, []] [-+++, []]
             [-++-, []] [+++-, []]
         """
@@ -3190,7 +3192,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = K.classical_decomposition()
             sage: promotion = K.promotion()
             sage: for t in T:
-            ....:     print t, promotion(t)
+            ....:     print("{} {}".format(t, promotion(t)))
             [+++-, []] [-++-, []]
             [++-+, []] [-+-+, []]
             [+-++, []] [--++, []]
@@ -3610,13 +3612,13 @@ class PMDiagram(CombinatorialObject):
 
             sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
             sage: pm = PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
-            sage: print pm._repr_diagram()
+            sage: print(pm._repr_diagram())
             .  .  .  +
             .  .  -  -
             +  +
             -  -
             sage: pm = PMDiagram([[0,2], [0,0], [0]])
-            sage: print pm._repr_diagram()
+            sage: print(pm._repr_diagram())
         """
         t = []
         ish = self.inner_shape() + [0]*self.n

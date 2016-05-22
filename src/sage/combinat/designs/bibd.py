@@ -248,7 +248,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         B = best_known_covering_design_www(v,k,2)
 
         # Is it a BIBD or just a good covering ?
-        expected_n_of_blocks = binomial(v,2)/binomial(k,2)
+        expected_n_of_blocks = binomial(v,2)//binomial(k,2)
         if B.low_bd() > expected_n_of_blocks:
             if existence:
                 return False
@@ -662,7 +662,7 @@ def v_4_1_BIBD(v, check=True):
                 [16, 19, 25, 27], [16, 20, 22, 24], [17, 20, 21, 26]]
 
     # Step 2 : this is function PBD_4_5_8_9_12
-    PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
+    PBD = PBD_4_5_8_9_12((v-1)//(k-1),check=False)
 
     # Step 3 : Theorem 7.20
     bibd = BIBD_from_PBD(PBD,v,k,check=False)
@@ -1091,7 +1091,7 @@ def BIBD_5q_5_for_q_prime_power(q):
     if q%4 != 1 or not is_prime_power(q):
         raise ValueError("q is not a prime power or q%4!=1.")
 
-    d = (q-1)/4
+    d = (q-1)//4
     B = []
     F = FiniteField(q,'x')
     a = F.primitive_element()
@@ -1398,7 +1398,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         intersect the blocks in either 0 or `s` points. Or equivalently that the
         traces are again BIBD::
 
-            sage: r = (21-1)/(5-1)
+            sage: r = (21-1)//(5-1)
             sage: 1 + r*1
             6
             sage: 1 + r*3

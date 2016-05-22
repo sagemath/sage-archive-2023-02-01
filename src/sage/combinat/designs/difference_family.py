@@ -246,7 +246,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     for d in D:
         s = block_stabilizer(G,d)
         stab.append(s)
-        nb_diff += k*(k-1) / len(s)
+        nb_diff += k*(k-1) // len(s)
     if l is None:
         if nb_diff % (v-1) != 0:
             if verbose:
@@ -1383,9 +1383,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             K = G = GF(v,'a',modulus=poly)
 
         B = map(K,B)
-        e = k*(k-1)/2
+        e = k*(k-1)//2
         xe = G.multiplicative_generator()**e
-        df = [[xe**j*b for b in B] for j in range((v-1)/(2*e))]
+        df = [[xe**j*b for b in B] for j in range((v-1)//(2*e))]
         if check and not is_difference_family(G, df, v=v, k=k, l=l):
             raise RuntimeError("There is an invalid ({},{})-evenly distributed "
                      "set in the database... Please contact "

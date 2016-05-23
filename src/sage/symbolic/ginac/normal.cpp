@@ -398,7 +398,7 @@ static ex frac_cancel(const ex &n, const ex &d)
 
 	// Cancel GCD from numerator and denominator
 	ex cnum, cden;
-	if (gcd(num, den, &cnum, &cden, false) != _ex1) {
+	if (gcdpoly(num, den, &cnum, &cden, false) != _ex1) {
 		num = cnum;
 		den = cden;
 	}
@@ -475,7 +475,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
 		// Additiion of two fractions, taking advantage of the fact that
 		// the heuristic GCD algorithm computes the cofactors at no extra cost
 		ex co_den1, co_den2;
-		ex g = gcd(den, next_den, &co_den1, &co_den2, false);
+		ex g = gcdpoly(den, next_den, &co_den1, &co_den2, false);
 		num = ((num * co_den2) + (next_num * co_den1)).expand();
 		den *= co_den2;		// this is the lcm(den, next_den)
 	}
@@ -896,7 +896,7 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 			if (i == 0)
 				gc = x;
 			else
-				gc = gcd(gc, x);
+				gc = gcdpoly(gc, x);
 
 			terms.push_back(x);
 		}
@@ -977,5 +977,14 @@ ex collect_common_factors(const ex & e)
 		return e;
 }
 
+ex gcd(const ex &a, const ex &b)
+{
+        if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b))
+                return gcd(ex_to<numeric>(a), ex_to<numeric>(b));
+        exmap repl;
+        ex poly_a = a.to_rational(repl);
+        ex poly_b = b.to_rational(repl);
+        return gcdpoly(poly_a, poly_b).subs(repl, subs_options::no_pattern);
+}
 
 } // namespace GiNaC

@@ -3,6 +3,7 @@
  *  This file defines several functions that work on multivariate polynomials.
 
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
+ *                  (C) 2016 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +31,7 @@ class ex;
 class symbol;
 
 // Polynomial GCD in Z[X], cofactors are returned in ca and cb, if desired
-extern ex gcd(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
+extern ex gcdpoly(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
 
 // Polynomial LCM in Z[X]
 extern ex lcm(const ex &a, const ex &b, bool check_args = true);

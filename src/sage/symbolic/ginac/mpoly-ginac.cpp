@@ -1,12 +1,12 @@
-/** @file normal.cpp
+/** @file mpoly-ginac.cpp
  *
- *  This file implements several functions that work on univariate and
- *  multivariate polynomials and rational functions.
+ *  This file implements several functions that work multivariate polynomials.
  *  These functions include polynomial quotient and remainder, GCD and LCM
  *  computation, square-free factorization and rational function normalization. */
 
 /*
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
+ *                  (C) 2016 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -410,7 +410,7 @@ static ex sr_gcd(const ex &a, const ex &b, sym_desc_vec::const_iterator var)
 	// Remove content from c and d, to be attached to GCD later
 	ex cont_c = c.content(x);
 	ex cont_d = d.content(x);
-	ex gamma = gcd(cont_c, cont_d, nullptr, nullptr, false);
+	ex gamma = gcdpoly(cont_c, cont_d, nullptr, nullptr, false);
 	if (ddeg == 0)
 		return gamma;
 	c = c.primpart(x, cont_c);
@@ -564,7 +564,7 @@ static ex heur_gcd(const ex &a, const ex &b, ex *ca, ex *cb, sym_desc_vec::const
  *  @param check_args  check whether a and b are polynomials with rational
  *         coefficients (defaults to "true")
  *  @return the GCD as a new expression */
-ex gcd(const ex &a, const ex &b, ex *ca, ex *cb, bool check_args)
+ex gcdpoly(const ex &a, const ex &b, ex *ca, ex *cb, bool check_args)
 {
 #if STATISTICS
 	gcd_called++;
@@ -605,7 +605,7 @@ factored_a:
 		ex part_b = b;
 		for (size_t i=0; i<num; i++) {
 			ex part_ca, part_cb;
-			g.push_back(gcd(a.op(i), part_b, &part_ca, &part_cb, check_args));
+			g.push_back(gcdpoly(a.op(i), part_b, &part_ca, &part_cb, check_args));
 			acc_ca.push_back(part_ca);
 			part_b = part_cb;
 		}
@@ -624,7 +624,7 @@ factored_b:
 		ex part_a = a;
 		for (size_t i=0; i<num; i++) {
 			ex part_ca, part_cb;
-			g.push_back(gcd(part_a, b.op(i), &part_ca, &part_cb, check_args));
+			g.push_back(gcdpoly(part_a, b.op(i), &part_ca, &part_cb, check_args));
 			acc_cb.push_back(part_cb);
 			part_a = part_ca;
 		}
@@ -660,7 +660,7 @@ factored_b:
 				}
 			} else {
 				ex p_co, pb_co;
-				ex p_gcd = gcd(p, pb, &p_co, &pb_co, check_args);
+				ex p_gcd = gcdpoly(p, pb, &p_co, &pb_co, check_args);
 				if (p_gcd.is_equal(_ex1)) {
 					// a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
 					// gcd(a,b) = 1
@@ -676,10 +676,10 @@ factored_b:
 					// gcd(a, b) = g(x)^n gcd(A(x)^n, g(x)^(n-m) B(x)^m
 					if (exp_a < exp_b) {
 						return power(p_gcd, exp_a)*
-							gcd(power(p_co, exp_a), power(p_gcd, exp_b-exp_a)*power(pb_co, exp_b), ca, cb, false);
+							gcdpoly(power(p_co, exp_a), power(p_gcd, exp_b-exp_a)*power(pb_co, exp_b), ca, cb, false);
 					} else {
 						return power(p_gcd, exp_b)*
-							gcd(power(p_gcd, exp_a - exp_b)*power(p_co, exp_a), power(pb_co, exp_b), ca, cb, false);
+							gcdpoly(power(p_gcd, exp_a - exp_b)*power(p_co, exp_a), power(pb_co, exp_b), ca, cb, false);
 					}
 				} // p_gcd.is_equal(_ex1)
 			} // p.is_equal(pb)
@@ -695,7 +695,7 @@ factored_b:
 			} 
 
 			ex p_co, bpart_co;
-			ex p_gcd = gcd(p, b, &p_co, &bpart_co, false);
+			ex p_gcd = gcdpoly(p, b, &p_co, &bpart_co, false);
 
 			if (p_gcd.is_equal(_ex1)) {
 				// a(x) = p(x)^n, gcd(p, b) = 1 ==> gcd(a, b) = 1
@@ -706,7 +706,7 @@ factored_b:
 				return _ex1;
 			} else {
 				// a(x) = g(x)^n A(x)^n, b(x) = g(x) B(x) ==> gcd(a, b) = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
-				return p_gcd*gcd(power(p_gcd, exp_a-1)*power(p_co, exp_a), bpart_co, ca, cb, false);
+				return p_gcd*gcdpoly(power(p_gcd, exp_a-1)*power(p_co, exp_a), bpart_co, ca, cb, false);
 			}
 		} // is_exactly_a<power>(b)
 
@@ -723,7 +723,7 @@ factored_b:
 
 		ex p_co, apart_co;
 		const ex& exp_b(b.op(1));
-		ex p_gcd = gcd(a, p, &apart_co, &p_co, false);
+		ex p_gcd = gcdpoly(a, p, &apart_co, &p_co, false);
 		if (p_gcd.is_equal(_ex1)) {
 			// b=p(x)^n, gcd(a, p) = 1 ==> gcd(a, b) == 1
 			if (ca != nullptr)
@@ -735,7 +735,7 @@ factored_b:
 			// there are common factors:
 			// a(x) = g(x) A(x), b(x) = g(x)^n B(x)^n ==> gcd = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
 
-			return p_gcd*gcd(apart_co, power(p_gcd, exp_b-1)*power(p_co, exp_b), ca, cb, false);
+			return p_gcd*gcdpoly(apart_co, power(p_gcd, exp_b-1)*power(p_co, exp_b), ca, cb, false);
 		} // p_gcd.is_equal(_ex1)
 	}
 #endif
@@ -847,21 +847,21 @@ factored_b:
 	int min_ldeg = std::min(ldeg_a,ldeg_b);
 	if (min_ldeg > 0) {
 		ex common = power(x, min_ldeg);
-		return gcd((aex / common).expand(), (bex / common).expand(), ca, cb, false) * common;
+		return gcdpoly((aex / common).expand(), (bex / common).expand(), ca, cb, false) * common;
 	}
 
 	// Try to eliminate variables
 	if (var->deg_a == 0 && var->deg_b != 0 ) {
 		ex bex_u, bex_c, bex_p;
 		bex.unitcontprim(x, bex_u, bex_c, bex_p);
-		ex g = gcd(aex, bex_c, ca, cb, false);
+		ex g = gcdpoly(aex, bex_c, ca, cb, false);
 		if (cb != nullptr)
 			*cb *= bex_u * bex_p;
 		return g;
 	} else if (var->deg_b == 0 && var->deg_a != 0) {
 		ex aex_u, aex_c, aex_p;
 		aex.unitcontprim(x, aex_u, aex_c, aex_p);
-		ex g = gcd(aex_c, bex, ca, cb, false);
+		ex g = gcdpoly(aex_c, bex, ca, cb, false);
 		if (ca != nullptr)
 			*ca *= aex_u * aex_p;
 		return g;
@@ -920,7 +920,7 @@ ex lcm(const ex &a, const ex &b, bool check_args)
 		throw(std::invalid_argument("lcm: arguments must be polynomials over the rationals"));
 	
 	ex ca, cb;
-	ex g = gcd(a, b, &ca, &cb, false);
+	ex g = gcdpoly(a, b, &ca, &cb, false);
 	return ca * cb * g;
 }
 
@@ -941,7 +941,7 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 	exvector res;
 	ex w = a;
 	ex z = w.diff(x);
-	ex g = gcd(w, z);
+	ex g = gcdpoly(w, z);
 	if (g.is_zero()) {
 		return res;
 	}
@@ -957,7 +957,7 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 		}
 		y = quo(z, g, x);
 		z = y - w.diff(x);
-		g = gcd(w, z);
+		g = gcdpoly(w, z);
 		res.push_back(g);
 	} while (!z.is_zero());
 	return res;
@@ -1100,7 +1100,7 @@ ex ex::content(const ex &x) const
 		return lcoef * c / lcoef.unit(x);
 	ex cont = _ex0; //???
 	for (int i=ldeg; i<=deg; i++)
-		cont = gcd(r.coeff(x, i), cont, nullptr, nullptr, false);
+		cont = gcdpoly(r.coeff(x, i), cont, nullptr, nullptr, false);
 	return cont * c;
 }
 

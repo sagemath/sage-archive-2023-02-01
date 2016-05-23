@@ -104,13 +104,6 @@ see the top of the module :doc:`growth group <growth_group>`.
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-        sage: T = GenericTermMonoid(G, ZZ)
-        sage: R.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
 
 
 .. _asymptotic_ring_intro:

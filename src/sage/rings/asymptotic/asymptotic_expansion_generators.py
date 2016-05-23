@@ -15,10 +15,6 @@ Common Asymptotic Expansions
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
         Asymptotic Ring <z^ZZ * log(z)^QQ> over Integer Ring
 
 

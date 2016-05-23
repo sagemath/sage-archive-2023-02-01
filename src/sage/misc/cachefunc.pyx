@@ -3364,9 +3364,9 @@ class FileCache(object):
         try:
             k,v = load(f)
         except IOError:
-            raise KeyError, key
+            raise KeyError(key)
         if k != key:
-            raise RuntimeError, "cache corrupted"
+            raise RuntimeError("cache corrupted")
 
         if cache is not None:
             cache[key] = v

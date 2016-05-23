@@ -137,7 +137,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             mpfi_set(self.__re, rr.value)
             mpfi_set(self.__im, ii.value)
         except TypeError:
-            raise TypeError, "unable to coerce to a ComplexIntervalFieldElement"
+            raise TypeError("unable to coerce to a ComplexIntervalFieldElement")
 
 
     def  __dealloc__(self):
@@ -196,7 +196,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             return self.real()
         elif i == 1:
             return self.imag()
-        raise IndexError, "i must be between 0 and 1."
+        raise IndexError("i must be between 0 and 1.")
 
     def __reduce__( self ):
         """
@@ -536,7 +536,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_intersect(x.__im, self.__im, other_intv.__im)
         if mpfr_less_p(&x.__re.right, &x.__re.left) \
            or mpfr_less_p(&x.__im.right, &x.__im.left):
-            raise ValueError, "intersection of non-overlapping intervals"
+            raise ValueError("intersection of non-overlapping intervals")
 
         return x
 
@@ -1344,7 +1344,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex interval to int
         """
-        raise TypeError, "can't convert complex interval to int"
+        raise TypeError("can't convert complex interval to int")
 
     def __long__(self):
         """
@@ -1357,7 +1357,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex interval to long
         """
-        raise TypeError, "can't convert complex interval to long"
+        raise TypeError("can't convert complex interval to long")
 
     def __float__(self):
         """
@@ -1370,7 +1370,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex interval to float
         """
-        raise TypeError, "can't convert complex interval to float"
+        raise TypeError("can't convert complex interval to float")
 
     def __complex__(self):
         """
@@ -1383,7 +1383,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex interval to complex
         """
-        raise TypeError, "can't convert complex interval to complex"
+        raise TypeError("can't convert complex interval to complex")
 
     def __nonzero__(self):
         """
@@ -1462,7 +1462,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         else:
             # Eventually we probably want to disable comparison of complex
             # intervals, just like python complexes will be unordered.
-            ## raise TypeError, "no ordering relation is defined for complex numbers"
+            ## raise TypeError("no ordering relation is defined for complex numbers")
             diff = left - right
             real_diff = diff.real()
             imag_diff = diff.imag()
@@ -1588,10 +1588,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im):
 
             if mpfi_is_zero(self.__re) and mpfi_is_zero(self.__im):
-                raise ValueError, "Can't take the argument of complex zero"
+                raise ValueError("Can't take the argument of complex zero")
             if not mpfi_is_nonpos(self.__re) and not mpfi_is_nonneg(self.__re) \
                and not mpfi_is_nonpos(self.__im) and not mpfi_is_nonneg(self.__im):
-                raise ValueError, "Can't take the argument of interval strictly containing zero"
+                raise ValueError("Can't take the argument of interval strictly containing zero")
 
             # Now if we exclude zero from the interval, we know that the
             # argument of the remaining points is bounded.  Check which
@@ -1612,7 +1612,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             for i in range(-1, 3):
                 if which_axes[i % 4] and not which_axes[(i - 1) % 4]:
                     if lower is not None:
-                        raise ValueError, "Can't take the argument of line-segment interval strictly containing zero"
+                        raise ValueError("Can't take the argument of line-segment interval strictly containing zero")
                     lower = i
 
             for i in range(lower, lower+4):

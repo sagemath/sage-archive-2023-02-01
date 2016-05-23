@@ -231,7 +231,7 @@ cdef class MPolynomial(CommutativeRingElement):
         try:
             ind = Z.index(var)
         except ValueError:
-            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+            raise ValueError("var must be one of the generators of the parent polynomial ring.")
         d = self.dict()
         return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
 
@@ -436,7 +436,7 @@ cdef class MPolynomial(CommutativeRingElement):
         try:
             ind = Z.index(var)
         except ValueError:
-            raise ValueError, "var must be one of the generators of the parent polynomial ring."
+            raise ValueError("var must be one of the generators of the parent polynomial ring.")
 
         if R.ngens() <= 1:
             return self.univariate_polynomial()
@@ -757,9 +757,9 @@ cdef class MPolynomial(CommutativeRingElement):
             if 0 <= var < P.ngens():
                 return self._homogenize(var)
             else:
-                raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
+                raise TypeError("Variable index %d must be < parent(self).ngens()." % var)
         else:
-            raise TypeError, "Parameter var must be either a variable, a string or an integer."
+            raise TypeError("Parameter var must be either a variable, a string or an integer.")
 
     def is_homogeneous(self):
         r"""
@@ -1101,7 +1101,7 @@ cdef class MPolynomial(CommutativeRingElement):
         P = self.parent()
         k = P.base_ring()
         if not k.is_field() and k.is_finite():
-            raise TypeError, "k must be a finite field"
+            raise TypeError("k must be a finite field")
         p = k.characteristic()
         e = k.degree()
         v = [self] + [self.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,e)]
@@ -1592,7 +1592,7 @@ cdef class MPolynomial(CommutativeRingElement):
             XY = P.one().lift((self,) + tuple(B))
             return P(XY[0])
         except ValueError:
-            raise ArithmeticError, "element is non-invertible"
+            raise ArithmeticError("element is non-invertible")
 
     def weighted_degree(self, *weights):
         """

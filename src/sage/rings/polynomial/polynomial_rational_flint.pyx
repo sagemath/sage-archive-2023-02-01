@@ -878,7 +878,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             True
         """
         if right.is_zero():
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
         if self.is_zero():
             return self, self
 
@@ -1259,7 +1259,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef bint do_sig
 
         if right == 0:
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if not isinstance(right, Polynomial_rational_flint):
             if right in QQ:
@@ -1355,7 +1355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res
 
         if right == 0:
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if not isinstance(right, Polynomial_rational_flint):
             right = self._parent(right)
@@ -1452,7 +1452,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef bint do_sig
 
         if var is not None and var != self._parent.gen():
-            raise ValueError, "Cannot differentiate with respect to %s" %var
+            raise ValueError("Cannot differentiate with respect to %s" % var)
 
         der = self._new()
         do_sig = _do_sig(self.__poly)
@@ -2077,7 +2077,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
 
         if not self.is_irreducible():
-            raise ValueError, "The polynomial must be irreducible"
+            raise ValueError("The polynomial must be irreducible")
 
         if self.degree() > 11 and algorithm == 'pari':
             algorithm = 'kash'
@@ -2106,7 +2106,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
             except RuntimeError as msg:
-                raise NotImplementedError, (str(msg) + "\nSorry, " +
+                raise NotImplementedError(str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
                     "the optional free (closed source) KASH package, which " +
@@ -2121,13 +2121,13 @@ cdef class Polynomial_rational_flint(Polynomial):
                 d = int(d)
                 n = int(n)
             except RuntimeError as msg:
-                raise RuntimeError, (str(msg) + "\nUnable to lookup " +
+                raise RuntimeError(str(msg) + "\nUnable to lookup " +
                     "description of Galois group as a transitive " +
-                    "group.\n%s" %X)
+                    "group.\n%s" % X)
             return TransitiveGroup(d, n)
 
         else:
-            raise ValueError, "Algorithm %s not supported." %algorithm
+            raise ValueError("Algorithm %s not supported." % algorithm)
 
     def factor_mod(self, p):
         """
@@ -2156,10 +2156,10 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
 
         if self.degree() < 1:
-            raise ValueError, "The polynomial must have degree at least 1"
+            raise ValueError("The polynomial must have degree at least 1")
 
         G = self._pari_().factormod(p)
         K = FiniteField(p)
@@ -2284,10 +2284,10 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         e = Integer(e)
         if e < 1:
-            raise ValueError, "e must be at least 1"
+            raise ValueError("e must be at least 1")
 
         # The relevant PARI method doesn't seem to play well with constant and
         # linear polynomials, so we handle these separately.
@@ -2303,7 +2303,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         y = []
         for g, n in F:
             if n > 1:
-                raise ArithmeticError, ("The polynomial must be square free " +
+                raise ArithmeticError("The polynomial must be square free " +
                     "modulo p")
             y.append(self.parent()(g))
         H = self._pari_().polhensellift(y, p, e)

@@ -1194,11 +1194,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         cdef int i, j
         cdef GenericBackend b = self._backend
 
-        # inv_variables associates a MIPVariable object to an id
-        inv_variables = {}
-        for (v, id) in self._variables.iteritems():
-            inv_variables[id]=v
-
         # varid_name associates variables id to names
         varid_name = {}
         for 0<= i < b.ncols():

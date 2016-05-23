@@ -19,8 +19,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
 import cPickle
 from cStringIO import StringIO
 import os
@@ -41,7 +39,7 @@ def _raise():
         Traceback (most recent call last):
         ...
         Exception: this is a test
-        sage: print(s)
+        sage: print s
         the exception was caught
     """
     raise
@@ -379,7 +377,7 @@ class SavingDict(collections.MutableMapping):
             sage: sd = SavingDict(tmp_filename(), {'cow':'moo', 0:1}); sd
             {0: 1, 'cow': 'moo'}
             sage: for key in sd:
-            ....:     print("{} {}".format(key, sd[key]))
+            ...       print key, sd[key]
             0 1
             cow moo
             sage: sd._erase()

@@ -26,7 +26,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import os
 import re
@@ -4128,7 +4127,7 @@ class SageDev(MercurialPatchMixin):
 
             sage: from sage.dev.user_interface_error import OperationCancelledError
             sage: def upload_ssh_key():
-            ....:     print("Uploading ssh key.")
+            ....:     print "Uploading ssh key."
             ....:     raise OperationCancelledError("")
             sage: dev._sagedev.upload_ssh_key = upload_ssh_key
 

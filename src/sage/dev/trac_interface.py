@@ -22,7 +22,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import os
 import re
@@ -130,7 +129,7 @@ def _timerep(tm, curtime=None):
         sage: T.append(datetime.datetime(2013, 8, 25, 9))
         sage: T.append(datetime.datetime(2012, 11, 19))
         sage: T.append(datetime.datetime(2010, 1, 2))
-        sage: for t in T: print(_timerep(t, curtime))
+        sage: for t in T: print _timerep(t, curtime)
         5 minutes ago
         5 hours ago
         11 days ago

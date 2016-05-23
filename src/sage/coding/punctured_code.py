@@ -359,13 +359,18 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
 
     def __init__(self, code):
         r"""
-        EXAMPLES::
+        TESTS:
+
+        If ``code`` is not a ``PuncturedCode``, an exception is raised::
+
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
-            sage: Cp = codes.PuncturedCode(C, 3)
-            sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
-            sage: E
-            Punctured matrix-based encoder for the Punctured code coming from Linear code of length 11, dimension 5 over Finite Field of size 7 punctured on position(s) [3]
+            sage: codes.encoders.PuncturedCodePuncturedMatrixEncoder(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: code has to be an instance of PuncturedCode class
         """
+        if not isinstance(code, PuncturedCode):
+            raise TypeError("code has to be an instance of PuncturedCode class")
         super(PuncturedCodePuncturedMatrixEncoder, self).__init__(code)
 
     def _repr_(self):
@@ -495,6 +500,14 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
         r"""
         TESTS:
 
+        If ``code`` is not a ``PuncturedCode``, an exception is raised::
+
+            sage: C = codes.RandomLinearCode(11, 5, GF(7))
+            sage: codes.decoders.PuncturedCodeOriginalCodeDecoder(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: code has to be an instance of PuncturedCode class
+
         If one tries to pass an original_decoder whose associated code is not the original
         code of ``self``, it returns an error::
 
@@ -516,6 +529,9 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             ...
             ValueError: Original code has no error-erasure decoder
         """
+        if not isinstance(code, PuncturedCode):
+            raise TypeError("code has to be an instance of PuncturedCode class")
+
         original_code = code.original_code()
         if original_decoder is not None:
             if not isinstance(original_decoder, Decoder):

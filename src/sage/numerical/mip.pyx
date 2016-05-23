@@ -677,7 +677,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def new_variable(self, real=False, binary=False, integer=False, nonnegative=False, name=""):
         r"""
-        Return a new MIPVariable
+        Return a new :class:`MIPVariable` instance.
 
         A new variable ``x`` is defined by::
 
@@ -731,8 +731,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: print(p.get_max(x0))
             None
 
-         To define two dictionaries of variables, the first being
-         of real type, and the second of integer type ::
+        To define two dictionaries of variables, the first being
+        of real type, and the second of integer type ::
 
             sage: x = p.new_variable(real=True, nonnegative=True)
             sage: y = p.new_variable(integer=True, nonnegative=True)

@@ -3232,18 +3232,13 @@ class AbstractLinearCode(module.Module):
         Cdp = Cd.punctured(L)
         return Cdp.dual_code()
 
-    def _weight_distribution(self, Gmat, n, F):
+    def _spectrum_from_gap(self):
         r"""
         Returns the weight distribution of the associated code. Uses the C programs 
         available in the kernel of GAP and thus is fairly fast.
         
         The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
         where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
-        
-        INPUT:
-        - ``Gmat`` -- string representing the GAP generator matrix of the associated code
-        - ``n`` -- length of the associated code
-        - ``F`` -- finite field of the associated code
         
         OUTPUT:
         - a vector of integers, the weight distribution of the code
@@ -3253,23 +3248,23 @@ class AbstractLinearCode(module.Module):
             sage: MS = MatrixSpace(GF(2),4,7)
             sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: F = GF(2)
-            sage: Gstr = G._gap_init_()
-            sage: C._weight_distribution(Gstr, 7, F)
+            sage: C._spectrum_from_gap()
             [1, 0, 0, 7, 7, 0, 0, 1]
         
         AUTHORS:
 
         - David Joyner (2005-11)
         """
+        Gmat = self.generator_matrix()._gap_init_()
         G = gap(Gmat)
-        q = F.order()
-        k = gap(F)
-        z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
+        q = self.base_ring().order()
+        k = gap(self.base_ring())
+        z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
         _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-        v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
+        v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
         return v
 
+    wtdist_gap = deprecated_function_alias(20565, _spectrum_from_gap)
 
     def spectrum(self, algorithm=None):
         r"""
@@ -3332,13 +3327,8 @@ class AbstractLinearCode(module.Module):
                 algorithm = "binary"
             else:
                 algorithm = "gap"
-        n = self.length()
-        F = self.base_ring()
-        G = self.generator_matrix()
         if algorithm=="gap":
-            Gstr = G._gap_init_()
-            spec = self._weight_distribution(Gstr,n,F)
-            return spec
+            return self._spectrum_from_gap()
         elif algorithm=="binary":
             from sage.coding.binary_code import weight_dist
             return weight_dist(self.generator_matrix())

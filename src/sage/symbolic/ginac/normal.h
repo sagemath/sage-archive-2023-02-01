@@ -26,30 +26,11 @@
 #ifndef __GINAC_NORMAL_H__
 #define __GINAC_NORMAL_H__
 
-#include "lst.h"
-
 namespace GiNaC {
-
 class ex;
-class symbol;
-
-// Polynomial GCD in Z[X], cofactors are returned in ca and cb, if desired
-extern ex gcd(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
-
-// Polynomial LCM in Z[X]
-extern ex lcm(const ex &a, const ex &b, bool check_args = true);
-
-// Square-free factorization of a polynomial a(x)
-extern ex sqrfree(const ex &a, const lst &l = lst());
-
-// Square-free partial fraction decomposition of a rational function a(x)
-extern ex sqrfree_parfrac(const ex & a, const symbol & x);
 
 // Collect common factors in sums.
 extern ex collect_common_factors(const ex & e);
-
-// Resultant of two polynomials e1,e2 with respect to symbol s.
-extern ex resultant(const ex & e1, const ex & e2, const ex & s);
 
 } // namespace GiNaC
 

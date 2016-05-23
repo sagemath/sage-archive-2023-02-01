@@ -355,6 +355,29 @@ size_t ex::nsymbols() const
 	return res;
 }
 
+/** Return pointer to first symbol found in expression.  Due to GiNaC's
+ *  internal ordering of terms, it may not be obvious which symbol this
+ *  function returns for a given expression.
+ *
+ *  @param e  expression to search
+ *  @param x  first symbol found (returned)
+ *  @return "false" if no symbol was found, "true" otherwise */
+bool ex::get_first_symbol(ex &x) const
+{
+	if (is_exactly_a<symbol>(*this)) {
+		x = *this;
+		return true;
+	} else if (is_exactly_a<add>(*this) || is_exactly_a<mul>(*this)) {
+		for (size_t i=0; i<nops(); i++)
+			if (sorted_op(i).get_first_symbol(x))
+				return true;
+	} else if (is_exactly_a<power>(*this)) {
+		if (op(0).get_first_symbol(x))
+			return true;
+	}
+	return false;
+}
+
 static void collect_symbols(const ex& e, symbolset& syms)
 {
 	if (is_exactly_a<symbol>(e))

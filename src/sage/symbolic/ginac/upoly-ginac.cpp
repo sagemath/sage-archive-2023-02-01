@@ -48,30 +48,6 @@ namespace GiNaC {
 // when they are called with two identical arguments.
 #define FAST_COMPARE 1
 
-/** Return pointer to first symbol found in expression.  Due to GiNaC's
- *  internal ordering of terms, it may not be obvious which symbol this
- *  function returns for a given expression.
- *
- *  @param e  expression to search
- *  @param x  first symbol found (returned)
- *  @return "false" if no symbol was found, "true" otherwise */
-static bool get_first_symbol(const ex &e, ex &x)
-{
-	if (is_exactly_a<symbol>(e)) {
-		x = e;
-		return true;
-	} else if (is_exactly_a<add>(e) || is_exactly_a<mul>(e)) {
-		for (size_t i=0; i<e.nops(); i++)
-			if (get_first_symbol(e.sorted_op(i), x))
-				return true;
-	} else if (is_exactly_a<power>(e)) {
-		if (get_first_symbol(e.op(0), x))
-			return true;
-	}
-	return false;
-}
-
-
 /*
  *  Polynomial quotients and remainders
  */
@@ -332,7 +308,7 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 
 	// Find first symbol
 	ex x;
-	if (!get_first_symbol(a, x) && !get_first_symbol(b, x))
+	if (!a.get_first_symbol(x) && !b.get_first_symbol(x))
 		throw(std::invalid_argument("invalid expression in divide()"));
 
 	// Try to avoid expanding partially factored expressions.

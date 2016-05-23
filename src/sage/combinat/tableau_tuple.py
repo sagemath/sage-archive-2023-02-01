@@ -179,8 +179,8 @@ for standard tableaux (tuples).
 * :class:`ResidueSequence`
 * :class:`ResidueSequences`
 
-These classes are not designed to be called directly but are instead invoked
-through the standard tableaux classes::
+Rather than calling the residue classes directly they are more easily
+constructed from standard tableaux::
 
     sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,0])
     3-residue sequence (0,1,2,0,0) with multicharge (0,0)
@@ -251,7 +251,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.positive_integers import PositiveIntegers
-from sage.structure.list_clone import ClonableIntArray
+from sage.structure.list_clone import ClonableArray, ClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -725,8 +725,6 @@ class TableauTuple(CombinatorialElement):
                 return self.parent().Element( conj )
             except StandardError:
                 return Tableau(conj)
-
-
 
     def pp(self):
         """
@@ -1270,6 +1268,56 @@ class TableauTuple(CombinatorialElement):
         except ValueError:
             return TableauTuples()([[[w[entry-1] for entry in row] for row in t] for t in self])
 
+    def content(self, k, multicharge):
+        r"""
+        Return the content ``k`` in ``self``.
+
+        The content of `k` in a standard tableau. That is, if
+        `k` appears in row `r` and column `c` of the tableau then we
+        return `c-r` + ``multicharge[k]``.
+
+        The ``multicharge`` = `[m_1, \ldots, m_l]` determines the dominant
+        weight
+
+        .. MATH::
+
+            \Lambda = \sum_{i=1}^l \Lambda_{a_i}
+
+        of the affine special linear group. In the combinatorics, the
+        ``muticharge`` simply offsets the contents in each component so that
+        the cell `(k, r, c)` has content `a_k+c-r`.
+
+        INPUT:
+
+        - ``k`` -- An integer with `1 \leq k \leq n`
+
+        - ``multicharge`` -- a sequence of integers of length `l`.
+
+        Here `l` is the :meth:`~TableauTuple.level` and `n` is the
+        :meth:`~TableauTuple.size` of ``self``.
+
+        EXAMPLES::
+
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,0])
+            -1
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,1])
+            0
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,2])
+            1
+            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(6,[0,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 must be contained in the tableaux
+
+        """
+        for l in range(len(self)):
+            for row in range(len(self[l])):
+                try:
+                    return multicharge[l]-row+self[l][row].index(k)
+                except ValueError:
+                    ValueError
+        raise ValueError( '%s must be contained in the tableaux' % k )
+
     def residue(self, k, e, multicharge):
         """
         INPUT:
@@ -1314,76 +1362,8 @@ class TableauTuple(CombinatorialElement):
                     return IntegerModRing(e)( multicharge[l]-row+self[l][row].index(k) )
                 except ValueError:
                     pass
-        raise ValueError, '%s must be contained in the tableaux' % k
+        raise ValueError('%s must be contained in the tableaux' % k)
 
-    def residue_sequence(self, e, multicharge):
-        """
-        INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - a sequence of integers the `multicharge` of length l.
-
-        OUTPUT:
-
-        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,0])
-            3-residue sequence (0,1,2,0,0) with multicharge (0,0)
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,1])
-            3-residue sequence (1,2,0,1,0) with multicharge (0,1)
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue_sequence(3,[0,2])
-            3-residue sequence (2,0,1,2,0) with multicharge (0,2)
-        """
-        res=[0]*self.size()
-        for k in range(len(self)):
-            for r in range(len(self[k])):
-                for c in range(len(self[k][r])):
-                    res[self[k][r][c]-1]=multicharge[k]-r+c
-        return ResidueSequence(e,multicharge,res)
-
-    def degree(self,e, multicharge):
-        """
-        INPUT: self.degree(e, multicharge)
-
-        Return the integer which is the Brundan-Kleshchev-Wang [BKW]_ degree of a standard tableau.
-
-        This is defined recursively by successively stripping off the number k,
-        for k=n,n-1,...,1, and at stage adding the count of the number of addable cell
-        ofthe same residue minus the number of removable cells of them same
-        residue as k and which are below k in the diagram.
-
-        Note that even though this degree function was defined by
-        Brundan-Kleshchev-Wang [BKW]_ the underlying combinatorics is much older, going
-        back at least to Misra and Miwa.
-
-        The degrees of the tableau t gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by t.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(0,1))
-            1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(2,(2,1))
-            -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(3,(2,1))
-            2
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(4,(2,1))
-            1
-
-        """
-        deg=self.shape()._initial_degree(e,multicharge)
-        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
-        for r in self.reduced_row_word():
-            if res[r]==res[r+1]:
-                deg-=2
-            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
-                deg+=(e==2 and 2 or 1)
-            res=res.swap_residues(r,r+1)
-        return deg
 
 #--------------------------------------------------
 # Standard tableau tuple - element class
@@ -1539,8 +1519,6 @@ class StandardTableauTuple(TableauTuple):
 
         raise ValueError( '%s is not a standard tableau tuple' % t )
 
-
-
     def __init__(self, parent, t):
         r"""
         Initializes a standard tableau tuple.
@@ -1614,103 +1592,10 @@ class StandardTableauTuple(TableauTuple):
                     pass
         raise ValueError( '%s must be contained in the tableaux' % k )
 
-    def content(self, k, multicharge):
-        r"""
-        Return the content ``k`` in ``self``.
-
-        The content of `k` in a standard tableau. That is, if
-        `k` appears in row `r` and column `c` of the tableau then we
-        return `c-r` + ``multicharge[k]``.
-
-        The ``multicharge`` = `[m_1, \ldots, m_l]` determines the dominant
-        weight
-
-        .. MATH::
-
-            \Lambda = \sum_{i=1}^l \Lambda_{a_i}
-
-        of the affine special linear group. In the combinatorics, the
-        ``muticharge`` simply offsets the contents in each component so that
-        the cell `(k, r, c)` has content `a_k+c-r`.
-
-        INPUT:
-
-        - ``k`` -- An integer with `1 \leq k \leq n`
-
-        - ``multicharge`` -- a sequence of integers of length `l`.
-
-        Here `l` is the :meth:`~TableauTuple.level` and `n` is the
-        :meth:`~TableauTuple.size` of ``self``.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,0])
-            -1
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,1])
-            0
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(3,[0,2])
-            1
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).content(6,[0,2])
-            Traceback (most recent call last):
-            ...
-            ValueError: 6 must be contained in the tableaux
-
-        """
-        for l in range(len(self)):
-            for row in range(len(self[l])):
-                try:
-                    return multicharge[l]-row+self[l][row].index(k)
-                except ValueError:
-                    ValueError
-        raise ValueError( '%s must be contained in the tableaux' % k )
-
-    def residue(self, k, e, multicharge):
-        """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - the `multicharge`, which is a list of integers  of the same level/length
-              as the shape of the tableau
-
-        Here l is the level of the shape and n is its size.
-
-        OUTPUT:
-
-        The ressidue of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return the image of `c-r+multicharge[k]` in Z/eZ.
-
-        The multicharge=[m_1,...,m_l] determines a weight
-        .. math \sum_{i=1}^l \Lambda_{a_i}
-        of the affine special linear group. In he combinatorics, it simply
-        offsets the contents in each componennt so that the cell (k,0,0) has
-        content a_k.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue(1, 3,[0,0])
-            0
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue(1, 3,[0,1])
-            1
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue(1, 3,[0,2])
-            2
-            sage: StandardTableauTuple([[[5]],[[1,2],[3,4]]]).residue(6, 3,[0,2])
-            Traceback (most recent call last):
-            ...
-            ValueError: 6 must be contained in the tableaux
-
-        """
-        for l in range(len(self)):
-            for row in range(len(self[l])):
-                try:
-                    return IntegerModRing(e)( multicharge[l]-row+self[l][row].index(k) )
-                except ValueError:
-                    ValueError
-        raise ValueError( '%s must be contained in the tableaux' % k)
 
     def residue_sequence(self, e, multicharge):
         """
-       INPUT:
+        INPUT:
             - an integer `k`, with 1\le k\le n,
             - an integer `e` in {0,2,3,4,5,...} (not checked!)
             - a sequence of integers the `multicharge` of length l.
@@ -1729,74 +1614,51 @@ class StandardTableauTuple(TableauTuple):
             3-residue sequence (2,0,1,2,0) with multicharge (0,2)
         """
         res=[0]*self.size()
-        for k in range(len(self)):
-            for r in range(len(self[k])):
-                for c in range(len(self[k][r])):
-                    res[self[k][r][c]-1]=multicharge[k]-r+c
-        return ResidueSequence(e,multicharge,res)
+        for (k,r,c) in self.shape().cells():
+            res[self[k][r][c]-1]=multicharge[k]-r+c
+        return ResidueSequence(e,multicharge,res, check=False)
 
     def degree(self,e, multicharge):
         """
         INPUT: self.degree(e, multicharge)
 
-        Return the integer which is the Brundan-Kleshchev-Wang degree of the standard tableau
-        ``self``.
+        Return the integer which is the Brundan-Kleshchev-Wang [BKW]_ degree of a standard tableau.
 
-        This is defined recursively by successively stripping off the number
-        `k`, for `k=n,n-1,...,1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are below `k` in the diagram.
+        This is defined recursively by successively stripping off the number k,
+        for k=n,n-1,...,1, and at stage adding the count of the number of addable cell
+        ofthe same residue minus the number of removable cells of them same
+        residue as k and which are below k in the diagram.
 
-        The degrees of the tableau ``self`` give the degree of the homogeneous basis
-        element of the graded Specht module which is indexed by ``self``.
+        Note that even though this degree function was defined by
+        Brundan-Kleshchev-Wang [BKW]_ the underlying combinatorics is much older, going
+        back at least to Misra and Miwa.
+
+        The degrees of the tableau t gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by t.
 
         EXAMPLES::
 
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,[0,1])
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(0,1))
             1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,[2,1])
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(0,(2,1))
             -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(2,[2,1])
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(2,(2,1))
             -1
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(3,[2,1])
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(3,(2,1))
             2
-            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(4,[2,1])
+            sage: StandardTableauTuple([[[2,8],[7]],[[1,4,6],[3,5]]]).degree(4,(2,1))
             1
 
-        REFERENCE:
-            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-              J. Reine Angew. Math., 655 (2011), 61-87.
         """
-        if self==[]: return 0  # the trivial case
-
-        n=self.size()
-        if n==0: return 0
-
-        Ze=IntegerModRing(e)      # We can't use k%e instead because e can be zero
-
-        deg=self.restrict(n-1).degree(e,multicharge)   # compute by induction
-        removable_cells=self.shape().removable_cells()
-        c=0
-        while self(removable_cells[c])!=n:
-            c+=1
-        ncell=removable_cells[c]
-        i=Ze(multicharge[ ncell[0] ] - ncell[1] + ncell[2] )  # the residue of n
-        # The cells returned by removable_cells()  appear in row order, so the cells in
-        # the next loop automatically appear in a lower row than ncell. We
-        # decrease the degree for each lower removable cell of residue i.
-        for cell in removable_cells[c+1:]:
-            if i==Ze(multicharge[ cell[0] ] - cell[1] + cell[2]):
-                deg-=1
-
-        # Now loop through the addable cells and add 1 if the residues agree the
-        # cell is below ncell in the diagram We increase the degree for each
-        # lower addable cell of residue i.
-        for cell in self.shape().addable_cells():
-            if ncell<cell and i==Ze(multicharge[ cell[0] ] - cell[1] + cell[2]):
-                deg+=1
-
+        deg=self.shape()._initial_degree(e,multicharge)
+        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r]==res[r+1]:
+                deg-=2
+            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
+                deg+=(e==2 and 2 or 1)
+            res=res.swap_residues(r,r+1)
         return deg
-
 
     def dominates(self, t):
         """
@@ -2655,12 +2517,11 @@ class StandardTableauTuples(TableauTuples):
 
         # first check the keyword arguments
         level=kwargs.get('level',None)
-        residue=kwargs.get('residue',None)
         shape=kwargs.get('shape',None)
         size=kwargs.get('size',None)
 
         for key in kwargs:
-            if key not in ['level','residue','shape','size']:
+            if key not in ['level','shape','size']:
                 raise ValueError( '%s is not a valid argument for StandardTableauTuples' % key )
 
         if shape is not None:  # need to make sure that shape is a partition tuple
@@ -2697,11 +2558,6 @@ class StandardTableauTuples(TableauTuples):
                 else:
                     shape=new_shape
 
-            elif isinstance(args[a], ResidueSequence):
-                if residue is not None and residue!=args[a]:
-                    raise ValueError( 'the residue was specified more than once')
-                else:
-                    residue=args[a]   # we check that it is a PartitionTuple below
             else:
                 raise ValueError( 'unknown argument for specifying StandardTableauTuples')
 
@@ -2727,32 +2583,14 @@ class StandardTableauTuples(TableauTuples):
             elif size!=shape.size():
                 raise ValueError('the shape and size must agree')
 
-        if residue is not None:
-            # note that if shape is not None then size has already been set (and checked) when we looked at shape
-            if size is None:
-                size=len(residue)
-            elif size!=residue.size():
-                raise ValueError,'the size and the length of the residue sequence must agree'
-            # the level of the residue sequence must agree with any level specified
-            if level is not None and level!=residue.level():
-                raise ValueError,'the level must agree with the level of the residue sequence'
-
         # now that the inputs appear to make sense, return the appropriate class
         if level==1:
-            if residue is not None and shape is not None:
-                return StandardTableaux_residue_shape(shape=shape,residue=residue)
-            elif residue is not None:
-                return StandardTableaux_residue(residue=residue)
-            elif shape is not None:
+            if shape is not None:
                 return StandardTableaux_shape(shape)
             elif size is not None:
                 return StandardTableaux_size(size)
             else:
                 return StandardTableaux_all()
-        elif residue is not None and shape is not None:
-            return StandardTableaux_residue_shape(shape=shape,residue=residue)
-        elif residue is not None:
-            return StandardTableaux_residue(residue=residue)
         elif shape is not None:
             return StandardTableauTuples_shape(shape)
         elif level is not None and size is not None:
@@ -3660,7 +3498,21 @@ class StandardTableauTuples_shape(StandardTableauTuples):
 
 class StandardTableaux_residue(StandardTableauTuples):
     """
-    Class of all StandardTableauTuples of a fixed residue, level and size.
+    Class of all StandardTableauTuples with a fixed residue sequence.
+    Implicitly, this also specifies the quantum characteristic, multicharge and
+    hence the level and size of the tableaux. This class is not intended to be
+    called directly. Rather, it is accessed through the standard tableaux:
+
+    EXAMPLES::
+    
+        sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(2).standard_tableaux() # indirect doctest
+        Standard tableaux with 2-residue sequence (0,1,0,1,0) and multicharge (0)
+        sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
+        Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
+        sage: StandardTableauTuple([[[5,6],[7]],[[1,2,3],[4]]]).residue_sequence(2,(0,0)).standard_tableaux()
+        Standard tableaux with 2-residue sequence (0,1,0,1,0,1,1) and multicharge (0,0)
+        sage: StandardTableauTuple([[[5,6],[7]],[[1,2,3],[4]]]).residue_sequence(3,(0,1)).standard_tableaux()
+        Standard tableaux with 3-residue sequence (1,2,0,0,0,1,2) and multicharge (0,1)
     """
 
     def __init__(self, residue):
@@ -3672,11 +3524,10 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples( ResidueSequence(3,(0,1,0),[0,1,2,0,0,1,2]) )
-            Standard tableaux with 3-residue sequence (0,1,2,0,0,1,2) and multicharge (0,1,0)
-            sage: StandardTableauTuples( ResidueSequence(3,(0,1),[0,1,2,0,1,1]) )
-            Standard tableaux with 3-residue sequence (0,1,2,0,1,1) and multicharge (0,1)
+            sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux() # indirect doctest
+            Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
+            sage: StandardTableauTuple([[[6],[7]],[[1,2,3],[4,5]]]).residue_sequence(2,(0,0)).standard_tableaux()
+            Standard tableaux with 2-residue sequence (0,1,0,1,0,0,1) and multicharge (0,0)
         """
         super(StandardTableaux_residue, self).__init__(category = FiniteEnumeratedSets())
         self._residue=residue
@@ -3691,15 +3542,14 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: tabs=StandardTableauTuples( ResidueSequence(3,(0,0,0),[0,1,2,0,1,2]) )
+            sage: tabs=StandardTableauTuple([[[1,2],[3]],[[4,5]]]).residue_sequence(3,(0,1)).standard_tableaux()
             sage: tabs
-            Standard tableaux with 3-residue sequence (0,1,2,0,1,2) and multicharge (0,0,0)
-            sage: [[[1,2,3]],[],[[4,5,6]]] in tabs
+            Standard tableaux with 3-residue sequence (0,1,2,1,2) and multicharge (0,1)
+            sage: [[[1,2],[3]],[[4,5]]] in tabs
             True
-            sage: [[],[[4,5,6]],[[1,2,3]]] in tabs
+            sage: [[[1,2],[3]],[[4,5]]] in tabs
             True
-            sage: [[3],[[1,2]],[[1,2,3]]] in tabs
+            sage: [[[1,2],[4,5]],[[3]]] in tabs
             False
         """
         if not isinstance(t, self.element_class):
@@ -3716,9 +3566,8 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,1,2,1,2,1]))
-            Standard tableaux with 3-residue sequence (0,1,2,1,2,1) and multicharge (0,0,0)
+            sage: StandardTableauTuple([[[1,2],[3]],[[4,5]]]).residue_sequence(3,(0,1)).standard_tableaux() #indirect doctest
+            Standard tableaux with 3-residue sequence (0,1,2,1,2) and multicharge (0,1)
         """
         return 'Standard tableaux with {}'.format(self._residue.__str__('and'))
 
@@ -3731,26 +3580,19 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,2,1,0])).list()
-            [([[1, 3], [2, 4]], [], []),
-             ([[1, 3], [2]], [[4]], []),
-             ([[1, 3], [2]], [], [[4]]),
-             ([[1], [2], [3], [4]], [], []),
-             ([[1], [2], [3]], [[4]], []),
-             ([[1], [2], [3]], [], [[4]]),
-             ([[4]], [[1, 3], [2]], []),
-             ([], [[1, 3], [2, 4]], []),
-             ([], [[1, 3], [2]], [[4]]),
-             ([[4]], [[1], [2], [3]], []),
-             ([], [[1], [2], [3], [4]], []),
-             ([], [[1], [2], [3]], [[4]]),
-             ([[4]], [], [[1, 3], [2]]),
-             ([], [[4]], [[1, 3], [2]]),
-             ([], [], [[1, 3], [2, 4]]),
-             ([[4]], [], [[1], [2], [3]]),
-             ([], [[4]], [[1], [2], [3]]),
-             ([], [], [[1], [2], [3], [4]])]
+            sage: StandardTableauTuple([[[1,2],[5]],[[3,4]]]).residue_sequence(3,(0,1)).standard_tableaux()[:] #indirect doctest
+            [([[1, 2, 4], [5]], [[3]]),
+             ([[1, 2, 4]], [[3, 5]]),
+             ([[1, 2, 5], [4]], [[3]]),
+             ([[1, 2], [4]], [[3, 5]]),
+             ([[1, 2, 5]], [[3, 4]]),
+             ([[1, 2], [5]], [[3, 4]]),
+             ([[1, 3, 4], [5]], [[2]]),
+             ([[1, 3, 4]], [[2, 5]]),
+             ([[1, 3, 5], [4]], [[2]]),
+             ([[1, 3], [4]], [[2, 5]]),
+             ([[1, 3, 5]], [[2, 4]]),
+             ([[1, 3], [5]], [[2, 4]])]
         """
         if self._size==0:
             yield StandardTableauTuple([[] for l in range(self._level)])  # the empty tableaux
@@ -3770,8 +3612,7 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,2,1,0])).is_finite()
+            sage: StandardTableau([[1,2],[3]]).residue_sequence(3).standard_tableaux().is_finite() #indirect doctest
             True
         """
         return True
@@ -3783,32 +3624,13 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,1,2,0,1])).list()
-            [([[1, 2, 3, 4, 5]], [], []),
-             ([[1, 2, 3]], [[4, 5]], []),
-             ([[1, 2, 3]], [], [[4, 5]]),
-             ([[1, 2], [3, 4], [5]], [], []),
-             ([[1, 2], [3], [5]], [[4]], []),
-             ([[1, 2], [3]], [[4, 5]], []),
-             ([[1, 2], [3], [5]], [], [[4]]),
-             ([[1, 2], [3]], [], [[4, 5]]),
-             ([[4, 5]], [[1, 2, 3]], []),
-             ([], [[1, 2, 3, 4, 5]], []),
-             ([], [[1, 2, 3]], [[4, 5]]),
-             ([[4, 5]], [[1, 2], [3]], []),
-             ([[4]], [[1, 2], [3], [5]], []),
-             ([], [[1, 2], [3, 4], [5]], []),
-             ([], [[1, 2], [3], [5]], [[4]]),
-             ([], [[1, 2], [3]], [[4, 5]]),
-             ([[4, 5]], [], [[1, 2, 3]]),
-             ([], [[4, 5]], [[1, 2, 3]]),
-             ([], [], [[1, 2, 3, 4, 5]]),
-             ([[4, 5]], [], [[1, 2], [3]]),
-             ([[4]], [], [[1, 2], [3], [5]]),
-             ([], [[4, 5]], [[1, 2], [3]]),
-             ([], [[4]], [[1, 2], [3], [5]]),
-             ([], [], [[1, 2], [3, 4], [5]])]
+            sage: StandardTableauTuple([[[1,4],[2]],[[3]]]).residue_sequence(3,(0,1)).standard_tableaux().list() #indirect doctest
+            [([[1, 3], [2], [4]], []),
+             ([[1, 3], [2]], [[4]]),
+             ([[1, 4], [2], [3]], []),
+             ([[1], [2], [3]], [[4]]),
+             ([[1, 4], [2]], [[3]]),
+             ([[1], [2], [4]], [[3]])]
         """
         return [y for y in self]
 
@@ -3818,9 +3640,8 @@ class StandardTableaux_residue(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,1),[0,1,0,1]),[[2],[2]]).an_element()
-            sage: StandardTableauTuples(ResidueSequence(3,(0,2),[0,1,2,0,1]),[[2,1],[2]]).an_element()
+            sage: StandardTableau([[1,2],[3]]).residue_sequence(3,(0,1)).standard_tableaux().an_element() #indirect doctest
+            ([[1, 2, 3]], [])
         """
         # the tableaux class may be empty so we trap a ValueError
         try:
@@ -3850,20 +3671,28 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: tabs=StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,1,2,0,1,2,1]),[[2,1],[],[2,1,1]])
-            sage: tabs
-            Standard (2,1|-|2,1^2)-tableaux with 3-residue sequence (0,1,2,0,1,2,1) and multicharge (0,0,0)
+            sage: res=StandardTableauTuple([[[1,3],[6]],[[2,7],[4],[5]]]).residue_sequence(3,(0,0))
+            sage: tabs=res.standard_tableaux([[2,1],[2,1,1]]); tabs # indirect doctest
+            Standard (2,1|2,1^2)-tableaux with 3-residue sequence (0,0,1,2,1,2,1) and multicharge (0,0)
             sage: tabs.shape()
-            ([2, 1], [], [2, 1, 1])
+            ([2, 1], [2, 1, 1])
             sage: tabs.level()
-            3
+            2
             sage: tabs.cardinality()
-            3
+            12
             sage: tabs.list()
-            [([[4, 7], [6]], [], [[1, 2], [3], [5]]),
-             ([[4, 5], [6]], [], [[1, 2], [3], [7]]),
-             ([[1, 2], [3]], [], [[4, 5], [6], [7]])]
+            [([[2, 7], [6]], [[1, 3], [4], [5]]),
+             ([[1, 7], [6]], [[2, 3], [4], [5]]),
+             ([[2, 3], [6]], [[1, 7], [4], [5]]),
+             ([[1, 3], [6]], [[2, 7], [4], [5]]),
+             ([[2, 5], [6]], [[1, 3], [4], [7]]),
+             ([[1, 5], [6]], [[2, 3], [4], [7]]),
+             ([[2, 3], [6]], [[1, 5], [4], [7]]),
+             ([[1, 3], [6]], [[2, 5], [4], [7]]),
+             ([[2, 5], [4]], [[1, 3], [6], [7]]),
+             ([[1, 5], [4]], [[2, 3], [6], [7]]),
+             ([[2, 3], [4]], [[1, 5], [6], [7]]),
+             ([[1, 3], [4]], [[2, 5], [6], [7]])]
         """
         super(StandardTableaux_residue_shape, self).__init__(category = FiniteEnumeratedSets())
         self._quantum_characteristic=residue.quantum_characteristic()
@@ -3879,12 +3708,11 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: tabs = StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,1,2,0,2,1]))
-            sage: [ [[1,2,3]], [[4,6],[5]], [[]] ] in tabs
+            sage: tabs=StandardTableauTuple([[[1,3]],[[2],[4]]]).residue_sequence(3,(0,1)).standard_tableaux([[2],[1,1]])
+            sage: [ [[1,2,3,4]], [[]] ] in tabs # indirect doctest
             False
-            sage: [ [[1,2,4]], [[3,6],[5]], [[]] ] in tabs
-            False
+            sage: ([[1, 2]], [[3], [4]]) in tabs
+            True
         """
         if not isinstance(t, self.element_class):
             try:
@@ -3899,9 +3727,8 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,1,2,0,1,2,0]),[[2,1],[],[3,1]])
-            Standard (2,1|-|3,1)-tableaux with 3-residue sequence (0,1,2,0,1,2,0) and multicharge (0,0,0)
+            sage: StandardTableau([[1,3],[2,4]]).residue_sequence(3).standard_tableaux([2,2]) # indirect doctest
+            Standard (2^2)-tableaux with 3-residue sequence (0,2,1,0) and multicharge (0)
         """
         return 'Standard ({})-tableaux with {}'.format(self._shape._repr_compact_high(), self._residue.__str__('and'))
 
@@ -3913,9 +3740,8 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,2,1,0]),[[1,1,1],[],[1]]).list()
-            [([[1], [2], [3]], [], [[4]])]
+            sage: StandardTableau([[1,3],[2,4]]).residue_sequence(3).standard_tableaux([2,2])[:] # indirect doctest
+            [[[1, 3], [2, 4]]]
 
         """
         if self._size==0:
@@ -3937,8 +3763,7 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,2,1,0]),[[1,1,1],[],[1]]).is_finite()
+            sage: StandardTableauTuple([[[1,3]],[[2],[4]]]).residue_sequence(3,(0,1)).standard_tableaux().is_finite()
             True
         """
         return True
@@ -3949,9 +3774,8 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 
         EXAMPLES::
 
-            sage: from sage.combinat.tableau_tuple import ResidueSequence
-            sage: StandardTableauTuples(ResidueSequence(3,(0,0,0),[0,2,1,0]),[[1,1,1],[],[1]]).an_element()
-            ([[1], [2], [3]], [], [[4]])
+            sage: StandardTableau([[1,3],[2]]).residue_sequence(3).standard_tableaux([2,1]).an_element()
+            [[1, 3], [2]]
 
         """
         # the tableaux class may be empty so we trap a ValueError
@@ -3964,7 +3788,7 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
 #--------------------------------------------------
 # Residue sequences
 #--------------------------------------------------
-class ResidueSequence(ClonableIntArray):
+class ResidueSequence(ClonableArray):
     r"""
     INPUT:
         - ResidueSequence(e, res)
@@ -3982,29 +3806,44 @@ class ResidueSequence(ClonableIntArray):
     index and completely determine the irreducible representations of the
     (cyclotomic) Gelfand-Zetlin algebras.
 
+    Rather than being called directly, residue sequences are best accessed via
+    the standard tableaux classes class:`StandardTableau` and
+    class:`StandardTableauTuple`.
+
     EXAMPLES::
 
-        sage: from sage.combinat.tableau_tuple import ResidueSequence
-        sage: res=ResidueSequence(3,(0,0,1), [0,1,2,0]); res
-        3-residue sequence (0,1,2,0) with multicharge (0,0,1)
+        sage: res=StandardTableauTuple([[[1,3],[6]],[[2,7],[4],[5]]]).residue_sequence(3,(0,5))
+        sage: res
+        3-residue sequence (0,2,1,1,0,2,0) with multicharge (0,2)
         sage: res.quantum_characteristic()
         3
         sage: res.level()
-        3
+        2
         sage: res.size()
-        4
+        7
         sage: res.residues()
-        [0, 1, 2, 0]
+        [0, 2, 1, 1, 0, 2, 0]
         sage: res.restrict(2)
-        3-residue sequence (0,1) with multicharge (0,0,1)
-        sage: res.standard_tableaux([[3],[1],[]])
-        Standard (3|1|-)-tableaux with 3-residue sequence (0,1,2,0) and multicharge (0,0,1)
-        sage: res.standard_tableaux([[3],[1],[]])[:]
-        [([[1, 2, 3]], [[4]], [])]
-        sage: res.standard_tableaux([[3],[1],[]]).list()
-        [([[1, 2, 3]], [[4]], [])]
+        3-residue sequence (0,2) with multicharge (0,2)
+        sage: res.standard_tableaux([[2,1],[1],[2,1,1]])
+        Standard (2,1|1|2,1^2)-tableaux with 3-residue sequence (0,2,1,1,0,2,0) and multicharge (0,2)
+        sage: res.standard_tableaux([[2,2],[3]]).list()
+        []
+        sage: res.standard_tableaux([[2,2],[3]])[:]
+        []
         sage: res.standard_tableaux()
-        Standard tableaux with 3-residue sequence (0,1,2,0) and multicharge (0,0,1)
+        Standard tableaux with 3-residue sequence (0,2,1,1,0,2,0) and multicharge (0,2)
+        sage: res.standard_tableaux()[:10]
+        [([[1, 3, 6, 7], [2, 5], [4]], []),
+        ([[1, 3, 6], [2, 5], [4], [7]], []),
+        ([[1, 3], [2, 5], [4, 6], [7]], []),
+        ([[1, 3], [2, 5], [4], [7]], [[6]]),
+        ([[1, 3], [2, 5], [4]], [[6, 7]]),
+        ([[1, 3, 6, 7], [2], [4], [5]], []),
+        ([[1, 3, 6], [2, 7], [4], [5]], []),
+        ([[1, 3], [2, 7], [4], [5], [6]], []),
+        ([[1, 3], [2, 7], [4], [5]], [[6]]),
+        ([[1, 3], [2], [4], [5]], [[6, 7]])]
 
     The TestSuite fails _test_pickling because __getitem__ does not support
     slices so we skip this.
@@ -4080,8 +3919,11 @@ class ResidueSequence(ClonableIntArray):
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3, [0,0,1], [0,0,1,1,2,2,3,3]).check()
             sage: ResidueSequence(3, [0,0,1], [2,0,1,1,2,2,3,3]).check()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a residue sequence with multicharge (0, 0, 1)
         """
-        assert True # self.parent().is_canonical(self)
+        self.parent().check_element(self)
 
     def _repr_(self):
         """
@@ -4127,13 +3969,13 @@ class ResidueSequence(ClonableIntArray):
             IndexError: k must be in the range 1, 2, ..., 8
         """
         try:
-            return ClonableIntArray.__getitem__(self, k-1)
+            return ClonableArray.__getitem__(self, k-1)
         except (IndexError, KeyError):
             raise IndexError('k must be in the range 1, 2, ..., {}'.format(len(self)))
 
     def residues(self):
         """
-        Return the residue sequence as a list
+        Return  a list of the residue sequence.
 
         EXAMPLES::
 
@@ -4141,7 +3983,7 @@ class ResidueSequence(ClonableIntArray):
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).residues()
             [0, 0, 1, 1, 2, 2, 0, 0]
         """
-        return self.list()   # return a copy
+        return [r for r in self]
 
     def restrict(self,m):
         """
@@ -4157,7 +3999,7 @@ class ResidueSequence(ClonableIntArray):
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]).restrict(4)
             3-residue sequence (0,0,1,1) with multicharge (0,0,1)
         """
-        return ResidueSequence(self.quantum_characteristic(),self.multicharge(),self.list()[:m])
+        return ResidueSequence(self.quantum_characteristic(),self.multicharge(),self.residues()[:m])
 
 
     def swap_residues(self, i,j):
@@ -4466,4 +4308,21 @@ class ResidueSequences(UniqueRepresentation, Parent):
             return self._cell_residue_level_one
         else:
             return self._cell_residue_higher_levels
+
+    def check_element(self, element):
+        r"""Check that ``elemnent`` is a residue sequence with multicharge ``self.multicharge()``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tableau_tuple import ResidueSequence
+            sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]) # indirect doctest
+            3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
+            sage: ResidueSequence(3,(0,0,1),[2,0,1,1,2,2,3,3]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: not a residue sequence with multicharge (0, 0, 1)
+        """
+        if len(element)>0 and element[1] not in self._multicharge:
+            raise ValueError('not a residue sequence with multicharge {}'.format(self._multicharge))
+
 

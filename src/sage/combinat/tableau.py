@@ -3837,6 +3837,80 @@ class Tableau(ClonableList):
                         f += 1
         return f
 
+    ##################################
+    # contents, residues and degrees #
+    ##################################
+    def content(self, k, multicharge=[0]):
+        """
+        Returns the content of ``k`` in a standard tableau. That is, if
+        ``k`` appears in row `r` and column `c` of the tableau then we
+        return `c-r`.
+
+        The ``multicharge`` is a list of length 1 which gives an offset for
+        all of the contents. It is included mainly for compatibility with
+        :class:`TableauTuple`.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,2],[3,4]]).content(3)
+            -1
+
+            sage: StandardTableau([[1,2],[3,4]]).content(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 does not appear in tableau
+        """
+        for r in range(len(self)):
+          try:
+            return self[r].index(k) - r + multicharge[0]
+          except ValueError:
+            pass
+        raise ValueError("%d does not appear in tableau"%k)
+
+
+    def residue(self, k, e, multicharge=(0,)):
+        """
+       INPUT:
+            - an integer `k`, with 1\le k\le n,
+            - an integer `e` in {0,2,3,4,5,...} (not checked!)
+            - an (optional) `multicharge` which defaluts to [0]
+
+        Here l is the level of the shape and n is its size.
+
+        OUTPUT:
+
+        The residue of ``k`` in a standard tableau. That is, if
+        ``k`` appears in row `r` and column `c` of the tableau then we
+        return the image of `c-r+multicharge[k]` in Z/eZ.
+
+        The `multicharge` is a list of length 1 which gives an offset for all of
+        the contents. It is included mainly for compatabilty with TableauTuples.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(1,3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(2,3)
+            1
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(3,3)
+            2
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(4,3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(5,3)
+            2
+            sage: StandardTableau([[1,2,5],[3,4]]).residue(6,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 does not appear in the tableau
+        """
+        for r in range(len(self)):
+          try:
+            return IntegerModRing(e)(self[r].index(k) - r + multicharge[0])
+          except ValueError:
+            pass
+        raise ValueError('%d does not appear in the tableau'%k)
+
+
     def residue_sequence(self, e, multicharge=(0,)):
         """
        INPUT:
@@ -3854,18 +3928,18 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(2)
-            Residue sequence (0,1,1,0)
+            2-residue sequence (0,1,1,0) with multicharge (0)
             sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(3)
-            Residue sequence (0,1,2,0)
+            3-residue sequence (0,1,2,0) with multicharge (0)
             sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
-            Residue sequence (0,1,3,0)
+            4-residue sequence (0,1,3,0) with multicharge (0)
         """
         from tableau_tuple import ResidueSequence
         res=[0]*self.size()
         for r in range(len(self)):
             for c in range(len(self[r])):
                 res[self[r][c]-1]=multicharge[0]-r+c
-        return ResidueSequence(e,multicharge,res)
+        return ResidueSequence(e,multicharge,res, check=False)
 
     def degree(self,e, multicharge=(0,)):
         """
@@ -3936,11 +4010,11 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: StandardTableau([[1,3,5],[2,4]]).codegree(3)
-            0
+            3
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(3)
-            1
+            2
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
-            0
+            2
 
         REFERENCE:
             - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
@@ -3948,7 +4022,7 @@ class Tableau(ClonableList):
         """
         if self==[]: return 0  # the trivial case
 
-        codeg=self.shape().conjugate()._initial_degree(e,multicharge)
+        codeg=self.shape().conjugate()._initial_degree(e,tuple(-r for r in multicharge))
         res=self.shape().conjugate().initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
             if res[r]==res[r+1]: 
@@ -4003,6 +4077,35 @@ class Tableau(ClonableList):
                     return (row,col)
                 col+=1
         return None
+
+    def reduced_row_word(self):
+        """
+        Return the lexicographically minimal reduced expression for the
+        permutation, which is a minimal length coset representative for the
+        corresponding Young subgroup, which uniquely determined by the property
+        that it maps the :meth:`initial_tableau` of this shape to the current
+        tableau.
+
+        In other words, this is a reduced expression for the permutation which,
+        in one line notation, is obtained by concatenating the rows of the
+        tableau from top to bottom in each component, and then left to right
+        along the components.
+
+        EXAMPLE::
+
+            sage: StandardTableau([[1,2,3],[4,5],[6]]).reduced_row_word()
+            []
+            sage: StandardTableau([[1,2,3],[4,6],[5]]).reduced_row_word()
+            [5]
+            sage: StandardTableau([[1,2,4],[3,6],[5]]).reduced_row_word()
+            [3, 5]
+            sage: StandardTableau([[1,2,5],[3,6],[4]]).reduced_row_word()
+            [3, 5, 4]
+            sage: StandardTableau([[1,2,6],[3,5],[4]]).reduced_row_word()
+            [3, 4, 5, 4]
+        """
+        return permutation.Permutation(list(self.entries())).inverse().reduced_word_lexmin()
+
 
 
 
@@ -4278,109 +4381,6 @@ class StandardTableau(SemistandardTableau):
         """
         t=StandardTableau(t)
         return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
-                        for m in xrange(1,1+self.size()))
-
-
-    def content(self, k, multicharge=[0]):
-        """
-        Returns the content of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return `c-r`.
-
-        The ``multicharge`` is a list of length 1 which gives an offset for
-        all of the contents. It is included mainly for compatibility with
-        :class:`TableauTuple`.
-
-        EXAMPLES::
-
-            sage: StandardTableau([[1,2],[3,4]]).content(3)
-            -1
-
-            sage: StandardTableau([[1,2],[3,4]]).content(6)
-            Traceback (most recent call last):
-            ...
-            ValueError: 6 does not appear in tableau
-        """
-        for r in range(len(self)):
-          try:
-            return self[r].index(k) - r + multicharge[0]
-          except ValueError:
-            pass
-        raise ValueError("%d does not appear in tableau"%k)
-
-
-    def residue(self, k, e, multicharge=[0]):
-        """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - an (optional) `multicharge` which defaluts to [0]
-
-        Here l is the level of the shape and n is its size.
-
-        OUTPUT:
-
-        The residue of ``k`` in a standard tableau. That is, if
-        ``k`` appears in row `r` and column `c` of the tableau then we
-        return the image of `c-r+multicharge[k]` in Z/eZ.
-
-        The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatabilty with TableauTuples.
-
-        EXAMPLES::
-
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(1,3)
-            0
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(2,3)
-            1
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(3,3)
-            2
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(4,3)
-            0
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(5,3)
-            2
-            sage: StandardTableau([[1,2,5],[3,4]]).residue(6,3)
-            Traceback (most recent call last):
-            ...
-            ValueError: 6 does not appear in the tableau
-        """
-        for r in range(len(self)):
-          try:
-            return IntegerModRing(e)(self[r].index(k) - r + multicharge[0])
-          except ValueError:
-            pass
-        raise ValueError, '%d does not appear in the tableau'%k
-
-
-    def dominates(self, t):
-        r"""
-        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
-        if the shape of the tableau restricted to `k` dominates the shape of
-        ``t`` restricted to `k`, for `k = 1, 2, \ldots, n`.
-
-        When the two tableaux have the same shape, then this ordering
-        coincides with the Bruhat ordering for the corresponding permutations.
-
-        INPUT:
-
-        - ``t`` -- A tableau
-
-        EXAMPLES::
-
-            sage: s=StandardTableau([[1,2,3],[4,5]])
-            sage: t=StandardTableau([[1,2],[3,5],[4]])
-            sage: s.dominates(t)
-            True
-            sage: t.dominates(s)
-            False
-            sage: all(StandardTableau(s).dominates(t) for t in StandardTableaux([3,2]))
-            True
-            sage: s.dominates([[1,2,3,4,5]])
-            False
-
-        """
-        t=StandardTableau(t)
-        return all(self.restriction_shape(m).dominates(t.restriction_shape(m))
                         for m in xrange(1,1+self.size()))
 
     def is_standard(self):
@@ -6376,7 +6376,7 @@ class StandardTableaux(SemistandardTableaux):
         sage: ST.list()
         [[[1, 3], [2, 4]], [[1, 2], [3, 4]]]
         sage: StandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
-        Standard tableaux of residue (0,1,2,2,0)
+        Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):

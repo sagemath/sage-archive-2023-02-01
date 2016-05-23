@@ -267,7 +267,8 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.rings.all import NN, ZZ
+from sage.misc.cachefunc import cached_method
+from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
@@ -965,6 +966,35 @@ class PartitionTuple(CombinatorialElement):
         """
         return multicharge[k]-r+c
 
+    def content_tableau(self,multicharge):
+        """
+        Return the tableau which has (k,r,c)th entry equal to the content
+        ``multicharge[k]-r+c of this cell.
+
+        As with the content function, by setting the ``multicharge``
+        appropriately the tableau containing the residues is returned.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,0])
+            ([[0, 1], [-1]], [[0, 1]], [[0], [-1], [-2]])
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,1]).pp()
+                0  1     0  1     1
+               -1                 0
+                                 -1
+
+        as with the content function the multicharge can be used to return the
+        tableau containing the residues of the cells::
+
+            sage: multicharge=[ IntegerModRing(3)(c) for c in [0,0,1] ]
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau(multicharge).pp()
+                0  1     0  1     1
+                2                 0
+                                  2
+        """
+        from tableau_tuple import TableauTuple
+        return TableauTuple([[[multicharge[k]-r+c for c in range(self[k][r])]
+                        for r in range(len(self[k]))] for k in range(len(self))])
 
     def conjugate(self):
         """
@@ -1118,11 +1148,11 @@ class PartitionTuple(CombinatorialElement):
 
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
-        from tableau_tuple import TableauTuple
         g = self.initial_tableau().to_list()
         a = g[comp][row][col]
         g[comp][row][col:] = range(a+col+1, g[comp][row+1][col]+1)
         g[comp][row+1][:col+1] = range(a, a+col+1)
+        from tableau_tuple import TableauTuple
         g = TableauTuple(g)
         g._garnir_cell = (comp,row,col)
         return g
@@ -1456,6 +1486,403 @@ class PartitionTuple(CombinatorialElement):
                 gens.extend([c for c in range(m+1,m+row)])
                 m+=row
         return gens
+
+    def degree(self, e, multicharge):
+        r"""
+        Return the ``e``th degree of the partition ``self``. This is the sum of the
+        degrees of the standard tableaux of shape ``self``. The ``e``th degree is the
+        exponent of `\Phi_e(q)` in the Gram determinant of the Specht module for
+        a semisimple Iwahori-Hecke algebra of type A with parameter `q`.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]]).degree(2,(0,0))
+            168
+            sage: PartitionTuple([[2,1],[2,2]]).degree(3,(0,0))
+            322
+            sage: PartitionTuple([[2,1],[2,2]]).degree(4,(0,0))
+            0
+            sage: PartitionTuple([[2,1],[2,2]]).degree(5,(0,0))
+            0
+            sage: PartitionTuple([[2,1],[2,2]]).degree(6,(0,0))
+            0
+            sage: PartitionTuple([[2,1],[2,2]]).degree(7,(0,0))
+            0
+
+        So we concludethat the Gram determinant of `S(5,3)` is
+        `q^N\Phi_2(q)^{169}\Phi_3(q)^{322}` for some integer `N`. Compare with 
+        :meth:`p_Degree`
+        """
+        return sum(t.degree(e,multicharge) for t in self.standard_tableaux())
+
+    def p_Degree(self, p, multicharge):
+        r"""
+        Return the ``p``th Degree of the partition ``self``. This is the sum of the
+        degrees of the standard tableaux of shape ``self``. The ``e``th degree is the
+        exponent of `p` in the Gram determinant of the Specht module of the symmetric group
+        of the symmetric group.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]]).p_Degree(2,(0,0))
+            168
+            sage: PartitionTuple([[2,1],[2,2]]).p_Degree(3,(0,0))
+            322
+            sage: PartitionTuple([[2,1],[2,2]]).p_Degree(5,(0,0))
+            0
+            sage: PartitionTuple([[2,1],[2,2]]).p_Degree(7,(0,0))
+            0
+
+        So we concludethat the Gram determinant of `S(5,3)` is
+        `2^{168}3^{322}`  Compare with :meth:`degree`
+        """
+        ps=[p]
+
+        while ps[-1]*p<self.size():
+            ps.append(ps[-1]*p)
+        return sum(t.degree(pk,multicharge) for pk in ps for t in self.standard_tableaux())
+
+    @cached_method
+    def _initial_degree(self,e,multicharge):
+        r"""
+        Return the Brundan-Kleshchev-Wang degree of the initial tableau of shape
+        ``self``. This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau of shape
+        ``self``, which is why this method is cached. See
+        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(0,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(2,(0,0))
+            4
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(3,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(4,(0,0))
+            1
+        """
+        if e==0: deg=0
+        else: deg=sum(mu._initial_degree(e) for mu in self)
+        I=IntegerModRing(e)
+        multires=[I(k) for k in multicharge]
+        for (k,r,c) in self.cells():
+            res=I(multicharge[k]-r+c)
+            for l in range(k+1,self.level()):
+                if res==multires[l]: deg+=1
+        return deg
+
+    def defect(self, e, multicharge):
+        r"""
+        Return the `e`-defect or the `e`-weight of the partition. This is the
+        number of (connected) `e`-rim hooks that can be removed from the
+        partition.
+
+        The defect of a a partition is given by 
+
+        .. MATH: 
+
+            \text{defect}(\beta) = (\Lambda,\beta)-\tfrac12(\beta,\beta)
+
+        where `\Lambda=\sum_r\Lambda_{\kappa_r}$, where
+        `(\kappa_1,\dots,\kappa_\ell)` is the ``multicharge`` and 
+        `\beta=\sum_{(r,c)} \alpha_{(c-r)\pmod e}`, where the sum is over
+        the cells in the partition.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,2],[2,2]]).defect(0,(0,0))
+            0
+            sage: PartitionTuple([[2,2],[2,2]]).defect(2,(0,0))
+            8
+            sage: PartitionTuple([[2,2],[2,2]]).defect(2,(0,1))
+            8
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(0,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(3,(3,2))
+            7
+            sage: PartitionTuple([[2,2],[2,2]]).defect(4,(0,0))
+            0
+        """
+        beta={} # Will correspond to an element of the positive root lattice corresponding to the block
+                # We use a dictionary to cover the case when e=0
+
+        Ie=IntegerModRing(e)
+        for (k,r,c) in self.cells():
+            r=Ie(multicharge[k]+r-c)
+            beta[r]=beta[r]+1 if r in beta else 1
+
+        return sum(beta[r] for r in beta)-sum(beta[r]**2-beta[r]*beta.get(Ie(r+1),0) for r in beta)
+
+    def conormal_cells(self,e,multicharge,i=None,direction='up'):
+        """
+        Returns a dictionary of the cells of the partition which are conormal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the conormal cells for 0<=``i`` <``e``.
+
+        The conormal are computed by reading down the rows of the partition
+        and marking all of all of the addable and removable cells of
+        e-residue i and then recursively removing all adjacent pairs of
+        addable and removable cells from this list. The addable i-cells
+        that remain at the end of the this process are the conormal i-cells.
+
+        When computing conormal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting <direction>='up'.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1])
+            {0: [(1, 1, 3), (0, 1, 4)], 1: [(1, 3, 0), (1, 2, 2), (0, 2, 0)], 2: [(1, 0, 4), (0, 0, 5)]}
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],i=1)
+            [(1, 3, 0), (1, 2, 2), (0, 2, 0)]
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],i=2)
+            [(1, 0, 4), (0, 0, 5)]
+            sage: PartitionTuple([[5,4],[4,3,2]]).conormal_cells(3,[0,1],direction='down')
+            {0: [(0, 1, 4), (1, 1, 3)], 1: [(0, 2, 0), (1, 2, 2), (1, 3, 0)], 2: [(0, 0, 5), (1, 0, 4)]}
+        """
+        from collections import defaultdict
+        # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
+        conormals=defaultdict(list)   # the conormal cells of each residue
+        carry=defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        Ie=IntegerModRing(e)
+        multicharge=[Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+
+        # the indices for the rows ending in addable nodes
+        rows=[(k,r) for k in range(len(self)) for r in range(len(self[k])+1)]
+        if direction=='up': rows.reverse()
+
+        for row in rows:
+            k,r=row
+            if r==len(self[k]): # addable cell at bottom of a component
+                res=multicharge[k]-r
+                if carry[res]>=0: conormals[res].append( (k,r,0) )
+                else: carry[res]-=1
+            else:
+                res=multicharge[k]+self[k][r]-r-1
+                if r==len(self[k])-1 or self[k][r]>self[k][r+1]: # removable cell
+                    carry[res]+=1
+                if r==0 or self[k][r-1]>self[k][r]:               #addable cell
+                    if carry[res+1]>=0: conormals[res+1].append( (k,r,self[k][r]) )
+                    else: carry[res+1]-=1
+
+        # finally return the result
+        if i==None: return dict(conormals)
+        else: return conormals[i]
+
+    def cogood_cells(self,e, multicharge, i=None, direction='up'):
+        """
+        Return a list of the cells of the partition which are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good i-cell is the 'last' normal ``i``-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
+            {0: (1, 2, 1), 2: (1, 1, 2)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
+            {0: (1, 2, 1), 2: (0, 1, 3)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],0,direction='down')
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
+            True
+        """
+        conormal_cells=self.conormal_cells(e,multicharge,i,direction)
+        if i==None:
+            return {i:conormal_cells[i][0] for i in conormal_cells}
+        elif conormal_cells==[]:
+            return None
+        else:
+            return conormal_cells[0]
+
+    def normal_cells(self,e,multicharge,i=None, direction='up'):
+        """
+        Returns a dictionary of the removable cells of the partition which are normal.
+        If no residue ``i`` is specified then a list of length ``e`` is returned
+        which gives the normal cells for 0<=``i`` <``e``.
+
+        The normal are computed by reading up (or down) the rows of the partition
+        and marking all of all of the addable and removable cells of
+        ``e``-residue ``i`` and then recursively removing all adjacent pairs of
+        addable and removable cells from this list. The removable ``i``-cells
+        that remain at the end of the this process are the normal ``i``-cells.
+
+        When computing normal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting <direction>='up'.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1])
+            {0: [(1, 2, 1)], 2: [(1, 1, 2)]}
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1],1)
+            []
+            sage: PartitionTuple([[5,4],[4,3,2]]).normal_cells(3,[0,1],direction='down')
+            {1: [(0, 0, 4)]}
+        """
+        from collections import defaultdict
+        # We use a dictionary for the normal nodes as the indexing set is Z when e=0
+        normals=defaultdict(list)     # the normal cells of each residue
+        carry=defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        Ie=IntegerModRing(e)
+        multicharge=[Ie(m) for m in multicharge]  # adding multicharge works mod e
+
+        # the indices for the rows ending in addable nodes
+        rows=[(k,r) for k in range(len(self)) for r in range(len(self[k])+1)]
+        if direction=='up': rows.reverse()
+
+        for row in rows:
+            k,r=row
+            if r==len(self[k]): # addable cell at bottom of a component
+                carry[multicharge[k]-r]-=1
+            else:
+                res=multicharge[k]+self[k][r]-r-1
+                if r==len(self[k])-1 or self[k][r]>self[k][r+1]: # removable cell
+                    if carry[res]==0: normals[res].append( (k,r,self[k][r]-1) )
+                    else: carry[res]+=1
+                if r==0 or self[k][r-1]>self[k][r]:               #addable cell
+                    carry[res+1]-=1
+
+        # finally return the result
+        if i==None: return dict(normals)    # change the defaultdict into a dict
+        else: return normals[i]
+
+    def good_cells(self,e,multicharge, i=None, direction='up'):
+        """
+        Return a list of the cells of the partition tuple which are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good ``i``-cell is the 'last' normal ``i``-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1])
+            {0: (1, 2, 1), 2: (1, 1, 2)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(3,[0,1],0)
+            (1, 2, 1)
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],direction='down')
+            {0: (1, 2, 1), 2: (0, 1, 3)}
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cells(4,[0,1],1,direction='down') is None
+            True
+        """
+        normal_cells=self.normal_cells(e,multicharge,i,direction)
+        if i is None:
+            return {i:normal_cells[i][-1] for i in normal_cells}
+        elif normal_cells==[]:
+            return None
+        else:
+            return normal_cells[-1]
+
+    def good_residue_sequence(self, e, multicharge, direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition to this
+        partition, or None if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_residue_sequence(3,[0,1])
+
+        """
+        if self.size()==0:
+            return []
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            k,r,c,=good_cells[0]
+            good_seq=self.remove_cell(k,r,c).good_residue_sequence(e,multicharge,direction)
+            good_seq.append( IntegerModRing(e)(multicharge[k]+c-r) )
+            return good_seq
+        except (TypeError, AttributeError):  
+            # if this fails then there is no good cell sequence
+            return None
+
+    def good_cell_sequence(self, e, multicharge, direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition to this
+        partition, or None if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).good_cell_sequence(3,[0,1])
+
+        """
+        if self.size()==0:
+            return []
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            cell=good_cells[0]
+            good_seq=self.remove_cell(*cell).good_cell_sequence(e,multicharge,direction)
+            good_seq.append(cell)
+            return good_seq
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def Mullineux_conjugate(self, e, multicharge, direction='up'):
+        """
+        Return the partition tuple which is the Mullineux conjugate of this
+        partition tuple, or None if no such partition tuple exists.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,4],[4,3,2]]).Mullineux_conjugate(3,[0,1])
+
+        """
+        if self.size()==0:
+            return PartitionTuples([[] for l in range(self.level())])
+        good_cells=self.good_cells(e,multicharge,direction)
+        try:
+            k,r,c=good_cells[0]
+            mu=self.remove_cell(k,r,c).Mullineux_conjugate(e,multicharge,direction)
+            # add back on a cogood cell of residue -residue(k,r,c)
+            return mu.add_cell(*mu.cogood_cell(e,muticharge=multicharge,i=r-c-multicharge[k],direction=direction))
+        except (TypeError, AttributeError):  # if this fails then there is no good cell sequence
+            return None
+
+    def is_regular(self,e,multicharge):
+        """
+        Return True if this is a restricted partition tuple. That is, we can get
+        to the empty partition tuple by successively removing a sequence of good
+        cells.
+
+        EXAMPLES::
+
+        """
+        for cell in self.good_cells(e,multicharge,direction='down'):
+            if not cell is None:
+                return self.remove_cell(*cell).is_restricted(e,multicharge)
+        return False
+
+    def is_restricted(self,e,multicharge):
+        """
+        Return True if this is a restricted partition tuple. That is, we can get
+        to the empty partition tuple by successively removing a sequence of good
+        cells.
+
+        EXAMPLES::
+
+        """
+        if self.size()==0: return True
+        for cell in self.good_cells(e,multicharge).values():
+            if not cell is None:
+                return self.remove_cell(*cell).is_restricted(e,multicharge)
+        return False
+
 
 #--------------------------------------------------
 # Partition tuples - parent classes

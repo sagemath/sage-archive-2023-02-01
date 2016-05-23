@@ -397,10 +397,10 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
             sage: x = a*b^2*e*d
             sage: x._sorted_items()
             ((0, 1), (1, 2), (4, 1), (3, 1))
-            sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+            sage: F.print_options(generator_reverse=True)
             sage: x._sorted_items()
             ((0, 1), (1, 2), (4, 1), (3, 1))
-            sage: F.print_options(generator_cmp=cmp) # reset to original state
+            sage: F.print_options(generator_reverse=False) # reset to original state
 
         .. SEEALSO::
 
@@ -483,10 +483,10 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             sage: x = a*b^2*e*d
             sage: x._sorted_items()
             [(0, 1), (1, 2), (3, 1), (4, 1)]
-            sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+            sage: F.print_options(generator_reverse=True)
             sage: x._sorted_items()
             [(4, 1), (3, 1), (1, 2), (0, 1)]
-            sage: F.print_options(generator_cmp=cmp) # reset to original state
+            sage: F.print_options(generator_reverse=False) # reset to original state
 
         .. SEEALSO::
 
@@ -495,7 +495,8 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         print_options = self.parent().print_options()
         v = self._monomial.items()
         try:
-            v.sort(cmp = print_options['generator_cmp'])
+            v.sort(key=print_options['generator_key'],
+                   reverse=print_options['generator_reverse'])
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v

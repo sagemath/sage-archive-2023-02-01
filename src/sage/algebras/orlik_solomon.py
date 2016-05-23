@@ -133,8 +133,25 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         cat = Algebras(R).FiniteDimensional().WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, M.no_broken_circuits_sets(ordering),
                                          prefix='OS', bracket='{',
-                                         generator_cmp=self._cmp_term,
+                                         generator_key=self._sort_key,
                                          category=cat)
+
+    def _sort_key(self, x):
+        """
+        Return the key used to sort the terms.
+
+        EXAMPLES::
+
+            sage: M = matroids.Wheel(3)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            sage: OS._sort_key(frozenset({1, 2}))
+            (-2, [1, 2])
+            sage: OS._sort_key(frozenset({0, 1, 2}))
+            (-3, [0, 1, 2])
+            sage: OS._sort_key(frozenset({}))
+            (0, [])
+        """
+        return (-len(x), sorted(x))
 
     def _cmp_term(self, x, y):
         """

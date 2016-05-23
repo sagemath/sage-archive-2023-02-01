@@ -328,8 +328,11 @@ class PuncturedCode(AbstractLinearCode):
         list_pts = list(pts)
         while(isinstance(C, PuncturedCode)):
             cur_pts = list(C.punctured_positions())
-            for i in range(len(list_pts)):
-                list_pts[i] += 1
+            list_len = len(list_pts)
+            for p in cur_pts:
+                for i in range(list_len):
+                    if (p <= list_pts[i]):
+                        list_pts[i] += 1
             list_pts += cur_pts
             C = C.original_code()
         return C._punctured_form(set(list_pts))

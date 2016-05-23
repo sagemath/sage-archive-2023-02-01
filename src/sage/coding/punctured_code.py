@@ -443,7 +443,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 
     - ``code`` -- The associated code of this encoder
 
-    - ``strategy`` -- (dafault: ``None``) the strategy used to decode.
+    - ``strategy`` -- (default: ``None``) the strategy used to decode.
       The available strategies are:
 
         * ``'error-erasure'`` -- uses an error-erasure decoder over the original code if available,
@@ -542,10 +542,10 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                 strategy = 'error-erasure'
             self._original_decoder = original_decoder
         elif strategy == 'error-erasure':
-            error_erasure = 0
+            error_erasure = False
             for D in original_code._registered_decoders.values():
                 if 'error-erasure' in D._decoder_type:
-                    error_erasure = 1
+                    error_erasure = True
                     self._original_decoder = D(original_code, **kwargs)
                     break
             if not error_erasure:
@@ -643,12 +643,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                 e_list = e.list()
                 e_list = _insert_punctured_positions(e_list, pts, one)
             else:
-                e_list = []
-                for i in range(Cor.length()):
-                    if i in pts:
-                        e_list.append(one)
-                    else:
-                        e_list.append(zero)
+                e_list = [one if i in pts else zero for i in range(Cor.length())]
             e = vector(GF(2), e_list)
             yl = y.list()
             yl = _insert_punctured_positions(yl, pts, zero)

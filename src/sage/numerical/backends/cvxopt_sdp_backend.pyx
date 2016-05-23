@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
@@ -61,7 +62,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                       "reltol":1e-6,
                       "feastol":1e-7,
                       "refinement":0 }
-
+        self.answer = {}
         if maximization:
             self.set_sense(+1)
         else:
@@ -255,8 +256,8 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         INPUT:
 
         - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
-          is a variable index (integer) and ``v`` is a value (real
-          value). The pairs come sorted by indices. If c is -1 it 
+          is a variable index (integer) and ``v`` is a value (matrix).
+          The pairs come sorted by indices. If c is -1 it
           represents the constant coefficient.
 
         - ``name`` - an optional name for this row (default: ``None``)
@@ -435,8 +436,6 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_sdp_backend import get_solver
-            sage: p = get_solver(solver = "cvxopt")
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)
             sage: x = p.new_variable()
             sage: p.set_objective(x[0] - x[1] + x[2])
@@ -461,6 +460,32 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sum += v * float(self.answer['x'][i])
             i+=1
         return sum
+
+    cpdef _get_answer(self):
+        """
+        return the complete output dict of the solver
+
+        Mainly for testing purposes
+
+        TESTS::
+
+            sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve();                                     # tol 1e-08
+            -3.0
+            sage: p.get_backend()._get_answer()
+            {...}
+        """
+        return self.answer
 
     cpdef get_variable_value(self, int variable):
         """
@@ -569,7 +594,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:
@@ -617,8 +642,108 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                 matrices.append(m)
         return (indices, matrices)
 
+    cpdef dual_variable(self, int i, sparse=False):
+        """
+        The `i`-th dual variable
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the `i`-th dual variable
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()                                     # tol 1e-08
+            -3.0
+            sage: B=p.get_backend()
+            sage: x=p.get_values(x).values()
+            sage: -(a3*B.dual_variable(0)).trace()-(b3*B.dual_variable(1)).trace()  # tol 1e-07
+            -3.0
+            sage: g = sum((B.slack(j)*B.dual_variable(j)).trace() for j in range(2)); g  # tol 1.5e-08
+            0.0
 
 
+        TESTS::
+
+            sage: B.dual_variable(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: abs(g - B._get_answer()['gap'])   # tol 1e-22
+            0.0
+
+        """
+        cdef int n
+        n = self.answer['zs'][i].size[0]
+        assert(n == self.answer['zs'][i].size[1]) # must be square matrix
+        return Matrix(n, n, list(self.answer['zs'][i]), sparse=sparse)
+
+    cpdef slack(self, int i, sparse=False):
+        """
+        Slack of the `i`-th constraint
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the slack of the `i`-th constraint
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()                         # tol 1e-08
+            -3.0
+            sage: B = p.get_backend()
+            sage: B1 = B.slack(1); B1               # tol 1e-08
+            [0.0 0.0]
+            [0.0 0.0]
+            sage: B1.is_positive_definite()
+            True
+            sage: x = p.get_values(x).values()
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-09
+            [0.0 0.0]
+            [0.0 0.0]
+
+        TESTS::
+
+            sage: B.slack(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+
+        """
+        cdef int n
+        n = self.answer['ss'][i].size[0]
+        assert(n == self.answer['ss'][i].size[1]) # must be square matrix
+        return Matrix(n, n, list(self.answer['ss'][i]), sparse=sparse)
 
     cpdef row_name(self, int index):
         """

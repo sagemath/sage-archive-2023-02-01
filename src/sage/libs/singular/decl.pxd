@@ -368,6 +368,7 @@ cdef extern from "libsingular.h":
 
     cdef ring *currRing
     cdef ideal *currQuotient
+
     # omalloc bin for numbers
 
     cdef omBin *rnumber_bin
@@ -678,6 +679,7 @@ cdef extern from "libsingular.h":
     # ring.
 
     poly *kNF(ideal *i, ideal *q, poly *p)
+    poly *kNF(ideal *i, ideal *q, poly *p, int syzComp, int lazyReduce)
 
     # derive p with respect to i-th variable
 

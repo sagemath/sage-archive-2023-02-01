@@ -3,10 +3,10 @@ Gray codes
 
 REFERENCES:
 
-.. [Knuth-TAOCP2A] D. Knuth "The art of computer programming", fascicules 2A,
+.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicules 2A,
    "generating all n-tuples"
 
-.. [Knuth-TAOCP3A] D. Knuth "The art of computer programming", fascicule 3A
+.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicule 3A
    "generating all combinations"
 
 Functions

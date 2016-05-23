@@ -60,7 +60,7 @@ weighted degree where each variable x_i has weight i.
 
 REFERENCES:
 
-.. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+.. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
@@ -752,7 +752,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
            :arXiv:`math/0503436v2`.
 
@@ -1264,7 +1264,7 @@ def _exp_gen(R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _exp_gen
         sage: g = _exp_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
     return (_exp_term(i, R) for i in _integers_from(0))
@@ -1323,7 +1323,7 @@ def _cl_gen (R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _cl_gen
         sage: g = _cl_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
     return (_cl_term(i, R) for i in _integers_from(0))
@@ -1355,7 +1355,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
+    .. [Labelle] \G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_gen(R))

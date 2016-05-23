@@ -137,6 +137,7 @@ Check that :trac:`5562` has been fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.category_object import check_default_category
@@ -665,7 +666,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R._magma_init_(magma)                     # optional - magma
             'SageCreateWithNames(PolynomialRing(_sage_ref...),["y"])'
             sage: S = magma(R)                              # optional - magma
-            sage: print S                                   # optional - magma
+            sage: S                                         # optional - magma
             Univariate Polynomial Ring in y over Rational Field
             sage: S.1                                       # optional - magma
             y
@@ -1316,7 +1317,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: P = PolynomialRing(GF(3),'y')
-            sage: for p in P.polynomials( of_degree = 2 ): print p
+            sage: for p in P.polynomials( of_degree = 2 ): print(p)
             y^2
             y^2 + 1
             y^2 + 2
@@ -1335,7 +1336,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             2*y^2 + 2*y
             2*y^2 + 2*y + 1
             2*y^2 + 2*y + 2
-            sage: for p in P.polynomials( max_degree = 1 ): print p
+            sage: for p in P.polynomials( max_degree = 1 ): print(p)
             0
             1
             2
@@ -1345,7 +1346,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             2*y
             2*y + 1
             2*y + 2
-            sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print p
+            sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print(p)
             Traceback (most recent call last):
             ...
             ValueError: you should pass exactly one of of_degree and max_degree
@@ -1383,7 +1384,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: P = PolynomialRing(GF(4,'a'),'y')
-            sage: for p in P.monics( of_degree = 2 ): print p
+            sage: for p in P.monics( of_degree = 2 ): print(p)
             y^2
             y^2 + a
             y^2 + a + 1
@@ -1400,13 +1401,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             y^2 + y + a
             y^2 + y + a + 1
             y^2 + y + 1
-            sage: for p in P.monics( max_degree = 1 ): print p
+            sage: for p in P.monics( max_degree = 1 ): print(p)
             1
             y
             y + a
             y + a + 1
             y + 1
-            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
+            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print(p)
             Traceback (most recent call last):
             ...
             ValueError: you should pass exactly one of of_degree and max_degree
@@ -1684,7 +1685,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         REFERENCES:
 
-        .. [MF99] J.H. Mathews and K.D. Fink. *Numerical Methods Using
+        .. [MF99] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
            MATLAB*.  3rd edition, Prentice-Hall, 1999.
 
         """
@@ -1845,7 +1846,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         REFERENCES:
 
-        .. [BF05] R.L. Burden and J.D. Faires. *Numerical Analysis*.
+        .. [BF05] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
            8th edition, Thomson Brooks/Cole, 2005.
 
         """

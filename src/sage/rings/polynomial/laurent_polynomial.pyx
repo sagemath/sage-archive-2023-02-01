@@ -9,6 +9,7 @@ Elements of Laurent polynomial rings
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -379,7 +380,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: R.<t> = LaurentPolynomialRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0
@@ -388,6 +389,33 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             -10/3
         """
         return iter(self.__u)
+
+    def _symbolic_(self, R):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + 2/x
+            sage: g = f._symbolic_(SR); g
+            (x^4 + 2)/x
+            sage: g(x=2)
+            9
+
+            sage: g = SR(f)
+            sage: g(x=2)
+            9
+
+        The polynomial does not have to be over a field of
+        characteristic 0::
+
+            sage: R.<w> = LaurentPolynomialRing(GF(7))
+            sage: f = SR(2*w^3 + 1); f
+            2*w^3 + 1
+            sage: f.variables()
+            (w,)
+        """
+        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        return self.subs(**d)
 
     def dict(self):
         """
@@ -1351,7 +1379,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]}) > 20
             True
+
+        Check that :trac:`20490` is fixed::
+
+            sage: R.<a,b> = LaurentPolynomialRing(ZZ)
+            sage: p = a*~a
+            sage: p._fraction_pair()
+            (a, a)
+            sage: p == R.one()
+            True
+            sage: hash(p) == hash(R.one())
+            True
         """
+        self._normalize()
         return hash(self._poly) ^ hash(self._mon)
 
     cdef _new_c(self):
@@ -1468,7 +1508,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if len(coeffs) != 1:
             return False
         return coeffs[0].is_unit()
-        
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -2329,6 +2369,24 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             out += term
 
         return out
+
+    def _symbolic_(self, R):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + y/x
+            sage: g = f._symbolic_(SR); g
+            x^3 + y/x
+            sage: g(x=2,y=2)
+            9
+
+            sage: g = SR(f)
+            sage: g(x=2,y=2)
+            9
+        """
+        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        return self.subs(**d)
 
     def derivative(self, *args):
         r"""

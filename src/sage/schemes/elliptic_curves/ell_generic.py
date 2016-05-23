@@ -43,7 +43,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import math
 
@@ -2392,17 +2392,17 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         EXAMPLES::
 
             sage: E = EllipticCurve([1,2,3,4,5])
-            sage: print E
+            sage: E
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
             sage: F = E.short_weierstrass_model()
-            sage: print F
+            sage: F
             Elliptic Curve defined by y^2  = x^3 + 4941*x + 185166 over Rational Field
             sage: E.is_isomorphic(F)
             True
             sage: F = E.short_weierstrass_model(complete_cube=False)
-            sage: print F
+            sage: F
             Elliptic Curve defined by y^2  = x^3 + 9*x^2 + 88*x + 464 over Rational Field
-            sage: print E.is_isomorphic(F)
+            sage: E.is_isomorphic(F)
             True
 
         ::

@@ -20,6 +20,18 @@ from sage.numerical.mip import MIPSolverException
 
 cdef class CPLEXBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the CPLEX solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - CPLEX
+
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor
@@ -342,7 +354,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.problem_name("There once was a french fry") # optional - CPLEX
-            sage: print p.problem_name()                        # optional - CPLEX
+            sage: print(p.problem_name())                       # optional - CPLEX
             There once was a french fry
         """
 
@@ -1437,7 +1449,7 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
-    cpdef CPLEXBackend copy(self):
+    cpdef __copy__(self):
         r"""
         Returns a copy of self.
 
@@ -1451,7 +1463,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: copy(p).solve()                              # optional - CPLEX
             6.0
         """
-        cdef CPLEXBackend p = CPLEXBackend()
+        cdef CPLEXBackend p = type(self)()
 
         p.lp = CPXcloneprob(p.env, self.lp, &status)
         check(status)
@@ -1522,7 +1534,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                            # optional - CPLEX
             2.0
             sage: with open(filename,'r') as f:                        # optional - CPLEX
-            ....:     print f.read()                                   # optional - CPLEX
+            ....:     print(f.read())                                  # optional - CPLEX
             Found incumbent of value ...
             Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
             ...

@@ -29,6 +29,7 @@ We test coercion in a particularly complicated situation::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense, Polynomial_generic_dense_inexact
 from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
@@ -773,7 +774,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Nonunit leading coefficient
+            ArithmeticError: Division non exact (consider coercing to polynomials over the fraction field)
             sage: g = 0
             sage: f.quo_rem(g)
             Traceback (most recent call last):
@@ -802,14 +803,18 @@ class Polynomial_generic_sparse(Polynomial):
             sage: g == f*q + r and r.degree() < f.degree()
             True
 
+        The following shows that :trac:`16649` is indeed fixed. ::
+
+            sage: P.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (4*x).quo_rem(2*x)
+            (2, 0)
+
         AUTHORS:
 
         - Bruno Grenet (2014-07-09)
         """
         if other.is_zero():
             raise ZeroDivisionError("Division by zero polynomial")
-        if not other.leading_coefficient().is_unit():
-            raise ArithmeticError("Nonunit leading coefficient")
         if self.is_zero():
             return self, self
 
@@ -821,11 +826,12 @@ class Polynomial_generic_sparse(Polynomial):
 
         quo = R.zero()
         rem = self
-        inv_lc = R.base_ring().one()/other.leading_coefficient()
 
         while rem.degree() >= d:
-
-            c = rem.leading_coefficient()*inv_lc
+            try:
+                c = R(rem.leading_coefficient() * ~other.leading_coefficient())
+            except TypeError:
+                raise ArithmeticError("Division non exact (consider coercing to polynomials over the fraction field)")
             e = rem.degree() - d
             quo += c*R.one().shift(e)
             # we know that the leading coefficient of rem vanishes
@@ -1334,7 +1340,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             sage: F.prod() == f
             True
             sage: for (f,_) in F:
-            ....:     print f.newton_slopes()
+            ....:     print(f.newton_slopes())
             [-1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
             [0, 0, 0]
             [1]

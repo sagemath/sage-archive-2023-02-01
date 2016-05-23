@@ -9,7 +9,7 @@ EXAMPLES:
 Initialization of a simple iet with integer lengths::
 
     sage: T = iet.IntervalExchangeTransformation(Permutation([3,2,1]), [3,1,2])
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, 6[ with permutation
     1 2 3
     3 2 1
@@ -18,13 +18,13 @@ Rotation corresponds to iet with two intervals::
 
     sage: p = iet.Permutation('a b', 'b a')
     sage: T = iet.IntervalExchangeTransformation(p, [1, (sqrt(5)-1)/2])
-    sage: print T.in_which_interval(0)
+    sage: print(T.in_which_interval(0))
     a
-    sage: print T.in_which_interval(T(0))
+    sage: print(T.in_which_interval(T(0)))
     a
-    sage: print T.in_which_interval(T(T(0)))
+    sage: print(T.in_which_interval(T(T(0))))
     b
-    sage: print T.in_which_interval(T(T(T(0))))
+    sage: print(T.in_which_interval(T(T(T(0)))))
     a
 
 There are two plotting methods for iet::
@@ -42,6 +42,8 @@ There are two plotting methods for iet::
     sage: T.plot_function()
     Graphics object consisting of 3 graphics primitives
 """
+from __future__ import print_function
+
 from copy import copy
 from sage.structure.sage_object import SageObject
 

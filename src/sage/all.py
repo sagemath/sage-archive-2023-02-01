@@ -33,7 +33,7 @@ We exclude the known files and check to see that there are no others::
     ....:         if nm in filename:
     ....:             break
     ....:     else:
-    ....:         print filename
+    ....:         print(filename)
     ....:
 
 Check that the Sage Notebook is not imported at startup (see
@@ -55,23 +55,30 @@ Check lazy import of ``interacts``::
 #*****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
 #*****************************************************************************
 
-import os, sys
+# Future statements which apply to this module. We delete the
+# future globals because we do not want these to appear in the sage.all
+# namespace. This deleting does not affect the parsing of this module.
+from __future__ import absolute_import, division, print_function
+del absolute_import, division, print_function
+
+import os
+import sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "Sage requires Python 2.5 or newer"
-    sys.exit(1)
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(SAGE_SRC)
+
 
 ###################################################################
 
@@ -195,10 +202,6 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(sage.env.SAGE_SRC)
-
 
 ###########################################################
 #### WARNING:
@@ -233,11 +236,13 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1/60); t1s=t1-t1m*60
+        t1m = int(t1) // 60
+        t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
-               t1m,t1s,t2m,t2s)
+        t2m = int(t2) // 60
+        t2s = t2 - t2m * 60
+        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
+              (t1m, t1s, t2m, t2s))
 
     import gc
     gc.collect()
@@ -268,7 +273,9 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -278,7 +285,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
@@ -314,7 +320,7 @@ def _write_started_file():
     t = datetime.datetime.now().replace(microsecond=0)
 
     O = open(started_file, 'w')
-    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
     O.close()
 
 

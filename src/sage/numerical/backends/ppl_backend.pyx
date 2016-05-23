@@ -18,13 +18,26 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from sage.libs.ppl import MIP_Problem, Variable, Variables_Set, Linear_Expression, Constraint, Generator
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from copy import copy
 
 cdef class PPLBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the exact MIP solver from the Parma Polyhedra Library.
+
+    General backend testsuite::
+
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: p = get_solver(solver = "PPL")
+        sage: TestSuite(p).run(skip="_test_pickling")
+    """
+
     cdef object mip
     cdef list Matrix
     cdef list row_lower_bound
@@ -88,6 +101,39 @@ cdef class PPLBackend(GenericBackend):
 
     cpdef zero(self):
         return self.base_ring()(0)
+
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "PPL")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
+            0
+            sage: cp.get_objective_value()
+            6
+        """
+        cdef PPLBackend cp = type(self)()
+        cp.Matrix = [row[:] for row in self.Matrix]
+        cp.row_lower_bound = self.row_lower_bound[:]
+        cp.row_upper_bound = self.row_upper_bound[:]
+        cp.col_lower_bound = self.col_lower_bound[:]
+        cp.col_upper_bound = self.col_upper_bound[:]
+        cp.objective_function = self.objective_function[:]
+        cp.row_name_var = self.row_name_var[:]
+        cp.col_name_var = self.col_name_var[:]
+        cp.name = self.name
+        cp.obj_constant_term = self.obj_constant_term
+        cp.obj_denominator = self.obj_denominator
+        cp.integer_variables = copy(self.integer_variables)
+        cp.is_maximize = self.is_maximize
+        return cp
 
     def init_mip(self):
         """
@@ -772,7 +818,7 @@ cdef class PPLBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:

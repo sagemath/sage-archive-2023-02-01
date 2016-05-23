@@ -1124,10 +1124,10 @@ Alternatively, we could construct an iterator on the counter-examples::
 
         sage: cubes = [t**3 for t in range(-999,1000)]
         sage: exists([(x,y) for x in cubes for y in cubes],  # long time (3s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
         sage: exists(((x,y) for x in cubes for y in cubes),  # long time (2s, 2012)
-        ....:        lambda (x,y): x+y == 218)
+        ....:        lambda x_y: x_y[0] + x_y[1] == 218)
         (True, (-125, 343))
 
     Which of the last two is more economical in terms of time? In terms
@@ -1545,7 +1545,7 @@ The strictly decreasing partitions of `5`::
     [[5], [4, 1], [3, 2]]
 
 These sets share the same underlying algorithmic structure, implemented
-in the more general – and slightly more cumbersome – class
+in the more general (and slightly more cumbersome) class
 ``IntegerListsLex``. This class models sets of vectors
 `(\ell_0,\dots,\ell_k)` of non-negative integers, with
 constraints on the sum and the length, and bounds on the parts and on

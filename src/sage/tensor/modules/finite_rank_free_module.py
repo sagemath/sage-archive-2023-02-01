@@ -523,6 +523,7 @@ The components on the basis are returned by the square bracket operator for
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -716,15 +717,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     basis, are provided by the generator method :meth:`irange`. By default,
     they range from 0 to the module's rank minus one::
 
-        sage: for i in M.irange(): print i,
-        0 1 2
+        sage: list(M.irange())
+        [0, 1, 2]
 
     This can be changed via the parameter ``start_index`` in the module
     construction::
 
         sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
-        sage: for i in M1.irange(): print i,
-        1 2 3
+        sage: list(M1.irange())
+        [1, 2, 3]
 
     The parameter ``output_formatter`` in the constructor of the free module
     is used to set the output format of tensor components::
@@ -1852,20 +1853,20 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         Index range on a rank-3 module::
 
             sage: M = FiniteRankFreeModule(ZZ, 3)
-            sage: for i in M.irange(): print i,
-            0 1 2
-            sage: for i in M.irange(start=1): print i,
-            1 2
+            sage: list(M.irange())
+            [0, 1, 2]
+            sage: list(M.irange(start=1))
+            [1, 2]
 
         The default starting value corresponds to the parameter ``start_index``
         provided at the module construction (the default value being 0)::
 
             sage: M1 = FiniteRankFreeModule(ZZ, 3, start_index=1)
-            sage: for i in M1.irange(): print i,
-            1 2 3
+            sage: list(M1.irange())
+            [1, 2, 3]
             sage: M2 = FiniteRankFreeModule(ZZ, 3, start_index=-4)
-            sage: for i in M2.irange(): print i,
-            -4 -3 -2
+            sage: list(M2.irange())
+            [-4, -3, -2]
 
         """
         si = self._sindex

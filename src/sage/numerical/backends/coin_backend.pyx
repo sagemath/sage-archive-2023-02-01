@@ -17,6 +17,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from __future__ import print_function
+
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
@@ -24,6 +26,18 @@ from sage.numerical.mip import MIPSolverException
 from copy import copy
 
 cdef class CoinBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the COIN solver (CBC).
+
+    TESTS:
+
+    General backend testsuite::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                       # optional - cbc
+            sage: TestSuite(p).run(skip="_test_pickling")               # optional - cbc
+    """
 
     def __cinit__(self, maximization = True):
         """
@@ -723,6 +737,9 @@ cdef class CoinBackend(GenericBackend):
 
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
 
+        self.col_names.append("")
+
+
     cpdef int solve(self) except -1:
         r"""
         Solves the problem.
@@ -1139,7 +1156,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
             sage: p.problem_name("There once was a french fry") # optional - cbc
-            sage: print p.problem_name()                        # optional - cbc
+            sage: print(p.problem_name())                       # optional - cbc
             There once was a french fry
         """
         if name == NULL:
@@ -1164,7 +1181,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                                     # optional - cbc
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])  # optional - cbc
-            sage: print p.row_name(0)                                                 # optional - cbc
+            sage: print(p.row_name(0))                                                # optional - cbc
             Empty constraint 1
         """
         if self.row_names is not None:
@@ -1186,7 +1203,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")          # optional - cbc
             sage: p.add_variable(name='I am a variable')   # optional - cbc
             0
-            sage: print p.col_name(0)                      # optional - cbc
+            sage: print(p.col_name(0))                     # optional - cbc
             I am a variable
         """
         if self.col_names is not None:
@@ -1194,7 +1211,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return ""
 
-    cpdef CoinBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -1209,7 +1226,7 @@ cdef class CoinBackend(GenericBackend):
             6.0
         """
         # create new backend
-        cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef CoinBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
 
         # replace solver with copy of self's solver
         del p.si

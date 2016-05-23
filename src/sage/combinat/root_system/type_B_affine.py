@@ -7,6 +7,7 @@ Root system data for (untwisted) type B affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
@@ -102,7 +103,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['B',4,1])._latex_dynkin_diagram()
+            sage: print(CartanType(['B',4,1])._latex_dynkin_diagram())
             \draw (0,0.7 cm) -- (2 cm,0);
             \draw (0,-0.7 cm) -- (2 cm,0);
             \draw (2 cm,0) -- (4 cm,0);
@@ -116,7 +117,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
             <BLANKLINE>
 
-            sage: print CartanType(['B',4,1]).dual()._latex_dynkin_diagram()
+            sage: print(CartanType(['B',4,1]).dual()._latex_dynkin_diagram())
             \draw (0,0.7 cm) -- (2 cm,0);
             \draw (0,-0.7 cm) -- (2 cm,0);
             \draw (2 cm,0) -- (4 cm,0);
@@ -161,24 +162,24 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['B',3,1]).ascii_art()
+            sage: print(CartanType(['B',3,1]).ascii_art())
                 O 0
                 |
                 |
             O---O=>=O
             1   2   3
 
-            sage: print CartanType(['B',5,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['B',5,1]).ascii_art(label = lambda x: x+2))
                 O 2
                 |
                 |
             O---O---O---O=>=O
             3   4   5   6   7
 
-            sage: print CartanType(['B',2,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['B',2,1]).ascii_art(label = lambda x: x+2))
             O=>=O=<=O
             2   4   3
-            sage: print CartanType(['B',1,1]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['B',1,1]).ascii_art(label = lambda x: x+2))
             O<=>O
             2   3
         """

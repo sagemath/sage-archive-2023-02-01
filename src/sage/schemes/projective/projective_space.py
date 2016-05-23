@@ -78,6 +78,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import (PolynomialRing,
                             Integer,
@@ -421,7 +422,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: print latex(ProjectiveSpace(1, ZZ, 'x'))
+            sage: print(latex(ProjectiveSpace(1, ZZ, 'x')))
             {\mathbf P}_{\Bold{Z}}^1
 
         TESTS::

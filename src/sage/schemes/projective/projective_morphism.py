@@ -38,6 +38,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
@@ -677,10 +678,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Hutz] B. Hutz. Determination of all rational preperiodic points
+        .. [Hutz] \B. Hutz. Determination of all rational preperiodic points
            for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
-        .. [MoPa] P. Morton and P. Patel. The Galois theory of periodic points
+        .. [MoPa] \P. Morton and P. Patel. The Galois theory of periodic points
            of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
         INPUT:
@@ -1473,7 +1474,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             d = self.degree()
-            F = self
             f = F[0].substitute({y:1})
             g = F[1].substitute({y:1})
             #Try to use pari first, as it is faster for one dimensional case
@@ -1522,7 +1522,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([1/3*x^2+1/2*y^2, y^2])
-            sage: print f.primes_of_bad_reduction()
+            sage: f.primes_of_bad_reduction()
             [2, 3]
 
         ::
@@ -1805,7 +1805,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            1.9185995011736159021863458227e-7
+            2.9868196689972114460185071428e-7
 
         ::
 
@@ -4542,7 +4542,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         REFERENCES:
 
-        .. [Hutz-gr] B. Hutz. Good reduction of periodic points, Illinois Journal of
+        .. [Hutz-gr] \B. Hutz. Good reduction of periodic points, Illinois Journal of
            Mathematics 53 (Winter 2009), no. 4, 1109-1126.
 
         ALGORITHM:

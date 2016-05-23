@@ -31,6 +31,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
@@ -915,10 +916,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([17*x^2+1/7*y^2, 17*w*x*y])
             sage: f.green_function(P.point([w, 2], False), K.places()[1])
             1.7236334013785676107373093775
-            sage: print f.green_function(P([2, 1]), K.ideal(7), N=7)
+            sage: f.green_function(P([2, 1]), K.ideal(7), N=7)
             0.48647753726382832627633818586
-            sage: print f.green_function(P([w, 1]), K.ideal(17), error_bound=0.001)
-            -0.70691993106090157426711999977
+            sage: f.green_function(P([w, 1]), K.ideal(17), error_bound=0.001)
+            -0.70813041039490996737374178059
 
         .. TODO:: Implement general p-adic extensions so that the flip trick can be used
              for number fields.
@@ -973,9 +974,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             CR = GBR.codomain().ambient_space().coordinate_ring() #.lift() only works over fields
             I = CR.ideal(GBR.defining_polynomials())
             maxh = 0
+            Res = 1
             for k in range(dim + 1):
                 CoeffPolys = (CR.gen(k) ** D).lift(I)
-                Res = 1
                 h = 1
                 for poly in CoeffPolys:
                     if poly != 0:
@@ -1100,6 +1101,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = X([4, 4, 1])
             sage: f.canonical_height(Q, badprimes=[2,3,5], prec=200)
             2.7054056208276961889784303469356774912979228770208655455481
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([1000*x^2-29*y^2, 1000*y^2])
+            sage: Q = P(-1/4, 1)
+            sage: Q.canonical_height(f, error_bound=0.01)
+            3.8004512297710411807356032428
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
@@ -1137,7 +1147,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     bad_primes += b.denominator().prime_factors()
                 else:
                     bad_primes += b.denominator_ideal().prime_factors()
-            bad_primes += K(f.resultant()).support()
+            bad_primes += K(f.resultant(normalize=True)).support()
             bad_primes = list(set(bad_primes))
 
         emb = K.places(prec=prec)
@@ -1440,6 +1450,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: H = End(P)
             sage: f = H([x^2, y^2, z^2])
             sage: Q = P([QQbar(sqrt(-1)), 1, 1])
+            sage: Q.is_preperiodic(f)
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([16*x^2-29*y^2, 16*y^2])
+            sage: Q = P(-1,4)
             sage: Q.is_preperiodic(f)
             True
         """

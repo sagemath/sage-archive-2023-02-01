@@ -211,6 +211,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+# python3
+from __future__ import division, print_function
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -268,7 +270,7 @@ def code2leon(C):
         sage: C = codes.HammingCode(GF(2), 3); C
         [7, 4] Hamming Code over Finite Field of size 2
         sage: file_loc = sage.coding.linear_code.code2leon(C)
-        sage: f = open(file_loc); print f.read()
+        sage: f = open(file_loc); print(f.read())
         LIBRARY code;
         code=seq(2,4,7,seq(
         1,0,0,0,0,1,1,
@@ -471,7 +473,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     EXAMPLES::
 
         sage: L = best_known_linear_code_www(72, 36, GF(2)) # optional - internet
-        sage: print L                                       # optional - internet
+        sage: print(L)                                      # optional - internet
         Construction of a linear code
         [72,36,15] over GF(2):
         [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)
@@ -501,7 +503,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
 
     url = "http://iaks-www.ira.uka.de/home/grassl/codetables/BKLC/BKLC.php"+param
     if verbose:
-        print "Looking up the bounds at %s"%url
+        print("Looking up the bounds at %s" % url)
     f = urlopen(url)
     s = f.read()
     f.close()
@@ -538,7 +540,7 @@ def bounds_minimum_distance(n, k, F):
 
     EXAMPLES::
 
-        sage: print bounds_minimum_distance(10,5,GF(2)) # optional - gap_packages (Guava package)
+        sage: print(bounds_minimum_distance(10,5,GF(2))) # optional - gap_packages (Guava package)
         rec(
           construction :=
            [ <Operation "ShortenedCode">,
@@ -601,8 +603,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 3::
 
         sage: for B in self_orthogonal_binary_codes(7,3):
-        ...    print B
-        ...
+        ....:    print(B)
         Linear code of length 2, dimension 1 over Finite Field of size 2
         Linear code of length 4, dimension 2 over Finite Field of size 2
         Linear code of length 6, dimension 3 over Finite Field of size 2
@@ -616,8 +617,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 3::
 
         sage: for B in self_orthogonal_binary_codes(7,3,4):
-        ...    print B; print B.generator_matrix()
-        ...
+        ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
         Linear code of length 6, dimension 2 over Finite Field of size 2
@@ -632,7 +632,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 2::
 
         sage: for B in self_orthogonal_binary_codes(7,2,4):
-        ...    print B; print B.generator_matrix()
+        ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
         Linear code of length 6, dimension 2 over Finite Field of size 2
@@ -643,7 +643,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     dimension equal to 4::
 
         sage: for B in self_orthogonal_binary_codes(8, 4, equal=True):
-        ...     print B; print B.generator_matrix()
+        ....:     print(B); print(B.generator_matrix())
         Linear code of length 8, dimension 4 over Finite Field of size 2
         [1 0 0 1 0 0 0 0]
         [0 1 0 0 1 0 0 0]
@@ -806,7 +806,7 @@ class AbstractLinearCode(module.Module):
             1
             sage: C.is_self_orthogonal()
             False
-            sage: print C.divisor() #long time
+            sage: print(C.divisor()) #long time
             1
 
         TESTS:
@@ -1184,7 +1184,7 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowts:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
@@ -1193,11 +1193,11 @@ class AbstractLinearCode(module.Module):
             for w in nonzerowtsp:
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
-                        w,t,n,w,wts[w]*binomial(w,t)/binomial(n,t),wts[w]))
+                        w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
         if s<=d-t:
-            des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
+            des = [[t,(n,w,wts[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowts]
             ans = ans + ["weights from C: ",nonzerowts,"designs from C: ",des]
-            desp = [[t,(n,w,wtsp[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowtsp]
+            desp = [[t,(n,w,wtsp[w]*binomial(w,t)//binomial(n,t))] for w in nonzerowtsp]
             ans = ans + ["weights from C*: ",nonzerowtsp,"designs from C*: ",desp]
             return ans
         return 0
@@ -1273,7 +1273,7 @@ class AbstractLinearCode(module.Module):
         if i<d:
             return 0
         if i>n-dp and i<=n:
-            return binomial(n,i)*(q**(i+k-n) -1)/(q-1)
+            return binomial(n,i)*(q**(i+k-n) -1)//(q-1)
         P = SetPartitions(J,2).list()
         b = QQ(0)
         for p in P:
@@ -1282,7 +1282,7 @@ class AbstractLinearCode(module.Module):
             if len(S)==n-i:
                 C_S = self.shortened(S)
                 k_S = C_S.dimension()
-                b = b + (q**(k_S) -1)/(q-1)
+                b = b + (q**(k_S) -1)//(q-1)
         return b
 
     @cached_method
@@ -1787,7 +1787,7 @@ class AbstractLinearCode(module.Module):
 
         REFERENCE:
 
-        .. [BS11] E. Byrne and A. Sneyd,
+        .. [BS11] \E. Byrne and A. Sneyd,
            On the Parameters of Codes with Two Homogeneous Weights.
            WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
            https://hal.inria.fr/inria-00607341/document
@@ -2707,7 +2707,7 @@ class AbstractLinearCode(module.Module):
             mats.append(m)
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
-        print gap("MTX.CompositionFactors( M )")
+        print(gap("MTX.CompositionFactors( M )"))
 
     def permutation_automorphism_group(self, algorithm="partition"):
         r"""
@@ -2822,7 +2822,7 @@ class AbstractLinearCode(module.Module):
             gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
             gap.eval("eltsC:=Elements(C)")
             if algorithm=="gap+verbose":
-                print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
+                print("\n Minimum distance: %s \n Weight distribution: \n %s" % (nonzerowts[1], wts))
             stop = 0                                          # only stop if all gens are autos
             for i in range(1,len(nonzerowts)):
                 if stop == 1:
@@ -2830,7 +2830,7 @@ class AbstractLinearCode(module.Module):
                 wt = nonzerowts[i]
                 if algorithm=="gap+verbose":
                     size = Gp.Size()
-                    print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
+                    print("\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n " % (wts[wt], wt, size))
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
                 gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
                 if gap("Length(matCwt)") > 0:
@@ -3056,7 +3056,7 @@ class AbstractLinearCode(module.Module):
 
         REFERENCES:
 
-        .. [D] I. Duursma, "Extremal weight enumerators and ultraspherical
+        .. [D] \I. Duursma, "Extremal weight enumerators and ultraspherical
            polynomials"
 
         EXAMPLES::
@@ -3066,7 +3066,7 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C == C.dual_code()  # checks that C is self dual
             True
-            sage: for i in [1,2,3,4]: print C.sd_duursma_data(i)
+            sage: for i in [1,2,3,4]: print(C.sd_duursma_data(i))
             [2, -1]
             [2, -3]
             [2, -2]
@@ -3607,8 +3607,8 @@ class AbstractLinearCode(module.Module):
         d = self.minimum_distance()
         dperp = (self.dual_code()).minimum_distance()
         if d == 1 or dperp == 1:
-            print "\n WARNING: There is no guarantee this function works when the minimum distance"
-            print "            of the code or of the dual code equals 1.\n"
+            print("\n WARNING: There is no guarantee this function works when the minimum distance")
+            print("            of the code or of the dual code equals 1.\n")
         RT = PolynomialRing(QQ,"%s"%name)
         R = PolynomialRing(QQ,3,"xy%s"%name)
         x,y,T = R.gens()
@@ -4565,16 +4565,15 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decode the received word ``r`` to the nearest element in associated code of ``self``.
+        Corrects the errors in ``word`` and returns a codeword.
 
         INPUT:
 
-        - ``r`` -- a vector of same length as the length of the associated
-          code of ``self`` and over the base field of the associated code of ``self``
+        - ``r`` -- a codeword of ``self``
 
         OUTPUT:
 
-        - a codeword of the associated code of ``self``
+        - a vector of ``self``'s message space
 
         EXAMPLES::
 
@@ -4583,18 +4582,17 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
             sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
             sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
-            sage: D.decode_to_code(word)
+            sage: D.decode_to_code(w_err)
             (1, 1, 0, 0, 1, 1, 0)
         """
-        V = self.input_space()
-        if not isinstance(r, list):
-            r = r.list()
-        r = V(r)
-        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
-        diffs.sort(key=lambda x: x[1])
-        c = diffs[0][0] + r
-        c.set_immutable()
-        return c
+        c_min = self.code().zero()
+        h_min = r.hamming_weight()
+        for c in self.code():
+            if (c-r).hamming_weight() < h_min:
+                h_min = (c-r).hamming_weight()
+                c_min = c
+        c_min.set_immutable()
+        return c_min
 
     def decoding_radius(self):
         r"""

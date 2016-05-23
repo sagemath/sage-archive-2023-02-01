@@ -27,6 +27,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 
@@ -2360,8 +2361,10 @@ cdef class NumberFieldElement(FieldElement):
             sage: QQbar(alpha)
             Traceback (most recent call last):
             ...
-            ValueError: need a real or complex embedding to convert number
-            field element to algebraic number
+            ValueError: need a real or complex embedding to convert a non
+            rational element of a number field into an algebraic number
+            sage: QQbar(NF.one())
+            1
 
         TESTS::
 
@@ -2371,10 +2374,13 @@ cdef class NumberFieldElement(FieldElement):
             sage: E(a)
             -4.949886207424724? - 0.2195628712241434?*I
         """
+        if self.is_rational():
+            return parent(self._rational_())
         emb = self._parent.coerce_embedding()
         if emb is None:
             raise ValueError("need a real or complex embedding to convert "
-                             "number field element to algebraic number")
+                             "a non rational element of a number field "
+                             "into an algebraic number")
         emb = number_field.refine_embedding(emb, infinity)
         return parent(emb(self))
 
@@ -2694,7 +2700,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: a = 1/3 + (1/5)*z
-            sage: print a.denominator()
+            sage: a.denominator()
             15
         """
         return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)

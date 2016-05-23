@@ -18,6 +18,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from getpass import getpass
@@ -119,7 +120,7 @@ class DoctestUserInterface(CmdLineInterface, list):
             sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append("Some\nlines\n")
             sage: UI.edit(tmp)
-            sage: print open(tmp,'r').read()
+            sage: print(open(tmp,'r').read())
             Some
             lines
             <BLANKLINE>

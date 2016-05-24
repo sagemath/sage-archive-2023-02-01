@@ -184,13 +184,21 @@ cdef class GenericBackend:
         add_variables_result = p.add_variables(ncols_added)
         ncols_after = p.ncols()
         tester.assertEqual(ncols_after, ncols_before+ncols_added, "Added the wrong number of columns")
-        # Test from CVXOPT interface, continued
+        # Test from CVXOPT interface, continued; edited to support InteractiveLPBackend
         ncols_before = p.ncols()
-        add_variables_result = p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
+        try:
+            col_bounds = (-2.0, None)
+            add_variables_result = p.add_variables(2, lower_bound=col_bounds[0], upper_bound=col_bounds[1],
+                                                   obj=42.0, names=['a','b'])
+        except NotImplementedError:
+            # The InteractiveLPBackend does not allow general variable bounds.
+            col_bounds = (0.0, None)
+            add_variables_result = p.add_variables(2, lower_bound=col_bounds[0], upper_bound=col_bounds[1],
+                                                   obj=42.0, names=['a','b'])
         ncols_after = p.ncols()
-        tester.assertEqual(p.col_bounds(ncols_before), (-2.0, None)) # FIXME: tol 1e-8
+        tester.assertAlmostEqual(p.col_bounds(ncols_before), col_bounds)
         tester.assertEqual(p.col_name(ncols_before), 'a')
-        tester.assertEqual(p.objective_coefficient(ncols_before), 42.0) # FIXME: tol 1e-8
+        tester.assertAlmostEqual(p.objective_coefficient(ncols_before), 42.0)
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """

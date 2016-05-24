@@ -24,7 +24,7 @@ Functions and classes
 ########################################################################
 from __future__ import print_function
 
-from warnings import warn, resetwarnings
+from warnings import warn
 import inspect
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -136,7 +136,6 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     _check_trac_number(trac_number)
     message += '\n'
     message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
-    resetwarnings()
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)

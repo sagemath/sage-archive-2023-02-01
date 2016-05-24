@@ -1004,7 +1004,7 @@ class TracInterface(object):
                 except (RuntimeError, TicketSyntaxError) as error:
                     pass
 
-                self._UI.error("Syntax error: " + error.message)
+                self._UI.error("Syntax error: {}".format(error))
 
                 if not self._UI.confirm("Edit ticket file again?", default=True):
                     ret = None

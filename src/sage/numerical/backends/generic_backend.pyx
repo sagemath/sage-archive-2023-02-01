@@ -506,7 +506,12 @@ cdef class GenericBackend:
         coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
         upper = vector([5, 5])
         lower = vector([0, 0])
-        p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
+        try:
+            p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
+        except NotImplementedError:
+            # Ranged constraints are not supported by InteractiveLPBackend
+            lower = None
+            p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
         # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
 
     cpdef add_col(self, list indices, list coeffs):

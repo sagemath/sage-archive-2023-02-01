@@ -96,12 +96,12 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
+    cpdef int add_variables(self, int n, lower_bound=False, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
         """
         Add ``n`` variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
+        the variables are both nonnegative and real.
 
         INPUT:
 
@@ -151,6 +151,10 @@ cdef class GenericBackend:
         """
         cdef int i
         cdef int value
+        if lower_bound is False:
+            lower_bound = self.zero()
+        if obj is None:
+            obj = self.zero()
         for i in range(n):
             value = self.add_variable(lower_bound = lower_bound,
                                       upper_bound = upper_bound,

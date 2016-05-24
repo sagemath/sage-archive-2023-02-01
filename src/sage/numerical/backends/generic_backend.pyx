@@ -594,9 +594,10 @@ cdef class GenericBackend:
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
             sage: p._test_add_linear_constraints()
+            ...
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError...
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:
@@ -611,8 +612,11 @@ cdef class GenericBackend:
         for i in range(nrows_before, nrows_after):
             tester.assertEqual(p.row(i), ([], []))
             tester.assertEqual(p.row_bounds(i), (None, 2.0))
-        # FIXME: Not sure if we should test that no new variables were added.
-        # Perhaps some backend may need to introduce explicit slack variables?
+        # Test from COINBackend.add_linear_constraints:
+        tester.assertIsNone(p.add_linear_constraints(2, None, 2, names=['foo', 'bar']))
+        tester.assertEqual(p.row_name(6), 'bar')
+        # Test that it did not add mysterious new variables:
+        tester.assertEqual(p.ncols(), 0)
 
     cpdef int solve(self) except -1:
         """

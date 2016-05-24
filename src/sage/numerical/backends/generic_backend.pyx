@@ -135,8 +135,31 @@ cdef class GenericBackend:
             5
             sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Nonexistent_LP_solver
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - Nonexistent_LP_solver
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - Nonexistent_LP_solver
+            True
+            sage: p.col_name(5)              # optional - Nonexistent_LP_solver
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - Nonexistent_LP_solver
+            42.0
         """
-        raise NotImplementedError()
+        cdef int i
+        cdef int value
+        for i in range(n):
+            value = self.add_variable(lower_bound = lower_bound,
+                                      upper_bound = upper_bound,
+                                      binary = binary,
+                                      continuous = continuous,
+                                      integer = integer,
+                                      obj = obj,
+                                      name = None if names is None else names[i])
+        return value
 
     @classmethod
     def _test_add_variables(cls, tester=None, **options):

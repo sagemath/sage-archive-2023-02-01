@@ -1024,8 +1024,6 @@ cdef class CPLEXBackend(GenericBackend):
             sage: pb = p.get_backend()                                 # optional - CPLEX
             sage: pb.get_objective_value()                             # optional - CPLEX
             2.0
-            sage: pb.get_best_objective_value()                        # optional - CPLEX
-            2.0
             sage: pb.get_relative_objective_gap()                      # optional - CPLEX
             0.0
         """

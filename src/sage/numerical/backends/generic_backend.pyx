@@ -734,8 +734,6 @@ cdef class GenericBackend:
             sage: pb = p.get_backend()                                 # optional - Nonexistent_LP_solver
             sage: pb.get_objective_value()                             # optional - Nonexistent_LP_solver
             2.0
-            sage: pb.get_best_objective_value()                        # optional - Nonexistent_LP_solver
-            2.0
             sage: pb.get_relative_objective_gap()                      # optional - Nonexistent_LP_solver
             0.0
         """

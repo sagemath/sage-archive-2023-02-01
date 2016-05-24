@@ -5937,6 +5937,8 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
+        ALGORITHM: Uses PARI's bnfunit command.
+
         INPUT:
 
         - ``proof`` (bool, default True) flag passed to ``pari``.
@@ -5945,7 +5947,11 @@ class NumberField_generic(number_field_base.NumberField):
 
             For more functionality see the unit_group() function.
 
-        ALGORITHM: Uses PARI's bnfunit command.
+        .. SEEALSO::
+
+            :meth:`unit_group`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 
@@ -6012,7 +6018,7 @@ class NumberField_generic(number_field_base.NumberField):
     def unit_group(self, proof=None):
         """
         Return the unit group (including torsion) of this number field.
-
+        
         ALGORITHM: Uses PARI's bnfunit command.
 
         INPUT:
@@ -6022,6 +6028,12 @@ class NumberField_generic(number_field_base.NumberField):
         .. note::
 
            The group is cached.
+           
+        .. SEEALSO::
+
+            :meth:`units`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 

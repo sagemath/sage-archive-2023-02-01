@@ -209,64 +209,6 @@ cdef class CVXOPTBackend(GenericBackend):
         self.col_name_var.append(name)
         return len(self.objective_function) - 1
 
-
-    cpdef int add_variables(self, int n, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
-        """
-        Add ``n`` variables.
-
-        This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
-
-        INPUT:
-
-        - ``n`` - the number of new variables (must be > 0)
-
-        - ``lower_bound`` - the lower bound of the variable (default: 0)
-
-        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
-
-        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
-
-        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0.0)
-
-        - ``names`` - optional list of names (default: ``None``)
-
-        OUTPUT: The index of the variable created last.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")
-            sage: p.ncols()
-            0
-            sage: p.add_variables(5)
-            4
-            sage: p.ncols()
-            5
-            sage: p.add_variables(2, lower_bound=-2.0, obj=42.0, names=['a','b'])
-            6
-
-        TESTS:
-
-        Check that arguments are used::
-
-            sage: p.col_bounds(5) # tol 1e-8
-            (-2.0, None)
-            sage: p.col_name(5)
-            'a'
-            sage: p.objective_coefficient(5) # tol 1e-8
-            42.0
-        """
-        for i in range(n):
-            self.add_variable(lower_bound, upper_bound, binary, continuous, integer, obj,
-                              None if names is None else names[i])
-        return len(self.objective_function) - 1;
-
-
     cpdef set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable.

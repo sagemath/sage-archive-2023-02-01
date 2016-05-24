@@ -16,6 +16,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 - :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
 
+**Extended code decoders**
+
+- :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -34,6 +38,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
+from extended_code import ExtendedCodeOriginalCodeDecoder
 from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,
                  GRSKeyEquationSyndromeDecoder,

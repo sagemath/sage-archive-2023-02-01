@@ -552,7 +552,7 @@ cdef class GenericBackend:
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
-        Add constraints.
+        Add ``'number`` linear constraints.
 
         INPUT:
 
@@ -576,7 +576,9 @@ cdef class GenericBackend:
             sage: p.row_bounds(4)                               # optional - Nonexistent_LP_solver
             (None, 2.0)
         """
-        raise NotImplementedError()
+        cdef int i
+        for 0<= i<number:
+            self.add_linear_constraint([],lower_bound, upper_bound, name = (names[i] if names else None))
 
     @classmethod
     def _test_add_linear_constraints(cls, tester=None, **options):

@@ -35,6 +35,7 @@ We test that pickling works::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 SMALL_DISC = 1000000
 
@@ -49,7 +50,7 @@ import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-import number_field
+from . import number_field
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod

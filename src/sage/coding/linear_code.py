@@ -1,118 +1,83 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear code
+Generic structures for linear codes
 
-VERSION: 1.2
+Definition
+==========
 
-Let `F` be a finite field.  Here, we will denote the finite field with `q`
-elements by `\GF{q}`.  A subspace of `F^n` (with the standard basis) is
-called a linear code of length `n`.  If its dimension is denoted `k` then we
-typically store a basis of `C` as a `k \times n` matrix, with rows the basis
-vectors.  It is called the generator matrix of `C`. The rows of the parity
-check matrix of `C` are a basis for the code,
+Let `F = \GF{q}` a finite field. A rank `k` linear subspace of the vector
+space `F^n` is called a `[n, k]`-linear code, `n` being the length of the
+code and `k` its dimension.
 
-.. math::
+We can represent a basis of a linear code as a `k \times n` matrix, called
+the generator matrix of a code.
 
-      C^* = \{ v \in GF(q)^n\ |\ v\cdot c = 0,\ for \ all\ c \in C \},
+Module contents
+===============
 
-called the dual space of `C`.
+This module (``linear_code.py``) contains:
 
-If `F=\GF{2}` then `C` is called a binary code.  If `F = \GF{q}` then `C` is
-called a `q`-ary code.  The elements of a code `C` are called codewords.
+    - an abstract class used to describe any linear code (as defined above),
+      ``AbstractLinearCode``
+    - a class to describe generic linear codes, ``LinearCode``
+    - several encoders and decoders known by any linear code.
 
-Let `C`, `D` be linear codes of length `n` and dimension `k`. There are
-several notions of equivalence for linear codes:
+In the following sections, we describe ``AbstractLinearCode`` and ``LinearCode``
+in detail.
 
-`C` and `D` are
+``AbstractLinearCode``
+----------------------
 
-    - permutational equivalent, if there is some permutation `\pi \in S_n`
-      such that `(c_{\pi(0)}, \ldots, c_{\pi(n-1)}) \in D` for all `c \in C`.
+This class has been designed to gather methods, features and parameters shared
+by every linear code. For instance, it is always possible to compute
+the minimum distance of a code, its covering radius, its weight distribution...
 
-    - linear equivalent, if there is some permutation `\pi \in S_n` and a
-      vector `\phi` of units of length `n` such that
-      `(c_{\pi(0)} \phi_0^{-1}, \ldots, c_{\pi(n-1)} \phi_{n-1}^{-1}) \in D`
-      for all `c \in C`.
+The methods provided in this class are meant to work for every linear code
+family, whichever its specificities. Thus, they rely on generic algorithms
+and are most of the time slow algorithms.
 
-    - semilinear equivalent, if there is some permutation `\pi \in S_n`, a
-      vector `\phi` of units of length `n` and a field automorphism `\alpha`
-      such that
-      `(\alpha(c_{\pi(0)}) \phi_0^{-1}, \ldots, \alpha( c_{\pi(n-1)}) \phi_{n-1}^{-1} ) \in D`
-      for all `c \in C`.
+As its name suggests, ``AbstractLinearCode`` is an abstract class designed
+to provide support for any linear code class, which means that:
 
-These are group actions. If one of these group elements sends
-the linear code `C` to itself, then we will call it an automorphism.
-Depending on the group action we will call those groups:
+    - any linear code class should inherit from this class, and
+    - it should never be instantiated.
 
-    - permuation automorphism group
+One can refer to the documentation of
+:class:`sage.coding.linear_code.AbstractLinearCode` for details and examples.
 
-    - monomial automorphism group (every linear Hamming isometry is a monomial
-      transformation of the ambient space, for `n\geq 3`)
+If one wants to implement with linear codes without any specific structure, one
+should use ``LinearCode`` class.
 
-    - automorphism group (every semilinear Hamming isometry is a semimonomial
-      transformation of the ambient space, for `n\geq 3`)
+``LinearCode``
+--------------
 
-This file contains
+This class is used to represent arbitrary and unstructured linear codes.
+It only relies on generic methods provided by ``AbstractLinearCode``, which
+means that basic operations on the code (e.g. computation of the minimum distance)
+will only use slow algortihms.
 
-#. LinearCode class definition; LinearCodeFromVectorspace conversion function,
+While ``AbstractLinearCode`` should never be instantiated, ``LinearCode`` has
+been designed to be used as is, as denotes the following example::
 
-#. The spectrum (weight distribution), covering_radius, minimum distance
-   programs (calling Steve Linton's or CJ Tjhal's C programs),
-   characteristic_function, and several implementations of the Duursma zeta
-   function (sd_zeta_polynomial, zeta_polynomial, zeta_function,
-   chinen_polynomial, for example),
+    sage: M = matrix(GF(2), [[1, 0, 0, 1, 0],\
+                             [0, 1, 0, 1, 1],\
+                             [0, 0, 1, 1, 1]])
+    sage: C = codes.LinearCode(M)
+    sage: C
+    Linear code of length 5, dimension 3 over Finite Field of size 2
+    sage: C.generator_matrix()
+    [1 0 0 1 0]
+    [0 1 0 1 1]
+    [0 0 1 1 1]
 
-#. interface with best_known_linear_code_www (interface with codetables.de
-   since A. Brouwer's online tables have been disabled),
-   bounds_minimum_distance which call tables in GUAVA (updated May 2006)
-   created by Cen Tjhai instead of the online internet tables,
+Further references
+------------------
 
-#. generator_matrix, generator_matrix_systematic, information_set, list, parity_check_matrix,
-   decode, dual_code, extended_code, shortened, punctured, genus, binomial_moment,
-   and divisor methods for LinearCode,
+If one wants to get started on Sage's linear codes library, one can
+refer to http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
-#. Boolean-valued functions such as "==", is_self_dual, is_self_orthogonal,
-   is_subcode, is_permutation_automorphism, is_permutation_equivalent (which
-   interfaces with Robert Miller's partition refinement code),
-
-#. permutation methods: is_permutation_automorphism,
-   permutation_automorphism_group, permuted_code, standard_form,
-   module_composition_factors,
-
-#. design-theoretic methods: assmus_mattson_designs (implementing
-   Assmus-Mattson Theorem),
-
-#. code constructions, such as HammingCode and ToricCode, are in a separate
-   ``code_constructions.py`` module; in the separate ``guava.py`` module, you
-   will find constructions, such as RandomLinearCodeGuava and
-   BinaryReedMullerCode, wrapped from the corresponding GUAVA codes.
-
-EXAMPLES::
-
-    sage: MS = MatrixSpace(GF(2),4,7)
-    sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-    sage: C = LinearCode(G)
-    sage: C.basis()
-    [(1, 1, 1, 0, 0, 0, 0),
-     (1, 0, 0, 1, 1, 0, 0),
-     (0, 1, 0, 1, 0, 1, 0),
-     (1, 1, 0, 1, 0, 0, 1)]
-    sage: c = C.basis()[1]
-    sage: c in C
-    True
-    sage: c.nonzero_positions()
-    [0, 3, 4]
-    sage: c.support()
-    [0, 3, 4]
-    sage: c.parent()
-    Vector space of dimension 7 over Finite Field of size 2
-
-To be added:
-
-#. More wrappers
-
-#. GRS codes and special decoders.
-
-#. `P^1` Goppa codes and group actions on `P^1` RR space codes.
+If one wants to learn more on the design of this library, one can read
+http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:
 
@@ -3757,16 +3722,16 @@ class LinearCode(AbstractLinearCode):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
-        
+
     Providing a code as the parameter in order to "forget" its structure (see
     :trac:`20198`)::
-    
+
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
         Linear code of length 23, dimension 12 over Finite Field of size 23
-        
+
     Another example::
-    
+
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
         [57, 54] Hamming Code over Finite Field of size 7
@@ -3829,19 +3794,19 @@ class LinearCode(AbstractLinearCode):
             ...
             ValueError: this linear code contains no non-zero vector
         """
-        
+
         base_ring = generator.base_ring()
         if not base_ring.is_field():
             raise ValueError("'generator' must be defined on a field (not a ring)")
-        
+
         try:
             basis = generator.row_space().basis() # generator matrix case
-            
+
             # if the matrix does not have full rank we replace it
             if len(basis) != generator.nrows():
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
-    
+
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:

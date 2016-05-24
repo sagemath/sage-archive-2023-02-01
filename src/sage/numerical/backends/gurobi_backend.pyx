@@ -1186,6 +1186,9 @@ cdef class GurobiBackend(GenericBackend):
         cdef GurobiBackend p = type(self)(maximization = self.is_maximization())
         p.model = GRBcopymodel(self.model)
         p.env = GRBgetenv(p.model)
+        # Gurobi appends '_copy' to the problem name and does not even hesitate to create '(null)_copy'
+        name = self.problem_name()
+        p.problem_name(name)
         return p
 
     def __dealloc__(self):

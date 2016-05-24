@@ -1618,6 +1618,51 @@ class HasseDiagram(DiGraph):
                                          self.are_comparable,
                                          element_class = element_class)
 
+    def sublattices_iterator(self, elms, min_e):
+        """
+        Return an iterator over sublattices of the Hasse diagram.
+
+        INPUT:
+
+        - ``elms`` -- elements already in sublattice; use set() at start
+        - ``min_e`` -- smallest new element to add for new sublattices
+
+        OUTPUT:
+
+        List of sublattices as sets of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
+            sage: it = H.sublattices_iterator(set(), 0); it
+            <generator object sublattices_iterator at ...>
+            sage: it.next()
+            set()
+            sage: it.next()
+            {0}
+        """
+        # Python3-note: "yield from" would be simpler.
+        yield elms
+        for e in range(min_e, self.cardinality()):
+            if e in elms:
+                continue
+            current_set = set(elms)
+            gens = set([e])
+            while gens:
+                g = gens.pop()
+                if g < e and g not in elms:
+                    break
+                if g in current_set:
+                    continue
+                for x in current_set:
+                    gens.add(self._meet[x, g])
+                    gens.add(self._join[x, g])
+                current_set.add(g)
+            else:
+                for x in self.sublattices_iterator(current_set, e+1):
+                    yield x
+
     def maximal_sublattices(self):
         """
         Return maximal sublattices of the lattice.

@@ -599,37 +599,6 @@ cdef class InteractiveLPBackend:
         """
         self.add_variable(coefficients = zip(indices, coeffs))
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
-        """
-        Add constraints.
-
-        INPUT:
-
-        - ``number`` (integer) -- the number of constraints to add.
-
-        - ``lower_bound`` - a lower bound, either a real value or ``None``
-
-        - ``upper_bound`` - an upper bound, either a real value or ``None``
-
-        - ``names`` - an optional list of names (default: ``None``)
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "InteractiveLP")
-            sage: p.add_variables(5)
-            4
-            sage: p.add_linear_constraints(5, 0, None)
-            sage: p.row(4)
-            ([], [])
-            sage: p.row_bounds(4)
-            (0, None)
-        """
-        for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()),[0]*(self.ncols())),
-                                       lower_bound, upper_bound,
-                                       name=None if names is None else names[i])
-
     cpdef int solve(self) except -1:
         """
         Solve the problem.

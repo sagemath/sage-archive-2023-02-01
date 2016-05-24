@@ -1300,7 +1300,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise NotImplementedError, "free variable: %s" % repr(ex)
+            raise NotImplementedError("free variable: %s" % repr(ex))
 
     def arithmetic(self, ex, operator):
         """

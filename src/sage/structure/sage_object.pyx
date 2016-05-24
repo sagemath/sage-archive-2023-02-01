@@ -134,7 +134,7 @@ cdef class SageObject:
             try:
                 self.__custom_name = str(x)
             except AttributeError:
-                raise NotImplementedError, "object does not support renaming: %s"%self
+                raise NotImplementedError("object does not support renaming: %s" % self)
 
     def reset_name(self):
         """
@@ -455,7 +455,7 @@ cdef class SageObject:
             try:
                 filename = self._default_filename
             except AttributeError:
-                raise RuntimeError, "no default filename, so it must be specified"
+                raise RuntimeError("no default filename, so it must be specified")
         filename = process(filename)
         try:
             self._default_filename = filename
@@ -703,8 +703,7 @@ cdef class SageObject:
             try:
                 s = self._interface_init_(I)
             except Exception:
-                raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
-                  (repr(self), I)
+                raise NotImplementedError("coercion of object %s to %s not implemented:\n%s\n%s" % (repr(self), I))
         X = I(s)
         if c:
             try:
@@ -1391,7 +1390,7 @@ def loads(s, compress=True):
         UnpicklingError: invalid load key, 'x'.
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     if compress:
         try:
             s = comp.decompress(s)

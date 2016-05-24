@@ -93,7 +93,7 @@ normalize_names = LazyImport("sage.structure.category_object",
 
 cdef inline check_old_coerce(parent.Parent p):
     if p._element_constructor is not None:
-        raise RuntimeError, "%s still using old coercion framework" % p
+        raise RuntimeError("%s still using old coercion framework" % p)
 
 def is_ParentWithGens(x):
     """
@@ -217,12 +217,12 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
     # Derived class *must* define ngens method.
     def ngens(self):
         check_old_coerce(self)
-        raise NotImplementedError, "Number of generators not known."
+        raise NotImplementedError("Number of generators not known.")
 
     # Derived class *must* define gen method.
     def gen(self, i=0):
         check_old_coerce(self)
-        raise NotImplementedError, "i-th generator not known."
+        raise NotImplementedError("i-th generator not known.")
 
     def gens(self):
        """
@@ -272,11 +272,11 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         if normalize:
             names = category_object.normalize_names(self.ngens(), names)
         if self._names is not None and names != self._names:
-            raise ValueError, 'variable names cannot be changed after object creation.'
+            raise ValueError('variable names cannot be changed after object creation.')
         if isinstance(names, str):
             names = (names, )  # make it a tuple
         elif not isinstance(names, tuple):
-            raise TypeError, "names must be a tuple of strings"
+            raise TypeError("names must be a tuple of strings")
         self._names = names
 
     #################################################################################

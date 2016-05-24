@@ -8159,7 +8159,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b.nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: not a 2-th power
+            ValueError: not a 2nd power
             sage: R(0).nth_root(3)
             0
             sage: R.<x> = QQ[]
@@ -8184,7 +8184,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.nth_root(20)
             Traceback (most recent call last):
             ...
-            ValueError: not a 20-th power
+            ValueError: not a 20th power
 
             sage: z = GF(4).gen()
             sage: R.<x> = GF(4)[]
@@ -8201,12 +8201,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (x^4 + x^3 + 1).nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: not a 2-th power
+            ValueError: not a 2nd power
             sage: p = (x+1)^17 + x^17
             sage: r = p.nth_root(17)
             Traceback (most recent call last):
             ...
-            ValueError: not a 17-th power
+            ValueError: not a 17th power
 
             sage: R1.<x> = QQ[]
             sage: R2.<y> = R1[]
@@ -8243,15 +8243,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.nth_root(20)
             Traceback (most recent call last):
             ...
-            ValueError: not a 20-th power
+            ValueError: not a 20th power
             sage: (x^3 - 1).nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: not a 2-th power
+            ValueError: not a 2nd power
             sage: (x^3 - 1).nth_root(2)
             Traceback (most recent call last):
             ...
-            ValueError: not a 2-th power
+            ValueError: not a 2nd power
 
             sage: Zmod(4)['x'].one().nth_root(4)
             Traceback (most recent call last):
@@ -8284,7 +8284,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif m.is_one() or self.is_zero() or self.is_one():
             return self
         elif self.degree() % m:
-            raise ValueError("not a {}-th power".format(m))
+            raise ValueError("not a %s power"%m.ordinal_str())
         elif self[0].is_zero():
             # p = x^k q
             # p^(1/n) = x^(k/n) q^(1/n)
@@ -8292,7 +8292,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while self[i].is_zero():
                 i += 1
             if i%m:
-                raise ValueError("not a {}-th power".format(m))
+                raise ValueError("not a %s power"%m.ordinal_str())
             S = self.parent()
             return S.gen()**(i//m) * (self>>i).nth_root(m)
         else:
@@ -8305,7 +8305,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 for i in range(self.degree()+1):
                     if self[i]:
                         if i%cc:
-                            raise ValueError("not a {}-th power".format(m))
+                            raise ValueError("not a %s power"%m.ordinal_str())
                         ans[i//cc] = self[i].nth_root(cc)
                 p = self.parent()(ans)
                 m = m // cc
@@ -8339,8 +8339,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if not r:
                     return Sorig(q)
                 elif not r.truncate(i).is_zero():
-                    raise ValueError("not a {}-th power".format(m))
-            raise ValueError("not a {}-th power".format(m))
+                    raise ValueError("not a %s power"%m.ordinal_str())
+            raise ValueError("not a %s power"%m.ordinal_str())
 
 
 # ----------------- inner functions -------------

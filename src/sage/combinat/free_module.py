@@ -24,7 +24,8 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import Category, Sets, ModulesWithBasis
-from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+from sage.combinat.dict_addition import (dict_addition, dict_add, dict_negate,
+                                         dict_linear_combination)
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
@@ -299,7 +300,7 @@ class CombinatorialFreeModuleElement(Element):
             return s
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
@@ -476,10 +477,10 @@ class CombinatorialFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-        assert have_same_parent(self, other)
-
         F = self.parent()
-        return F._from_dict( dict_addition( [ self._monomial_coefficients, other._monomial_coefficients ] ), remove_zeros=False )
+        return F._from_dict(dict_add(self._monomial_coefficients,
+                                     other._monomial_coefficients),
+                            remove_zeros=False)
 
     def _neg_(self):
         """
@@ -498,7 +499,8 @@ class CombinatorialFreeModuleElement(Element):
             -s[2, 1]
         """
         F = self.parent()
-        return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, -1 ) ] ), remove_zeros=False )
+        return F._from_dict(dict_negate(self._monomial_coefficients),
+                            remove_zeros=False)
 
     def _sub_(self, other):
         """
@@ -515,9 +517,11 @@ class CombinatorialFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        assert have_same_parent(self, other)
         F = self.parent()
-        return F._from_dict( dict_linear_combination( [ ( self._monomial_coefficients, 1 ), (other._monomial_coefficients, -1 ) ] ), remove_zeros=False )
+        return F._from_dict(dict_add(self._monomial_coefficients,
+                                     other._monomial_coefficients,
+                                     negative=True),
+                            remove_zeros=False)
 
     def _coefficient_fast(self, m):
         """
@@ -1460,13 +1464,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: A._order_cmp('a', 'y')
             1
         """
-        return cmp( self._rank_basis(x), self._rank_basis(y) )
+        return cmp(self._rank_basis(x), self._rank_basis(y))
 
 
     @cached_method
     def _dense_free_module(self, base_ring=None):
         """
-        Returns a dense free module of the same dimension
+        Return a dense free module of the same dimension.
 
         INPUT:
 
@@ -1525,7 +1529,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if not isinstance(other, self.__class__):
             return -1
         c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
+        if c:
+            return c
         return 0
 
     def sum(self, iter_of_elements):
@@ -1547,8 +1552,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.sum( f for _ in range(5) )
             10*B[1] + 10*B[2]
         """
-        D = dict_addition( element._monomial_coefficients for element in iter_of_elements )
-        return self._from_dict( D, remove_zeros=False )
+        D = dict_addition(element._monomial_coefficients for element in iter_of_elements)
+        return self._from_dict(D, remove_zeros=False)
 
     def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
         """
@@ -1574,7 +1579,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.linear_combination( (f,i) for i in range(5) )
             20*B[1] + 20*B[2]
         """
-        return self._from_dict( dict_linear_combination( ( ( element._monomial_coefficients, coeff ) for element, coeff in iter_of_elements_coeff ), factor_on_left=factor_on_left ), remove_zeros=False )
+        return self._from_dict(dict_linear_combination( ((element._monomial_coefficients, coeff)
+                                                        for element, coeff in iter_of_elements_coeff),
+                                                        factor_on_left=factor_on_left ),
+                               remove_zeros=False)
 
     def term(self, index, coeff=None):
         """
@@ -1597,7 +1605,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         if coeff is None:
             coeff = self.base_ring().one()
-        return self._from_dict( {index: coeff} )
+        return self._from_dict({index: coeff})
 
     def _monomial(self, index):
         """
@@ -1607,7 +1615,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F._monomial('a')
             B['a']
         """
-        return self._from_dict( {index: self.base_ring().one()}, remove_zeros = False )
+        return self._from_dict({index: self.base_ring().one()}, remove_zeros=False)
 
     @lazy_attribute
     def monomial(self):

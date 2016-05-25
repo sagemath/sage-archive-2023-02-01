@@ -24,6 +24,7 @@ Classes and methods
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -238,8 +239,7 @@ class LinearExtensionOfPoset(ClonableArray):
             [2, 1, 3, 4]
             sage: for p in L:
             ....:     for i in range(1,4):
-            ....:         print i, p, p.tau(i)
-            ....:
+            ....:         print("{} {} {}".format(i, p, p.tau(i)))
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]

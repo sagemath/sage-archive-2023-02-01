@@ -16,7 +16,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
@@ -26,7 +26,7 @@ import sage.rings.rational as rational
 
 import sage.libs.pari.all as pari
 
-import element_ext_pari
+from . import element_ext_pari
 
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 

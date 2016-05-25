@@ -658,7 +658,7 @@ cdef class GenericBackend:
             sage: p._test_solve()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: ...
         """
         p = cls()                         # fresh instance of the backend
         if tester is None:

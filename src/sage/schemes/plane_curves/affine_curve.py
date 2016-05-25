@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 
 from sage.misc.all import add
@@ -29,8 +30,10 @@ from sage.rings.all import degree_lowest_rational_function
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.affine.affine_space import is_AffineSpace
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
+from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from curve import Curve_generic
 
@@ -45,6 +48,42 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         d = self.dimension()
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
+
+    def projective_closure(self):
+        r"""
+        Return the projective closure of this affine curve.
+
+        OUTPUT:
+
+        - a curve in projective space.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(CC,3)
+            sage: C = Curve([x-y,z-2])
+            sage: C.projective_closure()
+            Projective Space Curve over Complex Field with 53 bits of precision defined by
+            x0 - x1, x2 + (-2.00000000000000)*x3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ,3)
+            sage: C = Curve([y-x^2,z-x^3])
+            sage: C.projective_closure()
+            Projective Space Curve over Rational Field defined by x0^2 - x1*x3,
+            x0*x1 - x2*x3, x1^2 - x0*x2
+        """
+        I = self.defining_ideal()
+        # compute a Groebner basis of this ideal with respect to a graded monomial order
+        R = self.ambient_space().coordinate_ring().change_ring(order='degrevlex')
+        n = self.ambient_space().dimension_relative()
+        P = ProjectiveSpace(self.ambient_space().base_ring(),n)
+        RH = P.coordinate_ring()
+        G = R.ideal([R(f) for f in I.gens()]).groebner_basis()
+        H = Hom(R,RH)
+        phi = H([RH.gens()[i] for i in range(0,n)])
+        from constructor import Curve
+        return Curve([phi(f).homogenize(RH.gens()[n]) for f in G])
 
 class AffineCurve_generic(Curve_generic):
     def __init__(self, A, f):

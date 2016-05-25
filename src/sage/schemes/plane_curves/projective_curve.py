@@ -22,9 +22,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.schemes.affine.affine_space import AffineSpace
 
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
@@ -41,6 +43,32 @@ class ProjectiveSpaceCurve_generic(Curve_generic_projective):
         d = self.dimension()
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
+
+    def affine_patch(self,i):
+        r"""
+        Return the `i`th affine patch of this projective curve.
+
+        OUTPUT:
+
+        - a curve in affine space.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(CC,3)
+            sage: C = Curve([y*z - x^2,w^2 - x*y])
+            sage: C.affine_patch(0)
+            Affine Space Curve over Complex Field with 53 bits of precision defined by
+            x0*x1 - 1.00000000000000, x2^2 - x0
+        """
+        I = self.defining_ideal()
+        n = self.ambient_space().dimension_relative()
+        A = AffineSpace(self.ambient_space().base_ring(),n)
+        H = Hom(self.ambient_space().coordinate_ring(),A.coordinate_ring())
+        l = list(A.coordinate_ring().gens())
+        l.insert(i,1)
+        phi = H(l)
+        from constructor import Curve
+        return Curve([phi(f) for f in I.gens()])
 
 class ProjectiveCurve_generic(Curve_generic_projective):
     def __init__(self, A, f):

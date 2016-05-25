@@ -28,27 +28,30 @@ Families or Generic codes
 =========================
 
 Linear codes are either studied as generic vector spaces without any known
-structure, or as particular sub-families with special properties. The class
-:class:`sage.coding.linear_code.LinearCode` is used to represent the former. For
-the latter, these will be represented by specialised classes; for instance, the
-family of Hamming codes are represented by the class
-:class:`sage.coding.hamming_code.HammingCode`. Type ``codes.<tab>`` for a list of
-all code families known to Sage. Such code family classes should inherit from
+structure, or as particular sub-families with special properties.
+
+The class :class:`sage.coding.linear_code.LinearCode` is used to represent the
+former.
+
+For the latter, these will be represented by specialised classes; for instance,
+the family of Hamming codes are represented by the class
+:class:`sage.coding.hamming_code.HammingCode`. Type ``codes.<tab>`` for a list
+of all code families known to Sage. Such code family classes should inherit from
 the abstract base class :class:`sage.coding.linear_code.AbstractLinearCode`.
 
 ``AbstractLinearCode``
 ----------------------
 
-This class is a base class designed to contain methods, features and parameters
+This is a base class designed to contain methods, features and parameters
 shared by every linear code. For instance, generic algorithms for computing the
 minimum distance, the covering radius, etc. Many of these algorithms are slow,
 e.g. exponential in the code length. For specific subfamilies, better algorithms
 or even closed formulas might be known, in which case the respective method
 should be overridden.
 
-``AbstractLinearCode`` is an abstract class for linear code classes, so any
-linear code class should inherit from this class. Also ``AbstractLinearCode``
-should never itself be instantiated.
+``AbstractLinearCode`` is an abstract class for linear codes, so any linear code
+class should inherit from this class. Also ``AbstractLinearCode`` should never
+itself be instantiated.
 
 See :class:`sage.coding.linear_code.AbstractLinearCode` for details and
 examples.

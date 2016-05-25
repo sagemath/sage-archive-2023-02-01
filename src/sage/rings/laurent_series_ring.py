@@ -173,10 +173,10 @@ class LaurentSeriesRing_generic(ring.CommutativeRing):
         self._polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing(self.base_ring(),
                                                                                       self.variable_name(),
                                                                                       sparse=sparse)
-        self._power_series_ring = power_series_ring.PowerSeriesRing(self.base_ring(),
-                                                                    self.variable_name(),
-                                                                    default_prec=default_prec,
-                                                                    sparse=sparse)
+        self._power_series_ring = PowerSeriesRing(self.base_ring(),
+                                                  self.variable_name(),
+                                                  default_prec=default_prec,
+                                                  sparse=sparse)
 
     def base_extend(self, R):
         """

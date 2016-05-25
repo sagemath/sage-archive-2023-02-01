@@ -5,12 +5,23 @@ Generic structures for linear codes
 Definition
 ==========
 
-Let `F = \GF{q}` a finite field. A rank `k` linear subspace of the vector
-space `F^n` is called a `[n, k]`-linear code, `n` being the length of the
+Let `F = \GF{q}` be a finite field. A rank `k` linear subspace of the vector
+space `F^n` is called an `[n, k]`-linear code, `n` being the length of the
 code and `k` its dimension.
 
-We can represent a basis of a linear code as a `k \times n` matrix, called
-the generator matrix of a code.
+A linear map from `F^k` to an `[n,k]` code `C` is called an "encoding", and it
+can be represented as a `k \times n` matrix, called a generator matrix.
+Alternatively, `C` can be represented by its orthogonal complement in `F^n`,
+i.e. the `n-k`-dimensional vector space `C^\perp` such that the inner product
+between any element from `C` and any element from `C^\perp` is zero. `C^\perp`
+is called the dual code of `C`, and any generator matrix for `C^\perp` is called
+a parity check matrix for `C`.
+
+We commonly endow `F^n` with the Hamming metric, i.e. the weight of a vector is
+the number of non-zero elements in it. The central operation of a linear code is
+then "decoding": given a linear code `C \subset F^n` and a "received word" `r
+\in F^n` , retrieve `c \in C` such that the Hamming distance between `r` and `c`
+is minimal.
 
 Module contents
 ===============

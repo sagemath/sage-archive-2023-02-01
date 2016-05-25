@@ -844,7 +844,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.ring_of_integers ()
             Integer Ring
         """
-        from integer_ring import ZZ
+        from .integer_ring import ZZ
         return ZZ
 
     def number_field(self):

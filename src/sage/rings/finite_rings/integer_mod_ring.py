@@ -780,7 +780,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         except AttributeError:
             if not self.is_field():
                 raise ValueError("self must be a field")
-            import finite_field_constructor
+            from . import finite_field_constructor
             k = finite_field_constructor.FiniteField(self.order())
             self.__field = k
             return k

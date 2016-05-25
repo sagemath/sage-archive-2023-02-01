@@ -1,8 +1,9 @@
 r"""
-Pointwise addition of dictionaries
+Linear arithmetic on dictionaries
 
-Provides function to add dictionaries pointwise with values in a
-common ring and to compute linear combinations.
+Provides low-level functions for linear arithmetic of dictionaries
+with values in a common ring. Specifically this is used by
+:class:`CombinatorialFreeModule`.
 """
 
 #*****************************************************************************
@@ -18,11 +19,14 @@ cpdef dict dict_addition(dict_iter):
     r"""
     Return the pointwise addition of dictionaries with coefficients.
 
-    :param dict_iter: iterator of dictionaries with values in a common ring
+    INPUT:
+
+    - ``dict_iter`` -- iterator of dictionaries whose values are in
+      a common ring and all values are non-zero
 
     OUTPUT:
 
-    - a dictionary containing all keys of dictionaries in ``dict_list``,
+    - a dictionary containing all keys of the dictionaries in ``dict_list``
       with values being the sum of the values in the different dictionaries
       (keys with zero value are omitted)
 
@@ -59,9 +63,11 @@ cpdef dict_iadd(dict D, dict D2, bint remove_zeros=True, bint negative=False):
 
     INPUT:
 
-    - ``D`` -- dictionary that gets mutated
-    - ``D2`` -- dictionary whose values are in the same ring as ``D``
-    - ``remove_zeros`` -- boolean; remove the zeros at the end
+    - ``D`` -- dictionary that gets mutated whose values are all non-zero
+    - ``D2`` -- dictionary whose values are in the same ring as ``D`` and
+      are all non-zero
+    - ``remove_zeros`` -- boolean; remove the zeros after the addition
+      has been performed
     - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
 
     OUTPUT:
@@ -112,7 +118,8 @@ cpdef dict dict_add(dict D, dict D2, bint negative=False):
 
     INPUT:
 
-    - ``D``, ``D2`` -- dictionaries whose values are in the same ring
+    - ``D``, ``D2`` -- dictionaries whose values are in a common ring
+      and all values are non-zero
     - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
 
     EXAMPLES::
@@ -149,20 +156,22 @@ cpdef dict dict_linear_combination(dict_factor_iter, bint factor_on_left=True):
     r"""
     Return the pointwise addition of dictionaries with coefficients.
 
-    :param dict_factor_iter: iterator of pairs ``D``, ``coeff``, where
-        - the ``D``'s are dictionaries with values in a common ring
-        - the ``coeff``'s are coefficients in this ring
+    INPUT:
 
-    :param factor_on_left: if ``True``, the coefficients are multiplied
-        on the left, otherwise they are multiplied on the right
+    - ``dict_factor_iter`` -- iterator of pairs ``D``, ``coeff``, where
 
-    :type factor_on_left: boolean; optional, default ``True``
+      * the ``D``'s are dictionaries with values in a common ring
+      * the ``coeff``'s are coefficients in this ring
+
+    - ``factor_on_left`` -- boolean (default: ``True``); if ``True``,
+      the coefficients are multiplied on the left, otherwise they are
+      multiplied on the right
 
     OUTPUT:
 
-    - a dictionary containing all keys of dictionaries in ``dict_list``,
-      with values being the sum of the values in the different dictionaries,
-      each one first multiplied by the given factor
+    - a dictionary containing all keys of dictionaries in ``dict_list``
+      with values being the sum of the values in the different
+      dictionaries and each one first multiplied by the given factor
       (keys with zero value are omitted)
 
     EXAMPLES::

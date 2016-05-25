@@ -103,7 +103,7 @@ Axiom would print out.
 
 ::
 
-    sage: print axiom.eval('factor(x^5 - y^5)')   #optional - axiom
+    sage: print(axiom.eval('factor(x^5 - y^5)'))   # optional - axiom
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
     Type: Factored Polynomial Integer
@@ -175,6 +175,7 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
 import os
 import re
@@ -350,9 +351,9 @@ class PanAxiom(ExtraTabCompletion, Expect):
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding %s command completion list (this takes"%(self)
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%self._COMMANDS_CACHE
+                print("\nBuilding %s command completion list (this takes" % self)
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % self._COMMANDS_CACHE)
             v = self._commands()
 
             #Process we now need process the commands to strip out things which
@@ -418,14 +419,14 @@ class PanAxiom(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: print axiom._eval_line('2+2')  #optional - axiom
+            sage: print(axiom._eval_line('2+2'))  # optional - axiom
               4
                                                        Type: PositiveInteger
             sage: fricas._eval_line(")set output algebra off")  #optional - fricas
             ''
             sage: fricas._eval_line(")set output tex on")  #optional - fricas
             ''
-            sage: print fricas._eval_line("2+2")  #optional - fricas
+            sage: print(fricas._eval_line("2+2"))  # optional - fricas
             $$
             4 
             \leqno(11)
@@ -479,7 +480,6 @@ class PanAxiom(ExtraTabCompletion, Expect):
         i = 0
         for line in outs:
             line = line.rstrip()
-            # print "'%s'"%line
             if line[:4] == '   (':
                 i = line.find('(')
                 i += line[i:].find(')')+1

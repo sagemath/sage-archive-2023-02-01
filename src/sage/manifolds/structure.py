@@ -22,6 +22,8 @@ AUTHORS:
 
 from sage.misc.fast_methods import Singleton
 from sage.manifolds.chart import Chart, RealChart
+from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
+from sage.manifolds.manifold_homset import TopologicalManifoldHomset
 
 # This is a slight abuse by making this a Singleton, but there is no
 #    need to have different copies of this object.
@@ -31,6 +33,8 @@ class TopologicalStructure(Singleton):
     """
     chart = Chart
     name = "topological"
+    scalar_field_algebra = ScalarFieldAlgebra
+    homset = TopologicalManifoldHomset
 
     def subcategory(self, cat):
         """
@@ -53,6 +57,8 @@ class RealTopologicalStructure(Singleton):
     """
     chart = RealChart
     name = "topological"
+    scalar_field_algebra = ScalarFieldAlgebra
+    homset = TopologicalManifoldHomset
 
     def subcategory(self, cat):
         """

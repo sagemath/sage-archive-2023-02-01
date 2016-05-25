@@ -19,7 +19,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [GreenPoly] J. Green, Polynomial representations of `GL_n`, Springer Verlag.
+.. [GreenPoly] \J. Green, Polynomial representations of `GL_n`, Springer Verlag.
 """
 
 #*****************************************************************************

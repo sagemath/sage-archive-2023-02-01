@@ -163,6 +163,7 @@ Check if :trac:`6160` is fixed::
 # Notable exceptions:
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
+from __future__ import print_function
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -179,7 +180,7 @@ from sage.libs.singular.decl cimport (
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
     pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
-    delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
+    idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
     pDiff, singclap_resultant, p_Normalize,
@@ -1115,7 +1116,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = GF(17)[]
-            sage: print macaulay2(R)        # optional - macaulay2
+            sage: print(macaulay2(R))        # optional - macaulay2
             ZZ
             -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             17
@@ -1526,8 +1527,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: R.<x,y> = QQ[] # indirect doctest
             sage: with localvars(R, 'z,w'):
-            ...       print x^3 + y^3 - x*y
-            ...
+            ....:      print(x^3 + y^3 - x*y)
             z^3 + w^3 - z*w
         """
         cdef ring *_ring = self._ring
@@ -2499,7 +2499,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: P.<x,y,z> = QQ[]
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
-            sage: print f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR'])
+            sage: print(f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR']))
             -FOO^2*BAR - 25/27*BAR^3 - FOOBAR^2
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, self._parent_ring, varnames)
@@ -2811,7 +2811,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             flag = 0
             for i from 0<=i<gens:
                 if exps[i] != -1 and p_GetExp(p,i+1,r)!=exps[i]:
-                    #print i, p_GetExp(p,i+1,r), exps[i]
                     flag = 1
             if flag == 0:
                 newptemp = p_LmInit(p,r)
@@ -2948,7 +2947,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     def __getitem__(self,x):
         """
-        Same as ``self.monomial_coefficent`` but for exponent vectors.
+        Same as ``self.monomial_coefficient`` but for exponent vectors.
 
         INPUT:
 
@@ -3288,9 +3287,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: n=1000; f = x^n
             sage: try:
             ....:   f.subs(x = x^n)
-            ....:   print "no overflow"
+            ....:   print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:   print("overflow")
             overflow    # 32-bit
             x^1000000   # 64-bit
             no overflow # 64-bit
@@ -3299,9 +3298,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: try:
             ....:   f = x^n
             ....:   f.subs(x = x^n)
-            ....:   print "no overflow"
+            ....:   print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:   print("overflow")
             overflow
 
         Check that there is no more segmentation fault if the polynomial gets 0
@@ -4198,7 +4197,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y> = K[]
             sage: f = (a + 1)*x^145*y^84 + (a + 1)*x^205*y^17 + x^32*y^112 + x^92*y^45
             sage: for i in range(100):
-            ...       assert len(f.factor()) == 4
+            ....:     assert len(f.factor()) == 4
+
+        Test for :trac:`20435`::
+
+            sage: x,y = polygen(ZZ,'x,y')
+            sage: p = x**2-y**2
+            sage: z = factor(p); z
+            (x - y) * (x + y)
+            sage: z[0][0].parent()
+            Multivariate Polynomial Ring in x, y over Integer Ring
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
@@ -4217,7 +4225,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             try:
                 frac_field = self._parent._base.fraction_field()
                 F = self.change_ring(frac_field).factor()
-                FF = [(f[0].change_ring(self._parent), f[1]) for f in F]
+                FF = [(self._parent(f[0]), f[1]) for f in F]
                 U = self._parent._base(F.unit()).factor()
                 return Factorization(list(U) + FF, unit=U.unit())
             except Exception:
@@ -4232,7 +4240,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         iv = NULL
         sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
-        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some pointa
+        I = singclap_factorize ( ptemp, &iv , 0)
         sig_off()
 
         ivv = iv.ivGetVec()
@@ -4243,7 +4251,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         F = Factorization(v,unit)
         F.sort()
 
-        delete(iv)
+        del iv
         id_Delete(&I,_ring)
 
         return F
@@ -4427,6 +4435,57 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         res = kNF(_I, NULL, self._poly)
         id_Delete(&_I,r)
         return new_MP(parent,res)
+
+    def divides(self, other):
+        """
+        Return ``True`` if this polynomial divides ``other``.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: p = 3*x*y + 2*y*z + x*z
+            sage: q = x + y + z + 1
+            sage: r = p * q
+            sage: p.divides(r)
+            True
+            sage: q.divides(p)
+            False
+            sage: r.divides(0)
+            True
+            sage: R.zero().divides(r)
+            False
+            sage: R.zero().divides(0)
+            True
+        """
+        if self.is_zero():
+            return other.is_zero()
+        cdef ideal *_I
+        cdef MPolynomialRing_libsingular parent = self._parent
+        cdef ring *r = self._parent_ring
+        cdef poly *rem
+
+        if r != currRing:
+            rChangeCurrRing(r)
+
+        _I = idInit(1, 1)
+        if not (isinstance(other,MPolynomial_libsingular) \
+               and (<MPolynomial_libsingular>other)._parent is parent):
+            try:
+                other = parent._coerce_c(other)
+            except TypeError as msg:
+                id_Delete(&_I,r)
+                raise TypeError, msg
+
+        _I.m[0] = p_Copy(self._poly, r)
+
+        if r != currRing:
+            rChangeCurrRing(r)
+        sig_on()
+        rem = kNF(_I, NULL, (<MPolynomial_libsingular>other)._poly, 0, 1)
+        sig_off()
+        id_Delete(&_I, r)
+        res = new_MP(parent, rem).is_zero()
+        return res
 
     @coerce_binop
     def gcd(self, right, algorithm=None, **kwds):

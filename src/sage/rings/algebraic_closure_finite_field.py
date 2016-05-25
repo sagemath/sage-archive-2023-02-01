@@ -53,6 +53,7 @@ AUTHORS:
 - Vincent Delecroix (November 2013): additional methods
 
 """
+from __future__ import print_function
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.fast_methods import WithEqualityById
@@ -1016,7 +1017,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         TESTS::
 
             sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
-            sage: print F.__class__.__name__
+            sage: print(F.__class__.__name__)
             AlgebraicClosureFiniteField_pseudo_conway_with_category
             sage: TestSuite(F).run(skip=['_test_elements', '_test_pickling'])
 

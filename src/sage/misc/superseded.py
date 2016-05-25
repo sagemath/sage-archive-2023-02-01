@@ -22,6 +22,7 @@ Functions and classes
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from warnings import warn, resetwarnings
 import inspect
@@ -193,7 +194,7 @@ class experimental(object):
 
             sage: @sage.misc.superseded.experimental(trac_number=79997)
             ....: def foo(*args, **kwargs):
-            ....:     print args, kwargs
+            ....:     print("{} {}".format(args, kwargs))
             sage: foo(7, what='Hello')
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
@@ -206,13 +207,28 @@ class experimental(object):
             sage: class bird(SageObject):
             ....:     @sage.misc.superseded.experimental(trac_number=99999)
             ....:     def __init__(self, *args, **kwargs):
-            ....:         print "piep", args, kwargs
+            ....:         print("piep {} {}".format(args, kwargs))
             sage: _ = bird(99)
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
             interface might change without a formal deprecation.
             See http://trac.sagemath.org/99999 for details.
             piep (99,) {}
+
+        TESTS:
+
+        The following test works together with the doc-test for
+        :meth:`__experimental_self_test` to demonstrate that warnings are issued only
+        once, even in doc-tests (see :trac:`20601`).
+        ::
+
+            sage: from sage.misc.superseded import __experimental_self_test
+            sage: _ = __experimental_self_test("A")
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/88888 for details.
+            I'm A
 
         .. SEEALSO::
 
@@ -238,7 +254,7 @@ class experimental(object):
         TESTS::
 
             sage: def foo(*args, **kwargs):
-            ....:     print args, kwargs
+            ....:     print("{} {}".format(args, kwargs))
             sage: from sage.misc.superseded import experimental
             sage: ex_foo = experimental(trac_number=99399)(foo)
             sage: ex_foo(3, what='Hello')
@@ -252,15 +268,39 @@ class experimental(object):
         @sage_wraps(func)
         def wrapper(*args, **kwds):
             from sage.misc.superseded import experimental_warning
-            experimental_warning(self.trac_number,
-                         'This class/method/function is marked as '
-                         'experimental. It, its functionality or its '
-                         'interface might change without a '
-                         'formal deprecation.',
-                         self.stacklevel)
+            if not wrapper._already_issued:
+                experimental_warning(self.trac_number,
+                            'This class/method/function is marked as '
+                            'experimental. It, its functionality or its '
+                            'interface might change without a '
+                            'formal deprecation.',
+                            self.stacklevel)
+                wrapper._already_issued = True
             return func(*args, **kwds)
+        wrapper._already_issued = False
 
         return wrapper
+
+from sage.structure.sage_object import SageObject
+class __experimental_self_test(SageObject):
+    r"""
+    This is a class only to demonstrate with a doc-test that the @experimental
+    decorator only issues a warning message once (see :trac:`20601`).
+
+    The test below does not issue a warning message because that warning has
+    already been issued by a previous doc-test in the @experimental code. Note
+    that this behaviour can not be demonstrated within a single documentation
+    string: Sphinx will itself supress multiple issued warnings.
+    
+    TESTS::
+
+        sage: from sage.misc.superseded import __experimental_self_test
+        sage: _ = __experimental_self_test("B")
+        I'm B
+    """
+    @experimental(trac_number=88888)
+    def __init__(self, x):
+        print("I'm " + x)
 
 
 class DeprecatedFunctionAlias(object):

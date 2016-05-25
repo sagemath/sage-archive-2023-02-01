@@ -189,10 +189,10 @@ subsequent papers on the representation theory of these algebras.
 
 REFERENCES:
 
-.. [DJM] R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra",
+.. [DJM] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra",
    Math. Z, 229 (1999), 385-416.
 
-.. [BK] J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
+.. [BK] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
    Adv. Math., 222 (2009), 1883-1942"
 
 """
@@ -2272,6 +2272,12 @@ class StandardTableauTuples(TableauTuples):
             Traceback (most recent call last):
             ...
             ValueError: the shape must be a partition tuple
+
+            sage: P = PartitionTuples()
+            sage: pt = P([[1]]); pt
+            ([1])
+            sage: StandardTableauTuples(pt)
+            Standard tableaux of shape [1]
         """
         from sage.combinat.partition_tuple import PartitionTuple
 
@@ -2329,7 +2335,10 @@ class StandardTableauTuples(TableauTuples):
                 raise ValueError('the shape and size must agree')
 
         # now that the inputs appear to make sense, return the appropriate class
-        if level is not None and level<=1:
+        if level is not None and level <= 1:
+            from sage.combinat.partition_tuple import PartitionTuple
+            if isinstance(shape, PartitionTuple):
+                shape = shape[0]
             if shape is not None:
                 return StandardTableaux_shape(shape)
             elif size is not None:
@@ -3053,7 +3062,9 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             inserting t_1,..,t_n in order into the rows of mu, from left to right
             in each component and then left to right along the components.
             """
-            return self.element_class(self, [ [tab[clen[c]:clen[c+1]][cclen[c][r]:cclen[c][r+1]] for r in range(len(mu[c]))] for c in range(len(mu)) ])
+            return self.element_class(self, [ [tab[clen[c]:clen[c+1]][cclen[c][r]:cclen[c][r+1]]
+                                               for r in range(len(mu[c]))]
+                                              for c in range(len(mu)) ])
 
         # We're now ready to start generating the tableaux. Here's the first one:
         initial_tableau=tableau_from_list(tab)
@@ -3097,7 +3108,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             c=component[tab.index(r)]
             while c>0:
                 comp=[m for m in tab[clen[c-1]:clen[c]] if m<r and cols[m]>cols[r]]
-                if comp==[]: c-=1
+                if not comp: c-=1
                 else:
                     return comp[-1]
 

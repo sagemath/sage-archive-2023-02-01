@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
@@ -348,9 +349,9 @@ cdef class ntl_ZZ_p(object):
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_p(42,modulus=c)
             sage: i = x._get_as_int_doctest()
-            sage: print i
+            sage: i
             2
-            sage: print type(i)
+            sage: type(i)
             <type 'int'>
         """
         self.c.restore_c()

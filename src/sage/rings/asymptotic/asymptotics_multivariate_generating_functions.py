@@ -15,7 +15,7 @@ a strictly minimal multiple point of the alegbraic variety `H = 0`.
 The algorithms and formulas implemented here come from [RaWi2008a]_
 and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
 
-.. [AiYu1983] I.A. Aizenberg and A.P. Yuzhakov.
+.. [AiYu1983] \I.A. Aizenberg and A.P. Yuzhakov.
    *Integral representations and residues in multidimensional complex analysis*.
    Translations of Mathematical Monographs, **58**. American Mathematical
    Society, Providence, RI. (1983). x+283 pp. ISBN: 0-8218-4511-X.
@@ -212,7 +212,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from functools import total_ordering
 from itertools import combinations_with_replacement
@@ -3037,9 +3037,6 @@ class FractionWithFactoredDenominator(RingElement):
         else:
             av = ZZ.one()
 
-        #print "Calculating errors table in the form"
-        #print "exponent, scaled Maclaurin coefficient, scaled asymptotic values, relative errors..."
-
         # Get Maclaurin coefficients of self.
         alpha = vector(alpha)
         multi_indices = [r * alpha for r in interval]
@@ -4370,12 +4367,12 @@ def coerce_point(R, p):
         sage: f = FFPD()
         sage: p = {SR(x): 1, SR(y): 7/8}
         sage: for k in sorted(p.keys(), key=str):
-        ....:     print k, k.parent(), p[k]
+        ....:     print("{} {} {}".format(k, k.parent(), p[k]))
         x Symbolic Ring 1
         y Symbolic Ring 7/8
         sage: q = coerce_point(R, p)
         sage: for k in sorted(q.keys(), key=str):
-        ....:     print k, k.parent(), q[k]
+        ....:     print("{} {} {}".format(k, k.parent(), q[k]))
         x Multivariate Polynomial Ring in x, y over Rational Field 1
         y Multivariate Polynomial Ring in x, y over Rational Field 7/8
     """

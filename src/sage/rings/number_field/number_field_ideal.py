@@ -63,69 +63,6 @@ from sage.structure.proof.proof import get_flag
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
-def convert_from_idealprimedec_form(field, ideal):
-    """
-    Used internally in the number field ideal implementation for
-    converting from the form output by the PARI function ``idealprimedec``
-    to a Sage ideal.
-
-    INPUT:
-
-    -  ``field`` - a number field
-
-    -  ``ideal`` - a PARI prime ideal, as output by the
-       ``idealprimedec`` or ``idealfactor`` functions
-
-    EXAMPLE::
-
-        sage: from sage.rings.number_field.number_field_ideal import convert_from_idealprimedec_form
-        sage: K.<a> = NumberField(x^2 + 3)
-        sage: K_bnf = gp(K.pari_bnf())
-        sage: ideal = K_bnf.idealprimedec(3)[1]
-        sage: convert_from_idealprimedec_form(K, ideal)
-        doctest:...: DeprecationWarning: convert_from_idealprimedec_form() is deprecated
-        See http://trac.sagemath.org/15767 for details.
-        Fractional ideal (-a)
-        sage: K.factor(3)
-        (Fractional ideal (-a))^2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(15767, "convert_from_idealprimedec_form() is deprecated")
-
-    p = ZZ(ideal[1])
-    alpha = field(field.pari_zk() * ideal[2], check=False)
-    return field.ideal(p, alpha)
-
-def convert_to_idealprimedec_form(field, ideal):
-    """
-    Used internally in the number field ideal implementation for
-    converting to the form output by the pari function ``idealprimedec``
-    from a Sage ideal.
-
-    INPUT:
-
-    -  ``field`` - a number field
-
-    -  ``ideal`` - a prime ideal
-
-    NOTE:
-
-    The algorithm implemented right now is not optimal, but works. It should
-    eventually be replaced with something better.
-
-    EXAMPLE::
-
-        sage: from sage.rings.number_field.number_field_ideal import convert_to_idealprimedec_form
-        sage: K.<a> = NumberField(x^2 + 3)
-        sage: P = K.ideal(a/2-3/2)
-        sage: convert_to_idealprimedec_form(K, P)
-        doctest:...: DeprecationWarning: convert_to_idealprimedec_form() is deprecated, use ideal.pari_prime() instead
-        See http://trac.sagemath.org/15767 for details.
-        [3, [1, 2]~, 2, 1, [1, 1; -1, 2]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(15767, "convert_to_idealprimedec_form() is deprecated, use ideal.pari_prime() instead")
-    return field.ideal(ideal).pari_prime()
 
 class NumberFieldIdeal(Ideal_generic):
     """
@@ -747,7 +684,7 @@ class NumberFieldIdeal(Ideal_generic):
         TESTS:
 
         Sage can find the free module associated to quite large ideals
-        quickly (see trac #4627)::
+        quickly (see :trac:`4627`)::
 
             sage: y = polygen(ZZ)
             sage: M.<a> = NumberField(y^20 - 2*y^19 + 10*y^17 - 15*y^16 + 40*y^14 - 64*y^13 + 46*y^12 + 8*y^11 - 32*y^10 + 8*y^9 + 46*y^8 - 64*y^7 + 40*y^6 - 15*y^4 + 10*y^3 - 2*y + 1)
@@ -983,7 +920,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         TESTS:
 
-        Test that this works with non-integral ideals (#10767)::
+        Test that this works with non-integral ideals (:trac:`10767`)::
 
             sage: K = QuadraticField(-2)
             sage: I = K.ideal(1/2)
@@ -993,7 +930,7 @@ class NumberFieldIdeal(Ideal_generic):
         L = self.number_field()
         other = L.ideal(other)
         nf = L.pari_nf()
-        hnf = nf.idealintersection(self.pari_hnf(), other.pari_hnf())
+        hnf = nf.idealintersect(self.pari_hnf(), other.pari_hnf())
         I = L.ideal(self._NumberFieldIdeal__elements_from_hnf(hnf))
         I.__pari_hnf = hnf
         return I
@@ -1386,7 +1323,8 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.smallest_integer()
             0
 
-            # See trac\# 4392:
+        See :trac:`4392`::
+
             sage: K.<a>=QuadraticField(-5)
             sage: I=K.ideal(7)
             sage: I.smallest_integer()
@@ -1447,18 +1385,20 @@ class NumberFieldIdeal(Ideal_generic):
             sage: i.valuation(0)
             Traceback (most recent call last):
             ...
-            ValueError: p (= 0) must be nonzero
+            ValueError: p (= Ideal (0) of Number Field in a with defining polynomial x^5 + 2) must be nonzero
+            sage: K.ideal(0).valuation(K.factor(2)[0][0])
+            +Infinity
         """
-        if p==0:
-            raise ValueError("p (= %s) must be nonzero"%p)
-        if not isinstance(p, NumberFieldFractionalIdeal):
+        if not isinstance(p, NumberFieldIdeal):
             p = self.number_field().ideal(p)
+        if not p:
+            raise ValueError("p (= %s) must be nonzero"%p)
         if not p.is_prime():
             raise ValueError("p (= %s) must be a prime"%p)
         if p.ring() != self.number_field():
             raise ValueError("p (= %s) must be an ideal in %s"%self.number_field())
         nf = self.number_field().pari_nf()
-        return ZZ(nf.idealval(self.pari_hnf(), p.pari_prime()))
+        return nf.idealval(self.pari_hnf(), p.pari_prime()).sage()
 
     def decomposition_group(self):
         r"""
@@ -2422,7 +2362,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: I.is_coprime(6+i)
             True
 
-            # See trac \# 4536:
+        See :trac:`4536`::
+
             sage: E.<a> = NumberField(x^5 + 7*x^4 + 18*x^2 + x - 3)
             sage: OE = E.ring_of_integers()
             sage: i,j,k = [u[0] for u in factor(3*OE)]

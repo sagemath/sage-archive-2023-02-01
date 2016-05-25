@@ -236,6 +236,7 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import math # for log
 import sys
@@ -1748,9 +1749,9 @@ cdef class RealIntervalFieldElement(RingElement):
             ...
             ValueError: _str_question_style on NaN or infinity
             sage: for i in range(1, 9):
-            ...       print RIF(-10^i, 12345).str(style='brackets')
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False)
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False)
+            ....:     print(RIF(-10^i, 12345).str(style='brackets'))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False))
             [-10.000000000000000 .. 12345.000000000000]
             0.?e5
             6.17?618e3
@@ -1790,8 +1791,8 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(-85, 85)._str_question_style(10, 0, 'e', False)
             '0.?e2'
             sage: for i in range(-6, 7):
-            ...       v = RIF(2).sqrt() * 10^i
-            ...       print v._str_question_style(10, 0, 'e', False)
+            ....:     v = RIF(2).sqrt() * 10^i
+            ....:     print(v._str_question_style(10, 0, 'e', False))
             1.414213562373095?e-6
             0.00001414213562373095?
             0.0001414213562373095?

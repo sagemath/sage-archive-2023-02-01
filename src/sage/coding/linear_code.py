@@ -2,73 +2,66 @@
 r"""
 Generic structures for linear codes
 
-Definition
-==========
+Linear Codes
+============
 
 Let `F = \GF{q}` be a finite field. A rank `k` linear subspace of the vector
 space `F^n` is called an `[n, k]`-linear code, `n` being the length of the
-code and `k` its dimension.
+code and `k` its dimension. Elements of a code `C` are called codewords.
 
 A linear map from `F^k` to an `[n,k]` code `C` is called an "encoding", and it
 can be represented as a `k \times n` matrix, called a generator matrix.
 Alternatively, `C` can be represented by its orthogonal complement in `F^n`,
 i.e. the `n-k`-dimensional vector space `C^\perp` such that the inner product
-between any element from `C` and any element from `C^\perp` is zero. `C^\perp`
+of any element from `C` and any element from `C^\perp` is zero. `C^\perp`
 is called the dual code of `C`, and any generator matrix for `C^\perp` is called
 a parity check matrix for `C`.
 
 We commonly endow `F^n` with the Hamming metric, i.e. the weight of a vector is
 the number of non-zero elements in it. The central operation of a linear code is
 then "decoding": given a linear code `C \subset F^n` and a "received word" `r
-\in F^n` , retrieve `c \in C` such that the Hamming distance between `r` and `c`
-is minimal.
+\in F^n` , retrieve the codeword `c \in C` such that the Hamming distance
+between `r` and `c` is minimal.
 
-Module contents
-===============
 
-This module (``linear_code.py``) contains:
+Families or Generic codes
+=========================
 
-    - an abstract class used to describe any linear code (as defined above),
-      ``AbstractLinearCode``
-    - a class to describe generic linear codes, ``LinearCode``
-    - several encoders and decoders known by any linear code.
-
-In the following sections, we describe ``AbstractLinearCode`` and ``LinearCode``
-in detail.
+Linear codes are either studied as generic vector spaces without any known
+structure, or as particular sub-families with special properties. The class
+:class:`sage.coding.linear_code.LinearCode` is used to represent the former. For
+the latter, these will be represented by specialised classes; for instance, the
+family of Hamming codes are represented by the class
+:class:`sage.coding.hamming_code.HammingCode`. Type ``codes.<tab>`` for a list of
+all code families known to Sage. Such code family classes should inherit from
+the abstract base class :class:`sage.coding.linear_code.AbstractLinearCode`.
 
 ``AbstractLinearCode``
 ----------------------
 
-This class has been designed to gather methods, features and parameters shared
-by every linear code. For instance, it is always possible to compute
-the minimum distance of a code, its covering radius, its weight distribution...
+This class is a base class designed to contain methods, features and parameters
+shared by every linear code. For instance, generic algorithms for computing the
+minimum distance, the covering radius, etc. Many of these algorithms are slow,
+e.g. exponential in the code length. For specific subfamilies, better algorithms
+or even closed formulas might be known, in which case the respective method
+should be overridden.
 
-The methods provided in this class are meant to work for every linear code
-family, whichever its specificities. Thus, they rely on generic algorithms
-and are most of the time slow algorithms.
+``AbstractLinearCode`` is an abstract class for linear code classes, so any
+linear code class should inherit from this class. Also ``AbstractLinearCode``
+should never itself be instantiated.
 
-As its name suggests, ``AbstractLinearCode`` is an abstract class designed
-to provide support for any linear code class, which means that:
-
-    - any linear code class should inherit from this class, and
-    - it should never be instantiated.
-
-One can refer to the documentation of
-:class:`sage.coding.linear_code.AbstractLinearCode` for details and examples.
-
-If one wants to implement with linear codes without any specific structure, one
-should use ``LinearCode`` class.
+See :class:`sage.coding.linear_code.AbstractLinearCode` for details and
+examples.
 
 ``LinearCode``
 --------------
 
 This class is used to represent arbitrary and unstructured linear codes.
-It only relies on generic methods provided by ``AbstractLinearCode``, which
-means that basic operations on the code (e.g. computation of the minimum distance)
-will only use slow algortihms.
+It mostly rely directly on generic methods provided by ``AbstractLinearCode``, which
+means that basic operations on the code (e.g. computation of the minimum
+distance) will use slow algorithms.
 
-While ``AbstractLinearCode`` should never be instantiated, ``LinearCode`` has
-been designed to be used as is, as denotes the following example::
+A ``LinearCode`` is instantiated by providing a generator matrix::
 
     sage: M = matrix(GF(2), [[1, 0, 0, 1, 0],\
                              [0, 1, 0, 1, 1],\
@@ -81,13 +74,15 @@ been designed to be used as is, as denotes the following example::
     [0 1 0 1 1]
     [0 0 1 1 1]
 
+See :class:`sage.coding.linear_code.AbstractLinearCode` for more details and
+examples.
+
 Further references
 ------------------
 
-If one wants to get started on Sage's linear codes library, one can
-refer to http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
+If you want to get started on Sage's linear codes library, see http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
-If one wants to learn more on the design of this library, one can read
+If you want to learn more on the design of this library, see
 http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:

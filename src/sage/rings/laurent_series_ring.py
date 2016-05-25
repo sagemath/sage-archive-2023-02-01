@@ -488,7 +488,7 @@ class LaurentSeriesRing_generic(ring.CommutativeRing):
         ## field, since you can always (mathematically!) construct
         ## some power series that doesn't converge.
         ## Note that 0 is not a *ring* homomorphism.
-        from power_series_ring import is_PowerSeriesRing
+        from .power_series_ring import is_PowerSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
         return False

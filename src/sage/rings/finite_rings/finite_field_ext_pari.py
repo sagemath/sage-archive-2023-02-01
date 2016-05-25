@@ -176,7 +176,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
 
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
-        from finite_field_constructor import FiniteField as GF
+        from .finite_field_constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
@@ -205,7 +205,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             deprecation(16930, "constructing a FiniteField_ext_pari without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
 
         if modulus is None or modulus == "default":
-            from conway_polynomials import exists_conway_polynomial
+            from .conway_polynomials import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
                 modulus = "conway"
             else:
@@ -213,7 +213,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         if isinstance(modulus,str):
             if modulus == "conway":
-                from conway_polynomials import conway_polynomial
+                from .conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(self.__char, self.__degree)
             elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since

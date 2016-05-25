@@ -880,7 +880,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         """
         if im_gens[0] == 0:
             return True   # this is allowed.
-        from laurent_series_ring import is_LaurentSeriesRing
+        from .laurent_series_ring import is_LaurentSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0
         return False

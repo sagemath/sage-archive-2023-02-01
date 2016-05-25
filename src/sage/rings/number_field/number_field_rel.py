@@ -773,9 +773,9 @@ class NumberField_relative(NumberField_generic):
             <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset_with_category'>
         """
 
-        from number_field import is_NumberFieldHomsetCodomain
+        from .number_field import is_NumberFieldHomsetCodomain
         if is_NumberFieldHomsetCodomain(codomain):
-            import morphism
+            from . import morphism
             return morphism.RelativeNumberFieldHomset(self, codomain)
         else:
             raise TypeError

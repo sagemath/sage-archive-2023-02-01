@@ -68,8 +68,8 @@ def late_import():
         QQbar = sage.rings.qqbar.QQbar
         import sage.symbolic.ring
         SR = sage.symbolic.ring.SR
-        from real_lazy import CLF, RLF
-        from complex_double import CDF
+        from .real_lazy import CLF, RLF
+        from .complex_double import CDF
 
 def is_ComplexField(x):
     """
@@ -643,7 +643,7 @@ class ComplexField_class(ring.Field):
             sage: C.zeta(5)
             0.309016994374947 + 0.951056516295154*I
         """
-        from integer import Integer
+        from .integer import Integer
         n = Integer(n)
         if n == 1:
             x = self(1)
@@ -746,4 +746,3 @@ class ComplexField_class(ring.Field):
 
         from sage.structure.factorization import Factorization
         return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
-

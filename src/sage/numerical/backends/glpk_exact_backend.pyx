@@ -31,6 +31,16 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         sage: p = MixedIntegerLinearProgram(solver="GLPK/exact")
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+        glp_exact: 5 rows, 1 columns, 4 non-zeros
+        GNU MP bignum library is being used
+        *     0:   objval =                      0   (0)
+        *     0:   objval =                      0   (0)
+        OPTIMAL SOLUTION FOUND
+        glp_exact: 5 rows, 1 columns, 4 non-zeros
+        GNU MP bignum library is being used
+        *     0:   objval =                      0   (0)
+        *     0:   objval =                      0   (0)
+        PROBLEM HAS UNBOUNDED SOLUTION
     """
 
     def __cinit__(self, maximization = True):

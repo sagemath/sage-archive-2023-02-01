@@ -136,7 +136,7 @@ cdef class FractionFieldElement(FieldElement):
             except ArithmeticError:
                 pass
         if self.__denominator.is_zero():
-            raise ZeroDivisionError, "fraction field element division by zero"
+            raise ZeroDivisionError("fraction field element division by zero")
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -197,9 +197,9 @@ cdef class FractionFieldElement(FieldElement):
             self.__numerator   = num
             self.__denominator = den
         except AttributeError:
-            raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
+            raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
         except TypeError:
-            raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
+            raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
         except NotImplementedError:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
@@ -672,7 +672,7 @@ cdef class FractionFieldElement(FieldElement):
         sden = (<FractionFieldElement> right).__denominator
 
         if snum.is_zero():
-            raise ZeroDivisionError, "fraction field element division by zero"
+            raise ZeroDivisionError("fraction field element division by zero")
 
         rightinv = self.__class__(self._parent, sden, snum,
             coerce=True, reduce=False)
@@ -699,7 +699,7 @@ cdef class FractionFieldElement(FieldElement):
         if self.__denominator == 1:
             return int(self.__numerator)
         else:
-            raise TypeError, "denominator must equal 1"
+            raise TypeError("denominator must equal 1")
 
     def _integer_(self, Z=ZZ):
         """
@@ -716,7 +716,7 @@ cdef class FractionFieldElement(FieldElement):
             self.reduce()
         if self.__denominator == 1:
             return Z(self.__numerator)
-        raise TypeError, "no way to coerce to an integer."
+        raise TypeError("no way to coerce to an integer.")
 
     def _rational_(self, Q=QQ):
         """
@@ -827,7 +827,7 @@ cdef class FractionFieldElement(FieldElement):
             (t + 6)/(t^2 + 5)
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         return self.__class__(self._parent,
             self.__denominator, self.__numerator, coerce=False, reduce=False)
 

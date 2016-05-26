@@ -262,11 +262,8 @@ Sage example in ./programmation.tex, line 1257::
 
 Sage example in ./programmation.tex, line 1265::
 
-  sage: for k in [1..10]: print('+ {}'.format(k))
-  + 1
-  + 2
-  ...
-  + 10
+  sage: ' + '.join(str(k) for k in [1..10])
+  1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
 
 Sage example in ./programmation.tex, line 1273::
 

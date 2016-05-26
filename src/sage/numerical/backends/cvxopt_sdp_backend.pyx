@@ -496,6 +496,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
            Behaviour is undefined unless ``solve`` has been called before.
 
         EXAMPLE::
+
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "cvxopt")
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)

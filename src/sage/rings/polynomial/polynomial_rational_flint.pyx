@@ -2073,6 +2073,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: The polynomial must be irreducible
+
+        Variable names that are reserved in PARI, such as ``zeta``,
+        are supported (see :trac:`20631`)::
+
+            sage: R.<zeta> = QQ[]
+            sage: (zeta^2 + zeta + 1).galois_group(pari_group=True)
+            PARI group [2, -1, 1, "S2"] of degree 2
+
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
 
@@ -2089,7 +2097,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 "algorithm='magma' if you have magma.")
 
         if algorithm == 'pari':
-            G = self._pari_().Polrev().polgalois()
+            G = self._pari_with_name().Polrev().polgalois()
             H = PariGroup(G, self.degree())
             if pari_group:
                 return H
@@ -2151,6 +2159,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             x * (x^2 + 1)^2
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
+
+        Variable names that are reserved in PARI, such as ``zeta``,
+        are supported (see :trac:`20631`)::
+
+            sage: R.<zeta> = QQ[]
+            sage: (zeta^2 + zeta + 1).factor_mod(7)
+            (zeta + 3) * (zeta + 5)
+
         """
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
@@ -2161,7 +2177,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if self.degree() < 1:
             raise ValueError, "The polynomial must have degree at least 1"
 
-        G = self._pari_().factormod(p)
+        G = self._pari_with_name().factormod(p)
         K = FiniteField(p)
         R = K[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
@@ -2279,6 +2295,18 @@ cdef class Polynomial_rational_flint(Polynomial):
             [x]
             sage: R(x-1).hensel_lift(7, 2)
             [x + 48]
+
+        Variable names that are reserved in PARI, such as ``I``, are
+        supported (see :trac:`20631`)::
+
+            sage: R.<I> = QQ[]
+            sage: (I^2 + 1).hensel_lift(5, 3)
+            [I + 57, I + 68]
+            sage: (I^2 + 1).hensel_lift(2, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: I^2 + 1 is not square-free modulo 2
+
         """
         from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
@@ -2299,14 +2327,11 @@ cdef class Polynomial_rational_flint(Polynomial):
             S = R[self.parent().variable_name()]
             return [S(self)]
 
-        F = self.factor_mod(p)
-        y = []
-        for g, n in F:
-            if n > 1:
-                raise ArithmeticError, ("The polynomial must be square free " +
-                    "modulo p")
-            y.append(self.parent()(g))
-        H = self._pari_().polhensellift(y, p, e)
+        f = self._pari_with_name()
+        F = f.factormod(p)
+        if any(n > 1 for n in F[1]):
+            raise ValueError("{} is not square-free modulo {}".format(self, p))
+        H = f.polhensellift(F[0].liftint(), p, e)
         R = IntegerModRing(p**e)
         S = R[self.parent().variable_name()]
         return [S(m) for m in H]
@@ -2378,8 +2403,16 @@ cdef class Polynomial_rational_flint(Polynomial):
             0
             sage: (t + 1/2).discriminant()
             1
+
+        Variable names that are reserved in PARI, such as ``I``, are
+        supported (see :trac:`20631`)::
+
+            sage: R.<I> = QQ[]
+            sage: (I^2 + 1).discriminant()
+            -4
+
         """
-        return QQ(self._pari_().poldisc())
+        return QQ(self._pari_with_name().poldisc())
 
     # Alias for discriminant
     disc = discriminant

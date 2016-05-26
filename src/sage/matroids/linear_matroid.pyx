@@ -3265,19 +3265,25 @@ cdef class BinaryMatroid(LinearMatroid):
 
     # isomorphism
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, cert=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
         Internal version that performs no checks on input.
 
-        INPUT:
+        NPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -3294,6 +3300,8 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
         """
+        if cert:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if isinstance(other, BinaryMatroid):
             return self.is_field_isomorphic(other)
         else:
@@ -4312,18 +4320,24 @@ cdef class TernaryMatroid(LinearMatroid):
 
     # isomorphism
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, cert=False):
         """
         Test if ``self`` is isomorphic to ``other``. Internal version that
         performs no checks on input.
 
-        INPUT:
+        NPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -4336,6 +4350,8 @@ cdef class TernaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2)
             False
         """
+        if cert:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if type(other) == TernaryMatroid:
             return self.is_field_isomorphic(other)
         else:
@@ -5941,19 +5957,25 @@ cdef class RegularMatroid(LinearMatroid):
         #     self._r_hypergraph = self._r_hypergraph.max_refined()
         # return self._r_hypergraph
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, cert=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
         Internal version that performs no checks on input.
 
-        INPUT:
+        NPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -5961,6 +5983,8 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
 
             sage: M1 = matroids.Wheel(3)
             sage: M2 = matroids.named_matroids.Fano()
@@ -5968,6 +5992,8 @@ cdef class RegularMatroid(LinearMatroid):
             False
             sage: M1._is_isomorphic(M2.delete('a'))
             True
+            sage: M1._is_isomorphic(M2.delete('a'), True)
+            (True, {0: 'g', 1: 'b', 2: 'c', 3: 'e', 4: 'd', 5: 'f'})
 
         Check that :trac:`17316` was fixed::
 
@@ -5991,6 +6017,8 @@ cdef class RegularMatroid(LinearMatroid):
             sage: len(Mnew.circuits()) == len(Nnew.circuits())
             False
         """
+        if cert:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if type(other) == RegularMatroid:
             return self.is_field_isomorphic(other)
         else:

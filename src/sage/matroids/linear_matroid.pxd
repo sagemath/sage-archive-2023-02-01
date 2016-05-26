@@ -79,7 +79,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, cert=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -110,7 +110,7 @@ cdef class TernaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, cert=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -138,7 +138,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, cert=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -158,7 +158,7 @@ cdef class RegularMatroid(LinearMatroid):
     cpdef base_ring(self)
     cpdef characteristic(self)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, cert=*)
 
     cpdef _invariant(self)
     cpdef _fast_isom_test(self, other)

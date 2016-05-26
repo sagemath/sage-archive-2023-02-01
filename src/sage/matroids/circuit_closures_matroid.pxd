@@ -11,4 +11,4 @@ cdef class CircuitClosuresMatroid(Matroid):
     cpdef _max_independent(self, F)
     cpdef _circuit(self, F)
     cpdef circuit_closures(self)
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, cert=*)

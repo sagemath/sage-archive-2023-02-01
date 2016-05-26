@@ -2242,7 +2242,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
         return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO)
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, cert=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -2250,11 +2250,17 @@ cdef class BasisExchangeMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -2263,12 +2269,18 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, True)
+            (True, True)
             sage: M1 = BasisMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
+            sage: M1._is_isomorphic(M2, True)
+            (False, False)
 
         """
+        if cert:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if not isinstance(other, BasisExchangeMatroid):
             return other._is_isomorphic(self)
             # Either generic test, which converts other to BasisMatroid,

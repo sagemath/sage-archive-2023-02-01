@@ -3070,7 +3070,7 @@ cdef class Matroid(SageObject):
 
     # isomorphism and equality
 
-    cpdef is_isomorphic(self, other):
+    cpdef is_isomorphic(self, other, cert=False):
         r"""
         Test matroid isomorphism.
 
@@ -3080,11 +3080,13 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
 
         EXAMPLES::
 
@@ -3092,6 +3094,8 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1.is_isomorphic(M2)
             True
+            sage: M1.is_isomorphic(M2, True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: G3 = graphs.CompleteGraph(4)
             sage: M1.is_isomorphic(G3)
             Traceback (most recent call last):
@@ -3103,12 +3107,14 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1.is_isomorphic(M2)
             False
+            sage: M1.is_isomorphic(M2, True)
+            (False, None)
         """
         if not isinstance(other, Matroid):
             raise TypeError("can only test for isomorphism between matroids.")
-        return self._is_isomorphic(other)
+        return self._is_isomorphic(other, cert)
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, cert=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -3116,11 +3122,17 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid, 
+        - optional parameter ``cert`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean, 
+        and, if cert = True, a dictionary or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -3128,6 +3140,9 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
+
 
             sage: M1 = matroids.named_matroids.Fano()
             sage: M2 = matroids.named_matroids.NonFano()
@@ -3135,6 +3150,8 @@ cdef class Matroid(SageObject):
             False
 
         """
+        if cert:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if self is other:
             return True
         return (self.full_rank() == other.full_rank() and self.nonbases()._isomorphism(other.nonbases()) is not None)

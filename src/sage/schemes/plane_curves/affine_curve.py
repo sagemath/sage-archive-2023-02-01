@@ -49,9 +49,14 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-    def projective_closure(self):
+    def projective_closure(self, i=0):
         r"""
         Return the projective closure of this affine curve.
+
+        INPUT:
+
+        - ``i`` - the index of the affine coordinate chart of the projective space that the affine ambient space
+        of this curve embeds into.
 
         OUTPUT:
 
@@ -63,27 +68,28 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = Curve([x-y,z-2])
             sage: C.projective_closure()
             Projective Space Curve over Complex Field with 53 bits of precision defined by
-            x0 - x1, x2 + (-2.00000000000000)*x3
+            x1 - x2, (-2.00000000000000)*x0 + x3
 
         ::
 
             sage: A.<x,y,z> = AffineSpace(QQ,3)
             sage: C = Curve([y-x^2,z-x^3])
             sage: C.projective_closure()
-            Projective Space Curve over Rational Field defined by x0^2 - x1*x3,
-            x0*x1 - x2*x3, x1^2 - x0*x2
+            Projective Space Curve over Rational Field defined by
+            x1^2 - x0*x2, x1*x2 - x0*x3, x2^2 - x1*x3
         """
         I = self.defining_ideal()
         # compute a Groebner basis of this ideal with respect to a graded monomial order
         R = self.ambient_space().coordinate_ring().change_ring(order='degrevlex')
-        n = self.ambient_space().dimension_relative()
-        P = ProjectiveSpace(self.ambient_space().base_ring(),n)
+        P = self.ambient_space().projective_embedding(i).codomain()
         RH = P.coordinate_ring()
         G = R.ideal([R(f) for f in I.gens()]).groebner_basis()
         H = Hom(R,RH)
-        phi = H([RH.gens()[i] for i in range(0,n)])
+        l = list(RH.gens())
+        x = l.pop(i)
+        phi = H(l)
         from constructor import Curve
-        return Curve([phi(f).homogenize(RH.gens()[n]) for f in G])
+        return Curve([phi(f).homogenize(x) for f in G])
 
 class AffineCurve_generic(Curve_generic):
     def __init__(self, A, f):

@@ -44,9 +44,14 @@ class ProjectiveSpaceCurve_generic(Curve_generic_projective):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-    def affine_patch(self,i):
+    def affine_patch(self, i):
         r"""
         Return the `i`th affine patch of this projective curve.
+
+        INPUT:
+
+        - ``i`` - affine coordinate chart of the projective ambient space of this curve to compute affine patch
+        with respect to.
 
         OUTPUT:
 
@@ -61,11 +66,10 @@ class ProjectiveSpaceCurve_generic(Curve_generic_projective):
             x0*x1 - 1.00000000000000, x2^2 - x0
         """
         I = self.defining_ideal()
-        n = self.ambient_space().dimension_relative()
-        A = AffineSpace(self.ambient_space().base_ring(),n)
-        H = Hom(self.ambient_space().coordinate_ring(),A.coordinate_ring())
+        A = self.ambient_space().affine_patch(i)
+        H = Hom(self.ambient_space().coordinate_ring(), A.coordinate_ring())
         l = list(A.coordinate_ring().gens())
-        l.insert(i,1)
+        l.insert(i, A.coordinate_ring()(1))
         phi = H(l)
         from constructor import Curve
         return Curve([phi(f) for f in I.gens()])

@@ -271,8 +271,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                            already_echelonized=already_echelonized)
             return QuotientModuleWithBasis(submodule, category=category)
 
-
-
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
             """

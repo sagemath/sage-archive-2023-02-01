@@ -525,7 +525,7 @@ def bounds_minimum_distance(n, k, F):
           lowerBoundExplanation := ...
           n := 10,
           q := 2,
-          :3references := rec(
+          references := rec(
                ),
           upperBound := 4,
           upperBoundExplanation := ... )

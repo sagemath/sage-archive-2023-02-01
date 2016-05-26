@@ -141,6 +141,9 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         return self(ZZ(42) % self.n)
 
     class Element (ElementWrapper):
+        # We are wrapping Sage integers (this information is used for typechecking)
         wrapped_class = Integer
+        # Elements should be compared by values
+        __cmp__ = ElementWrapper._cmp_by_value
 
 Example = IntegerModMonoid

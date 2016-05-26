@@ -23,7 +23,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.hall_polynomial import hall_polynomial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
-from functools import reduce
+from functools import cmp_to_key, reduce
 
 def transpose_cmp(x, y):
     r"""
@@ -244,7 +244,7 @@ class HallAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(base_ring)
         CombinatorialFreeModule.__init__(self, base_ring, Partitions(),
                                          prefix=prefix, bracket=False,
-                                         monomial_cmp=transpose_cmp,
+                                         generator_key=cmp_to_key(transpose_cmp),
                                          category=category)
 
         # Coercions

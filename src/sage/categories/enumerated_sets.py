@@ -278,21 +278,21 @@ class EnumeratedSets(Category_singleton):
                 sage: list(P.iterator_range(3, 10, 2))
                 [[1, 1], [2, 1], [4], [2, 2]]
                 sage: it = P.iterator_range(3)
-                sage: [it.next() for x in range(10)]
+                sage: [next(it) for x in range(10)]
                 [[1, 1],
                  [3], [2, 1], [1, 1, 1],
                  [4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1],
                  [5]]
                 sage: it = P.iterator_range(3, step=2)
-                sage: [it.next() for x in range(5)]
+                sage: [next(it) for x in range(5)]
                 [[1, 1],
                  [2, 1],
                  [4], [2, 2], [1, 1, 1, 1]]
-                sage: P.iterator_range(stop=-3).next()
+                sage: next(P.iterator_range(stop=-3))
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: infinite list
-                sage: P.iterator_range(start=-3).next()
+                sage: next(P.iterator_range(start=-3))
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: infinite list
@@ -326,7 +326,7 @@ class EnumeratedSets(Category_singleton):
                 if step is None:
                     it = self.__iter__()
                     for j in range(stop):
-                        yield it.next()
+                        yield next(it)
                     return
                 start = 0
             elif start < 0:

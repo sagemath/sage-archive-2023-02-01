@@ -387,7 +387,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     pass
                 if stop < card:
                     it = self.__iter__()
-                    return [it.next() for j in range(stop)]
+                    return [next(it) for j in range(stop)]
                 return self.list()
             return self.list()[start:stop:step]
 
@@ -433,7 +433,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     if stop < card:
                         it = self.__iter__()
                         for j in range(stop):
-                            yield it.next()
+                            yield next(it)
                         return
                     for x in self:
                         yield x

@@ -133,7 +133,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         cat = Algebras(R).FiniteDimensional().WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, M.no_broken_circuits_sets(ordering),
                                          prefix='OS', bracket='{',
-                                         generator_key=self._sort_key,
+                                         sorting_key=self._sort_key,
                                          category=cat)
 
     def _sort_key(self, x):

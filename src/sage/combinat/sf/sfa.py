@@ -2603,11 +2603,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(generator_key = lambda x: x)
+            self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(generator_key = lambda x: len(x))
+            self.print_options(sorting_key=lambda x: len(x))
         elif ps == 'maximal_part':
-            self.print_options(generator_key = lambda x: _lmax(x))
+            self.print_options(sorting_key=lambda x: _lmax(x))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps

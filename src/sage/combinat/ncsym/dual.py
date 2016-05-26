@@ -133,7 +133,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 return sorted(map(sorted, A))
             CombinatorialFreeModule.__init__(self, NCSymD.base_ring(), SetPartitions(),
                                              prefix='w', bracket=False,
-                                             generator_key=key_func_set_part,
+                                             sorting_key=key_func_set_part,
                                              category=NCSymDualBases(NCSymD))
 
         @lazy_attribute

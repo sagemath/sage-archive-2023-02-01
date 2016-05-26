@@ -420,7 +420,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='F', generator_key=A.indices_key)
+                category=A.Bases(), prefix='F', sorting_key=A.indices_key)
 
         def product_on_basis(self, left, right):
             r"""
@@ -508,7 +508,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='In', generator_key=A.indices_key)
+                category=A.Bases(), prefix='In', sorting_key=A.indices_key)
 
     class Out(CombinatorialFreeModule, BindableClass):
         r"""
@@ -551,4 +551,4 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='Out', generator_key=A.indices_key)
+                category=A.Bases(), prefix='Out', sorting_key=A.indices_key)

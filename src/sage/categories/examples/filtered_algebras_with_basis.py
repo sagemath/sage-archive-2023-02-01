@@ -56,7 +56,7 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
 
         CombinatorialFreeModule.__init__(self, base_ring, I, bracket=False,
                                          prefix='',
-                                         generator_key=self._sort_key,
+                                         sorting_key=self._sort_key,
                                          category=FilteredAlgebrasWithBasis(base_ring))
 
     def _sort_key(self, x):
@@ -65,7 +65,7 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
 
         INPUT:
 
-        x -- a basis index (here an element in a free Abelian monoid)
+        - ``x`` -- a basis index (here an element in a free Abelian monoid)
 
         EXAMPLES::
 

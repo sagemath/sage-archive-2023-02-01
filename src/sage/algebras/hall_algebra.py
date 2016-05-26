@@ -244,7 +244,7 @@ class HallAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(base_ring)
         CombinatorialFreeModule.__init__(self, base_ring, Partitions(),
                                          prefix=prefix, bracket=False,
-                                         generator_key=cmp_to_key(transpose_cmp),
+                                         sorting_key=cmp_to_key(transpose_cmp),
                                          category=category)
 
         # Coercions

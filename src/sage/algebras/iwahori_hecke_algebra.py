@@ -1205,7 +1205,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                              algebra.base_ring(),
                                              algebra._W,
                                              category=algebra._BasesCategory(),
-                                             generator_key=cmp_to_key(index_cmp),
+                                             sorting_key=cmp_to_key(index_cmp),
                                              prefix=self._prefix)
 
         # This **must** match the name of the class in order for

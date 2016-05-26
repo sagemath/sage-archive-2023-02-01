@@ -673,8 +673,8 @@ cdef class GurobiBackend(GenericBackend):
         error = GRBgetdblattrelement(self.model, "UB", index, <double *> ub)
         check(self.env, error)
 
-        return (None if lb[0] <= -2147483647 else lb[0],
-                None if  ub[0] >= 2147483647 else ub[0])
+        return (None if lb[0] <= -GRB_INFINITY else lb[0],
+                None if  ub[0] >= GRB_INFINITY else ub[0])
 
     cpdef int solve(self) except -1:
         """
@@ -994,7 +994,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             error = GRBgetdblattrelement(self.model, "UB", index, <double *> b)
             check(self.env, error)
-            return None if b[0] >= 2147483647 else b[0]
+            return None if b[0] >= GRB_INFINITY else b[0]
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1034,7 +1034,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             error = GRBgetdblattrelement(self.model, "LB", index, <double *> b)
             check(self.env, error)
-            return None if b[0] <= -2147483647 else b[0]
+            return None if b[0] <= -GRB_INFINITY else b[0]
 
     cpdef write_lp(self, char * filename):
         """

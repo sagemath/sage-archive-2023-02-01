@@ -554,6 +554,30 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def _test_add_col(cls, tester=None, **options):
+        """
+        Run tests on the method :meth:`.add_col`
+
+        TEST::
+
+            sage: from sage.numerical.backends.generic_backend import GenericBackend
+            sage: p = GenericBackend()
+            sage: p._test_add_col()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+
+        """
+        p = cls()                         # fresh instance of the backend
+        if tester is None:
+            tester = p._tester(**options)
+        tester.assertIsNone(p.add_linear_constraints(5, 0, None))
+        tester.assertIsNone(p.add_col([0, 1, 2, 3, 4], [0, 1, 2, 3, 4]))
+        tester.assertEqual(p.nrows(), 5)
+        for 1 <= i <= 4:
+            tester.assertEqual(p.row(i), ([0], [i]))
+
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
         Add ``'number`` linear constraints.

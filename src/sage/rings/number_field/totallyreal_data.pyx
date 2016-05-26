@@ -542,7 +542,7 @@ cdef class tr_data:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic" % a[len(a)-1])
 
             k = n-len(a)
             self.k = k
@@ -577,7 +577,7 @@ cdef class tr_data:
                 self.gnk[(k+1)*n+i] = gnk[i]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > n+1"%len(a)
+            raise ValueError("a has length %s > n+1" % len(a))
 
     def __dealloc__(self):
         r"""
@@ -631,7 +631,7 @@ cdef class tr_data:
 
         f_out = <int *>sig_malloc(sizeof(int) * (self.n + 1))
         if f_out == NULL:
-            raise MemoryError, "unable to allocate coefficient list"
+            raise MemoryError("unable to allocate coefficient list")
         for i from 0 <= i < self.n:
             f_out[i] = 0
         f_out[self.n] = 1

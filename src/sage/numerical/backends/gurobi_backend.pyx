@@ -172,6 +172,42 @@ cdef class GurobiBackend(GenericBackend):
 
         return self.ncols()-1
 
+    cpdef add_col(self, list indices, list coeffs):
+        """
+        Add a column.
+
+        INPUT:
+
+        - ``indices`` (list of integers) -- this list contains the
+          indices of the constraints in which the variable's
+          coefficient is nonzero
+
+        - ``coeffs`` (list of real values) -- associates a coefficient
+          to the variable in each of the constraints in which it
+          appears. Namely, the i-th entry of ``coeffs`` corresponds to
+          the coefficient of the variable in the constraint
+          represented by the i-th entry in ``indices``.
+
+        .. NOTE::
+
+            ``indices`` and ``coeffs`` are expected to be of the same
+            length.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p.ncols()
+            0
+            sage: p.nrows()
+            0
+            sage: p.add_linear_constraints(5, 0, None)
+            sage: p.add_col(range(5), range(5))
+            sage: p.nrows()
+            5
+        """
+        self.add_variable(coefficients = zip(indices, coeffs))
+
     cpdef set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable

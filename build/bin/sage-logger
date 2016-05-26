@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 #
-# sage-logger COMMAND LOGFILE
+# sage-logger [-p] COMMAND LOGFILE
 #
 # Evaluate shell command COMMAND while logging stdout and stderr to
 # LOGFILE. If either the command or the logging failed, return a
 # non-zero exit status.
+#
+# If the -p argument is given, each line printed to stdout is prefixed
+# with the name of the log file.
 #
 # AUTHOR:
 #
@@ -20,10 +23,23 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+use_prefix=false
+
+if [[ "$1" = -p ]]; then
+    use_prefix=true
+    shift
+fi
+
 cmd="$1"
 logfile="$2"
 logname="$(basename $logfile .log)"
 logdir=`dirname "$logfile"`
+
+if [[ $use_prefix = true ]]; then
+    prefix="[${logname}] "
+else
+    prefix=""
+fi
 
 mkdir -p "$logdir"
 
@@ -31,7 +47,7 @@ mkdir -p "$logdir"
 # We trap SIGINT such that SIGINT interrupts the main process being
 # run, not the logging.
 ( exec 2>&1; eval "$cmd" ) | ( trap '' SIGINT; tee -a "$logfile" ) | \
-    (while read line; do echo "[${logname}] $line"; done)
+    (while read line; do echo "${prefix}${line}"; done)
 
 pipestatus=(${PIPESTATUS[*]})
 

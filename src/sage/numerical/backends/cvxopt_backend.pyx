@@ -42,7 +42,7 @@ cdef class CVXOPTBackend(GenericBackend):
     General backend testsuite::
 
         sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
-        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+        sage: TestSuite(p.get_backend()).run(skip=("_test_pickling","_test_solve"))
     """
 
     cdef list objective_function #c_matrix

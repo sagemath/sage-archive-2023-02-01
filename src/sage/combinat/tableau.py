@@ -66,6 +66,7 @@ For display options, see :meth:`Tableaux.global_options`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -126,12 +127,12 @@ TableauOptions=GlobalOptions(name='tableaux',
     for partitions and vice versa::
 
         sage: P = Partition([3,3,1])
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         *
         ***
         ***
         sage: Partitions.global_options(convention="english")
-        sage: print P.ferrers_diagram()
+        sage: print(P.ferrers_diagram())
         ***
         ***
         *
@@ -455,11 +456,11 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
               1  2  3
               4  5
             sage: Tableaux.global_options(convention="french")
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
               4  5
               1  2  3
             sage: Tableaux.global_options.reset()
@@ -545,26 +546,26 @@ class Tableau(ClonableList):
         We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
             | 4 | 5 |
             +---+---+
             sage: Tableaux.global_options(convention="french")
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +---+---+
             | 4 | 5 |
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
-            sage: t = Tableau([]); print t._ascii_art_table()
+            sage: t = Tableau([]); print(t._ascii_art_table())
             ++
             ++
             sage: Tableaux.global_options.reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
-            sage: print t._ascii_art_table()
+            sage: print(t._ascii_art_table())
             +----+----+----+----+----+
             |  1 |  2 |  3 | 10 | 15 |
             +----+----+----+----+----+
@@ -599,7 +600,7 @@ class Tableau(ClonableList):
         Unicode version::
 
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print t._ascii_art_table(unicode=True)
+            sage: print(t._ascii_art_table(unicode=True))
             ┌────┬────┬────┬───┐
             │ 1  │ 2  │ 15 │ 7 │
             ├────┼────┼────┴───┘
@@ -611,7 +612,7 @@ class Tableau(ClonableList):
             └────┘
             sage: Tableaux().global_options(convention='french')
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print t._ascii_art_table(unicode=True)
+            sage: print(t._ascii_art_table(unicode=True))
             ┌────┐
             │ 9  │
             ├────┼────┐
@@ -702,17 +703,17 @@ class Tableau(ClonableList):
         We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |1|2|3|
             |4|5|
             sage: Tableaux.global_options(convention="french")
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |4|5|
             |1|2|3|
             sage: Tableaux.global_options.reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
-            sage: print t._ascii_art_compact()
+            sage: print(t._ascii_art_compact())
             |1 |2 |3 |10|15|
             |12|15|17|
         """
@@ -772,7 +773,7 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,1,2],[2,3],[3]])
-            sage: print t._latex_diagram()
+            sage: print(t._latex_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
             \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
@@ -880,7 +881,7 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]]);
-            sage: for s in t.components(): print s.to_list()
+            sage: for s in t.components(): print(s.to_list())
             [[1, 2, 3], [4, 5]]
         """
         return [self]
@@ -968,7 +969,7 @@ class Tableau(ClonableList):
               1  2  3
             sage: Tableaux.global_options.reset()
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def to_word_by_row(self):
         """

@@ -950,7 +950,7 @@ what to do, ask your parent); it's also a speed critical method::
     sage: x._mul_??                             # not tested
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
-    sage: x._mul_.im_func is Magmas.ElementMethods._mul_.im_func
+    sage: x._mul_.im_func is Magmas.ElementMethods._mul_parent.im_func
     True
 
 ``product`` is a mathematical method implemented by the parent::

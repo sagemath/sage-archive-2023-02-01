@@ -1532,8 +1532,6 @@ class AbstractLinearCode(module.Module):
         H = G.right_kernel()
         return H.basis_matrix()
 
-    check_mat = deprecated_function_alias(17973, parity_check_matrix)
-
     @cached_method
     def covering_radius(self):
         r"""
@@ -2252,8 +2250,6 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    gen_mat = deprecated_function_alias(17973, generator_matrix)
-
     def generator_matrix_systematic(self):
         """
         Return a systematic generator matrix of the code.
@@ -2273,8 +2269,6 @@ class AbstractLinearCode(module.Module):
             [0 0 1]
         """
         return self.generator_matrix().echelon_form()
-
-    gen_mat_systematic = deprecated_function_alias(17973, generator_matrix_systematic)
 
     @cached_method
     def gens(self):

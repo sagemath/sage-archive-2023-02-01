@@ -15,7 +15,7 @@ The purpose of this Cython module is to hold all the coercion methods,
 which are inserted by their respective categories.
 """
 
-from sage.structure.element cimport Element, have_same_parent_c, coercion_model
+from sage.structure.element cimport Element, have_same_parent_c, coercion_model, parent_c
 import operator
 cimport cython
 
@@ -159,9 +159,39 @@ def __mul__(Element self, right):
         sage: x.__mul__.im_func is sage.categories.coercion_methods.__mul__
         True
     """
-    if have_same_parent_c(self, right) and hasattr(self, "_mul_"):
-        return self._mul_(right)
+    if have_same_parent_c(self, right):
+        try:
+            return self._mul_(right)
+        except AttributeError:
+            pass
     return coercion_model.bin_op(self, right, operator.mul)
+
+@cython.binding
+def _mul_parent(Element self, other):
+    r"""
+    Returns the product of the two elements, calculated using
+    the ``product`` method of the parent.
+
+    This is the default implementation of _mul_ if
+    ``product`` is implemented in the parent.
+
+    INPUT:
+
+    - ``other`` -- an element of the parent of ``self``
+
+    OUTPUT:
+
+    - an element of the parent of ``self``
+
+    EXAMPLES::
+
+        sage: S = Semigroups().example("free")
+        sage: x = S('a'); y = S('b')
+        sage: x._mul_parent(y)
+        'ab'
+    """
+    return parent_c(self).product(self, other)
+
 
 @cython.binding
 def __truediv__(left, right):

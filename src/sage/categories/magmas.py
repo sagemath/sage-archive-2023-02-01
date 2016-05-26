@@ -1001,31 +1001,7 @@ class Magmas(Category_singleton):
                 'ab'
             """
 
-        def _mul_parent(self, other):
-            r"""
-            Returns the product of the two elements, calculated using
-            the ``product`` method of the parent.
-
-            This is the default implementation of _mul_ if
-            ``product`` is implemented in the parent.
-
-            INPUT:
-
-            - ``other`` -- an element of the parent of ``self``
-
-            OUTPUT:
-
-            - an element of the parent of ``self``
-
-            EXAMPLES::
-
-                sage: S = Semigroups().example("free")
-                sage: x = S('a'); y = S('b')
-                sage: x._mul_parent(y)
-                'ab'
-
-            """
-            return self.parent().product(self, other)
+        _mul_parent = sage.categories.coercion_methods._mul_parent
 
         def is_idempotent(self):
             r"""

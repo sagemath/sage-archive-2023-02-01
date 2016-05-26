@@ -169,10 +169,10 @@ def __mul__(Element self, right):
 @cython.binding
 def _mul_parent(Element self, other):
     r"""
-    Returns the product of the two elements, calculated using
+    Return the product of the two elements, calculated using
     the ``product`` method of the parent.
 
-    This is the default implementation of _mul_ if
+    This is the default implementation of ``_mul_`` if
     ``product`` is implemented in the parent.
 
     INPUT:
@@ -252,3 +252,4 @@ def __truediv__(left, right):
     if have_same_parent_c(left, right):
         return left._div_(right)
     return coercion_model.bin_op(left, right, operator.div)
+

@@ -33,6 +33,8 @@ def __add__(Element self, right):
     Do not override; instead implement an ``_add_`` method in the
     element class or a ``summation`` method in the parent class.
 
+    .. SEEALSO:: :meth:`AdditiveMagmas.ElementMethods._add_`
+
     EXAMPLES::
 
         sage: F = CommutativeAdditiveSemigroups().example()
@@ -83,12 +85,24 @@ def __radd__(Element self, left):
 @cython.binding
 def Modules__mul__(Element left, right):
     """
-    TESTS::
+    Return the product of ``left`` and ``right``.
+
+    INPUT:
+
+    - ``left`` -- an element of a :class:`Module <Modules>`_
+    - ``right`` -- any object
+
+    EXAMPLES:
+
+    This is used when multiplying an element of a module on the right
+    by something, typically a coefficient::
 
         sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
         sage: x = F.monomial("a")
         sage: x * int(2)
         2*B['a']
+
+    .. SEEALSO:: :meth:`Modules.ElementMethods.__rmul__`
 
     This is `Modules.ElementMethods.__mul__`, implemented as a Cython
     method in :mod:`sage.categories.magmas_cython`::
@@ -98,21 +112,33 @@ def Modules__mul__(Element left, right):
         sage: x.__mul__.im_func is sage.categories.coercion_methods.Modules__mul__
         True
 
-    TODO: make a better unit test once Modules().example() is implemented
+    .. TODO:: make a better unit test once Modules().example() is implemented
     """
     return coercion_model.bin_op(left, right, operator.mul)
 
 @cython.binding
 def Modules__rmul__(Element right, left):
     """
-    TESTS::
+    Return the product of ``left`` and ``right``.
+
+    INPUT:
+
+    - ``right`` -- an element of a :class:`module <Modules>`_
+    - ``left`` -- any object
+
+    EXAMPLES:
+
+    This is used when multiplying an element of a module on the left
+    by something, typically a coefficient::
 
         sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
         sage: x = F.monomial("a")
-        sage: x.__rmul__(int(2))
-        2*B['a']
         sage: int(2) * x
         2*B['a']
+        sage: x.__rmul__(int(2))
+        2*B['a']
+
+    .. SEEALSO:: :meth:`Modules.ElementMethods.__mul__`
 
     This is `Modules.ElementMethods.__rmul__`, implemented as a Cython
     method in :mod:`sage.categories.coercion_methods`::
@@ -122,7 +148,7 @@ def Modules__rmul__(Element right, left):
         sage: x.__rmul__.im_func is sage.categories.coercion_methods.Modules__rmul__
         True
 
-    TODO: make a better unit test once Modules().example() is implemented
+    .. TODO:: make a better unit test once Modules().example() is implemented
     """
     return coercion_model.bin_op(left, right, operator.mul)
 
@@ -133,7 +159,8 @@ def __mul__(Element self, right):
 
     INPUT:
 
-    - ``self``, ``right`` -- two elements
+    - ``self`` -- an element of a :class:`magma <Magmas>`_
+    - ``right`` -- an object
 
     This calls the `_mul_` method of ``self``, if it is
     available and the two elements have the same parent
@@ -150,6 +177,12 @@ def __mul__(Element self, right):
         sage: x = S('a'); y = S('b')
         sage: x * y
         'ab'
+
+    .. SEEALSO::
+
+        - :meth:`Magmas.ElementMethods._mul_`
+        - :meth:`Magmas.ElementMethods._mul_parent`
+        - :meth:`Magmas.ParentMethods.product`
 
     This is `Magmas.ElementMethods.__mul__`, implemented as a Cython
     method in :mod:`sage.categories.coercion_methods`::
@@ -189,6 +222,21 @@ def _mul_parent(Element self, other):
         sage: x = S('a'); y = S('b')
         sage: x._mul_parent(y)
         'ab'
+
+    .. SEEALSO::
+
+        - :meth:`Magmas.ElementMethods._mul_`
+        - :meth:`Magmas.ElementMethods._mul_parent`
+        - :meth:`Magmas.ParentMethods.product`
+
+
+    This is `Magmas.ElementMethods._mul_parent`, implemented as a Cython
+    method in :mod:`sage.categories.coercion_methods`::
+
+        sage: x._mul_parent.im_func is Magmas.ElementMethods._mul_parent.im_func
+        True
+        sage: x._mul_parent.im_func is sage.categories.coercion_methods._mul_parent
+        True
     """
     return parent_c(self).product(self, other)
 
@@ -203,6 +251,11 @@ def __truediv__(left, right):
     the same parent and to coercion otherwise. See the
     extensive documentation at the top of
     :ref:`sage.structure.element`.
+
+    INPUT:
+
+    - ``self`` -- an element of a :class:`unital magma <Magmas.Unital>`_
+    - ``right`` -- an object
 
     .. SEEALSO:: :meth:`Magmas.Unital.ElementMethods._div_`
 

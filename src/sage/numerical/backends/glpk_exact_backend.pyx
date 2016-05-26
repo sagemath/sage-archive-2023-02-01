@@ -41,6 +41,13 @@ cdef class GLPKExactBackend(GLPKBackend):
         *     0:   objval =                      0   (0)
         *     0:   objval =                      0   (0)
         PROBLEM HAS UNBOUNDED SOLUTION
+        glp_exact: 3 rows, 3 columns, 8 non-zeros
+        GNU MP bignum library is being used
+              0:   infsum =                      1   (0)
+              4:   infsum =                      0   (0)
+        *     4:   objval =       1.66666666666667   (0)
+        *     4:   objval =       1.66666666666667   (0)
+        OPTIMAL SOLUTION FOUND
     """
 
     def __cinit__(self, maximization = True):

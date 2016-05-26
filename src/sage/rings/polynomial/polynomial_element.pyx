@@ -6696,6 +6696,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
         TESTS::
+        
             sage: R.<x> = PolynomialRing(ZZ)
             sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
             sage: pol.number_of_roots_in_interval(1, 2)

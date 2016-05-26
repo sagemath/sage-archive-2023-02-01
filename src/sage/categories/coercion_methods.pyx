@@ -89,7 +89,7 @@ def Modules__mul__(Element left, right):
 
     INPUT:
 
-    - ``left`` -- an element of a :class:`Module <Modules>`_
+    - ``left`` -- an element of a :class:`Module <Modules>`
     - ``right`` -- any object
 
     EXAMPLES:
@@ -123,7 +123,7 @@ def Modules__rmul__(Element right, left):
 
     INPUT:
 
-    - ``right`` -- an element of a :class:`module <Modules>`_
+    - ``right`` -- an element of a :class:`module <Modules>`
     - ``left`` -- any object
 
     EXAMPLES:
@@ -159,7 +159,7 @@ def __mul__(Element self, right):
 
     INPUT:
 
-    - ``self`` -- an element of a :class:`magma <Magmas>`_
+    - ``self`` -- an element of a :class:`magma <Magmas>`
     - ``right`` -- an object
 
     This calls the `_mul_` method of ``self``, if it is
@@ -254,7 +254,7 @@ def __truediv__(left, right):
 
     INPUT:
 
-    - ``self`` -- an element of a :class:`unital magma <Magmas.Unital>`_
+    - ``self`` -- an element of a :class:`unital magma <Magmas.Unital>`
     - ``right`` -- an object
 
     .. SEEALSO:: :meth:`Magmas.Unital.ElementMethods._div_`

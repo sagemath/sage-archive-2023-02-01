@@ -84,7 +84,9 @@ cdef class GurobiBackend(GenericBackend):
         self.set_verbosity(0)
         self.obj_constant_term = 0.0
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None, coefficients=None) except -1:
+        ## coefficients is an extension in this backend,
+        ## and a proposed addition to the interface, to unify this with add_col.
         """
         Add a variable.
 
@@ -163,8 +165,25 @@ cdef class GurobiBackend(GenericBackend):
         if lower_bound is None:
             lower_bound = -GRB_INFINITY
 
+        nonzeros = 0
+        cdef int * c_indices = NULL
+        cdef double * c_coeff = NULL
 
-        error = GRBaddvar(self.model, 0, NULL, NULL, obj, <double> lower_bound, <double> upper_bound, vtype, c_name)
+        if coefficients is not None:
+
+            nonzeros = len(coefficients)
+            c_indices = <int *> sig_malloc(nonzeros * sizeof(int))
+            c_coeff = <double *> sig_malloc(nonzeros * sizeof(double))
+
+            for i, (index, coeff) in enumerate(coefficients):
+                c_indices[i] = index
+                c_coeff[i] = coeff
+
+        error = GRBaddvar(self.model, nonzeros, c_indices, c_coeff, obj, <double> lower_bound, <double> upper_bound, vtype, c_name)
+
+        if coefficients is not None:
+            sig_free(c_coeff)
+            sig_free(c_indices)
 
         check(self.env,error)
 

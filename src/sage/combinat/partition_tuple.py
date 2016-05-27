@@ -1487,6 +1487,36 @@ class PartitionTuple(CombinatorialElement):
                 m+=row
         return gens
 
+    @cached_method
+    def _initial_degree(self,e,multicharge):
+        r"""
+        Return the Brundan-Kleshchev-Wang degree of the initial tableau of shape
+        ``self``. This degree depends only the shape of the tableau and it is
+        used as the base case for computing the degrees of all tableau of shape
+        ``self``, which is why this method is cached. See
+        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(0,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(2,(0,0))
+            4
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(3,(0,0))
+            1
+            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(4,(0,0))
+            1
+        """
+        if e==0: deg=0
+        else: deg=sum(mu._initial_degree(e) for mu in self)
+        I=IntegerModRing(e)
+        multires=[I(k) for k in multicharge]
+        for (k,r,c) in self.cells():
+            res=I(multicharge[k]-r+c)
+            for l in range(k+1,self.level()):
+                if res==multires[l]: deg+=1
+        return deg
+
     def degree(self, e, multicharge):
         r"""
         Return the ``e``th degree of the partition ``self``. This is the sum of the
@@ -1541,36 +1571,6 @@ class PartitionTuple(CombinatorialElement):
         while ps[-1]*p<self.size():
             ps.append(ps[-1]*p)
         return sum(t.degree(pk,multicharge) for pk in ps for t in self.standard_tableaux())
-
-    @cached_method
-    def _initial_degree(self,e,multicharge):
-        r"""
-        Return the Brundan-Kleshchev-Wang degree of the initial tableau of shape
-        ``self``. This degree depends only the shape of the tableau and it is
-        used as the base case for computing the degrees of all tableau of shape
-        ``self``, which is why this method is cached. See
-        :meth:`sage.combinat.tableau.Tableau.degree` for more information.
-
-        EXAMPLES::
-
-            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(0,(0,0))
-            1
-            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(2,(0,0))
-            4
-            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(3,(0,0))
-            1
-            sage: PartitionTuple([[2,1],[2,2]])._initial_degree(4,(0,0))
-            1
-        """
-        if e==0: deg=0
-        else: deg=sum(mu._initial_degree(e) for mu in self)
-        I=IntegerModRing(e)
-        multires=[I(k) for k in multicharge]
-        for (k,r,c) in self.cells():
-            res=I(multicharge[k]-r+c)
-            for l in range(k+1,self.level()):
-                if res==multires[l]: deg+=1
-        return deg
 
     def defect(self, e, multicharge):
         r"""

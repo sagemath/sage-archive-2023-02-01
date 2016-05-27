@@ -231,7 +231,6 @@ from __future__ import print_function
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
-from copy import copy
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -255,7 +254,6 @@ from sage.structure.list_clone import ClonableArray, ClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
-import __builtin__
 
 #--------------------------------------------------
 # Tableau tuple - element class
@@ -2512,7 +2510,6 @@ class StandardTableauTuples(TableauTuples):
             sage: StandardTableauTuples(pt)
             Standard tableaux of shape [1]
         """
-        from sage.combinat.partition import Partition
         from sage.combinat.partition_tuple import PartitionTuple
 
         # first check the keyword arguments
@@ -2524,42 +2521,27 @@ class StandardTableauTuples(TableauTuples):
             if key not in ['level','shape','size']:
                 raise ValueError( '%s is not a valid argument for StandardTableauTuples' % key )
 
-        if shape is not None:  # need to make sure that shape is a partition tuple
-            try:
-                shape=PartitionTuple(shape)
-            except ValueError:
-                raise ValueError('the shape must be a partition tuple')
-
         # now process the positional arguments
-        for a in range(len(args)):
+        if args:
             #the first argument could be either the level or the shape
-            if isinstance(args[a], (int, Integer)):
-                if a==0:  # the first integer argument is the level
-                    if level is not None and level!=args[0]:
-                        raise ValueError( 'the level was specified more than once')
-                    else:
-                        level=args[0]
-                elif a==1:     # the first integer argument is the level
-                    if size is not None and size!=args[1]:
-                        raise ValueError( 'the size was specified more than once')
-                    else:
-                        size=args[1]
+            if isinstance(args[0], (int, Integer)):
+                if level is not None:
+                    raise ValueError( 'the level was specified more than once' )
                 else:
-                    raise ValueError,'too many integer arguments!'
-
-            elif isinstance(args[a],(__builtin__.list, Partition, PartitionTuple)):
-                try:
-                    new_shape=PartitionTuple(args[a])
-                except ValueError:
-                    raise ValueError( 'the shape must be a partition tuple')
-
-                if shape is not None and shape!=new_shape:
+                    level=args[0]
+            else:
+                if shape is not None:
                     raise ValueError( 'the shape was specified more than once' )
                 else:
-                    shape=new_shape
+                    shape=args[0]   # we check that it is a PartitionTuple below
 
+        if len(args)==2:  # both the level and size were specified
+            if level is not None and size is not None:
+                raise ValueError( 'the level or size was specified more than once' )
             else:
-                raise ValueError( 'unknown argument for specifying StandardTableauTuples')
+                size=args[1]
+        elif len(args)>2:
+            raise ValueError('too man arguments!')
 
         # now check that the arguments are consistent
         if level is not None and (not isinstance(level, (int,Integer)) or level<1):
@@ -2584,7 +2566,10 @@ class StandardTableauTuples(TableauTuples):
                 raise ValueError('the shape and size must agree')
 
         # now that the inputs appear to make sense, return the appropriate class
-        if level==1:
+        if level is not None and level <= 1:
+            from sage.combinat.partition_tuple import PartitionTuple
+            if isinstance(shape, PartitionTuple):
+                shape = shape[0]
             if shape is not None:
                 return StandardTableaux_shape(shape)
             elif size is not None:

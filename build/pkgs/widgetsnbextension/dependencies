@@ -1,4 +1,4 @@
-$(PYTHON) | setuptools notebook
+$(PYTHON) | setuptools pip notebook
 
 ----------
 All lines of this file are ignored except the first.

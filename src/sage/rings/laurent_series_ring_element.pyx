@@ -51,6 +51,7 @@ AUTHORS:
 
 - Robert Bradshaw: Cython version
 """
+from __future__ import print_function
 
 import operator
 
@@ -134,7 +135,6 @@ cdef class LaurentSeries(AlgebraElement):
 
 
         # self is that t^n * u:
-        cdef long val
         if not f:
             if n == infinity:
                 self.__n = 0
@@ -144,7 +144,10 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f
         else:
             val = f.valuation()
-            if val == 0:
+            if val == infinity:
+                self.__n = 0
+                self.__u = f
+            elif val == 0:
                 self.__n = n    # power of the variable
                 self.__u = f    # unit part
             else:
@@ -416,7 +419,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0

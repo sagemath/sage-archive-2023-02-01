@@ -37,14 +37,14 @@ the option ``truncate=False``.
 
 ::
 
-    sage: print ring('1').nextabove()
+    sage: print(ring('1').nextabove())
     1.2
 
 ::
 
-    sage: print ring('1').nextabove().str(truncate=False)
+    sage: print(ring('1').nextabove().str(truncate=False))
     1.2
-    sage: print ring('1').nextbelow().str(truncate=False)
+    sage: print(ring('1').nextbelow().str(truncate=False))
     0.88
 
 Let's change our precision.
@@ -52,9 +52,9 @@ Let's change our precision.
 ::
 
     sage: ring=RealField(20)
-    sage: print ring('1').nextabove().str(truncate=False)
+    sage: print(ring('1').nextabove().str(truncate=False))
     1.0000019
-    sage: print ring('1').nextbelow().str(truncate=False)
+    sage: print(ring('1').nextbelow().str(truncate=False))
     0.99999905
 
 You can also specify the rounding mode.
@@ -272,7 +272,7 @@ print out the interval.
 
 ::
 
-    sage: print (1/a).str(style='brackets')
+    sage: print((1/a).str(style='brackets'))
     [8.9843 .. 9.0157]
 
 Included Software

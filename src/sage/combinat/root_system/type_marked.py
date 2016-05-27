@@ -7,6 +7,7 @@ Root system data for Cartan types with marked nodes
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.root_system import cartan_type
 from sage.combinat.root_system import ambient_space
@@ -250,7 +251,7 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: print CartanType(['B',2]).marked_nodes([1,2])._latex_draw_mark(1, 0)
+            sage: print(CartanType(['B',2]).marked_nodes([1,2])._latex_draw_mark(1, 0))
             \draw[shift={(1, 0)}, black, thin] (0.25cm, 0.25cm) -- (-0.25cm, -0.25cm);
             \draw[shift={(1, 0)}, black, thin] (0.25cm, -0.25cm) -- (-0.25cm, 0.25cm);
             <BLANKLINE>
@@ -265,7 +266,7 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: print CartanType(['A',4]).marked_nodes([1,3])._latex_dynkin_diagram()
+            sage: print(CartanType(['A',4]).marked_nodes([1,3])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (6 cm,0);
             \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
             \draw[shift={(0, 0)}, black, thin] (0.25cm, 0.25cm) -- (-0.25cm, -0.25cm);
@@ -287,17 +288,17 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: print CartanType(["G", 2]).marked_nodes([2]).ascii_art()
+            sage: print(CartanType(["G", 2]).marked_nodes([2]).ascii_art())
               3
             O=<=X
             1   2
-            sage: print CartanType(["B", 3, 1]).marked_nodes([0, 3]).ascii_art()
+            sage: print(CartanType(["B", 3, 1]).marked_nodes([0, 3]).ascii_art())
                 X 0
                 |
                 |
             O---O=>=X
             1   2   3
-            sage: print CartanType(["F", 4, 1]).marked_nodes([0, 2]).ascii_art()
+            sage: print(CartanType(["F", 4, 1]).marked_nodes([0, 2]).ascii_art())
             X---O---X=>=O---O
             0   1   2   3   4
         """
@@ -598,7 +599,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         EXAMPLES::
 
             sage: CartanType.global_options(mark_special_node='both')
-            sage: print CartanType(['A',3,1]).marked_nodes([0,1,3])._latex_draw_node(0, 0, 0)
+            sage: print(CartanType(['A',3,1]).marked_nodes([0,1,3])._latex_draw_node(0, 0, 0))
             \draw[fill=black] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
             \draw[shift={(0, 0)}, lightgray, very thick] (0.25cm, 0.25cm) -- (-0.25cm, -0.25cm);
             \draw[shift={(0, 0)}, lightgray, very thick] (0.25cm, -0.25cm) -- (-0.25cm, 0.25cm);

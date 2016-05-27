@@ -11,6 +11,7 @@ SageMath version and banner info
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC
 
@@ -29,14 +30,14 @@ def version(clone = False):
     EXAMPLES::
 
        sage: version()
-       'SageMath Version ..., Release Date: ...'
+       'SageMath version ..., Release Date: ...'
        sage: version(clone=True)
-       ('SageMath Version ..., Release Date: ...',
+       ('SageMath version ..., Release Date: ...',
         'Mercurial clone branch: ...')
     """
     import os
     branch = os.popen("ls -l "+SAGE_SRC).read().split()[-1][5:]
-    v = 'SageMath Version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
+    v = 'SageMath version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
     if clone:
         return v,"Mercurial clone branch: %s"%branch
     return v
@@ -56,9 +57,9 @@ def banner_text():
 
     EXAMPLES::
 
-        sage: print sage.misc.banner.banner_text()
+        sage: print(sage.misc.banner.banner_text())
         ┌────────────────────────────────────────────────────────────────────┐
-        │ SageMath Version ...
+        │ SageMath version ...
     """
     bars = u"─"*68
     s = u'┌' + bars + u'┐'
@@ -95,7 +96,7 @@ def banner():
 
         sage: banner()
         ┌────────────────────────────────────────────────────────────────────┐
-        │ SageMath Version ..., Release Date: ...
+        │ SageMath version ..., Release Date: ...
         │ Type "notebook()" for the browser-based notebook interface.        │
         │ Type "help()" for help.                                            │
         ...
@@ -142,7 +143,7 @@ def version_dict():
     EXAMPLES::
 
         sage: from sage.misc.banner import version_dict
-        sage: print "SageMath major version is %s" % version_dict()['major']
+        sage: print("SageMath major version is %s" % version_dict()['major'])
         SageMath major version is ...
         sage: version_dict()['major'] == int(sage.version.version.split('.')[0])
         True

@@ -87,7 +87,7 @@ cdef class FiniteFieldIterator:
             sage: K.<a> = GF(5^9)
             sage: for x in K:
             ....:     if x == a+3: break
-            ....:     print x
+            ....:     print(x)
             0
             1
             2
@@ -473,7 +473,7 @@ cdef class FiniteField(Field):
 
         REFERENCES:
 
-        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+        .. [Coh] \H. Cohen, A Course in Computational Algebraic Number
            Theory.  Springer-Verlag, 1993.
 
         .. [Yun] Yun, David YY. On square-free decomposition algorithms.

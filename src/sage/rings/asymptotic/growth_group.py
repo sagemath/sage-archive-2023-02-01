@@ -29,12 +29,6 @@ examples of growth groups and elements are given as well.
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ * log(x)^ZZ
 
 .. _growth_group_description:
 

@@ -311,7 +311,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (0, z4^2 + z4, 1, z4^2 + z4, 0, 1, 1, 1, z4^2 + z4, 0, 0, z4^2 + z4 + 1, z4^2 + z4, 0, 1)
         """
         C = self.code()
-        if hasattr(self.code(), "field_embedding"):
+        if hasattr(self.code(), "_field_embedding"):
             mapping = self.code()._field_embedding.embedding()
             a = [mapping(i) for i in c]
             return vector(a)
@@ -334,7 +334,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (0, a, 1, a, 0, 1, 1, 1, a, 0, 0, a + 1, a, 0, 1)
         """
         C = self.code()
-        if hasattr(self.code(), "field_embedding"):
+        if hasattr(self.code(), "_field_embedding"):
             FE = C._field_embedding
             a = []
             for i in c:

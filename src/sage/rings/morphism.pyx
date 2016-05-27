@@ -352,6 +352,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import ideal
 import homset
@@ -1221,7 +1222,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; f = R.hom([x^2,x+y])
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             x |--> x^2
             y |--> x + y
         """
@@ -1884,7 +1885,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<xx,yy> = R.quo([x^2,y^2]); f = S.hom([yy,xx])
-            sage: print f._repr_defn()
+            sage: print(f._repr_defn())
             xx |--> yy
             yy |--> xx
         """

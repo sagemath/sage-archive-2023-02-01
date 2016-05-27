@@ -33,6 +33,7 @@ code however they want.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, PolynomialRing
@@ -197,15 +198,15 @@ def divisors_to_string(divs):
     EXAMPLES::
 
         sage: from sage.interfaces.genus2reduction import divisors_to_string
-        sage: print divisors_to_string([])
+        sage: print(divisors_to_string([]))
         (1)
-        sage: print divisors_to_string([5])
+        sage: print(divisors_to_string([5]))
         (5)
-        sage: print divisors_to_string([5]*6)
+        sage: print(divisors_to_string([5]*6))
         (5)^6
-        sage: print divisors_to_string([2,3,4])
+        sage: print(divisors_to_string([2,3,4]))
         (2)x(3)x(4)
-        sage: print divisors_to_string([6,2,2])
+        sage: print(divisors_to_string([6,2,2]))
         (6)x(2)^2
     """
     s = ""
@@ -387,7 +388,7 @@ class Genus2reduction(SageObject):
         EXAMPLES::
 
             sage: x = QQ['x'].0
-            sage: print genus2reduction.raw(x^3 - 2*x^2 - 2*x + 1, -5*x^5)[0]
+            sage: print(genus2reduction.raw(x^3 - 2*x^2 - 2*x + 1, -5*x^5)[0])
             doctest:...: DeprecationWarning: the raw() method is provided for backwards compatibility only, use the result of the genus2reduction() call instead of parsing strings
             See http://trac.sagemath.org/15808 for details.
             a minimal equation over Z[1/2] is :

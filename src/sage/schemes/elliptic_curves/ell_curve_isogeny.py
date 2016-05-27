@@ -62,6 +62,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from copy import copy
 
@@ -1172,13 +1173,13 @@ class EllipticCurveIsogeny(Morphism):
 
             sage: E = EllipticCurve(QQ, [0,2,0,1,-1])
             sage: phi = EllipticCurveIsogeny(E, [1])
-            sage: for c in phi: print c
+            sage: for c in phi: print(c)
             x
             y
 
             sage: E = EllipticCurve(GF(17), [0,0,0,3,0])
             sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
-            sage: for c in phi: print c
+            sage: for c in phi: print(c)
             (x^2 + 3)/x
             (x^2*y - 3*y)/x^2
         """
@@ -2564,7 +2565,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi._EllipticCurveIsogeny__compute_omega_general(E, psi, psi_pr, fi, fi_pr)
             x^3*y + (alpha^2 + 1)*x^2*y + (alpha^2 + alpha + 1)*x^2 + (alpha^2 + 1)*x*y + (alpha^2 + alpha)*x + (alpha)*y + (alpha)
 
-        A bug fixed in ticket #7907::
+        A bug fixed in :trac:`7907`::
 
             sage: F = GF(128,'a')
             sage: a = F.gen()
@@ -3358,7 +3359,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
-        Test (for trac ticket 7096)::
+        Test (for :trac:`7096`)::
 
             sage: E = EllipticCurve('11a1')
             sage: phi = E.isogeny(E(5,5))

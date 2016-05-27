@@ -35,6 +35,7 @@ Linear codes and related constructions
    sage/coding/linear_code
    sage/coding/code_constructions
    sage/coding/subfield_subcode
+   sage/coding/punctured_code
    sage/coding/sd_codes
    sage/coding/guava
 

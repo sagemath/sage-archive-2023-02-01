@@ -7,6 +7,7 @@ Root system data for relabelled Cartan types
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -247,7 +248,7 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: print CartanType(['A',4]).relabel(lambda x: (x+1)%4+1)._latex_dynkin_diagram()
+            sage: print(CartanType(['A',4]).relabel(lambda x: (x+1)%4+1)._latex_dynkin_diagram())
             \draw (0 cm,0) -- (6 cm,0);
             \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
@@ -263,17 +264,17 @@ class CartanType(cartan_type.CartanType_decorator):
 
         EXAMPLES::
 
-            sage: print CartanType(["G", 2]).relabel({1:2,2:1}).ascii_art()
+            sage: print(CartanType(["G", 2]).relabel({1:2,2:1}).ascii_art())
               3
             O=<=O
             2   1
-            sage: print CartanType(["B", 3, 1]).relabel([1,3,2,0]).ascii_art()
+            sage: print(CartanType(["B", 3, 1]).relabel([1,3,2,0]).ascii_art())
                 O 1
                 |
                 |
             O---O=>=O
             3   2   0
-            sage: print CartanType(["F", 4, 1]).relabel(lambda n: 4-n).ascii_art()
+            sage: print(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).ascii_art())
             O---O---O=>=O---O
             4   3   2   1   0
         """

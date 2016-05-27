@@ -71,6 +71,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
@@ -227,21 +228,19 @@ List of Poset methods
 Classes and functions
 ---------------------
 """
+
 #*****************************************************************************
-#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
-#                          Franco Saliola <saliola@gmail.com>
+#       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
+#       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division, print_function
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1280,7 +1279,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
-            sage: print P._latex_() #optional - dot2tex graphviz
+            sage: print(P._latex_()) #optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
@@ -1917,7 +1916,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: it = P.relations_iterator()
             sage: type(it)
             <type 'generator'>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([1, 1], [1, 2])
 
             sage: P = posets.PentagonPoset()
@@ -2553,9 +2552,40 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_connected()
 
+    def is_series_parallel(self):
+        """
+        Return ``True`` if the poset is series-parallel, and ``False``
+        otherwise.
+
+        A poset is *series-parallel* if it can be built up from one-element
+        posets using the operations of disjoint union and ordinal
+        sum. This is also called *N-free* property: every poset that is not
+        series-parallel contains a subposet isomorphic to the 4-element
+        N-shaped poset where `a > c, d` and `b > d`.
+
+        See :wikipedia:`Series-parallel partial order`.
+
+        EXAMPLES::
+
+            sage: VA = Poset({1: [2, 3], 4: [5], 6: [5]})
+            sage: VA.is_series_parallel()
+            True
+            sage: big_N = Poset({1: [2, 4], 2: [3], 4:[7], 5:[6], 6:[7]})
+            sage: big_N.is_series_parallel()
+            False
+
+        TESTS::
+
+            sage: Poset().is_series_parallel()
+            True
+        """
+        # TODO: Add series-parallel decomposition later.
+        N = Poset({0: [2, 3], 1: [3]})
+        return not self.has_isomorphic_subposet(N)
+
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
-        Returns ``True`` if ``f`` is an EL labelling of ``self``.
+        Return ``True`` if ``f`` is an EL labelling of ``self``.
 
         A labelling `f` of the edges of the Hasse diagram of a poset
         is called an EL labelling (edge lexicographic labelling) if
@@ -2834,7 +2864,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
             ....:     if r(v) != r(u) + 1:
-            ....:         print "Bug in rank_function!"
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -3021,7 +3051,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
             <type 'generator'>
-            sage: l0.next()
+            sage: next(l0)
             2
         """
         for e in self._hasse_diagram.neighbor_in_iterator(self._element_to_vertex(x)):
@@ -3057,7 +3087,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Integer(self._hasse_diagram.order())
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function(self,x,y):
         r"""
         Returns the value of the Möbius function of the poset on the
@@ -3075,7 +3104,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             6
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         ::
 
@@ -3095,7 +3124,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         return self._hasse_diagram.moebius_function(i,j)
     mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    from sage.misc.superseded import deprecated_function_alias
     def moebius_function_matrix(self, ring = ZZ, sparse = False):
         r"""
         Returns a matrix whose ``(i,j)`` entry is the value of the Möbius
@@ -3361,7 +3389,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = Posets.PentagonPoset()
             sage: for P in N5.isomorphic_subposets_iterator(D):
-            ....:     print P.cover_relations()
+            ....:     print(P.cover_relations())
             [[0, 1], [0, 2], [1, 4], [2, 4]]
             [[0, 1], [0, 3], [1, 4], [3, 4]]
             [[0, 1], [0, 2], [1, 4], [2, 4]]
@@ -3396,7 +3424,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2=Poset({0:[1]})
             sage: C3=Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2): print x.cover_relations()
+            sage: for x in C3.isomorphic_subposets(C2):
+            ....:     print(x.cover_relations())
             [['b', 'c']]
             [['a', 'c']]
             [['a', 'b']]
@@ -3499,7 +3528,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: it = Posets.PentagonPoset().antichains_iterator(); it
             <generator object antichains_iterator at ...>
-            sage: it.next(), it.next()
+            sage: next(it), next(it)
             ([], [4])
 
         .. SEEALSO:: :meth:`antichains`
@@ -3805,6 +3834,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
 
+        One can also simply use `*`::
+
+            sage: P = Posets.ChainPoset(2)
+            sage: Q = Posets.ChainPoset(3)
+            sage: P*Q
+            Finite lattice containing 6 elements
+
         TESTS::
 
             sage: Poset({0:[1]}).product(Poset())  # Product with empty poset
@@ -3832,6 +3868,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             constructor = Poset
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
+    _mul_ = product
+    
     def disjoint_union(self, other, labels='pairs'):
         """
         Return a poset isomorphic to disjoint union (also called direct
@@ -4406,7 +4444,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]})
-            sage: print P.graphviz_string()
+            sage: print(P.graphviz_string())
             graph {
             "f";"d";"b";"a";"c";"e";
             "f"--"e";"d"--"c";"b"--"a";"d"--"b";"f"--"d";
@@ -5664,8 +5702,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise TypeError('the poset is not graded')
         levels = self._hasse_diagram.level_sets()
         h = len(levels)
-        for i in range(h/2):
-            if len(levels[i]) != len(levels[h-1-i]):
+        for i in range(h // 2):
+            if len(levels[i]) != len(levels[h - 1 - i]):
                 return False
         return True
 
@@ -6318,7 +6356,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         sage: P = Posets(3)
         sage: P.cardinality()
         5
-        sage: for p in P: print p.cover_relations()
+        sage: for p in P: print(p.cover_relations())
         []
         [[1, 2]]
         [[0, 1], [0, 2]]

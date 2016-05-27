@@ -3,17 +3,17 @@ Quasisymmetric functions
 
 REFERENCES:
 
-.. [Ges] I. Gessel, *Multipartite P-partitions and inner products of skew Schur
+.. [Ges] \I. Gessel, *Multipartite P-partitions and inner products of skew Schur
    functions*, Contemp. Math. **34** (1984), 289-301.
    http://people.brandeis.edu/~gessel/homepage/papers/multipartite.pdf
 
-.. [MR] C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
+.. [MR] \C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
 .. [GriRei2014] Darij Grinberg, Victor Reiner,
    *Hopf algebras in combinatorics*,
-   30 September 2014. :arxiv:`1409.8356v1`.
+   25 August 2015. :arxiv:`1409.8356v3`.
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -32,7 +32,7 @@ REFERENCES:
    *Noncommutative symmetric functions*.
    :arxiv:`hep-th/9407124v1`
 
-.. [NCSF2] D. Krob, B. Leclerc, J.-Y. Thibon,
+.. [NCSF2] \D. Krob, B. Leclerc, J.-Y. Thibon,
    *Noncommutative symmetric functions II: Transformations of alphabets*.
    http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
 
@@ -2876,7 +2876,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_. See also
-        Chapter 6 of [GriRei2014]_, specifically Theorem 6.99, for a
+        Chapter 6 of [GriRei2014]_, specifically Theorem 6.107, for a
         complete proof.) More precisely, he showed that
         `\mathrm{QSym}` is generated, as a free commutative
         `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where

@@ -49,6 +49,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
@@ -786,7 +787,7 @@ cdef class FiniteField_givaro_iterator:
 
     EXAMPLES::
 
-        sage: for x in GF(2^2,'a'): print x
+        sage: for x in GF(2^2,'a'): print(x)
         0
         a
         a + 1

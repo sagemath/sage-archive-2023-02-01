@@ -1,6 +1,7 @@
 r"""
 Base class for multivariate polynomial rings
 """
+from __future__ import print_function
 
 import sage.misc.latex
 import multi_polynomial_ideal
@@ -366,7 +367,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
-            sage: print P.repr_long()
+            sage: print(P.repr_long())
             Polynomial Ring
              Base Ring : Rational Field
                   Size : 3 Variables
@@ -1028,13 +1029,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
                  Springer, 2005.
 
-        .. [Can] J. Canny. Generalised characteristic polynomials.
+        .. [Can] \J. Canny. Generalised characteristic polynomials.
                  J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
-        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
                  Cambridge university press, 1916.
 
         AUTHORS:

@@ -1,6 +1,8 @@
 """
 Other functions
 """
+from __future__ import print_function
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
@@ -209,7 +211,7 @@ class Function_erf(BuiltinFunction):
 
             sage: gp.set_real_precision(59)  # random
             38
-            sage: print gp.eval("1 - erfc(1)"); print erf(1).n(200);
+            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
             0.84270079294971486934122063508260925929606699796630290845994
             0.84270079294971486934122063508260925929606699796630290845994
 
@@ -427,7 +429,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -444,6 +446,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -496,16 +499,6 @@ class Function_ceil(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = ceil(x)
-            sage: h(pi)._numerical_approx()
-            4
-        """
-        return self._eval_(x)
 
 ceil = Function_ceil()
 
@@ -590,7 +583,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -607,6 +600,7 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -657,16 +651,6 @@ class Function_floor(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
         return None
-
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = floor(x)
-            sage: h(pi)._numerical_approx()
-            3
-        """
-        return self._eval_(x)
 
 floor = Function_floor()
 
@@ -845,7 +829,7 @@ class Function_log_gamma(GinacFunction):
         EXAMPLES:
 
         Numerical evaluation happens when appropriate, to the
-        appropriate accuracy (see #10072)::
+        appropriate accuracy (see :trac:`10072`)::
 
             sage: log_gamma(6)
             log(120)
@@ -860,7 +844,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-3.1)
             0.400311696703985
 
-        Symbolic input works (see #10075)::
+        Symbolic input works (see :trac:`10075`)::
 
             sage: log_gamma(3*x)
             log_gamma(3*x)
@@ -872,7 +856,7 @@ class Function_log_gamma(GinacFunction):
         To get evaluation of input for which gamma
         is negative and the ceiling is even, we must
         explicitly make the input complex.  This is
-        a known issue, see #12521::
+        a known issue, see :trac:`12521`::
 
             sage: log_gamma(-2.1)
             NaN
@@ -1119,16 +1103,7 @@ def gamma(a, *args, **kwds):
             ...
             TypeError: cannot coerce arguments: no canonical coercion...
 
-        We make an exception for elements of AA or QQbar, which cannot be
-        coerced into symbolic expressions to allow this usage::
-
-            sage: t = QQbar(sqrt(2)) + sqrt(3); t
-            3.146264369941973?
-            sage: t.parent()
-            Algebraic Field
-
-        Symbolic functions convert the arguments to symbolic expressions if they
-        are in QQbar or AA::
+        TESTS::
 
             sage: gamma(QQbar(I))
             -0.154949828301811 - 0.498015668118356*I
@@ -1466,16 +1441,6 @@ class Function_factorial(GinacFunction):
 
         return None
 
-    def _evalf_(self, x, **kwds):
-        """
-        TESTS::
-
-            sage: h(x) = factorial(x)
-            sage: h(5)._numerical_approx()
-            120.000000000000
-        """
-        return self._eval_(x)
-
 factorial = Function_factorial()
 
 class Function_binomial(GinacFunction):
@@ -1563,7 +1528,7 @@ class Function_binomial(GinacFunction):
             sage: loads(dumps(binomial(n,k)))
             binomial(n, k)
         """
-        GinacFunction.__init__(self, "binomial", nargs=2,
+        GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial'))

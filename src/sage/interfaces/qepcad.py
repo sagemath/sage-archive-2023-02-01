@@ -531,7 +531,7 @@ TESTS:
 Check the qepcad configuration file::
 
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
-    'SINGULAR .../local/bin\n'
+    'SINGULAR .../bin\n'
 
 Tests related to the not tested examples (nondeterministic order of atoms)::
 

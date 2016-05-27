@@ -57,6 +57,7 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
 # Standard python imports
 import cPickle, os, types
@@ -269,7 +270,7 @@ def save_session(name='sage_session', verbose=False):
         sage: save_session(tmp_f)
         sage: del a
         sage: load_session(tmp_f)
-        sage: print a
+        sage: print(a)
         5
 
     We illustrate what happens when one of the variables is a function::
@@ -308,7 +309,7 @@ def save_session(name='sage_session', verbose=False):
             # not at all useful.
             _ = cPickle.loads(cPickle.dumps(x, protocol=2))
             if verbose:
-                print "Saving %s"%k
+                print("Saving %s" % k)
             D[k] = x
         except Exception as msg:
             if verbose:
@@ -321,11 +322,12 @@ def save_session(name='sage_session', verbose=False):
         # if the user does not save it in the DATA directory.
         # save(D, '../../data/' + name)
         if name.find('.sagenb/') <= 0 or name.find('/data/') <= 0:
-            print ( "To store the session in a common directory that the "
-                    "entire worksheet can access, save it using the command:\n"
-                    "save_session(DATA + '{0}')\n"
-                    "You can later load it by running in any cell:\n"
-                    "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
+            print("To store the session in a common directory that the "
+                  "entire worksheet can access, save it using the command:\n"
+                  "save_session(DATA + '{0}')\n"
+                  "You can later load it by running in any cell:\n"
+                  "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
+
 
 def load_session(name='sage_session', verbose=False):
     r"""
@@ -357,13 +359,13 @@ def load_session(name='sage_session', verbose=False):
         sage: save_session(tmp_f)
         sage: del a; del f
         sage: load_session(tmp_f)
-        sage: print a
+        sage: print(a)
         5
 
     Note that ``f`` does not come back, since it is a function, hence
     couldn't be saved::
 
-        sage: print f
+        sage: print(f)
         Traceback (most recent call last):
         ...
         NameError: name 'f' is not defined

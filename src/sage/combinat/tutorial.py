@@ -843,7 +843,7 @@ Set partitions::
 Partial orders on a set of `8` elements, up to isomorphism::
 
     sage: C = Posets(8); C
-    Posets containing 8 vertices
+    Posets containing 8 elements
     sage: C.cardinality()
     16999
 

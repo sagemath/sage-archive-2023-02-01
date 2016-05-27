@@ -2871,9 +2871,21 @@ cdef class MIPVariable(Element):
             4
             sage: p.get_min(v[0])
             4.0
+
+        TESTS:
+
+        Test that :trac:`20462` is fixed::
+
+            sage: p.<x,y> = MixedIntegerLinearProgram()
+            sage: x[0], y[0]
+            (x_0, x_1)
+            sage: x.set_min(42)
+            sage: p.get_min(y[0]) is None
+            True
+
         """
         self._lower_bound = min
-        for v in self._p._variables:
+        for v in self._dict.values():
             self._p.set_min(v,min)
 
     def set_max(self, max):
@@ -2896,9 +2908,20 @@ cdef class MIPVariable(Element):
             4
             sage: p.get_max(v[0])
             4.0
+
+        TESTS:
+
+        Test that :trac:`20462` is fixed::
+
+            sage: p.<x,y> = MixedIntegerLinearProgram()
+            sage: x[0], y[0]
+            (x_0, x_1)
+            sage: x.set_max(42)
+            sage: p.get_max(y[0]) is None
+            True
         """
         self._upper_bound = max
-        for v in self._p._variables:
+        for v in self._dict.values():
             self._p.set_max(v,max)
 
     def _repr_(self):

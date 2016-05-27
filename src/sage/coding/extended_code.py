@@ -5,8 +5,7 @@ Let `C` be a linear code of length `n` over `\mathbb{F}_{q}`. The extended code 
 
 .. math::
 
-\hat{C} = \{x_{1}x_{2}\dots x_{n+1} \in \mathbb{F}_{q}^{n+1} \vert x_{1}x_{2}\dots x_{n} \in C with
-x_{1} + x_{2} + \dots + x_{n+1} = 0 \}.
+    \hat{C} = \{x_{1}x_{2}\dots x_{n+1} \in \mathbb{F}_{q}^{n+1} \,\vert\,  x_{1}x_{2}\dots x_{n} \in C \text{ with } x_{1} + x_{2} + \dots + x_{n+1} = 0 \}.
 
 See [HP03]_ (pp 15-16) for details.
 
@@ -134,9 +133,7 @@ class ExtendedCode(AbstractLinearCode):
         r"""
         Returns a parity check matrix of ``self``.
 
-        This matrix is computed directly from :func:`original_code`
-        and does not compute a generator matrix of ``self``
-        in the process.
+        This matrix is computed directly from :func:`original_code`.
 
         EXAMPLES::
 

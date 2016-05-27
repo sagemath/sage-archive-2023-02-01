@@ -39,7 +39,7 @@ from combinat import CombinatorialElement
 from sage.categories.cartesian_product import cartesian_product
 
 from integer_lists import IntegerListsLex
-import __builtin__
+from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -1645,7 +1645,7 @@ class Compositions(UniqueRepresentation, Parent):
         """
         if isinstance(x, Composition):
             return True
-        elif isinstance(x, __builtin__.list):
+        elif isinstance(x, builtins.list):
             for i in x:
                 if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False

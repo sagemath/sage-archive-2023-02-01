@@ -90,8 +90,8 @@ def sphinxify(docstring, format='html'):
     sys.path = old_sys_path
 
     # We need to remove "_" from __builtin__ that the gettext module installs
-    import __builtin__
-    __builtin__.__dict__.pop('_', None)
+    from six.moves import builtins
+    builtins.__dict__.pop('_', None)
 
     if os.path.exists(output_name):
         output = open(output_name, 'r').read()

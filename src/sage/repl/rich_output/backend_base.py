@@ -509,8 +509,8 @@ class BackendBase(SageObject):
             sage: _     # indirect doctest
             'foo'
         """
-        import __builtin__
-        __builtin__._ = obj
+        from six.moves import builtins
+        builtins._ = obj
 
     def displayhook(self, plain_text, rich_output):
         """

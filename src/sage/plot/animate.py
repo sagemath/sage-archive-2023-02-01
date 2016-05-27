@@ -264,11 +264,11 @@ class Animation(WithEqualityById, SageObject):
         for kwds in kwds_tuple:
             new_kwds.update(kwds)
 
-        import __builtin__
+        from six.moves import builtins
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
             if values:
-                new_kwds[name] = getattr(__builtin__, name[1:])(values)
+                new_kwds[name] = getattr(builtins, name[1:])(values)
         return new_kwds
 
     def __getitem__(self, i):

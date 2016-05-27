@@ -3265,7 +3265,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
     # isomorphism
 
-    cpdef _is_isomorphic(self, other, cert=False):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -3274,12 +3274,12 @@ cdef class BinaryMatroid(LinearMatroid):
         NPUT:
 
         - ``other`` -- A matroid, 
-        - optional parameter ``cert`` -- Boolean.
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
         Boolean, 
-        and, if cert = True, a dictionary or None
+        and, if certificate = True, a dictionary or None
 
         .. NOTE::
 
@@ -3300,7 +3300,7 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
         """
-        if cert:
+        if certificate:
             return self._is_isomorphic(other), self._isomorphism(other)
         if isinstance(other, BinaryMatroid):
             return self.is_field_isomorphic(other)

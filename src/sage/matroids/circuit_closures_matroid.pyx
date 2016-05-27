@@ -355,7 +355,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         """
         return self._circuit_closures
 
-    cpdef _is_isomorphic(self, other, cert=False):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -364,12 +364,12 @@ cdef class CircuitClosuresMatroid(Matroid):
         NPUT:
 
         - ``other`` -- A matroid, 
-        - optional parameter ``cert`` -- Boolean.
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
         Boolean, 
-        and, if cert = True, a dictionary or None
+        and, if certificate = True, a dictionary or None
 
         .. NOTE::
 
@@ -393,7 +393,7 @@ cdef class CircuitClosuresMatroid(Matroid):
 
 
         """
-        if cert:
+        if certificate:
             return self._is_isomorphic(other), self._isomorphism(other)
         N = CircuitClosuresMatroid(other)
         if sorted(self._circuit_closures.keys()) != sorted(N._circuit_closures.keys()):

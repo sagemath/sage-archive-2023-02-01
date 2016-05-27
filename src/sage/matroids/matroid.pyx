@@ -3070,7 +3070,7 @@ cdef class Matroid(SageObject):
 
     # isomorphism and equality
 
-    cpdef is_isomorphic(self, other, cert=False):
+    cpdef is_isomorphic(self, other, certificate=False):
         r"""
         Test matroid isomorphism.
 
@@ -3081,12 +3081,12 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``other`` -- A matroid, 
-        - optional parameter ``cert`` -- Boolean.
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
         Boolean, 
-        and, if cert = True, a dictionary or None
+        and, if certificate = True, a dictionary or None
 
         EXAMPLES::
 
@@ -3112,9 +3112,9 @@ cdef class Matroid(SageObject):
         """
         if not isinstance(other, Matroid):
             raise TypeError("can only test for isomorphism between matroids.")
-        return self._is_isomorphic(other, cert)
+        return self._is_isomorphic(other, certificate)
 
-    cpdef _is_isomorphic(self, other, cert=False):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -3150,7 +3150,7 @@ cdef class Matroid(SageObject):
             False
 
         """
-        if cert:
+        if certificate:
             return self._is_isomorphic(other), self._isomorphism(other)
         if self is other:
             return True

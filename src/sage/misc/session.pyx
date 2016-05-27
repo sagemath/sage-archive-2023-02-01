@@ -63,8 +63,8 @@ from __future__ import print_function
 import cPickle, os, types
 
 # We want the caller's locals, but locals() is emulated in Cython
-from six.moves import builtins
-cdef caller_locals = builtins.locals
+import __builtin__
+cdef caller_locals = __builtin__.locals
 
 # Sage imports
 from misc import embedded

@@ -208,6 +208,9 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
             sage: E
             Extended matrix-based encoder for Extended code coming from Linear code of length 11, dimension 5 over Finite Field of size 7
         """
+        if not isinstance(code, ExtendedCode):
+            raise TypeError("code has to be an instance of ExtendedCode class")
+
         super(ExtendedCodeExtendedMatrixEncoder, self).__init__(code)
 
     def _repr_(self):
@@ -329,6 +332,9 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
             ...
             ValueError: Original decoder must have the original code as associated code
         """
+        if not isinstance(code, ExtendedCode):
+            raise TypeError("code has to be an instance of ExtendedCode class")
+
         original_code = code.original_code()
         if original_decoder is not None and not original_decoder.code() == original_code:
             raise ValueError("Original decoder must have the original code as associated code")
@@ -441,9 +447,14 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
             decoded_list.append(last_pos)
             return vector(F, decoded_list)
 
-    def decoding_radius(self, **kwargs):
+    def decoding_radius(self, *args, **kwargs):
         r"""
         Returns maximal number of errors that ``self`` can decode.
+
+        INPUT:
+        
+        - ``*args``, ``**kwargs`` -- arguments and optional arguments are
+          forwarded to original decoder's ``decoding_radius`` method.
 
         EXAMPLES::
 
@@ -453,7 +464,7 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
             sage: D.decoding_radius()
             4
         """
-        return self.original_decoder().decoding_radius(**kwargs)
+        return self.original_decoder().decoding_radius(*args, **kwargs)
 
 
 ####################### registration ###############################

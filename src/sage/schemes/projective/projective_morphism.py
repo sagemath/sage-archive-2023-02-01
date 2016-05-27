@@ -4412,127 +4412,124 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def is_polynomial(self):
         r"""
-        For any function, checks to see if it has a totally ramified fixed point, this means it is a polynomial.
-        
-        If it is a polynomial the function resturns a True value.
-        
-        OUTPUT:
-        
-        - Boolean - True if it is a polynomial.
-        
+        For any function, checks to see if it has a totally ramified fixed point.
+
+        OUTPUT: Boolean
+
         EXAMPLES::
-        
-        sage: R.<x> = QQ[]
-        sage: K.<w> = QuadraticField(7)
-        sage: P.<x,y> = ProjectiveSpace(K, 1)
-        sage: H = End(P)
-        sage: f = H([x**2 + 2*x*y-5*y^2, 2*x*y])
-        sage: m = matrix(K,2,2,[ w, 1, 0, 1])
-        sage: f = f.conjugate(m)
-        sage: f.is_polynomial()
-        False
-        
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = QuadraticField(7)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x**2 + 2*x*y-5*y^2, 2*x*y])
+            sage: f.is_polynomial()
+            False
+
         ::
-        
-        sage: R.<x>=QQ[]
-        sage: K.<w>=QuadraticField(7)
-        sage: P.<x,y>=ProjectiveSpace(K, 1)
-        sage: H=End(P)
-        sage: f=H([x**2 - 7*x*y, 2*y**2])
-        sage: m=matrix(K, 2, 2, [ w, 1, 0, 1])
-        sage: f=f.conjugate(m)
-        sage: f.is_polynomial()
-        True
-        
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = QuadraticField(7)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x**2 - 7*x*y, 2*y**2])
+            sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
+            sage: f = f.conjugate(m)
+            sage: f.is_polynomial()
+            True
         """
-        G=self.dehomogenize(1).dynatomic_polynomial(1)# defines field over fixed points
-        J,phi=G.polynomial(G.variable()).splitting_field('v',map=True)
+        #define the field of fixed points
+        G = self.dehomogenize(1).dynatomic_polynomial(1)
+        J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
         if not J.is_isomorphic(self.base_ring()):
-            g=self.change_ring(phi)# changes what field poly is defined over
+            g = self.change_ring(phi)
         else:
-            g=self
-        L=g.periodic_points(1)
+            g = self
+        L = g.periodic_points(1)
+        #look for totally ramified
         for p in L:
-            if len(g.rational_preimages(p))==1: # rational defined over base ring
+            if len(g.rational_preimages(p)) == 1:
                 return True
         return False
 
-    def normal_form(self, return_conjugate = False):
+    def normal_form(self, return_conjugation=False):
         r"""
-        Moves the totally ramified fixed fixed point of a polynomial to infinity.
-        
-        Checks to make sure it is a polynomial with a totally ramified fixed point. Puts polynomial in the form
-        `x^n + a*x^(n-2) +...+c`, where a and c are constants.
-        
+        Returns a normal form for the map in the moduli space of dynamical systems.
+
+        Currently implemented only for polynomials. The totally ramified fixed point is
+        moved to infinity and the map is conjugated to the form
+        `x^n + a_{n-2}*x^{n-2} + \cdots + a_{0}`.
+
         INPUT:
-        
-        - ``return_conjugate`` -- Boolean - True returns conjugate element of PGL. False returns nothing.
-        Default: False. (optional)
-        
+
+        - ``return_conjugate`` -- Boolean - True returns conjugatation element of PGL.
+          Default: False. (optional)
+
         OUTPUT:
-        
-        A polynomial.
-        
-        Conjugate element of PGL. (optional)
-        
-        EXAMPLES:
-        
-        sage: R.<x> = QQ[]
-        sage: K.<w> = QuadraticField(7)
-        sage: P.<x,y> = ProjectiveSpace(K,1)
-        sage: H = End(P)
-        sage: f = H([x**2 + 2*x*y - 5*x**2, 2*y**2])
-        sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
-        sage: f = f.conjugate(m)
-        sage: f.normal_form()
-        Scheme endomorphism of Affine Space of dimension 1 over Number Field in
-        w with defining polynomial x^2 - 7
-        Defn: Defined on coordinates by sending (x) to
-        (x^2 + 1/4)
-        
+
+        - :class:`SchemeMorphism_polynomial`
+
+        - Element of PGL as a matrix. (optional)
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = QuadraticField(7)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x**2 + 2*x*y - 5*x**2, 2*y**2])
+            sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
+            sage: f = f.conjugate(m)
+            sage: f.normal_form()
+            Scheme endomorphism of Affine Space of dimension 1 over Number Field in
+            w with defining polynomial x^2 - 7
+            Defn: Defined on coordinates by sending (x) to
+            (x^2 + 1/4)
+
         ::
-        
-        sage: R.<x> = QQ[]
-        sage: K.<w> = NumberField(x^2 - 5)
-        sage: P.<x,y> = ProjectiveSpace(K,1)
-        sage: H = End(P)
-        sage: f = H([x**2 + w*x*y, y**2])
-        sage: f.normal_form(True)
-        [     1 -1/2*w]
-        [     0      1]
-        Scheme endomorphism of Affine Space of dimension 1 over Number Field in
-        w with defining polynomial x^2 - 5
-        Defn: Defined on coordinates by sending (x) to
-        (x^2 + (1/2*w - 5/4))
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2 - 5)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x**2 + w*x*y, y**2])
+            sage: g,m = f.normal_form(return_conjugation = True);m
+            [     1 -1/2*w]
+            [     0      1]
+            sage: f.conjugate(m) == g
+            True
         """
-        G=self.dehomogenize(1).dynatomic_polynomial(1)# defines field over fixed points, 1 gets rid of y
-        J,phi=G.polynomial(G.variable()).splitting_field('v',map=True)
-        if not J.is_isomorphic(self.base_ring()):# this was K
-            g=self.change_ring(phi)# changes what poly is defined over ex:z to z/5 extends field
+        #defines the field of fixed points
+        G = self.dehomogenize(1).dynatomic_polynomial(1)
+        J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
+        if not J.is_isomorphic(self.base_ring()):
+            g = self.change_ring(phi)
         else:
-            g=self
-        L=g.periodic_points(1)
-        if g.is_polynomial is False:
-            raise NotImplementedError (" map is not a polynomial")
+            g = self
+        L = g.periodic_points(1)
+        if not g.is_polynomial():
+            raise NotImplementedError("map is not a polynomial")
         for p in L:
-            if len(g.rational_preimages(p))==1: # rational defined over base ring
-                T=p
+            if len(g.rational_preimages(p)) == 1:
+                T = p
                 break # bc only 1 ramified fixed pt
-        Q=T.codomain()
-        N=g.base_ring()
-        source=[T,Q(T[0] + 1, 1),Q(T[0] + 2, 1)]
-        target=[Q(1, 0),Q(0, 1),Q(1, 1)]
-        m=Q.point_transformation_matrix(source, target)
-        gc=g.conjugate(m.inverse())# inverse because points changed by inverse of conjugations
-        d=g.degree()
-        mc=matrix(N, 2, 2, [gc[0].coefficient([d,0])/gc[1].coefficient([0,d]),0,0,1])
-        gcc=gc.conjugate(mc.inverse())
-        mc2=matrix(N, 2, 2, [1, gcc[0].coefficient([d-1, 1])/(d*gcc[1].coefficient([0, d])), 0, 1])
-        gccc=gcc.conjugate(mc2.inverse())
-        if return_conjugate is True:
-            print (m.inverse()*mc.inverse()*mc2.inverse())
-        gcccd=gccc.dehomogenize(1)
-        print gcccd
+        Q = T.codomain()
+        N = g.base_ring()
+        # move totally ram fixed pt to infty
+        target = [T,Q(T[0] + 1, 1),Q(T[0] + 2, 1)]
+        source = [Q(1, 0),Q(0, 1),Q(1, 1)]
+        m = Q.point_transformation_matrix(source, target)
+        gc = g.conjugate(m)
+        d = g.degree()
+        #make monic
+        mc = matrix(N, 2, 2, [gc[1].coefficient([0,d])/gc[0].coefficient([d,0]),0,0,1])
+        gcc = gc.conjugate(mc)
+        #remove 2nd order term
+        mc2 = matrix(N, 2, 2, [1, -gcc[0].coefficient([d-1, 1])/(d*gcc[1].coefficient([0, d])), 0, 1])
+        gccc = gcc.conjugate(mc2)
+        if return_conjugation:
+            return gccc,m*mc*mc2
+        return gccc
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

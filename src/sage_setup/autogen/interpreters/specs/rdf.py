@@ -14,6 +14,7 @@ from ..instructions import (params_gen, instr_infix, instr_funcall_2args,
                             instr_unary, InstrSpec)
 from ..memory import MemoryChunkConstants
 from ..storage import ty_double, ty_python
+from ..utils import reindent_lines as ri
 
 
 class RDFInterpreter(StackInterpreter):
@@ -93,41 +94,41 @@ class RDFInterpreter(StackInterpreter):
                        code='return i0;'),
             InstrSpec('py_call', pg('P[D]S@D', 'S'),
                        uses_error_handler=True,
-                       code="""
-PyObject *py_args = PyTuple_New(n_i1);
-if (py_args == NULL) goto error;
-int i;
-for (i = 0; i < n_i1; i++) {
-  PyObject *arg = PyFloat_FromDouble(i1[i]);
-  if (arg == NULL) {
-    Py_DECREF(py_args);
-    goto error;
-  }
-  PyTuple_SET_ITEM(py_args, i, arg);
-}
-PyObject *result = PyObject_CallObject(i0, py_args);
-Py_DECREF(py_args);
-if (result == NULL) goto error;
-/* If result is not a float, then this will turn it into a float first. */
-o0 = PyFloat_AsDouble(result);
-Py_DECREF(result);
-if (o0 == -1 && PyErr_Occurred()) {
-  goto error;
-}
-"""),
+                       code=ri(0, """
+                           PyObject *py_args = PyTuple_New(n_i1);
+                           if (py_args == NULL) goto error;
+                           int i;
+                           for (i = 0; i < n_i1; i++) {
+                             PyObject *arg = PyFloat_FromDouble(i1[i]);
+                             if (arg == NULL) {
+                               Py_DECREF(py_args);
+                               goto error;
+                             }
+                             PyTuple_SET_ITEM(py_args, i, arg);
+                           }
+                           PyObject *result = PyObject_CallObject(i0, py_args);
+                           Py_DECREF(py_args);
+                           if (result == NULL) goto error;
+                           /* If result is not a float, then this will turn it into a float first. */
+                           o0 = PyFloat_AsDouble(result);
+                           Py_DECREF(result);
+                           if (o0 == -1 && PyErr_Occurred()) {
+                             goto error;
+                           }
+                           """)),
             InstrSpec('pow', pg('SS', 'S'),
                        uses_error_handler=True,
-                       code="""
-/* See python's pow in floatobject.c */
-if (i0 == 0) o0 = 1.0;
-else {
-    if (i0 < 0 && i1 != floor(i1)) {
-        PyErr_SetString(PyExc_ValueError, "negative number to a fractional power not real");
-        goto error;
-    }
-    o0 = pow(i0, i1);
-}
-""")
+                       code=ri(0, """
+                           /* See python's pow in floatobject.c */
+                           if (i0 == 0) o0 = 1.0;
+                           else {
+                             if (i0 < 0 && i1 != floor(i1)) {
+                                 PyErr_SetString(PyExc_ValueError, "negative number to a fractional power not real");
+                                 goto error;
+                             }
+                             o0 = pow(i0, i1);
+                           }
+                           """))
             ]
         for (name, op) in [('add', '+'), ('sub', '-'),
                            ('mul', '*'), ('div', '/')]:

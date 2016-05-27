@@ -13,7 +13,7 @@
 
 import six
 
-from .utils import je
+from .utils import je, reindent_lines as ri
 
 
 def string_of_addr(a):
@@ -306,10 +306,10 @@ class MemoryChunkLonglivedArray(MemoryChunk):
                     if self._args == NULL: raise MemoryError
             <BLANKLINE>
         """
-        return je("""
-        count = args['{{ myself.name }}']
-{% print(myself.storage_type.alloc_chunk_data(myself.name, 'count')) %}
-""", myself=self)
+        return je(ri(0, """
+                    count = args['{{ myself.name }}']
+            {% print(myself.storage_type.alloc_chunk_data(myself.name, 'count')) %}
+            """), myself=self)
 
     def dealloc_class_members(self):
         r"""
@@ -375,12 +375,12 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
                         mpfr_set(self._constants[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
-        return je("""
-        val = args['{{ myself.name }}']
-{% print(myself.storage_type.alloc_chunk_data(myself.name, 'len(val)')) %}
-        for i in range(len(val)):
-            {{ myself.storage_type.assign_c_from_py('self._%s[i]' % myself.name, 'val[i]') | i(12) }}
-""", myself=self)
+        return je(ri(0, """
+                    val = args['{{ myself.name }}']
+            {% print(myself.storage_type.alloc_chunk_data(myself.name, 'len(val)')) %}
+                    for i in range(len(val)):
+                        {{ myself.storage_type.assign_c_from_py('self._%s[i]' % myself.name, 'val[i]') | i(12) }}
+            """), myself=self)
 
 
 class MemoryChunkArguments(MemoryChunkLonglivedArray):
@@ -410,12 +410,12 @@ class MemoryChunkArguments(MemoryChunkLonglivedArray):
                 mpfr_set(self._args[i], rn.value, MPFR_RNDN)
             <BLANKLINE>
         """
-        return je("""
-cdef {{ myself.storage_type.c_ptr_type() }} c_args = self._args
-cdef int i
-for i from 0 <= i < len(args):
-    {{ myself.storage_type.assign_c_from_py('self._args[i]', 'args[i]') | i(4) }}
-""", myself=self)
+        return je(ri(0, """
+            cdef {{ myself.storage_type.c_ptr_type() }} c_args = self._args
+            cdef int i
+            for i from 0 <= i < len(args):
+                {{ myself.storage_type.assign_c_from_py('self._args[i]', 'args[i]') | i(4) }}
+            """), myself=self)
 
     def pass_argument(self):
         r"""
@@ -519,7 +519,7 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
         """
         # XXX This is a lot slower than it needs to be, because
         # we don't have a "cdef int i" in scope here.
-        return je("""
-for i in range(self._n_{{ myself.name }}):
-    Py_CLEAR(self._{{ myself.name }}[i])
-""", myself=self)
+        return je(ri(0, """
+            for i in range(self._n_{{ myself.name }}):
+                Py_CLEAR(self._{{ myself.name }}[i])
+            """), myself=self)

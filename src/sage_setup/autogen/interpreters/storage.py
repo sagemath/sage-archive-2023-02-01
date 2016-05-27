@@ -11,7 +11,7 @@
 
 """Implements different data storage types."""
 
-from .utils import je
+from .utils import je, reindent_lines as ri
 
 
 class StorageType(object):
@@ -286,11 +286,12 @@ class StorageType(object):
             sage: ty_mpfr.declare_chunk_class_members('args')
             u'    cdef int _n_args\n    cdef mpfr_t* _args\n'
         """
-        return je("""
-{# XXX Variables here (and everywhere, really) should actually be Py_ssize_t #}
-    cdef int _n_{{ name }}
-    cdef {{ myself.cython_array_type() }} _{{ name }}
-""", myself=self, name=name)
+        return je(ri(0,
+            """
+            {# XXX Variables here (and everywhere, really) should actually be Py_ssize_t #}
+                cdef int _n_{{ name }}
+                cdef {{ myself.cython_array_type() }} _{{ name }}
+            """), myself=self, name=name)
 
     def alloc_chunk_data(self, name, len):
         r"""
@@ -308,15 +309,16 @@ class StorageType(object):
                         mpfr_init2(self._args[i], self.domain.prec())
             <BLANKLINE>
         """
-        return je("""
-        self._n_{{ name }} = {{ len }}
-        self._{{ name }} = <{{ myself.c_ptr_type() }}>sig_malloc(sizeof({{ myself.c_decl_type() }}) * {{ len }})
-        if self._{{ name }} == NULL: raise MemoryError
-{% if myself.needs_cython_init_clear() %}
-        for i in range({{ len }}):
-            {{ myself.cython_init('self._%s[i]' % name) }}
-{% endif %}
-""", myself=self, name=name, len=len)
+        return je(ri(0,
+            """
+                    self._n_{{ name }} = {{ len }}
+                    self._{{ name }} = <{{ myself.c_ptr_type() }}>sig_malloc(sizeof({{ myself.c_decl_type() }}) * {{ len }})
+                    if self._{{ name }} == NULL: raise MemoryError
+            {% if myself.needs_cython_init_clear() %}
+                    for i in range({{ len }}):
+                        {{ myself.cython_init('self._%s[i]' % name) }}
+            {% endif %}
+            """), myself=self, name=name, len=len)
 
     def dealloc_chunk_data(self, name):
         r"""
@@ -338,14 +340,15 @@ class StorageType(object):
                         sig_free(self._constants)
             <BLANKLINE>
         """
-        return je("""
-        if self._{{ name }}:
-{%     if myself.needs_cython_init_clear() %}
-            for i in range(self._n_{{ name }}):
-                {{ myself.cython_clear('self._%s[i]' % name) }}
-{%     endif %}
-            sig_free(self._{{ name }})
-""", myself=self, name=name)
+        return je(ri(0, """
+                    if self._{{ name }}:
+            {%     if myself.needs_cython_init_clear() %}
+                        for i in range(self._n_{{ name }}):
+                            {{ myself.cython_clear('self._%s[i]' % name) }}
+            {%     endif %}
+                        sig_free(self._{{ name }})
+            """), myself=self, name=name)
+
 
 class StorageTypeAssignable(StorageType):
     r"""
@@ -546,11 +549,12 @@ class StorageTypePython(StorageTypeAssignable):
             sage: ty_python.declare_chunk_class_members('args')
             u'    cdef object _list_args\n    cdef int _n_args\n    cdef PyObject** _args\n'
         """
-        return je("""
-    cdef object _list_{{ name }}
-    cdef int _n_{{ name }}
-    cdef {{ myself.cython_array_type() }} _{{ name }}
-""", myself=self, name=name)
+        return je(ri(4,
+            """
+            cdef object _list_{{ name }}
+            cdef int _n_{{ name }}
+            cdef {{ myself.cython_array_type() }} _{{ name }}
+            """), myself=self, name=name)
 
     def alloc_chunk_data(self, name, len):
         r"""
@@ -566,11 +570,12 @@ class StorageTypePython(StorageTypeAssignable):
                     self._args = (<PyListObject *>self._list_args).ob_item
             <BLANKLINE>
         """
-        return je("""
-        self._n_{{ name }} = {{ len }}
-        self._list_{{ name }} = PyList_New(self._n_{{ name }})
-        self._{{ name }} = (<PyListObject *>self._list_{{ name }}).ob_item
-""", myself=self, name=name, len=len)
+        return je(ri(8,
+            """
+            self._n_{{ name }} = {{ len }}
+            self._list_{{ name }} = PyList_New(self._n_{{ name }})
+            self._{{ name }} = (<PyListObject *>self._list_{{ name }}).ob_item
+            """), myself=self, name=name, len=len)
 
     def dealloc_chunk_data(self, name):
         r"""
@@ -836,8 +841,9 @@ class StorageTypeMPFR(StorageTypeAutoReference):
             sage: ty_mpfr.assign_c_from_py('foo[i]', 'bar[j]')
             u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, MPFR_RNDN)'
         """
-        return je("""
-rn{{ myself.id }} = self.domain({{ py }})
-mpfr_set({{ c }}, rn.value, MPFR_RNDN)""", myself=self, c=c, py=py)
+        return je(ri(0, """
+            rn{{ myself.id }} = self.domain({{ py }})
+            mpfr_set({{ c }}, rn.value, MPFR_RNDN)"""),
+            myself=self, c=c, py=py)
 
 ty_mpfr = StorageTypeMPFR()

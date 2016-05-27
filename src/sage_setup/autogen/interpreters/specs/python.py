@@ -14,7 +14,7 @@ from ..instructions import (params_gen, instr_funcall_2args, instr_unary,
                             InstrSpec)
 from ..memory import MemoryChunk
 from ..storage import ty_python
-from ..utils import je
+from ..utils import je, reindent_lines as ri
 
 
 class MemoryChunkPythonArguments(MemoryChunk):
@@ -50,10 +50,11 @@ class MemoryChunkPythonArguments(MemoryChunk):
             sage: mc.init_class_members()
             u"        count = args['args']\n        self._n_args = count\n"
         """
-        return je("""
-        count = args['{{ myself.name }}']
-        self._n_args = count
-""", myself=self)
+        return je(ri(8,
+            """
+            count = args['{{ myself.name }}']
+            self._n_args = count
+            """), myself=self)
 
     def setup_args(self):
         r"""
@@ -117,9 +118,10 @@ class MemoryChunkPyConstant(MemoryChunk):
             sage: mc.declare_class_members()
             u'    cdef object _domain\n'
         """
-        return je("""
-    cdef object _{{ myself.name }}
-""", myself=self)
+        return je(ri(4,
+            """
+            cdef object _{{ myself.name }}
+            """), myself=self)
 
     def init_class_members(self):
         r"""
@@ -134,9 +136,10 @@ class MemoryChunkPyConstant(MemoryChunk):
             sage: mc.init_class_members()
             u"        self._domain = args['domain']\n"
         """
-        return je("""
-        self._{{ myself.name }} = args['{{ myself.name }}']
-""", myself=self)
+        return je(ri(8,
+            """
+            self._{{ myself.name }} = args['{{ myself.name }}']
+            """), myself=self)
 
     def declare_parameter(self):
         r"""
@@ -224,9 +227,11 @@ class PythonInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack)
         self.pg = pg
-        self.c_header = """
-#define CHECK(x) (x != NULL)
-"""
+        self.c_header = ri(0,
+            """
+            #define CHECK(x) (x != NULL)
+            """)
+
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
                        code='o0 = i0; Py_INCREF(o0);'),
@@ -237,18 +242,18 @@ class PythonInterpreter(StackInterpreter):
                        handles_own_decref=True),
             InstrSpec('py_call', pg('C[D]S@D', 'S'),
                        handles_own_decref=True,
-                       code="""
-PyObject *py_args = PyTuple_New(n_i1);
-if (py_args == NULL) goto error;
-int i;
-for (i = 0; i < n_i1; i++) {
-  PyObject *arg = i1[i];
-  PyTuple_SET_ITEM(py_args, i, arg);
-  i1[i] = NULL;
-}
-o0 = PyObject_CallObject(i0, py_args);
-Py_DECREF(py_args);
-""")
+                       code=ri(0, """
+                           PyObject *py_args = PyTuple_New(n_i1);
+                           if (py_args == NULL) goto error;
+                           int i;
+                           for (i = 0; i < n_i1; i++) {
+                             PyObject *arg = i1[i];
+                             PyTuple_SET_ITEM(py_args, i, arg);
+                             i1[i] = NULL;
+                           }
+                           o0 = PyObject_CallObject(i0, py_args);
+                           Py_DECREF(py_args);
+                           """))
             ]
         for (name, op) in [('add', 'PyNumber_Add'),
                            ('sub', 'PyNumber_Subtract'),

@@ -12,6 +12,7 @@
 """Miscellaneous utility routines used for the interpreter generator."""
 
 import os
+import textwrap
 
 from jinja2 import Environment
 from jinja2.runtime import StrictUndefined
@@ -82,7 +83,29 @@ def indent_lines(n, text):
     """
     lines = text.splitlines(True)
     spaces = ' ' * n
-    return ''.join(spaces + line for line in lines)
+    return ''.join((spaces if line.strip() else '') + line
+                   for line in lines)
+
+
+def reindent_lines(n, text):
+    r"""
+    INPUTS:
+
+    - n -- indentation amount
+    - text -- text to indent
+
+    Strips any existing indentation on the given text (while keeping
+    relative indentation) then reindents the text by n spaces.
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.interpreters import reindent_lines
+        sage: print(reindent_lines(3, " foo\n  bar"))
+           foo
+             bar
+    """
+
+    return indent_lines(n, textwrap.dedent(text))
 
 
 def write_if_changed(fn, value):

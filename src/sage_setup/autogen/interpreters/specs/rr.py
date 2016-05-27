@@ -15,7 +15,7 @@ from ..instructions import (params_gen, instr_funcall_1arg_mpfr,
                             instr_funcall_2args_mpfr, InstrSpec)
 from ..memory import MemoryChunk, MemoryChunkConstants
 from ..storage import ty_mpfr, ty_python
-from ..utils import je
+from ..utils import je, reindent_lines as ri
 
 
 class MemoryChunkRRRetval(MemoryChunk):
@@ -50,9 +50,10 @@ class MemoryChunkRRRetval(MemoryChunk):
             sage: mc.declare_call_locals()
             u'        cdef RealNumber retval = (self.domain)()\n'
         """
-        return je("""
-        cdef RealNumber {{ myself.name }} = (self.domain)()
-""", myself=self)
+        return je(ri(0,
+            """
+                    cdef RealNumber {{ myself.name }} = (self.domain)()
+            """), myself=self)
 
     def declare_parameter(self):
         r"""
@@ -180,31 +181,39 @@ class RRInterpreter(StackInterpreter):
                         S=self.mc_stack,
                         P=self.mc_py_constants)
         self.pg = pg
-        self.c_header = '''
-#include <mpfr.h>
-#include "interpreters/wrapper_rr.h"
-'''
-        self.pxd_header = """
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.libs.mpfr cimport *
-"""
-        self.pyx_header = """# distutils: libraries = mpfr gmp
+        self.c_header = ri(0,
+            '''
+            #include <mpfr.h>
+            #include "interpreters/wrapper_rr.h"
+            ''')
 
-cdef public bint rr_py_call_helper(object domain, object fn,
-                                   int n_args,
-                                   mpfr_t* args, mpfr_t retval) except 0:
-    py_args = []
-    cdef int i
-    cdef RealNumber rn
-    for i from 0 <= i < n_args:
-        rn = domain()
-        mpfr_set(rn.value, args[i], MPFR_RNDN)
-        py_args.append(rn)
-    cdef RealNumber result = domain(fn(*py_args))
-    mpfr_set(retval, result.value, MPFR_RNDN)
-    return 1
+        self.pxd_header = ri(0,
+            """
+            from sage.rings.real_mpfr cimport RealField_class, RealNumber
+            from sage.libs.mpfr cimport *
 
-"""
+            """)
+
+        self.pyx_header = ri(0,
+            """\
+            # distutils: libraries = mpfr gmp
+
+            cdef public bint rr_py_call_helper(object domain, object fn,
+                                               int n_args,
+                                               mpfr_t* args, mpfr_t retval) except 0:
+                py_args = []
+                cdef int i
+                cdef RealNumber rn
+                for i from 0 <= i < n_args:
+                    rn = domain()
+                    mpfr_set(rn.value, args[i], MPFR_RNDN)
+                    py_args.append(rn)
+                cdef RealNumber result = domain(fn(*py_args))
+                mpfr_set(retval, result.value, MPFR_RNDN)
+                return 1
+
+            """)
+
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
                        code='mpfr_set(o0, i0, MPFR_RNDN);'),
@@ -214,11 +223,12 @@ cdef public bint rr_py_call_helper(object domain, object fn,
                        code='mpfr_set(retval, i0, MPFR_RNDN);\nreturn 1;\n'),
             InstrSpec('py_call', pg('P[D]S@D', 'S'),
                        uses_error_handler=True,
-                       code="""
-if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
-  goto error;
-}
-""")
+                       code=ri(0,
+                           """
+                           if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
+                             goto error;
+                           }
+                           """))
             ]
         for (name, op) in [('add', 'mpfr_add'), ('sub', 'mpfr_sub'),
                            ('mul', 'mpfr_mul'), ('div', 'mpfr_div'),

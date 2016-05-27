@@ -13,6 +13,7 @@ from .base import StackInterpreter
 from .python import (MemoryChunkPyConstant, MemoryChunkPythonArguments,
                      PythonInterpreter)
 from ..storage import ty_python
+from ..utils import reindent_lines as ri
 
 
 class MemoryChunkElementArguments(MemoryChunkPythonArguments):
@@ -98,31 +99,32 @@ class ElementInterpreter(PythonInterpreter):
         self.mc_domain_info = MemoryChunkPyConstant('domain')
         self.chunks = [self.mc_args, self.mc_constants, self.mc_stack,
                        self.mc_domain_info, self.mc_code]
-        self.c_header = """
-#include "interpreters/wrapper_el.h"
+        self.c_header = ri(0, """
+            #include "interpreters/wrapper_el.h"
 
-#define CHECK(x) do_check(&(x), domain)
+            #define CHECK(x) do_check(&(x), domain)
 
-static inline int do_check(PyObject **x, PyObject *domain) {
-  if (*x == NULL) return 0;
-  PyObject *new_x = el_check_element(*x, domain);
-  Py_DECREF(*x);
-  *x = new_x;
-  if (*x == NULL) return 0;
-  return 1;
-}
-"""
-        self.pyx_header = """
-from sage.structure.element cimport Element
+            static inline int do_check(PyObject **x, PyObject *domain) {
+              if (*x == NULL) return 0;
+              PyObject *new_x = el_check_element(*x, domain);
+              Py_DECREF(*x);
+              *x = new_x;
+              if (*x == NULL) return 0;
+              return 1;
+            }
+            """)
 
-cdef public object el_check_element(object v, parent):
-    cdef Element v_el
+        self.pyx_header = ri(0, """
+            from sage.structure.element cimport Element
 
-    if isinstance(v, Element):
-        v_el = <Element>v
-        if v_el._parent is parent:
-            return v_el
+            cdef public object el_check_element(object v, parent):
+                cdef Element v_el
 
-    return parent(v)
+                if isinstance(v, Element):
+                    v_el = <Element>v
+                    if v_el._parent is parent:
+                        return v_el
 
-"""[1:]
+                return parent(v)
+
+            """[1:])

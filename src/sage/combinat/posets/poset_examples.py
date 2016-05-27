@@ -9,7 +9,7 @@ Some common posets can be accessed through the ``posets.<tab>`` object::
 Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
 
     sage: Posets(5)
-    Posets containing 5 vertices
+    Posets containing 5 elements
 
 **Catalog of common posets:**
 
@@ -91,11 +91,11 @@ class Posets(object):
         sage: Posets()
         Category of posets
 
-    The enumerated set of all posets on `3` vertices, up to an
+    The enumerated set of all posets on `3` elements, up to an
     isomorphism::
 
         sage: Posets(3)
-        Posets containing 3 vertices
+        Posets containing 3 elements
 
     .. seealso:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
 
@@ -118,7 +118,7 @@ class Posets(object):
             sage: Posets()
             Category of posets
             sage: Posets(4)
-            Posets containing 4 vertices
+            Posets containing 4 elements
         """
         if n is None:
             return sage.categories.posets.Posets()

@@ -2270,13 +2270,13 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, True)
-            (True, True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: M1 = BasisMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
             sage: M1._is_isomorphic(M2, True)
-            (False, False)
+            (False, None)
 
         """
         if cert:

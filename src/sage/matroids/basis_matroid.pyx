@@ -978,7 +978,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             False
         """
         if not isinstance(other, BasisMatroid):
-            return BasisExchangeMatroid._is_isomorphic(self, other)
+            return self.isomorphism(BasisMatroid(other))
         if self is other:
             return {e:e for e in self.groundset()}
         if len(self) != len(other):

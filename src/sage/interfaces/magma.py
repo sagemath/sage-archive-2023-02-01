@@ -130,9 +130,9 @@ We compute a space of modular forms with character.
     sage: eps_top = fundamental_discriminant(D)
     sage: eps = magma.KroneckerCharacter(eps_top, RationalField())        # optional - magma
     sage: M2 = magma.ModularForms(eps)                                    # optional - magma
-    sage: print M2                                                        # optional - magma
+    sage: print(M2)                                                       # optional - magma
     Space of modular forms on Gamma_1(5) ...
-    sage: print M2.Basis()                                                # optional - magma
+    sage: print(M2.Basis())                                               # optional - magma
     [
     1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + ...
     q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + ...
@@ -147,16 +147,16 @@ interface::
     sage: (G.1).Modulus()                                                 # optional - magma
     20
     sage: e = magma.DirichletGroup(40)(G.1)                               # optional - magma
-    sage: print e                                                         # optional - magma
+    sage: print(e)                                                        # optional - magma
     $.1
-    sage: print e.Modulus()                                               # optional - magma
+    sage: print(e.Modulus())                                              # optional - magma
     40
 
 We coerce some polynomial rings into Magma::
 
     sage: R.<y> = PolynomialRing(QQ)
     sage: S = magma(R)                                                    # optional - magma
-    sage: print S                                                         # optional - magma
+    sage: print(S)                                                        # optional - magma
     Univariate Polynomial Ring in y over Rational Field
     sage: S.1                                                             # optional - magma
     y
@@ -211,8 +211,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import re, sys
+import re
+import sys
 
 from sage.structure.parent import Parent
 from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
@@ -1036,7 +1038,7 @@ class Magma(ExtraTabCompletion, Expect):
 
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
             sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
-            sage: print magma.load(filename)      # optional - magma
+            sage: print(magma.load(filename))      # optional - magma
             Loading ".../a.m"
             hi
             sage: magma('f(12)')       # optional - magma
@@ -1437,7 +1439,7 @@ class Magma(ExtraTabCompletion, Expect):
             NextPrime(n: parameter) : RngIntElt -> RngIntElt
             ...
         """
-        print self.eval('? %s'%s)
+        print(self.eval('? %s' % s))
 
     def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
@@ -1479,18 +1481,18 @@ class Magma(ExtraTabCompletion, Expect):
                 except IOError:
                     pass
             if verbose:
-                print "\nCreating list of all Magma intrinsics for use in tab completion."
-                print "This takes a few minutes the first time, but is saved to the"
-                print "file '%s' for future instant use."%INTRINSIC_CACHE
-                print "Magma may produce errors during this process, which are safe to ignore."
-                print "Delete that file to force recreation of this cache."
-                print "Scanning Magma types ..."
+                print("\nCreating list of all Magma intrinsics for use in tab completion.")
+                print("This takes a few minutes the first time, but is saved to the")
+                print("file '%s' for future instant use." % INTRINSIC_CACHE)
+                print("Magma may produce errors during this process, which are safe to ignore.")
+                print("Delete that file to force recreation of this cache.")
+                print("Scanning Magma types ...")
                 tm = sage.misc.misc.cputime()
             T = self.eval('ListTypes()').split()
             N = []
             for t in T:
                 if verbose:
-                    print t, " ",
+                    print(t, " ", end="")
                     sys.stdout.flush()
                 try:
                     s = self.eval('ListSignatures(%s)'%t)
@@ -1498,13 +1500,13 @@ class Magma(ExtraTabCompletion, Expect):
                         i = x.find('(')
                         N.append(x[:i])
                 except RuntimeError as msg:  # weird internal problems in Magma type system
-                    print 'Error -- %s'%msg
+                    print('Error -- %s' % msg)
                     pass
             if verbose:
-                print "Done! (%s seconds)"%sage.misc.misc.cputime(tm)
+                print("Done! (%s seconds)" % sage.misc.misc.cputime(tm))
             N = sorted(set(N))
-            print "Saving cache to '%s' for future instant use."%INTRINSIC_CACHE
-            print "Delete the above file to force re-creation of the cache."
+            print("Saving cache to '%s' for future instant use." % INTRINSIC_CACHE)
+            print("Delete the above file to force re-creation of the cache.")
             sage.misc.persist.save(N, INTRINSIC_CACHE)
             self.__tab_completion = N
             return N
@@ -1692,10 +1694,10 @@ class MagmaFunctionElement(FunctionElement):
 
             sage: n = magma(-15)             # optional - magma
             sage: f = n.Factorisation        # optional - magma
-            sage: print f._sage_doc_()       # optional - magma
+            sage: print(f._sage_doc_())      # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
-            sage: print n.Factorisation._sage_doc_()    # optional - magma
+            sage: print(n.Factorisation._sage_doc_())    # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
         """
@@ -1803,7 +1805,7 @@ class MagmaFunction(ExpectFunction):
             sage: f = magma.Factorisation
             sage: type(f)
             <class 'sage.interfaces.magma.MagmaFunction'>
-            sage: print f._sage_doc_()                          # optional - magma
+            sage: print(f._sage_doc_())                   # optional - magma
             Intrinsic 'Factorisation'
             ...
         """
@@ -2902,7 +2904,6 @@ class MagmaGBLogPrettyPrinter:
             self.storage = ""
 
         for line in s.splitlines():
-            #print "l: '%s'"%line
             # deal with the Sage <-> Magma syncing code
             match = re.match(MagmaGBLogPrettyPrinter.cmd_inpt,line)
             if match:
@@ -2939,13 +2940,13 @@ class MagmaGBLogPrettyPrinter:
                         self.max_deg = self.curr_deg
 
                     if style == "sage" and verbosity >= 1:
-                        print "Leading term degree: %2d. Critical pairs: %d."%(self.curr_deg,self.curr_npairs)
+                        print("Leading term degree: %2d. Critical pairs: %d." % (self.curr_deg,self.curr_npairs))
                 else:
                     if style == "sage" and verbosity >= 1:
-                        print "Leading term degree: %2d. Critical pairs: %d (all pairs of current degree eliminated by criteria)."%(self.curr_deg,self.curr_npairs)
+                        print("Leading term degree: %2d. Critical pairs: %d (all pairs of current degree eliminated by criteria)." % (self.curr_deg,self.curr_npairs))
 
             if style == "magma" and verbosity >= 1:
-                print line
+                print(line)
 
     def flush(self):
         """

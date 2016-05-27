@@ -206,6 +206,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -459,17 +460,17 @@ class TableauTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
+            sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
                  2  3     1     4   -
                                 5
-            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
+            sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
                  2  3     -     4   -
                                 5
             sage: TableauTuples.global_options(convention='French')
-            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
+            sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
                                 5
                  2  3     1     4   -
-            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
+            sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
                                 5
                  2  3     -     4   -
             sage: TableauTuples.global_options.reset()
@@ -546,7 +547,7 @@ class TableauTuple(CombinatorialElement):
         EXAMPLES::
 
             sage: t = TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
-            sage: print t._latex_diagram()
+            sage: print(t._latex_diagram())
             \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{1}&\lr{2}\\\cline{1-2}
@@ -713,7 +714,7 @@ class TableauTuple(CombinatorialElement):
                  1  2  3     1  2  3    11 12 13
             sage: TableauTuples.global_options.reset()
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def to_word_by_row(self):
         """

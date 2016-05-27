@@ -4437,18 +4437,36 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = f.conjugate(m)
             sage: f.is_polynomial()
             True
+
+        ::
+
+            sage: K.<w> = QuadraticField(4/27)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: S = P.coordinate_ring()
+            sage: f = H([x**3 + w*y**3,x*y**2])
+            sage: f.is_polynomial()
+            False
         """
         #define the field of fixed points
+        if self.codomain().dimension_relative() != 1:
+            raise NotImplementedError (" space must have dimension equal to 1")
         G = self.dehomogenize(1).dynatomic_polynomial(1)
         J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
-        if not J.is_isomorphic(self.base_ring()):
-            g = self.change_ring(phi)
+        if self.base_ring() == QQ or self.base_ring() in FiniteFields:
+            if J == self.base_ring():
+                g = self
+            else:
+                g = self.change_ring(phi)
         else:
-            g = self
+            if J.is_isomorphic(self.base_ring()):
+                g = self
+            else:
+                g = self.change_ring(phi)
         L = g.periodic_points(1)
         #look for totally ramified
         for p in L:
-            if len(g.rational_preimages(p)) == 1:
+            if len((g[0]*p[1]-g[1]*p[0]).factor()) == 1:
                 return True
         return False
 
@@ -4481,10 +4499,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
             sage: f = f.conjugate(m)
             sage: f.normal_form()
-            Scheme endomorphism of Affine Space of dimension 1 over Number Field in
-            w with defining polynomial x^2 - 7
-            Defn: Defined on coordinates by sending (x) to
-            (x^2 + 1/4)
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field
+            in w with defining polynomial x^2 - 7
+            Defn: Defined on coordinates by sending (x : y) to
+            (2*x^2 + 1/2*y^2 : 2*y^2)
 
         ::
 
@@ -4498,21 +4516,41 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [     0      1]
             sage: f.conjugate(m) == g
             True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([13*x**2 + 4*x*y + 3*y**2, 5*y^2])
+            sage: f.normal_form ()
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field in v with defining polynomial x^2 - x + 39
+            Defn: Defined on coordinates by sending (x : y) to
+            (5*x^2 + 9*y^2 : 5*y^2)
         """
         #defines the field of fixed points
+        if self.codomain().dimension_relative() != 1:
+            raise NotImplementedError (" space must have dimension equal to 1")
         G = self.dehomogenize(1).dynatomic_polynomial(1)
         J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
-        if not J.is_isomorphic(self.base_ring()):
-            g = self.change_ring(phi)
+        if self.base_ring() == QQ or self.base_ring() in FiniteFields:
+            if J == self.base_ring():
+                g = self
+            else:
+                g = self.change_ring(phi)
         else:
-            g = self
+            if J.is_isomorphic(self.base_ring()):
+                g = self
+            else:
+                g = self.change_ring(phi)
         L = g.periodic_points(1)
-        if not g.is_polynomial():
-            raise NotImplementedError("map is not a polynomial")
+        bad = True
         for p in L:
-            if len(g.rational_preimages(p)) == 1:
+            if len((g[0]*p[1]-g[1]*p[0]).factor()) == 1:
                 T = p
+                bad = False
                 break # bc only 1 ramified fixed pt
+        if bad:
+            raise NotImplementedError("map is not a polynomial")
         Q = T.codomain()
         N = g.base_ring()
         # move totally ram fixed pt to infty

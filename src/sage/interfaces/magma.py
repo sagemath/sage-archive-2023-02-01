@@ -261,8 +261,7 @@ def extcode_dir(iface = None):
                     raise IOError
             except (OSError,IOError):
                 out_str = 'Tried to copy the file structure in "%s/magma/" to "%s:%s/data" and failed (possibly because scp is not installed in the system).\nFor the remote Magma to work you should populate the remote directory by some other method, or install scp in the system and retry.'%(SAGE_EXTCODE, iface._server, tmp)
-                from warnings import warn, resetwarnings
-                resetwarnings()
+                from warnings import warn
                 warn(out_str)
     return EXTCODE_DIR
 

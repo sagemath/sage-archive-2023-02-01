@@ -13,6 +13,7 @@ but can be easily converted from and to permutations::
     sage: from sage.combinat.shard_order import ShardPosetElement
     sage: p0 = Permutation([1,3,4,2])
     sage: e0 = ShardPosetElement(p0); e0
+    doctest:...: DeprecationWarning: object.__init__() takes no parameters
     (1, 3, 4, 2)
     sage: Permutation(list(e0)) == p0
     True

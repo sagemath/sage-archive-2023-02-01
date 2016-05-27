@@ -33,7 +33,7 @@ cdef class Matroid(SageObject):
     cpdef _is_coclosed(self, X)
 
     cpdef _minor(self, contractions, deletions)
-    cpdef _has_minor(self, N)
+    cpdef _has_minor(self, N, certificate=*)
     cpdef _line_length(self, F)
     cpdef _extension(self, element, hyperplanes)
 
@@ -118,7 +118,7 @@ cdef class Matroid(SageObject):
     cpdef _backslash_(self, X)
     cpdef dual(self)
     cpdef truncation(self)
-    cpdef has_minor(self, N)
+    cpdef has_minor(self, N, certificate=*)
     cpdef has_line_minor(self, k, hyperlines=*)
     cpdef _has_line_minor(self, k, hyperlines)
 

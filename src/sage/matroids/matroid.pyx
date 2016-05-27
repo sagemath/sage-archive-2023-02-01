@@ -85,7 +85,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`delete() <sage.matroids.matroid.Matroid.delete>`
     - :meth:`dual() <sage.matroids.matroid.Matroid.dual>`
     - :meth:`truncation() <sage.matroids.matroid.Matroid.truncation>`
-    - :meth:`has_minor() <sage.matroids.matroid.Matroid.has_minor>`
+    - :meth:`() <sage.matroids.matroid.Matroid.has_minor>`
     - :meth:`has_line_minor() <sage.matroids.matroid.Matroid.has_line_minor>`
 
 
@@ -1101,17 +1101,18 @@ cdef class Matroid(SageObject):
         import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
-    cpdef _has_minor(self, N):
+    cpdef _has_minor(self, N, certificate=False):
         """
         Test if matroid has the specified minor.
 
         INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.
+        - ``N`` -- An instance of a ``Matroid`` object.- optional parameter `certificate` -- a boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and `(X,Y)` -- frozen sets, where `N` is `M/X\Y`.
 
         EXAMPLES::
 
@@ -1120,6 +1121,8 @@ cdef class Matroid(SageObject):
             False
             sage: M._has_minor(matroids.Uniform(2, 4))
             True
+            sage: M._has_minor(matroids.Uniform(2, 4), True)
+            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
 
         .. TODO::
 
@@ -1127,17 +1130,25 @@ cdef class Matroid(SageObject):
             See [Hlineny]_ p.1219 for hints to that end.
         """
         if self is N:
+            if certificate:
+               return True, None
             return True
         rd = self.full_rank() - N.full_rank()
         cd = self.full_corank() - N.full_corank()
         if rd < 0 or cd < 0:
+            if certificate:
+                return False, None
             return False
         YY = self.dual().independent_r_sets(cd)
         for X in self.independent_r_sets(rd):
             for Y in YY:
                 if X.isdisjoint(Y):
                     if N._is_isomorphic(self._minor(contractions=X, deletions=Y)):
+                        if certificate:
+                            return True, (X,Y)
                         return True
+        if certificate:
+            return False, None
         return False
 
     cpdef _line_length(self, F):
@@ -3884,17 +3895,19 @@ cdef class Matroid(SageObject):
         return self._extension(l, [])._minor(contractions=frozenset([l]),
                                              deletions=frozenset([]))
 
-    cpdef has_minor(self, N):
+    cpdef has_minor(self, N, certificate=False):
         """
         Check if ``self`` has a minor isomorphic to ``N``.
 
         INPUT:
 
-        - ``N`` -- A matroid.
+        - ``N`` -- A matroid, 
+        - optional parameter `certificate` -- a boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and `(X,Y)` -- frozen sets, where `N` is `M/X\Y`.
 
         .. SEEALSO::
 
@@ -3913,10 +3926,12 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.NonFano().has_minor(M)
             True
+            sage: matroids.named_matroids.NonFano().has_minor(M, True)
+            (True, (frozenset(), frozenset({'g'})))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")
-        return self._has_minor(N)
+        return self._has_minor(N, certificate)
 
     cpdef has_line_minor(self, k, hyperlines=None):
         """

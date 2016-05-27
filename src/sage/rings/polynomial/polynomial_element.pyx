@@ -19,6 +19,8 @@ AUTHORS:
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
+-  Kiran Kedlaya (2016-03): Added root counting.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -7027,6 +7029,134 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.roots(multiplicities=False)
 
         return self.roots(ring=CC, multiplicities=False)
+
+    def number_of_roots_in_interval(self, a=None, b=None):
+        r"""
+        Return the number of roots of this polynomial in the interval 
+        [a,b], counted without multiplicity. The endpoints a, b default to
+        -Infinity, Infinity (which are also valid input values).
+
+        Calls the PARI routine polsturm. Note that as of version 2.8, PARI
+        includes the left endpoint of the interval (and no longer uses
+        Sturm's algorithm on exact inputs). polsturm requires a polynomial
+        with real coefficients; in case PARI returns an error, we try again
+        after taking the GCD of `self` with its complex conjugate.
+        
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_roots_in_interval(1, 2)
+            2
+            sage: pol.number_of_roots_in_interval(1.01, 2)
+            1
+            sage: pol.number_of_roots_in_interval(None, 2)
+            2
+            sage: pol.number_of_roots_in_interval(1, Infinity)
+            3
+            sage: pol.number_of_roots_in_interval()
+            3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.number_of_roots_in_interval()
+            3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.number_of_roots_in_interval(0,2)
+            1
+
+        TESTS::
+        
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_roots_in_interval(1, 2)
+            2
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.number_of_roots_in_interval(-1,2)
+            5
+            sage: pol.number_of_roots_in_interval(0,2)
+            3
+
+        """
+        pol = self // self.gcd(self.derivative()) #squarefree part
+        if a is None:
+            a1 = -infinity.infinity
+        else:
+            a1 = a
+        if b is None:
+            b1 = infinity.infinity
+        else:
+            b1 = b
+        try:
+            return(pari(pol).polsturm([a1,b1]))
+        except PariError:
+            # Take GCD with the conjugate, to extract the maximum factor
+            # with real coefficients.
+            pol2 = pol.gcd(pol.map_coefficients(lambda z: z.conjugate()))
+            return(pari(pol2).polsturm([a1,b1]))
+
+    def number_of_real_roots(self):
+        r"""
+        Return the number of real roots of this polynomial, counted
+        without multiplicity. 
+        
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_real_roots()
+            3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.number_of_real_roots()
+            3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.number_of_real_roots()
+            1
+        """
+        return self.number_of_roots_in_interval()
+
+    def all_roots_in_interval(self, a=None, b=None):
+        r"""
+        Return True if the roots of this polynomial are all real and 
+        contained in the given interval.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.all_roots_in_interval(1, 3)
+            True
+            sage: pol.all_roots_in_interval(1.01, 3)
+            False
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.all_roots_in_interval(-1,1)
+            True        
+            sage: pol = chebyshev_T(5,x/2)
+            sage: pol.all_roots_in_interval(-1,1)
+            False
+            sage: pol.all_roots_in_interval()
+            True
+        """
+        pol = self // self.gcd(self.derivative())
+        return(pol.number_of_roots_in_interval(a,b) == pol.degree())
+
+    def is_real_rooted(self):
+        r"""
+        Return True if the roots of this polynomial are all real.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = chebyshev_T(5, x)
+            sage: pol.is_real_rooted()
+            True
+            sage: pol = x^2 + 1
+            sage: pol.is_real_rooted()
+            False
+        """
+        return self.all_roots_in_interval()
 
     def variable_name(self):
         """

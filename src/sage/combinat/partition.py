@@ -3222,16 +3222,17 @@ class Partition(CombinatorialElement):
                                 for r in range(len(self))])
 
     def conormal_cells(self, e, multicharge=(0,), i=None, direction='up'):
-        """
-        Return a dictionary of the cells of the partition which are conormal.
+        r"""
+        Return a dictionary of the cells of ``self`` which are conormal.
         If no residue ``i`` is specified then a list of length ``e``
         is returned which gives the conormal cells for ``0 <= i < e``.
 
-        The conormal are computed by reading down the rows of the partition
-        and marking all of all of the addable and removable cells of
-        `e`-residue `i` and then recursively removing all adjacent pairs of
-        addable and removable cells from this list. The addable `i`-cells
-        that remain at the end of the this process are the conormal `i`-cells.
+        Following [Kleshchev09]_, the *conormal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and addable
+        cells (in that order) from this list. The addable `i`-cells that
+        remain at the end of the this process are the conormal `i`-cells.
 
         When computing conormal cells you can either read the cells in order
         from top to bottom (this corresponds to labelling the simple modules
@@ -3262,7 +3263,7 @@ class Partition(CombinatorialElement):
         carry = defaultdict(int)        # a tally of #(removable cells) - #(addable cells)
 
         # determine if we read up or down the partition
-        rows = range(len(self)+1)
+        rows = list(range(len(self)+1))
         if direction == 'up':
             rows.reverse()
 
@@ -3272,29 +3273,31 @@ class Partition(CombinatorialElement):
         for row in rows:
             if row == len(self): # addable cell at bottom of partition
                 res = multicharge[0] - row
-                if carry[res] >= 0:
-                    conormals[res].append( (row, 0) )
-                carry[res] -= 1
+                if carry[res] == 0:
+                    conormals[res].append((row, 0))
+                else:
+                    carry[res] += 1
             else:
                 res = multicharge[0] + self[row] - row - 1
-                if row == len(self)-1 or self[row]>self[row+1]: # removable cell
-                    carry[res]+=1
+                if row == len(self)-1 or self[row] > self[row+1]: # removable cell
+                    carry[res] -= 1
                 if row == 0 or self[row-1] > self[row]:               #addable cell
                     if carry[res+1] >= 0:
-                        conormals[res+1].append( (row, self[row]) )
-                    carry[res+1] -= 1
+                        conormals[res+1].append((row, self[row]))
+                    else:
+                        carry[res+1] += 1
 
         # finally return the result
         return dict(conormals) if i is None else conormals[i]
 
     def cogood_cells(self, e, multicharge=(0,), i=None, direction='up'):
-        """
-        Return a list of the cells of the partition which are cogood.
+        r"""
+        Return a list of the cells of ``self`` that are cogood.
         If no residue ``i`` is specified then the cogood cells of each
         residue are returned (if they exist).
 
-        The cogood `i`-cell is the 'last' normal ``i``-cell. As with the
-        normal cells we can choose to read either up or down the partition.
+        The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
+        conormal cells we can choose to read either up or down the partition.
 
         EXAMPLES::
 
@@ -3318,23 +3321,25 @@ class Partition(CombinatorialElement):
 
         conormal_cells = self.conormal_cells(e, multicharge, i, direction)
         if i is None:
-            return {i: conormal_cells[i][0] for i in conormal_cells}
+            return {i: conormal_cells[i][-1] for i in conormal_cells}
         elif not conormal_cells:
             return None
         else:
-            return conormal_cells[0]
+            return conormal_cells[-1]
 
     def normal_cells(self,e,multicharge=(0,),i=None,direction='up'):
-        """
+        r"""
         Return a dictionary of the cells of the partition which are normal.
         If no residue ``i`` is specified then a list of length ``e``
-        is returned which gives the normal cells for 0<=``i`` <``e``.
+        is returned which gives the normal cells for ``0 <= i < e``.
 
-        The normal are computed by reading up (or down) the rows of the
-        partition and marking all of all of the addable and removable cells
-        of `e`-residue `i` and then recursively removing all adjacent pairs of
-        addable and removable cells from this list. The removable `i`-cells
-        that remain at the end of the this process are the normal `i`-cells.
+        Following [Kleshchev09]_, the *normal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and
+        addable cells (in that order) from this list. The removable
+        `i`-cells that remain at the end of the this process are the
+        normal `i`-cells.
 
         When computing normal cells you can either read the cells in order
         from top to bottom (this corresponds to labelling the simple modules
@@ -3363,8 +3368,8 @@ class Partition(CombinatorialElement):
         carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
 
         # determine if we read up or down the partition
-        rows = range(len(self)+1)
-        if direction=='up':
+        rows = list(range(len(self)+1))
+        if direction == 'down':
             rows.reverse()
 
         Ie = IntegerModRing(e)
@@ -3372,30 +3377,30 @@ class Partition(CombinatorialElement):
         # work through the rows
         for row in rows:
             if row == len(self): # addable cell at bottom of partition
-                carry[multicharge[0]-row] -= 1
+                carry[multicharge[0]-row] += 1
             else:
                 res = multicharge[0] + self[row] - row - 1
-                if row == len(self)-1 or self[row] > self[row+1]: # removable cell
+                if row == len(self) - 1 or self[row] > self[row+1]: # removable cell
                     if carry[res] == 0:
-                        normals[res].append( (row, self[row]-1) )
+                        normals[res].append((row, self[row]-1))
                     else:
-                        carry[res] += 1
-                if row == 0 or self[row-1] > self[row]:               #addable cell
-                  carry[res+1] -= 1
+                        carry[res] -= 1
+                if row == 0 or self[row-1] > self[row]:              # addable cell
+                  carry[res+1] += 1
 
         # finally return the result
         return dict(normals) if i is None else normals[i]
 
-    def good_cells(self,e,multicharge=(0,),i=None,direction='up'):
+    def good_cells(self, e, multicharge=(0,), i=None, direction='up'):
         """
-        Return a list of the cells of the partition which are good.
+        Return a list of the cells of ``self`` that are good.
         If no residue ``i`` is specified then the good cells of each
         residue are returned (if they exist).
 
-        The good i-cell is the 'last' normal ``i``-cell. As with the normal
+        The good `i`-cell is the 'first' normal `i`-cell. As with the normal
         cells we can choose to read either up or down the partition.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([5,4,4,3,2]).good_cells(3)
             {0: (4, 1), 2: (3, 2)}
@@ -3416,16 +3421,16 @@ class Partition(CombinatorialElement):
 
         normal_cells = self.normal_cells(e, multicharge, i, direction)
         if i is None:
-            return {i: normal_cells[i][-1] for i in normal_cells}
+            return {i: normal_cells[i][0] for i in normal_cells}
         elif not normal_cells:
             return None
         else:
-            return normal_cells[-1]
+            return normal_cells[0]
 
     def good_residue_sequence(self, e, multicharge=(0,), direction='up'):
         """
-        Return a sequence of good nodes from the empty partition to this
-        partition, or None if no such sequence exists.
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
 
         EXAMPLES::
 
@@ -3446,8 +3451,8 @@ class Partition(CombinatorialElement):
 
     def good_cell_sequence(self, e, multicharge=(0,), direction='up'):
         """
-        Return a sequence of good nodes from the empty partition to this
-        partition, or None if no such sequence exists.
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
 
         EXAMPLES::
 
@@ -3468,7 +3473,7 @@ class Partition(CombinatorialElement):
     def Mullineux_conjugate(self, e, multicharge, direction='up'):
         """
         Return the partition tuple which is the Mullineux conjugate of this
-        partition tuple, or None if no such partition tuple exists.
+        partition tuple, or ``None`` if no such partition tuple exists.
 
         EXAMPLES::
 

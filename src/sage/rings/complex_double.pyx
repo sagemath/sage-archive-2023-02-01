@@ -1614,7 +1614,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: a = CDF(1,1); b = CDF(2,3)
-            sage: a._pow_(b)
+            sage: a._pow_(b)   # rel tol 5e-16
             -0.163450932107355 + 0.09600498360894891*I
         """
         return self._new_c(gsl_complex_pow(self._complex, a._complex))
@@ -1630,7 +1630,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: a = CDF(1,1); b = CDF(2,3)
-            sage: c = a^b; c # indirect doctest
+            sage: c = a^b; c  # rel tol 5e-16, indirect doctest
             -0.163450932107355 + 0.09600498360894891*I
             sage: c^(1/b) # rel tol 2e-16
             1.0 + 1.0*I

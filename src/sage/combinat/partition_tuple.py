@@ -255,6 +255,7 @@ subgroup::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import itertools
 
@@ -742,7 +743,8 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLE::
 
-            sage: for t in PartitionTuple([[2,1],[3,2],[3]]).components():  print '%s\n' % t.ferrers_diagram()
+            sage: for t in PartitionTuple([[2,1],[3,2],[3]]).components():
+            ....:     print('%s\n' % t.ferrers_diagram())
             ...
             **
             *
@@ -752,7 +754,8 @@ class PartitionTuple(CombinatorialElement):
             <BLANKLINE>
             ***
             <BLANKLINE>
-            sage: for t in PartitionTuple([3,2]).components(): print '%s\n'% t.ferrers_diagram()
+            sage: for t in PartitionTuple([3,2]).components():
+            ....:     print('%s\n' % t.ferrers_diagram())
             ...
             ***
             **
@@ -766,17 +769,17 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print PartitionTuple([[2,1],[3,2],[1,1,1]]).diagram()
+            sage: print(PartitionTuple([[2,1],[3,2],[1,1,1]]).diagram())
                **   ***   *
                *    **    *
                           *
-            sage: print PartitionTuple([[3,2],[2,1],[],[1,1,1,1]]).diagram()
+            sage: print(PartitionTuple([[3,2],[2,1],[],[1,1,1,1]]).diagram())
                ***   **   -   *
                **    *        *
                               *
                               *
             sage: PartitionTuples.global_options(convention="french")
-            sage: print PartitionTuple([[3,2],[2,1],[],[1,1,1,1]]).diagram()
+            sage: print(PartitionTuple([[3,2],[2,1],[],[1,1,1,1]]).diagram())
                               *
                               *
                **    *        *
@@ -819,7 +822,7 @@ class PartitionTuple(CombinatorialElement):
             **
             *
         """
-        print self.diagram()
+        print(self.diagram())
 
 
     def size(self):

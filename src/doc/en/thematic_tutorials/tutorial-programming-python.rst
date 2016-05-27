@@ -470,9 +470,9 @@ To *extend* a list by another list::
 
     sage: L1 = [1,2,3]
     sage: L2 = [7,8,9,0]
-    sage: print L1
+    sage: L1
     [1, 2, 3]
-    sage: print L2
+    sage: L2
     [7, 8, 9, 0]
 
 ::
@@ -923,7 +923,7 @@ http://docs.python.org/tutorial/controlflow.html
 
     sage: i = 0
     sage: while i < 10:
-    ....:     print i
+    ....:     print(i)
     ....:     i += 1
     0
     1
@@ -943,7 +943,7 @@ http://docs.python.org/tutorial/controlflow.html
     ....:     if i % 2 == 1:
     ....:         i += 1
     ....:         continue
-    ....:     print i
+    ....:     print(i)
     ....:     i += 1
     0
     2
@@ -978,7 +978,7 @@ is evaluated using :class:`bool`::
 
     sage: i = 4
     sage: while i:
-    ....:     print i
+    ....:     print(i)
     ....:     i -= 1
     4
     3
@@ -992,7 +992,7 @@ Here is a basic *for* loop iterating over all of the elements in the list ``l``:
 
     sage: l = ['a', 'b', 'c']
     sage: for letter in l:
-    ....:     print letter
+    ....:     print(letter)
     a
     b
     c
@@ -1030,7 +1030,7 @@ included:
 ::
 
     sage: for i in range(4):
-    ....:     print i, i*i
+    ....:     print("{} {}".format(i, i*i))
     0 0
     1 1
     2 4
@@ -1042,7 +1042,7 @@ in the loop::
     sage: for i in range(10):
     ....:     if i % 2 == 0:
     ....:         continue
-    ....:     print i
+    ....:     print(i)
     1
     3
     5
@@ -1056,7 +1056,7 @@ If you want to break out of the loop, use the *break* keyword::
     ....:         continue
     ....:     if i == 7:
     ....:         break
-    ....:     print i
+    ....:     print(i)
     1
     3
     5
@@ -1066,7 +1066,7 @@ value, one (not so elegant) way would be to do the following::
 
     sage: l = ['a', 'b', 'c']
     sage: for i in range(len(l)):
-    ....:     print i, l[i]
+    ....:     print("{} {}".format(i, l[i]))
     0 a
     1 b
     2 c
@@ -1076,7 +1076,7 @@ as the value::
 
     sage: l = ['a', 'b', 'c']
     sage: for i, letter in enumerate(l):
-    ....:     print i, letter
+    ....:     print("{} {}".format(i, letter))
     0 a
     1 b
     2 c
@@ -1088,7 +1088,7 @@ function by using :func:`zip` to zip two lists together:
 
     sage: l = ['a', 'b', 'c']
     sage: for i, letter in zip(range(len(l)), l):
-    ....:     print i, letter
+    ....:     print("{} {}".format(i, letter))
     0 a
     1 b
     2 c
@@ -1097,7 +1097,7 @@ function by using :func:`zip` to zip two lists together:
 sorts of different objects to be looped over. For example::
 
     sage: for i in GF(5):
-    ....:     print i, i*i
+    ....:     print("{} {}".format(i, i*i))
     0 0
     1 1
     2 4
@@ -1283,8 +1283,8 @@ You can also take a variable number of arguments and keyword arguments
 in a function::
 
     sage: def h(*args, **kwds):
-    ....:     print type(args), args
-    ....:     print type(kwds), kwds
+    ....:     print("{} {}".format(type(args), args))
+    ....:     print("{} {}".format(type(kwds), kwds))
 
 ::
 
@@ -1307,7 +1307,7 @@ Fibonacci numbers up to `n`::
 ::
 
     sage: for i in fib_gen(50):
-    ....:     print i
+    ....:     print(i)
     1
     1
     2

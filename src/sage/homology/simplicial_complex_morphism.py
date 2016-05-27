@@ -101,6 +101,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.homology.simplicial_complex import Simplex, SimplicialComplex
 from sage.matrix.constructor import matrix, zero_matrix
@@ -279,11 +280,11 @@ class SimplicialComplexMorphism(Morphism):
         EXAMPLES::
 
             sage: S = simplicial_complexes.Simplex(1)
-            sage: print Hom(S,S).identity()._repr_defn()
+            sage: print(Hom(S,S).identity()._repr_defn())
             0 |--> 0
             1 |--> 1
             sage: T = simplicial_complexes.Torus()
-            sage: print Hom(T,T).identity()._repr_defn()
+            sage: print(Hom(T,T).identity()._repr_defn())
             [0, 1, 2, 3, 4, 5, 6] --> [0, 1, 2, 3, 4, 5, 6]
         """
         vd = self._vertex_dictionary

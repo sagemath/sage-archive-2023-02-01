@@ -3126,12 +3126,12 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``other`` -- A matroid, 
+        - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean, 
+        Boolean,
         and, if certificate = True, a dictionary giving the isomophism or None
 
         .. NOTE::

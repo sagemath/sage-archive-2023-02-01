@@ -1607,13 +1607,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 action = PrecomposedAction(action, None, action.right_domain()._internal_coerce_map_from(S))
 
             if action.left_domain() is not R or action.right_domain() is not S:
-                raise RuntimeError, """There is a BUG in the coercion model:
+                raise RuntimeError("""There is a BUG in the coercion model:
                 Action found for R %s S does not have the correct domains
                 R = %s
                 S = %s
                 (should be %s, %s)
                 action = %s (%s)
-                """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
+                """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action)))
 
         return action
 
@@ -1852,12 +1852,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <type 'str'> 'f'
             <type 'str'> 'g'
         """
-        raise RuntimeError, """There is a bug in the coercion code in Sage.
+        raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.
 In fact, x has parent '%s'
 whereas y has parent '%s'
 Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r
-%s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
+%s %r""" % (x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
             x, parent_c(x), y, parent_c(y),
-            type(x_map), x_map, type(y_map), y_map)
+            type(x_map), x_map, type(y_map), y_map))

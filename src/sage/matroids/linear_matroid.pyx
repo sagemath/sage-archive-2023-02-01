@@ -2691,10 +2691,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                         cert.add(dX[x])
                     for y in cert_pair[1]:
                         cert.add(dY[y])
-                    return False, cert
+                    return False, certificate
                 return False
         if certificate:
-            return True,None
+            return True, None
         return True
 
     cpdef _is_4connected_shifting(self, certificate=False):
@@ -3271,7 +3271,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
         Internal version that performs no checks on input.
 
-        NPUT:
+        INPUT:
 
         - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
@@ -3294,8 +3294,6 @@ cdef class BinaryMatroid(LinearMatroid):
             True
             sage: M1._is_isomorphic(M2, certificate=True)
             (True, {'a': 0, 'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 6})
-            sage: M1._is_isomorphic(M2, True)
-            (True, {'a': 0, 'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 6})
 
             sage: M1 = matroids.named_matroids.Fano().delete('a')
             sage: M2 = matroids.Whirl(3)
@@ -3303,13 +3301,9 @@ cdef class BinaryMatroid(LinearMatroid):
             False
             sage: M1._is_isomorphic(M2, certificate=True)
             (False, None)
-            sage: M1._is_isomorphic(M2, True)
-            (False, None)
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
             sage: M1._is_isomorphic(matroids.Wheel(3), certificate=True)
-            (True, {'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 0})
-            sage: M1._is_isomorphic(matroids.Wheel(3), True)
             (True, {'b': 1, 'c': 2, 'd': 4, 'e': 3, 'f': 5, 'g': 0})
 
         """
@@ -4338,7 +4332,7 @@ cdef class TernaryMatroid(LinearMatroid):
         Test if ``self`` is isomorphic to ``other``. Internal version that
         performs no checks on input.
 
-        NPUT:
+        INPUT:
 
         - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
@@ -5976,7 +5970,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         Internal version that performs no checks on input.
 
-        NPUT:
+        INPUT:
 
         - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
@@ -5998,8 +5992,6 @@ cdef class RegularMatroid(LinearMatroid):
             True
             sage: M1._is_isomorphic(M2, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
-            sage: M1._is_isomorphic(M2, True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
 
             sage: M1 = matroids.Wheel(3)
             sage: M2 = matroids.named_matroids.Fano()
@@ -6008,8 +6000,6 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M1._is_isomorphic(M2.delete('a'))
             True
             sage: M1._is_isomorphic(M2.delete('a'), certificate=True)
-            (True, {0: 'g', 1: 'b', 2: 'c', 3: 'e', 4: 'd', 5: 'f'})
-            sage: M1._is_isomorphic(M2.delete('a'), True)
             (True, {0: 'g', 1: 'b', 2: 'c', 3: 'e', 4: 'd', 5: 'f'})
 
         Check that :trac:`17316` was fixed::

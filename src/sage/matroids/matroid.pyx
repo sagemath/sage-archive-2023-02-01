@@ -3096,8 +3096,6 @@ cdef class Matroid(SageObject):
             True
             sage: M1.is_isomorphic(M2, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
-            sage: M1.is_isomorphic(M2, True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: G3 = graphs.CompleteGraph(4)
             sage: M1.is_isomorphic(G3)
             Traceback (most recent call last):
@@ -3110,8 +3108,6 @@ cdef class Matroid(SageObject):
             sage: M1.is_isomorphic(M2)
             False
             sage: M1.is_isomorphic(M2, certificate=True)
-            (False, None)
-            sage: M1.is_isomorphic(M2, True)
             (False, None)
         """
         if not isinstance(other, Matroid):
@@ -3146,9 +3142,6 @@ cdef class Matroid(SageObject):
             True
             sage: M1._is_isomorphic(M2, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
-            sage: M1._is_isomorphic(M2, True)
-            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
-
 
             sage: M1 = matroids.named_matroids.Fano()
             sage: M2 = matroids.named_matroids.NonFano()

@@ -1054,8 +1054,6 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             False
             sage: M._is_isomorphic(N, certificate=True)
             (False, None)
-            sage: M._is_isomorphic(N, True)
-            (False, None)
         """
         if certificate:
             return self._is_isomorphic(other), self._isomorphism(other)

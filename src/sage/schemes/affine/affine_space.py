@@ -861,7 +861,7 @@ class AffineSpace_field(AffineSpace_generic):
 
     def curve(self,F):
         r"""
-        Return a curve defined by `F` in this affine space.
+        Return a curve defined by ``F`` in this affine space.
 
         INPUT:
 

@@ -1169,7 +1169,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def curve(self,F):
         r"""
-        Return a curve defined by `F` in this projective space.
+        Return a curve defined by ``F`` in this projective space.
 
         INPUT:
 

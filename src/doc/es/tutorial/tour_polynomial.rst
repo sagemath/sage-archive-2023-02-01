@@ -322,3 +322,7 @@ podemos calcular la descomposición primaria y los primos asociados a :math:`I`:
     sage: I.associated_primes()
     [Ideal (x) of Multivariate Polynomial Ring in x, y over Rational Field,
      Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field]
+
+.. [Si] Singular es un sistema de álgebra computerizado para cálculos con
+        polinomios, http://www.singular.uni-kl.de
+

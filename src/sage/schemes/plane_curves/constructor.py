@@ -29,8 +29,10 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 
+from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.generic.ambient_space import is_AmbientSpace
 from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
+from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 from sage.schemes.affine.all import AffineSpace
 
@@ -49,15 +51,25 @@ from affine_curve import (AffineCurve_generic,
 
 from sage.schemes.plane_conics.constructor import Conic
 
-def Curve(F):
+def Curve(F, A=None):
     """
     Return the plane or space curve defined by `F`, where
     `F` can be either a multivariate polynomial, a list or
     tuple of polynomials, or an algebraic scheme.
 
-    If `F` is in two variables the curve is affine, and if it
-    is homogenous in `3` variables, then the curve is
-    projective.
+    If no ambient space is passed in for `A`, and if `F` is not
+    an algebraic scheme, a new ambient space is constructed.
+    
+    Also not specifying an ambient space will cause the curve to be defined
+    in either affine or projective space based on properties of `F`. In
+    particular, if `F` contains a nonhomogenous polynomial, the curve is
+    affine, and if `F` consists of homogenous polynomials, then the curve
+    is projective.
+
+    INPUT:
+    - `F` -- a multivariate polynomial, or a list or tuple of polynomials,
+        or an algebraic scheme.
+    - `A` -- (default: None) an ambient space in which to create the curve.
 
     EXAMPLE: A projective plane curve
 
@@ -164,9 +176,53 @@ def Curve(F):
         Traceback (most recent call last):
         ...
         ValueError: defining polynomial of curve must be nonzero
+
+    ::
+
+        sage: A.<x,y,z> = AffineSpace(QQ, 3)
+        sage: C = Curve([y - x^2, z - x^3], A)
+        sage: A == C.ambient_space()
+        True
     """
+    if not A is None:
+        if not isinstance(F, (list, tuple)):
+            return Curve([F], A)
+        if not is_AmbientSpace(A):
+            raise TypeError("A (=%s) must be either an affine or projective space"%A)
+        if not all([f.parent() == A.coordinate_ring() for f in F]):
+            raise TypeError("F (=%s) must be a list or tuple of polynomials of the coordinate ring of \
+            A (=%s)"%(F, A))
+        n = A.dimension_relative()
+        if n < 2:
+            raise TypeError("A (=%s) must be either an affine or projective space of dimension > 1"%A)
+        # there is no dimension check when initializing a plane curve, so check here that F is consists
+        # of a single nonconstant polynomial
+        if n == 2:
+            if len(F) != 1 or F[0] == 0 or not is_MPolynomial(F[0]):
+                raise TypeError("F (=%s) must consist of a single nonconstant polynomial to define a plane curve"%F)
+        if is_AffineSpace(A):
+            if n > 2:
+                return AffineSpaceCurve_generic(A, F)
+            k = A.base_ring()
+            if is_FiniteField(k):
+                if k.is_prime_field():
+                    return AffineCurve_prime_finite_field(A, F[0])
+                return AffineCurve_finite_field(A, F[0])
+            return AffineCurve_generic(A, F[0])
+        elif is_ProjectiveSpace(A):
+            if not all([f.is_homogeneous() for f in F]):
+                raise TypeError("polynomials defining a curve in a projective space must be homogeneous")
+            if n > 2:
+                return ProjectiveSpaceCurve_generic(A, F)
+            k = A.base_ring()
+            if is_FiniteField(k):
+                if k.is_prime_field():
+                    return ProjectiveCurve_prime_finite_field(A, F[0])
+                return ProjectiveCurve_finite_field(A, F[0])
+            return ProjectiveCurve_generic(A, F[0])
+
     if is_AlgebraicScheme(F):
-        return Curve(F.defining_polynomials())
+        return Curve(F.defining_polynomials(), F.ambient_space())
 
     if isinstance(F, (list, tuple)):
         if len(F) == 1:

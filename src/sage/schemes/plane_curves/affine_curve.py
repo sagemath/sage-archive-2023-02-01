@@ -46,7 +46,7 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class AffineCurve_generic(Curve_generic):
+class AffineCurve_generic(AffineSpaceCurve_generic):
     def __init__(self, A, f):
         P = f.parent()
         if not (is_AffineSpace(A) and A.dimension != 2):

@@ -26,27 +26,28 @@ from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
 
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
-from curve import Curve_generic_projective
+from curve import Curve_generic
 
-class ProjectiveSpaceCurve_generic(Curve_generic_projective):
+class ProjectiveSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_projective):
     def _repr_type(self):
         return "Projective Space"
 
     def __init__(self, A, X):
         if not is_ProjectiveSpace(A):
             raise TypeError("A (=%s) must be a projective space"%A)
-        Curve_generic_projective.__init__(self, A, X)
+        Curve_generic.__init__(self, A, X)
         d = self.dimension()
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class ProjectiveCurve_generic(Curve_generic_projective):
+class ProjectiveCurve_generic(ProjectiveSpaceCurve_generic):
     def __init__(self, A, f):
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be a projective plane."%A)
-        Curve_generic_projective.__init__(self, A, [f])
+        Curve_generic.__init__(self, A, [f])
 
     def _repr_type(self):
         return "Projective"

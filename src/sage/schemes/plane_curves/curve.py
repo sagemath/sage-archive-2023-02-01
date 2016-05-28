@@ -5,8 +5,7 @@ Generic plane curves
 from sage.misc.all import latex
 
 
-from sage.schemes.generic.algebraic_scheme import (
-    AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_projective)
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 from sage.schemes.generic.divisor_group import DivisorGroup
 
@@ -179,6 +178,3 @@ class Curve_generic(AlgebraicScheme_subscheme):
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union
-
-class Curve_generic_projective(Curve_generic, AlgebraicScheme_subscheme_projective):
-    pass

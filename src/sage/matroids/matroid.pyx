@@ -85,7 +85,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`delete() <sage.matroids.matroid.Matroid.delete>`
     - :meth:`dual() <sage.matroids.matroid.Matroid.dual>`
     - :meth:`truncation() <sage.matroids.matroid.Matroid.truncation>`
-    - :meth:`() <sage.matroids.matroid.Matroid.has_minor>`
+    - :meth:`has_minor() <sage.matroids.matroid.Matroid.has_minor>`
     - :meth:`has_line_minor() <sage.matroids.matroid.Matroid.has_line_minor>`
 
 
@@ -1107,7 +1107,8 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.- optional parameter `certificate` -- a boolean.
+        - ``N`` -- An instance of a ``Matroid`` object.
+        - optional parameter `certificate` -- a boolean.
 
         OUTPUT:
 
@@ -1121,6 +1122,8 @@ cdef class Matroid(SageObject):
             False
             sage: M._has_minor(matroids.Uniform(2, 4))
             True
+            sage: M._has_minor(matroids.Uniform(2, 4), certificate=True)
+            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
             sage: M._has_minor(matroids.Uniform(2, 4), True)
             (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
 
@@ -3901,7 +3904,7 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``N`` -- A matroid, 
+        - ``N`` -- A matroid,
         - optional parameter `certificate` -- a boolean.
 
         OUTPUT:

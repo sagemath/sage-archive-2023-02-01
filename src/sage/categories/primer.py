@@ -929,7 +929,7 @@ call the method ``_mul_``, and otherwise let the :mod:`coercion model
 <sage.structure.coerce>` try to discover how to do the
 multiplication::
 
-    sage: x.__mul__??                          # not tested
+    sage: x.__mul__??                           # not tested
 
 Since it is a speed critical method, it is implemented in Cython
 in a separate file::

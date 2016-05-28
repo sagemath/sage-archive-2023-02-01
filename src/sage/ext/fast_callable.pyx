@@ -1704,8 +1704,8 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: def my_sin(x): return sin(x)
         sage: def my_norm(x, y): return x*x + y*y
         sage: def my_sqrt(x):
-        ...       if x < 0: raise ValueError("sqrt of negative number")
-        ...       return sqrt(x, extend=False)
+        ....:     if x < 0: raise ValueError("sqrt of negative number")
+        ....:     return sqrt(x, extend=False)
         sage: fc = fast_callable(expr, domain=RealField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842

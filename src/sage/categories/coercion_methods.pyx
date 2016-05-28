@@ -1,10 +1,10 @@
 """
-Coercion methods for the categories
+Coercion methods for categories
 
 Recall that the Sage categories provide implementations for Python's
-special methods for the basic arithmetic operations (e.g. `__mul__`,
-`__add__`), that dispatch to the coercion model or call Sage's special
-methods (e.g. `_mul_`, `_add_`) for the internal operations.
+special methods for the basic arithmetic operations (e.g. ``__mul__``,
+``__add__``), that dispatch to the coercion model or call Sage's special
+methods (e.g. ``_mul_``, ``_add_``) for the internal operations.
 
 To reduce the induced overhead, we want those methods to be
 Cythonized, while for most of the non speed-critical methods
@@ -25,7 +25,7 @@ def __add__(Element self, right):
     r"""
     Return the sum of ``self`` and ``right``.
 
-    This calls the `_add_` method of ``self``, if it is
+    This calls the ``_add_`` method of ``self``, if it is
     available and the two elements have the same parent.
 
     Otherwise, the job is delegated to the coercion model.
@@ -44,7 +44,7 @@ def __add__(Element self, right):
         sage: a.__add__(b)
         a + b
 
-    This is `AdditiveMagmas.ElementMethods.__add__`, implemented as a
+    This is :meth:`AdditiveMagmas.ElementMethods.__add__`, implemented as a
     Cython method in :mod:`sage.categories.coercion_methods`::
 
         sage: a.__add__.im_func is AdditiveMagmas.ElementMethods.__add__.im_func
@@ -69,8 +69,8 @@ def __radd__(Element self, left):
         sage: a.__radd__(b)
         a + b
 
-    This is `AdditiveMagmas.ElementMethods.__radd__`, implemented as a
-    Cython method in :mod:`sage.categories.coercion_methods`::
+    This is :meth:`AdditiveMagmas.ElementMethods.__radd__`, implemented
+    as a Cython method in :mod:`sage.categories.coercion_methods`::
 
         sage: a.__radd__.im_func is AdditiveMagmas.ElementMethods.__radd__.im_func
         True
@@ -89,7 +89,7 @@ def Modules__mul__(Element left, right):
 
     INPUT:
 
-    - ``left`` -- an element of a :class:`Module <Modules>`
+    - ``left`` -- an element of a :class:`module <Modules>`
     - ``right`` -- any object
 
     EXAMPLES:
@@ -104,15 +104,17 @@ def Modules__mul__(Element left, right):
 
     .. SEEALSO:: :meth:`Modules.ElementMethods.__rmul__`
 
-    This is `Modules.ElementMethods.__mul__`, implemented as a Cython
-    method in :mod:`sage.categories.magmas_cython`::
+    This is :meth:`Modules.ElementMethods.__mul__`, implemented as a
+    Cython method in :mod:`sage.categories.magmas_cython`::
 
         sage: x.__mul__.im_func is Modules.ElementMethods.__mul__.im_func
         True
         sage: x.__mul__.im_func is sage.categories.coercion_methods.Modules__mul__
         True
 
-    .. TODO:: make a better unit test once Modules().example() is implemented
+    .. TODO::
+
+        Make a better unit test once ``Modules().example()`` is implemented.
     """
     return coercion_model.bin_op(left, right, operator.mul)
 
@@ -148,7 +150,9 @@ def Modules__rmul__(Element right, left):
         sage: x.__rmul__.im_func is sage.categories.coercion_methods.Modules__rmul__
         True
 
-    .. TODO:: make a better unit test once Modules().example() is implemented
+    .. TODO::
+
+        Make a better unit test once ``Modules().example()`` is implemented.
     """
     return coercion_model.bin_op(left, right, operator.mul)
 
@@ -162,7 +166,7 @@ def __mul__(Element self, right):
     - ``self`` -- an element of a :class:`magma <Magmas>`
     - ``right`` -- an object
 
-    This calls the `_mul_` method of ``self``, if it is
+    This calls the ``_mul_`` method of ``self``, if it is
     available and the two elements have the same parent
     (see :meth:`Magmas.ElementMethods._mul_`).
 
@@ -184,8 +188,8 @@ def __mul__(Element self, right):
         - :meth:`Magmas.ElementMethods._mul_parent`
         - :meth:`Magmas.ParentMethods.product`
 
-    This is `Magmas.ElementMethods.__mul__`, implemented as a Cython
-    method in :mod:`sage.categories.coercion_methods`::
+    This is :meth:`Magmas.ElementMethods.__mul__`, implemented as a
+    Cython method in :mod:`sage.categories.coercion_methods`::
 
         sage: x.__mul__.im_func is Magmas.ElementMethods.__mul__.im_func
         True
@@ -229,9 +233,8 @@ def _mul_parent(Element self, other):
         - :meth:`Magmas.ElementMethods._mul_parent`
         - :meth:`Magmas.ParentMethods.product`
 
-
-    This is `Magmas.ElementMethods._mul_parent`, implemented as a Cython
-    method in :mod:`sage.categories.coercion_methods`::
+    This is :meth:`Magmas.ElementMethods._mul_parent`, implemented as
+    a Cython method in :mod:`sage.categories.coercion_methods`::
 
         sage: x._mul_parent.im_func is Magmas.ElementMethods._mul_parent.im_func
         True
@@ -282,7 +285,7 @@ def __truediv__(left, right):
         (x0*x1^-1, 1)
 
     Depending on how the division itself is implemented in
-    :meth:`_div_`, division may fail even when ``right``
+    ``_div_``, division may fail even when ``right``
     actually divides ``left``::
 
         sage: x = cartesian_product([2, 1])
@@ -294,8 +297,8 @@ def __truediv__(left, right):
         ...
         TypeError: no conversion of this rational to integer
 
-    This is `Magmas.Unital.ElementMethods.__truediv__`, implemented as a Cython
-    method in :mod:`sage.categories.coercion_methods`::
+    This is :meth:`Magmas.Unital.ElementMethods.__truediv__`, implemented
+    as a Cython method in :mod:`sage.categories.coercion_methods`::
 
         sage: x.__truediv__.im_func is Magmas.Unital.ElementMethods.__truediv__.im_func
         True

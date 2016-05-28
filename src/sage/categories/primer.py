@@ -922,22 +922,22 @@ to use Sage's introspection tools to recover where it's implemented::
     sage: x.__pow__.__module__
     'sage.categories.semigroups'
 
-``__mul`` is a generic method provided by the :class:`Magmas` category
-(a *magma* is a set with an inner law `*`, not necessarily
+``__mul__`` is a generic method provided by the :class:`Magmas`
+category (a *magma* is a set with an inner law `*`, not necessarily
 associative). If the two arguments are in the same parent, it will
-call the method `_mul_`, and otherwise let the :mod:`coercion model
-<sage.structure.coerce>`_ try to discover how to do the
+call the method ``_mul_``, and otherwise let the :mod:`coercion model
+<sage.structure.coerce>` try to discover how to do the
 multiplication::
 
-    sage: x.__mul__ ??                          # not tested
+    sage: x.__mul__??                          # not tested
 
-Since it's a speed critical method, it's implemented in Cython in a
-separate file::
+Since it is a speed critical method, it is implemented in Cython
+in a separate file::
 
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
 
-But we can check that it's indeed provided by the Magmas category::
+But we can check that it is indeed provided by the Magmas category::
 
     sage: x.__mul__.im_func is Magmas.ElementMethods.__mul__.im_func
     True

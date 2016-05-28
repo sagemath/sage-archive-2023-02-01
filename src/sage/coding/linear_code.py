@@ -269,45 +269,12 @@ def code2leon(C):
     return file_loc
 
 def wtdist_gap(Gmat, n, F):
-    r"""
-    INPUT:
-
-    -  ``Gmat`` - String representing a GAP generator matrix G of a linear code
-
-    -  ``n`` - Integer greater than 1, representing the number of columns of G
-       (i.e., the length of the linear code)
-
-    -  ``F`` - Finite field (in Sage), base field the code
-
-    OUTPUT:
-
-    -  Spectrum of the associated code
-
-    EXAMPLES::
-
-        sage: Gstr = 'Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]'
-        sage: F = GF(2)
-        sage: sage.coding.linear_code.wtdist_gap(Gstr, 7, F)
-        [1, 0, 0, 7, 7, 0, 0, 1]
-
-    Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
-
-    ALGORITHM:
-
-    Uses C programs written by Steve Linton in the kernel of GAP, so is fairly
-    fast.
-
-    AUTHORS:
-
-    - David Joyner (2005-11)
-    """
-    G = gap(Gmat)
-    q = F.order()
-    k = gap(F)
-    z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
-    _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
-    return v
+    from sage.misc.superseded import deprecation
+    deprecation(20565, "wtdist_gap is now deprecated. Please use AbstractLinearCode._spectrum_from_gap instead.")
+    G_gap = gap(Gmat)
+    G = G_gap._matrix_(F)
+    C = LinearCode(G)
+    return C._spectrum_from_gap()
 
 def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     r"""
@@ -3214,6 +3181,38 @@ class AbstractLinearCode(module.Module):
         Cdp = Cd.punctured(set(L))
         return Cdp.dual_code()
 
+    def _spectrum_from_gap(self):
+        r"""
+        Returns the weight distribution of the associated code. Uses the C programs 
+        available in the kernel of GAP and thus is fairly fast.
+        
+        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
+        where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
+        
+        OUTPUT:
+        - a vector of integers, the weight distribution of the code
+        
+        EXAMPLES::
+            sage: from sage.interfaces.all import gap
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C._spectrum_from_gap()
+            [1, 0, 0, 7, 7, 0, 0, 1]
+        
+        AUTHORS:
+
+        - David Joyner (2005-11)
+        """
+        Gmat = self.generator_matrix()._gap_init_()
+        G = gap(Gmat)
+        q = self.base_ring().order()
+        k = gap(self.base_ring())
+        z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
+        _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
+        v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
+        return v
+
     def spectrum(self, algorithm=None):
         r"""
         Returns the spectrum of ``self`` as a list.
@@ -3275,13 +3274,11 @@ class AbstractLinearCode(module.Module):
                 algorithm = "binary"
             else:
                 algorithm = "gap"
-        n = self.length()
         F = self.base_ring()
+        n = self.length()
         G = self.generator_matrix()
         if algorithm=="gap":
-            Gstr = G._gap_init_()
-            spec = wtdist_gap(Gstr,n,F)
-            return spec
+            return self._spectrum_from_gap()
         elif algorithm=="binary":
             from sage.coding.binary_code import weight_dist
             return weight_dist(self.generator_matrix())

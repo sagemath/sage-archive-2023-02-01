@@ -363,13 +363,13 @@ cdef class CircuitClosuresMatroid(Matroid):
 
         NPUT:
 
-        - ``other`` -- A matroid, 
+        - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean, 
-        and, if certificate = True, a dictionary or None
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
 
         .. NOTE::
 
@@ -382,12 +382,16 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: M1._is_isomorphic(M2, True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: M1 = CircuitClosuresMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
+            sage: M1._is_isomorphic(M2, Certificate=True)
+            (False, None)
             sage: M1._is_isomorphic(M2, True)
             (False, None)
 

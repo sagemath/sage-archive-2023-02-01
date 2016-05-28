@@ -1033,13 +1033,13 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
         INPUT:
 
-        - ``other`` -- A matroid, 
+        - ``other`` -- A matroid,
         - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean, 
-        and, if certificate = True, a dictionary or None
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
 
         .. NOTE::
 
@@ -1052,6 +1052,8 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: N = BasisMatroid(matroids.named_matroids.Fano())
             sage: M._is_isomorphic(N)
             False
+            sage: M._is_isomorphic(N, certificate=True)
+            (False, None)
             sage: M._is_isomorphic(N, True)
             (False, None)
         """

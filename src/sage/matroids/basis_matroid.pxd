@@ -38,7 +38,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     cpdef _is_relaxation(self, M, morphism)
     cpdef _is_isomorphism(self, M, morphism)
     cpdef _isomorphism(self, other)
-    cpdef _is_isomorphic(self, other, cert=*)
+    cpdef _is_isomorphic(self, other, certificate=*)
 
 
 cdef  binom_init(long n, long k)

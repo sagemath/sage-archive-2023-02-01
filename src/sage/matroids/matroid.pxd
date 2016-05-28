@@ -103,8 +103,8 @@ cdef class Matroid(SageObject):
     cpdef no_broken_circuits_sets(self, ordering=*)
 
     # isomorphism
-    cpdef is_isomorphic(self, other, cert=*)
-    cpdef _is_isomorphic(self, other, cert=*)
+    cpdef is_isomorphic(self, other, certificate=*)
+    cpdef _is_isomorphic(self, other, certificate=*)
     cpdef isomorphism(self, other)
     cpdef _isomorphism(self, other)
     cpdef equals(self, other)

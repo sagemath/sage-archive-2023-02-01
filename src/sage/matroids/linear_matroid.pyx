@@ -2691,7 +2691,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                         cert.add(dX[x])
                     for y in cert_pair[1]:
                         cert.add(dY[y])
-                    return False, certificate
+                    return False, cert
                 return False
         if certificate:
             return True, None

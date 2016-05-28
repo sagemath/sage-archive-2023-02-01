@@ -163,9 +163,9 @@ cdef class Matroid(SageObject):
     cpdef is_k_closed(self, int k)
 
     # matroid chordality
-    cpdef _is_circuit_chordal(self, frozenset C)
-    cpdef is_circuit_chordal(self, C)
-    cpdef is_chordal(self, k1=*, k2=*)
+    cpdef _is_circuit_chordal(self, frozenset C, certificate=*)
+    cpdef is_circuit_chordal(self, C, certificate=*)
+    cpdef is_chordal(self, k1=*, k2=*, certificate=*)
     cpdef chordality(self)
 
     # optimization

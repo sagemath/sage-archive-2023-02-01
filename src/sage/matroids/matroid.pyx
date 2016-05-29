@@ -6145,13 +6145,9 @@ cdef class Matroid(SageObject):
             False
             sage: M._is_circuit_chordal(frozenset(['b','c','d']), certificate=True)
             (False, None)
-            sage: M._is_circuit_chordal(frozenset(['b','c','d']), True)
-            (False, None)
             sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
             True
             sage: M._is_circuit_chordal(frozenset(['a','b','d','e']), certificate=True)
-            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
-            sage: M._is_circuit_chordal(frozenset(['a','b','d','e']), True)
             (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         cdef set X
@@ -6197,13 +6193,9 @@ cdef class Matroid(SageObject):
             False
             sage: M.is_circuit_chordal(['b','c','d'], certificate=True)
             (False, None)
-            sage: M.is_circuit_chordal(['b','c','d'], True)
-            (False, None)
             sage: M.is_circuit_chordal(['a','b','d','e'])
             True
             sage: M.is_circuit_chordal(['a','b','d','e'], certificate=True)
-            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
-            sage: M.is_circuit_chordal(['a','b','d','e'], True)
             (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         if not self.is_circuit(C):
@@ -6246,8 +6238,6 @@ cdef class Matroid(SageObject):
             sage: M.is_chordal(4, 5)
             False
             sage: M.is_chordal(4, 5, certificate=True)
-            (False, frozenset({'a', 'b', 'e', 'f', 'g'}))
-            sage: M.is_chordal(4, 5, True)
             (False, frozenset({'a', 'b', 'e', 'f', 'g'}))
         """
         cdef frozenset C

@@ -714,23 +714,23 @@ class Sha(SageObject):
         Return the order of the `p`-primary part of the Tate-Shafarevich
         group.
 
-        This uses the result of Skinner and Urban [SU_] on the
+        This uses the result of Skinner and Urban [SU]_ on the
         main conjecture in Iwasawa theory. In particular the elliptic
         curve must have good ordinary reduction at `p`, the residual
         Galois representation must be surjective. Furthermore there must
-        be an auxillary prime `\ell` dividing the conductor of the curve
-        exactly oncesuch that the residual representation is ramified
+        be an auxiliary prime `\ell` dividing the conductor of the curve
+        exactly once such that the residual representation is ramified
         at `p`.
 
         INPUT:
 
-        - ``p`` -- an odd prime
+        - `p` -- an odd prime
 
         OUTPUT:
 
-        - ``e`` -- a non-negative integer such that `p^e` is the
+        - `e` -- a non-negative integer such that `p^e` is the
           order of the `p`-primary order if the conditions are satisfied
-          and raises a ValueError otherwise.
+          and raises a ``ValueError`` otherwise.
 
         EXAMPLES::
 
@@ -748,29 +748,28 @@ class Sha(SageObject):
 
         REFERENCES:
 
-        .. [SU] Christopher Skinnerand Eric Urban,
+        .. [SU] Christopher Skinner and Eric Urban,
            The Iwasawa main conjectures for GL2.
-           Invent. Math. 195 (2014), no. 1, 1–277.
+           Invent. Math. 195 (2014), no. 1, 1-277.
         """
         E = self.E
         # does not work if p = 2
         if p == 2:
-            raise ValueError("%s is not an odd prime"%p)
+            raise ValueError("{} is not an odd prime".format(p))
         if (E.is_ordinary(p) and
             E.conductor() % p != 0 and
-            E.galois_representation().is_surjective(p) ):
+            E.galois_representation().is_surjective(p)):
             N = E.conductor()
             fac = N.factor()
-            # the auxillary prime will be one dividing the conductor
-            if all( E.tate_curve(ell).parameter().valuation() % p == 0
-                    for (ell, e) in fac if e == 1 ):
-                raise ValueError("The order is not provably known using Skinner-Urban. \n" +
+            # the auxiliary prime will be one dividing the conductor
+            if all(E.tate_curve(ell).parameter().valuation() % p == 0
+                   for (ell, e) in fac if e == 1):
+                raise ValueError("The order is not provably known using Skinner-Urban.\n" +
                                  "Try running p_primary_bound to get a bound.")
         else:
-             raise ValueError("The order is not provably known using Skinner-Urban. \n" +
+             raise ValueError("The order is not provably known using Skinner-Urban.\n" +
                               "Try running p_primary_bound to get a bound.")
         return self.p_primary_bound(p)
-
 
     def p_primary_bound(self, p):
         r"""

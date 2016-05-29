@@ -21,7 +21,7 @@ Hay tres formas de construir anillos de polinomios.
     Univariate Polynomial Ring in t over Rational Field
 
 De esta forma creamos un anillo de polinomios en una variable, y pedimos
-que esta variable se muestre por pantalla como 't'. Sin embargo, de esta forma
+que esta variable se muestre por pantalla como ``t``. Sin embargo, de esta forma
 no se define ``t`` como variable simbólica en Sage, y no se puede usar este
 símbolo para escribr polinomios de ``R``  como por ejemplo  :math:`t^2+1`.
 
@@ -58,7 +58,7 @@ o incluso
 Todas estas formas tienen el efecto añadido de definir la variable ``t`` como
 la indeterminada del anillo de polinomios, lo que hace más sencillo definir
 elementos de ``R``. (Esta tercera forma es similar a la notación
-de Magma, y al igual que en Magma se puede usar para una amplia variedad de
+de Magma [MAGMA]_ , y al igual que en Magma se puede usar para una amplia variedad de
 objetos.)
 
 .. link
@@ -326,3 +326,4 @@ podemos calcular la descomposición primaria y los primos asociados a :math:`I`:
 .. [Si] Singular es un sistema de álgebra computerizado para cálculos con
         polinomios, http://www.singular.uni-kl.de
 
+.. [MAGMA] Sistema de algebra computacional, http://magma.maths.usyd.edu.au/magma/

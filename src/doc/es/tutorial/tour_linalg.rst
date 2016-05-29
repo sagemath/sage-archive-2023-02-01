@@ -90,7 +90,7 @@ Sage también puede calcular autovalores ("eigenvalues") y autovectores
 (La sintaxis de la salida de ``eigenvectors_left`` es una lista de
 tuplas: (autovalor, autovector, multiplicidad).)  Los autovalores
 y autovectores sobre ``QQ`` o ``RR`` también se pueden calcular
-usando Maxima.
+usando Maxima [MAX]_.
 
 Como ya indicamos en :ref:`section-rings`, el anillo sobre el que se 
 define una matriz afecta algunas de sus propiedades. En las líneas que 
@@ -237,3 +237,5 @@ El algoritmo multi-modular de Sage es bueno para matrices cuadradas
     sage: M = MatrixSpace(GF(2), 20, 40, sparse=True)
     sage: A = M.random_element()
     sage: E = A.echelon_form()
+
+.. [Max] Maxima, http://maxima.sf.net/

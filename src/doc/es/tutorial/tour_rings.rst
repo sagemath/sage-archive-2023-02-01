@@ -26,7 +26,7 @@ con polinomios con coeficientes racionales, el polinomio es irreducible.
 Sin embargo, si los coeficientes son números reales, el polinomio factoriza 
 como producto de dos factores lineales. En el siguiente ejemplo, los conjuntos
 de polinomios se llaman "ratpoly" y "realpoly", aunque no usaremos estos 
-nombres; observa sin embargoque las cadenas ".<t>" y ".<z>" sirven para dar
+nombres; observa sin embargo que las cadenas ".<t>" y ".<z>" sirven para dar
 nombre a las variables usadas en cada caso. ::
 
     sage: ratpoly.<t> = PolynomialRing(QQ)
@@ -108,7 +108,7 @@ enteros no::
     True
 
 El número decimal ``1.2`` se considera que está en ``QQ``: los números 
-decimales, que también son racionales, se pueden convertir a racionales d
+decimales, que también son racionales, se pueden convertir a racionales de
 forma automática. Sin embargo, los números `\pi` y `\sqrt{2}` no son 
 racionales::
 

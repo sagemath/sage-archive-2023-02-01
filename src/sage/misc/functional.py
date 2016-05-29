@@ -34,7 +34,7 @@ import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
 
-from six.moves import builtins
+import __builtin__
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -1482,12 +1482,12 @@ def round(x, ndigits=0):
     """
     try:
         if ndigits:
-            return RealDoubleElement(builtins.round(x, ndigits))
+            return RealDoubleElement(__builtin__.round(x, ndigits))
         else:
             try:
                 return x.round()
             except AttributeError:
-                return RealDoubleElement(builtins.round(x, 0))
+                return RealDoubleElement(__builtin__.round(x, 0))
     except ArithmeticError:
         if not isinstance(x, RealDoubleElement):
             return round(RDF(x), ndigits)

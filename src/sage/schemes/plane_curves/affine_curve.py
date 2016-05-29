@@ -93,7 +93,6 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
 
 class AffineCurve_generic(AffineSpaceCurve_generic):
     def __init__(self, A, f):
-        P = f.parent()
         if not (is_AffineSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be an affine plane."%A)
         Curve_generic.__init__(self, A, [f])

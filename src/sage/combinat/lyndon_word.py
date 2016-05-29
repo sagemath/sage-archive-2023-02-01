@@ -20,7 +20,7 @@ from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import Integer
 from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
-import __builtin__
+from six.moves import builtins
 import necklace
 from integer_vector import IntegerVectors
 
@@ -286,7 +286,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             True
         """
         evaluation = self._e
-        le = __builtin__.list(evaluation)
+        le = builtins.list(evaluation)
         if len(evaluation) == 0:
             return 0
 

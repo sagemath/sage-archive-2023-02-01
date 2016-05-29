@@ -1618,13 +1618,13 @@ class LazyPowerSeries(AlgebraElement):
             sage: a.restricted(min=2, max=6).coefficients(10)
             [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
         """
-        import __builtin__
+        from six.moves import builtin
         if ((min is None and max is None) or
             (max is None and self.get_aorder() >= min)):
             return self
 
         return self._new(partial(self._restricted_gen, min, max),
-                         lambda ao: __builtin__.max(ao, min), self)
+                         lambda ao: builtins.max(ao, min), self)
 
     def _restricted_gen(self, mn, mx, ao):
         """

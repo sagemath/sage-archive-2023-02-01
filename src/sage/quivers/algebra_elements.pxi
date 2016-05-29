@@ -860,7 +860,8 @@ cdef bint poly_iadd_d(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms) 
             return 1
         elif T2 == NULL:
             if P2.nterms != 0:
-                print("term counting of second summand was wrong!", P2.nterms)
+                print("term counting of second summand was wrong! " +
+                      str(P2.nterms))
             P2.lead = NULL
             return 1
         c = cmp_terms(T1.mon, T2.mon)

@@ -99,7 +99,7 @@ _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
 
 try:
     sitepackages_dirs = site.getsitepackages()
-except:  # in case of use inside virtualenv
+except AttributeError:  # in case of use inside virtualenv
     sitepackages_dirs = [os.path.join(os.path.dirname(site.__file__),
                                      'site-packages')]
 _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)

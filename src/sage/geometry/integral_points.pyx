@@ -11,6 +11,7 @@ Cython helper methods to compute integral points in polyhedra.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import copy
 import itertools
@@ -1366,10 +1367,8 @@ cpdef print_cache(InequalityCollection inequality_collection):
         Cached next-to-inner loop: 3 * x_0 + 7 * x_1 + 2 >= 0
     """
     cdef Inequality_int ieq = <Inequality_int>(inequality_collection.ineqs_int[0])
-    print 'Cached inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0'
-    print 'Cached next-to-inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + \
-        str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0'
-
-
+    print('Cached inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0')
+    print('Cached next-to-inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' +
+          str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0')

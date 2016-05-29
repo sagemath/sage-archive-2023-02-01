@@ -25,6 +25,7 @@ TODO:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import copy
 from sage.structure.sage_object import SageObject
@@ -399,10 +400,10 @@ class Dokchitser(SageObject):
             pass
         z = self.gp().eval('L(%s)'%s)
         if 'pole' in z:
-            print z
+            print(z)
             raise ArithmeticError
         elif '***' in z:
-            print z
+            print(z)
             raise RuntimeError
         elif 'Warning' in z:
             i = z.rfind('\n')

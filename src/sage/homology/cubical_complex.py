@@ -68,6 +68,7 @@ REFERENCES:
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
 """
+from __future__ import print_function
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -1197,7 +1198,7 @@ class CubicalComplex(GenericCellComplex):
         # now loop from 1 to dimension of the complex
         for dim in range(1,self.dimension()+1):
             if verbose:
-                print "  starting dimension %s" % dim
+                print("  starting dimension %s" % dim)
             if (dim, subcomplex) in self._complex:
                 if cochain:
                     differentials[dim-1] = self._complex[(dim, subcomplex)].transpose().change_ring(base_ring)
@@ -1206,7 +1207,7 @@ class CubicalComplex(GenericCellComplex):
                     differentials[dim] = self._complex[(dim, subcomplex)].change_ring(base_ring)
                     mat = differentials[dim]
                 if verbose:
-                    print "    boundary matrix (cached): it's %s by %s." % (mat.nrows(), mat.ncols())
+                    print("    boundary matrix (cached): it's %s by %s." % (mat.nrows(), mat.ncols()))
             else:
                 # 'current' is the list of cells in dimension n
                 #
@@ -1241,7 +1242,7 @@ class CubicalComplex(GenericCellComplex):
                 else:
                     differentials[dim] = mat.change_ring(base_ring)
                 if verbose:
-                    print "    boundary matrix computed: it's %s by %s." % (mat.nrows(), mat.ncols())
+                    print("    boundary matrix computed: it's %s by %s." % (mat.nrows(), mat.ncols()))
         # finally, return the chain complex
         if cochain:
             return ChainComplex(data=differentials, base_ring=base_ring,

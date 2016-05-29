@@ -866,7 +866,7 @@ class AffineSpace_field(AffineSpace_generic):
         INPUT:
 
         - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
-            of this affine space.
+          of this affine space.
 
         EXAMPLES::
 

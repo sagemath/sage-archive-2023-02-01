@@ -67,8 +67,9 @@ def Curve(F, A=None):
     is projective.
 
     INPUT:
-    - ``F`` -- a multivariate polynomial, or a list or tuple of polynomials,
-    or an algebraic scheme.
+
+    - ``F`` -- a multivariate polynomial, or a list or tuple of polynomials, or an algebraic scheme.
+
     - ``A`` -- (default: None) an ambient space in which to create the curve.
 
     EXAMPLE: A projective plane curve

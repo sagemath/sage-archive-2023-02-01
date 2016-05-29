@@ -1618,7 +1618,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: a.restricted(min=2, max=6).coefficients(10)
             [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
         """
-        from six.moves import builtin
+        from six.moves import builtins
         if ((min is None and max is None) or
             (max is None and self.get_aorder() >= min)):
             return self

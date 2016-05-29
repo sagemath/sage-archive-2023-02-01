@@ -91,9 +91,9 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
       -x1^2 + x0*x2
       To:   Closed subscheme of Projective Space of dimension 3
       over Rational Field defined by:
-      -x1^2 + x0*x2,
-      -x1*x2 + x0*x3,
-      -x2^2 + x1*x3
+      x1^2 - x0*x2,
+      x1*x2 - x0*x3,
+      x2^2 - x1*x3
       Defn: Defined on coordinates by sending (x0, x1, x2) to
             (1 : x0 : x1 : x2)
 
@@ -1863,6 +1863,25 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               u0^2 - u2*u3
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : 1 : y : z)
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(3,QQ)
+            sage: X = A.subscheme([y-x^2,z-x^3])
+            sage: X.projective_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 3 over Rational
+            Field defined by:
+              -x^2 + y,
+              -x^3 + z
+              To:   Closed subscheme of Projective Space of dimension 3 over
+            Rational Field defined by:
+              x0^2 - x1*x3,
+              x0*x1 - x2*x3,
+              x1^2 - x0*x2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x : y : z : 1)
+
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1890,18 +1909,51 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         elif PP.dimension_relative() != n:
             raise ValueError("Projective Space must be of dimension %s"%(n))
         PR = PP.coordinate_ring()
+        # Groebner basis w.r.t. a graded monomial order computed here to ensure
+        # after homogenization, the basis elements will generate the defining
+        # ideal of the projective closure of this affine subscheme
+        R = AA.coordinate_ring().change_ring(order='degrevlex')
+        G = R.ideal([R(f) for f in self.defining_polynomials()]).groebner_basis()
         v = list(PP.gens())
         z = v.pop(i)
-        R = AA.coordinate_ring()
         phi = R.hom(v,PR)
         v.append(z)
-        polys = self.defining_polynomials()
-        X = PP.subscheme([phi(f).homogenize(i) for f in polys ])
+        X = PP.subscheme([phi(f).homogenize(i) for f in G])
         v = list(R.gens())
         v.insert(i, R(1))
         phi = self.hom(v, X)
         self.__projective_embedding[i] = phi
         return phi
+
+    def projective_closure(self,i=None):
+        r"""
+        Return the projective closure of this affine subscheme.
+
+        INPUT:
+
+        - ``i`` -- (default: None) determines the embedding to use to compute the projective
+          closure of this affine subscheme. The embedding used is the one which has a 1 in the
+          i-th coordinate, numbered from 0.
+
+        OUTPUT:
+
+        - a projective subscheme.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ,4)
+            sage: X = A.subscheme([x^2 - y, x*y - z, y^2 - w, x*z - w, y*z - x*w, z^2 - y*w])
+            sage: X.projective_closure()
+            Closed subscheme of Projective Space of dimension 4 over Rational Field
+            defined by:
+              x0^2 - x1*x4,
+              x0*x1 - x2*x4,
+              x1^2 - x3*x4,
+              x0*x2 - x3*x4,
+              x1*x2 - x0*x3,
+              x2^2 - x1*x3
+        """
+        return self.projective_embedding(i).codomain()
 
     def is_smooth(self, point=None):
         r"""

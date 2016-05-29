@@ -1124,8 +1124,6 @@ cdef class Matroid(SageObject):
             True
             sage: M._has_minor(matroids.Uniform(2, 4), certificate=True)
             (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
-            sage: M._has_minor(matroids.Uniform(2, 4), True)
-            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
 
         .. TODO::
 

@@ -91,7 +91,7 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         from constructor import Curve
         return Curve([phi(f).homogenize(x) for f in G])
 
-class AffineCurve_generic(Curve_generic):
+class AffineCurve_generic(AffineSpaceCurve_generic):
     def __init__(self, A, f):
         P = f.parent()
         if not (is_AffineSpace(A) and A.dimension != 2):

@@ -47,12 +47,12 @@ class ProjectiveSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_proj
 
     def affine_patch(self, i):
         r"""
-        Return the `i`th affine patch of this projective curve.
+        Return the i-th affine patch of this projective curve.
 
         INPUT:
 
         - ``i`` - affine coordinate chart of the projective ambient space of this curve to compute affine patch
-        with respect to.
+          with respect to.
 
         OUTPUT:
 
@@ -60,20 +60,21 @@ class ProjectiveSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_proj
 
         EXAMPLES::
 
-            sage: P.<x,y,z,w> = ProjectiveSpace(CC,3)
-            sage: C = Curve([y*z - x^2,w^2 - x*y])
+            sage: P.<x,y,z,w> = ProjectiveSpace(CC, 3)
+            sage: C = Curve([y*z - x^2, w^2 - x*y], P)
             sage: C.affine_patch(0)
             Affine Space Curve over Complex Field with 53 bits of precision defined by
             x0*x1 - 1.00000000000000, x2^2 - x0
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
+            sage: C.affine_patch(1)
+            Affine Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
         """
-        I = self.defining_ideal()
-        A = self.ambient_space().affine_patch(i)
-        H = Hom(self.ambient_space().coordinate_ring(), A.coordinate_ring())
-        l = list(A.coordinate_ring().gens())
-        l.insert(i, A.coordinate_ring()(1))
-        phi = H(l)
         from constructor import Curve
-        return Curve([phi(f) for f in I.gens()])
+        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i))
 
 class ProjectiveCurve_generic(ProjectiveSpaceCurve_generic):
     def __init__(self, A, f):

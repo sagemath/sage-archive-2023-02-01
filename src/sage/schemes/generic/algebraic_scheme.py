@@ -1866,8 +1866,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: A.<x,y,z> = AffineSpace(3,QQ)
-            sage: X = A.subscheme([y-x^2,z-x^3])
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([y - x^2, z - x^3])
             sage: X.projective_embedding()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 3 over Rational

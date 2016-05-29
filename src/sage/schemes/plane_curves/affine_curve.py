@@ -55,8 +55,8 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         INPUT:
 
-        - ``i`` - the index of the affine coordinate chart of the projective space that the affine ambient space
-        of this curve embeds into.
+        - ``i`` - (default: 0) the index of the affine coordinate chart of the projective space that the affine ambient space
+          of this curve embeds into.
 
         OUTPUT:
 
@@ -64,32 +64,30 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = AffineSpace(CC,3)
-            sage: C = Curve([x-y,z-2])
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y-x^2,z-x^3], A)
             sage: C.projective_closure()
-            Projective Space Curve over Complex Field with 53 bits of precision defined by
-            x1 - x2, (-2.00000000000000)*x0 + x3
+            Projective Space Curve over Rational Field defined by x1^2 - x0*x2,
+            x1*x2 - x0*x3, x2^2 - x1*x3
 
         ::
 
-            sage: A.<x,y,z> = AffineSpace(QQ,3)
-            sage: C = Curve([y-x^2,z-x^3])
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y - x^2, z - x^3], A)
             sage: C.projective_closure()
             Projective Space Curve over Rational Field defined by
             x1^2 - x0*x2, x1*x2 - x0*x3, x2^2 - x1*x3
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: C = Curve(y - x^3 + x - 1, A)
+            sage: C.projective_closure(1)
+            Projective Curve over Complex Field with 53 bits of precision defined by
+            x0^3 - x0*x1^2 + x1^3 - x1^2*x2
         """
-        I = self.defining_ideal()
-        # compute a Groebner basis of this ideal with respect to a graded monomial order
-        R = self.ambient_space().coordinate_ring().change_ring(order='degrevlex')
-        P = self.ambient_space().projective_embedding(i).codomain()
-        RH = P.coordinate_ring()
-        G = R.ideal([R(f) for f in I.gens()]).groebner_basis()
-        H = Hom(R,RH)
-        l = list(RH.gens())
-        x = l.pop(i)
-        phi = H(l)
         from constructor import Curve
-        return Curve([phi(f).homogenize(x) for f in G])
+        return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i))
 
 class AffineCurve_generic(AffineSpaceCurve_generic):
     def __init__(self, A, f):

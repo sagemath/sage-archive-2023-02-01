@@ -75,9 +75,11 @@ Non-associative algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/lie_algebras
    sage/algebras/jordan_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
+

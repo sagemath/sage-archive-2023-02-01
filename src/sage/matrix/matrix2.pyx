@@ -9789,8 +9789,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         of `A-xI`, where `x` is an eigenvalue of the matrix `A`.  If desired,
         a transformation matrix `P` can be returned, which is such that the
         Jordan canonical form is given by `P^{-1} A P`; if the matrix is
-	diagonalizable, this equals to *eigendecomposition* or *spectral
-	decomposition*.
+        diagonalizable, this equals to *eigendecomposition* or *spectral
+        decomposition*.
 
         INPUT:
 

@@ -116,12 +116,15 @@ import os
 from os.path import getmtime
 
 from .generator import InterpreterGenerator, AUTOGEN_WARN
-from .specs.cdf import CDFInterpreter
-from .specs.element import ElementInterpreter
-from .specs.python import PythonInterpreter
-from .specs.rdf import RDFInterpreter
-from .specs.rr import RRInterpreter
-from .utils import write_if_changed
+from .instructions import *
+from .memory import *
+from .specs.cdf import *
+from .specs.element import *
+from .specs.python import *
+from .specs.rdf import *
+from .specs.rr import *
+from .storage import *
+from .utils import *
 
 
 def build_interp(interp_spec, dir):

@@ -72,6 +72,7 @@ import os
 import six
 import time
 from sage.repl.load import load, load_wrap
+import sage.repl.inputhook
 import sage.env
 
 # The attached files as a dict of {filename:mtime}
@@ -362,6 +363,7 @@ def add_attached_file(filename):
         sage: af.attached_files()
         []
     """
+    sage.repl.inputhook.install()
     fpath = os.path.abspath(filename)
     attached[fpath] = os.path.getmtime(fpath)
 
@@ -464,6 +466,8 @@ def detach(filename):
             attached.pop(fpath)
         else:
             raise ValueError("file '{0}' is not attached, see attached_files()".format(filename))
+    if not attached:
+        sage.repl.inputhook.uninstall()
 
 def reset():
     """

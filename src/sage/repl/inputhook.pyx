@@ -27,7 +27,7 @@ cdef extern from 'intrcheck.h':
 
 from cpython.exc cimport PyErr_SetInterrupt
 
-from sage.repl.attach import reload_attached_files_if_modified
+import sage.repl.attach
 
 
 cdef int c_sage_inputhook() nogil except -1:
@@ -100,7 +100,7 @@ def sage_inputhook():
         []
         sage: shell.quit()
     """
-    reload_attached_files_if_modified()
+    sage.repl.attach.reload_attached_files_if_modified()
     return 0
 
 

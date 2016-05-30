@@ -1489,16 +1489,22 @@ class SimplicialComplex(Parent, GenericCellComplex):
         Compute the `f`-triangle of ``self``.
 
         The `f`-triangle is given by `f_{i,j}` being the number of
-        faces of size `j` which are a subface of a facet of size `i`.
+        faces `F` of size `j` such that `i = \max_{G \subseteq F} |G|`.
 
         EXAMPLES::
 
             sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4], [1,5], [2,4], [2,5]])
-            sage: X.f_triangle()
+            sage: X.f_triangle()  ## this complex is not pure
             [[0],
              [0, 0],
              [0, 0, 4],
              [1, 5, 6, 2]]
+
+        A complex is pure if and only if the last row is nonzero::
+
+            sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4,5]])
+            sage: X.f_triangle()
+            [[0], [0, 0], [0, 0, 0], [1, 5, 8, 3]]
         """
         ret = [[0]*(i+1) for i in range(self.dimension() + 2)]
         facets = [set(F) for F in self.facets()]
@@ -1507,10 +1513,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             for f in faces[d]:
                 f = set(f)
                 L = [len(F) for F in facets if f.issubset(F)]
-                if not L:
-                    i = 0
-                else:
-                    i = max(L)
+                i = max(L)
                 ret[i][len(f)] += 1
         return ret
 
@@ -2949,7 +2952,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.restriction_sets(b)
             Traceback (most recent call last):
             ...
-            ValueError: the complex must be shellable
+            ValueError: not a shelling order
         """
         # It starts with the first empty
         restrictions = [()]
@@ -2964,7 +2967,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 intersection = cur_complex.generated_subcomplex(list(common))
 
                 if not intersection.is_pure() or self.dimension() - 1 > intersection.dimension():
-                    raise ValueError("the complex must be shellable")
+                    raise ValueError("not a shelling order")
                 faces = SimplicialComplex([F]).faces()
                 for k,v in intersection.faces().items():
                     faces[k] = faces[k].difference(v)

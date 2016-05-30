@@ -2200,6 +2200,48 @@ class Link(object):
                 if len(set(G.vertices()[i]).intersection(G.vertices()[j])) > 0:
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
+    
+    def homfly_polynomial(self, variables = 'L,M'):
+        """
+        Return the HOMFLY polynomial of the link.
+
+        INPUT:
+        
+        - ``variables`` -- the variables of the polynomial. By default they are ``L`` and ``M``
+
+        OUTPUT:
+        
+        A Laurent Polynomial over the integers.
+
+        EXAMPLES::
+        
+            sage: B = BraidGroup(2)
+            sage: K = Knot(B.0^5)
+            sage: K.homfly_polynomial()  # optional - libhomfly
+            L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
+            
+        ::
+        
+            sage: L = Link([[1,3,2,4],[4,2,3,1]])
+            sage: L.homfly_polynomial(variables = 'a,z')# optional - libhomfly
+            -a^-1*z + a^-1*z^-1 + a^-3*z^-1
+
+        NOTE: This function deppends on the optional package ``libhomfly``
+        """
+        L = LaurentPolynomialRing(ZZ, variables)
+        s = '{} '.format(self.number_of_components())
+        ogc = self.oriented_gauss_code()
+        for comp in ogc[0]:
+            s += '{} '.format(len(comp))
+            for cr in comp:
+                s += '{} {} '.format(abs(cr)-1, sign(cr))
+        for i, cr in enumerate(ogc[1]):
+            s += '{} {} '.format(i, cr)
+        from sage.libs.homfly import homfly_polynomial
+        from sage.misc.parser import Parser
+        parser = Parser(make_var={'L':L.gen(0), 'M':L.gen(1)})
+        return parser.parse(homfly_polynomial(s).replace('ML','M L'))
+
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):
         r"""

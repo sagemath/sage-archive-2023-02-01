@@ -248,8 +248,9 @@ class ExtendedCodeExtendedMatrixEncoder(Encoder):
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(11, 5, GF(7))
-            sage: D1 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(C)
-            sage: D2 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(C)
+            sage: Ce = codes.ExtendedCode(C)
+            sage: D1 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
+            sage: D2 = codes.encoders.ExtendedCodeExtendedMatrixEncoder(Ce)
             sage: D1.__eq__(D2)
             True
             sage: D1 is D2
@@ -452,7 +453,7 @@ class ExtendedCodeOriginalCodeDecoder(Decoder):
         Returns maximal number of errors that ``self`` can decode.
 
         INPUT:
-        
+
         - ``*args``, ``**kwargs`` -- arguments and optional arguments are
           forwarded to original decoder's ``decoding_radius`` method.
 

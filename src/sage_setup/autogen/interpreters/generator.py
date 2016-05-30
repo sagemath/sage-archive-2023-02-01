@@ -244,8 +244,7 @@ class InterpreterGenerator(object):
             {%- for ch in s.chunks %}
             {%    if not loop.first %},
                     {% endif %}{{ ch.declare_parameter() }}
-            {%- endfor %})
-            """), ret_ty=ret_ty, s=s)
+            {%- endfor %})"""), ret_ty=ret_ty, s=s)
 
     def write_interpreter(self, write):
         r"""

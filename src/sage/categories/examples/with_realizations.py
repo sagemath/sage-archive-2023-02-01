@@ -240,15 +240,34 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: from functools import cmp_to_key
             sage: A = Sets().WithRealizations().example(); A
             The subset algebra of {1, 2, 3} over Rational Field
-            sage: sorted(A.indices(), A.indices_cmp)
+            sage: sorted(A.indices(), key=cmp_to_key(A.indices_cmp))
             [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
         """
-        s = cmp(len(x), len(y))
+        s = (len(x) > len(y)) - (len(x) < len(y))
         if s != 0:
             return s
-        return cmp(list(x), list(y))
+        return (list(x) > list(y)) - (list(x) < list(y))
+
+    def indices_key(self, x):
+        r"""
+        A key function on a set which gives a linear extension
+        of the inclusion order.
+
+        INPUT:
+
+        - ``x`` -- set
+
+        EXAMPLES::
+
+            sage: A = Sets().WithRealizations().example(); A
+            The subset algebra of {1, 2, 3} over Rational Field
+            sage: sorted(A.indices(), key=A.indices_key)
+            [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+        """
+        return (len(x), list(x))
 
     def supsets(self, set):
         r"""
@@ -401,7 +420,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='F', monomial_cmp=A.indices_cmp)
+                category=A.Bases(), prefix='F', sorting_key=A.indices_key)
 
         def product_on_basis(self, left, right):
             r"""
@@ -489,7 +508,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='In', monomial_cmp=A.indices_cmp)
+                category=A.Bases(), prefix='In', sorting_key=A.indices_key)
 
     class Out(CombinatorialFreeModule, BindableClass):
         r"""
@@ -532,4 +551,4 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             """
             CombinatorialFreeModule.__init__(self,
                 A.base_ring(), A.indices(),
-                category=A.Bases(), prefix='Out', monomial_cmp=A.indices_cmp)
+                category=A.Bases(), prefix='Out', sorting_key=A.indices_key)

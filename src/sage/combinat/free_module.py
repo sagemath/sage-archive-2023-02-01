@@ -188,18 +188,19 @@ class CombinatorialFreeModuleElement(Element):
             sage: f = B['a'] + 2*B['c'] + 3 * B['b']
             sage: f._sorted_items_for_printing()
             [('a', 1), ('b', 3), ('c', 2)]
-            sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+            sage: F.print_options(sorting_reverse=True)
             sage: f._sorted_items_for_printing()
             [('c', 2), ('b', 3), ('a', 1)]
-            sage: F.print_options(generator_cmp=cmp) #reset to original state
+            sage: F.print_options(sorting_reverse=False) #reset to original state
 
         .. seealso:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
         v = self._monomial_coefficients.items()
         try:
-            v.sort(cmp = print_options['generator_cmp'],
-                   key = lambda monomial_coeff: monomial_coeff[0])
+            v.sort(key=lambda monomial_coeff:
+                        print_options['sorting_key'](monomial_coeff[0]),
+                   reverse=print_options['sorting_reverse'])
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
@@ -225,13 +226,13 @@ class CombinatorialFreeModuleElement(Element):
         function on elements of the support::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
-            ...                               generator_cmp = lambda x,y: cmp(y,x))
+            ....:                             sorting_reverse=True)
             sage: e = F.basis()
             sage: e['a'] + 3*e['b'] + 2*e['c']
             2*B['c'] + 3*B['b'] + B['a']
 
             sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
-            ...                               generator_cmp = lambda x,y: cmp(x[1],y[1]))
+            ....:                             sorting_key=lambda x: x[1])
             sage: e = F.basis()
             sage: e['ac'] + 3*e['ba'] + 2*e['cb']
             3*B['ba'] + 2*B['cb'] + B['ac']
@@ -301,7 +302,7 @@ class CombinatorialFreeModuleElement(Element):
             return s
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
@@ -330,13 +331,13 @@ class CombinatorialFreeModuleElement(Element):
         function on elements of the support::
 
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
-            ...                               generator_cmp = lambda x,y: cmp(y,x))
+            ....:                             sorting_reverse=True)
             sage: e = F.basis()
             sage: latex(e['a'] + 3*e['b'] + 2*e['c'])
             2B_{c} + 3B_{b} + B_{a}
 
             sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
-            ...                               generator_cmp = lambda x,y: cmp(x[1],y[1]))
+            ....:                             sorting_key=lambda x: x[1])
             sage: e = F.basis()
             sage: latex(e['ac'] + 3*e['ba'] + 2*e['cb'])
             3B_{ba} + 2B_{cb} + B_{ac}
@@ -907,10 +908,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: F = CombinatorialFreeModule(QQ, ['a','b'], prefix='x')
         sage: original_print_options = F.print_options()
         sage: sorted(original_print_options.items())
-        [('bracket', None), ('generator_cmp', <built-in function cmp>),
+        [('bracket', None),
          ('latex_bracket', False), ('latex_prefix', None),
          ('latex_scalar_mult', None), ('prefix', 'x'),
-         ('scalar_mult', '*'), ('string_quotes', True),
+         ('scalar_mult', '*'),
+         ('sorting_key', <function <lambda> at ...>),
+         ('sorting_reverse', False), ('string_quotes', True),
          ('tensor_symbol', None)]
 
         sage: e = F.basis()
@@ -927,7 +930,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: latex(e['a'] - 3 * e['b'])
         y_{a} - 3  y_{b}
 
-        sage: F.print_options(generator_cmp = lambda x,y: -cmp(x,y))
+        sage: F.print_options(sorting_reverse=True)
         sage: e['a'] - 3 * e['b']
         -3 x{'b'} + x{'a'}
         sage: F.print_options(**original_print_options) # reset print options
@@ -1091,8 +1094,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         kwds.pop('key', None)
         # This needs to be first as per #10127
         if 'monomial_cmp' in kwds:
-            kwds['generator_cmp'] = kwds['monomial_cmp']
+            from sage.misc.superseded import deprecation
+            deprecation(17229, "Option monomial_cmp is deprecated use sorting_key and sorting_reverse instead.")
+            from functools import cmp_to_key
+            kwds['sorting_key'] = cmp_to_key(kwds['monomial_cmp'])
             del kwds['monomial_cmp']
+        if 'monomial_key' in kwds:
+            kwds['sorting_key'] = kwds.pop('monomial_key')
+        if 'monomial_reverse' in kwds:
+            kwds['sorting_reverse'] = kwds.pop('monomial_reverse')
         IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
 
         if category is None:

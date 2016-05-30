@@ -50,9 +50,9 @@ class MemoryChunkRRRetval(MemoryChunk):
             sage: mc.declare_call_locals()
             u'        cdef RealNumber retval = (self.domain)()\n'
         """
-        return je(ri(0,
+        return je(ri(8,
             """
-                    cdef RealNumber {{ myself.name }} = (self.domain)()
+            cdef RealNumber {{ myself.name }} = (self.domain)()
             """), myself=self)
 
     def declare_parameter(self):

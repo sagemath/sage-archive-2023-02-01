@@ -36,6 +36,44 @@ import tarfile
 import zipfile
 
 
+def filter_os_files(filenames):
+    """
+    Given a list of filenames, returns a filtered list with OS-specific
+    special files removed.
+
+    Currently removes OSX .DS_Store files and AppleDouble format ._ files.
+    """
+
+    files_set = set(filenames)
+
+    def is_os_file(path):
+        dirname, name = os.path.split(path)
+
+        if name == '.DS_Store':
+            return True
+
+        if name.startswith('._'):
+            name = os.path.join(dirname, name[2:])
+            # These files store extended attributes on OSX
+            # In principle this could be a false positive but it's
+            # unlikely, and to be really sure we'd have to extract the file
+            # (or at least the first four bytes to check for the magic number
+            # documented in
+            # http://kaiser-edv.de/documents/AppleSingle_AppleDouble.pdf)
+            if name in files_set or os.path.normpath(name) in files_set:
+                return True
+
+        return False
+
+    filenames = filter(lambda f: not is_os_file(f), filenames)
+
+    if sys.version_info[0] == 2:
+        return filenames
+    else:
+        # Make sure to return a list on Python >= 3
+        return list(filenames)
+
+
 class SageTarFile(tarfile.TarFile):
     """
     Sage as tarfile.TarFile, but applies the user's current umask to the
@@ -67,14 +105,30 @@ class SageTarFile(tarfile.TarFile):
     def names(self):
         """
         List of filenames in the archive.
+
+        Filters out names of OS-related files that shouldn't be in the
+        archive (.DS_Store, etc.)
         """
 
-        return self.getnames()
+        return filter_os_files(self.getnames())
 
     def chmod(self, tarinfo, target):
         tarinfo = copy.copy(tarinfo)
         tarinfo.mode &= ~self.umask
         return super(SageTarFile, self).chmod(tarinfo, target)
+
+    def extractall(self, path='.', members=None):
+        """
+        Same as tarfile.TarFile.extractall but allows filenames for
+        the members argument (like zipfile.ZipFile).
+        """
+
+        if members:
+            members = [m if isinstance(m, tarfile.TarInfo)
+                         else self.getmember(m)
+                         for m in members]
+
+        return super(SageTarFile, self).extractall(path=path, members=members)
 
     def extractbytes(self, member):
         """
@@ -107,9 +161,12 @@ class SageZipFile(zipfile.ZipFile):
     def names(self):
         """
         List of filenames in the archive.
+
+        Filters out names of OS-related files that shouldn't be in the
+        archive (.DS_Store, etc.)
         """
 
-        return self.namelist()
+        return filter_os_files(self.namelist())
 
     def extractbytes(self, member):
         """
@@ -169,15 +226,15 @@ def main(argv=None):
             return 1
 
         top_levels = set()
-        for filename in archive.names:
+        for member in archive.names:
             # Zip and tar files all use forward slashes as separators
             # internally
-            top_levels.add(filename.split('/', 1)[0])
+            top_levels.add(member.split('/', 1)[0])
 
         if len(top_levels) == 1:
             top_level = top_levels.pop()
 
-    archive.extractall()
+    archive.extractall(members=archive.names)
 
     if top_level:
         os.rename(top_level, dirname)

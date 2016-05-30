@@ -36,6 +36,14 @@ import sage.combinat as subsets
 from sage.rings.finite_rings.finite_field_base import FiniteField
 
 #to compute the sum of n chose i where i ranges from 0 to k
+r"""
+Given ``n`` and ``k``, computes the sum of first `k+1` terms of the binomial expansion of `n`. Used to compute dimension of binomial reed muller code.
+EXAMPLES:
+    
+    sage:binomialSum(5,3)
+    26
+
+"""
 def binomialSum(n,k):
     s=1
     nCi=1
@@ -43,8 +51,28 @@ def binomialSum(n,k):
         nCi=((n-i)*nCi)/(i+1)
         s=nCi+s
     return s
+r"""
+Given the evaluation of a multivariate polynomial of certain number of variables and certain degree over `F` on every point, this function returns the polynomial. 
+INPUT:
 
-#to use the evaluation of polynomial at the points to obtain the polynomial 
+    - ``evaluation`` -- A vector or a list of evaluation of the polynomial at all the points.
+
+    - ``numberOfVariable`` -- The number of variables used in polynomial (i.e. `m`).
+
+    - ``order`` -- The degree of the polynomial in question.
+
+    - ``q`` -- The size of the finite field 
+
+    - ``finiteField`` -- The finite field over which the computations are done
+
+    - ``_R`` -- The Polynomial Ring the polynomial in question is from 
+EXAMPLES:
+    
+    sage: F=GF(3)
+    sage: R.<x0,x1>=F[]
+    sage: multivariatePolynomialInterpolation([1, 2, 0, 0, 2, 1, 1, 1, 1], 2, 2, 3, F, R)
+    x0*x1+x1^2+x0+x1+1
+"""
 def multivariatePolynomialInterpolation(evaluation, numberOfVariable, order, q, finiteField, _R):
     if numberOfVariable==0 or order==0:
         return evaluation[0]

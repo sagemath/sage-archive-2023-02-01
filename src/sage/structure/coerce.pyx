@@ -271,6 +271,13 @@ cpdef bint is_numpy_type(t):
         False
         sage: is_numpy_type(None)
         False
+
+    TESTS:
+
+    This use to crash Sage (:trac:`20715`)::
+
+        sage: is_numpy_type(object)
+        False
     """
     if not isinstance(t, type):
         return False
@@ -278,7 +285,7 @@ cpdef bint is_numpy_type(t):
     if strncmp(T.tp_name, "numpy.", 6) == 0:
         return True
     # Check base type. This is needed to detect numpy.matrix.
-    if strncmp(T.tp_base.tp_name, "numpy.", 6) == 0:
+    if T.tp_base != NULL and strncmp(T.tp_base.tp_name, "numpy.", 6) == 0:
         return True
     return False
 

@@ -1567,9 +1567,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: for r in range(9):
             ....:     E = elliptic_curves.rank(r)[0]
-            ....:     print(r,E.analytic_rank_upper_bound(max_Delta=1,
-            ....:     adaptive=False,root_number="ignore"))
-            ....:
+            ....:     print((r, E.analytic_rank_upper_bound(max_Delta=1,
+            ....:     adaptive=False,root_number="ignore")))
             (0, 0)
             (1, 1)
             (2, 2)
@@ -3526,7 +3525,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
-            sage: for M in range(2,8): print(M,E.modular_degree(M=M),E.congruence_number(M=M)) # long time (22s on 2009 MBP)
+            sage: for M in range(2,8):  # long time (22s on 2009 MBP)
+            ....:     print((M, E.modular_degree(M=M),E.congruence_number(M=M)))
             (2, 5, 20)
             (3, 7, 28)
             (4, 50, 400)

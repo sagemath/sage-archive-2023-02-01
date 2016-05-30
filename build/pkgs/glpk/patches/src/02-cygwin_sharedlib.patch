@@ -1,7 +1,8 @@
-diff -druN glpk-4.55.orig/configure.ac glpk-4.55.new/configure.ac
---- glpk-4.55.orig/configure.ac	2014-08-21 23:00:00.000000000 -0700
-+++ glpk-4.55.new/configure.ac	2014-11-12 07:37:15.595164337 -0800
-@@ -54,7 +54,7 @@
+diff --git a/configure.ac b/configure.ac
+index a65361a..2e86030 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -54,7 +54,7 @@ define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])
  dnl Check for programs
  AC_PROG_CC
  AC_PROG_INSTALL
@@ -10,17 +11,16 @@ diff -druN glpk-4.55.orig/configure.ac glpk-4.55.new/configure.ac
  
  dnl Check for math library
  AC_CHECK_LIB([m], [exp])
-@@ -98,6 +98,43 @@
+@@ -101,6 +101,42 @@ else
     AC_MSG_RESULT([no])
  fi
  
 +dnl Configs for Windows DLLs.
 +dnl libtool requires "-no-undefined" for win32 dll
-+AC_SUBST(LIBGLPK_LDFLAGS)
 +case $host_os in
 +  cygwin* | mingw*)
 +   if test "$enable_shared" = yes; then
-+     LIBGLPK_LDFLAGS="$LIBGLPK_LDFLAGS -no-undefined"
++     NOUNDEFINED=" -no-undefined"
 +     if test "$with_gmp" = yes; then
 +       AC_MSG_CHECKING(for DLL/static GMP)
 +       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -54,16 +54,3 @@ diff -druN glpk-4.55.orig/configure.ac glpk-4.55.new/configure.ac
  case $host_os in
     darwin* | macosx*)
        LIBIODBC="libiodbc.dylib"
-diff -druN glpk-4.55.orig/src/Makefile.am glpk-4.55.new/src/Makefile.am
---- glpk-4.55.orig/src/Makefile.am	2014-08-21 23:00:00.000000000 -0700
-+++ glpk-4.55.new/src/Makefile.am	2014-11-12 07:35:06.064883533 -0800
-@@ -18,7 +18,8 @@
- 
- libglpk_la_LDFLAGS = \
- -version-info 37:2:1 \
---export-symbols-regex '^glp_*'
-+-export-symbols-regex '^glp_*' \
-+$(LIBGLPK_LDFLAGS)
- 
- libglpk_la_SOURCES = \
- avl.c \

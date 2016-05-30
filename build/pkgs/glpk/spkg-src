@@ -33,8 +33,8 @@ PKGTARBALL="$SAGE_DISTFILES/$PKGNAME-$PKGVERSION.tar.bz2"
 rm -rf $PKGNAME-*
 
 # Download and extract upstream tarball
-sage-download-file http://ftp.gnu.org/gnu/$PKGNAME/PKGNAME-$PKGVERSION.tar.gz
-cd $PKGNAME-$GLPKVERSION
+sage-download-file http://ftp.gnu.org/gnu/$PKGNAME/$PKGNAME-$PKGVERSION.tar.gz |tar xz
+cd $PKGNAME-$PKGVERSION
 
 # Some patches are applied here, if they need to be applied before
 # running autoconf.

@@ -56,6 +56,3 @@ cdef number *sa2si(Element elem, ring * _ring)
 cdef int overflow_check(long e, ring *_ring) except -1
 
 cdef init_libsingular()
-
-
-

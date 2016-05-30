@@ -1,0 +1,111 @@
+diff -rupN a/libpolys/coeffs/rmodulon.h b/libpolys/coeffs/rmodulon.h
+--- ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:07.391998888 +0200
++++ ./libpolys/coeffs/rmodulon.h	2015-08-25 02:12:59.927433872 +0200
+@@ -18,6 +18,8 @@ struct snumber; typedef struct snumber *
+ typedef struct { mpz_ptr base;  unsigned long exp; } ZnmInfo;
+ 
+ BOOLEAN nrnInitChar    (coeffs r, void*);
++number nrnMapGMP(number from, const coeffs /*src*/, const coeffs dst);
++nMapFunc nrnSetMap(const coeffs src, const coeffs dst);
+ 
+ #endif
+ 
+diff -rupN a/libpolys/coeffs/rmodulo2m.h b/libpolys/coeffs/rmodulo2m.h
+--- a/libpolys/coeffs/rmodulo2m.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rmodulo2m.h	2015-08-25 12:05:09.850443994 +0200
+@@ -16,6 +16,7 @@ struct snumber; typedef struct snumber *
+ #ifdef HAVE_RINGS
+ 
+ BOOLEAN nr2mInitChar    (coeffs r, void*);
++number  nr2mMapZp       (number from, const coeffs /*src*/, const coeffs dst);
+ 
+ #endif
+ #endif
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/rintegers.h
+--- a/libpolys/coeffs/rintegers.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rintegers.h	2015-08-25 04:20:52.296192386 +0200
+@@ -28,6 +28,8 @@ BOOLEAN nrzInitChar    (coeffs r,  void
+ // will be reused by rmodulon.cc
+ void    nrzWrite       (number a, const coeffs r);
+ 
++number  nrzInit        (long i, const coeffs r);
++
+ #endif
+ 
+ #endif
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/rintegers.cc
+--- a/libpolys/coeffs/rintegers.cc	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/rintegers.cc	2015-08-25 04:20:33.660749263 +0200
+@@ -36,7 +36,6 @@ int     nrzSize        (number a, const
+ void    nrzDelete      (number *a, const coeffs r);
+ BOOLEAN nrzGreaterZero (number k, const coeffs r);
+ number  nrzMult        (number a, number b, const coeffs r);
+-number  nrzInit        (long i, const coeffs r);
+ long    nrzInt         (number &n, const coeffs r);
+ number  nrzAdd         (number a, number b, const coeffs r);
+ number  nrzSub         (number a, number b, const coeffs r);
+diff -rupN a/libpolys/coeffs/longrat.h b/libpolys/coeffs/longrat.h
+--- a/libpolys/coeffs/longrat.h	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/longrat.h	2015-08-25 03:13:10.349703511 +0200
+@@ -13,6 +13,9 @@
+ 
+ struct snumber; typedef struct snumber  *number;
+ 
++number   nlGetNumerator(number &n, const coeffs r);
++number   nlGetDenom(number &n, const coeffs r);
++
+ /*-----------------------------------------------------------------*/
+ /**
+ **  'SR_INT' is the type of those integers small enough to fit into  29  bits.
+diff -rupN a/libpolys/coeffs/longrat.cc b/libpolys/coeffs/longrat.cc
+--- a/libpolys/coeffs/longrat.cc	2015-08-25 00:53:26.000000000 +0200
++++ b/libpolys/coeffs/longrat.cc	2015-08-25 03:13:04.064891751 +0200
+@@ -70,8 +70,6 @@ void     nlPower(number x, int exp, numb
+ const char *   nlRead (const char *s, number *a, const coeffs r);
+ void     nlWrite(number a, const coeffs r);
+ 
+-number   nlGetDenom(number &n, const coeffs r);
+-number   nlGetNumerator(number &n, const coeffs r);
+ void     nlCoeffWrite(const coeffs r, BOOLEAN details);
+ number   nlChineseRemainder(number *x, number *q,int rl, const coeffs C);
+ number   nlFarey(number nN, number nP, const coeffs CF);
+diff -rupN a/Singular/ipprint.cc b/Singular/ipprint.cc
+--- a/Singular/ipprint.cc	2015-08-23 16:41:08.243790168 +0200
++++ b/Singular/ipprint.cc	2015-08-23 16:41:42.179806546 +0200
+@@ -198,15 +198,15 @@ static BOOLEAN ipPrint_MA(leftv u)
+ static BOOLEAN ipPrint_RING(leftv u)
+ {
+   ring r=(ring)u->Data();
+-  PrintS("polynomial ring, over a ");
+-  if (rField_is_Ring(r))
+-  {
+-    if (rField_is_Domain(r)) PrintS("domain");
+-    else                     PrintS("ring (with zero-divisors)");
+-  }
+-  else PrintS("field");
+-  if (r->OrdSgn==1) PrintS(", global"); else PrintS(", local/mixed");
+-  PrintS(" ordering\n");
++  // PrintS("polynomial ring, over a ");
++  // if (rField_is_Ring(r))
++  // {
++  //   if (rField_is_Domain(r)) PrintS("domain");
++  //   else                     PrintS("ring (with zero-divisors)");
++  // }
++  // else PrintS("field");
++  // if (r->OrdSgn==1) PrintS(", global"); else PrintS(", local/mixed");
++  // PrintS(" ordering\n");
+   rWrite(r, TRUE);
+   return FALSE;
+ }
+diff -rupN a/Singular/ipprint.cc b/Singular/libsingular.h
+--- a/Singular/libsingular.h	2015-08-25 00:53:26.000000000 +0200
++++ b/Singular/libsingular.h	2015-08-25 12:12:04.803693562 +0200
+@@ -28,8 +28,6 @@
+ 
+ void siInit(char *);
+ 
+-/* we need this function in Sage*/
+-number nr2mMapZp(number from); // TODO: replace with something else...
+ 
+ 
+ #endif // #ifndef LIBSINGULAR__H

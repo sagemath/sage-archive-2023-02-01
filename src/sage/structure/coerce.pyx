@@ -274,10 +274,14 @@ cpdef bint is_numpy_type(t):
 
     TESTS:
 
-    This use to crash Sage (:trac:`20715`)::
+    This used to crash Sage (:trac:`20715`)::
 
         sage: is_numpy_type(object)
         False
+        sage: 1 + object()
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '+': 'Integer Ring' and '<type 'object'>'
     """
     if not isinstance(t, type):
         return False

@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
-# USAGE:
-#
-#   sage-uncompress-spkg PKG [FILE]
-#
-# With a single argument, unpack the file PKG to the current directory.
-#
-# If FILE is specified, extract FILE from PKG and send it to
-# stdout. (This option is present only for backwards compatibility:
-# printing the SPKG.txt file from an old-style spkg.)
+"""
+USAGE:
 
+  sage-uncompress-spkg PKG [FILE]
+
+With a single argument, unpack the file PKG to the current directory.
+
+If FILE is specified, extract FILE from PKG and send it to
+stdout. (This option is present only for backwards compatibility:
+printing the SPKG.txt file from an old-style spkg.)
+"""
+
+from __future__ import print_function
+
+import argparse
 import copy
 import os
 import sys
@@ -35,40 +40,97 @@ class SageTarFile(tarfile.TarFile):
         self.umask = os.umask(0777)
         os.umask(self.umask)
 
+    @classmethod
+    def can_read(cls, filename):
+        """
+        Given an archive filename, returns True if this class can read and
+        process the archive format of that file.
+        """
+
+        return tarfile.is_tarfile(filename)
+
     def chmod(self, tarinfo, target):
         tarinfo = copy.copy(tarinfo)
         tarinfo.mode &= ~self.umask
-        return super(UmaskExtractTarFile, self).chmod(tarinfo, target)
+        return super(SageTarFile, self).chmod(tarinfo, target)
+
+    def extractbytes(self, member):
+        """
+        Return the contents of the specified archive member as bytes.
+
+        If the member does not exist, returns None.
+        """
+
+        if member in self.getnames():
+            reader = self.extractfile(member)
+            return reader.read()
+
+
+class SageZipFile(zipfile.ZipFile):
+    """
+    Wrapper for zipfile.ZipFile to provide better API fidelity with
+    SageTarFile insofar as it's used by this script.
+    """
+
+    @classmethod
+    def can_read(cls, filename):
+        """
+        Given an archive filename, returns True if this class can read and
+        process the archive format of that file.
+        """
+
+        return zipfile.is_zipfile(filename)
+
+    def extractbytes(self, member):
+        """
+        Return the contents of the specified archive member as bytes.
+
+        If the member does not exist, returns None.
+        """
+
+        if member in self.namelist():
+            return self.read(member)
+
+
+ARCHIVE_TYPES = [SageTarFile, SageZipFile]
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('pkg', nargs=1, metavar='PKG',
+                        help='the archive to extract')
+    parser.add_argument('file', nargs='?', metavar='FILE',
+                        help='(deprecated) print the contents of the given '
+                             'archive member to stdout')
+
+    args = parser.parse_args(argv)
+
+    filename = args.pkg[0]
+
+    for cls in ARCHIVE_TYPES:
+        if cls.can_read(filename):
+            break
+    else:
+        print('Error: Unknown file type: {}'.format(filename),
+              file=sys.stderr)
+        return 1
+
+    # For now ZipFile and TarFile both have default open modes that are
+    # acceptable
+    archive = cls.open(filename)
+
+    if args.file:
+        contents = archive.extractbytes(args.file)
+        if contents:
+            print(contents, end='')
+            return 0
+        else:
+            return 1
+
+    archive.extractall()
+
+    return 0
 
 
 if __name__ == '__main__':
-    filename = sys.argv[1]
-    if tarfile.is_tarfile(filename):
-        # tar file, possibly compressed:
-        archive = SageTarFile.open(filename, 'r:*')
-        if len(sys.argv) == 2:
-            archive.extractall()
-        else:
-            member = sys.argv[2]
-            if member in archive.getnames():
-                SPKG_TXT = archive.extractfile(member)
-                sys.stdout.write(SPKG_TXT.read())
-                exit(1)
-        archive.close()
-        exit(0)
-    if zipfile.is_zipfile(filename):
-        # zip file:
-        archive = zipfile.ZipFile(filename, 'r')
-        if len(sys.argv) == 2:
-            archive.extractall()
-        else:
-            member = sys.argv[2]
-            if member in archive.namelist():
-                sys.stdout.write(archive.read(member))
-            else:
-                exit(1)
-        archive.close()
-        exit(0)
-    else:
-        print ('Error: Unknown file type: {}'.format(filename))
-        exit(1)
+    sys.exit(main())

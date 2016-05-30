@@ -1,4 +1,4 @@
-"""
+r"""
 Reed-Muller code
 
 Given integers `m, r` and a finite field `F` 

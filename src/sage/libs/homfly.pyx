@@ -35,7 +35,7 @@ If there are n crossings, they must be named 0..n-1.
 #clib homfly
 #clib gc
 
-include 'sage/ext/interrupt.pxi'
+include 'cysignals/signals.pxi'
 
 cdef extern from "homfly.h":
     char* homfly(char *argv)

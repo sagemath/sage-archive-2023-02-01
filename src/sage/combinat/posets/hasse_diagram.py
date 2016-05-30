@@ -1281,7 +1281,7 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
-        	      	            4:[6], 5:[6]})
+                                    4:[6], 5:[6]})
             sage: H.is_semidistributive('join') is None
             False
             sage: H.is_semidistributive('meet') is None
@@ -1314,7 +1314,7 @@ class HasseDiagram(DiGraph):
                             return (u, e, x, y)
 
         return None
-        
+
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
         Returns ``True`` if ``self`` is the Hasse diagram of a

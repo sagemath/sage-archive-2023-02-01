@@ -710,13 +710,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return ``True`` if the lattice is join-semidistibutive, and ``False``
         otherwise.
-    
+
         A lattice is join-semidistibutive if `e \vee x = e \vee y` implicates
         `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
         lattice.
 
         EXAMPLES::
-        
+
             sage: N5 = Posets.PentagonPoset()
             sage: N5.is_join_semidistributive()
             True
@@ -725,7 +725,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
 
         TESTS::
-        
+
             sage: LatticePoset().is_join_semidistributive()
             True
         """

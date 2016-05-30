@@ -94,7 +94,9 @@ def _latex_module(R, m):
 
 
 @rename_keyword(deprecation=15151, check_products='check', check_diffs='check')
-def ChainComplex(data=None, **kwds):
+def ChainComplex(data=None, base_ring=None, grading_group=None,
+                 degree_of_differential=1, degree=1,
+                 check=True):
     r"""
     Define a chain complex.
 
@@ -231,11 +233,12 @@ def ChainComplex(data=None, **kwds):
         TypeError: Unable to coerce 0 (<type 
         'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
     """
-    
-    check = kwds.get('check', True)
-    base_ring = kwds.get('base_ring', None)
-    grading_group = kwds.get('grading_group', ZZ)
-    degree = kwds.get('degree_of_differential', kwds.get('degree', 1))
+    if grading_group is None:
+        grading_group = ZZ
+    if degree_of_differential != 1 and degree != 1:
+        raise(ValueError, 'specify only one of degree_of_differential or degree, not both')
+    if degree_of_differential != 1:
+        degree = degree_of_differential
     try:
         degree = grading_group(degree)
     except Exception:
@@ -1090,7 +1093,8 @@ class ChainComplex_class(Parent):
             return HomologyGroup(0, base_ring)
 
     @rename_keyword(deprecation=15151, dim='deg')
-    def homology(self, deg=None, **kwds):
+    def homology(self, deg=None, base_ring=None, generators=False,
+                 verbose=False, algorithm='auto'):
         r"""
         The homology of the chain complex.
 
@@ -1218,13 +1222,11 @@ class ChainComplex_class(Parent):
         if deg is not None and deg not in self.grading_group():
             raise ValueError('degree is not an element of the grading group')
 
-        verbose = kwds.get('verbose', False)
-        generators = kwds.get('generators', False)
-        base_ring = kwds.get('base_ring', self.base_ring())
+        if base_ring is None:
+            base_ring = self.base_ring()
         if not (base_ring.is_field() or base_ring is ZZ):
             raise NotImplementedError('can only compute homology if the base ring is the integers or a field')
 
-        algorithm = kwds.get('algorithm', 'auto')
         if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp', 'chomp']:
             raise NotImplementedError('algorithm not recognized')
         if algorithm == 'auto' \

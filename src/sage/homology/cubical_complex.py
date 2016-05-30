@@ -80,6 +80,7 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
+from sage.misc.decorators import rename_keyword
 from functools import total_ordering
 
 @total_ordering
@@ -833,7 +834,7 @@ class CubicalComplex(GenericCellComplex):
 
     Therefore, neither are cones or suspensions.
     """
-    def __init__(self, maximal_faces=[], **kwds):
+    def __init__(self, maximal_faces=[], maximality_check=True):
         r"""
         Define a cubical complex.  See ``CubicalComplex`` for more
         documentation.
@@ -845,8 +846,6 @@ class CubicalComplex(GenericCellComplex):
             sage: X == loads(dumps(X))
             True
         """
-        maximality_check = kwds.get('maximality_check', True)
-
         C = None
         if isinstance(maximal_faces, CubicalComplex):
             C = maximal_faces
@@ -1113,7 +1112,10 @@ class CubicalComplex(GenericCellComplex):
         """
         return set(self.n_cells(n, subcomplex))
 
-    def chain_complex(self, **kwds):
+    @rename_keyword(deprecation=0, check_diffs='check')
+    def chain_complex(self, subcomplex=None, augmented=False,
+                      verbose=False, check=False, dimensions=None,
+                      base_ring=ZZ, cochain=False):
         r"""
         The chain complex associated to this cubical complex.
 
@@ -1138,10 +1140,10 @@ class CubicalComplex(GenericCellComplex):
         :param verbose: If True, print some messages as the chain
            complex is computed.
         :type verbose: boolean; optional, default False
-        :param check_diffs: If True, make sure that the chain complex
+        :param check: If True, make sure that the chain complex
            is actually a chain complex: the differentials are
            composable and their product is zero.
-        :type check_diffs: boolean; optional, default False
+        :type check: boolean; optional, default False
 
         .. note::
 
@@ -1167,14 +1169,6 @@ class CubicalComplex(GenericCellComplex):
             sage: C1.homology(subcomplex=S0)
             {0: 0, 1: Z}
         """
-        augmented = kwds.get('augmented', False)
-        cochain = kwds.get('cochain', False)
-        verbose = kwds.get('verbose', False)
-        check_diffs = kwds.get('check_diffs', False)
-        base_ring = kwds.get('base_ring', ZZ)
-        dimensions = kwds.get('dimensions', None)
-        subcomplex = kwds.get('subcomplex', None)
-
         # initialize subcomplex
         if subcomplex is None:
             subcomplex = CubicalComplex()
@@ -1245,10 +1239,10 @@ class CubicalComplex(GenericCellComplex):
         # finally, return the chain complex
         if cochain:
             return ChainComplex(data=differentials, base_ring=base_ring,
-                                degree=1, check=check_diffs)
+                                degree=1, check=check)
         else:
             return ChainComplex(data=differentials, base_ring=base_ring,
-                                degree=-1, check=check_diffs)
+                                degree=-1, check=check)
 
     def alexander_whitney(self, cube, dim_left):
         r"""

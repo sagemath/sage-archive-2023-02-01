@@ -176,6 +176,7 @@ from functools import reduce, total_ordering
 from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
+from sage.misc.decorators import rename_keyword
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -1915,7 +1916,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             facets = self._facets + right._facets
         return SimplicialComplex(facets, is_mutable=is_mutable)
 
-    def chain_complex(self, **kwds):
+    @rename_keyword(deprecation=0, check_diffs='check')
+    def chain_complex(self, subcomplex=None, augmented=False,
+                      verbose=False, check=False, dimensions=None,
+                      base_ring=ZZ, cochain=False):
         """
         The chain complex associated to this simplicial complex.
 
@@ -1939,10 +1943,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         :param verbose: If ``True``, print some messages as the chain
            complex is computed.
         :type verbose: boolean; optional, default ``False``
-        :param check_diffs: If ``True``, make sure that the chain complex
+        :param check: If ``True``, make sure that the chain complex
            is actually a chain complex: the differentials are
            composable and their product is zero.
-        :type check_diffs: boolean; optional, default ``False``
+        :type check: boolean; optional, default ``False``
 
         .. NOTE::
 
@@ -1960,14 +1964,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: circle.chain_complex(base_ring=QQ, augmented=True)
             Chain complex with at most 3 nonzero terms over Rational Field
         """
-        augmented = kwds.get('augmented', False)
-        cochain = kwds.get('cochain', False)
-        verbose = kwds.get('verbose', False)
-        check_diffs = kwds.get('check_diffs', False)
-        base_ring = kwds.get('base_ring', ZZ)
-        dimensions = kwds.get('dimensions', None)
-        subcomplex = kwds.get('subcomplex', None)
-
         # initialize subcomplex
         if subcomplex is None:
             subcomplex = SimplicialComplex(is_mutable=False)
@@ -2070,11 +2066,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             differentials[n-1] = matrix(base_ring, 0, len(current))
         # finally, return the chain complex
         if cochain:
-            return ChainComplex(data=differentials, degree=1, **kwds)
+            return ChainComplex(data=differentials, degree=1,
+                                base_ring=base_ring, check=check)
         else:
-            return ChainComplex(data=differentials, degree=-1, **kwds)
+            return ChainComplex(data=differentials, degree=-1,
+                                base_ring=base_ring, check=check)
 
-    def _homology_(self, dim=None, **kwds):
+    def _homology_(self, dim=None, base_ring=ZZ, subcomplex=None,
+                   cohomology=False, enlarge=True, algorithm='auto',
+                   verbose=False, reduced=True):
         """
         The (reduced) homology of this simplicial complex.
 
@@ -2171,13 +2171,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         from sage.homology.homology_group import HomologyGroup
 
-        base_ring = kwds.get('base_ring', ZZ)
-        cohomology = kwds.get('cohomology', False)
-        enlarge = kwds.get('enlarge', True)
-        verbose = kwds.get('verbose', False)
-        subcomplex = kwds.get('subcomplex', None)
-        reduced = kwds.get('reduced', True)
-
         if dim is not None:
             if isinstance(dim, (list, tuple)):
                 low = min(dim) - 1
@@ -2217,15 +2210,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         if verbose:
             print("Computing the chain complex...")
-        kwds['subcomplex'] = L
         C = self.chain_complex(dimensions=dims, augmented=reduced,
-                               cochain=cohomology, **kwds)
+                               cochain=cohomology, base_ring=base_ring,
+                               subcomplex=L, verbose=verbose)
         if verbose:
             print(" Done computing the chain complex. ")
             print("Now computing homology...")
-        if 'subcomplex' in kwds:
-            del kwds['subcomplex']
-        answer = C.homology(**kwds)
+        answer = C.homology(base_ring=base_ring, verbose=verbose,
+                            algorithm=algorithm)
 
         if dim is None:
             dim = range(self.dimension()+1)

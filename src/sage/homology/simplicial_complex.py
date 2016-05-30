@@ -2841,9 +2841,17 @@ class SimplicialComplex(Parent, GenericCellComplex):
         A simplicial complex is shellable if there exists a shelling
         order.
 
+        .. NOTE::
+
+            1. This method can check all orderings of the facets by brute
+               force, hence can be very slow.
+
+            2. This is shellability in the general (nonpure) sense of
+               Bjorner and Wachs [BW96]_. This method does not check purity.
+
         .. SEEALSO::
 
-            :meth:`is_shelling_order`.
+            :meth:`is_shelling_order`
 
         INPUT:
 

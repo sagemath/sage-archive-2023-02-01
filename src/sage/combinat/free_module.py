@@ -1095,7 +1095,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         # This needs to be first as per #10127
         if 'monomial_cmp' in kwds:
             from sage.misc.superseded import deprecation
-            deprecation(17229, "Option monomial_cmp is deprecated use sorting_key and sorting_reverse instead.")
+            deprecation(17229, "Option monomial_cmp is deprecated, use sorting_key and sorting_reverse instead.")
             from functools import cmp_to_key
             kwds['sorting_key'] = cmp_to_key(kwds['monomial_cmp'])
             del kwds['monomial_cmp']

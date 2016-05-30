@@ -230,9 +230,26 @@ install_docs()
 }
 
 
+fix_includes()
+{
+    # Fix all Singular includes to work from local/include
+    cd "$SAGE_LOCAL/include"
+
+    # First, generate a sed script to do these replacements
+    find singular -name '*.h' | while read include; do
+        # Replace #include <foo> by #include <singular/foo>
+        echo "s|# *include .${include#singular/}.|#include <$include>|"
+    done >"$SRC/fix_includes.sed"
+
+    # Now execute the script (we add .bak because BSD sed, used also
+    # on OS X, requires an argument for -i)
+    find singular -name '*.h' -exec sed -i.bak -f "$SRC/fix_includes.sed" {} \;
+}
+
+
 # Actually run all the functions defined above
 for i in choose_patches apply_patches remove_old_version config \
-  build_singular build_factory \
+  build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"
     cd "$SRC" && $i

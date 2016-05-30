@@ -576,7 +576,7 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    @rename_keyword(deprecation=0, check_diffs='check')
+    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):

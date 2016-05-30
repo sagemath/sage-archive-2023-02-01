@@ -17,10 +17,10 @@ import tarfile
 import zipfile
 
 
-class UmaskExtractTarFile(tarfile.TarFile):
+class SageTarFile(tarfile.TarFile):
     """
     Sage as tarfile.TarFile, but applies the user's current umask to the
-    permissions of al extracted files and directories.
+    permissions of all extracted files and directories.
 
     This mimics the default behavior of the ``tar`` utility.
 
@@ -28,7 +28,7 @@ class UmaskExtractTarFile(tarfile.TarFile):
     """
 
     def __init__(self, *args, **kwargs):
-        super(UmaskExtractTarFile, self).__init__(*args, **kwargs)
+        super(SageTarFile, self).__init__(*args, **kwargs)
 
         # Unfortunately the only way to get the current umask is to set it
         # and then restore it
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     if tarfile.is_tarfile(filename):
         # tar file, possibly compressed:
-        archive = UmaskExtractTarFile.open(filename, 'r:*')
+        archive = SageTarFile.open(filename, 'r:*')
         if len(sys.argv) == 2:
             archive.extractall()
         else:

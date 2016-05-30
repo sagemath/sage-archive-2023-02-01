@@ -2,7 +2,7 @@
 Contour Plots
 """
 
-# *****************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
 #                     2008 Mike Hansen <mhansen@gmail.com>,
@@ -17,7 +17,7 @@ Contour Plots
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-# *****************************************************************************
+#*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
 from sage.plot.colors import rgbcolor, get_cmap
@@ -142,8 +142,7 @@ class ContourPlot(GraphicPrimitive):
             sage: c = C[0]; c
             ContourPlot defined by a 100 x 100 data grid
         """
-        return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row,
-                                                             self.xy_array_col)
+        return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
         """
@@ -197,8 +196,7 @@ class ContourPlot(GraphicPrimitive):
         from sage.plot.misc import get_matplotlib_linestyle
         linestyles = options.get('linestyles', None)
         if isinstance(linestyles, (list, tuple)):
-            linestyles = [get_matplotlib_linestyle(i, 'long')
-                          for i in linestyles]
+            linestyles = [get_matplotlib_linestyle(i, 'long') for i in linestyles]
         else:
             linestyles = get_matplotlib_linestyle(linestyles, 'long')
         if contours is None:
@@ -220,8 +218,7 @@ class ContourPlot(GraphicPrimitive):
         if options.get('colorbar', False):
             colorbar_options = options['colorbar_options']
             from matplotlib import colorbar
-            cax, kwds = colorbar.make_axes_gridspec(subplot,
-                                                    **colorbar_options)
+            cax, kwds = colorbar.make_axes_gridspec(subplot, **colorbar_options)
             if CSF is None:
                 cb = colorbar.Colorbar(cax, CS, **kwds)
             else:
@@ -356,29 +353,25 @@ def contour_plot(f, xrange, yrange, **options):
     Here we change the ranges and add some options::
 
         sage: x,y = var('x,y')
-        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5),
-        ....:              fill=False, plot_points=150)
+        sage: contour_plot((x^2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot((x**2)*cos(x*y), (x, -10, 5), (y, -5, 5),
-                         fill=False, plot_points=150)
+        g = contour_plot((x**2)*cos(x*y), (x, -10, 5), (y, -5, 5), fill=False, plot_points=150)
         sphinx_plot(g)
 
     An even more complicated plot::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4),
-        ....:              (y, -4, 4),plot_points=150)
+        sage: contour_plot(sin(x^2 + y^2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=150)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = contour_plot(sin(x**2 + y**2)*cos(x)*sin(y), (x, -4, 4),
-                         (y, -4, 4),plot_points=150)
+        g = contour_plot(sin(x**2 + y**2)*cos(x)*sin(y), (x, -4, 4), (y, -4, 4),plot_points=150)
         sphinx_plot(g)
 
     Some elliptic curves, but with symbolic endpoints.  In the first
@@ -422,16 +415,14 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2,
-        ....:              cmap=[(1,0,0), (0,1,0), (0,0,1)])
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
         def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2), contours=2,
-                         cmap=[(1,0,0), (0,1,0), (0,0,1)])
+        g = contour_plot(f, (-2, 2), (-2, 2), contours=2, cmap=[(1,0,0), (0,1,0), (0,0,1)])
         sphinx_plot(g)
 
     ::
@@ -444,22 +435,19 @@ def contour_plot(f, xrange, yrange, **options):
 
         x,y = var('x,y')
         def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2),
-                         contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
+        g = contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2),
-        ....:              contours=(1.0,), fill=False)
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
         def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (-2, 2), (-2, 2),
-                         contours=(1.0,), fill=False)
+        g = contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
         sphinx_plot(g)
 
     ::
@@ -692,22 +680,19 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True,
-        ....:              colorbar_orientation='horizontal')
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True, colorbar_orientation='horizontal')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
         def f(x,y): return x**2 + y**2
-        g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True,
-                         colorbar_orientation='horizontal')
+        g = contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True, colorbar_orientation='horizontal')
         sphinx_plot(g)
 
     ::
 
-        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4],
-        ....:              colorbar=True)
+        sage: contour_plot(f, (x,-3,3), (y,-3,3), contours=[-2,-1,4], colorbar=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -797,8 +782,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: contour_plot(f, (0, pi),
-        ....:              (0, pi)).show(axes=True) # These are equivalent
+        sage: contour_plot(f, (0, pi), (0, pi)).show(axes=True) # These are equivalent
 
     .. PLOT::
 
@@ -809,8 +793,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     One can also plot over a reduced region::
 
-        sage: contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2), region=x - y,
-        ....:              plot_points=300)
+        sage: contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2), region=x - y, plot_points=300)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -841,8 +824,7 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: x,y = var('x,y')
         sage: contour_plot(x - y^2, (x, -5, 5), (y, -3, 3),
-        ....:              contours=[-4, -2, 0],
-        ....:              fill=False)
+        ....:              contours=[-4, -2, 0], fill=False)
         Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
@@ -856,10 +838,8 @@ def contour_plot(f, xrange, yrange, **options):
     g = F[0]
     xrange, yrange = [r[:2] for r in ranges]
 
-    xy_data_array = [[g(x, y) for x in xsrange(*ranges[0],
-                                               include_endpoint=True)]
-                     for y in xsrange(*ranges[1],
-                                      include_endpoint=True)]
+    xy_data_array = [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                     for y in xsrange(*ranges[1], include_endpoint=True)]
 
     if region is not None:
         import numpy
@@ -887,8 +867,7 @@ def contour_plot(f, xrange, yrange, **options):
     if scale == 'semilogy' or scale == 'semilogx':
         options['aspect_ratio'] = 'automatic'
 
-    g._set_extra_kwds(Graphics._extract_kwds_for_show(options,
-                                                      ignore=['xmin', 'xmax']))
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
@@ -1032,8 +1011,7 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: G = Graphics()
         sage: counter = 0
         sage: for col in colors.keys():  # long time
-        ....:     G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4),
-        ....:                        color=col)
+        ....:     G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4), color=col)
         ....:     counter += 1
         sage: G  # long time
         Graphics object consisting of 148 graphics primitives
@@ -1044,8 +1022,7 @@ def implicit_plot(f, xrange, yrange, **options):
         G = Graphics()
         counter = 0
         for col in colors.keys():  # long time
-            G += implicit_plot(x**2+y**2 == 1 + counter*.1,
-                               (x, -4, 4), (y, -4, 4), color=col)
+            G += implicit_plot(x**2+y**2 == 1 + counter*.1, (x, -4, 4), (y, -4, 4), color=col)
             counter += 1
         sphinx_plot(G)
 
@@ -1106,8 +1083,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),
-        ....:               plot_points=50)
+        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9), plot_points=50)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -1142,15 +1118,13 @@ def implicit_plot(f, xrange, yrange, **options):
 
     An example of an implicit plot on 'loglog' scale::
 
-        sage: implicit_plot(x^2 + y^2 == 200, (x, 1, 200), (y, 1, 200),
-        ....:               scale='loglog')
+        sage: implicit_plot(x^2 + y^2 == 200, (x, 1, 200), (y, 1, 200), scale='loglog')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = implicit_plot(x**2 + y**2 == 200, (x, 1, 200), (y, 1, 200),
-                          scale='loglog')
+        g = implicit_plot(x**2 + y**2 == 200, (x, 1, 200), (y, 1, 200), scale='loglog')
         sphinx_plot(g)
 
     TESTS::
@@ -1278,22 +1252,20 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
 
     Here we play with the colors::
 
-        sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2),
-        ....:             incol='lightblue', bordercol='gray')
+        sage: region_plot(x^2+y^3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(x**2+y**3 < 2, (x, -2, 2), (y, -2, 2),
-                        incol='lightblue', bordercol='gray')
+        g = region_plot(x**2+y**3 < 2, (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray')
         sphinx_plot(g)
 
     An even more complicated plot, with dashed borders::
 
         sage: region_plot(sin(x)*sin(y) >= 1/4, (x,-10,10), (y,-10,10),
-        ....:            incol='yellow', bordercol='black',
-        ....:            borderstyle='dashed', plot_points=250)
+        ....:             incol='yellow', bordercol='black',
+        ....:             borderstyle='dashed', plot_points=250)
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
@@ -1329,42 +1301,36 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
 
     Since it doesn't look very good, let's increase ``plot_points``::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2),
-        ....:             plot_points=400)
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot([x**2+y**2<1, x<y],
-                        (x,-2,2), (y,-2,2), plot_points=400)
+        g = region_plot([x**2+y**2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
         sphinx_plot(g)
 
     To get plots where only one condition needs to be true, use a function.
     Using lambda functions, we definitely need the extra ``plot_points``::
 
-        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2),
-        ....:             plot_points=400)
+        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2), plot_points=400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = region_plot(lambda x,y: x**2+y**2<1 or x<y, (x,-2,2), (y,-2,2),
-                        plot_points=400)
+        g = region_plot(lambda x,y: x**2+y**2<1 or x<y, (x,-2,2), (y,-2,2), plot_points=400)
         sphinx_plot(g)
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1),
-        ....:             plot_points = 400)
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1),plot_points = 400)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x, y = var("x y")
-        g = region_plot([y>0, x>0, x**2+y**2<1], (x,-1.1, 1.1), (y,-1.1, 1.1),
-                        plot_points = 400)
+        g = region_plot([y>0, x>0, x**2+y**2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400)
         sphinx_plot(g)
 
     Here is another plot, with a huge border::
@@ -1440,8 +1406,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     .. PLOT::
 
         x, y = var("x y")
-        g = region_plot(x**2 + y**2 < 100, (x, 1, 10), (y, 1, 10),
-                        scale='loglog')
+        g = region_plot(x**2 + y**2 < 100, (x, 1, 10), (y, 1, 10), scale='loglog')
         sphinx_plot(g)
 
     TESTS:
@@ -1449,10 +1414,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     To check that :trac:`16907` is fixed::
 
         sage: x, y = var('x, y')
-        sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1),
-        ....:                     alpha=0.5)
-        sage: disc2 = region_plot((x-0.7)^2+(y-0.7)^2 < 0.5, (x, -2, 2),
-        ....:                     (y, -2, 2), incol='red', alpha=0.5)
+        sage: disc1 = region_plot(x^2+y^2 < 1, (x, -1, 1), (y, -1, 1), alpha=0.5)
+        sage: disc2 = region_plot((x-0.7)^2+(y-0.7)^2 < 0.5, (x, -2, 2), (y, -2, 2), incol='red', alpha=0.5)
         sage: disc1 + disc2
         Graphics object consisting of 2 graphics primitives
 
@@ -1473,9 +1436,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     if not isinstance(f, (list, tuple)):
         f = [f]
 
-    feqs = [equify(g) for g in f if is_Expression(g) and
-                                    g.operator() is operator.eq and
-                                    not equify(g).is_zero()]
+    feqs = [equify(g) for g in f if is_Expression(g) and g.operator() is operator.eq and not equify(g).is_zero()]
     f = [equify(g)
          for g in f if not (is_Expression(g) and g.operator() is operator.eq)]
     neqs = len(feqs)
@@ -1496,11 +1457,8 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
                                            plot_points)
     xrange, yrange = [r[:2] for r in ranges]
 
-    xy_data_arrays = numpy.asarray([[[func(x, y)
-                                      for x in xsrange(*ranges[0],
-                                                       include_endpoint=True)]
-                                    for y in xsrange(*ranges[1],
-                                                     include_endpoint=True)]
+    xy_data_arrays = numpy.asarray([[[func(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
+                                    for y in xsrange(*ranges[1], include_endpoint=True)]
                                     for func in f_all[neqs::]], dtype=float)
     xy_data_array = numpy.abs(xy_data_arrays.prod(axis=0))
     # Now we need to set entries to negative iff all
@@ -1530,8 +1488,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
     if scale == 'semilogy' or scale == 'semilogx':
         options['aspect_ratio'] = 'automatic'
 
-    g._set_extra_kwds(Graphics._extract_kwds_for_show(options,
-                                                      ignore=['xmin', 'xmax']))
+    g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
 
     if neqs == 0:
         g.add_primitive(ContourPlot(xy_data_array, xrange, yrange,
@@ -1539,14 +1496,11 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol,
                                          cmap=cmap,
                                          fill=True, **options)))
     else:
-        mask = numpy.asarray([[elt > 0 for elt in rows]
-                              for rows in xy_data_array],
+        mask = numpy.asarray([[elt > 0 for elt in rows] for rows in xy_data_array],
                              dtype=bool)
         xy_data_array = numpy.asarray([[f_all[0](x, y)
-                                       for x in xsrange(*ranges[0],
-                                                        include_endpoint=True)]
-                                       for y in xsrange(*ranges[1],
-                                                        include_endpoint=True)],
+                                       for x in xsrange(*ranges[0], include_endpoint=True)]
+                                       for y in xsrange(*ranges[1], include_endpoint=True)],
                                       dtype=float)
         xy_data_array[mask] = None
     if bordercol or borderstyle or borderwidth:

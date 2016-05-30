@@ -717,11 +717,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES::
 
-            sage: N5 = Posets.PentagonPoset()
-            sage: N5.is_join_semidistributive()
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.is_join_semidistributive()
             True
-            sage: M3 = Posets.DiamondPoset(5)
-            sage: M3.is_join_semidistributive()
+            sage: L = LatticePoset({1:[2, 3], 2:[4, 5], 3:[5, 6],
+            ....:                   4:[7], 5:[7], 6:[7]})
+            sage: L.is_join_semidistributive()
             False
 
         TESTS::
@@ -729,6 +730,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: LatticePoset().is_join_semidistributive()
             True
         """
+        # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
+        # for explanation of this
+        from sage.misc.functional import log
+        n = self.cardinality()
+        if n == 0:
+            return True
+        if self._hasse_diagram.size() > n*log(n, 2)/2:
+            return False
+
         return self._hasse_diagram.is_semidistributive('join') is None
 
     def is_complemented(self):

@@ -1281,14 +1281,12 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
-                                    4:[6], 5:[6]})
+            ....:                   4:[6], 5:[6]})
             sage: H.is_semidistributive('join') is None
             False
             sage: H.is_semidistributive('meet') is None
             True
         """
-        from sage.misc.functional import log
-
         if meet_or_join == 'join':
             M1 = self._join
             M2 = self._meet
@@ -1299,11 +1297,6 @@ class HasseDiagram(DiGraph):
             raise ValueError("meet_or_join must be 'join' or 'meet'")
 
         n = self.order()
-
-        # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
-        # for explanation of next line
-        if self.size() > n*log(n, 2)/2:
-            return False
 
         for e in range(n):
             for x in range(n):

@@ -112,7 +112,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import os
 import struct
@@ -121,7 +121,7 @@ import zlib
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
-import plot
+from . import plot
 import sage.misc.misc
 import sage.misc.viewer
 

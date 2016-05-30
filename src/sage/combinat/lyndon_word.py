@@ -2,7 +2,6 @@
 """
 Lyndon words
 """
-
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #
@@ -12,6 +11,7 @@ Lyndon words
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -21,10 +21,10 @@ from sage.rings.all import Integer
 from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
 from six.moves import builtins
-import necklace
-from integer_vector import IntegerVectors
-
+from . import necklace
+from .integer_vector import IntegerVectors
 from sage.combinat.words.words import FiniteWords
+
 
 def LyndonWords(e=None, k=None):
     """

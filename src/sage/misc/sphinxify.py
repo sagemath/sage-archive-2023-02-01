@@ -16,6 +16,7 @@ AUTHORS:
 #
 # Distributed under the terms of the BSD License
 #*****************************************************************************
+from __future__ import absolute_import
 
 import os
 import re

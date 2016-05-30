@@ -30,6 +30,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
@@ -39,6 +40,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.misc.lazy_attribute import lazy_attribute
 from six.moves import builtins
 from sage.misc.stopgap import stopgap
+
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """

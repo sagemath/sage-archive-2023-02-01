@@ -28,8 +28,10 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from stream import Stream, Stream_class
-from series_order import  bounded_decrement, increment, inf, unk
+from __future__ import absolute_import
+
+from .stream import Stream, Stream_class
+from .series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial

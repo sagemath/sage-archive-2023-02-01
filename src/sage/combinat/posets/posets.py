@@ -240,7 +240,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1506,7 +1506,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
         """
-        from linear_extensions import LinearExtensionsOfPoset
+        from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
     def is_linear_extension(self, l):

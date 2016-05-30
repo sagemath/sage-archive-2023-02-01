@@ -15,13 +15,15 @@ Signed Compositions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import itertools
 
-from composition import Compositions_n, Composition
+from .composition import Compositions_n, Composition
 from sage.rings.all import Integer
 from sage.arith.all import binomial
 from six.moves import builtins
+
 
 class SignedCompositions(Compositions_n):
     """

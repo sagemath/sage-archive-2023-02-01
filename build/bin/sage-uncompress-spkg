@@ -32,7 +32,7 @@ class UmaskExtractTarFile(tarfile.TarFile):
 
         # Unfortunately the only way to get the current umask is to set it
         # and then restore it
-        self.umask = os.umask(0777)
+        self.umask = os.umask(0o777)
         os.umask(self.umask)
 
     def chmod(self, tarinfo, target):

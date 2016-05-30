@@ -42,6 +42,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
@@ -704,6 +705,31 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
+
+    def is_join_semidistributive(self):
+        r"""
+        Return ``True`` if the lattice is join-semidistibutive, and ``False``
+        otherwise.
+    
+        A lattice is join-semidistibutive if `e \vee x = e \vee y` implicates
+        `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
+        lattice.
+
+        EXAMPLES::
+        
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5.is_join_semidistributive()
+            True
+            sage: M3 = Posets.DiamondPoset(5)
+            sage: M3.is_join_semidistributive()
+            False
+
+        TESTS::
+        
+            sage: LatticePoset().is_join_semidistributive()
+            True
+        """
+        return self._hasse_diagram.is_semidistributive('join') is None
 
     def is_complemented(self):
         r"""

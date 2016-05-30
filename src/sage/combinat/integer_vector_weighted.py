@@ -19,12 +19,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
-from __builtin__ import list as builtinlist
+from six.moves.builtins import list as builtinlist
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation

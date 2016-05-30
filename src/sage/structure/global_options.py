@@ -369,9 +369,11 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from __builtin__ import str
+from six.moves.builtin import str
 from sage.structure.sage_object import SageObject
+
 
 class GlobalOptions(SageObject):
     r"""

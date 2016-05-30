@@ -442,7 +442,7 @@ this data.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
@@ -454,7 +454,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from __builtin__ import sorted
+from six.moves.builtins import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above

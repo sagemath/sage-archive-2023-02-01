@@ -78,11 +78,11 @@ def inject_on(verbose=True):
     import sage.ext.interactive_constructors_c
     G = globals()
     if verbose:
-        print("Redefining:", end="")
+        print("Redefining:", end=" ")
     for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
         if not 'inject' in X and X[0] != '_' and X[:4] != 'sage':
             if verbose:
-                print(X, end="")
+                print(X, end=" ")
             try:
                 _original_constructors[X] =  G[X] #sage.ext.interactive_constructors_c.__dict__[X]
             except KeyError:
@@ -253,4 +253,3 @@ def PolynomialRing(*args, **kwds):
 
 
 ###################### need to add a bunch more ############################
-

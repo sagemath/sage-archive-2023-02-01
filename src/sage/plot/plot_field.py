@@ -1,7 +1,7 @@
 """
 Plotting fields
 """
-# *****************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
 #                     2008 Mike Hansen <mhansen@gmail.com>,
@@ -16,7 +16,7 @@ Plotting fields
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-# *****************************************************************************
+#*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 from sage.arith.srange import xsrange
@@ -34,8 +34,7 @@ class PlotField(GraphicPrimitive):
     Primitive class that initializes the
     PlotField graphics type
     """
-    def __init__(self, xpos_array, ypos_array,
-                 xvec_array, yvec_array, options):
+    def __init__(self, xpos_array, ypos_array, xvec_array, yvec_array, options):
         """
         Create the graphics primitive PlotField.  This sets options
         and the array to be plotted as attributes.
@@ -76,9 +75,7 @@ class PlotField(GraphicPrimitive):
         EXAMPLES::
 
             sage: x,y = var('x,y')
-            sage: d = plot_vector_field((.01*x,x+y),
-            ....:                       (x,10,20),
-            ....:                       (y,10,20))[0].get_minmax_data()
+            sage: d = plot_vector_field((.01*x,x+y), (x,10,20), (y,10,20))[0].get_minmax_data()
             sage: d['xmin']
             10.0
             sage: d['ymin']
@@ -124,8 +121,7 @@ class PlotField(GraphicPrimitive):
         (note that in general :trac:`15002` should be fixed)::
 
             sage: x,y=var('x,y')
-            sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3),
-            ....:                     wrong_option='nonsense')
+            sage: P=plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3), wrong_option='nonsense')
             sage: P[0].options()['plot_points']
             verbose 0 (...: primitive.py, options) WARNING: Ignoring option 'wrong_option'=nonsense
             verbose 0 (...: primitive.py, options)
@@ -186,8 +182,7 @@ def plot_vector_field(f_g, xrange, yrange, **options):
 
     ::
 
-        sage: plot_vector_field((y, (cos(x)-2)*sin(x)),
-        ....:                   (x,-pi,pi), (y,-pi,pi))
+        sage: plot_vector_field((y, (cos(x)-2)*sin(x)), (x,-pi,pi), (y,-pi,pi))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -227,37 +222,32 @@ def plot_vector_field(f_g, xrange, yrange, **options):
     We ignore function values that are infinite or NaN::
 
         sage: x,y = var('x,y')
-        sage: plot_vector_field((-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)),
-        ....:                    (x, -10, 10), (y, -10, 10))
+        sage: plot_vector_field((-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x, -10, 10), (y, -10, 10))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = plot_vector_field((-x/sqrt(x**2+y**2), -y/sqrt(x**2+y**2)),
-                              (x, -10, 10), (y, -10, 10))
+        g = plot_vector_field((-x/sqrt(x**2+y**2), -y/sqrt(x**2+y**2)), (x, -10, 10), (y, -10, 10))
         sphinx_plot(g)
 
     ::
 
         sage: x,y = var('x,y')
-        sage: plot_vector_field((-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10),
-        ....:                   (y, -10, 10))
+        sage: plot_vector_field((-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         x,y = var('x,y')
-        g = plot_vector_field((-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10),
-                              (y, -10, 10))
+        g = plot_vector_field((-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
         sphinx_plot(g)
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2), xmax=10)
         Graphics object consisting of 1 graphics primitive
-        sage: plot_vector_field((x, y), (x, -2, 2),
-        ....:                  (y, -2, 2)).show(xmax=10) # These are equivalent
+        sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
 
     .. PLOT::
 
@@ -269,9 +259,7 @@ def plot_vector_field(f_g, xrange, yrange, **options):
     (f, g) = f_g
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
-    z, ranges = setup_for_eval_on_grid([f, g],
-                                       [xrange, yrange],
-                                       options['plot_points'])
+    z, ranges = setup_for_eval_on_grid([f, g], [xrange, yrange], options['plot_points'])
     f, g = z
 
     xpos_array, ypos_array, xvec_array, yvec_array = [], [], [], []
@@ -308,8 +296,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
         sage: x,y = var('x y')
         sage: capacity = 3 # thousand
         sage: growth_rate = 0.7 # population increases by 70% per unit of time
-        sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5),
-        ....:                  (y,0,capacity*2))
+        sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
@@ -317,8 +304,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
         x,y = var('x y')
         capacity = 3 # thousand
         growth_rate = 0.7 # population increases by 70% per unit of time
-        g = plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5),
-                             (y,0,capacity*2))
+        g = plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2))
         sphinx_plot(g)
 
     Plot a slope field involving sin and cos::
@@ -369,5 +355,4 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     else:
         norm_inverse = 1/sqrt((f**2+1))
         f_normalized = f * norm_inverse
-    return plot_vector_field((norm_inverse, f_normalized),
-                             xrange, yrange, **slope_options)
+    return plot_vector_field((norm_inverse, f_normalized), xrange, yrange, **slope_options)

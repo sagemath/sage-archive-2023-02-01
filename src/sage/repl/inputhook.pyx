@@ -66,6 +66,34 @@ def uninstall():
     PyOS_InputHook = NULL
 
 
+def is_installed():
+    """
+    Test whether the Sage input hook is installed
+
+    This is only for doctesting purposes
+
+    EXAMPLES::
+
+        sage: from sage.repl.inputhook import is_installed
+        sage: is_installed()
+        False
+
+    The Sage input hook is only installed while files are attached::
+
+        sage: tmp = tmp_filename(ext='.py')
+        sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+        sage: from sage.repl.attach import attach, detach
+        sage: attach(tmp)
+        sage: is_installed()
+        True
+        sage: detach(tmp)
+        sage: is_installed()
+        False
+    """
+    global PyOS_InputHook
+    return (PyOS_InputHook == c_sage_inputhook)
+
+
 def sage_inputhook():
     r"""
     The input hook.

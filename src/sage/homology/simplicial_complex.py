@@ -1342,7 +1342,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
            subcomplex.
         :type subcomplex: optional, default ``None``
 
-        .. note::
+        .. NOTE::
 
             This method is not used elsewhere in Sage. The current
             usage: if order doesn't matter, for example to test
@@ -1377,7 +1377,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         depending on the value of the ``sort_facets`` parameter (from
         the initialization of the simplicial complex).
 
-        .. note::
+        .. NOTE::
 
             This list is sorted to provide reliable indexing for the
             rows and columns of the matrices of differentials in the
@@ -1999,7 +1999,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         The rows and columns of the boundary matrices are indexed by
         the lists given by the :meth:`n_cells` method, which by
-        default is sorted.
+        default are sorted.
 
         EXAMPLES::
 

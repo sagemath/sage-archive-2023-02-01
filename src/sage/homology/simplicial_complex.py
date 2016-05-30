@@ -988,6 +988,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self.__enlarged = copy(C.__enlarged)
             self._graph = copy(C._graph)
             self._is_mutable = True
+            self._sorted = False
             return
 
         if sort_facets:
@@ -1197,7 +1198,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not isinstance(x, Simplex):
             return False
         dim = x.dimension()
-        return x in self.n_faces(dim)
+        return x in self.faces()[dim]
 
     def __call__(self, simplex):
         """
@@ -1341,6 +1342,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
            subcomplex.
         :type subcomplex: optional, default ``None``
 
+        .. note::
+
+            This method is not used elsewhere in Sage. The current
+            usage: if order doesn't matter, for example to test
+            membership, use :meth:`faces`. If the order of the cells
+            matters, use :meth:`n_cells`.
+
         EXAMPLES::
 
             sage: S = Set(range(1,5))
@@ -1357,6 +1365,45 @@ class SimplicialComplex(Parent, GenericCellComplex):
             return self.faces(subcomplex)[n]
         else:
             return set([])
+
+    def n_cells(self, n, subcomplex=None, sort=None):
+        """
+        List of cells of dimension ``n`` of this cell complex.
+
+        If the optional argument ``subcomplex`` is present, then
+        return the ``n``-dimensional faces which are *not* in the
+        subcomplex. Sort the list if the argument ``sort`` is
+        ``True``. If ``sort`` is ``None`` (the default), then sort
+        depending on the value of the ``sort_facets`` parameter (from
+        the initialization of the simplicial complex).
+
+        .. note::
+
+            This list is sorted to provide reliable indexing for the
+            rows and columns of the matrices of differentials in the
+            associateed chain complex.
+
+        EXAMPLES::
+
+            sage: S = Set(range(1,5))
+            sage: Z = SimplicialComplex(S.subsets())
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z.n_cells(2)
+            [(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]
+            sage: K = SimplicialComplex([[1,2,3], [2,3,4]])
+            sage: Z.n_cells(2, subcomplex=K)
+            [(1, 2, 4), (1, 3, 4)]
+            sage: S = SimplicialComplex([[complex(i), complex(1)]], sort_facets=False)
+            sage: S.n_cells(0)
+            [(1j,), ((1+0j),)]
+        """
+        if sort is None:
+            sort = self._sorted
+        if sort:
+            return sorted(GenericCellComplex.n_cells(self, n, subcomplex))
+        else:
+            return GenericCellComplex.n_cells(self, n, subcomplex)
 
     def is_pure(self):
         """
@@ -1479,7 +1526,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             ValueError: this simplex is not in this simplicial complex
         """
-        if not simplex in self.n_faces(simplex.dimension()):
+        if not simplex in self.faces()[simplex.dimension()]:
             raise ValueError('this simplex is not in this simplicial complex')
         return simplex.face(i)
 
@@ -1606,7 +1653,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if d == 0:
             return len(self.facets()) == 2
         F = self.facets()
-        X = self.n_faces(d-1)
+        X = self.faces()[d-1]
         # is each (d-1)-simplex is the face of exactly two facets?
         for s in X:
             if len([a for a in [s.is_face(f) for f in F] if a]) != 2:
@@ -1950,6 +1997,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
            has no effect: the chain complex relative to a nonempty
            subcomplex is zero in dimension `-1`.
 
+        The rows and columns of the boundary matrices are indexed by
+        the lists given by the :meth:`n_cells` method, which by
+        default is sorted.
+
         EXAMPLES::
 
             sage: circle = SimplicialComplex([[0,1], [1,2], [0, 2]])
@@ -1992,7 +2043,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         current = None
         current_dim = None
         if augmented:  # then first == 0
-            current = list(self.n_faces(0, subcomplex=subcomplex))
+            current = self.n_cells(0, subcomplex=subcomplex)
             current_dim = 0
             if cochain:
                 differentials[-1] = matrix(base_ring, len(current), 1,
@@ -2001,12 +2052,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 differentials[0] = matrix(base_ring, 1, len(current),
                                           [1]*len(current))
         elif first == 0 and not augmented:
-            current = list(self.n_faces(0, subcomplex=subcomplex))
+            current = self.n_cells(0, subcomplex=subcomplex)
             current_dim = 0
             if not cochain:
                 differentials[0] = matrix(base_ring, 0, len(current))
         else:  # first > 0
-            current = list(self.n_faces(first, subcomplex=subcomplex))
+            current = self.n_cells(first, subcomplex=subcomplex)
             current_dim = first
             if not cochain:
                 differentials[first] = matrix(base_ring, 0, len(current))
@@ -2034,9 +2085,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if current_dim == n-1:
                     old = dict(zip(current, range(len(current))))
                 else:
-                    set_of_faces = list(self.n_faces(n-1, subcomplex=subcomplex))
+                    set_of_faces = self.n_cells(n-1, subcomplex=subcomplex)
                     old = dict(zip(set_of_faces, range(len(set_of_faces))))
-                current = list(self.n_faces(n, subcomplex=subcomplex))
+                current = self.n_cells(n, subcomplex=subcomplex)
                 current_dim = n
                 # construct matrix.  it is easiest to construct it as
                 # a sparse matrix, specifying which entries are
@@ -2066,7 +2117,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if cochain:
             n = dimensions[-1] + 1
             if current_dim != n-1:
-                current = list(self.n_faces(n-1, subcomplex=subcomplex))
+                current = self.n_cells(n-1, subcomplex=subcomplex)
             differentials[n-1] = matrix(base_ring, 0, len(current))
         # finally, return the chain complex
         if cochain:
@@ -2199,7 +2250,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 L = self._contractible_subcomplex(verbose=verbose)
                 if verbose:
                     print("Done finding contractible subcomplex.")
-                    vec = [len(self.n_faces(n-1, subcomplex=L)) for n in range(self.dimension()+2)]
+                    vec = [len(self.faces(subcomplex=L)[n-1]) for n in range(self.dimension()+2)]
                     print("The difference between the f-vectors is:")
                     print("  %s" % vec)
             else:
@@ -2995,7 +3046,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             [(0, 1, None), (0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None), (2, 3, None)]
         """
         if self._graph is None:
-            edges = self.n_faces(1)
+            edges = self.n_cells(1)
             vertices = [min(f) for f in self._facets if f.dimension() == 0]
             used_vertices = []  # vertices which are in an edge
             d = {}
@@ -3125,7 +3176,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         # make sure it's a list (it will be a tuple if immutable)
         facets = [f for f in self._facets if f.dimension() < n]
-        facets.extend(self.n_faces(n))
+        facets.extend(self.faces()[n])
         return SimplicialComplex(facets, is_mutable=self._is_mutable)
 
     def _contractible_subcomplex(self, verbose=False):
@@ -3403,15 +3454,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: RP2 = simplicial_complexes.RealProjectiveSpace(2)
             sage: C2 = RP2.fundamental_group(simplify=False)
             sage: C2
-            Finitely presented group < e0, e1, e2, e3, e4, e5, e6, e7, e8, e9 | e6, e5, e3, e9, e4*e7^-1*e6, e9*e7^-1*e0, e0*e1^-1*e2, e5*e1^-1*e8, e4*e3^-1*e8, e2 >
+            Finitely presented group < e0, e1, e2, e3, e4, e5, e6, e7, e8, e9 | e0, e3, e4, e7, e9, e5*e2^-1*e0, e7*e2^-1*e1, e8*e3^-1*e1, e8*e6^-1*e4, e9*e6^-1*e5 >
             sage: C2.simplified()
-            Finitely presented group < e0 | e0^2 >
+            Finitely presented group < e1 | e1^2 >
 
         This is the same answer given if the argument ``simplify`` is True
         (the default)::
 
             sage: RP2.fundamental_group()
-            Finitely presented group < e0 | e0^2 >
+            Finitely presented group < e1 | e1^2 >
 
         You must specify a base point to compute the fundamental group
         of a non-connected complex::
@@ -3426,16 +3477,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Finitely presented group < e |  >
             sage: v1 = list(K.vertices())[-1]
             sage: K.fundamental_group(base_point=v1)
-            Finitely presented group < e0 | e0^2 >
+            Finitely presented group < e1 | e1^2 >
 
         Some other examples::
 
             sage: S1.wedge(S1).fundamental_group()
             Finitely presented group < e0, e1 | >
             sage: simplicial_complexes.Torus().fundamental_group()
-            Finitely presented group < e0, e3 | e0*e3^-1*e0^-1*e3 >
+            Finitely presented group < e1, e4 | e4^-1*e1^-1*e4*e1 >
             sage: simplicial_complexes.MooreSpace(5).fundamental_group()
-            Finitely presented group < e1 | e1^5 >
+            Finitely presented group < e0 | e0^5 >
         """
         if not self.is_connected():
             if base_point is None:

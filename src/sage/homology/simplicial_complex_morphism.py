@@ -316,17 +316,15 @@ class SimplicialComplexMorphism(Morphism):
               From: Chain complex with at most 2 nonzero terms over Integer Ring
               To:   Chain complex with at most 3 nonzero terms over Integer Ring
             sage: a._matrix_dictionary
-            {0: [0 0 0]
-            [0 1 0]
-            [0 0 1]
-            [1 0 0],
-             1: [0 0 0]
-            [0 1 0]
-            [0 0 0]
-            [1 0 0]
-            [0 0 0]
-            [0 0 1],
-             2: []}
+            {0: [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             [0 0 0], 1: [1 0 0]
+             [0 1 0]
+             [0 0 0]
+             [0 0 1]
+             [0 0 0]
+             [0 0 0], 2: []}
             sage: x.associated_chain_complex_morphism(augmented=True)
             Chain complex morphism:
               From: Chain complex with at most 3 nonzero terms over Integer Ring
@@ -348,16 +346,15 @@ class SimplicialComplexMorphism(Morphism):
 
             sage: g = {0:1, 1:2, 2:0}
             sage: H(g).associated_chain_complex_morphism()._matrix_dictionary
-            {0: [0 0 0]
+            {0: [0 0 1]
              [1 0 0]
              [0 1 0]
-             [0 0 1], 1: [ 0  0  0]
-             [-1  0  0]
+             [0 0 0], 1: [ 0 -1  0]
+             [ 0  0 -1]
              [ 0  0  0]
-             [ 0  0  1]
+             [ 1  0  0]
              [ 0  0  0]
-             [ 0 -1  0], 2: []}
-
+             [ 0  0  0], 2: []}
             sage: X = SimplicialComplex([[0, 1]], is_mutable=False)
             sage: Hom(X,X)({0:1, 1:0}).associated_chain_complex_morphism()._matrix_dictionary
             {0: [0 1]
@@ -681,26 +678,26 @@ class SimplicialComplexMorphism(Morphism):
             sage: h.to_matrix(0) # in degree 0
             [1]
             sage: h.to_matrix(1) # in degree 1
-            [ 2]
-            [-1]
+            [1]
+            [0]
             sage: h.to_matrix()  # the entire homomorphism
-            [ 1| 0]
-            [--+--]
-            [ 0| 2]
-            [ 0|-1]
-            [--+--]
-            [ 0| 0]
+            [1|0]
+            [-+-]
+            [0|1]
+            [0|0]
+            [-+-]
+            [0|0]
 
         We can evaluate it on (co)homology classes::
 
             sage: coh = diag.induced_homology_morphism(QQ, cohomology=True)
             sage: coh.to_matrix(1)
-            [1 1]
+            [1 0]
             sage: x,y = list(T.cohomology_ring(QQ).basis(1))
             sage: coh(x)
             h^{1,0}
             sage: coh(2*x+3*y)
-            5*h^{1,0}
+            2*h^{1,0}
 
         Note that the complexes must be immutable for this to
         work. Many, but not all, complexes are immutable when

@@ -371,7 +371,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-from six.moves.builtin import str
+from six.moves.builtins import str
 from sage.structure.sage_object import SageObject
 
 

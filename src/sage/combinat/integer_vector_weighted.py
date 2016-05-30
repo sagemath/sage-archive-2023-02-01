@@ -31,7 +31,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.words.word import Word
-from permutation import Permutation
+from .permutation import Permutation
 
 def WeightedIntegerVectors(n = None, weight = None):
     """

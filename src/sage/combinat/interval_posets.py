@@ -2106,6 +2106,28 @@ class TamariIntervalPoset(Element):
         """
         return len(self.tamari_inversions())
 
+    def number_of_new_components(self):
+        """
+        Return the number of terms in the decomposition in new interval-posets.
+
+        Every interval-poset has a unique decomposition as a planar tree of
+        of new interval-posets, as explained in []_. This function
+        just computes the number of terms, not the planar tree nor
+        the terms themselves.
+
+        .. SEEALSO:: :meth:`is_new`
+
+        EXAMPLES::
+
+            sage: TIP4 = TamariIntervalPosets(4)
+            sage: nb = [u.number_of_new_components() for u in TIP4]
+            sage: [nb.count(i) for i in range(1, 5)]
+            [12, 21, 21, 14]
+        """
+        t_low = self.lower_binary_tree().to_tilting()
+        t_up = self.upper_binary_tree().to_tilting()
+        return len([p for p in t_low if p in t_up])
+    
     def is_new(self):
         """
         Return ``True`` if ``self`` is a new Tamari interval.
@@ -2114,6 +2136,8 @@ class TamariIntervalPoset(Element):
         facet of the associahedron.
 
         They have been considered in section 9 of [ChapTamari08]_.
+
+        .. SEEALSO:: :meth:`is_modern`
 
         EXAMPLES::
 
@@ -2128,6 +2152,29 @@ class TamariIntervalPoset(Element):
         c_up = self.upper_binary_tree().single_edge_cut_shapes()
         c_down = self.lower_binary_tree().single_edge_cut_shapes()
         return not any(x in c_up for x in c_down)
+
+    def is_simple(self):
+        """
+        Return ``True`` if ``self`` is a simple Tamari interval.
+
+        Here 'simple' means that the interval contains a unique binary tree.
+
+        These intervals define the simple modules over the
+        incidence algebras of the Tamari lattices.
+
+        .. SEEALSO:: :meth:`is_final_interval`, :meth:`is_initial_interval`
+
+        EXAMPLES::
+
+            sage: TIP4 = TamariIntervalPosets(4)
+            sage: len([u for u in TIP4 if u.is_simple()])
+            14
+
+            sage: TIP3 = TamariIntervalPosets(3)
+            sage: len([u for u in TIP3 if u.is_simple()])
+            5
+        """
+        return self.upper_binary_tree() == self.lower_binary_tree()
 
     def is_synchronized(self):
         """
@@ -2155,6 +2202,8 @@ class TamariIntervalPoset(Element):
         This is defined by exclusion of a simple pattern in the Hasse diagram,
         namely there is no configuration ``y --> x <-- z``
         with `1 \leq y < x < z \leq n`.
+
+        .. SEEALSO:: :meth:`is_new`
 
         EXAMPLES::
 

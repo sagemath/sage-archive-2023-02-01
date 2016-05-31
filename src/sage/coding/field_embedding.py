@@ -149,7 +149,7 @@ class FieldEmbedding(SageObject):
                 self.small_field()._latex_())
 
     @cached_method
-    def representation_matrix(self):
+    def _representation_matrix(self):
         r"""
         Returns the matrix used to represents elements of the big field
         as vectors in the basis of the small field over the prime field.
@@ -160,7 +160,7 @@ class FieldEmbedding(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = FieldEmbedding(Fqm, Fq)
-            sage: FE.representation_matrix()
+            sage: FE._representation_matrix()
             [1 0 0 0]
             [0 0 1 1]
             [0 1 1 1]
@@ -195,7 +195,7 @@ class FieldEmbedding(SageObject):
         """
         if not b in self.big_field():
             raise ValueError("The input has to be an element of the big field")
-        return self.representation_matrix() * vector(b)
+        return self._representation_matrix() * vector(b)
 
     def small_field_polynomial_representation(self, b):
         r"""
@@ -219,7 +219,7 @@ class FieldEmbedding(SageObject):
         if not b in self.big_field():
             raise ValueError("The input has to be an element of the big field")
         Fq = self.small_field()
-        vect = self.representation_matrix() * vector(b)
+        vect = self._representation_matrix() * vector(b)
         pol = Fq.zero()
         s = self.small_field_power()
         sm = self.big_field_power()

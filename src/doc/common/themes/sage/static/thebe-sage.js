@@ -12,6 +12,7 @@ $(function() {
                          kernel_name: "sagemath",
                          selector: selector
                     });
+                    $(this).attr('disabled', 'disabled');
                 })
                 .prependTo('div.body');
         }

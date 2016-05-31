@@ -6122,18 +6122,21 @@ cdef class Matroid(SageObject):
 
     # matroid chordality
 
-    cpdef _is_circuit_chordal(self, frozenset C, certificate=False):
+    cpdef _is_circuit_chordal(self, frozenset C, bint certificate=False):
         """
         Check if the circuit ``C`` has a chord.
 
         INPUT: 
 
         - ``C`` -- a circuit
-        - ``certificate`` -- (optional) boolean, False if not given.
+        - ``certificate`` -- (default: ``False``) boolean
 
         OUTPUT:
-        - Boolean,
-        and if certificate, ``(x, Ax, Bx)`` -- a cord ``x`` of ``C``, and circuits ``Ax`` and ``Bx`` showing that ``x`` is a chord, or None if the circuit is not chordal.
+
+        - boolean and if certificate is ``True``, also return a tuple
+          ``(x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and ``Bx``
+          are circuits whose union is ``C`` and ``x``, or ``None`` if
+          ``C`` is not chordal
 
         EXAMPLES::
 
@@ -6169,7 +6172,7 @@ cdef class Matroid(SageObject):
             return False, None
         return False
 
-    cpdef is_circuit_chordal(self, C, certificate=False):
+    cpdef is_circuit_chordal(self, C, bint certificate=False):
         r"""
         Check if the circuit ``C`` has a chord.
 
@@ -6180,11 +6183,14 @@ cdef class Matroid(SageObject):
         INPUT: 
 
         - ``C`` -- a circuit
-        - ``certificate`` -- (optional) boolean, False if not given.
+        - ``certificate`` -- (default: ``False``) boolean
 
         OUTPUT:
-        - Boolean,
-        and if certificate, ``(x, Ax, Bx)`` -- a cord ``x`` of ``C``, and circuits ``Ax`` and ``Bx`` showing that ``x`` is a chord, or None if the circuit is not chordal.
+
+        - boolean and if certificate is ``True``, also return a tuple
+          ``(x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and ``Bx``
+          are circuits whose union is ``C`` and ``x``, or ``None`` if
+          ``C`` is not chordal
 
         EXAMPLES::
 
@@ -6202,7 +6208,7 @@ cdef class Matroid(SageObject):
             raise ValueError("input C is not a circuit")
         return self._is_circuit_chordal(frozenset(C), certificate)
 
-    cpdef is_chordal(self, k1=4, k2=None, certificate=False):
+    cpdef is_chordal(self, k1=4, k2=None, bint certificate=False):
         r"""
         Return if a matroid is ``[k1, k2]``-chordal.
 
@@ -6217,8 +6223,8 @@ cdef class Matroid(SageObject):
         - ``k1`` -- (optional) the integer `k_1`
         - ``k2`` -- (optional) the integer `k_2`; if not specified,
           then this method returns if ``self`` is `k_1`-chordal
-        - ``certificate`` -- (optional) Boolean, False if not specified,
-          if true, and matroid is not chordal, returns a circuit which is not chordal.
+        - ``certificate`` -- (default: ``False``) boolean;  if
+          ``True`` and ``self`` is not chordal, return a circuit
 
         .. SEEALSO::
 

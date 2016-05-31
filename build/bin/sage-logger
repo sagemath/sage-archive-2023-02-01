@@ -41,13 +41,24 @@ else
     prefix=""
 fi
 
+# Use sed option to reduce buffering, to make the output appear more
+# smoothly. For GNU sed, this is the --unbuffered option.
+# For BSD sed (which is also on OS X), this is the -l option.
+if sed </dev/null 2>/dev/null --unbuffered ""; then
+    SED="sed --unbuffered"
+elif sed </dev/null 2>/dev/null -l ""; then
+    SED="sed -l"
+else
+    SED="sed"
+fi
+
 mkdir -p "$logdir"
 
 # Redirect stdout and stderr to a subprocess running tee.
 # We trap SIGINT such that SIGINT interrupts the main process being
 # run, not the logging.
-( exec 2>&1; eval "$cmd" ) | ( trap '' SIGINT; tee -a "$logfile" ) | \
-    (while read line; do echo "${prefix}${line}"; done)
+( exec 2>&1; eval "$cmd" ) | \
+    ( trap '' SIGINT; tee -a "$logfile" | $SED "s/^/$prefix/" )
 
 pipestatus=(${PIPESTATUS[*]})
 

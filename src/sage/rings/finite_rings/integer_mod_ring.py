@@ -58,6 +58,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.misc.prandom as random
 
@@ -1169,7 +1170,7 @@ In the latter case, please inform the developers.""".format(self.order()))
 
             sage: R = IntegerModRing(3)
             sage: for i in R:
-            ...    print i
+            ....:     print(i)
             0
             1
             2
@@ -1206,9 +1207,9 @@ In the latter case, please inform the developers.""".format(self.order()))
               To:   Ring of integers modulo 15
             sage: f(-1)
             14
-            sage: f = R.coerce_map_from(Integers(10)); print f
+            sage: f = R.coerce_map_from(Integers(10)); print(f)
             None
-            sage: f = R.coerce_map_from(QQ); print f
+            sage: f = R.coerce_map_from(QQ); print(f)
             None
 
             sage: R = IntegerModRing(17)

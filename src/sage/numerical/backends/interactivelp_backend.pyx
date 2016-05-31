@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
@@ -839,7 +840,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.problem_name("There_once_was_a_french_fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There_once_was_a_french_fry
         """
         if name == NULL:

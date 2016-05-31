@@ -1517,7 +1517,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         if F is None:
             F = self.base_ring()
-        X = self(F)
+        X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
                 return X.points(bound) # checks for proper bound done in points functions
@@ -3069,7 +3069,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                 PP = X.ambient_space()
                 I = X.defining_ideal().radical()
                 #check if the irrelevant ideal of any component is in the radical
-                if any([all([t in I for t in PS.gens()]) for PS in PP]):
+                if any([all([t in I for t in PS.gens()]) for PS in PP.components()]):
                     self.__dimension = -1
                 else:
                     self.__dimension = I.dimension() - PP.num_components()

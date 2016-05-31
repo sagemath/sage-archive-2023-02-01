@@ -64,7 +64,7 @@ Test deprecation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -1242,12 +1242,14 @@ def powerset(X):
     Iterating over the power set of an infinite set is also allowed::
 
         sage: i = 0
+        sage: L = []
         sage: for x in powerset(ZZ):
-        ...    if i > 10:
-        ...       break
-        ...    else:
-        ...       i += 1
-        ...    print x,
+        ....:     if i > 10:
+        ....:         break
+        ....:     else:
+        ....:         i += 1
+        ....:     L.append(x)
+        sage: print(" ".join(str(x) for x in L))
         [] [0] [1] [0, 1] [-1] [0, -1] [1, -1] [0, 1, -1] [2] [0, 2] [1, 2]
 
     You may also use subsets as an alias for powerset::

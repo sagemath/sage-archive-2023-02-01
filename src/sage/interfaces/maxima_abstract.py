@@ -249,7 +249,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima.demo('cf') # not tested
-            read and interpret file: .../local/share/maxima/5.34.1/demo/cf.dem
+            read and interpret file: .../share/maxima/5.34.1/demo/cf.dem
 
             At the '_' prompt, type ';' and <enter> to get next demonstration.
             frac1:cf([1,2,3,4])
@@ -1518,7 +1518,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 4.16331413788384...e-11, 231, 0)
+            (0.5284822353142306, 0.41633141378838...e-10, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::

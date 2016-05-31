@@ -240,7 +240,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1279,7 +1279,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
-            sage: print P._latex_() #optional - dot2tex graphviz
+            sage: print(P._latex_()) #optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
@@ -1587,7 +1587,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return a Graphic object for the Hasse diagram of the poset.
 
         If the poset is ranked, the plot uses the rank function for
-        the heights of the vertices.
+        the heights of the elements.
 
         INPUT:
 
@@ -2815,7 +2815,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             d.add_edges(combinations(l,2))
 
         # The only 2-cycles are the incomparable pair
-        if d.size() != (n * (n - 1)) // 2 + inc_graph.size():
+        if d.size() != (n*(n-1))/2+inc_graph.size():
             raise RuntimeError("Something went wrong. Please report this "
                                "bug to sage-devel@googlegroups.com")
 
@@ -2864,7 +2864,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
             ....:     if r(v) != r(u) + 1:
-            ....:         print "Bug in rank_function!"
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -3104,7 +3104,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             6
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         ::
 
@@ -3389,7 +3389,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = Posets.PentagonPoset()
             sage: for P in N5.isomorphic_subposets_iterator(D):
-            ....:     print P.cover_relations()
+            ....:     print(P.cover_relations())
             [[0, 1], [0, 2], [1, 4], [2, 4]]
             [[0, 1], [0, 3], [1, 4], [3, 4]]
             [[0, 1], [0, 2], [1, 4], [2, 4]]
@@ -3424,7 +3424,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2=Poset({0:[1]})
             sage: C3=Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2): print x.cover_relations()
+            sage: for x in C3.isomorphic_subposets(C2):
+            ....:     print(x.cover_relations())
             [['b', 'c']]
             [['a', 'c']]
             [['a', 'b']]
@@ -3662,7 +3663,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(C)
             [[], [0], [0, 1], [0, 1, 4], [0, 2], [0, 2, 3], [0, 2, 3, 4], [0, 2, 4], [0, 3], [0, 3, 4], [0, 4], [1], [1, 4], [2], [2, 3], [2, 3, 4], [2, 4], [3], [3, 4], [4]]
 
-        Exclusion of vertices, tuple (instead of list) as constructor::
+        Exclusion of elements, tuple (instead of list) as constructor::
 
             sage: P = Poset({1: [2, 3], 2: [4], 3: [4, 5]})
             sage: list(P.chains(element_constructor=tuple, exclude=[3]))
@@ -4443,7 +4444,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]})
-            sage: print P.graphviz_string()
+            sage: print(P.graphviz_string())
             graph {
             "f";"d";"b";"a";"c";"e";
             "f"--"e";"d"--"c";"b"--"a";"d"--"b";"f"--"d";
@@ -5526,7 +5527,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.promotion`),
         and relabeling ``self`` accordingly. For more details see [Stan2009]_.
 
-        When the vertices of the poset ``self`` are labelled by
+        When the elements of the poset ``self`` are labelled by
         `\{1,2,\ldots,n\}`, the linear extension is the identity, and
         `i=1`, the above algorithm corresponds to the promotion
         operator on posets defined by Schützenberger as
@@ -5653,7 +5654,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[1, 2], [1, 5], [2, 3], [5, 6], [5, 4], [6, 7], [4, 7]]
 
-        Here is an example of a poset where the vertices are not labelled
+        Here is an example of a poset where the elements are not labelled
         by `\{1,2,\ldots,n\}`::
 
             sage: P = Poset((divisors(15), attrcall("divides")), linear_extension = True)
@@ -6348,14 +6349,14 @@ FinitePoset._dual_class = FinitePoset
 
 class FinitePosets_n(UniqueRepresentation, Parent):
     r"""
-    The finite enumerated set of all posets on `n` vertices, up to an isomorphism.
+    The finite enumerated set of all posets on `n` elements, up to an isomorphism.
 
     EXAMPLES::
 
         sage: P = Posets(3)
         sage: P.cardinality()
         5
-        sage: for p in P: print p.cover_relations()
+        sage: for p in P: print(p.cover_relations())
         []
         [[1, 2]]
         [[0, 1], [0, 2]]
@@ -6368,7 +6369,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Posets(3); P
-            Posets containing 3 vertices
+            Posets containing 3 elements
             sage: P.category()
             Category of finite enumerated sets
             sage: P.__class__
@@ -6384,9 +6385,9 @@ class FinitePosets_n(UniqueRepresentation, Parent):
 
             sage: P = Posets(3)
             sage: P._repr_()
-            'Posets containing 3 vertices'
+            'Posets containing 3 elements'
         """
-        return "Posets containing %s vertices" % self._n
+        return "Posets containing %s elements" % self._n
 
     def __contains__(self, P):
         """

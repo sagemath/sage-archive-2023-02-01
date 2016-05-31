@@ -17,6 +17,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from __future__ import print_function
+
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
@@ -1154,7 +1156,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
             sage: p.problem_name("There once was a french fry") # optional - cbc
-            sage: print p.problem_name()                        # optional - cbc
+            sage: print(p.problem_name())                       # optional - cbc
             There once was a french fry
         """
         if name == NULL:
@@ -1179,7 +1181,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                                     # optional - cbc
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])  # optional - cbc
-            sage: print p.row_name(0)                                                 # optional - cbc
+            sage: print(p.row_name(0))                                                # optional - cbc
             Empty constraint 1
         """
         if self.row_names is not None:
@@ -1201,7 +1203,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")          # optional - cbc
             sage: p.add_variable(name='I am a variable')   # optional - cbc
             0
-            sage: print p.col_name(0)                      # optional - cbc
+            sage: print(p.col_name(0))                     # optional - cbc
             I am a variable
         """
         if self.col_names is not None:

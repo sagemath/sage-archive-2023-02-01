@@ -27,6 +27,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import operator
 
@@ -159,15 +160,15 @@ def _inverse_mod_generic(elt, I):
     try:
         I = R.ideal(I)
     except ValueError:
-        raise ValueError, "inverse is only defined modulo integral ideals"
+        raise ValueError("inverse is only defined modulo integral ideals")
     if I == 0:
-        raise ValueError, "inverse is not defined modulo the zero ideal"
+        raise ValueError("inverse is not defined modulo the zero ideal")
     n = R.absolute_degree()
     B = R.basis()
     m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
-        raise ZeroDivisionError, "%s is not invertible modulo %s" % (elt, I)
+        raise ZeroDivisionError("%s is not invertible modulo %s" % (elt, I))
     v = R.coordinates(1)
     y = R(0)
     for j in xrange(n):
@@ -369,7 +370,7 @@ cdef class NumberFieldElement(FieldElement):
         if check:
             if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
                    or not isinstance(new_parent, number_field.NumberField_cyclotomic):
-                raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+                raise TypeError("The field and the new parent field must both be cyclotomic fields.")
 
         if rel == 0:
             small_order = self.number_field()._n()
@@ -378,7 +379,7 @@ cdef class NumberFieldElement(FieldElement):
             try:
                 rel = ZZ(large_order / small_order)
             except TypeError:
-                raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+                raise TypeError("The zeta_order of the new field must be a multiple of the zeta_order of the original.")
 
         ## degree 2 is handled differently, because elements are
         ## represented differently
@@ -717,7 +718,7 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         if n < 0 or n >= self.number_field().degree():     # make this faster.
-            raise IndexError, "index must be between 0 and degree minus 1."
+            raise IndexError("index must be between 0 and degree minus 1.")
         return self.polynomial()[n]
 
     cpdef _richcmp_(left, sage.structure.element.Element right, int op):
@@ -1371,7 +1372,7 @@ cdef class NumberFieldElement(FieldElement):
         K = self.parent()
         from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
-            raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
+            raise ValueError("L (=%s) must be a NumberField in is_norm" % L)
 
         from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
@@ -1403,7 +1404,7 @@ cdef class NumberFieldElement(FieldElement):
             return True, a
 
         if proof:
-            raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
+            raise NotImplementedError("is_norm is not implemented unconditionally for norms from non-Galois number fields")
         return False, None
 
     def _rnfisnorm(self, L, proof=True, extra_primes=0):
@@ -1496,7 +1497,7 @@ cdef class NumberFieldElement(FieldElement):
         K = self.parent()
         from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         if (not is_RelativeNumberField(L)) or L.base_field() != K:
-            raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
+            raise ValueError("L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K))
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
         x, q = self._pari_().rnfisnorm(rnf_data)
@@ -1865,7 +1866,7 @@ cdef class NumberFieldElement(FieldElement):
                 from sage.all import SR, sqrt
                 return sqrt(SR(self))
             except TypeError:
-                raise ValueError, "%s not a square in %s"%(self, self._parent)
+                raise ValueError("%s not a square in %s"%(self, self._parent))
 
     def nth_root(self, n, all=False):
         r"""
@@ -1891,7 +1892,7 @@ cdef class NumberFieldElement(FieldElement):
         elif len(roots) > 0:
             return roots[0][0]
         else:
-            raise ValueError, "%s not a %s-th root in %s"%(self, n, self._parent)
+            raise ValueError("%s not a %s-th root in %s"%(self, n, self._parent))
 
     def is_nth_power(self, n):
         r"""
@@ -2125,7 +2126,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c temp
         cdef ZZ_c temp1
         if not _right:
-            raise ZeroDivisionError, "Number field element division by zero"
+            raise ZeroDivisionError("Number field element division by zero")
         x = self._new()
         sig_on()
         _right._invert_c_(&inv_num, &inv_den)
@@ -2316,7 +2317,7 @@ cdef class NumberFieldElement(FieldElement):
             -2
         """
         if ZZX_deg(self.__numerator) >= 1:
-            raise TypeError, "Unable to coerce %s to an integer"%self
+            raise TypeError("Unable to coerce %s to an integer" % self)
         return ZZ(self._rational_())
 
     def _rational_(self):
@@ -2699,7 +2700,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: a = 1/3 + (1/5)*z
-            sage: print a.denominator()
+            sage: a.denominator()
             15
         """
         return (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
@@ -3068,7 +3069,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(1).charpoly()
             x^3 - 3*x^2 + 3*x - 1
         """
-        raise NotImplementedError, "Subclasses of NumberFieldElement must override charpoly()"
+        raise NotImplementedError("Subclasses of NumberFieldElement must override charpoly()")
 
     def minpoly(self, var='x'):
         """
@@ -3294,9 +3295,9 @@ cdef class NumberFieldElement(FieldElement):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)
             else:
-                raise TypeError, "P must be an ideal"
+                raise TypeError("P must be an ideal")
         if not P.is_prime():
-            raise ValueError, "P must be prime"
+            raise ValueError("P must be prime")
         if self == 0:
             return infinity
         return Integer_sage(self.number_field().pari_nf().nfeltval(self, P.pari_prime()))
@@ -3652,7 +3653,7 @@ cdef class NumberFieldElement(FieldElement):
             ArithmeticError: Support of 0 is not defined.
         """
         if self.is_zero():
-            raise ArithmeticError, "Support of 0 is not defined."
+            raise ArithmeticError("Support of 0 is not defined.")
         return self.number_field().primes_above(self)
 
     def _matrix_over_base(self, L):
@@ -3669,7 +3670,7 @@ cdef class NumberFieldElement(FieldElement):
         K = self.number_field()
         E = L.embeddings(K)
         if len(E) == 0:
-            raise ValueError, "no way to embed L into parent's base ring K"
+            raise ValueError("no way to embed L into parent's base ring K")
         phi = E[0]
         return self._matrix_over_base_morphism(phi)
 
@@ -3695,7 +3696,7 @@ cdef class NumberFieldElement(FieldElement):
         if L is QQ:
             K = phi.codomain()
             if K != self.number_field():
-                raise ValueError, "codomain of phi must be parent of self"
+                raise ValueError("codomain of phi must be parent of self")
             ## the variable name is irrelevant below, because the
             ## matrix is over QQ
             F = K.absolute_field('alpha')
@@ -3706,7 +3707,7 @@ cdef class NumberFieldElement(FieldElement):
         beta = phi(alpha)
         K = phi.codomain()
         if K != self.number_field():
-            raise ValueError, "codomain of phi must be parent of self"
+            raise ValueError("codomain of phi must be parent of self")
 
         # Construct a relative extension over L (= QQ(beta))
         M = K.relativize(beta, (K.variable_name()+'0', L.variable_name()+'0') )
@@ -3781,7 +3782,7 @@ cdef class NumberFieldElement(FieldElement):
         try:
             return _inverse_mod_generic(R(self), I)
         except TypeError: # raised by failure of R(self)
-            raise NotImplementedError, "inverse_mod is not implemented for non-integral elements"
+            raise NotImplementedError("inverse_mod is not implemented for non-integral elements")
 
 
     def residue_symbol(self, P, m, check=True):
@@ -4262,7 +4263,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             True
         """
         if n < 0 or n >= self.parent().relative_degree():
-            raise IndexError, "index must be between 0 and the relative degree minus 1."
+            raise IndexError("index must be between 0 and the relative degree minus 1.")
         return self.vector()[n]
 
     def _magma_init_(self, magma):
@@ -4275,7 +4276,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             ...
             TypeError: coercion of relative number field elements to Magma is not implemented
         """
-        raise TypeError, "coercion of relative number field elements to Magma is not implemented"
+        raise TypeError("coercion of relative number field elements to Magma is not implemented")
 
     def list(self):
         """
@@ -4941,7 +4942,7 @@ class CoordinateFunction:
         """
         from sage.all import parent
         if not self.__K.has_coerce_map_from(parent(x)):
-            raise TypeError, "Cannot coerce element into this number field"
+            raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
     def __cmp__(self, other):

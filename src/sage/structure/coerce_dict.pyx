@@ -646,15 +646,15 @@ cdef class MonoDict:
     cdef get(self, object k):
         cdef mono_cell* cursor = self.lookup(<PyObject*><void *>k)
         if cursor.key_id == NULL or cursor.key_id == dummy:
-            raise KeyError, k
+            raise KeyError(k)
         r = <object>cursor.key_weakref
         if isinstance(r, fixed_KeyedRef) and PyWeakref_GetObject(r) == Py_None:
-            raise KeyError, k
+            raise KeyError(k)
         value = <object>cursor.value
         if self.weak_values and isinstance(value,fixed_KeyedRef):
             value = <object>PyWeakref_GetObject(value)
             if value is None:
-                raise KeyError, k
+                raise KeyError(k)
         return value
 
     def __setitem__(self, k, value):
@@ -755,7 +755,7 @@ cdef class MonoDict:
         """
         cdef mono_cell* cursor = self.lookup(<PyObject *><void *>k)
         if cursor.key_id == NULL or cursor.key_id==dummy:
-            raise KeyError, k
+            raise KeyError(k)
         L=extract_mono_cell(cursor)
         self.used -= 1
 
@@ -1294,7 +1294,7 @@ cdef class TripleDict:
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
-            raise KeyError, k
+            raise KeyError(k)
         cdef triple_cell* cursor = self.lookup(<PyObject*><void*>k1,<PyObject*><void*>k2,<PyObject*><void*>k3)
         if cursor.key_id1 == NULL or cursor.key_id1 == dummy:
             return False
@@ -1329,25 +1329,25 @@ cdef class TripleDict:
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
-            raise KeyError, k
+            raise KeyError(k)
         return self.get(k1, k2, k3)
 
     cdef get(self, object k1, object k2, object k3):
         cdef triple_cell* cursor = self.lookup(<PyObject*><void *>k1,<PyObject*><void *>k2,<PyObject*><void *>k3)
         if cursor.key_id1 == NULL or cursor.key_id1 == dummy:
-            raise KeyError, (k1, k2, k3)
+            raise KeyError((k1, k2, k3))
         r1 = <object>cursor.key_weakref1
         r2 = <object>cursor.key_weakref2
         r3 = <object>cursor.key_weakref3
         if (isinstance(r1, fixed_KeyedRef) and PyWeakref_GetObject(r1) == Py_None) or \
                 (isinstance(r2, fixed_KeyedRef) and PyWeakref_GetObject(r2) == Py_None) or \
                 (isinstance(r3, fixed_KeyedRef) and PyWeakref_GetObject(r3) == Py_None):
-            raise KeyError, (k1, k2, k3)
+            raise KeyError((k1, k2, k3))
         value = <object>cursor.value
         if self.weak_values and isinstance(value,fixed_KeyedRef):
             value = <object>PyWeakref_GetObject(value)
             if value is None:
-                raise KeyError, (k1, k2, k3)
+                raise KeyError((k1, k2, k3))
         return value
 
     def __setitem__(self, k, value):
@@ -1367,7 +1367,7 @@ cdef class TripleDict:
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
-            raise KeyError, k
+            raise KeyError(k)
         self.set(k1, k2, k3, value)
 
     cdef set(self, object k1, object k2, object k3, value):
@@ -1458,10 +1458,10 @@ cdef class TripleDict:
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
-            raise KeyError, k
+            raise KeyError(k)
         cdef triple_cell* cursor = self.lookup(<PyObject *><void *>k1,<PyObject *><void *>k2,<PyObject *><void *>k3)
         if cursor.key_id1 == NULL or cursor.key_id1==dummy:
-            raise KeyError, k
+            raise KeyError(k)
         L=extract_triple_cell(cursor)
         self.used -= 1
 

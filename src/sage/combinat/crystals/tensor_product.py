@@ -28,6 +28,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 import operator
 from sage.misc.latex import latex
@@ -970,7 +971,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: D = crystals.Tableaux(['A',3], shape=[1])
             sage: E = crystals.Tableaux(['A',3], shape=[2,2,2])
             sage: T = crystals.TensorProduct(C,D,E)
-            sage: print T.module_generators[0]._repr_diagram()
+            sage: print(T.module_generators[0]._repr_diagram())
               1  1  1 (X)   1 (X)   1  1
               2                     2  2
                                     3  3
@@ -1427,7 +1428,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:    print b, b.energy_function()
+            ....:    print("{} {}".format(b, b.energy_function()))
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1437,7 +1438,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:  # long time (5s on sage.math, 2011)
-            ....:     print b, b.energy_function()
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[], []] 4
             [[], [[1, 1]]] 1
             [[[1, 1]], []] 3
@@ -1493,7 +1494,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:     print b, b.affine_grading()
+            ....:     print("{} {}".format(b, b.affine_grading()))
             [[[1]], [[1]], [[1]]] 3
             [[[1]], [[2]], [[1]]] 1
             [[[2]], [[1]], [[1]]] 2
@@ -1503,7 +1504,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:     print b, b.affine_grading()
+            ....:     print("{} {}".format(b, b.affine_grading()))
             [[[1]], [[1]], [[1]]] 2
             [[[1]], [[2]], [[1]]] 1
             [[[1]], [[-1]], [[1]]] 0
@@ -1990,7 +1991,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
             sage: C = crystals.Tableaux(['A', 4], shape=[4,2,1])
             sage: elt = C(rows=[[1,1,1,2], [2,3], [4]])
-            sage: print elt._repr_diagram()
+            sage: print(elt._repr_diagram())
               1  1  1  2
               2  3
               4

@@ -1008,7 +1008,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.84, as
+            introduced in [GriRei2014]_, Exercise 2.87, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1030,7 +1030,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.84(b)), and for `s = 0` equals
+            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1049,7 +1049,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.84(c)). Their sum is
+            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:

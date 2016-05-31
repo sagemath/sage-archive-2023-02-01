@@ -102,6 +102,8 @@ TESTS::
     True
 
 """
+from __future__ import print_function
+
 include "cysignals/memory.pxi"
 
 from sage.categories.algebras import Algebras
@@ -1803,7 +1805,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: R.inject_variables()
             Defining x, z, y
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
-            sage: print f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR'])
+            sage: print(f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR']))
             -FOO^2*FOOBAR - BAR^2 - 25/27*FOOBAR^3
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, (<NCPolynomialRing_plural>self._parent)._ring, varnames)
@@ -2050,7 +2052,6 @@ cdef class NCPolynomial_plural(RingElement):
             flag = 0
             for i from 0<=i<gens:
                 if exps[i] != -1 and p_GetExp(p,i+1,r)!=exps[i]:
-                    #print i, p_GetExp(p,i+1,r), exps[i]
                     flag = 1
             if flag == 0:
                 newptemp = p_LmInit(p,r)

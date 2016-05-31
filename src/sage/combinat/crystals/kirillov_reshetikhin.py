@@ -21,7 +21,7 @@ Kirillov-Reshetikhin Crystals
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -754,7 +754,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         EXAMPLES::
 
             sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
-            sage: print C(2,1)._repr_diagram()
+            sage: print(C(2,1)._repr_diagram())
               1
               2
         """
@@ -1512,7 +1512,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = s // 2
+        m = s//2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -1769,7 +1769,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         list = []
         s = self.s()
         r = self.r()
-        m = s // 2
+        m = s//2
         for i in range(m+1):
             for la in IntegerVectors(m-i, min_length=r, max_length=r):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
@@ -2716,7 +2716,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         """
         s = self.s()
         if is_even(s):
-            s = s // 2
+            s = s//2
         else:
             s = s/2
         return CrystalOfTableaux(self.cartan_type().classical(), shape = [s]*self.r() )
@@ -3128,7 +3128,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ....:     print t, prom[t]
+            ....:     print("{} {}".format(t, prom[t]))
             [4, 3, 2, 1] [-1, 4, 3, 2]
             [4, -4, 3, 2] [-4, 4, 3, 2]
             [-1, -4, 3, 2] [-4, 3, 2, 1]
@@ -3138,7 +3138,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ....:     print t, prom[t]
+            ....:     print("{} {}".format(t, prom[t]))
             [++++, []] [-+++, []]
             [-++-, []] [+++-, []]
         """
@@ -3192,7 +3192,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = K.classical_decomposition()
             sage: promotion = K.promotion()
             sage: for t in T:
-            ....:     print t, promotion(t)
+            ....:     print("{} {}".format(t, promotion(t)))
             [+++-, []] [-++-, []]
             [++-+, []] [-+-+, []]
             [+-++, []] [--++, []]
@@ -3612,13 +3612,13 @@ class PMDiagram(CombinatorialObject):
 
             sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
             sage: pm = PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
-            sage: print pm._repr_diagram()
+            sage: print(pm._repr_diagram())
             .  .  .  +
             .  .  -  -
             +  +
             -  -
             sage: pm = PMDiagram([[0,2], [0,0], [0]])
-            sage: print pm._repr_diagram()
+            sage: print(pm._repr_diagram())
         """
         t = []
         ish = self.inner_shape() + [0]*self.n
@@ -3741,7 +3741,7 @@ class PMDiagram(CombinatorialObject):
         """
         n = self.n
         heights = []
-        for i in range((n+1)//2):
+        for i in range((n + 1) // 2):
             heights += [n-2*i]*((self.outer_shape()+[0]*n)[n-2*i-1]-(self.intermediate_shape()+[0]*n)[n-2*i-1])
         return heights
 
@@ -3823,7 +3823,7 @@ def horizontal_dominoes_removed(r, s):
         [[], [2], [2, 2], [2, 2, 2]]
     """
     list = [ [y for y in x] + [0 for i in range(r-x.length())] for x in partitions_in_box(r, s//2) ]
-    two = lambda x : 2*(x-s//2) + s
+    two = lambda x : 2 * (x - s // 2) + s
     return [Partition([two(y) for y in x]) for x in list]
 
 #####################################################################

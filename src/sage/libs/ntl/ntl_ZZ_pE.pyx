@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include 'misc.pxi'
@@ -289,9 +290,9 @@ cdef class ntl_ZZ_pE(object):
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
         sage: x = ntl.ZZ_pE([42,1],modulus=c)
         sage: i = x.get_as_ZZ_pX_doctest()
-        sage: print i
+        sage: i
         [9 1]
-        sage: print type(i)
+        sage: type(i)
         <type 'sage.libs.ntl.ntl_ZZ_pX.ntl_ZZ_pX'>
         """
         return self.get_as_ZZ_pX()

@@ -38,9 +38,22 @@ If there are n crossings, they must be named 0..n-1.
 include 'cysignals/signals.pxi'
 
 cdef extern from "homfly.h":
-    char* homfly(char *argv)
+    ctypedef int  word; 
+    ctypedef signed long int sb4;
+    ctypedef unsigned short int ub2;
+    ctypedef signed short int sb2;
+    struct Term:
+        sb4 coef
+        sb2 m
+        sb2 l
+    struct Poly:
+        Term* term
+        sb4 len
+    Poly* homfly(char *argv)
+    char* homfly_str(char *argv)
 
-def homfly_polynomial(link):
+
+def homfly_polynomial_string(link):
     """
     Return the HOMFLY polynomial of a link.
 
@@ -54,15 +67,47 @@ def homfly_polynomial(link):
 
     EXAMPLES::
 
-        sage: from sage.libs.homfly import homfly_polynomial
+        sage: from sage.libs.homfly import homfly_polynomial_string
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
-        sage: homfly_polynomial(trefoil) # optional - libhomfly
+        sage: homfly_polynomial_string(trefoil) # optional - libhomfly
         ' - L^-4 - 2L^-2 + M^2L^-2'
 
     """
     cdef char* c_string = link
     sig_on()
-    cdef char* c_output = homfly(c_string)
+    cdef char* c_output = homfly_str(c_string)
     sig_off()
     output = <bytes> c_output
     return output
+
+def homfly_polynomial_dict(link):
+    """
+    Return a dictionary representing the HOMFLY polynomial of a link.
+
+    INPUT:
+
+    - ``link`` -- a string of space-separated integers representing the link.
+
+    OUTPUT:
+
+    A dictionary representing the HOMFLY polynomial.
+
+    EXAMPLES::
+
+        sage: from sage.libs.homfly import homfly_polynomial_dict
+        sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
+        sage: homfly_polynomial_dict(trefoil) # optional - libhomfly
+        {(0, -4): -1, (0, -2): -2, (2, -2): 1}
+
+    """
+    cdef char* c_string = link
+    cdef Term ter
+    sig_on()
+    cdef Poly* c_output = homfly(c_string)
+    sig_off()
+    cdef int l = c_output.len
+    d = dict()
+    for i in range(l):
+        ter = c_output.term[i]
+        d[(int(ter.m), int(ter.l))] = int(ter.coef)
+    return d

@@ -176,17 +176,20 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         In  = self.In()
         Out = self.Out()
 
+        # TODO: Have module_morphism use keys instead of cmp
+        #   and remove the call to cmp_to_key here.
+        key_cmp = lambda x,y: cmp(self.indices_key(x), self.indices_key(y))
         In_to_F = In.module_morphism(F.sum_of_monomials * Subsets,
                                      codomain = F, category = category,
                                      triangular = 'upper', unitriangular = True,
-                                     cmp = self.indices_cmp)
+                                     cmp = key_cmp)
         In_to_F   .register_as_coercion()
         (~In_to_F).register_as_coercion()
 
         F_to_Out = F.module_morphism(Out.sum_of_monomials * self.supsets,
                                      codomain = Out, category = category,
                                      triangular = 'lower', unitriangular = True,
-                                     cmp = self.indices_cmp)
+                                     cmp = key_cmp)
         F_to_Out   .register_as_coercion()
         (~F_to_Out).register_as_coercion()
 
@@ -244,8 +247,13 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             sage: A = Sets().WithRealizations().example(); A
             The subset algebra of {1, 2, 3} over Rational Field
             sage: sorted(A.indices(), key=cmp_to_key(A.indices_cmp))
+            doctest:...: DeprecationWarning: indices_cmp is deprecated, use indices_key instead.
+            See http://trac.sagemath.org/17229 for details.
             [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17229, "indices_cmp is deprecated, use indices_key instead.")
+
         s = (len(x) > len(y)) - (len(x) < len(y))
         if s != 0:
             return s

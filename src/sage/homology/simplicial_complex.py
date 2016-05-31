@@ -2114,9 +2114,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
            otherwise.  If ``'pari'``, then compute elementary divisors
            using Pari.  If ``'dhsw'``, then use the DHSW algorithm to
            compute elementary divisors.  (As of this writing, ``'pari'``
-           is the fastest option. CHomP may be better, but as an
-           experimental package, it may not work on all platforms or
-           in all cases.)
+           is the fastest standard option. The optional CHomP package
+           may be better still.)
 
         :type algorithm: string; optional, default ``'pari'``
 

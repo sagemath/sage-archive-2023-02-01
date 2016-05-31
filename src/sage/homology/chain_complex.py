@@ -1138,7 +1138,7 @@ class ChainComplex_class(Parent):
 
         If ``algorithm`` is set to ``'auto'``, then use
         CHomP if available. CHomP is available at the web page
-        http://chomp.rutgers.edu/.  It is also an experimental package
+        http://chomp.rutgers.edu/.  It is also an optional package
         for Sage. If ``algorithm`` is ``chomp``, always use chomp.
 
         CHomP computes homology, not cohomology, and only works over
@@ -1167,9 +1167,8 @@ class ChainComplex_class(Parent):
         forces the named algorithm to be used regardless of the size
         of the matrices and regardless of whether CHomP is available.
 
-        As of this writing, ``'pari'`` is the fastest option. CHomP
-        may be better, but as an experimental package, it may not work
-        on all platforms or in all cases.
+        As of this writing, ``'pari'`` is the fastest standard option.
+        The optional CHomP package may be better still.
 
         .. WARNING::
 

@@ -2201,42 +2201,41 @@ class Link(object):
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
     
-    def homfly_polynomial(self, variables = 'L,M'):
+    def homfly_polynomial(self, var1='L', var2='M'):
         """
-        Return the HOMFLY polynomial of the link.
+        Return the HOMFLY polynomial of ``self``.
 
         INPUT:
         
-        - ``variables`` -- the variables of the polynomial. By default they are ``L`` and ``M``
+        - ``var1`` -- (default: ``'L'``) the first variable
+        - ``var2`` -- (default: ``'M'``) the second variable
 
         OUTPUT:
         
-        A Laurent Polynomial over the integers.
+        A Laurent polynomial over the integers.
 
         EXAMPLES::
         
-            sage: B = BraidGroup(2)
-            sage: K = Knot(B.0^5)
-            sage: K.homfly_polynomial()  # optional - libhomfly
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Knot(g^5)
+            sage: K.homfly_polynomial()   # optional - libhomfly
             L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
             
         ::
         
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
-            sage: L.homfly_polynomial(variables = 'a,z') # optional - libhomfly
+            sage: L.homfly_polynomial('a', 'z')  # optional - libhomfly
             -a^-1*z + a^-1*z^-1 + a^-3*z^-1
-
-        NOTE: This function deppends on the optional package ``libhomfly``
         """
-        L = LaurentPolynomialRing(ZZ, variables)
-        s = '{} '.format(self.number_of_components())
+        L = LaurentPolynomialRing(ZZ, [var1, var2])
+        s = '{}'.format(self.number_of_components())
         ogc = self.oriented_gauss_code()
         for comp in ogc[0]:
-            s += '{} '.format(len(comp))
+            s += ' {}'.format(len(comp))
             for cr in comp:
-                s += '{} {} '.format(abs(cr)-1, sign(cr))
+                s += ' {} {}'.format(abs(cr)-1, sign(cr))
         for i, cr in enumerate(ogc[1]):
-            s += '{} {} '.format(i, cr)
+            s += ' {} {}'.format(i, cr)
         from sage.libs.homfly import homfly_polynomial_dict
         return L(homfly_polynomial_dict(s))
 

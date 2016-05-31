@@ -708,10 +708,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_join_semidistributive(self):
         r"""
-        Return ``True`` if the lattice is join-semidistibutive, and ``False``
+        Return ``True`` if the lattice is join-semidistributive, and ``False``
         otherwise.
 
-        A lattice is join-semidistibutive if `e \vee x = e \vee y` implicates
+        A lattice is join-semidistributive if `e \vee x = e \vee y` implicates
         `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
         lattice.
 

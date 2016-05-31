@@ -25,6 +25,7 @@ All of these examples are accessible by typing
 - :func:`BrucknerGrunbaumSphere`
 - :func:`ChessboardComplex`
 - :func:`ComplexProjectivePlane`
+- :func:`DunceHat`
 - :func:`K3Surface`
 - :func:`KleinBottle`
 - :func:`MatchingComplex`
@@ -1611,6 +1612,25 @@ def RandomTwoSphere(n):
             [2,3,1,0], [1,8,5,9], [2,1,5,0]]
         )
 
+    def DunceHat(self):
+        r"""
+        Returns the minimal triangulation of the dunce hat given by Hachimori
+        [Ha2016]_.
+
+        This is a standard example of a space that is contractible,
+        but not collapsible.
+
+        REFERENCES:
+
+        .. [Ha2016] M. Hachimori, http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html,
+           retrieved 5/31/16.
+        """
+
+        return SimplicialComplex(
+           [[1,3,5], [2,3,5], [2,4,5], [1,2,4], [1,3,4], [3,4,8],
+            [1,2,8], [1,7,8], [1,2,7], [2,3,7], [3,6,7], [1,3,6],
+            [1,5,6], [4,5,6], [4,6,8], [6,7,8], [2,3,8]]
+        )
 
 
 # For taking care of old pickles

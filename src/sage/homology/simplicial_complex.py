@@ -2614,7 +2614,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         r"""
         Return ``True`` if ``self`` is Cohen-Macaulay.
 
-        A simplicial complex `X` is Cohen-Macaulay over `R` iff
+        A simplicial complex `\Delta` is Cohen-Macaulay over `R` iff
         `\tilde{H}_i(\mathrm{lk}_\Delta(F);R) = 0` for all
         `F \in \Delta` and `i < \dim\mathrm{lk}_\Delta(F)`.
         Here, `\Delta` is ``self`` and `R` is ``base_ring``, and
@@ -2622,7 +2622,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         INPUT:
 
-        - ``base_ring`` -— (default: QQ) the base ring.
+        - ``base_ring`` -- (default: ``QQ``) the base ring.
 
         - ``ncpus`` -- (default: 0) number of cpus used for the
           computation. If this is 0, determine the number of cpus
@@ -2648,15 +2648,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             False
 
-        The choice of base ring can matter.  The real projective plane `RP_2`
-        has `H_1(RP_2) = ZZ/2`, hence is CM over `QQ` but not over `ZZ`.
+        The choice of base ring can matter.  The real projective plane `\RR P^2`
+        has `H_1(\RR P^2) = \ZZ/2`, hence is CM over `\QQ` but not over `\ZZ`. ::
 
-            sage: X=simplicial_complexes.RealProjectivePlane()
+            sage: X = simplicial_complexes.RealProjectivePlane()
             sage: X.is_cohen_macaulay()
             True
             sage: X.is_cohen_macaulay(ZZ)
             False
-
         """
         from sage.parallel.decorate import parallel
 

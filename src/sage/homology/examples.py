@@ -1571,6 +1571,16 @@ def RandomTwoSphere(n):
         with 14 vertices and 41 facets, constructed by Rudin in
         [Ru1958]_.
 
+        EXAMPLES::
+
+            sage: R = simplicial_complexes.RudinBall()
+            sage: R.f_vector()
+            [1, 14, 66, 94, 41]
+            sage: R.homology()
+            {0: 0, 1: 0, 2: 0, 3: 0}
+            sage: R.is_cohen_macaulay()
+            True
+
         REFERENCES:
 
         .. [Ru1958] M.E. Rudin, "An unshellable triangulation of a tetrahedron",
@@ -1598,6 +1608,16 @@ def RandomTwoSphere(n):
         with 10 vertices and 21 facets, constructed by Ziegler in
         [Zi1998]_ and the smallest such complex known.
 
+        EXAMPLES::
+
+            sage: Z = simplicial_complexes.ZieglerBall()
+            sage: Z.f_vector()
+            [1, 10, 38, 50, 21]
+            sage: Z.homology()
+            {0: 0, 1: 0, 2: 0, 3: 0}
+            sage: Z.is_cohen_macaulay()
+            True
+
         REFERENCES:
 
         .. [Zi1998] G. Ziegler, “Shelling polyhedral 3-balls and 4-polytopes",
@@ -1619,6 +1639,16 @@ def RandomTwoSphere(n):
 
         This is a standard example of a space that is contractible,
         but not collapsible.
+
+        EXAMPLES::
+
+            sage: D = simplicial_complexes.DunceHat()
+            sage: D.f_vector()
+            [1, 8, 24, 17]
+            sage: D.homology()
+            {0: 0, 1: 0, 2: 0}
+            sage: D.is_cohen_macaulay()
+            True
 
         REFERENCES:
 

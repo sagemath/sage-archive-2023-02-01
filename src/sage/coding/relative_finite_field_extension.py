@@ -1,7 +1,7 @@
 r"""
 Management of relative finite field extensions
 
-Considering a *big field* `F_{q^m}` and a *small_field* `F_q`, with
+Considering a *absolute field* `F_{q^m}` and a *relative_field* `F_q`, with
 `q = p^s`, `p` being a prime and `s, m` being integers, this file
 contains a class to take care of the representation of `F_{q^m}`-elements
 as `F_q`-elements.
@@ -35,11 +35,11 @@ class RelativeFiniteFieldExtension(SageObject):
 
     INPUT:
 
-    - ``big_field``, ``small_field`` -- two finite fields, ``small_field``
-      being a subfield of ``big_field``
+    - ``absolute_field``, ``relative_field`` -- two finite fields, ``relative_field``
+      being a subfield of ``absolute_field``
 
-    - ``embedding`` -- (default: ``None``) an homomorphism from ``small_field`` to
-      ``big_field``. If ``None`` is provided, it will default to the first
+    - ``embedding`` -- (default: ``None``) an homomorphism from ``relative_field`` to
+      ``absolute_field``. If ``None`` is provided, it will default to the first
       homomorphism of the list of homomorphisms Sage can build.
 
     EXAMPLES::
@@ -51,7 +51,7 @@ class RelativeFiniteFieldExtension(SageObject):
         Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 
     It is possible to specify the embedding to use
-    from ``small_field`` to ``big_field``::
+    from ``relative_field`` to ``absolute_field``::
 
         sage: Fqm.<aa> = GF(16)
         sage: Fq.<a> = GF(4)
@@ -60,11 +60,11 @@ class RelativeFiniteFieldExtension(SageObject):
         True
     """
 
-    def __init__(self, big_field, small_field, embedding=None):
+    def __init__(self, absolute_field, relative_field, embedding=None):
         r"""
         TESTS:
 
-        If ``big_field`` is not a finite field, an error is raised::
+        If ``absolute_field`` is not a finite field, an error is raised::
 
             sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm = RR
@@ -72,9 +72,9 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
-            ValueError: big_field has to be a finite field
+            ValueError: absolute_field has to be a finite field
 
-        Same for ``small_field``::
+        Same for ``relative_field``::
 
             sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
@@ -82,9 +82,9 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
-            ValueError: small_field has to be a finite field
+            ValueError: relative_field has to be a finite field
 
-        If ``small_field`` is not a subfield of ``big_field``, an exception
+        If ``relative_field`` is not a subfield of ``absolute_field``, an exception
         is raised::
 
             sage: from sage.coding.relative_finite_field_extension import *
@@ -93,33 +93,33 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
-            ValueError: small_field has to be a subfield of big_field
+            ValueError: relative_field has to be a subfield of absolute_field
         """
-        if not big_field.is_finite():
-            raise ValueError("big_field has to be a finite field")
-        if not small_field.is_finite():
-            raise ValueError("small_field has to be a finite field")
-        p = small_field.characteristic()
-        s = log(small_field.order(), p)
-        sm = log(big_field.order(), p)
+        if not absolute_field.is_finite():
+            raise ValueError("absolute_field has to be a finite field")
+        if not relative_field.is_finite():
+            raise ValueError("relative_field has to be a finite field")
+        p = relative_field.characteristic()
+        s = log(relative_field.order(), p)
+        sm = log(absolute_field.order(), p)
         if not s.divides(sm):
-            raise ValueError("small_field has to be a subfield of big_field")
-        H = Hom(small_field, big_field)
+            raise ValueError("relative_field has to be a subfield of absolute_field")
+        H = Hom(relative_field, absolute_field)
         if embedding is not None and not embedding in H:
-            raise ValueError("embedding has to be an embedding from small_field to big_field")
+            raise ValueError("embedding has to be an embedding from relative_field to absolute_field")
         elif embedding is not None:
             self._phi = embedding
         else:
             self._phi = H[0]
-        self._prime_field = small_field.base_ring()
-        self._small_field = small_field
-        self._big_field = big_field
-        alpha = small_field.gen()
-        beta = big_field.gen()
+        self._prime_field = relative_field.base_ring()
+        self._relative_field = relative_field
+        self._absolute_field = absolute_field
+        alpha = relative_field.gen()
+        beta = absolute_field.gen()
         self._alphas = [alpha ** i for i in range(s)]
         self._betas = [beta ** i for i in range(sm)]
-        self._small_field_power = s
-        self._big_field_power = sm
+        self._relative_field_power = s
+        self._absolute_field_power = sm
 
     def _repr_(self):
         r"""
@@ -133,7 +133,7 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
         """
-        return "Relative field extension between %s and %s" % (self.big_field(), self.small_field())
+        return "Relative field extension between %s and %s" % (self.absolute_field(), self.relative_field())
 
     def _latex_(self):
         r"""
@@ -147,14 +147,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: latex(RelativeFiniteFieldExtension(Fqm, Fq))
             \textnormal{Relative field extension between \Bold{F}_{2^{4}} and \Bold{F}_{2^{2}}}
         """
-        return "\\textnormal{Relative field extension between %s and %s}" % (self.big_field()._latex_(),
-                self.small_field()._latex_())
+        return "\\textnormal{Relative field extension between %s and %s}" % (self.absolute_field()._latex_(),
+                self.relative_field()._latex_())
 
     @cached_method
     def _representation_matrix(self):
         r"""
-        Returns the matrix used to represents elements of the big field
-        as vectors in the basis of the small field over the prime field.
+        Returns the matrix used to represents elements of the absolute field
+        as vectors in the basis of the relative field over the prime field.
 
         EXAMPLES::
 
@@ -168,9 +168,9 @@ class RelativeFiniteFieldExtension(SageObject):
             [0 1 1 1]
             [0 0 0 1]
         """
-        s = self.small_field_power()
-        m = self.big_field_power() / s
-        betas = self.big_field_basis()
+        s = self.relative_field_power()
+        m = self.absolute_field_power() / s
+        betas = self.absolute_field_basis()
         phi_alphas = [ self._phi(self._alphas[i]) for i in range(s) ]
         A = column_matrix([vector(betas[i] * phi_alphas[j])
             for i in range(m) for j in range(s)])
@@ -179,11 +179,11 @@ class RelativeFiniteFieldExtension(SageObject):
     def _flattened_relative_field_representation(self, b):
         r"""
         Returns a vector representation of ``b`` in the basis of
-        the small field over the prime field.
+        the relative field over the prime field.
 
         INPUT:
 
-        - ``b`` -- an element of the big field
+        - ``b`` -- an element of the absolute field
 
         EXAMPLES::
 
@@ -195,18 +195,18 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE._flattened_relative_field_representation(b)
             (1, 0, 1, 1)
         """
-        if not b in self.big_field():
-            raise ValueError("The input has to be an element of the big field")
+        if not b in self.absolute_field():
+            raise ValueError("The input has to be an element of the absolute field")
         return self._representation_matrix() * vector(b)
 
     def relative_field_representation(self, b):
         r"""
         Returns a polynomial representation of ``b`` in the basis of
-        the small field over the base field.
+        the relative field over the base field.
 
         INPUT:
 
-        - ``b`` -- an element of the big field
+        - ``b`` -- an element of the absolute field
 
         EXAMPLES::
 
@@ -218,12 +218,12 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE.relative_field_representation(b)
             (1, a + 1)
         """
-        if not b in self.big_field():
-            raise ValueError("The input has to be an element of the big field")
-        Fq = self.small_field()
+        if not b in self.absolute_field():
+            raise ValueError("The input has to be an element of the absolute field")
+        Fq = self.relative_field()
         vect = self._flattened_relative_field_representation(b)
-        s = self.small_field_power()
-        sm = self.big_field_power()
+        s = self.relative_field_power()
+        sm = self.absolute_field_power()
         if s == 1:
             pol = Fq.zero()
             for i in vect:
@@ -235,9 +235,9 @@ class RelativeFiniteFieldExtension(SageObject):
                 list_elts.append(Fq(vect[i:i+s]))
             return vector(Fq, list_elts)
 
-    def big_field_representation(self, a):
+    def absolute_field_representation(self, a):
         r"""
-        Returns a polynomial representation of ``a`` over the big field.
+        Returns a polynomial representation of ``a`` over the absolute field.
 
         INPUT:
 
@@ -251,20 +251,20 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: b = aa^3 + aa^2 + aa + 1
             sage: rel = FE.relative_field_representation(b)
-            sage: FE.big_field_representation(rel) == b
+            sage: FE.absolute_field_representation(rel) == b
             True
         """
-        s = self.small_field_power()
+        s = self.relative_field_power()
         if len(a) != s:
-            raise ValueError("The input has to be a vector with length equal to the order of the big field")
-        if not a.base_ring() == self.small_field():
+            raise ValueError("The input has to be a vector with length equal to the order of the absolute field")
+        if not a.base_ring() == self.relative_field():
             raise ValueError("The input has to be over the prime field")
-        alphas = self.small_field_basis()
-        betas = self.big_field_basis()
-        m = self.big_field_power()
+        alphas = self.relative_field_basis()
+        betas = self.absolute_field_basis()
+        m = self.absolute_field_power()
         m = m / s
         phi = self.embedding()
-        b = self.big_field().zero()
+        b = self.absolute_field().zero()
         F = self.prime_field()
         flattened_relative_field_rep_list = []
         for i in a:
@@ -280,7 +280,7 @@ class RelativeFiniteFieldExtension(SageObject):
     def embedding(self):
         r"""
         Returns the embedding which is used to go from the
-        small field to the big field.
+        relative field to the absolute field.
 
         EXAMPLES::
 
@@ -296,9 +296,9 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         return self._phi
 
-    def small_field_basis(self):
+    def relative_field_basis(self):
         r"""
-        Returns a basis of the small field over the prime field.
+        Returns a basis of the relative field over the prime field.
 
         EXAMPLES::
 
@@ -306,14 +306,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.small_field_basis()
+            sage: FE.relative_field_basis()
             [1, a]
         """
         return self._alphas
 
-    def big_field_basis(self):
+    def absolute_field_basis(self):
         r"""
-        Returns a basis of the big field over the prime field.
+        Returns a basis of the absolute field over the prime field.
 
         EXAMPLES::
 
@@ -321,14 +321,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.big_field_basis()
+            sage: FE.absolute_field_basis()
             [1, aa, aa^2, aa^3]
         """
         return self._betas
 
-    def small_field_power(self):
+    def relative_field_power(self):
         r"""
-        Let `F_p` be the base field of our small field `F_q`.
+        Let `F_p` be the base field of our relative field `F_q`.
         Returns `s` where `p^s = q`
 
         EXAMPLES::
@@ -337,14 +337,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.small_field_power()
+            sage: FE.relative_field_power()
             2
         """
-        return self._small_field_power
+        return self._relative_field_power
 
-    def big_field_power(self):
+    def absolute_field_power(self):
         r"""
-        Let `F_p` be the base field of our big field `F_{q^m}`.
+        Let `F_p` be the base field of our absolute field `F_{q^m}`.
         Returns `sm` where `p^{sm} = q^{m}`
 
         EXAMPLES::
@@ -353,14 +353,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.big_field_power()
+            sage: FE.absolute_field_power()
             4
         """
-        return self._big_field_power
+        return self._absolute_field_power
 
     def prime_field(self):
         r"""
-        Returns the base field of our big and small fields.
+        Returns the base field of our absolute and relative fields.
 
         EXAMPLES::
 
@@ -373,9 +373,9 @@ class RelativeFiniteFieldExtension(SageObject):
         """
         return self._prime_field
 
-    def small_field(self):
+    def relative_field(self):
         r"""
-        Returns the small field of ``self``.
+        Returns the relative field of ``self``.
 
         EXAMPLES::
 
@@ -383,14 +383,14 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.small_field()
+            sage: FE.relative_field()
             Finite Field in a of size 2^2
         """
-        return self._small_field
+        return self._relative_field
 
-    def big_field(self):
+    def absolute_field(self):
         r"""
-        Returns the big field of ``self``.
+        Returns the absolute field of ``self``.
 
         EXAMPLES::
 
@@ -398,7 +398,7 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: FE.big_field()
+            sage: FE.absolute_field()
             Finite Field in aa of size 2^4
         """
-        return self._big_field
+        return self._absolute_field

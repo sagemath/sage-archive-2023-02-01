@@ -1272,9 +1272,9 @@ class HasseDiagram(DiGraph):
 
         - ``None`` if the lattice is semidistributive OR
         - tuple ``(u, e, x, y)`` such that
-          `u = e \vee x = e \vee y` but `u \not= e \vee (x \wedge y)`
+          `u = e \vee x = e \vee y` but `u \neq e \vee (x \wedge y)`
           if ``meet_or_join=='join'`` and
-          `u = e \wedge x = e \wedge y` but `u \not= e \wedge (x \vee y)`
+          `u = e \wedge x = e \wedge y` but `u \neq e \wedge (x \vee y)`
           if ``meet_or_join=='meet'``
 
         EXAMPLES::

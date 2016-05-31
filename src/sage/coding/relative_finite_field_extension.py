@@ -254,15 +254,15 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE.absolute_field_representation(rel) == b
             True
         """
+        m = self.absolute_field_power()
         s = self.relative_field_power()
-        if len(a) != s:
+        m = m / s
+        if len(a) != m:
             raise ValueError("The input has to be a vector with length equal to the order of the absolute field")
         if not a.base_ring() == self.relative_field():
             raise ValueError("The input has to be over the prime field")
         alphas = self.relative_field_basis()
         betas = self.absolute_field_basis()
-        m = self.absolute_field_power()
-        m = m / s
         phi = self.embedding()
         b = self.absolute_field().zero()
         F = self.prime_field()
@@ -276,6 +276,28 @@ class RelativeFiniteFieldExtension(SageObject):
         for i in range(m):
             b += betas[i] * phi(sum([flattened_relative_field_rep[j] * alphas[j%s] for j in range(i*s, i*s + s)]))
         return b
+
+    def is_in_relative_field(self, b):
+        r"""
+        Returns ``True`` if ``b`` is in the relative field.
+
+        INPUT:
+
+        - ``b`` -- an element of the absolute field.
+
+        EXAMPLES::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
+            sage: FE.is_in_relative_field(aa^2 + aa)
+            True
+            sage: FE.is_in_relative_field(aa^3)
+            False
+        """
+        vect = self.relative_field_representation(b)
+        return vect[1:vect.length()].is_zero()
 
     def embedding(self):
         r"""

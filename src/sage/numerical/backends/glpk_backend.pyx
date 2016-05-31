@@ -910,10 +910,6 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
             sage: lp.solve()
-            glp_exact: 3 rows, 2 columns, 6 non-zeros
-            GNU MP bignum library is being used
-            ...
-            OPTIMAL SOLUTION FOUND
             2.0
             sage: lp.get_values([x, y])
             [1.5, 0.5]
@@ -946,10 +942,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.add_constraint(x <= test)
             sage: lp.set_objective(x)
             sage: lp.solve() == test # yes, we want an exact comparison here
-            glp_exact: 1 rows, 1 columns, 1 non-zeros
-            GNU MP bignum library is being used
-            ...
-            OPTIMAL SOLUTION FOUND
             True
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True
@@ -1584,8 +1576,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-            Writing problem data to ...
-            9 lines were written
         """
         glp_write_lp(self.lp, NULL, filename)
 
@@ -1606,8 +1596,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
             sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
-            Writing problem data to...
-            17 records were written
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
@@ -2238,12 +2226,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: p.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
             sage: p.print_ranges()
-            glp_print_ranges: optimal basic solution required
             1
             sage: p.solve()
             0
             sage: p.print_ranges()
-            Write sensitivity analysis report to...
             GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   1
             <BLANKLINE>
             Problem:

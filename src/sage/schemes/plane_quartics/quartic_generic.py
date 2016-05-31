@@ -17,7 +17,7 @@ EXAMPLE::
 #*****************************************************************************
 
 
-import sage.schemes.plane_curves.projective_curve as projective_curve
+import sage.schemes.curves.projective_curve as projective_curve
 
 def is_QuarticCurve(C):
     """

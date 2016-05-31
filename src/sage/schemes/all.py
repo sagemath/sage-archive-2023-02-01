@@ -24,7 +24,7 @@ from jacobians.all import *
 
 from hyperelliptic_curves.all import *
 
-from plane_curves.all import *
+from curves.all import *
 
 from plane_conics.all import *
 

@@ -36,7 +36,7 @@ from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 
-from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve
+from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
 
 from sage.categories.fields import Fields
 _Fields = Fields()

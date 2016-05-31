@@ -36,7 +36,7 @@ from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRin
 from sage.functions.all import log
 from sage.structure.category_object import normalize_names
 
-import sage.schemes.plane_curves.projective_curve as plane_curve
+import sage.schemes.curves.projective_curve as plane_curve
 
 def is_HyperellipticCurve(C):
     """
@@ -167,7 +167,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: set_verbose(None)
             sage: H.is_singular()
             False
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
             sage: ProjectivePlaneCurve.is_singular(H)
             True
         """
@@ -194,7 +194,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             sage: set_verbose(None)
             sage: H.is_smooth()
             True
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
             sage: ProjectivePlaneCurve.is_smooth(H)
             False
         """

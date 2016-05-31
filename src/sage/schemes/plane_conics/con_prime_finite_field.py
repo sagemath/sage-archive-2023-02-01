@@ -22,7 +22,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve_prime_finite_field
+from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_prime_finite_field
 from con_finite_field import ProjectiveConic_finite_field
 
 class ProjectiveConic_prime_finite_field(ProjectiveConic_finite_field, ProjectivePlaneCurve_prime_finite_field):

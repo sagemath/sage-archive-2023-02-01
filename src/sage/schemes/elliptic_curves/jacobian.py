@@ -111,7 +111,7 @@ def Jacobian(X, **kwds):
     from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
     if is_MPolynomial(X):
         if morphism:
-            from sage.schemes.plane_curves.constructor import Curve
+            from sage.schemes.curves.constructor import Curve
             return Jacobian_of_equation(X, curve=Curve(X), **kwds)
         else:
             return Jacobian_of_equation(X, **kwds)

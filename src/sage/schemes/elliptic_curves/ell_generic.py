@@ -78,7 +78,7 @@ exp = math.exp
 oo = rings.infinity       # infinity
 O = rings.O         # big oh
 
-import sage.schemes.plane_curves.projective_curve as plane_curve
+import sage.schemes.curves.projective_curve as plane_curve
 
 def is_EllipticCurve(x):
     r"""

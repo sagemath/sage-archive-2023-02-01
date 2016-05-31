@@ -399,7 +399,7 @@ class GenericCellComplex(SageObject):
 
     def homology(self, dim=None, base_ring=ZZ, subcomplex=None,
                  generators=False, cohomology=False, algorithm='pari',
-                 verbose=False, reduced=True):
+                 verbose=False, reduced=True, **kwds):
         r"""
         The (reduced) homology of this cell complex.
 
@@ -549,11 +549,12 @@ class GenericCellComplex(SageObject):
 
         # Derived classes can implement specialized algorithms using a
         # _homology_ method.  See SimplicialComplex for one example.
+        # Those may allow for other arguments, so we pass **kwds.
         if hasattr(self, '_homology_'):
             return self._homology_(dim, subcomplex=subcomplex,
                                    cohomology=cohomology, base_ring=base_ring,
                                    verbose=verbose, algorithm=algorithm,
-                                   reduced=reduced)
+                                   reduced=reduced, **kwds)
 
         C = self.chain_complex(cochain=cohomology, augmented=reduced,
                                dimensions=dims, subcomplex=subcomplex,

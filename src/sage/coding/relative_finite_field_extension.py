@@ -1,5 +1,5 @@
 r"""
-Field embedding
+Management of relative finite field extensions
 
 Considering a *big field* `F_{q^m}` and a *small_field* `F_q`, with
 `q = p^s`, `p` being a prime and `s, m` being integers, this file
@@ -26,10 +26,12 @@ from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
 from sage.modules.free_module_element import vector
 
-class FieldEmbedding(SageObject):
+class RelativeFiniteFieldExtension(SageObject):
     r"""
-    Manages the embedding of a big non-prime field into a smaller
-    non prime field.
+    Considering `p` a prime number, n an integer and three finite fields
+    `F_p`, `F_q` and `F_{q^m}`, this class contains a set of methods
+    to manage the representation of elements of the relative extension
+    `F_{q^m}` over `F_q`.
 
     INPUT:
 
@@ -42,18 +44,18 @@ class FieldEmbedding(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.coding.field_embedding import *
+        sage: from sage.coding.relative_finite_field_extension import *
         sage: Fqm.<aa> = GF(16)
         sage: Fq.<a> = GF(4)
-        sage: FieldEmbedding(Fqm, Fq)
-        Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+        sage: RelativeFiniteFieldExtension(Fqm, Fq)
+        Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 
     It is possible to specify the embedding to use
     from ``small_field`` to ``big_field``::
 
         sage: Fqm.<aa> = GF(16)
         sage: Fq.<a> = GF(4)
-        sage: FE = FieldEmbedding(Fqm, Fq, embedding=Hom(Fq, Fqm)[1])
+        sage: FE = RelativeFiniteFieldExtension(Fqm, Fq, embedding=Hom(Fq, Fqm)[1])
         sage: FE.embedding() == Hom(Fq, Fqm)[1]
         True
     """
@@ -64,20 +66,20 @@ class FieldEmbedding(SageObject):
 
         If ``big_field`` is not a finite field, an error is raised::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm = RR
             sage: Fq.<a> = GF(4)
-            sage: FieldEmbedding(Fqm, Fq)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
             ValueError: big_field has to be a finite field
 
         Same for ``small_field``::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq = RR
-            sage: FieldEmbedding(Fqm, Fq)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
             ValueError: small_field has to be a finite field
@@ -85,10 +87,10 @@ class FieldEmbedding(SageObject):
         If ``small_field`` is not a subfield of ``big_field``, an exception
         is raised::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(8)
-            sage: FieldEmbedding(Fqm, Fq)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
             Traceback (most recent call last):
             ...
             ValueError: small_field has to be a subfield of big_field
@@ -125,13 +127,13 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FieldEmbedding(Fqm, Fq)
-            Embedding between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
+            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
         """
-        return "Embedding between %s and %s" % (self.big_field(), self.small_field())
+        return "Relative field extension between %s and %s" % (self.big_field(), self.small_field())
 
     def _latex_(self):
         r"""
@@ -139,13 +141,13 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: latex(FieldEmbedding(Fqm, Fq))
-            \textnormal{Embedding between \Bold{F}_{2^{4}} and \Bold{F}_{2^{2}}}
+            sage: latex(RelativeFiniteFieldExtension(Fqm, Fq))
+            \textnormal{Relative field extension between \Bold{F}_{2^{4}} and \Bold{F}_{2^{2}}}
         """
-        return "\\textnormal{Embedding between %s and %s}" % (self.big_field()._latex_(),
+        return "\\textnormal{Relative field extension between %s and %s}" % (self.big_field()._latex_(),
                 self.small_field()._latex_())
 
     @cached_method
@@ -156,10 +158,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE._representation_matrix()
             [1 0 0 0]
             [0 0 1 1]
@@ -174,7 +176,7 @@ class FieldEmbedding(SageObject):
             for i in range(m) for j in range(s)])
         return A.inverse()
 
-    def small_field_vector_representation(self, b):
+    def _flattened_relative_field_representation(self, b):
         r"""
         Returns a vector representation of ``b`` in the basis of
         the small field over the prime field.
@@ -185,19 +187,19 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: b = aa^3 + aa^2 + aa + 1
-            sage: FE.small_field_vector_representation(b)
+            sage: FE._flattened_relative_field_representation(b)
             (1, 0, 1, 1)
         """
         if not b in self.big_field():
             raise ValueError("The input has to be an element of the big field")
         return self._representation_matrix() * vector(b)
 
-    def small_field_polynomial_representation(self, b):
+    def relative_field_representation(self, b):
         r"""
         Returns a polynomial representation of ``b`` in the basis of
         the small field over the base field.
@@ -208,18 +210,18 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: b = aa^3 + aa^2 + aa + 1
-            sage: FE.small_field_polynomial_representation(b)
+            sage: FE.relative_field_representation(b)
             a
         """
         if not b in self.big_field():
             raise ValueError("The input has to be an element of the big field")
         Fq = self.small_field()
-        vect = self._representation_matrix() * vector(b)
+        vect = self._flattened_relative_field_representation(b)
         pol = Fq.zero()
         s = self.small_field_power()
         sm = self.big_field_power()
@@ -234,20 +236,17 @@ class FieldEmbedding(SageObject):
     def big_field_representation(self, a):
         r"""
         Returns a polynomial representation of ``a`` over the big field.
-        ``a`` has to be the vectorial representation described in
-        :meth:`small_field_vector_representation`.
 
         INPUT:
 
-        - ``a`` -- a vector of elements of the prime field
-
+        - ``a`` -- an element of the relative extension field
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: v = vector(GF(2), [1, 0, 1, 1])
             sage: FE.big_field_representation(v)
             aa^3 + aa^2 + aa + 1
@@ -274,10 +273,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.embedding()
             Ring morphism:
              From: Finite Field in a of size 2^2
@@ -292,10 +291,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.small_field_basis()
             [1, a]
         """
@@ -307,10 +306,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.big_field_basis()
             [1, aa, aa^2, aa^3]
         """
@@ -323,10 +322,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.small_field_power()
             2
         """
@@ -339,10 +338,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.big_field_power()
             4
         """
@@ -354,10 +353,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.prime_field()
             Finite Field of size 2
         """
@@ -369,10 +368,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.small_field()
             Finite Field in a of size 2^2
         """
@@ -384,10 +383,10 @@ class FieldEmbedding(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.coding.field_embedding import *
+            sage: from sage.coding.relative_finite_field_extension import *
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
-            sage: FE = FieldEmbedding(Fqm, Fq)
+            sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: FE.big_field()
             Finite Field in aa of size 2^4
         """

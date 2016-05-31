@@ -20,8 +20,3 @@ Miguel Marco (mmarco@unizar.es)
 
 * gcc
 * boehmgc
-
-== Special Update/Build Instructions ==
-
-There is no installation script, just copy the library and the header to the
-corresponding directories.

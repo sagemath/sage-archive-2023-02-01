@@ -2073,7 +2073,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                                 base_ring=base_ring, check=check)
 
     def _homology_(self, dim=None, base_ring=ZZ, subcomplex=None,
-                   cohomology=False, enlarge=True, algorithm='auto',
+                   cohomology=False, enlarge=True, algorithm='pari',
                    verbose=False, reduced=True):
         """
         The (reduced) homology of this simplicial complex.
@@ -2113,12 +2113,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
            ``'no_chomp'``, then don't try CHomP, but behave the same
            otherwise.  If ``'pari'``, then compute elementary divisors
            using Pari.  If ``'dhsw'``, then use the DHSW algorithm to
-           compute elementary divisors.  (As of this writing, CHomP is
-           by far the fastest option, followed by the ``'auto'`` or
-           ``'no_chomp'`` setting of using DHSW for large matrices and
-           Pari for small ones.)
+           compute elementary divisors.  (As of this writing, ``'pari'``
+           is the fastest option. CHomP may be better, but as an
+           experimental package, it may not work on all platforms or
+           in all cases.)
 
-        :type algorithm: string; optional, default ``'auto'``
+        :type algorithm: string; optional, default ``'pari'``
 
         :param verbose: If ``True``, print some messages as the homology
            is computed.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tamari Interval-posets
 
@@ -16,12 +17,12 @@ a pair of comparable elements. The number of intervals has been given in
 
 REFERENCES:
 
-.. [PCh2013] Gregory Chatel and Viviane Pons.
+.. [PCh2013] Grégory Châtel and Viviane Pons.
    *Counting smaller trees in the Tamari order*.
    FPSAC. (2013). :arxiv:`1212.0751v1`.
 
 .. [Pons2013] Viviane Pons,
-   *Combinatoire algebrique liee aux ordres sur les permutations*.
+   *Combinatoire algébrique liée aux ordres sur les permutations*.
    PhD Thesis. (2013). :arxiv:`1310.1805v1`.
 
 .. [TamBrack1962] Dov Tamari.
@@ -34,10 +35,14 @@ REFERENCES:
    J. Combinatorial Theory Ser. A. (1972).
    http://www.sciencedirect.com/science/article/pii/0097316572900039 .
 
-.. [ChapTamari08] Frederic Chapoton.
+.. [ChapTamari08] Frédéric Chapoton.
    *Sur le nombre d'intervalles dans les treillis de Tamari*.
    Sem. Lothar. Combin. (2008).
    :arxiv:`math/0602368v1`.
+
+.. [FPR15] Wenjie Fang and Louis-François Préville-Ratelle,
+   *From generalized Tamari intervals to non-separable planar maps*.
+   :arxiv:`1511.05937`
 
 AUTHORS:
 
@@ -2123,6 +2128,68 @@ class TamariIntervalPoset(Element):
         c_up = self.upper_binary_tree().single_edge_cut_shapes()
         c_down = self.lower_binary_tree().single_edge_cut_shapes()
         return not any(x in c_up for x in c_down)
+
+    def is_synchronized(self):
+        """
+        Return ``True`` if ``self`` is a synchronized Tamari interval.
+
+        This means that the upper and lower binary trees have the same canopee.
+
+        This has been considered in [FPR15]_. The numbers of
+        synchronized intervals are given by the sequence :oeis:`A000139`.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3)
+            ....:     if T.is_synchronized()])
+            6
+        """
+        up = self.upper_binary_tree()
+        down = self.lower_binary_tree()
+        return down.canopee() == up.canopee()
+
+    def is_modern(self):
+        """
+        Return ``True`` if ``self`` is a modern Tamari interval.
+
+        This is defined by exclusion of a simple pattern in the Hasse diagram,
+        namely there is no configuration ``y --> x <-- z``
+        with `1 \leq y < x < z \leq n`.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3) if T.is_modern()])
+            12
+        """
+        G = self.poset().hasse_diagram()
+        for x in G:
+            nx = list(G.neighbors_in(x))
+            nx.append(x)
+            if min(nx) < x and max(nx) > x:
+                return False
+        return True
+
+    def is_exceptional(self):
+        """
+        Return ``True`` if ``self`` is an exceptional Tamari interval.
+
+        This is defined by exclusion of a simple pattern in the Hasse diagram,
+        namely there is no configuration ``y <-- x --> z``
+        with `1 \leq y < x < z \leq n`.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3)
+            ....:     if T.is_exceptional()])
+            12
+        """
+        G = self.poset().hasse_diagram()
+        for x in G:
+            nx = list(G.neighbors_out(x))
+            nx.append(x)
+            if min(nx) < x and max(nx) > x:
+                return False
+        return True
 
 
 # Abstract class to serve as a Factory ; no instances are created.

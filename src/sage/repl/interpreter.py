@@ -76,12 +76,16 @@ Check that Cython source code appears in tracebacks::
     sage: shell = get_test_shell()
     sage: shell.run_cell('1/0')
     ---------------------------------------------------------------------------
-    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (.../cythonized/sage/rings/integer_ring.c:...)()
-        ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
-        ...         if mpz_sgn(right.value) == 0:
-        ...             raise ZeroDivisionError('rational division by zero')
-        ...         mpz_set(mpq_numref(x.value), left.value)
-        ...         mpz_set(mpq_denref(x.value), right.value)
+    ZeroDivisionError                         Traceback (most recent call last)
+    <ipython-input-...> in <module>()
+    ----> 1 Integer(1)/Integer(0)
+    <BLANKLINE>
+    .../src/sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (build/cythonized/sage/rings/integer.c:12883)()
+       1828         if type(left) is type(right):
+       1829             if mpz_sgn((<Integer>right).value) == 0:
+    -> 1830                 raise ZeroDivisionError("rational division by zero")
+       1831             x = <Rational> Rational.__new__(Rational)
+       1832             mpz_set(mpq_numref(x.value), (<Integer>left).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()

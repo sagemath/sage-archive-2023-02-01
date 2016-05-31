@@ -416,9 +416,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         EXAMPLES::
 
-            sage: 1 + 1/2
-            3/2
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.canonical_coercion(1,2/3)
+            (1, 2/3)
             sage: maps, actions = cm.get_cache()
 
         Now let us see what happens when we do a binary operations with

@@ -158,6 +158,7 @@ from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.ntl.convert cimport mpz_to_ZZ
+from sage.libs.gmp.mpq cimport mpq_neg
 
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
@@ -173,6 +174,8 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
+
+from .binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -1552,19 +1555,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_to_ZZ(z, self.value)
         sig_off()
 
+    def __add__(left, right):
+        r"""
+        TESTS::
+
+            sage: 1 + 2
+            3
+            sage: sum(Integer(i) for i in [1..100])
+            5050
+            sage: 1 + 2/3
+            5/3
+            sage: 1 + (-2/3)
+            1/3
+        """
+        cdef Integer x
+        cdef Rational y
+        if type(left) is type(right):
+            x = <Integer>PY_NEW(Integer)
+            mpz_add(x.value, (<Integer>left).value, (<Integer>right).value)
+            return x
+        elif isinstance(right, Rational):
+            y = <Rational> Rational.__new__(Rational)
+            mpq_add_z(y.value, (<Rational>right).value, (<Integer>left).value)
+            return y
+
+        return coercion_model.bin_op(left, right, operator.add)
+
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Integer addition.
 
         TESTS::
 
-            sage: Integer(32) + Integer(23)
+            sage: 32._add_(23)
             55
-            sage: sum(Integer(i) for i in [1..100])
-            5050
             sage: a = ZZ.random_element(10^50000)
             sage: b = ZZ.random_element(10^50000)
-            sage: a+b == b+a
+            sage: a._add_(b) == b._add_(a)
             True
         """
         # self and right are guaranteed to be Integers
@@ -1610,6 +1637,33 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # long (whereas -n may overflow).
             mpz_sub_ui(x.value, self.value, 0 - <unsigned long>n)
         return x
+
+    def __sub__(left, right):
+        r"""
+        TESTS::
+
+            sage: 1 - 2
+            -1
+            sage: 1 - 2/3
+            1/3
+            sage: 1 - (-2/3)
+            5/3
+            sage: (-1) - (-5/4)
+            1/4
+        """
+        cdef Integer x
+        cdef Rational y
+        if type(left) is type(right):
+            x = <Integer>PY_NEW(Integer)
+            mpz_sub(x.value, (<Integer>left).value, (<Integer>right).value)
+            return x
+        elif isinstance(right, Rational):
+            y = <Rational> Rational.__new__(Rational)
+            mpq_sub_z(y.value, (<Rational>right).value, (<Integer>left).value)
+            mpq_neg(y.value, y.value)
+            return y
+
+        return coercion_model.bin_op(left, right, operator.sub)
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
@@ -1691,17 +1745,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul_si(x.value, self.value, n)
         return x
 
+    def __mul__(left, right):
+        r"""
+        TESTS::
+
+            sage: 3 * 2
+            6
+            sage: 5 * QQ((2,3))
+            10/3
+            sage: 3 * (-5/6)
+            -5/2
+            sage: (-2) * (-5/4)
+            5/2
+        """
+        cdef Integer x
+        cdef Rational y
+        if type(left) is type(right):
+            x = <Integer>PY_NEW(Integer)
+            mpz_mul(x.value, (<Integer>left).value, (<Integer>right).value)
+            return x
+        elif isinstance(right, Rational):
+            y = <Rational> Rational.__new__(Rational)
+            mpq_mul_z(y.value, (<Rational>right).value, (<Integer>left).value)
+            return y
+
+        return coercion_model.bin_op(left, right, operator.mul)
+
     cpdef RingElement _mul_(self, RingElement right):
         """
         Integer multiplication.
 
-            sage: Integer(25) * Integer(4)
+            sage: 25._mul_(4)
             100
-            sage: Integer(5^100) * Integer(2^100)
+            sage: (5^100)._mul_(2^100)
             10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
             sage: a = ZZ.random_element(10^50000)
             sage: b = ZZ.random_element(10^50000)
-            sage: a*b == b*a
+            sage: a._mul_(b) == b._mul_(a)
             True
         """
         # self and right are guaranteed to be Integers
@@ -1716,21 +1796,71 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
+    def __div__(left, right):
+        r"""
+        TESTS::
+
+            sage: 3 / 2
+            3/2
+            sage: 5 / QQ((10,3))
+            3/2
+            sage: 3 / (-5/6)
+            -18/5
+            sage: (-2) / (-5/4)
+            8/5
+            sage: 3 / polygen(ZZ)
+            3/x
+
+            sage: 3 / 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+            sage: 3 / QQ.zero()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+            sage: 3 / QQbar.zero()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+        """
+        cdef Rational x
+        if type(left) is type(right):
+            if mpz_sgn((<Integer>right).value) == 0:
+                raise ZeroDivisionError("rational division by zero")
+            x = <Rational> Rational.__new__(Rational)
+            mpz_set(mpq_numref(x.value), (<Integer>left).value)
+            mpz_set(mpq_denref(x.value), (<Integer>right).value)
+            mpq_canonicalize(x.value)
+            return x
+        elif isinstance(right, Rational):
+            if mpq_sgn((<Rational>right).value) == 0:
+                raise ZeroDivisionError("rational division by zero")
+            y = <Rational> Rational.__new__(Rational)
+            mpq_div_z(y.value, (<Rational>right).value, (<Integer>left).value)
+            mpq_inv(y.value, y.value)
+            return y
+
+        return coercion_model.bin_op(left, right, operator.div)
+
     cpdef RingElement _div_(self, RingElement right):
         r"""
         Computes `\frac{a}{b}`
 
         EXAMPLES::
 
-            sage: a = Integer(3) ; b = Integer(4)
-            sage: a / b == Rational(3) / 4
-            True
-            sage: Integer(32) / Integer(32)
+            sage: 3._div_(4)
+            3/4
+            sage: (-32)._div_(-32)
             1
         """
-        # This is vastly faster than doing it here, since here
-        # we can't cimport rationals.
-        return the_integer_ring._div(self, right)
+        if mpz_sgn((<Integer>right).value) == 0:
+            raise ZeroDivisionError("rational division by zero")
+        x = <Rational> Rational.__new__(Rational)
+        mpz_set(mpq_numref(x.value), self.value)
+        mpz_set(mpq_denref(x.value), (<Integer>right).value)
+        mpq_canonicalize(x.value)
+        return x
 
     cpdef RingElement _floordiv_(self, RingElement right):
         r"""

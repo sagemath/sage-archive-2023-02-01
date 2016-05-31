@@ -310,7 +310,7 @@ class GenericCellComplex(SageObject):
     ############################################################
 
     @abstract_method
-    def join(self, right, **kwds):
+    def join(self, right):
         """
         The join of this cell complex with another one.
 
@@ -363,7 +363,9 @@ class GenericCellComplex(SageObject):
     ############################################################
 
     @abstract_method
-    def chain_complex(self, **kwds):
+    def chain_complex(self, subcomplex=None, augmented=False,
+                      verbose=False, check=True, dimensions=None,
+                      base_ring=ZZ, cochain=False):
         """
         This is not implemented for general cell complexes.
 
@@ -373,9 +375,9 @@ class GenericCellComplex(SageObject):
         - ``augmented`` -- a bool: whether to return the augmented complex
         - ``verbose`` -- a bool: whether to print informational messages as
           the chain complex is being computed
-        - ``check_diffs`` -- a bool: whether to check that the each
+        - ``check`` -- a bool: whether to check that the each
           composite of two consecutive differentials is zero
-        -  ``dimensions`` -- if ``None``, compute the chain complex in all
+        - ``dimensions`` -- if ``None``, compute the chain complex in all
            dimensions.  If a list or tuple of integers, compute the
            chain complex in those dimensions, setting the chain groups
            in all other dimensions to zero.
@@ -395,7 +397,9 @@ class GenericCellComplex(SageObject):
             NotImplementedError: <abstract method chain_complex at ...>
         """
 
-    def homology(self, dim=None, **kwds):
+    def homology(self, dim=None, base_ring=ZZ, subcomplex=None,
+                 generators=False, cohomology=False, algorithm='auto',
+                 verbose=False, reduced=True, **kwds):
         r"""
         The (reduced) homology of this cell complex.
 
@@ -426,11 +430,6 @@ class GenericCellComplex(SageObject):
         :type verbose: boolean; optional, default False
         :param reduced: If ``True``, return the reduced homology.
         :type reduced: boolean; optional, default ``True``
-
-        .. note::
-
-            The keyword arguments to this function get passed on to
-            :meth:`chain_complex` and its homology.
 
         ALGORITHM:
 
@@ -510,13 +509,6 @@ class GenericCellComplex(SageObject):
         from sage.modules.all import VectorSpace
         from sage.homology.homology_group import HomologyGroup
 
-        base_ring = kwds.get('base_ring', ZZ)
-        cohomology = kwds.get('cohomology', False)
-        subcomplex = kwds.pop('subcomplex', None)
-        verbose = kwds.get('verbose', False)
-        algorithm = kwds.get('algorithm', 'auto')
-        reduced = kwds.get('reduced', True)
-
         if dim is not None:
             if isinstance(dim, (list, tuple)):
                 low = min(dim) - 1
@@ -537,10 +529,12 @@ class GenericCellComplex(SageObject):
             H = None
             if isinstance(self, CubicalComplex):
                 if have_chomp('homcubes'):
-                    H = homcubes(self, subcomplex, **kwds)
+                    H = homcubes(self, subcomplex, base_ring=base_ring,
+                                 verbose=verbose, generators=generators)
             elif isinstance(self, SimplicialComplex):
                 if have_chomp('homsimpl'):
-                    H = homsimpl(self, subcomplex, **kwds)
+                    H = homsimpl(self, subcomplex, base_ring=base_ring,
+                                 verbose=verbose, generators=generators)
 
             # now pick off the requested dimensions
             if H:
@@ -556,12 +550,18 @@ class GenericCellComplex(SageObject):
 
         # Derived classes can implement specialized algorithms using a
         # _homology_ method.  See SimplicialComplex for one example.
+        # Those may allow for other arguments, so we pass **kwds.
         if hasattr(self, '_homology_'):
-            return self._homology_(dim, subcomplex=subcomplex, **kwds)
+            return self._homology_(dim, subcomplex=subcomplex,
+                                   cohomology=cohomology, base_ring=base_ring,
+                                   verbose=verbose, algorithm=algorithm,
+                                   reduced=reduced, **kwds)
 
         C = self.chain_complex(cochain=cohomology, augmented=reduced,
-                               dimensions=dims, subcomplex=subcomplex, **kwds)
-        answer = C.homology(**kwds)
+                               dimensions=dims, subcomplex=subcomplex,
+                               base_ring=base_ring, verbose=verbose)
+        answer = C.homology(base_ring=base_ring, generators=generators,
+                            verbose=verbose, algorithm=algorithm)
         if dim is None:
             dim = range(self.dimension()+1)
         zero = HomologyGroup(0, base_ring)
@@ -569,7 +569,9 @@ class GenericCellComplex(SageObject):
             return dict([d, answer.get(d, zero)] for d in dim)
         return answer.get(dim, zero)
 
-    def cohomology(self, dim=None, **kwds):
+    def cohomology(self, dim=None, base_ring=ZZ, subcomplex=None,
+                 generators=False, algorithm='auto',
+                 verbose=False, reduced=True):
         r"""
         The reduced cohomology of this cell complex.
 
@@ -617,7 +619,10 @@ class GenericCellComplex(SageObject):
             sage: s5.cohomology(base_ring=GF(7))[5]
             Vector space of dimension 1 over Finite Field of size 7
         """
-        return self.homology(dim=dim, cohomology=True, **kwds)
+        return self.homology(dim=dim, cohomology=True, base_ring=base_ring,
+                             subcomplex=subcomplex, generators=generators,
+                             algorithm=algorithm, verbose=verbose,
+                             reduced=reduced)
 
     def betti(self, dim=None, subcomplex=None):
         r"""
@@ -716,7 +721,7 @@ class GenericCellComplex(SageObject):
             # base_ring is a field.
             return all(x.dimension() == 0 for x in H.values())
 
-    def n_chains(self, n, base_ring=None, cochains=False):
+    def n_chains(self, n, base_ring=ZZ, cochains=False):
         r"""
         Return the free module of chains in degree ``n`` over ``base_ring``.
 
@@ -744,7 +749,7 @@ class GenericCellComplex(SageObject):
         """
         return Chains(tuple(self.n_cells(n)), base_ring, cochains)
 
-    def algebraic_topological_model(self, base_ring=None):
+    def algebraic_topological_model(self, base_ring=QQ):
         r"""
         Algebraic topological model for this cell complex with
         coefficients in ``base_ring``.
@@ -770,7 +775,7 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
-    def homology_with_basis(self, base_ring=None, cohomology=False):
+    def homology_with_basis(self, base_ring=QQ, cohomology=False):
         r"""
         Return the unreduced homology of this complex with
         coefficients in ``base_ring`` with a chosen basis.
@@ -821,11 +826,9 @@ class GenericCellComplex(SageObject):
             [h^{3,0}]
         """
         from homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
-        if base_ring is None:
-            base_ring = QQ
         return HomologyVectorSpaceWithBasis(base_ring, self, cohomology)
 
-    def cohomology_ring(self, base_ring=None):
+    def cohomology_ring(self, base_ring=QQ):
         r"""
         Return the unreduced cohomology with coefficients in
         ``base_ring`` with a chosen basis.
@@ -927,8 +930,6 @@ class GenericCellComplex(SageObject):
             18 facets over Rational Field
         """
         from homology_vector_space_with_basis import CohomologyRing
-        if base_ring is None:
-            base_ring = QQ
         return CohomologyRing(base_ring, self)
 
     @abstract_method

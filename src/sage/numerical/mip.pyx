@@ -2818,6 +2818,50 @@ cdef class MIPVariable(Element):
         self._upper_bound = upper_bound
         self._name = name
 
+    def __copy__(self):
+        r"""
+        Returns a copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: pv = p.new_variable(nonnegative=True)
+            sage: pv[0]
+            x_0
+            sage: pvc = copy(pv)
+            sage: pvc[0]
+            x_0
+            sage: pv[1]
+            x_1
+            sage: pvc[1]
+            x_2
+            sage: p.number_of_variables()
+            3
+        """
+        return self.copy_for_mip(self.mip())
+
+    def __deepcopy__(self, memo={}):
+        r"""
+        Returns a copy of ``self``.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: pv = p.new_variable(nonnegative=True)
+            sage: pv[0]
+            x_0
+            sage: pvc = deepcopy(pv)
+            sage: pvc[0]
+            x_0
+            sage: pv[1]
+            x_1
+            sage: pvc[1]
+            x_2
+            sage: p.number_of_variables()
+            3
+        """
+        return self.copy_for_mip(self.mip())
+
     def __getitem__(self, i):
         r"""
         Returns the symbolic variable corresponding to the key.

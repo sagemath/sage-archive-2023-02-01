@@ -4302,7 +4302,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = F.list()
+        l = copy(F.list())
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights
@@ -4310,7 +4310,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             l.remove(zero)
         # Remember to include the no-error-vector to handle codes of minimum
         # distance 1 gracefully
-        zero_syndrome = vector(F,[F.zero()]*(n-k))
+        zero_syndrome = vector(F,[F.zero()]*Integer(n-k))
         zero_syndrome.set_immutable()
         lookup = { zero_syndrome : vector(F,[F.zero()]*n) }
         error_position_tables = [cartesian_product([l]*i) for i in range(1, t+1)]

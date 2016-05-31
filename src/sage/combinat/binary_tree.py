@@ -1270,10 +1270,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         a list of pairs of integers.
 
-        Every vertex of the binary tree is mapped to a pair of integers.
-        The conventions are the following. The root has coordinates (0,0).
-        If a vertex is the left (right) son of a vertex, they share the second
-        (first) coordinate.
+        Every vertex of the binary tree is mapped to a pair of
+        integers.  The conventions are the following. The root has
+        coordinates (0,0).  If a vertex is the left (right) son of
+        another vertex, they share the second (first) coordinate.
 
         .. WARNING:: This is a slow *recursive* algorithm.
 

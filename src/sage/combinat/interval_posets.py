@@ -2110,8 +2110,8 @@ class TamariIntervalPoset(Element):
         """
         Return the number of terms in the decomposition in new interval-posets.
 
-        Every interval-poset has a unique decomposition as a planar tree of
-        of new interval-posets, as explained in []_. This function
+        Every interval-poset has a unique decomposition as a planar tree
+        of new interval-posets, as explained in [ChapTamari08]_. This function
         just computes the number of terms, not the planar tree nor
         the terms themselves.
 

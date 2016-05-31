@@ -398,7 +398,7 @@ class GenericCellComplex(SageObject):
         """
 
     def homology(self, dim=None, base_ring=ZZ, subcomplex=None,
-                 generators=False, cohomology=False, algorithm='auto',
+                 generators=False, cohomology=False, algorithm='pari',
                  verbose=False, reduced=True, **kwds):
         r"""
         The (reduced) homology of this cell complex.
@@ -424,7 +424,7 @@ class GenericCellComplex(SageObject):
         :type cohomology: boolean; optional, default False
         :param algorithm: The options are 'auto', 'dhsw', 'pari' or 'no_chomp'.
            See below for a description of what they mean.
-        :type algorithm: string; optional, default 'auto'
+        :type algorithm: string; optional, default 'pari'
         :param verbose: If True, print some messages as the homology is
            computed.
         :type verbose: boolean; optional, default False
@@ -433,9 +433,9 @@ class GenericCellComplex(SageObject):
 
         ALGORITHM:
 
-        If ``algorithm`` is set to 'auto' (the default), then use
+        If ``algorithm`` is set to 'auto', then use
         CHomP if available.  (CHomP is available at the web page
-        http://chomp.rutgers.edu/.  It is also an experimental package
+        http://chomp.rutgers.edu/.  It is also an optional package
         for Sage.)
 
         CHomP computes homology, not cohomology, and only works over
@@ -464,10 +464,8 @@ class GenericCellComplex(SageObject):
         forces the named algorithm to be used regardless of the size
         of the matrices and regardless of whether CHomP is available.
 
-        As of this writing, CHomP is by far the fastest option,
-        followed by the 'auto' or 'no_chomp' setting of using the
-        Dumas, Heckenbach, Saunders, and Welker elimination algorithm
-        for large matrices and Pari for small ones.
+        As of this writing, ``'pari'`` is the fastest standard option.
+        The optional CHomP package may be better still.
 
         EXAMPLES::
 
@@ -570,7 +568,7 @@ class GenericCellComplex(SageObject):
         return answer.get(dim, zero)
 
     def cohomology(self, dim=None, base_ring=ZZ, subcomplex=None,
-                 generators=False, algorithm='auto',
+                 generators=False, algorithm='pari',
                  verbose=False, reduced=True):
         r"""
         The reduced cohomology of this cell complex.

@@ -11,6 +11,8 @@
 
 """Base classes for interpreter specs."""
 
+from __future__ import print_function, absolute_import
+
 from ..memory import (MemoryChunkConstants, MemoryChunkArguments,
                       MemoryChunkScratch)
 from ..storage import StorageTypeAssignable, ty_int

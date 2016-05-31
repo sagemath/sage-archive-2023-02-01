@@ -109,7 +109,7 @@ compatibility.
 # that will have to be changed.
 #####################################################################
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import os
 

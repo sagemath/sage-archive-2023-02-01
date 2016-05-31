@@ -9,6 +9,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function, absolute_import
+
 from .base import StackInterpreter
 from ..instructions import (params_gen, instr_infix, instr_funcall_2args,
                             instr_unary, InstrSpec)

@@ -11,6 +11,8 @@
 
 """General purpose MemoryChunk types and related utilities"""
 
+from __future__ import print_function, absolute_import
+
 import six
 
 from .utils import je, reindent_lines as ri

@@ -34,7 +34,7 @@ from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affi
 
 from curve import Curve_generic
 
-class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
+class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
     def _repr_type(self):
         return "Affine Space"
 
@@ -46,7 +46,7 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class AffineCurve_generic(AffineSpaceCurve_generic):
+class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):
         P = f.parent()
         if not (is_AffineSpace(A) and A.dimension != 2):
@@ -227,7 +227,7 @@ class AffineCurve_generic(AffineSpaceCurve_generic):
         I = self.defining_ideal()
         return I.plot(*args, **kwds)
 
-class AffineCurve_finite_field(AffineCurve_generic):
+class AffinePlaneCurve_finite_field(AffinePlaneCurve):
     def rational_points(self, algorithm="enum"):
         r"""
         Return sorted list of all rational points on this curve.
@@ -256,7 +256,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
         return points
 
 
-class AffineCurve_prime_finite_field(AffineCurve_finite_field):
+class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
@@ -367,7 +367,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return AffineCurve_finite_field.rational_points(self, algorithm="enum")
+            return AffinePlaneCurve_finite_field.rational_points(self, algorithm="enum")
 
         elif algorithm == "bn":
             f = self.defining_polynomial()._singular_()

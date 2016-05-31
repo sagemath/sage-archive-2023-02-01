@@ -34,7 +34,7 @@ def is_QuarticCurve(C):
     """
     return isinstance(C, QuarticCurve_generic)
 
-class QuarticCurve_generic(projective_curve.ProjectiveCurve_generic):
+class QuarticCurve_generic(projective_curve.ProjectivePlaneCurve):
     # DRK: Note that we should check whether the curve is
 
     def _repr_type(self):

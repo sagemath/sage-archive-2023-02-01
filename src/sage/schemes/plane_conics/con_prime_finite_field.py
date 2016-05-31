@@ -22,10 +22,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_prime_finite_field
+from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve_prime_finite_field
 from con_finite_field import ProjectiveConic_finite_field
 
-class ProjectiveConic_prime_finite_field(ProjectiveConic_finite_field, ProjectiveCurve_prime_finite_field):
+class ProjectiveConic_prime_finite_field(ProjectiveConic_finite_field, ProjectivePlaneCurve_prime_finite_field):
     r"""
     Create a projective plane conic curve over a prime finite field.
     See ``Conic`` for full documentation.
@@ -50,6 +50,6 @@ class ProjectiveConic_prime_finite_field(ProjectiveConic_finite_field, Projectiv
             Projective Conic Curve over Finite Field of size 3 defined by x^2 + y^2 + z^2
         """
         ProjectiveConic_finite_field.__init__(self, A, f)
-        ProjectiveCurve_prime_finite_field.__init__(self, A, f)
+        ProjectivePlaneCurve_prime_finite_field.__init__(self, A, f)
 
 

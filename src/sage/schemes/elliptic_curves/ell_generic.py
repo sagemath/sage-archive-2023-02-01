@@ -95,7 +95,7 @@ def is_EllipticCurve(x):
     """
     return isinstance(x, EllipticCurve_generic)
 
-class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generic):
+class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
     r"""
     Elliptic curve over a generic base ring.
 
@@ -153,7 +153,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         a1, a2, a3, a4, a6 = ainvs
         f = y**2*z + (a1*x + a3*z)*y*z \
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
-        plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
+        plane_curve.ProjectivePlaneCurve.__init__(self, PP, f)
 
         # See #1975: we deliberately set the class to
         # EllipticCurvePoint_finite_field for finite rings, so that we
@@ -548,7 +548,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
                     return self._reduce_point(args[0], characteristic)
             args = tuple(args[0])
 
-        return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
+        return plane_curve.ProjectivePlaneCurve.__call__(self, *args, **kwds)
 
     def _reduce_point(self, R, p):
         r"""

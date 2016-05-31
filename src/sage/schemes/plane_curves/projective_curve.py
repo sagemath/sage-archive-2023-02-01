@@ -31,7 +31,7 @@ from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 from curve import Curve_generic
 
-class ProjectiveSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_projective):
+class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
     def _repr_type(self):
         return "Projective Space"
 
@@ -43,7 +43,7 @@ class ProjectiveSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_proj
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class ProjectiveCurve_generic(ProjectiveSpaceCurve_generic):
+class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be a projective plane."%A)
@@ -322,7 +322,7 @@ class ProjectiveCurve_generic(ProjectiveSpaceCurve_generic):
         return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
 
 
-class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
+class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):
         r"""
         Return a generator object for the rational points on this curve.
@@ -495,7 +495,7 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
             points.sort()
         return points
 
-class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
+class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field):
     def _points_via_singular(self, sort=True):
         r"""
         Return all rational points on this curve, computed using Singular's
@@ -686,7 +686,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return ProjectiveCurve_finite_field.rational_points(self,
+            return ProjectivePlaneCurve_finite_field.rational_points(self,
                                                                 algorithm="enum",
                                                                 sort=sort)
 

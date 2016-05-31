@@ -37,15 +37,15 @@ from sage.schemes.affine.all import AffineSpace
 from sage.schemes.projective.all import ProjectiveSpace
 
 
-from projective_curve import (ProjectiveCurve_generic,
-                              ProjectiveSpaceCurve_generic,
-                              ProjectiveCurve_finite_field,
-                              ProjectiveCurve_prime_finite_field)
+from projective_curve import (ProjectivePlaneCurve,
+                              ProjectiveCurve,
+                              ProjectivePlaneCurve_finite_field,
+                              ProjectivePlaneCurve_prime_finite_field)
 
-from affine_curve import (AffineCurve_generic,
-                          AffineSpaceCurve_generic,
-                          AffineCurve_finite_field,
-                          AffineCurve_prime_finite_field)
+from affine_curve import (AffinePlaneCurve,
+                          AffineCurve,
+                          AffinePlaneCurve_finite_field,
+                          AffinePlaneCurve_prime_finite_field)
 
 from sage.schemes.plane_conics.constructor import Conic
 
@@ -180,11 +180,11 @@ def Curve(F):
             if not f.is_homogeneous():
                 A = AffineSpace(P.ngens(), P.base_ring())
                 A._coordinate_ring = P
-                return AffineSpaceCurve_generic(A, F)
+                return AffineCurve(A, F)
 
         A = ProjectiveSpace(P.ngens()-1, P.base_ring())
         A._coordinate_ring = P
-        return ProjectiveSpaceCurve_generic(A, F)
+        return ProjectiveCurve(A, F)
 
     if not is_MPolynomial(F):
         raise TypeError("F (=%s) must be a multivariate polynomial"%F)
@@ -199,11 +199,11 @@ def Curve(F):
 
         if is_FiniteField(k):
             if k.is_prime_field():
-                return AffineCurve_prime_finite_field(A2, F)
+                return AffinePlaneCurve_prime_finite_field(A2, F)
             else:
-                return AffineCurve_finite_field(A2, F)
+                return AffinePlaneCurve_finite_field(A2, F)
         else:
-            return AffineCurve_generic(A2, F)
+            return AffinePlaneCurve(A2, F)
 
     elif F.parent().ngens() == 3:
         if F == 0:
@@ -216,11 +216,11 @@ def Curve(F):
 
         if is_FiniteField(k):
             if k.is_prime_field():
-                return ProjectiveCurve_prime_finite_field(P2, F)
+                return ProjectivePlaneCurve_prime_finite_field(P2, F)
             else:
-                return ProjectiveCurve_finite_field(P2, F)
+                return ProjectivePlaneCurve_finite_field(P2, F)
         else:
-            return ProjectiveCurve_generic(P2, F)
+            return ProjectivePlaneCurve(P2, F)
 
 
     else:

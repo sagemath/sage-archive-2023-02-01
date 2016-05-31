@@ -49,7 +49,7 @@ def is_HyperellipticCurve(C):
     """
     return isinstance(C,HyperellipticCurve_generic)
 
-class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def __init__(self, PP, f, h=None, names=None, genus=None):
         x, y, z = PP.gens()
         df = f.degree()
@@ -61,7 +61,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             deg = max(df,dh+1)
             F0 = sum([ h[i]*x**i*z**(dh-i) for i in range(dh+1) ])
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
-        plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
+        plane_curve.ProjectivePlaneCurve.__init__(self,PP,F)
         R = PP.base_ring()
         if names is None:
             names = ("x", "y")
@@ -167,8 +167,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_singular()
             False
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_singular(H)
+            sage: from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_singular(H)
             True
         """
         return False
@@ -194,8 +194,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_smooth()
             True
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_smooth(H)
+            sage: from sage.schemes.plane_curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_smooth(H)
             False
         """
         return True

@@ -104,7 +104,7 @@ def Modules__mul__(Element left, right):
 
     .. SEEALSO:: :meth:`Modules.ElementMethods.__rmul__`
 
-    This is :meth:`Modules.ElementMethods.__mul__`, implemented as a
+    This is :meth:`Modules.ElementMethods.__rmul__`, implemented as a
     Cython method in :mod:`sage.categories.magmas_cython`::
 
         sage: x.__mul__.im_func is Modules.ElementMethods.__mul__.im_func
@@ -142,7 +142,7 @@ def Modules__rmul__(Element right, left):
 
     .. SEEALSO:: :meth:`Modules.ElementMethods.__mul__`
 
-    This is `Modules.ElementMethods.__rmul__`, implemented as a Cython
+    This is :meth:`Modules.ElementMethods.__rmul__`, implemented as a Cython
     method in :mod:`sage.categories.coercion_methods`::
 
         sage: x.__rmul__.im_func is Modules.ElementMethods.__rmul__.im_func

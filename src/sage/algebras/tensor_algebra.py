@@ -191,7 +191,7 @@ class TensorAlgebra(CombinatorialFreeModule):
         M = self._base_module
 
         it = iter(m._monomial)
-        k,e = it.next()
+        k, e = next(it)
         rpr = M._ascii_art_term(k)
         for i in range(e-1):
             rpr += AsciiArt([symb], [len(symb)])

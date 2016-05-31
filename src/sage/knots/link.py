@@ -2223,7 +2223,7 @@ class Link(object):
         ::
         
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
-            sage: L.homfly_polynomial(variables = 'a,z')# optional - libhomfly
+            sage: L.homfly_polynomial(variables = 'a,z') # optional - libhomfly
             -a^-1*z + a^-1*z^-1 + a^-3*z^-1
 
         NOTE: This function deppends on the optional package ``libhomfly``
@@ -2237,10 +2237,8 @@ class Link(object):
                 s += '{} {} '.format(abs(cr)-1, sign(cr))
         for i, cr in enumerate(ogc[1]):
             s += '{} {} '.format(i, cr)
-        from sage.libs.homfly import homfly_polynomial
-        from sage.misc.parser import Parser
-        parser = Parser(make_var={'L':L.gen(0), 'M':L.gen(1)})
-        return parser.parse(homfly_polynomial(s).replace('ML','M L'))
+        from sage.libs.homfly import homfly_polynomial_dict
+        return L(homfly_polynomial_dict(s))
 
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):

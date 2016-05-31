@@ -276,8 +276,7 @@ fi
 # an unclobbered environment before testing unsafe tickets.
 if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     shift
-    cd "$SAGE_ROOT"
-    exec local/bin/patchbot/patchbot.py "$@"
+    exec python -m sage_patchbot.patchbot "$@"
 fi
 
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"

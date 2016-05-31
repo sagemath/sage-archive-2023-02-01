@@ -1104,18 +1104,18 @@ cdef class Matroid(SageObject):
     cpdef _has_minor(self, N, certificate=False):
         """
         Test if matroid has the specified minor,
-        and optionally frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.
-        - ``certificate`` -- (Defalt: ``False``) If true, returns frozensets
-          ``X`` and ``Y`` where ``N`` is `M/X\Y`.
+        - ``N`` -- An instance of a ``Matroid`` object,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If true, returns frozensets
+          ``X`` and ``Y`` where ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         OUTPUT:
 
         Boolean,
-        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is ``self.minor(X, Y)``.
+        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         EXAMPLES::
 
@@ -3901,18 +3901,18 @@ cdef class Matroid(SageObject):
     cpdef has_minor(self, N, certificate=False):
         """
         Check if ``self`` has a minor isomorphic to ``N``,
-        and optionally frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
-         INPUT:
+        INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.
-        - ``certificate`` -- (Defalt: ``False``) If true, returns ``frozenset``s
-          ``X`` and ``Y`` where ``N`` is `M/X\Y`.
+        - ``N`` -- A ``Matroid``,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If true, returns ``frozenset``s
+          ``X`` and ``Y`` where ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         OUTPUT:
 
         Boolean,
-        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is ``self.minor(X, Y)``.
+        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         .. SEEALSO::
 

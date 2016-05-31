@@ -6320,7 +6320,7 @@ cdef class Matrix(matrix1.Matrix):
         If the matrix is over a ring, then an equivalent matrix is
         constructed over the fraction field, and then row reduced.
 
-        All arguments are passed on to :meth:``echelon_form``.
+        All arguments are passed on to :meth:`echelon_form`.
 
         .. note::
 
@@ -9786,7 +9786,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         This computation is performed in a naive way using the ranks of powers
         of `A-xI`, where `x` is an eigenvalue of the matrix `A`.  If desired,
         a transformation matrix `P` can be returned, which is such that the
-        Jordan canonical form is given by `P^{-1} A P`.
+        Jordan canonical form is given by `P^{-1} A P`; if the matrix is
+        diagonalizable, this equals to *eigendecomposition* or *spectral
+        decomposition*.
 
         INPUT:
 

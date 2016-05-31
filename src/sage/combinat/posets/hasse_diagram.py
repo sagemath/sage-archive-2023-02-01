@@ -1265,7 +1265,7 @@ class HasseDiagram(DiGraph):
         INPUT:
 
         - ``meet_or_join`` -- string ``'meet'`` or ``'join'``
-          to decide if to check for join-semistributivity or
+          to decide if to check for join-semidistributivity or
           meet-semidistributivity
 
         OUTPUT:

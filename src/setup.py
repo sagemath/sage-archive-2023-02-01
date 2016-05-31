@@ -609,6 +609,11 @@ python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
 python_data_files = find_extra_files(python_packages,
     ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
+
+print('python_packages = {0}'.format(python_packages))
+print('python_modules = {0}'.format(python_modules))
+print('python_data_files = {0}'.format(python_data_files))
+
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 

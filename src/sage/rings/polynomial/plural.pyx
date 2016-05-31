@@ -1460,7 +1460,7 @@ cdef class NCPolynomial_plural(RingElement):
         cdef ring *r = (<NCPolynomialRing_plural>left._parent)._ring
         return singular_polynomial_cmp(p, q, r)
 
-    cpdef ModuleElement _add_( left, ModuleElement right):
+    cpdef _add_( left, ModuleElement right):
         """
         Adds left and right.
 
@@ -1479,7 +1479,7 @@ cdef class NCPolynomial_plural(RingElement):
                                  (<NCPolynomialRing_plural>left._parent)._ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef ModuleElement _sub_( left, ModuleElement right):
+    cpdef _sub_( left, ModuleElement right):
         """
         Subtract left and right.
 
@@ -1501,7 +1501,7 @@ cdef class NCPolynomial_plural(RingElement):
                                 _ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1522,7 +1522,7 @@ cdef class NCPolynomial_plural(RingElement):
         singular_polynomial_rmul(&_p, self._poly, left, _ring)
         return new_NCP((<NCPolynomialRing_plural>self._parent),_p)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1568,7 +1568,7 @@ cdef class NCPolynomial_plural(RingElement):
                                  (<NCPolynomialRing_plural>left._parent)._ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent),_p)
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, RingElement right):
         """
         Divide left by right
 

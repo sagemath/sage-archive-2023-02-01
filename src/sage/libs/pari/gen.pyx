@@ -240,19 +240,19 @@ cdef class gen(gen_auto):
         s = repr(self)
         return (objtogen, (s,))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         sig_on()
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         sig_on()
         return P.new_gen(gsub(self.g, (<gen> right).g))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         sig_on()
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, RingElement right):
         sig_on()
         return P.new_gen(gdiv(self.g, (<gen>right).g))
 

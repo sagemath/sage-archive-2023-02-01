@@ -690,7 +690,7 @@ cdef class GapElement(RingElement):
             libgap_exit()
         return result
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         r"""
         Add two GapElement objects.
 
@@ -723,7 +723,7 @@ cdef class GapElement(RingElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         r"""
         Subtract two GapElement objects.
 
@@ -756,7 +756,7 @@ cdef class GapElement(RingElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         r"""
         Multiply two GapElement objects.
 
@@ -789,7 +789,7 @@ cdef class GapElement(RingElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, RingElement right):
         r"""
         Divide two GapElement objects.
 

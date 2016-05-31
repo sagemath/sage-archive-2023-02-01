@@ -302,7 +302,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix
 
-    cpdef MonoidElement _mul_(self, MonoidElement other):
+    cpdef _mul_(self, MonoidElement other):
         """
         Return the product of ``self`` and`` other``, which must
         have identical parents.

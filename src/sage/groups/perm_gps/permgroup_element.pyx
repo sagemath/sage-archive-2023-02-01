@@ -842,7 +842,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             elif is_Matrix(left):
                 return left.with_permuted_rows(self)
 
-    cpdef MonoidElement _mul_(left, MonoidElement _right):
+    cpdef _mul_(left, MonoidElement _right):
         """
         EXAMPLES::
 

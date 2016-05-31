@@ -496,7 +496,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef ModuleElement _add_(self, ModuleElement right_m):
+    cpdef _add_(self, ModuleElement right_m):
         """
         Add two Laurent polynomials with the same parent.
 
@@ -545,7 +545,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         # 3. Add
         return LaurentPolynomial_univariate(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, ModuleElement right_m):
         """
         Subtract two Laurent polynomials with the same parent.
 
@@ -608,7 +608,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, -self.__u, self.__n)
 
-    cpdef RingElement _mul_(self, RingElement right_r):
+    cpdef _mul_(self, RingElement right_r):
         """
         EXAMPLES::
 
@@ -623,7 +623,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -634,7 +634,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -685,7 +685,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             raise ValueError("exponent must be an integer")
         return LaurentPolynomial_univariate(self._parent, self.__u**right, self.__n*right)
 
-    cpdef RingElement _floordiv_(self, RingElement rhs):
+    cpdef _floordiv_(self, RingElement rhs):
         """
         Perform division with remainder and return the quotient.
 
@@ -755,7 +755,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u, self.__n - k)
 
-    cpdef RingElement _div_(self, RingElement rhs):
+    cpdef _div_(self, RingElement rhs):
         """
         EXAMPLES::
 
@@ -1915,7 +1915,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 denom *= var[i] ** (-j)
         return (numer, denom)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, ModuleElement _right):
         """
         Returns the Laurent polynomial self + right.
 
@@ -1940,7 +1940,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             ans._poly += right._poly
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, ModuleElement _right):
         """
         Returns the Laurent polynomial self - right.
 
@@ -1967,7 +1967,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             ans._poly -= right._poly
         return ans
 
-    cpdef RingElement _div_(self, RingElement rhs):
+    cpdef _div_(self, RingElement rhs):
         """
         Return the division of ``self`` by ``rhs``.
 
@@ -2021,7 +2021,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         d = self._poly.dict()
         return len(d) == 1 and 1 in d.values()
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns -self.
 
@@ -2038,7 +2038,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = -self._poly
         return ans
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -2055,7 +2055,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * right
         return ans
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Returns left*self where left is in self's base ring.
 
@@ -2072,7 +2072,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = left * self._poly
         return ans
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         """
         Return self*right.
 
@@ -2089,7 +2089,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Perform division with remainder and return the quotient.
 

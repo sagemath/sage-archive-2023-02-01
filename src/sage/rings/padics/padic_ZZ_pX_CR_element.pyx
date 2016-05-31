@@ -1766,7 +1766,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns ``-self``.
 
@@ -2047,7 +2047,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sig_off()
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, ModuleElement _right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -2166,7 +2166,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ans.relprec = -ans.relprec
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         """
         Returns the difference of ``self`` and ``right``.
 
@@ -2192,7 +2192,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # For now, a simple implementation
         return self + (-right)
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, RingElement _right):
         """
         Returns the product of ``self`` and ``right``.
 
@@ -2246,7 +2246,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sig_off()
         return ans
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, RingElement right):
         """
         Returns the quotient of ``self`` by ``right``.
 

@@ -2583,7 +2583,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return new_BMI_from_BooleanMonomial(self)
 
-    cpdef MonoidElement _mul_(left, MonoidElement right):
+    cpdef _mul_(left, MonoidElement right):
         """
         Multiply this boolean monomial with another boolean monomial.
 
@@ -2969,7 +2969,7 @@ cdef class BooleanPolynomial(MPolynomial):
         R = self.parent().cover_ring()
         return R(self)._latex_()
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, ModuleElement right):
         """
         EXAMPLE::
 
@@ -2984,7 +2984,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.iadd( (<BooleanPolynomial>right)._pbpoly )
         return p
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, ModuleElement right):
         """
         EXAMPLE::
 
@@ -2996,7 +2996,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -3011,7 +3011,7 @@ cdef class BooleanPolynomial(MPolynomial):
         else:
             return self._parent.zero()
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLE::
 
@@ -3023,7 +3023,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._rmul_(right)
 
-    cpdef RingElement _mul_(left, RingElement right):
+    cpdef _mul_(left, RingElement right):
         """
         EXAMPLE::
 
@@ -3038,7 +3038,7 @@ cdef class BooleanPolynomial(MPolynomial):
         p._pbpoly.imul( (<BooleanPolynomial>right)._pbpoly )
         return p
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, RingElement right):
         """
         EXAMPLE::
 

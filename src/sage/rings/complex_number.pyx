@@ -596,7 +596,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         im = mpfr_to_mpfval(self.__im)
         return make_mpc((re, im))
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         """
         Add ``self`` to ``right``.
 
@@ -611,7 +611,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_add(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         """
         Subtract ``right`` from ``self``.
 
@@ -626,7 +626,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_sub(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         """
         Multiply ``self`` by ``right``.
 
@@ -730,7 +730,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, RingElement right):
         """
         Divide ``self`` by ``right``.
 

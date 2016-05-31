@@ -219,10 +219,10 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             return (~self)**(-n)
         return self.parent()(self.__poly**n, construct=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         return self.parent()(self.__poly + (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -232,13 +232,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         try:
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
             raise TypeError(msg)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         try:
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
@@ -289,7 +289,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly.left_shift(n),
                              construct=True)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
@@ -675,7 +675,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.c.restore_c()
         zz_pX_SetCoeff_long(self.x, n, value)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, ModuleElement _right):
         """
         TESTS::
 
@@ -692,7 +692,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, ModuleElement _right):
         """
         TESTS::
 
@@ -709,7 +709,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, RingElement _right):
         """
         TESTS::
 
@@ -767,7 +767,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         TESTS::
 
@@ -783,7 +783,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         TESTS::
 
@@ -893,7 +893,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 
@@ -1226,7 +1226,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef ntl_ZZ_p val = ntl_ZZ_p(a, self.c)
         ZZ_pX_SetCoeff(self.x, n, val.x)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, ModuleElement _right):
         """
         TESTS::
 
@@ -1243,7 +1243,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, ModuleElement _right):
         """
         TESTS::
 
@@ -1260,7 +1260,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, RingElement _right):
         """
         TESTS::
 
@@ -1318,7 +1318,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         TESTS::
 
@@ -1335,7 +1335,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         TESTS::
 
@@ -1429,7 +1429,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         sig_off()
         return q, r
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Returns the whole part of self/right, without remainder.
 

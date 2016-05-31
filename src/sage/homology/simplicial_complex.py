@@ -1029,7 +1029,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if len(maximal_simplices) == 0:
             good_faces.append(Simplex(-1))
         # now record the attributes for self
-        # self._vertex_set: the Simplex formed by the vertices
+        # self._vertex_set: the tuple formed by the vertices
         self._vertex_set = vertices
         # self._facets: list of facets
         self._facets = good_faces
@@ -1147,7 +1147,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def vertices(self):
         """
-        The vertex set of this simplicial complex.
+        The vertex set, as a tuple, of this simplicial complex.
 
         EXAMPLES::
 
@@ -2121,13 +2121,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         :type reduced: boolean; optional, default ``True``
 
-        Algorithm: if ``subcomplex`` is ``None``, replace it with a facet
-        -- a contractible subcomplex of the original complex.  Then no
-        matter what ``subcomplex`` is, replace it with a subcomplex
-        `L` which is homotopy equivalent and as large as possible.
-        Compute the homology of the original complex relative to `L`:
-        if `L` is large, then the relative chain complex will be small
-        enough to speed up computations considerably.
+        Algorithm: if ``subcomplex`` is ``None``, replace it with a
+        facet -- a contractible subcomplex of the original complex.
+        Then as long as ``enlarge`` is ``True``, no matter what
+        ``subcomplex`` is, replace it with a subcomplex `L` which is
+        homotopy equivalent and as large as possible.  Compute the
+        homology of the original complex relative to `L`: if `L` is
+        large, then the relative chain complex will be small enough to
+        speed up computations considerably.
 
         EXAMPLES::
 
@@ -2152,6 +2153,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0], [1]])
             sage: (S*S*S)._homology_(dim=2, cohomology=True)
+            Z
+
+        The same computation, done without finding a contractible subcomplex::
+
+            sage: (S*S*S)._homology_(dim=2, cohomology=True, enlarge=False)
             Z
 
         Relative homology::
@@ -2195,7 +2201,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     print("The difference between the f-vectors is:")
                     print("  %s" % vec)
             else:
-                L = SimplicialComplex([[self.vertices().tuple()[0]]])
+                L = SimplicialComplex([[self.vertices()[0]]])
         else:
             if enlarge:
                 if verbose:
@@ -2396,7 +2402,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            self._vertex_set = frozenset(reduce(union, [self._vertex_set, new_face]))
+            self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
 
             # update self._faces if necessary
             if None in self._faces:
@@ -2486,7 +2492,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         # Recreate the vertex set
         from sage.misc.misc import union
-        self._vertex_set = frozenset(reduce(union, self._facets))
+        self._vertex_set = tuple(reduce(union, self._facets))
 
         # Update self._faces and self._graph if necessary
         if None in self._faces:
@@ -3226,7 +3232,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             for f in remove_these:
                 faces.remove(f)
         if verbose:
-            print("  now constructing a simplicial complex with %s vertices and %s facets" % (self.vertices().dimension()+1, len(new_facets)))
+            print("  now constructing a simplicial complex with %s vertices and %s facets" % (len(self.vertices()), len(new_facets)))
         L = SimplicialComplex(new_facets, maximality_check=False,
                               sort_facets=False, is_mutable=self._is_mutable)
         self.__enlarged[subcomplex] = L

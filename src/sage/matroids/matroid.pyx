@@ -1103,17 +1103,19 @@ cdef class Matroid(SageObject):
 
     cpdef _has_minor(self, N, certificate=False):
         """
-        Test if matroid has the specified minor.
+        Test if matroid has the specified minor,
+        and optionally frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object.
-        - optional parameter `certificate` -- a boolean.
+        - ``certificate`` -- (Defalt: ``False``) If true, returns frozensets
+          ``X`` and ``Y`` where ``N`` is `M/X\Y`.
 
         OUTPUT:
 
         Boolean,
-        and `(X,Y)` -- frozen sets, where `N` is `M/X\Y`.
+        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is ``self.minor(X, Y)``.
 
         EXAMPLES::
 
@@ -1146,7 +1148,7 @@ cdef class Matroid(SageObject):
                 if X.isdisjoint(Y):
                     if N._is_isomorphic(self._minor(contractions=X, deletions=Y)):
                         if certificate:
-                            return True, (X,Y)
+                            return True, X, Y
                         return True
         if certificate:
             return False, None
@@ -3898,17 +3900,19 @@ cdef class Matroid(SageObject):
 
     cpdef has_minor(self, N, certificate=False):
         """
-        Check if ``self`` has a minor isomorphic to ``N``.
+        Check if ``self`` has a minor isomorphic to ``N``,
+        and optionally frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
-        INPUT:
+         INPUT:
 
-        - ``N`` -- A matroid,
-        - optional parameter `certificate` -- a boolean.
+        - ``N`` -- An instance of a ``Matroid`` object.
+        - ``certificate`` -- (Defalt: ``False``) If true, returns ``frozenset``s
+          ``X`` and ``Y`` where ``N`` is `M/X\Y`.
 
         OUTPUT:
 
         Boolean,
-        and `(X,Y)` -- frozen sets, where `N` is `M/X\Y`.
+        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is ``self.minor(X, Y)``.
 
         .. SEEALSO::
 

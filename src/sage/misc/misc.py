@@ -34,6 +34,11 @@ Test deprecation::
     Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
     See http://trac.sagemath.org/20094 for details.
     [0, 1, 2, 3, 4]
+    sage: sage.misc.all.srange(5)
+    doctest:...: DeprecationWarning:
+    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
+    See http://trac.sagemath.org/20334 for details.
+    [0, 1, 2, 3, 4]
     sage: sage.misc.misc.sxrange(5)
     doctest:...: DeprecationWarning:
     Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
@@ -59,7 +64,7 @@ Test deprecation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -1237,12 +1242,14 @@ def powerset(X):
     Iterating over the power set of an infinite set is also allowed::
 
         sage: i = 0
+        sage: L = []
         sage: for x in powerset(ZZ):
-        ...    if i > 10:
-        ...       break
-        ...    else:
-        ...       i += 1
-        ...    print x,
+        ....:     if i > 10:
+        ....:         break
+        ....:     else:
+        ....:         i += 1
+        ....:     L.append(x)
+        sage: print(" ".join(str(x) for x in L))
         [] [0] [1] [0, 1] [-1] [0, -1] [1, -1] [0, 1, -1] [2] [0, 2] [1, 2]
 
     You may also use subsets as an alias for powerset::
@@ -1664,7 +1671,7 @@ class AttrCallObject(object):
 
         Note: a missing ``__hash__`` method here used to break the
         unique representation of parents taking ``attrcall`` objects
-        as input; see #8911.
+        as input; see :trac:`8911`.
         """
         return hash((self.args, tuple(self.kwds.items())))
 

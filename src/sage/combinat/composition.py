@@ -1043,7 +1043,7 @@ class Composition(CombinatorialElement):
 
             sage: Composition([1,1,3,1,2,1,3]).to_subset()
             {1, 2, 5, 6, 8, 9}
-            sage: for I in Compositions(3): print I.to_subset()
+            sage: for I in Compositions(3): print(I.to_subset())
             {1, 2}
             {1}
             {2}

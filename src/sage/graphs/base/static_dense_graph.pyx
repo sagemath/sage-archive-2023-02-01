@@ -275,6 +275,6 @@ def triangles_count(G):
 
     bitset_free(b_tmp)
     binary_matrix_free(g)
-    sage_free(count)
+    sig_free(count)
 
     return ans

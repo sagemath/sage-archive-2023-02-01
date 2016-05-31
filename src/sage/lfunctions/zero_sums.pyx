@@ -17,6 +17,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
@@ -192,7 +193,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
             sage: cnlist = Z.cnlist(11)
-            sage: for n in range(12): print(n,cnlist[n]) # tol 1.0e-13
+            sage: for n in range(12): print((n, cnlist[n])) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -1024,7 +1025,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
-            sage: for n in range(12): print(n,Z.cn(n)) # tol 1.0e-13
+            sage: for n in range(12): print((n, Z.cn(n))) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -1154,11 +1155,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1)) # tol 1.0e-13
+            sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1))) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5)) # tol 1.0e-13
+            sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))) # tol 1.0e-13
             (0, 0.0104712060086507)
 
         """
@@ -1651,8 +1652,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: for r in range(9):
             ....:     E = elliptic_curves.rank(r)[0]
-            ....:     print(r,E.analytic_rank_upper_bound(max_Delta=1,
-            ....:     adaptive=False,root_number="ignore"))
+            ....:     print((r, E.analytic_rank_upper_bound(max_Delta=1,
+            ....:     adaptive=False,root_number="ignore")))
             ....:
             (0, 0)
             (1, 1)
@@ -1732,7 +1733,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         REFERENCES:
 
-        .. [Bob-13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        .. [Bob-13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
            ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """

@@ -48,7 +48,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
 
     REFERENCES:
 
-    .. [KN94] M. Kashiwara and T. Nakashima.
+    .. [KN94] \M. Kashiwara and T. Nakashima.
        Crystal graphs for representations of the `q`-analogue of classical Lie
        algebras.
        J. Algebra **165**, no. 2, pp. 295--345, 1994.
@@ -533,6 +533,34 @@ cdef class EmptyLetter(Element):
             True
         """
         return hash(self.value)
+
+    cpdef _richcmp_(left, Element right, int op):
+        """
+        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['C', 3])
+            sage: C('E') == C(2)
+            False
+            sage: C('E') < C(2)
+            False
+            sage: C('E') <= C(2)
+            False
+            sage: C('E') != C(2)
+            True
+            sage: C('E') == C('E')
+            True
+            sage: C('E') != C('E')
+            False
+            sage: C('E') >= C('E')
+            True
+            sage: C('E') < C('E')
+            False
+        """
+        if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
+           return op == Py_EQ or op == Py_LE or op == Py_GE
+        return op == Py_NE
 
     def weight(self):
         """

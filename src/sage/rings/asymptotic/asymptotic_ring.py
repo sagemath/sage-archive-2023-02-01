@@ -104,13 +104,6 @@ see the top of the module :doc:`growth group <growth_group>`.
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-        sage: T = GenericTermMonoid(G, ZZ)
-        sage: R.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
 
 
 .. _asymptotic_ring_intro:
@@ -308,7 +301,7 @@ Arbitrary powers work as well; for example, we have
     instead. (See also the examples in
     :meth:`ExactTerm.rpow() <sage.rings.asymptotic.term_monoid.ExactTerm.rpow>`
     for a detailed explanation.)
-    Another way is to use a larger coefficent ring::
+    Another way is to use a larger coefficient ring::
 
         sage: M_QQ.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ', coefficient_ring=QQ)
         sage: (1/2)^n
@@ -367,7 +360,7 @@ The :class:`AsymptoticRing` fully supports
     Asymptotic Ring <z^QQ> over Rational Field
 
 Here, the coefficient ring was extended to allow `1/2` as a
-coefficent. Another example is
+coefficient. Another example is
 ::
 
     sage: C.<c> = AsymptoticRing(growth_group='c^ZZ', coefficient_ring=ZZ['e'])
@@ -411,7 +404,7 @@ structure a special poset (namely a
 is used. We can have a look at this::
 
     sage: b = x^3*y + x^2*y + x*y^2 + O(x) + O(y)
-    sage: print b.summands.repr_full(reverse=True)
+    sage: print(b.summands.repr_full(reverse=True))
     poset(x*y^2, x^3*y, x^2*y, O(x), O(y))
     +-- oo
     |   +-- no successors
@@ -467,6 +460,7 @@ Classes and Methods
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import print_function
 
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
@@ -631,7 +625,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
-            sage: print expr.summands.repr_full()
+            sage: print(expr.summands.repr_full())
             poset(x, 2*x^2, O(x^3), 4*x^4)
             +-- null
             |   +-- no predecessors
@@ -653,7 +647,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             |   +-- no successors
             sage: expr._simplify_(); expr
             4*x^4 + O(x^3)
-            sage: print expr.summands.repr_full()
+            sage: print(expr.summands.repr_full())
             poset(O(x^3), 4*x^4)
             +-- null
             |   +-- no predecessors
@@ -677,12 +671,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
             sage: S = AsymptoticRing(growth_group='x^QQ', coefficient_ring=ZZ)
             sage: for s in AsymptoticExpansion(S, e.summands).summands.elements_topological():
-            ....:     print s.parent()
+            ....:     print(s.parent())
             O-Term Monoid x^QQ with implicit coefficients in Integer Ring
             Exact Term Monoid x^QQ with coefficients in Integer Ring
             sage: for s in AsymptoticExpansion(S, e.summands,
             ....:         convert=False).summands.elements_topological():
-            ....:     print s.parent()
+            ....:     print(s.parent())
             O-Term Monoid x^QQ with implicit coefficients in Rational Field
             Exact Term Monoid x^QQ with coefficients in Rational Field
 

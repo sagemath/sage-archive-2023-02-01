@@ -13,7 +13,7 @@ In the following code, sets are represented as integers, where the ith bit is
 set if element i belongs to the set.
 """
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/ext/cdefs.pxi'
 
 from libc.stdint cimport uint8_t
@@ -33,7 +33,7 @@ cdef class FastDigraph:
         self.n = D.order()
         self.graph = NULL
 
-        self.graph = <int *> sage_malloc(self.n*sizeof(int))
+        self.graph = <int *> sig_malloc(self.n*sizeof(int))
 
         memset(self.graph, 0, self.n * sizeof(int))
 
@@ -60,7 +60,7 @@ cdef class FastDigraph:
                     tmp |= 1 << vertices_to_int[v]
                 self.graph[vertices_to_int[u]] = tmp
 
-        self.degree = <int *> sage_malloc(self.n*sizeof(int))
+        self.degree = <int *> sig_malloc(self.n*sizeof(int))
         for i in range(self.n):
             self.degree[i] = popcount32(self.graph[i])
 
@@ -69,8 +69,8 @@ cdef class FastDigraph:
         Destructor.
         """
         if self.graph != NULL:
-            sage_free(self.graph)
-        sage_free(self.degree)
+            sig_free(self.graph)
+        sig_free(self.degree)
 
     def print_adjacency_matrix(self):
         r"""

@@ -130,6 +130,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
@@ -173,7 +174,7 @@ def hap_decorator(f):
     EXAMPLES::
 
         sage: from sage.groups.perm_gps.permgroup import hap_decorator
-        sage: def foo(self, n, p=0): print "Done"
+        sage: def foo(self, n, p=0): print("Done")
         sage: foo = hap_decorator(foo)
         sage: foo(None, 3)    #optional - gap_packages
         Done
@@ -602,7 +603,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLE::
 
-            sage: SymmetricGroup(17)._element_class()
+            sage: AlternatingGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         """
         return PermutationGroupElement
@@ -728,6 +729,18 @@ class PermutationGroup_generic(group.FiniteGroup):
             Permutation Group with generators [('a','b')]
             sage: G.list()
             [(), ('a','b')]
+
+        TESTS:
+
+        Test :trac:`9155`::
+
+            sage: G = SymmetricGroup(2)
+            sage: elements = G.list()
+            sage: elements.remove(G("()"))
+            sage: elements
+            [(1,2)]
+            sage: G.list()
+            [(), (1,2)]
         """
         return [x for x in self]
 
@@ -1548,18 +1561,23 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES::
 
-            sage: SymmetricGroup(10).stabilizer(4)._order()
+            sage: G = SymmetricGroup(10).subgroup([(i, 10) for i in range(1, 10) if i != 4])
+            sage: G._order()
             362880
-            sage: SymmetricGroup(10).stabilizer(4).stabilizer(5)._order()
-            40320
-            sage: SymmetricGroup(200).stabilizer(100)._order() == factorial(199) # this should be very fast
-            True
 
         TESTS::
 
             sage: [SymmetricGroup(n).stabilizer(1)._gap_().Size() for n in [4..10]]
             [6, 24, 120, 720, 5040, 40320, 362880]
-            sage: [SymmetricGroup(n).stabilizer(1)._order() for n in [4..10]]
+            sage: special_gens = [
+            ....:     [(3,4), (2,4)],
+            ....:     [(4,5), (3,5), (2,5)],
+            ....:     [(5,6), (4,6), (3,6), (2,6)],
+            ....:     [(6,7), (5,7), (4,7), (3,7), (2,7)],
+            ....:     [(7,8), (6,8), (5,8), (4,8), (3,8), (2,8)],
+            ....:     [(8,9), (7,9), (6,9), (5,9), (4,9), (3,9), (2,9)],
+            ....:     [(9,10), (8,10), (7,10), (6,10), (5,10), (4,10), (3,10), (2,10)]]
+            sage: [SymmetricGroup(n).subgroup(gen)._order() for gen in special_gens]
             [6, 24, 120, 720, 5040, 40320, 362880]
         """
         gens = self.gens()
@@ -2210,7 +2228,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         REFERENCES:
 
-        .. [THOMAS-WOODS] A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
+        .. [THOMAS-WOODS] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
         AUTHOR:
 
@@ -2747,7 +2765,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
 
-        Type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::
@@ -2763,7 +2781,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 2  0  0  0 -2]
             sage: CT = gap(G).CharacterTable()
 
-        Again, type ``print gap.eval("Display(%s)"%CT.name())`` to display this
+        Again, type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
         nicely.
 
         ::

@@ -25,6 +25,8 @@ AUTHORS:
 
 - Vincent Delecroix (2015-02): comparisons/floor/ceil using embeddings
 
+- Kiran Kedlaya (2016-05): relative number fields hash based on relative polynomials
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -86,6 +88,7 @@ We do some arithmetic in a tower of relative number fields::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -381,7 +384,9 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: sqrtn3 + zeta
         2*zeta^5 + zeta + 1
 
-    Comparison depends on the (real) embedding specified (or the one selected by default).::
+    Comparison depends on the (real) embedding specified (or the one selected by default).
+    Note that the codomain of the embedding must be `QQbar` or `AA` for this to work
+    (see :trac:`20184`)::
 
         sage: N.<g> = NumberField(x^3+2,embedding=1)
         sage: 1 < g
@@ -854,7 +859,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         sage: latex(QuadraticField(-1, 'a', latex_name=None).gen())
         a
 
-    The name of the generator does not interfere with Sage preparser, see #1135::
+    The name of the generator does not interfere with Sage preparser, see :trac:`1135`::
 
         sage: K1 = QuadraticField(5, 'x')
         sage: K2.<x> = QuadraticField(5)
@@ -2618,7 +2623,7 @@ class NumberField_generic(number_field_base.NumberField):
         Numbered variables are often correctly typeset::
 
             sage: k.<theta25> = NumberField(x^25+x+1)
-            sage: print k._latex_()
+            sage: print(k._latex_())
             \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
@@ -2717,6 +2722,19 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: M['x'] == L['x']
             False
+            
+        Similarly, two relative number fields which are isomorphic as absolute
+        fields, but which are not presented the same way, should not be equal (see
+        :trac:`18942`)::
+
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
+            True
 
         """
         if self is other:
@@ -2728,7 +2746,7 @@ class NumberField_generic(number_field_base.NumberField):
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
         # compare coefficients so that the polynomial variable does not count
-        c = cmp(list(self.__polynomial), list(other.__polynomial))
+        c = cmp(list(self.relative_polynomial()), list(other.relative_polynomial()))
         if c: return c
         # Now we compare the embeddings (if any).
         f, g = self.coerce_embedding(), other.coerce_embedding()
@@ -2761,8 +2779,47 @@ class NumberField_generic(number_field_base.NumberField):
             sage: hash(K) == hash(L)
             True
 
+        The number fields ``K`` and ``L`` in the following example used to have
+        the same hash prior to :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
+            True
+            sage: hash(K) == hash(L)
+            False
+            
+        This example illustrates the issue resolved in :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2+x+1)
+            sage: xx = polygen(F)
+            sage: ps = [p for p, _ in F(7).factor()]
+            sage: for mu in ps:
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print(K.defining_polynomial().roots(K))
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            sage: for mu in ps:
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print(K.defining_polynomial().roots(K))
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            
+        This example was suggested on sage-nt; see :trac:`18942`::
+
+            sage: G=DirichletGroup(80);
+            sage: for chi in G:
+            ....:     D=ModularSymbols(chi,2,-1).cuspidal_subspace().new_subspace().decomposition()
+            ....:     for f in D:
+            ....:         elt=f.q_eigenform(10,'alpha')[3];
+            ....:         assert(elt.is_integral())
+
         """
-        return hash((self.variable_name(), self.base_field(), tuple(self.__polynomial)))
+        return hash((self.variable_name(), self.base_field(), tuple(self.relative_polynomial())))
 
     def _ideal_class_(self, n=0):
         """
@@ -2889,9 +2946,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^2 + 23)
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
-            ....:     print n
+            ....:     print(n)
             ....:     for I in d[n]:
-            ....:         print I
+            ....:         print(I)
             1
             Fractional ideal (1)
             2
@@ -4900,6 +4957,37 @@ class NumberField_generic(number_field_base.NumberField):
             self.__gen = self._element_class(self, X)
             return self.__gen
 
+    @cached_method
+    def _generator_matrix(self):
+        """
+        Return the matrix form of the generator of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.number_field.number_field_element.NumberFieldElement.matrix`
+
+        EXAMPLES::
+
+            sage: x = QQ['x'].gen()
+            sage: K.<v> = NumberField(x^4 + 514*x^2 + 64321)
+            sage: R.<r> = NumberField(x^2 + 4*v*x + 5*v^2 + 514)
+            sage: R._generator_matrix()
+            [           0            1]
+            [-5*v^2 - 514         -4*v]
+        """
+        x = self.gen()
+        a = x
+        d = self.relative_degree()
+        v = x.list()
+        for n in range(d-1):
+            a *= x
+            v += a.list()
+        from sage.matrix.matrix_space import MatrixSpace
+        M = MatrixSpace(self.base_ring(), d)
+        ret = M(v)
+        ret.set_immutable()
+        return ret
+
     def is_field(self, proof=True):
         """
         Return True since a number field is a field.
@@ -5163,13 +5251,13 @@ class NumberField_generic(number_field_base.NumberField):
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
-                # Trial divide the discriminant
-                m = self.pari_polynomial().poldisc().abs().factor(limit=0)
+                # Trial divide the discriminant with primes up to 10^6
+                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
                 # Since we only need a *squarefree* factorization for
                 # primes with exponent 1, we need trial division up to D^(1/3)
                 # instead of D^(1/2).
-                trialdivlimit2 = pari(pari._primelimit()**2)
-                trialdivlimit3 = pari(pari._primelimit()**3)
+                trialdivlimit2 = pari(10**12)
+                trialdivlimit3 = pari(10**18)
                 if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:
@@ -5849,6 +5937,8 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
+        ALGORITHM: Uses PARI's bnfunit command.
+
         INPUT:
 
         - ``proof`` (bool, default True) flag passed to ``pari``.
@@ -5857,7 +5947,11 @@ class NumberField_generic(number_field_base.NumberField):
 
             For more functionality see the unit_group() function.
 
-        ALGORITHM: Uses PARI's bnfunit command.
+        .. SEEALSO::
+
+            :meth:`unit_group`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 
@@ -5924,7 +6018,7 @@ class NumberField_generic(number_field_base.NumberField):
     def unit_group(self, proof=None):
         """
         Return the unit group (including torsion) of this number field.
-
+        
         ALGORITHM: Uses PARI's bnfunit command.
 
         INPUT:
@@ -5934,6 +6028,12 @@ class NumberField_generic(number_field_base.NumberField):
         .. note::
 
            The group is cached.
+           
+        .. SEEALSO::
+
+            :meth:`units`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 
@@ -8978,8 +9078,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         The following was the motivating example to introduce
         a genuine representation of cyclotomic fields in the
-        GAP interface -- see ticket #5618.
-        ::
+        GAP interface -- see :trac:`5618`. ::
 
             sage: H = AlternatingGroup(4)
             sage: g = H.list()[1]
@@ -9375,7 +9474,6 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##             return self._element_class(self, x.polynomial())
 ##         n = K.zeta_order()
 ##         m = self.zeta_order()
-##         print n, m, x
 
 
 ##         self_gen = self.gen()
@@ -9520,14 +9618,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             1
             sage: F(b[1,2])
             1
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
 
         It also word with libGAP instead of GAP::
 
             sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
-            sage: matrix(b, F)
+            sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]
         """

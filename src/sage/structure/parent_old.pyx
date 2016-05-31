@@ -38,7 +38,7 @@ include 'sage/ext/stdsage.pxi'
 
 cdef inline check_old_coerce(Parent p):
     if p._element_constructor is not None:
-        raise RuntimeError, "%s still using old coercion framework" % p
+        raise RuntimeError("%s still using old coercion framework" % p)
 
 
 ## def make_parent_v0(_class, _dict, has_coerce_map_from):
@@ -218,7 +218,7 @@ cdef class Parent(parent.Parent):
         if action is not None:
             from sage.categories.action import Action
             if not isinstance(action, Action):
-                raise TypeError, "get_action_impl must return None or an Action"
+                raise TypeError("get_action_impl must return None or an Action")
             self._action_hash.set(S, op, self_on_left, action)
         return action
 
@@ -292,7 +292,7 @@ cdef class Parent(parent.Parent):
                 return self(y)
             except (TypeError, AttributeError) as msg:
                 pass
-        raise TypeError, "no canonical coercion of element into self"
+        raise TypeError("no canonical coercion of element into self")
 
     cpdef has_coerce_map_from_c(self, S):
         """
@@ -351,7 +351,7 @@ cdef class Parent(parent.Parent):
             except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
                 pass
 
-        raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
+        raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)
 
     def _an_element(self):        # do not override this (call from Python)
         check_old_coerce(self)

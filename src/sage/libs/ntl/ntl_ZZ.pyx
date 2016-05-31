@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -276,9 +277,9 @@ cdef class ntl_ZZ(object):
 
         sage: x = ntl.ZZ(42)
         sage: i = x.get_as_int_doctest()
-        sage: print i
+        sage: i
          42
-        sage: print type(i)
+        sage: type(i)
          <type 'int'>
         """
         return self.get_as_int()

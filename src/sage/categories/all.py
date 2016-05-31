@@ -1,3 +1,5 @@
+from sage.misc.lazy_import import lazy_import
+
 from category import Category
 
 from category_types import(
@@ -117,10 +119,9 @@ from graded_coalgebras_with_basis    import GradedCoalgebrasWithBasis
 from graded_bialgebras_with_basis    import GradedBialgebrasWithBasis
 from graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
-
 # Coxeter groups
 from coxeter_groups import CoxeterGroups
-from finite_coxeter_groups import FiniteCoxeterGroups
+lazy_import('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
 from weyl_groups import WeylGroups
 from finite_weyl_groups import FiniteWeylGroups
 from affine_weyl_groups import AffineWeylGroups
@@ -133,5 +134,4 @@ from finite_crystals import FiniteCrystals
 from classical_crystals import ClassicalCrystals
 
 # polyhedra
-from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.polyhedra', 'PolyhedralSets')

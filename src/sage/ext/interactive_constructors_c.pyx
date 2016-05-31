@@ -3,6 +3,9 @@ Constructors that automatically inject variables into the global module scope
 """
 
 import sage.rings.all
+import sage.misc.superseded
+sage.misc.superseded.deprecation(20442,
+    '''The inject_on() functionality is deprecated, use the syntax "R.<a> = PolynomialRing(QQ)" instead.''')
 
 _verbose=True
 _inject_mode_off = False
@@ -26,6 +29,8 @@ def inject_on(verbose=True):
     EXAMPLES::
 
         sage: inject_on(verbose=True)
+        doctest:...: DeprecationWarning: The inject_on() functionality is deprecated, use the syntax "R.<a> = PolynomialRing(QQ)" instead.
+        See http://trac.sagemath.org/20442 for details.
         Redefining: FiniteField Frac FractionField FreeMonoid GF LaurentSeriesRing NumberField PolynomialRing quo quotient
         sage: GF(9,'b')
         Defining b

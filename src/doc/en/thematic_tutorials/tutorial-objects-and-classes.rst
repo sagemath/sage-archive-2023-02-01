@@ -304,7 +304,7 @@ Some particular actions modify the data structure of ``el``::
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)
-        <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
+        <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
         sage: id4.__dict__
         <dictproxy {'__doc__': ...
         '_sage_src_lines_': <staticmethod object at 0x...>}>
@@ -532,7 +532,7 @@ Summary
 
         sage: class Spoon(AbstractDish):
         ....:     def __init__(self):
-        ....:         print "Building a spoon"
+        ....:         print("Building a spoon")
         ....:         super(Spoon, self).__init__()
         ....:     def __repr__(self):
         ....:         return "A %s spoon"%self.state()

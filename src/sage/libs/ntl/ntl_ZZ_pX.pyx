@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import division, print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -162,7 +162,7 @@ cdef class ntl_ZZ_pX(object):
         self.c.restore_c()
         #cdef char* s = ZZ_pX_repr(&self.x)
         #t = str(s)
-        #sage_free(s)
+        #sig_free(s)
         return ZZ_pX_to_PyString(&self.x)
         #return t
 
@@ -287,11 +287,11 @@ cdef class ntl_ZZ_pX(object):
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_pX([2, 3, 5, -7, 11], c)
             sage: i = x._getitem_as_int_doctest(3)
-            sage: print i
+            sage: i
             13
-            sage: print type(i)
+            sage: type(i)
             <type 'int'>
-            sage: print x._getitem_as_int_doctest(15)
+            sage: x._getitem_as_int_doctest(15)
             0
         """
         # self.c.restore_c() # restored in getitem_as_int()
@@ -951,8 +951,8 @@ cdef class ntl_ZZ_pX(object):
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return F
 
     def linear_roots(self):
@@ -997,7 +997,7 @@ cdef class ntl_ZZ_pX(object):
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
             del v[i]
-        sage_free(v)
+        sig_free(v)
         return F
 
     def reverse(self, hi=None):

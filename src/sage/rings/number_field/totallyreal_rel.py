@@ -735,7 +735,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     # Trivial case
     if m == 1:
-        g = pari(F.defining_polynomial()).reverse().Vec()
+        g = pari(F.defining_polynomial()).polrecip().Vec()
         if return_seqs:
             return [[0,0,0,0], [1, [-1, 1], g]]
         elif return_pari_objects:
@@ -878,7 +878,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(x) for x in counts],
-                [[s[0], [QQ(x) for x in s[1].reverse().Vec()], s[2].coefficients(sparse=False)]
+                [[s[0], [QQ(x) for x in s[1].polrecip().Vec()], s[2].coefficients(sparse=False)]
                  for s in S]
                ]
     elif return_pari_objects:
@@ -999,7 +999,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [[ZZ(_) for _ in counts],
-                [[ZZ(s[0]), [QQ(_) for _ in s[1].reverse().Vec()]] for s in S]]
+                [[ZZ(s[0]), [QQ(_) for _ in s[1].polrecip().Vec()]] for s in S]]
     elif return_pari_objects:
         return S
     else:

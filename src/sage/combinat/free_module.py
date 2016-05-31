@@ -9,6 +9,8 @@ Free modules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element, have_same_parent
 from sage.structure.parent import Parent
@@ -155,7 +157,7 @@ class CombinatorialFreeModuleElement(Element):
         use the idiom::
 
             sage: for (t,c) in f:
-            ...       print t,c
+            ....:     print("{} {}".format(t,c))
             a 1
             c 3
 

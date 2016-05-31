@@ -18,7 +18,7 @@ functions are for internal use by routines elsewhere in the Sage library.
 #
 ################################################################################
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 import random
 from congroup_gamma1 import Gamma1_constructor as Gamma1
@@ -109,10 +109,10 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
         14
     """
     if N % M != 0:
-        raise ArithmeticError, "M (=%s) must be a divisor of N (=%s)"%(M,N)
+        raise ArithmeticError("M (=%s) must be a divisor of N (=%s)" % (M,N))
 
     if (N/M) % t != 0:
-        raise ArithmeticError, "t (=%s) must be a divisor of N/M (=%s)"%(t,N/M)
+        raise ArithmeticError("t (=%s) must be a divisor of N/M (=%s)"%(t,N/M))
 
     cdef int n, i, j, k, aa, bb, cc, dd, g, Ndivt, halfmax, is_new
     cdef int* R
@@ -121,7 +121,7 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
     n = Gamma0(N).index() / Gamma0(M).index()
     k = 0   # number found so far
     Ndivt = N / t
-    R = <int*> sage_malloc(sizeof(int) * (4*n))
+    R = <int*> sig_malloc(sizeof(int) * (4*n))
     if R == <int*>0:
         raise MemoryError
     halfmax = 2*(n+10)
@@ -155,7 +155,7 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
     for i from 0 <= i < k:
         j = 4*i
         S.append([R[j], R[j+1], R[j+2]*t, R[j+3]*t])
-    sage_free(R)
+    sig_free(R)
     return S
 
 def degeneracy_coset_representatives_gamma1(int N, int M, int t):
@@ -210,10 +210,10 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     """
 
     if N % M != 0:
-        raise ArithmeticError, "M (=%s) must be a divisor of N (=%s)"%(M,N)
+        raise ArithmeticError("M (=%s) must be a divisor of N (=%s)" % (M,N))
 
     if (N/M) % t != 0:
-        raise ArithmeticError, "t (=%s) must be a divisor of N/M (=%s)"%(t,N/M)
+        raise ArithmeticError("t (=%s) must be a divisor of N/M (=%s)"%(t,N/M))
 
     cdef int d, g, i, j, k, n, aa, bb, cc, dd, Ndivt, halfmax, is_new
     cdef int* R
@@ -225,7 +225,7 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     n = n / d
     k = 0   # number found so far
     Ndivt = N / t
-    R = <int*> sage_malloc(sizeof(int) * (4*n))
+    R = <int*> sig_malloc(sizeof(int) * (4*n))
     if R == <int*>0:
         raise MemoryError
     halfmax = 2*(n+10)
@@ -252,8 +252,8 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
         # If our matrix is new add it to the list.
         if is_new:
             if k > n:
-                sage_free(R)
-                raise RuntimeError, "bug!!"
+                sig_free(R)
+                raise RuntimeError("bug!!")
             R[4*k] = aa
             R[4*k+1] = bb
             R[4*k+2] = cc
@@ -265,7 +265,7 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     for i from 0 <= i < k:
         j = 4*i
         S.append([R[j], R[j+1], R[j+2]*t, R[j+3]*t])
-    sage_free(R)
+    sig_free(R)
     return S
 
 def generators_helper(coset_reps, level):

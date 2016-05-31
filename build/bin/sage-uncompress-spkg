@@ -10,36 +10,64 @@
 # stdout. (This option is present only for backwards compatibility:
 # printing the SPKG.txt file from an old-style spkg.)
 
+import copy
+import os
 import sys
 import tarfile
 import zipfile
+
+
+class UmaskExtractTarFile(tarfile.TarFile):
+    """
+    Sage as tarfile.TarFile, but applies the user's current umask to the
+    permissions of al extracted files and directories.
+
+    This mimics the default behavior of the ``tar`` utility.
+
+    See http://trac.sagemath.org/ticket/20218#comment:16 for more background.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(UmaskExtractTarFile, self).__init__(*args, **kwargs)
+
+        # Unfortunately the only way to get the current umask is to set it
+        # and then restore it
+        self.umask = os.umask(0777)
+        os.umask(self.umask)
+
+    def chmod(self, tarinfo, target):
+        tarinfo = copy.copy(tarinfo)
+        tarinfo.mode &= ~self.umask
+        return super(UmaskExtractTarFile, self).chmod(tarinfo, target)
+
 
 if __name__ == '__main__':
     filename = sys.argv[1]
     if tarfile.is_tarfile(filename):
         # tar file, possibly compressed:
-        with tarfile.open(filename, 'r:*') as archive:
-            if len(sys.argv) == 2:
-                archive.extractall()
-            else:
-                member = sys.argv[2]
-                if member in archive.getnames():
-                    SPKG_TXT = archive.extractfile(member)
-                    sys.stdout.write(SPKG_TXT.read())
-                else:
-                    exit(1)
+        archive = UmaskExtractTarFile.open(filename, 'r:*')
+        if len(sys.argv) == 2:
+            archive.extractall()
+        else:
+            member = sys.argv[2]
+            if member in archive.getnames():
+                SPKG_TXT = archive.extractfile(member)
+                sys.stdout.write(SPKG_TXT.read())
+                exit(1)
+        archive.close()
         exit(0)
     if zipfile.is_zipfile(filename):
         # zip file:
-        with zipfile.ZipFile(filename, 'r') as archive:
-            if len(sys.argv) == 1:
-                archive.extractall()
+        archive = zipfile.ZipFile(filename, 'r')
+        if len(sys.argv) == 2:
+            archive.extractall()
+        else:
+            member = sys.argv[2]
+            if member in archive.namelist():
+                sys.stdout.write(archive.read(member))
             else:
-                member = sys.argv[2]
-                if member in archive.namelist():
-                    sys.stdout.write(archive.read(member))
-                else:
-                    exit(1)
+                exit(1)
+        archive.close()
         exit(0)
     else:
         print ('Error: Unknown file type: {}'.format(filename))

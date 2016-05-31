@@ -611,16 +611,16 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert proc.readline().strip() == ''
 
         if verbose:
-            print "#### TOPCOM input ####"
-            print "# " + executable
-            print "# " + input_string
+            print("#### TOPCOM input ####")
+            print("# " + executable)
+            print("# " + input_string)
             sys.stdout.flush()
 
         proc.send(input_string)
         proc.send('X\nX\n')
 
         if verbose:
-            print "#### TOPCOM output ####"
+            print("#### TOPCOM output ####")
             sys.stdout.flush()
 
         while True:
@@ -628,12 +628,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print '# Still runnnig '+str(executable)
+                    print('# Still runnnig ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
             if verbose:
-                print "# " + line
+                print("# " + line)
                 sys.stdout.flush()
 
             try:
@@ -643,7 +643,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 raise StopIteration
 
         if verbose:
-            print "#######################"
+            print("#######################")
             sys.stdout.flush()
 
 
@@ -1978,7 +1978,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             new_facets = set()
             for facet in visible_facets:
                 simplex = frozenset(list(facet) + [point])
-                # print 'simplex', simplex
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
                     if facet in visible_facets: continue

@@ -216,22 +216,24 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
             sage: b = aa^3 + aa^2 + aa + 1
             sage: FE.relative_field_representation(b)
-            a
+            (1, a + 1)
         """
         if not b in self.big_field():
             raise ValueError("The input has to be an element of the big field")
         Fq = self.small_field()
         vect = self._flattened_relative_field_representation(b)
-        pol = Fq.zero()
         s = self.small_field_power()
         sm = self.big_field_power()
         if s == 1:
+            pol = Fq.zero()
             for i in vect:
                 pol += i
+            return vector(Fq, pol)
         else:
+            list_elts = []
             for i in range(0, sm, s):
-                pol += Fq(vect[i:i+s])
-        return pol
+                list_elts.append(Fq(vect[i:i+s]))
+            return vector(Fq, list_elts)
 
     def big_field_representation(self, a):
         r"""
@@ -247,23 +249,32 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: Fqm.<aa> = GF(16)
             sage: Fq.<a> = GF(4)
             sage: FE = RelativeFiniteFieldExtension(Fqm, Fq)
-            sage: v = vector(GF(2), [1, 0, 1, 1])
-            sage: FE.big_field_representation(v)
-            aa^3 + aa^2 + aa + 1
+            sage: b = aa^3 + aa^2 + aa + 1
+            sage: rel = FE.relative_field_representation(b)
+            sage: FE.big_field_representation(rel) == b
+            True
         """
-        m = self.big_field_power()
-        if len(a) != m:
+        s = self.small_field_power()
+        if len(a) != s:
             raise ValueError("The input has to be a vector with length equal to the order of the big field")
-        if not a.base_ring() == self.prime_field():
+        if not a.base_ring() == self.small_field():
             raise ValueError("The input has to be over the prime field")
         alphas = self.small_field_basis()
         betas = self.big_field_basis()
-        s = self.small_field_power()
+        m = self.big_field_power()
         m = m / s
         phi = self.embedding()
         b = self.big_field().zero()
+        F = self.prime_field()
+        flattened_relative_field_rep_list = []
+        for i in a:
+            tmp = vector(i).list()
+            for j in tmp:
+                flattened_relative_field_rep_list.append(j)
+
+        flattened_relative_field_rep = vector(flattened_relative_field_rep_list)
         for i in range(m):
-            b += betas[i] * phi(sum([a[j] * alphas[j%s] for j in range(i*s, i*s + s)]))
+            b += betas[i] * phi(sum([flattened_relative_field_rep[j] * alphas[j%s] for j in range(i*s, i*s + s)]))
         return b
 
     def embedding(self):

@@ -2212,19 +2212,24 @@ class Link(object):
         - ``normalization`` -- (default: ``lm``) the system of coordinates
             Can be one of the following:
 
-                * ``lm`` -- corresponding to the Skein relation
-                `L\cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
+                * ``'lm'`` -- corresponding to the Skein relation
+                `L \cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
 
-                * ``az`` -- corresponding to the Skein relation
-                `a\cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
+                * ``'az'`` -- corresponding to the Skein relation
+                `a \cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
 
-            Where `P(K_+)`, `P_(K_-)` and `P(K_0)` represent the HOMFLY polynomials
-            of three links that vary only in one crossing, that is positive,
-            negative or smoothened respectively.
+            where `P(K_+)`, `P_(K_-)` and `P(K_0)` represent the HOMFLY
+            polynomials of three links that vary only in one crossing;
+            that is positive, negative, or smoothed respectively
 
         OUTPUT:
 
         A Laurent polynomial over the integers.
+
+        .. NOTE::
+
+            Use the ``'az'`` normalization to agree with the data
+            in [KnotAtlas]_ and http://www.indiana.edu/~knotinfo/.
 
         EXAMPLES:
 
@@ -2238,29 +2243,27 @@ class Link(object):
         The Hopf link::
 
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
-            sage: L.homfly_polynomial('a', 'z')  # optional - libhomfly
-            -a^-1*z + a^-1*z^-1 + a^-3*z^-1
+            sage: L.homfly_polynomial('x', 'y')  # optional - libhomfly
+            -x^-1*y + x^-1*y^-1 + x^-3*y^-1
 
         Another version of the Hopf link where the orientation
-        has been changed. Therefore we substitute `a \mapsto L^{-1}`
-        and `z \mapsto M`::
+        has been changed. Therefore we substitute `x \mapsto L^{-1}`
+        and `y \mapsto M`::
 
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
             sage: L.homfly_polynomial()  # optional - libhomfly
             L^3*M^-1 - L*M + L*M^-1
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
-            sage: L.homfly_polynomial('a', 'z', 'az')
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
             a^3*z^-1 - a*z - a*z^-1
-
 
         The figure-eight knot::
 
             sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
             sage: L.homfly_polynomial()  # optional - libhomfly
             -L^2 + M^2 - 1 - L^-2
-            sage: L.homfly_polynomial('a', 'z', 'az')
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
             a^2 - z^2 - 1 + a^-2
-
 
         The "monster" unknot::
 
@@ -2277,11 +2280,21 @@ class Link(object):
             sage: K.homfly_polynomial()  # optional - libhomfly
             L^10*M^4 - L^8*M^6 - 3*L^10*M^2 + 4*L^8*M^4 + L^6*M^6 + L^10
              - 3*L^8*M^2 - 5*L^6*M^4 - L^8 + 7*L^6*M^2 - 3*L^6
-            sage: K.homfly_polynomial('a', 'z', normalization='az')
+            sage: K.homfly_polynomial('a', 'z', normalization='az')  # optional - libhomfly
             -a^10*z^4 + a^8*z^6 - 3*a^10*z^2 + 4*a^8*z^4 + a^6*z^6 - a^10
              + 3*a^8*z^2 + 5*a^6*z^4 - a^8 + 7*a^6*z^2 + 3*a^6
 
+        TESTS:
+
+        This works with isolated components::
+
+            sage: L = Link([[[1,-1], [2,-2]], [1,1]])
+            sage: K.homfly_polynomial()  # optional - libhomfly
+            2
         """
+        if len(self._isolated_components()) > 1:
+            return sum(Link(comp).homfly_polynomial()
+                       for comp in self._isolated_components())
         L = LaurentPolynomialRing(ZZ, [var1, var2])
         s = '{}'.format(self.number_of_components())
         ogc = self.oriented_gauss_code()

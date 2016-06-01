@@ -3483,15 +3483,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Z3.is_isomorphic(Z2)
             False
 
-            sage: C1=SimplicialComplex([[1,2,3], [1,2,4], [1,3,4]])
-            sage: C2=SimplicialComplex([['j','k','l'],['j','l','m'],['j','k','m']])
-            sage: C1.is_isomorphic(C2,certify=True)
-            (True,
-             {1: 'fake_vertex',
-              2: ('j', 'k', 'l'),
-              3: ('j', 'k', 'm'),
-              4: ('j', 'l', 'm')})
+        We check that :trac:`20751` is fixed::
 
+            sage: C1 = SimplicialComplex([[1,2,3], [1,2,4], [1,3,4]])
+            sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
+            sage: C1.is_isomorphic(C2,certify=True)
+            (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)

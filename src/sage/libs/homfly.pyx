@@ -1,12 +1,6 @@
 r"""
 Cython wrapper for libhomfly library
 
-
-AUTHORS:
-
-- Miguel Marco (2015-03-24): initial version.
-
-
 This is used to call the libhomfly library directly from python. Knots
 and Links are passed following the convention in libhomfly. It is basically
 the oriented Gauss code, represented as a string of integers separated
@@ -14,13 +8,17 @@ by spaces as follows:
 
 - how many strings,
 
-    - for each string, how many crossings, then
+  - for each string, how many crossings, then
 
-        - for each crossing, the cross name, then 1 if over, -1 if under
+    - for each crossing, the cross name, then `1` if over, `-1` if under
 
-- for each crossing, the name of the crossing and 1 if right, -1 if left.
+- for each crossing, the name of the crossing and `1` if right, `-1` if left.
 
-If there are n crossings, they must be named 0..n-1.
+If there are `n` crossings, they must be named `0, 1, ..., n-1`.
+
+AUTHORS:
+
+- Miguel Marco (2015-03-24): initial version.
 """
 
 #*****************************************************************************
@@ -31,9 +29,6 @@ If there are n crossings, they must be named 0..n-1.
 #  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-#clib homfly
-#clib gc
 
 include 'cysignals/signals.pxi'
 
@@ -54,12 +49,12 @@ cdef extern from "homfly.h":
 
 
 def homfly_polynomial_string(link):
-    """
+    r"""
     Return the HOMFLY polynomial of a link.
 
     INPUT:
 
-    - ``link`` -- a string of space-separated integers representing the link.
+    - ``link`` -- a string of space-separated integers representing the link
 
     OUTPUT:
 
@@ -71,7 +66,6 @@ def homfly_polynomial_string(link):
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
         sage: homfly_polynomial_string(trefoil) # optional - libhomfly
         ' - L^-4 - 2L^-2 + M^2L^-2'
-
     """
     cdef char* c_string = link
     sig_on()
@@ -86,7 +80,7 @@ def homfly_polynomial_dict(link):
 
     INPUT:
 
-    - ``link`` -- a string of space-separated integers representing the link.
+    - ``link`` -- a string of space-separated integers representing the link
 
     OUTPUT:
 
@@ -98,7 +92,6 @@ def homfly_polynomial_dict(link):
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
         sage: homfly_polynomial_dict(trefoil) # optional - libhomfly
         {(0, -4): -1, (0, -2): -2, (2, -2): 1}
-
     """
     cdef char* c_string = link
     cdef Term ter
@@ -111,3 +104,4 @@ def homfly_polynomial_dict(link):
         ter = c_output.term[i]
         d[(int(ter.m), int(ter.l))] = int(ter.coef)
     return d
+

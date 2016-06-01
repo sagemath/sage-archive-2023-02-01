@@ -1249,57 +1249,83 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return Graph([])
         return self.as_ordered_tree(with_leaves).to_undirected_graph()
 
-    def to_tilting(self, N=None, x0=0, y0=0):
+    def to_tilting(self):
         """
         Transform a binary tree into a tilting object.
 
-        There exists a unique depiction of a binary tree such that all
-        leaves are regularly distributed on a line of slope `-1` and all
-        edges are either horizontal or vertical. This method
-        provides the coordinates of this depiction, with the root at
-        the origin.
-
-        INPUT:
-
-        - ``N`` -- optional, default ``None``, used in the recursion to
-           store the node numbers of the subtrees.
-        - ``x0`` -- optional, default `0`, x-coordinate of the root vertex
-        - ``y0`` -- optional, default `0`, y-coordinate of the root vertex
+        Let `t` be a binary tree with `n` nodes. There exists a unique
+        depiction of `t` (above the diagonal) such that all leaves are
+        regularly distributed on the diagonal line from `(0,0)` to
+        `(n,n)` and all edges are either horizontal or vertical. This
+        method provides the coordinates of this depiction, with the
+        root as the top-left vertex.
 
         OUTPUT:
 
         a list of pairs of integers.
 
         Every vertex of the binary tree is mapped to a pair of
-        integers.  The conventions are the following. The root has
-        coordinates (0,0).  If a vertex is the left (right) son of
-        another vertex, they share the second (first) coordinate.
-
-        .. WARNING:: This is a slow *recursive* algorithm.
+        integers. The conventions are the following. The root has
+        coordinates `(0, n)` where `n` is the node number.
+        If a vertex is the left (right) son of
+        another vertex, they share the first (second) coordinate.
 
         EXAMPLES::
+
+            sage: t = BinaryTrees(1)[0]
+            sage: t.to_tilting()
+            [(0, 1)]
+
+            sage: for t in BinaryTrees(2):
+            ....:     print(t.to_tilting())
+            [(1, 2), (0, 2)]
+            [(0, 1), (0, 2)]
 
             sage: from sage.combinat.abstract_tree import from_hexacode
             sage: t = from_hexacode('2020222002000', BinaryTrees())
             sage: print(t.to_tilting())
-            [(0, 0), (12, 0), (0, 2), (10, 2), (0, 4), (2, 4), (6, 4),
-            (8, 4), (6, 6), (2, 8), (4, 8), (2, 10), (0, 12)]
+            [(0, 1), (2, 3), (4, 5), (6, 7), (4, 7), (8, 9), (10, 11),
+            (8, 11), (4, 11), (12, 13), (4, 13), (2, 13), (0, 13)]
+
             sage: t2 = DyckWord([1,1,1,1,0,1,1,0,0,0,1,1,0,1,0,1,1,0,1,1,0,0,0,0,0,0]).to_binary_tree()
             sage: len(t2.to_tilting()) == t2.node_number()
             True
         """
-        if N is None:
-            N = self.node_number()
+        if not self:
+            return []
+        return self._to_tilting_rec()[0]
 
+    def _to_tilting_rec(self, shift=0):
+        """
+        Auxiliary method for :meth:`to_tilting`.
+
+        INPUT:
+
+        ``shift`` -- an integer (default 0)
+
+        OUTPUT:
+
+        list of tilting coordinates and number of leaves
+
+        EXAMPLES::
+
+            sage: all(t._to_tilting_rec()[1] == 4 for t in BinaryTrees(3))
+            True
+        """
         u, v = self
-        Nu = u.node_number()
-        Nv = N - Nu - 1
-        resu = [(x0, y0)]
-        if Nu:
-            resu.extend(u.to_tilting(Nu, x0 + N - Nu, y0))
-        if Nv:
-            resu.extend(v.to_tilting(Nv, x0, y0 + N - Nv))
-        return resu
+        if u:
+            resu, N_u = u._to_tilting_rec(shift=shift)
+        else:
+            resu = []
+            N_u = 1
+        if v:
+            tilt_v, N_v = v._to_tilting_rec(shift=shift + N_u)
+            resu.extend(tilt_v)
+        else:
+            N_v = 1
+        N = N_u + N_v
+        resu.append((shift, shift + N - 1))
+        return (resu, N)
     
     @combinatorial_map(name="To poset")
     def to_poset(self, with_leaves=False, root_to_leaf=False):

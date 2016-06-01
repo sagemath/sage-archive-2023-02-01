@@ -410,24 +410,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "\\Bold{Z}"
 
-    def _div(self, integer.Integer left, integer.Integer right):
-        """
-        TESTS::
-
-            sage: ZZ._div(12,7)
-            doctest:...: DeprecationWarning: ZZ._div is deprecated, use directly
-            integer division
-            See http://trac.sagemath.org/20731 for details.
-            12/7
-            sage: ZZ._div(12,0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: rational division by zero
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20731, "ZZ._div is deprecated, use directly integer division")
-        return left / right
-
     def __getitem__(self, x):
         """
         Return the ring `\ZZ[...]` obtained by adjoining to the integers one

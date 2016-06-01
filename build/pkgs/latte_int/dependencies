@@ -1,4 +1,4 @@
-$(PYTHON) 4ti2 | setuptools
+$(PYTHON) gmp ntl 4ti2 | setuptools
 
 ----------
 All lines of this file are ignored except the first.

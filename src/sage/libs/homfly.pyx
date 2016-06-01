@@ -102,6 +102,6 @@ def homfly_polynomial_dict(link):
     d = dict()
     for i in range(l):
         ter = c_output.term[i]
-        d[(int(ter.m), int(ter.l))] = int(ter.coef)
+        d[(int(ter.l), int(ter.m))] = int(ter.coef)
     return d
 

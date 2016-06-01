@@ -2202,7 +2202,7 @@ class Link(object):
         return [[list(i) for i in j] for j in G.connected_components()]
     
     def homfly_polynomial(self, var1='L', var2='M'):
-        """
+        r"""
         Return the HOMFLY polynomial of ``self``.
 
         INPUT:
@@ -2214,18 +2214,50 @@ class Link(object):
         
         A Laurent polynomial over the integers.
 
-        EXAMPLES::
-        
+        EXAMPLES:
+
+        We give some examples::
+
             sage: g = BraidGroup(2).gen(0)
             sage: K = Knot(g^5)
             sage: K.homfly_polynomial()   # optional - libhomfly
             L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
             
-        ::
-        
+        The Hopf link::
+
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
             sage: L.homfly_polynomial('a', 'z')  # optional - libhomfly
             -a^-1*z + a^-1*z^-1 + a^-3*z^-1
+
+        Another version of the Hopf link where the orientation
+        has been changed. Therefore we substitute `a \mapsto L^{-1}`
+        and `z \mapsto M`::
+
+            sage: L = Link([[1,4,2,3], [4,1,3,2]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            L^3*M^-1 - L*M + L*M^-1
+
+        The figure-eight knot::
+
+            sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            -L^2 + M^2 - 1 - L^-2
+
+        The "monster" unknot::
+
+            sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
+            ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
+            ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
+            sage: L.homfly_polynomial()  # optional - libhomfly
+            1
+
+        The knot `9_6`::
+
+            sage: B = BraidGroup(3)
+            sage: K = Knot(B([-1,-1,-1,-1,-1,-1,-2,1,-2,-2]))
+            sage: K.homfly_polynomial()  # optional - libhomfly
+            L^10*M^4 - L^8*M^6 - 3*L^10*M^2 + 4*L^8*M^4 + L^6*M^6 + L^10
+             - 3*L^8*M^2 - 5*L^6*M^4 - L^8 + 7*L^6*M^2 - 3*L^6
         """
         L = LaurentPolynomialRing(ZZ, [var1, var2])
         s = '{}'.format(self.number_of_components())

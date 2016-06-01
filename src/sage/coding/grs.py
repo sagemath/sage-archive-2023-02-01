@@ -689,6 +689,15 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Traceback (most recent call last):
             ...
             ValueError: polynomial_ring has to be a univariate polynomial ring
+
+        ``polynomial_ring``'s base field and ``code``'s base field have to be the same::
+
+            sage: Gx.<x> = GF(7)[]
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = Gx)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring's base field has to be the same as code's
+
         """
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
@@ -699,6 +708,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
                 raise ValueError("polynomial_ring has to be a univariate polynomial ring")
             elif not len(polynomial_ring.variable_names()) == 1:
                 raise ValueError("polynomial_ring has to be a univariate polynomial ring")
+            if not polynomial_ring.base_field() == code.base_field():
+                raise ValueError("polynomial_ring's base field has to be the same as code's")
             self._polynomial_ring = polynomial_ring
 
     def __eq__(self, other):
@@ -885,20 +896,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         """
         return self._polynomial_ring
 
-    def polynomial_ring(self):
-        r"""
-        Returns the polynomial ring used by ``self``.
+    polynomial_ring = message_space
 
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10 , 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = C.encoder("EvaluationPolynomial")
-            sage: E.polynomial_ring()
-            Univariate Polynomial Ring in x over Finite Field of size 11
-        """
-        return self._polynomial_ring
 
 
 

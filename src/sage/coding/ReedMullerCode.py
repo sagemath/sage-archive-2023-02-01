@@ -25,6 +25,7 @@ This file contains the following elements:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import warnings
 from operator import mul
 from sage.matrix.constructor import matrix
 from sage.functions.other import binomial
@@ -39,8 +40,8 @@ from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
 from sage.interfaces.gap import gfq_gap_to_sage
+from sage.interfaces.all import gap
 
 #to compute the sum of n chose i where i ranges from 0 to k
 r"""
@@ -268,7 +269,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
     _registered_encoders={}
     _registered_decoders={}
 
-    def __init__(self, order, numberOfVariable, old_input = False):
+    def __init__(self, order, numberOfVariable):
         r"""
         TESTS:
 
@@ -286,7 +287,6 @@ class BinaryReedMullerCode(AbstractLinearCode):
             ...
             ValueError: Incorrect data-type of input: The order of the code must be an integer
         """
-        #if (old_input = False):
         #input sanitization
         if not(isinstance(order,Integer)):
             raise ValueError("Incorrect data-type of input: The order of the code must be an integer")
@@ -300,16 +300,6 @@ class BinaryReedMullerCode(AbstractLinearCode):
         self.numberOfVariable=numberOfVariable
         self.q=2
         self._dimension=binomialSum(numberOfVariable,order)
-        #else:
-        #    F = GF(2)
-        #    gap.load_package("guava")
-        #    gap.eval("C:=ReedMullerCode("+str(r)+", "+str(k)+")")
-        #    gap.eval("G:=GeneratorMat(C)")
-        #    k = int(gap.eval("Length(G)"))
-        #    n = int(gap.eval("Length(G[1])"))
-        #    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
-        #    MS = MatrixSpace(F,k,n)
-        #    return LinearCode(MS(G))
 
     def _repr_(self):
         r"""

@@ -46,11 +46,6 @@ from sage.interfaces.all import gap
 #to compute the sum of n chose i where i ranges from 0 to k
 r"""
 Given ``n`` and ``k``, computes the sum of first `k+1` terms of the binomial expansion of `n`. Used to compute dimension of binomial reed muller code.
-EXAMPLES:
-    
-    sage:binomialSum(5,3)
-    26
-
 """
 def binomialSum(n,k):
     s=1
@@ -74,12 +69,6 @@ INPUT:
     - ``finiteField`` -- The finite field over which the computations are done
 
     - ``_R`` -- The Polynomial Ring the polynomial in question is from 
-EXAMPLES:
-    
-    sage: F=GF(3)
-    sage: R.<x0,x1>=F[]
-    sage: multivariatePolynomialInterpolation([1, 2, 0, 0, 2, 1, 1, 1, 1], 2, 2, 3, F, R)
-    x0*x1+x1^2+x0+x1+1
 """
 def multivariatePolynomialInterpolation(evaluation, numberOfVariable, order, q, finiteField, _R):
     if numberOfVariable==0 or order==0:
@@ -170,25 +159,26 @@ class QAryReedMullerCode(AbstractLinearCode):
         r"""
         TESTS:
 
-        If the order given is greater than (q-1) an error is raised
+        If the order given is greater than (q-1) an error is raised::
 
             sage: C = codes.QAryReedMullerCode(GF(3), 4, 4)
             Traceback (most recent call last):
             ...
             ValueError: The order must be less than 3
 
-        The order and the number of variable must be integers
+        The order and the number of variable must be integers::
 
             sage: C = codes.QAryReedMullerCode(GF(3),1.1,4)
             Traceback (most recent call last):
             ...
             ValueError: Incorrect data-type of input: The order of the code must be an integer
 
-        The baseField parameter must be a finite field
+        The baseField parameter must be a finite field::
+
             sage: C = codes.QAryReedMullerCode(QQ,1,4)
             Traceback (most recent call last):
             ...
-            Incorrect data-type of input: Incorrect data-type of input: the input `baseField` must be a finiteField
+            ValueError: Incorrect data-type of input: the input `baseField` must be a finiteField
         """
         #input sanitization
         if not(isinstance(baseField,FiniteField)):
@@ -231,7 +221,7 @@ class QAryReedMullerCode(AbstractLinearCode):
             sage: latex(C)
             59\textnormal{-ary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "%s\textnormal{-ary Reed Muller Code of order} %s \textnormal{and number of variables} %s" % (self.q, self.order, self.numberOfVariable)
+        return "%s\\textnormal{-ary Reed Muller Code of order} %s \\textnormal{and number of variables} %s" % (self.q, self.order, self.numberOfVariable)
 
     def __eq__(self,other):
         r"""
@@ -261,7 +251,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
 
     A binary Reed-Muller code can be constructed by simply giving the order of the code and the number of variables::
 
-        sage: C = codes.binaryReedMullerCode(2, 4)
+        sage: C = codes.BinaryReedMullerCode(2, 4)
         sage: C
         Binary Reed Muller Code of order 2 and number of variables 4
     """
@@ -273,14 +263,14 @@ class BinaryReedMullerCode(AbstractLinearCode):
         r"""
         TESTS:
 
-        If the order given is greater than the number of variables an error is raised
+        If the order given is greater than the number of variables an error is raised::
 
             sage: C = codes.BinaryReedMullerCode(5, 4)
             Traceback (most recent call last):
             ...
             ValueError: The order must be less than or equal to 4
 
-        The order and the number of variable must be integers
+        The order and the number of variable must be integers::
 
             sage: C = codes.BinaryReedMullerCode(1.1,4)
             Traceback (most recent call last):
@@ -323,7 +313,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
             sage: latex(C)
             \textnormal{Binary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "\textnormal{Binary Reed Muller Code of order} %s \textnormal{and number of variables} %s" % (self.q, self.order, self.numberOfVariable)
+        return "\\textnormal{Binary Reed Muller Code of order} %s \\textnormal{and number of variables} %s" % (self.order, self.numberOfVariable)
 
     def __eq__(self,other):
         r"""
@@ -348,18 +338,19 @@ class ReedMullerVectorEncoder(Encoder):
 
     EXAMPLES::
 
-        sage: C1=ReedMullerCode(GF(2), 2, 4)
-        sage: E1=ReedMullerVectorEncoder(C1)
+        sage: C1=codes.ReedMullerCode(GF(2), 2, 4)
+        sage: E1=codes.encoders.ReedMullerVectorEncoder(C1)
         sage: E1
         Evaluation vector-style encoder for Binary Reed Muller Code of order 2 and number of variables 4
-        sage: C2=ReedMullerCode(GF(3), 2, 2)
-        sage: E2=ReedMullerVectorEncoder(C2)
+        sage: C2=codes.ReedMullerCode(GF(3), 2, 2)
+        sage: E2=codes.encoders.ReedMullerVectorEncoder(C2)
         sage: E2
         Evaluation vector-style encoder for 3-ary Reed Muller Code of order 2 and number of variables 2
 
     Actually, we can construct the encoder from ``C`` directly::
 
-        sage: E = C1.encoder("EvaluationVector")
+        sage: C=codes.ReedMullerCode(GF(2), 2, 4)
+        sage: E = C.encoder("EvaluationVector")
         sage: E
         Evaluation vector-style encoder for Binary Reed Muller Code of order 2 and number of variables 4
     """
@@ -374,10 +365,10 @@ class ReedMullerVectorEncoder(Encoder):
             sage: codes.encoders.ReedMullerVectorEncoder(C)
             Traceback (most recent call last):
             ...
-            ValueError: code has to be a Reed Muller Code
+            ValueError: the code has to be a Reed Muller code
         """
         if not (isinstance(code, QAryReedMullerCode) or isinstance(code, BinaryReedMullerCode)):
-            raise ValueError("code has to be a Reed Muller code")
+            raise ValueError("the code has to be a Reed Muller code")
         super(ReedMullerVectorEncoder, self).__init__(code)
         baseField=code.base_field()
         order=code.order
@@ -393,11 +384,11 @@ class ReedMullerVectorEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F = GF(59)
+            sage: F = GF(11)
             sage: C = codes.ReedMullerCode(F, 2, 4)
             sage: E=codes.encoders.ReedMullerVectorEncoder(C)
             sage: E
-            Evaluation vector-style encoder for 59-ary Reed Muller Code of order 2 and number of variables 4
+            Evaluation vector-style encoder for 11-ary Reed Muller Code of order 2 and number of variables 4
         """
         return "Evaluation vector-style encoder for %s" % self.code()
 
@@ -407,13 +398,13 @@ class ReedMullerVectorEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F = GF(59)
+            sage: F = GF(11)
             sage: C = codes.ReedMullerCode(F, 2, 4)
             sage: E=codes.encoders.ReedMullerVectorEncoder(C)
             sage: latex(E)
-            \textnormal{Evaluation vector-style encoder for }59\textnormal{-ary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
+            \textnormal{Evaluation vector-style encoder for }11\textnormal{-ary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
 
     def __eq__(self,other):
         r"""
@@ -421,7 +412,7 @@ class ReedMullerVectorEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F = GF(59)
+            sage: F = GF(11)
             sage: C = codes.ReedMullerCode(F, 2, 4)
             sage: D1 = codes.encoders.ReedMullerVectorEncoder(C)
             sage: D2 = codes.encoders.ReedMullerVectorEncoder(C)
@@ -430,7 +421,7 @@ class ReedMullerVectorEncoder(Encoder):
             sage: D1 is D2
             False
         """
-        return (isinstance(other, ReedMullerVectorEncoder)) and self.code==other.code
+        return (isinstance(other, ReedMullerVectorEncoder)) and self.code()==other.code()
 
     def generator_matrix(self):
         r"""
@@ -440,7 +431,7 @@ class ReedMullerVectorEncoder(Encoder):
 
             sage: F = GF(3)
             sage: C = codes.ReedMullerCode(F, 2, 2)
-            sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
+            sage: E = codes.encoders.ReedMullerVectorEncoder(C)
             sage: E.generator_matrix()
             [1 1 1 1 1 1 1 1 1]
             [0 1 2 0 1 2 0 1 2]
@@ -459,22 +450,24 @@ class ReedMullerPolynomialEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
+    -``_R`` -- The polynomial field from which the message is chosen.
+
     EXAMPLES::
 
-        sage: C1=ReedMullerCode(GF(2), 2, 4)
-        sage: E1=ReedMullerPolynomialEncoder(C1)
+        sage: C1=codes.ReedMullerCode(GF(2), 2, 4)
+        sage: E1=codes.encoders.ReedMullerPolynomialEncoder(C1)
         sage: E1
         Evaluation polynomial-style encoder for Binary Reed Muller Code of order 2 and number of variables 4
-        sage: C2=ReedMullerCode(GF(3), 2, 2)
-        sage: E2=ReedMullerPolynomialEncoder(C2)
+        sage: C2=codes.ReedMullerCode(GF(3), 2, 2)
+        sage: E2=codes.encoders.ReedMullerPolynomialEncoder(C2)
         sage: E2
         Evaluation polynomial-style encoder for 3-ary Reed Muller Code of order 2 and number of variables 2
 
     We can also pass a predefined polynomial ring
 
         sage: R=PolynomialRing(GF(3), 2, 'y')
-        sage: C=ReedMullerCode(GF(3), 2, 2)
-        sage: E=ReedMullerPolynomialEncoder(C, R)
+        sage: C=codes.ReedMullerCode(GF(3), 2, 2)
+        sage: E=codes.encoders.ReedMullerPolynomialEncoder(C, R)
         sage: E 
         Evaluation polynomial-style encoder for 3-ary Reed Muller Code of order 2 and number of variables 2
 
@@ -482,7 +475,7 @@ class ReedMullerPolynomialEncoder(Encoder):
 
         sage: E = C1.encoder("EvaluationPolynomial")
         sage: E
-        Evaluation polynomial-style encoder for encoder for Binary Reed Muller Code of order 2 and number of variables 4
+        Evaluation polynomial-style encoder for Binary Reed Muller Code of order 2 and number of variables 4
     """
 
     def __init__(self, code, _R='default'):
@@ -495,9 +488,9 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: codes.encoders.ReedMullerPolynomialEncoder(C)
             Traceback (most recent call last):
             ...
-            ValueError: code has to be a Reed Muller Code
+            ValueError: the code has to be a Reed Muller code
         
-        If the polynomial ring passed is not according to the requirement (over a different field or different number of variables) then an error is raise::
+        If the polynomial ring passed is not according to the requirement (over a different field or different number of variables) then an error is raised::
 
             sage: F=GF(59)
             sage: R.<x,y,z,w>=F[]
@@ -505,10 +498,10 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: E=codes.encoders.ReedMullerPolynomialEncoder(C, R)
             Traceback (most recent call last):
             ...
-            The Polynomial ring should be on Finite Field of size 59 and should have 3 variables
+            ValueError: The Polynomial ring should be on Finite Field of size 59 and should have 3 variables
         """
         if not (isinstance(code, QAryReedMullerCode) or isinstance(code, BinaryReedMullerCode)):
-            raise ValueError("code has to be a Reed Muller code")
+            raise ValueError("the code has to be a Reed Muller code")
         super(ReedMullerPolynomialEncoder, self).__init__(code)
         if (_R=='default'):
             self._R=PolynomialRing(code.base_field(), code.numberOfVariable, 'x')
@@ -544,7 +537,7 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: latex(E)
             \textnormal{Evaluation polynomial-style encoder for }59\textnormal{-ary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
+        return "\\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
 
     def __eq__(self,other):
         r"""
@@ -552,7 +545,7 @@ class ReedMullerPolynomialEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F = GF(59)
+            sage: F = GF(11)
             sage: C = codes.ReedMullerCode(F, 2, 4)
             sage: D1 = codes.encoders.ReedMullerPolynomialEncoder(C)
             sage: D2 = codes.encoders.ReedMullerPolynomialEncoder(C)
@@ -561,7 +554,7 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: D1 is D2
             False
         """
-        return (isinstance(other, ReedMullerPolynomialEncoder)) and self.code==other.code
+        return (isinstance(other, ReedMullerPolynomialEncoder)) and self.code()==other.code()
 
     def encode(self, p):
         r"""
@@ -579,7 +572,6 @@ class ReedMullerPolynomialEncoder(Encoder):
         EXAMPLES::
 
             sage: F = GF(3)
-            sage: m = 4
             sage: Fx.<x0,x1> = F[]
             sage: C = codes.ReedMullerCode(F, 2, 2)
             sage: E = C.encoder("EvaluationPolynomial")

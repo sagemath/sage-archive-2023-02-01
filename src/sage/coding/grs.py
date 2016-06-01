@@ -867,7 +867,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         c = [c[i]/col_mults[i] for i in range(C.length())]
         points = [(alphas[i], c[i]) for i in range(C.dimension())]
 
-        Pc = self._polynomial_ring.lagrange_polynomial(points)
+        Pc = self.polynomial_ring().lagrange_polynomial(points)
         return Pc
 
     def message_space(self):
@@ -885,6 +885,20 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         """
         return self._polynomial_ring
 
+    def polynomial_ring(self):
+        r"""
+        Returns the polynomial ring used by ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10 , 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: E = C.encoder("EvaluationPolynomial")
+            sage: E.polynomial_ring()
+            Univariate Polynomial Ring in x over Finite Field of size 11
+        """
+        return self._polynomial_ring
 
 
 

@@ -490,6 +490,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             dimension 1 over Rational function field in c over Rational Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0^2 + c*x1^2 : x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2+2*z+3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -528,7 +539,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except AttributeError: #no gcd
+        except (AttributeError, ValueError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]

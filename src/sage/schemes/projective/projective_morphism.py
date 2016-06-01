@@ -1670,8 +1670,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2, y^2])
             sage: f.conjugate(matrix([[2,0], [0,1/2]]))
-            Scheme endomorphism of Projective Space of dimension 1 over Multivariate
-            Polynomial Ring in x, y over Rational Field
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (2*x^2 + 1/8*y^2 : 1/2*y^2)
 
@@ -1683,9 +1682,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([1/3*x^2+1/2*y^2, y^2])
             sage: f.conjugate(matrix([[i,0], [0,-i]]))
-            Scheme endomorphism of Projective Space of dimension 1 over Multivariate
-            Polynomial Ring in x, y over Number Field in i with defining polynomial
-            x^2 + 1
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field in i with defining polynomial x^2 + 1
               Defn: Defined on coordinates by sending (x : y) to
                     ((1/3*i)*x^2 + (1/2*i)*y^2 : (-i)*y^2)
         """
@@ -1703,7 +1700,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             except TypeError: #no longer defined over same ring
                 R = R.change_ring(M.base_ring())
                 F = [R(f) for f in F]
-                PS = self.codomain().change_ring(R)
+                PS = self.codomain().change_ring(M.base_ring())
             H = Hom(PS, PS)
             return(H(F))
         else:
@@ -4412,7 +4409,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def is_polynomial(self):
         r"""
-        For any function, checks to see if it has a totally ramified fixed point.
+        Checks to see if the function has a totally ramified fixed point.
+
+        The function must be defined over an absolute number field or a
+        finite field.
 
         OUTPUT: Boolean
 
@@ -4422,7 +4422,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x**2 + 2*x*y-5*y^2, 2*x*y])
+            sage: f = H([x^2 + 2*x*y - 5*y^2, 2*x*y])
             sage: f.is_polynomial()
             False
 
@@ -4432,7 +4432,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x**2 - 7*x*y, 2*y**2])
+            sage: f = H([x^2 - 7*x*y, 2*y^2])
             sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
             sage: f = f.conjugate(m)
             sage: f.is_polynomial()
@@ -4444,30 +4444,79 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: S = P.coordinate_ring()
-            sage: f = H([x**3 + w*y**3,x*y**2])
+            sage: f = H([x^3 + w*y^3,x*y^2])
+            sage: f.is_polynomial()
+            False
+
+        ::
+
+            sage: K = GF(3^2, prefix='w')
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + K.gen()*y^2, x*y])
             sage: f.is_polynomial()
             False
         """
-        #define the field of fixed points
         if self.codomain().dimension_relative() != 1:
-            raise NotImplementedError (" space must have dimension equal to 1")
+            raise NotImplementedError("space must have dimension equal to 1")
+        K = self.base_ring()
+        if not K in FiniteFields() and (not K in _NumberFields or not K.is_absolute()):
+            raise NotImplementedError("must be over an absolute number field or finite field")
+        if K in FiniteFields():
+            q = K.characteristic()
+            deg = K.degree()
+            var = K.variable_name()
+        g = self
+        #get polynomial defining fixed points
         G = self.dehomogenize(1).dynatomic_polynomial(1)
-        J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
-        if self.base_ring() == QQ or self.base_ring() in FiniteFields:
-            if J == self.base_ring():
-                g = self
-            else:
-                g = self.change_ring(phi)
-        else:
-            if J.is_isomorphic(self.base_ring()):
-                g = self
-            else:
-                g = self.change_ring(phi)
-        L = g.periodic_points(1)
-        #look for totally ramified
-        for p in L:
-            if len((g[0]*p[1]-g[1]*p[0]).factor()) == 1:
+        # see if infty = (1,0) is fixed
+        if G.degree() <= g.degree():
+            #check if infty is totally ramified
+            if len((g[1]).factor()) == 1:
                 return True
+        #otherwise we need to create the tower of extensions
+        #which contain the fixed points. We do
+        #this successively so we can exit early if
+        #we find one and not go all the way to the splitting field
+        i = 0 #field index
+        if G.degree() != 0:
+            G = G.polynomial(G.variable(0))
+        while G.degree() != 0:
+            Y = G.factor()
+            R = G.parent()
+            u = G
+            for p,e in Y:
+                if p.degree() == 1:
+                    if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
+                        return True
+                    G = R(G/p) # we already checked this root
+                else:
+                    u = p #need to extend to get these roots
+            if G.degree() != 0:
+                #create the next extension
+                if K == QQ:
+                    L = NumberField(u, 't'+str(i))
+                    i += 1
+                    phi = K.embeddings(L)[0]
+                    K = L
+                elif K in FiniteFields():
+                    deg = deg*G.degree()
+                    K = GF(q**(deg), prefix=var)
+                else:
+                    L = K.extension(u, 't'+str(i))
+                    i += 1
+                    phi1 = K.embeddings(L)[0]
+                    K = L
+                    L = K.absolute_field('t'+str(i))
+                    i += 1
+                    phi = K.embeddings(L)[0]*phi1
+                    K = L
+                if K in FiniteFields():
+                    G = G.change_ring(K)
+                    g = g.change_ring(K)
+                else:
+                    G = G.change_ring(phi)
+                    g = g.change_ring(phi)
         return False
 
     def normal_form(self, return_conjugation=False):
@@ -4476,12 +4525,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         Currently implemented only for polynomials. The totally ramified fixed point is
         moved to infinity and the map is conjugated to the form
-        `x^n + a_{n-2}*x^{n-2} + \cdots + a_{0}`.
+        `x^n + a_{n-2}x^{n-2} + \cdots + a_{0}`. Note that for finite fields
+        we can only remove the `(n-1)`-st term when the characteristic
+        does not divide `n`.
 
         INPUT:
 
-        - ``return_conjugate`` -- Boolean - True returns conjugatation element of PGL.
-          Default: False. (optional)
+        - ``return_conjugation`` -- Boolean - True returns conjugatation element of PGL.
+          along with the embedding into the new field. Default: False. (optional)
 
         OUTPUT:
 
@@ -4489,20 +4540,17 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         - Element of PGL as a matrix. (optional)
 
+        - Field embedding. (option)
+
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
-            sage: K.<w> = QuadraticField(7)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
-            sage: f = H([x**2 + 2*x*y - 5*x**2, 2*y**2])
-            sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
-            sage: f = f.conjugate(m)
+            sage: f = H([x^2 + 2*x*y - 5*x^2, 2*x*y])
             sage: f.normal_form()
-            Scheme endomorphism of Projective Space of dimension 1 over Number Field
-            in w with defining polynomial x^2 - 7
-            Defn: Defined on coordinates by sending (x : y) to
-            (2*x^2 + 1/2*y^2 : 2*y^2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: map is not a polynomial
 
         ::
 
@@ -4510,63 +4558,164 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = NumberField(x^2 - 5)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x**2 + w*x*y, y**2])
-            sage: g,m = f.normal_form(return_conjugation = True);m
+            sage: f = H([x^2 + w*x*y, y^2])
+            sage: g,m,psi = f.normal_form(return_conjugation = True);m
             [     1 -1/2*w]
             [     0      1]
-            sage: f.conjugate(m) == g
+            sage: f.change_ring(psi).conjugate(m) == g
             True
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: f = H([13*x**2 + 4*x*y + 3*y**2, 5*y^2])
-            sage: f.normal_form ()
-            Scheme endomorphism of Projective Space of dimension 1 over Number Field in v with defining polynomial x^2 - x + 39
-            Defn: Defined on coordinates by sending (x : y) to
-            (5*x^2 + 9*y^2 : 5*y^2)
+            sage: f = H([13*x^2 + 4*x*y + 3*y^2, 5*y^2])
+            sage: f.normal_form()
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (5*x^2 + 9*y^2 : 5*y^2)
+
+        ::
+
+            sage: K = GF(3^3, prefix = 'w')
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^3 + 2*x^2*y + 2*x*y^2 + K.gen()*y^3, y^3])
+            sage: f.normal_form()
+            Scheme endomorphism of Projective Space of dimension 1 over Finite Field
+            in w3 of size 3^3
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 + x^2*y + x*y^2 + (-w3)*y^3 : y^3)
         """
         #defines the field of fixed points
         if self.codomain().dimension_relative() != 1:
-            raise NotImplementedError (" space must have dimension equal to 1")
-        G = self.dehomogenize(1).dynatomic_polynomial(1)
-        J,phi = G.polynomial(G.variable()).splitting_field('v', map=True)
-        if self.base_ring() == QQ or self.base_ring() in FiniteFields:
-            if J == self.base_ring():
-                g = self
-            else:
-                g = self.change_ring(phi)
+            raise NotImplementedError("space must have dimension equal to 1")
+        K = self.base_ring()
+        if not K in FiniteFields() and (not K in _NumberFields or not K.is_absolute()):
+            raise NotImplementedError("must be over an absolute number field or finite field")
+        if K in FiniteFields():
+            q = K.characteristic()
+            deg = K.degree()
+            var = K.variable_name()
         else:
-            if J.is_isomorphic(self.base_ring()):
-                g = self
-            else:
-                g = self.change_ring(phi)
-        L = g.periodic_points(1)
+            psi = K.hom([K.gen()]) #identity hom for return_embedding
+        g = self
+        G = self.dehomogenize(1).dynatomic_polynomial(1)
+        done = False
         bad = True
-        for p in L:
-            if len((g[0]*p[1]-g[1]*p[0]).factor()) == 1:
-                T = p
+        #check infty = (1,0) is fixed
+        if G.degree() <= g.degree():
+            #check infty totally ramified
+            if len((g[1]).factor()) == 1:
+                T = self.domain()(1,0)
                 bad = False
-                break # bc only 1 ramified fixed pt
+                done = True
+                m = matrix(K, 2, 2, [1,0,0,1])
+        #otherwise we need to create the tower of extensions
+        #which contain the fixed points. We do
+        #this successively so we can early exit if
+        #we find one and not go all the way to the splitting field
+        i = 0
+        if G.degree() != 0:
+            G = G.polynomial(G.variable(0))
+        else:
+            #no other fixed points
+            raise NotImplementedError("map is not a polynomial")
+        #check other fixed points
+        while not done:
+            Y = G.factor()
+            R = G.parent()
+            done = True
+            for p,e in Y:
+                if p.degree() == 1:
+                    if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
+                        T = self.domain()(-p[0], p[1])
+                        bad = False
+                        done = True
+                        break # bc only 1 totally ramified fixed pt
+                    G = R(G/p)
+                else:
+                    done = False
+                    u = p
+            if not done:
+                #extend
+                if K == QQ:
+                    L = NumberField(u, 't'+str(i))
+                    i += 1
+                    phi = K.embeddings(L)[0]
+                    psi = phi*psi
+                    K = L
+                elif K in FiniteFields():
+                    deg = deg*G.degree()
+                    K = GF(q**(deg), prefix=var)
+                else:
+                    L = K.extension(u, 't'+str(i))
+                    i += 1
+                    phi1 = K.embeddings(L)[0]
+                    K = L
+                    L = K.absolute_field('t'+str(i))
+                    i += 1
+                    phi = K.embeddings(L)[0]*phi1
+                    psi = phi*psi
+                    K = L
+                #switch to the new field
+                if K in FiniteFields():
+                    G = G.change_ring(K)
+                    g = g.change_ring(K)
+                else:
+                    G = G.change_ring(phi)
+                    g = g.change_ring(phi)
         if bad:
             raise NotImplementedError("map is not a polynomial")
+        #conjugate to normal form
         Q = T.codomain()
-        N = g.base_ring()
-        # move totally ram fixed pt to infty
-        target = [T,Q(T[0] + 1, 1),Q(T[0] + 2, 1)]
-        source = [Q(1, 0),Q(0, 1),Q(1, 1)]
+        #moved totally ramified fixed point to infty
+        target = [T, Q(T[0]+1, 1), Q(T[0]+2, 1)]
+        source = [Q(1, 0), Q(0, 1), Q(1, 1)]
         m = Q.point_transformation_matrix(source, target)
-        gc = g.conjugate(m)
+        N = g.base_ring()
         d = g.degree()
+        gc = g.conjugate(m)
         #make monic
-        mc = matrix(N, 2, 2, [gc[1].coefficient([0,d])/gc[0].coefficient([d,0]),0,0,1])
+        R = PolynomialRing(N, 'z')
+        v = N(gc[1].coefficient([0,d])/gc[0].coefficient([d,0]))
+        #need a (d-1)-st root to make monic
+        u = R.gen(0)**(d-1) - v
+        if d != 2 and u.is_irreducible():
+            #we need to extend again
+            if N in FiniteFields():
+                deg = deg*(d-1)
+                M = GF(q**(deg), prefix=var)
+            else:
+                L = N.extension(u,'t'+str(i))
+                i += 1
+                phi1 = N.embeddings(L)[0]
+                M = L.absolute_field('t'+str(i))
+                phi = L.embeddings(M)[0]*phi1
+                psi = phi*psi
+            if M in FiniteFields():
+                gc = gc.change_ring(M)
+            else:
+                gc = gc.change_ring(phi)
+            m = matrix(M, 2, 2, [phi(s) for t in list(m) for s in t])
+            rv = phi(v).nth_root(d-1)
+        else: #root is already in the field
+            M = N
+            rv = v.nth_root(d-1)
+        mc = matrix(M, 2, 2, [rv,0,0,1])
         gcc = gc.conjugate(mc)
-        #remove 2nd order term
-        mc2 = matrix(N, 2, 2, [1, -gcc[0].coefficient([d-1, 1])/(d*gcc[1].coefficient([0, d])), 0, 1])
+        if not (M in FiniteFields() and q.divides(d)):
+            #remove 2nd order term
+            mc2 = matrix(M, 2, 2, [1, M((-gcc[0].coefficient([d-1, 1]) \
+                /(d*gcc[1].coefficient([0, d]))).constant_coefficient()), 0, 1])
+        else:
+            mc2 = mc.parent().one()
         gccc = gcc.conjugate(mc2)
         if return_conjugation:
-            return gccc,m*mc*mc2
+            if M in FiniteFields():
+                return gccc, m*mc*mc2
+            else:
+                return gccc, m*mc*mc2, psi
         return gccc
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):

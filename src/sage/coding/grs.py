@@ -648,6 +648,9 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
+    - ``variable_name`` -- (default: ``'x'``) The name of the variable used in ``self``'s
+      message space.
+
     EXAMPLES::
 
         sage: F = GF(59)
@@ -666,7 +669,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
-    def __init__(self, code):
+    def __init__(self, code, variable_name = 'x'):
         r"""
         EXAMPLES::
 
@@ -678,7 +681,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
+        self._R = code.base_field()[variable_name]
 
     def __eq__(self, other):
         r"""
@@ -771,6 +774,20 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Traceback (most recent call last):
             ...
             ValueError: The value to encode must be in Univariate Polynomial Ring in x over Finite Field of size 11
+
+        TESTS:
+
+        The bug described in :trac:`20744` is now fixed::
+
+            sage: F = GF(11)
+            sage: Fm.<my_variable> = F[]
+            sage: n, k = 10 , 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: E = C.encoder("EvaluationPolynomial", variable_name = 'my_variable')
+            sage: p = my_variable^2 + 3*my_variable + 10
+            sage: c = E.encode(p)
+            sage: c in C
+            True
         """
         M = self.message_space()
         if p not in M:

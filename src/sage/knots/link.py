@@ -2200,18 +2200,30 @@ class Link(object):
                 if len(set(G.vertices()[i]).intersection(G.vertices()[j])) > 0:
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
-    
-    def homfly_polynomial(self, var1='L', var2='M'):
+
+    def homfly_polynomial(self, var1='L', var2='M', normalization = 'lm'):
         r"""
         Return the HOMFLY polynomial of ``self``.
 
         INPUT:
-        
-        - ``var1`` -- (default: ``'L'``) the first variable
-        - ``var2`` -- (default: ``'M'``) the second variable
+
+        - ``var1`` -- (default: ``'L'``) the the first variable
+        - ``var2`` -- (default: ``'M'``) the the second variable
+        - ``normalization`` -- (default: ``lm``) the system of coordinates
+            Can be one of the following:
+
+                * ``lm`` -- corresponding to the Skein relation
+                `L\cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
+
+                * ``az`` -- corresponding to the Skein relation
+                `a\cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
+
+            Where `P(K_+)`, `P_(K_-)` and `P(K_0)` represent the HOMFLY polynomials
+            of three links that vary only in one crossing, that is positive,
+            negative or smoothened respectively.
 
         OUTPUT:
-        
+
         A Laurent polynomial over the integers.
 
         EXAMPLES:
@@ -2222,7 +2234,7 @@ class Link(object):
             sage: K = Knot(g^5)
             sage: K.homfly_polynomial()   # optional - libhomfly
             L^-4*M^4 - 4*L^-4*M^2 + 3*L^-4 - L^-6*M^2 + 2*L^-6
-            
+
         The Hopf link::
 
             sage: L = Link([[1,3,2,4],[4,2,3,1]])
@@ -2236,12 +2248,19 @@ class Link(object):
             sage: L = Link([[1,4,2,3], [4,1,3,2]])
             sage: L.homfly_polynomial()  # optional - libhomfly
             L^3*M^-1 - L*M + L*M^-1
+            sage: L = Link([[1,4,2,3], [4,1,3,2]])
+            sage: L.homfly_polynomial('a', 'z', 'az')
+            a^3*z^-1 - a*z - a*z^-1
+
 
         The figure-eight knot::
 
             sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
             sage: L.homfly_polynomial()  # optional - libhomfly
             -L^2 + M^2 - 1 - L^-2
+            sage: L.homfly_polynomial('a', 'z', 'az')
+            a^2 - z^2 - 1 + a^-2
+
 
         The "monster" unknot::
 
@@ -2258,6 +2277,10 @@ class Link(object):
             sage: K.homfly_polynomial()  # optional - libhomfly
             L^10*M^4 - L^8*M^6 - 3*L^10*M^2 + 4*L^8*M^4 + L^6*M^6 + L^10
              - 3*L^8*M^2 - 5*L^6*M^4 - L^8 + 7*L^6*M^2 - 3*L^6
+            sage: K.homfly_polynomial('a', 'z', normalization='az')
+            -a^10*z^4 + a^8*z^6 - 3*a^10*z^2 + 4*a^8*z^4 + a^6*z^6 - a^10
+             + 3*a^8*z^2 + 5*a^6*z^4 - a^8 + 7*a^6*z^2 + 3*a^6
+
         """
         L = LaurentPolynomialRing(ZZ, [var1, var2])
         s = '{}'.format(self.number_of_components())
@@ -2269,7 +2292,22 @@ class Link(object):
         for i, cr in enumerate(ogc[1]):
             s += ' {} {}'.format(i, cr)
         from sage.libs.homfly import homfly_polynomial_dict
-        return L(homfly_polynomial_dict(s))
+        dic = homfly_polynomial_dict(s)
+        if normalization == 'lm':
+            return L(dic)
+        elif normalization == 'az':
+            auxdic = {}
+            for a in dic:
+                if (a[0] + a[1]) % 4 == 0:
+                    auxdic[a] = dic[a]
+                else:
+                    auxdic[a] = -dic[a]
+            if self.number_of_components() % 2:
+                return L(auxdic)
+            else:
+                return -L(auxdic)
+        else:
+            raise ValueError('normalization must be either `lm` or `az`')
 
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):

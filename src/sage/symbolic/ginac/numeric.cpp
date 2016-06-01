@@ -57,12 +57,14 @@
 #include "tostring.h"
 #include "utils.h"
 
+#ifdef PYNAC_HAVE_LIBGIAC
 #undef _POSIX_C_SOURCE
 #undef _XOPEN_SOURCE
 
 #include <giac/global.h>
 #include <giac/gausspol.h>
 #include <giac/fraction.h>
+#endif
 
 //#define Logging_refctr
 #if defined(Logging_refctr)

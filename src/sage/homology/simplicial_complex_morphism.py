@@ -158,9 +158,9 @@ class SimplicialComplexMorphism(Morphism):
             False
         """
         if not isinstance(X,SimplicialComplex) or not isinstance(Y,SimplicialComplex):
-            raise ValueError("X and Y must be SimplicialComplexes.")
-        if not set(f.keys()) == X._vertex_set.set():
-            raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y.")
+            raise ValueError("X and Y must be SimplicialComplexes")
+        if not set(f.keys()) == set(X._vertex_set):
+            raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y")
         dim = X.dimension()
         Y_faces = Y.faces()
         for k in range(dim+1):
@@ -171,7 +171,7 @@ class SimplicialComplexMorphism(Morphism):
                     fi.append(f[j])
                 v = Simplex(set(fi))
             if not v in Y_faces[v.dimension()]:
-                raise ValueError("f must be a dictionary from the vertices of X to the vertices of Y.")
+                raise ValueError("f must be a dictionary from the vertices of X to the vertices of Y")
         self._vertex_dictionary = f
         Morphism.__init__(self, Hom(X,Y,SimplicialComplexes()))
 
@@ -543,7 +543,7 @@ class SimplicialComplexMorphism(Morphism):
             return False
         else:
             f = dict()
-            for i in self.domain()._vertex_set.set():
+            for i in self.domain()._vertex_set:
                 f[i] = i
             if self._vertex_dictionary != f:
                 return False

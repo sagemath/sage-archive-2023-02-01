@@ -959,7 +959,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         Parent.__init__(self, category=SimplicialComplexes().Finite())
 
         C = None
-        vertex_set = []
+        vertex_set = ()
         if from_characteristic_function is not None:
             from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
             f, X = from_characteristic_function
@@ -976,7 +976,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if not isinstance(maximal_faces, (list, tuple, Simplex)):
                     # Convert it into a list (in case it is an iterable)
                     maximal_faces = list(maximal_faces)
-                if len(maximal_faces) != 0:
+                if maximal_faces:
                     vertex_set = reduce(union, maximal_faces)
         if C is not None:
             self._vertex_set = copy(C.vertices())
@@ -991,13 +991,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._sorted = False
             return
 
-        if sort_facets:
-            try:  # vertex_set is an iterable
-                vertices = Simplex(sorted(vertex_set))
-            except TypeError:  # vertex_set is an integer
-                vertices = Simplex(vertex_set)
-        else:
-            vertices = Simplex(vertex_set)
+        try:  # vertex_set is an iterable
+            vertices = tuple(sorted(vertex_set))
+        except TypeError:  # vertex_set is an integer
+            vertices = tuple(range(vertex_set+1))
         gen_dict = {}
         for v in vertices:
             if name_check:
@@ -1033,7 +1030,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if len(maximal_simplices) == 0:
             good_faces.append(Simplex(-1))
         # now record the attributes for self
-        # self._vertex_set: the Simplex formed by the vertices
+        # self._vertex_set: the tuple formed by the vertices
         self._vertex_set = vertices
         # self._facets: list of facets
         self._facets = good_faces
@@ -1151,7 +1148,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def vertices(self):
         """
-        The vertex set of this simplicial complex.
+        The vertex set, as a tuple, of this simplicial complex.
 
         EXAMPLES::
 
@@ -1160,11 +1157,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Simplicial complex with 16 vertices and 15 facets
             sage: S.vertices()
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
-
-        Note that this actually returns a simplex::
-
-            sage: type(S.vertices())
-            <class 'sage.homology.simplicial_complex.Simplex'>
         """
         return self._vertex_set
 
@@ -2180,13 +2172,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         :type reduced: boolean; optional, default ``True``
 
-        Algorithm: if ``subcomplex`` is ``None``, replace it with a facet
-        -- a contractible subcomplex of the original complex.  Then no
-        matter what ``subcomplex`` is, replace it with a subcomplex
-        `L` which is homotopy equivalent and as large as possible.
-        Compute the homology of the original complex relative to `L`:
-        if `L` is large, then the relative chain complex will be small
-        enough to speed up computations considerably.
+        Algorithm: if ``subcomplex`` is ``None``, replace it with a
+        facet -- a contractible subcomplex of the original complex.
+        Then as long as ``enlarge`` is ``True``, no matter what
+        ``subcomplex`` is, replace it with a subcomplex `L` which is
+        homotopy equivalent and as large as possible.  Compute the
+        homology of the original complex relative to `L`: if `L` is
+        large, then the relative chain complex will be small enough to
+        speed up computations considerably.
 
         EXAMPLES::
 
@@ -2211,6 +2204,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0], [1]])
             sage: (S*S*S)._homology_(dim=2, cohomology=True)
+            Z
+
+        The same computation, done without finding a contractible subcomplex::
+
+            sage: (S*S*S)._homology_(dim=2, cohomology=True, enlarge=False)
             Z
 
         Relative homology::
@@ -2254,7 +2252,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     print("The difference between the f-vectors is:")
                     print("  %s" % vec)
             else:
-                L = SimplicialComplex([[self.vertices().tuple()[0]]])
+                L = SimplicialComplex([[self.vertices()[0]]])
         else:
             if enlarge:
                 if verbose:
@@ -2455,10 +2453,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            if self._sorted:
-                self._vertex_set = Simplex(sorted(reduce(union, [self._vertex_set, new_face])))
-            else:
-                self._vertex_set = Simplex(reduce(union, [self._vertex_set, new_face]))
+            self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
 
             # update self._faces if necessary
             if None in self._faces:
@@ -2548,10 +2543,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         # Recreate the vertex set
         from sage.misc.misc import union
-        if self._sorted:
-            self._vertex_set = Simplex(sorted(reduce(union, self._facets)))
-        else:
-            self._vertex_set = Simplex(reduce(union, self._facets))
+        self._vertex_set = tuple(reduce(union, self._facets))
 
         # Update self._faces and self._graph if necessary
         if None in self._faces:
@@ -2739,8 +2731,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
 
         """
-        if not self.vertices().set().issuperset(sub_vertex_set):
-            raise ValueError("input must be a subset of the vertex set.")
+        if not set(self.vertices()).issuperset(sub_vertex_set):
+            raise ValueError("input must be a subset of the vertex set")
         faces = []
         for i in range(self.dimension()+1):
             for j in self.faces()[i]:
@@ -3291,7 +3283,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             for f in remove_these:
                 faces.remove(f)
         if verbose:
-            print("  now constructing a simplicial complex with %s vertices and %s facets" % (self.vertices().dimension()+1, len(new_facets)))
+            print("  now constructing a simplicial complex with %s vertices and %s facets" % (len(self.vertices()), len(new_facets)))
         L = SimplicialComplex(new_facets, maximality_check=False,
                               sort_facets=False, is_mutable=self._is_mutable)
         self.__enlarged[subcomplex] = L
@@ -3350,7 +3342,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         from sage.homology.cubical_complex import CubicalComplex
         V = self.vertices()
-        embed = V.dimension() + 1
+        embed = len(V)
         # dictionary to translate vertices to the numbers 1, ..., embed
         vd = dict(zip(V, range(1, embed + 1)))
         cubes = []
@@ -3836,9 +3828,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
         facet_limit = 55
         vertices = self.vertices()
         facets = Set(self._facets)
-        vertex_string = "with vertex set %s" % vertices
+        vertex_string = "with vertex set {}".format( tuple(sorted(vertices)) )
         if len(vertex_string) > vertex_limit:
-            vertex_string = "with %s vertices" % str(1+vertices.dimension())
+            vertex_string = "with %s vertices" % len(vertices)
         facet_string = "facets %s" % facets
         if len(facet_string) > facet_limit:
             facet_string = "%s facets" % len(facets)

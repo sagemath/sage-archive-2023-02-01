@@ -72,6 +72,8 @@ class ElementInterpreter(PythonInterpreter):
     PythonInterpreter.
     """
 
+    name = 'el'
+
     def __init__(self):
         r"""
         Initialize an ElementInterpreter.
@@ -94,7 +96,6 @@ class ElementInterpreter(PythonInterpreter):
         """
 
         super(ElementInterpreter, self).__init__()
-        self.name = 'el'
         # PythonInterpreter.__init__ gave us a MemoryChunkPythonArguments.
         # Override with MemoryChunkElementArguments.
         self.mc_args = MemoryChunkElementArguments('args', ty_python)

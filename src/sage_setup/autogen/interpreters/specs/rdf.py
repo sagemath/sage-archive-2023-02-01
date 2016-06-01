@@ -28,6 +28,8 @@ class RDFInterpreter(StackInterpreter):
     wrapper (they use the same wrapper and interpreter).
     """
 
+    name = 'rdf'
+
     def __init__(self):
         r"""
         Initialize an RDFInterpreter.
@@ -72,7 +74,6 @@ class RDFInterpreter(StackInterpreter):
         """
 
         super(RDFInterpreter, self).__init__(ty_double)
-        self.name = 'rdf'
         self.mc_py_constants = MemoryChunkConstants('py_constants', ty_python)
         # This is a randomly chosen number.  Whenever this number is
         # returned, the wrapper has to check whether an exception actually

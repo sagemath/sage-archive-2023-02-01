@@ -25,6 +25,8 @@ class CDFInterpreter(StackInterpreter):
     complex machine-floating-point values (C doubles).
     """
 
+    name = 'cdf'
+
     def __init__(self):
         r"""
         Initialize a CDFInterpreter.
@@ -69,7 +71,6 @@ class CDFInterpreter(StackInterpreter):
         """
 
         super(CDFInterpreter, self).__init__(ty_double_complex)
-        self.name = 'cdf'
         self.mc_py_constants = MemoryChunkConstants('py_constants', ty_python)
         # See comment for RDFInterpreter
         self.err_return = '-1094648119105371'

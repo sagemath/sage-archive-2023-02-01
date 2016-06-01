@@ -24,6 +24,8 @@ class InterpreterSpec(object):
     by an InterpreterSpec.
     """
 
+    name = ''
+
     def __init__(self):
         r"""
         Initialize an InterpreterSpec.

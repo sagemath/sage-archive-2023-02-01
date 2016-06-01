@@ -198,6 +198,8 @@ class PythonInterpreter(StackInterpreter):
     it doesn't bother to Py_XDECREF before it pushes onto the stack.
     """
 
+    name = 'py'
+
     def __init__(self):
         r"""
         Initialize a PythonInterpreter.
@@ -220,7 +222,6 @@ class PythonInterpreter(StackInterpreter):
         """
 
         super(PythonInterpreter, self).__init__(ty_python)
-        self.name = 'py'
         # StackInterpreter.__init__ gave us a MemoryChunkArguments.
         # Override with MemoryChunkPythonArguments.
         self.mc_args = MemoryChunkPythonArguments('args', ty_python)

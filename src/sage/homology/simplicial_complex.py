@@ -2657,15 +2657,19 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 faces.append(Simplex(list(f.set().difference(s.set()))))
         return SimplicialComplex(faces, is_mutable=is_mutable)
 
-    def is_cohen_macaulay(self, ncpus=0):
+    def is_cohen_macaulay(self, base_ring=QQ, ncpus=0):
         r"""
-        Returns True if ``self`` is Cohen-Macaulay, i.e., if
-        `\tilde{H}_i(\operatorname{lk}_\Delta(F);\ZZ) = 0` for all
-        `F \in \Delta` and `i < \operatorname{dim}\operatorname{lk}_\Delta(F)`.
-        Here, `\Delta` is ``self``, and `\operatorname{lk}` denotes the
-        link operator on ``self``.
+        Return ``True`` if ``self`` is Cohen-Macaulay.
+
+        A simplicial complex `\Delta` is Cohen-Macaulay over `R` iff
+        `\tilde{H}_i(\mathrm{lk}_\Delta(F);R) = 0` for all
+        `F \in \Delta` and `i < \dim\mathrm{lk}_\Delta(F)`.
+        Here, `\Delta` is ``self`` and `R` is ``base_ring``, and
+        `\mathrm{lk}` denotes the link operator on ``self``.
 
         INPUT:
+
+        - ``base_ring`` -- (default: ``QQ``) the base ring.
 
         - ``ncpus`` -- (default: 0) number of cpus used for the
           computation. If this is 0, determine the number of cpus
@@ -2690,6 +2694,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.is_cohen_macaulay(ncpus=3)
             ...
             False
+
+        The choice of base ring can matter.  The real projective plane `\RR P^2`
+        has `H_1(\RR P^2) = \ZZ/2`, hence is CM over `\QQ` but not over `\ZZ`. ::
+
+            sage: X = simplicial_complexes.RealProjectivePlane()
+            sage: X.is_cohen_macaulay()
+            True
+            sage: X.is_cohen_macaulay(ZZ)
+            False
         """
         from sage.parallel.decorate import parallel
 
@@ -2708,8 +2721,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         def all_homologies_vanish(F):
             S = self.link(F)
-            H = S.homology(base_ring=QQ)
-            return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+            H = S.homology(base_ring=base_ring)
+            if base_ring.is_field():
+                return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+            else:
+                return not any( H[j].invariants() for j in xrange(S.dimension()) )
 
         @parallel(ncpus=ncpus)
         def all_homologies_in_list_vanish(Fs):

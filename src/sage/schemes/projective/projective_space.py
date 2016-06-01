@@ -1249,9 +1249,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: P.curve([y^2 - x*z])
-            Projective Curve over Rational Field defined by y^2 - x*z
+            Projective Plane Curve over Rational Field defined by y^2 - x*z
         """
-        from sage.schemes.plane_curves.constructor import Curve
+        from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):

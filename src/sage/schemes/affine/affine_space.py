@@ -946,9 +946,9 @@ class AffineSpace_field(AffineSpace_generic):
 
             sage: A.<x,y,z> = AffineSpace(QQ, 3)
             sage: A.curve([y - x^4, z - y^5])
-            Affine Space Curve over Rational Field defined by -x^4 + y, -y^5 + z
+            Affine Curve over Rational Field defined by -x^4 + y, -y^5 + z
         """
-        from sage.schemes.plane_curves.constructor import Curve
+        from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
 
 class AffineSpace_finite_field(AffineSpace_field):

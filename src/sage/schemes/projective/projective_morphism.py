@@ -108,8 +108,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         sage: H = C.Hom(E)
         sage: H([zbar,xbar-ybar,-(xbar+ybar)/80])
         Scheme morphism:
-          From: Projective Curve over Rational Field defined by x^3 + y^3 + 60*z^3
-          To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
+          From: Projective Plane Curve over Rational Field defined by x^3 + y^3 + 60*z^3
+          To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
           Defn: Defined on coordinates by sending (x : y : z) to
                 (z : x - y : -1/80*x - 1/80*y)
 

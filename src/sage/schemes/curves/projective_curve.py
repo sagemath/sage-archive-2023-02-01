@@ -1,5 +1,19 @@
 """
-Projective plane curves over a general ring
+Projective curves over fields.
+
+EXAMPLES:
+
+We can construct curves in either a projective plane::
+
+    sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+    sage: C = Curve([y*z^2 - x^3], P); C
+    Projective Plane Curve over Rational Field defined by -x^3 + y*z^2
+
+or in higher dimensional projective spaces::
+
+    sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+    sage: C = Curve([y*w^3 - x^4, z*w^3 - x^4], P); C
+    Projective Curve over Rational Field defined by -x^4 + y*w^3, -x^4 + z*w^3
 
 AUTHORS:
 
@@ -33,9 +47,37 @@ from curve import Curve_generic
 
 class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
     def _repr_type(self):
-        return "Projective Space"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^3 - z^3 - w^3, z*x^3 - y^4])
+            sage: C._repr_type()
+            'Projective'
+        """
+        return "Projective"
 
     def __init__(self, A, X):
+        r"""
+        Initialization function.
+
+        EXMAPLES::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = Curve([y*u^2 - x^3, z*u^2 - x^3, w*u^2 - x^3, y^3 - x^3], P); C
+            Projective Curve over Finite Field of size 7 defined by -x^3 + y*u^2,
+            -x^3 + z*u^2, -x^3 + w*u^2, -x^3 + y^3
+
+        ::
+
+            sage: K.<u> = CyclotomicField(11)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: C = Curve([y*w - u*z^2 - x^2, x*w - 3*u^2*z*w], P); C
+            Projective Curve over Cyclotomic Field of order 11 and degree 10 defined
+            by -x^2 + (-u)*z^2 + y*w, x*w + (-3*u^2)*z*w
+        """
         if not is_ProjectiveSpace(A):
             raise TypeError("A (=%s) must be a projective space"%A)
         Curve_generic.__init__(self, A, X)
@@ -45,12 +87,38 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
+        r"""
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
+            sage: C = Curve([y*z - x^2 - QQbar.gen()*z^2], P); C
+            Projective Plane Curve over Algebraic Field defined by
+            -x^2 + y*z + (-I)*z^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5^2, 'v'), 2)
+            sage: C = Curve([y^2*z - x*z^2 - z^3], P); C
+            Projective Plane Curve over Finite Field in v of size 5^2 defined by y^2*z - x*z^2 - z^3
+        """
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be a projective plane."%A)
         Curve_generic.__init__(self, A, [f])
 
     def _repr_type(self):
-        return "Projective"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y*z^3 - 5/7*x^4 + 4*x^3*z - 9*z^4], P)
+            sage: C._repr_type()
+            'Projective Plane'
+        """
+        return "Projective Plane"
 
     def arithmetic_genus(self):
         r"""
@@ -65,7 +133,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
             sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
-            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+            Projective Plane Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C.arithmetic_genus()
             28
             sage: C.genus()
@@ -514,7 +582,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by
+            Projective Plane Curve over Finite Field of size 5 defined by
             -x^9 + y^2*z^7 - x*z^8
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
@@ -663,7 +731,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by
+            Projective Plane Curve over Finite Field of size 5 defined by
             -x^9 + y^2*z^7 - x*z^8
             sage: C.rational_points()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
@@ -736,4 +804,3 @@ def Hasse_bounds(q, genus=1):
     else:
         rq = (4*(genus**2)*q).isqrt()
     return (q+1-rq,q+1+rq)
-

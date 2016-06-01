@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+echo "Clean out old boost headers and libraries"
+rm -rf "$SAGE_LOCAL"/include/boost
+rm -rf "$SAGE_LOCAL"/lib/libboost*
+
+cd src
+
+echo "Running boost bootstrap"
+./bootstrap.sh
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Failed to bootstrap boost."
+    exit 1
+fi
+
+./b2 install --prefix="$SAGE_LOCAL"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Failed to install boost."
+    exit 1
+fi
+

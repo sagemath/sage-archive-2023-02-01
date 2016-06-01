@@ -751,6 +751,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             4
             sage: v[Integer(2):Integer(4)]
             [3, 4]
+
+        See :trac:`20750`::
+
+            sage: import re
+            sage: p = re.compile('(a)b')
+            sage: m = p.match('ab')
+            sage: m.group(Integer(0))
+            'ab'
+            sage: m.group(Integer(1))
+            'a'
         """
         return mpz_get_pyintlong(self.value)
 

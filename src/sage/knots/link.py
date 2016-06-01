@@ -2205,22 +2205,26 @@ class Link(object):
         r"""
         Return the HOMFLY polynomial of ``self``.
 
+        The HOMFLY polynomial `P(K)` of a link `K` is a Laurent polynomial
+        in two variables defined using skein relations and for the unknot
+        `U`, we have `P(U) = 1`.
+
         INPUT:
 
         - ``var1`` -- (default: ``'L'``) the first variable
         - ``var2`` -- (default: ``'M'``) the second variable
         - ``normalization`` -- (default: ``lm``) the system of coordinates
-            Can be one of the following:
+            and can be one of the following:
 
-                * ``'lm'`` -- corresponding to the Skein relation
-                `L \cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
+            * ``'lm'`` -- corresponding to the Skein relation
+            `L \cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
 
-                * ``'az'`` -- corresponding to the Skein relation
-                `a \cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
+            * ``'az'`` -- corresponding to the Skein relation
+            `a \cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
 
             where `P(K_+)`, `P_(K_-)` and `P(K_0)` represent the HOMFLY
             polynomials of three links that vary only in one crossing;
-            that is positive, negative, or smoothed respectively
+            that is the positive, negative, or smoothed links respectively
 
         OUTPUT:
 
@@ -2291,6 +2295,10 @@ class Link(object):
             sage: L = Link([[[1,-1], [2,-2]], [1,1]])
             sage: K.homfly_polynomial()  # optional - libhomfly
             2
+
+        REFERENCES:
+
+        - :wikipedia:`HOMFLY_polynomial`
         """
         if len(self._isolated_components()) > 1:
             return sum(Link(comp).homfly_polynomial()

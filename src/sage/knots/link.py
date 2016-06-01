@@ -2207,8 +2207,8 @@ class Link(object):
 
         INPUT:
 
-        - ``var1`` -- (default: ``'L'``) the the first variable
-        - ``var2`` -- (default: ``'M'``) the the second variable
+        - ``var1`` -- (default: ``'L'``) the first variable
+        - ``var2`` -- (default: ``'M'``) the second variable
         - ``normalization`` -- (default: ``lm``) the system of coordinates
             Can be one of the following:
 

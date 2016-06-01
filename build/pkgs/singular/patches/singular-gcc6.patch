@@ -17,7 +17,7 @@ diff -up Singular-3-1-7/kernel/mod_raw.cc.orig Singular-3-1-7/kernel/mod_raw.cc
    }
  
 -  if( (strncmp(buf, &mach_o[0], 4)==0)) /* generic Mach-O module */
-+  if( (strncmp(buf, (const char *)&mach_o[0], 4)==0)) /* generic Mach-O module */
++  if( (strncmp(buf, (const char *)mach_o, 4)==0)) /* generic Mach-O module */
    {
      LT = LT_MACH_O;
      //omFree(newlib);
@@ -26,7 +26,7 @@ diff -up Singular-3-1-7/kernel/mod_raw.cc.orig Singular-3-1-7/kernel/mod_raw.cc
    }
  
 -  if( (strncmp(buf, &mach_o_module[0], 4)==0)) /* Mach-O bundle */
-+  if( (strncmp(buf, (const char *)&mach_o_module[0], 4)==0)) /* Mach-O bundle */
++  if( (strncmp(buf, (const char *)mach_o_module, 4)==0)) /* Mach-O bundle */
    {
      LT = LT_MACH_O;
      //omFree(newlib);

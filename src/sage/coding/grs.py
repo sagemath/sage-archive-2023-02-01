@@ -558,7 +558,6 @@ class GRSEvaluationVectorEncoder(Encoder):
             Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationVectorEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
 
     def __eq__(self, other):
         r"""
@@ -669,19 +668,38 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
     """
 
-    def __init__(self, code, variable_name = 'x'):
+    def __init__(self, code, polynomial_ring = None):
         r"""
-        EXAMPLES::
+        TESTS:
+
+        If ``polynomial_ring`` is not a polynomial ring, an exception is raised::
 
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
-            sage: E
-            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = F)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring has to be a univariate polynomial ring
+
+        Same if ``polynomial_ring`` is a multivariate polynomial ring::
+
+            sage: Fxy.<x,y> = F[]
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = Fxy)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring has to be a univariate polynomial ring
         """
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
-        self._R = code.base_field()[variable_name]
+        if polynomial_ring is None:
+            self._polynomial_ring = code.base_field()['x']
+        else:
+            if not isinstance(polynomial_ring, PolynomialRing_commutative):
+                raise ValueError("polynomial_ring has to be a univariate polynomial ring")
+            elif not len(polynomial_ring.variable_names()) == 1:
+                raise ValueError("polynomial_ring has to be a univariate polynomial ring")
+            self._polynomial_ring = polynomial_ring
 
     def __eq__(self, other):
         r"""
@@ -783,7 +801,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: Fm.<my_variable> = F[]
             sage: n, k = 10 , 5
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = C.encoder("EvaluationPolynomial", variable_name = 'my_variable')
+            sage: E = C.encoder("EvaluationPolynomial", polynomial_ring = Fm)
             sage: p = my_variable^2 + 3*my_variable + 10
             sage: c = E.encode(p)
             sage: c in C
@@ -849,7 +867,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         c = [c[i]/col_mults[i] for i in range(C.length())]
         points = [(alphas[i], c[i]) for i in range(C.dimension())]
 
-        Pc = self._R.lagrange_polynomial(points)
+        Pc = self._polynomial_ring.lagrange_polynomial(points)
         return Pc
 
     def message_space(self):
@@ -865,7 +883,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: E.message_space()
             Univariate Polynomial Ring in x over Finite Field of size 11
         """
-        return self._R
+        return self._polynomial_ring
 
 
 

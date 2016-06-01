@@ -34,6 +34,7 @@ class mul : public expairseq
 	GINAC_DECLARE_REGISTERED_CLASS(mul, expairseq)
 	
 	friend struct print_order;
+	friend class ex;
 	friend class add;
 	friend class ncmul;
 	friend class power;

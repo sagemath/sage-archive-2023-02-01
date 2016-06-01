@@ -32,6 +32,7 @@ class add : public expairseq
 {
 	GINAC_DECLARE_REGISTERED_CLASS(add, expairseq)
 	
+        friend class ex;
 	friend class mul;
 	friend class power;
 	

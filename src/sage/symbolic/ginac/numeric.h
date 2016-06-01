@@ -7,6 +7,7 @@
  *  The modifications and modified version is:
  * 
  *      GiNaC-SAGE Copyright (C) 2008 William Stein
+ *                           (C) 2015-16 Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,6 +59,12 @@
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);
 void ginac_pyinit_I(PyObject*);
+
+#ifdef PYNAC_HAVE_LIBGIAC
+namespace giac {
+        class context;
+}
+#endif
 
 namespace GiNaC {
 
@@ -206,13 +213,16 @@ public:
 		return (int)to_long();
 	}
 	long to_long() const;
-        bool get_mpz(mpz_t intialized_mpz) const;
 	double to_double() const;
 	PyObject* to_pyobject() const;
         bool is_pyobject() const
         {
                 return t == PYOBJECT;
         }
+#ifdef PYNAC_HAVE_LIBGIAC
+        giac::gen* to_giacgen(giac::context*) const;
+#endif
+
 	const numeric real() const;
 	const numeric imag() const;
 	const numeric numer() const;

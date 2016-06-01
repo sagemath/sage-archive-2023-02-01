@@ -31,11 +31,27 @@
 // CINT needs <algorithm> to work properly with <vector>
 #include <algorithm>
 
+#if HAVE_CONFIG_H
+# include "pynac-config.h"
+#endif
 #include "flags.h"
 #include "ptr.h"
 #include "assertion.h"
 #include "registrar.h"
 
+#ifdef PYNAC_HAVE_LIBGIAC
+namespace giac
+{
+        class gen;
+        template <class T> class tensor;
+        typedef class tensor<gen> polynome;
+}
+namespace GiNaC
+{
+struct ex_is_less;
+}
+using ex_int_map = std::map<GiNaC::ex, int, GiNaC::ex_is_less>;
+#endif
 
 namespace GiNaC {
 
@@ -282,6 +298,9 @@ public:
 
 protected:
 	void ensure_if_modifiable() const;
+#ifdef PYNAC_HAVE_LIBGIAC
+        const giac::polynome to_polynome(ex_int_map& map, exvector& revmap);
+#endif
 
 	// member variables
 protected:

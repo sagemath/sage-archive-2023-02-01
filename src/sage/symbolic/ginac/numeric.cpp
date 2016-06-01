@@ -57,6 +57,13 @@
 #include "tostring.h"
 #include "utils.h"
 
+#undef _POSIX_C_SOURCE
+#undef _XOPEN_SOURCE
+
+#include <giac/global.h>
+#include <giac/gausspol.h>
+#include <giac/fraction.h>
+
 //#define Logging_refctr
 #if defined(Logging_refctr)
 #undef Py_INCREF
@@ -1844,15 +1851,30 @@ long numeric::to_long() const {
         }
 }
 
-bool numeric::get_mpz(mpz_t intialized_mpz) const
+#ifdef PYNAC_HAVE_LIBGIAC
+giac::gen* numeric::to_giacgen(giac::context* cptr) const
 {
         if (t == MPZ) {
-                mpz_set(intialized_mpz, v._bigint);
-                return true;
+                mpz_t bigint;
+                mpz_init_set(bigint, v._bigint);
+                auto ret = new giac::gen(bigint);
+                mpz_clear(bigint);
+                return ret;
+        }
+        if (t == MPQ) {
+                mpz_t bigint;
+                mpz_init_set(bigint, mpq_numref(v._bigrat));
+                giac::gen gn(bigint);
+                mpz_set(bigint, mpq_denref(v._bigrat));
+                giac::gen gd(bigint);
+                giac::Tfraction<giac::gen> frac(gn, gd);
+                mpz_clear(bigint);
+                return new giac::gen(frac);
         }
         else
-                return false;
+                return nullptr;
 }
+#endif
 
 /* Return the underlying Python object corresponding to this
    numeric.  If this numeric isn't implemented using a Python

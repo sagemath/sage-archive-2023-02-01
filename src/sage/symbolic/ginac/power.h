@@ -42,6 +42,7 @@ class power : public basic
 	
 	friend struct print_order;
 	friend struct print_order_mul;
+	friend class ex;
 	friend class mul;
 	
 // member functions

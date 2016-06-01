@@ -23,6 +23,10 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include "pynac-config.h"
+#endif
+
 #include "normal.h"
 #include "basic.h"
 #include "ex.h"
@@ -903,6 +907,13 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 
 		if (gc.is_equal(_ex1))
 			return e;
+#ifdef PYNAC_HAVE_LIBGIAC
+                else {
+                        ex f = 1;
+                        gc = find_common_factor(gc, f, repl);
+                        gc *= f;
+                }
+#endif
 
 		// The GCD is the factor we pull out
 		factor *= gc;

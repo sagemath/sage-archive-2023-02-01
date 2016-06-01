@@ -65,6 +65,7 @@ to be aware of the modules described in this chapter.
    sage/libs/gap/element
    sage/libs/gap/saved_workspace
    sage/libs/ecl
+   sage/libs/homfly
 
    sage/gsl/gsl_array
 

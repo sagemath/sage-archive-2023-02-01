@@ -3465,8 +3465,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         INPUT:
 
-        - ``certify`` -- if ``True``, then output is ``(a,b)``, where ``a``
-          is a boolean and ``b`` is either a map or ``None``.
+        - ``certify`` -- if ``True``, then output is ``(a, b)``, where ``a``
+          is a boolean and ``b`` is either a map or ``None``
 
         This is done by creating two graphs and checking whether they
         are isomorphic.
@@ -3483,14 +3483,19 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Z3.is_isomorphic(Z2)
             False
         """
+        # Check easy invariants agree
+        if (sorted(x.dimension() for x in self._facets)
+            != sorted(x.dimension() for x in other._facets)
+            or len(self._vertex_set) != len(other._vertex_set)):
+            return False
         g1 = Graph()
         g2 = Graph()
-        g1.add_edges((v, f) for f in self.facets() for v in f)
-        g2.add_edges((v, f) for f in other.facets() for v in f)
+        g1.add_edges((v, f) for f in self._facets for v in f)
+        g2.add_edges((v, f) for f in other._facets for v in f)
         g1.add_edges(("fake_vertex", v, "special_edge")
-                     for v in self.vertices())
+                     for v in self._vertex_set)
         g2.add_edges(("fake_vertex", v, "special_edge")
-                     for v in other.vertices())
+                     for v in other._vertex_set)
         if not certify:
             return g1.is_isomorphic(g2)
         isisom, tr = g1.is_isomorphic(g2, certify = True)

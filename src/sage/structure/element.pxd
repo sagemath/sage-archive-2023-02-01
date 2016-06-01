@@ -60,9 +60,6 @@ cdef class ModuleElement(Element):
 
     cdef _mul_long(self, long n)
 
-    # Coerce x to the base ring of self and return the result.
-    cdef RingElement coerce_to_base_ring(self, x)
-
 cdef class MonoidElement(Element):
     cpdef _mul_(self, MonoidElement right)
 

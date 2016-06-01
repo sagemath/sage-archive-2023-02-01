@@ -152,6 +152,8 @@ from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
+from sage.misc.superseded import deprecated_function_alias
+from sage.arith.numerical_approx cimport digits_to_bits
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -602,16 +604,31 @@ cdef class Element(SageObject):
 
     def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Return a numerical approximation of x with at least prec bits of
-        precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
+
+        No guarantee is made about the accuracy of the result.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute this
+          approximation (the accepted algorithms depend on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
-            sage: (2/3).n()
+            sage: (2/3).numerical_approx()
             0.666666666666667
-            sage: pi.n(digits=10)  # indirect doctest
+            sage: pi.n(digits=10)
             3.141592654
-            sage: pi.n(prec=20)   # indirect doctest
+            sage: pi.n(prec=20)
             3.1416
 
         TESTS:
@@ -620,12 +637,31 @@ cdef class Element(SageObject):
 
             sage: (0).n(algorithm='foo')
             0.000000000000000
+
+        The ``.N`` method is a deprecated alias::
+
+            sage: 0.N()
+            doctest:...: DeprecationWarning: N is deprecated. Please use n instead.
+            See http://trac.sagemath.org/13055 for details.
+            0.000000000000000
         """
-        from sage.misc.functional import numerical_approx
-        return numerical_approx(self, prec=prec, digits=digits,
-                                algorithm=algorithm)
-    n = numerical_approx
-    N = n
+        from sage.arith.numerical_approx import numerical_approx_generic
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return numerical_approx_generic(self, prec)
+
+    def n(self, prec=None, digits=None, algorithm=None):
+        """
+        Alias for :meth:`numerical_approx`.
+
+        EXAMPLES::
+
+            sage: (2/3).n()
+            0.666666666666667
+        """
+        return self.numerical_approx(prec, digits, algorithm)
+
+    N = deprecated_function_alias(13055, n)
 
     def _mpmath_(self, prec=53, rounding=None):
         """

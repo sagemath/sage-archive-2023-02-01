@@ -424,25 +424,6 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return self.__copy__()
 
-    def n(self, *args, **kwargs):
-        """
-        Returns a numerical approximation of ``self`` by calling the
-        :meth:`n()` method on all of its entries.
-
-        EXAMPLES::
-
-            sage: v = vector(GF(2), [1,2,3])
-            sage: v.n()
-            (1.00000000000000, 0.000000000000000, 1.00000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 0.0000000000000000000000, 1.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
-        """
-        return vector( [e.n(*args, **kwargs) for e in self] )
-
     def list(self, copy=True):
         """
         Return a list of entries in ``self``.

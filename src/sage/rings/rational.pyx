@@ -78,7 +78,7 @@ import sage.structure.factorization
 import sage.rings.real_mpfr
 import sage.rings.real_double
 from libc.stdint cimport uint64_t
-from .binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith

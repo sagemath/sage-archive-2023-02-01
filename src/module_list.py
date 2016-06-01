@@ -1262,9 +1262,6 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++'),
 
-    Extension('sage.rings.binop',
-              sources = ['sage/rings/binop.pyx']),
-
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"],
               libraries=['mpfi', 'mpfr', 'gmp'],

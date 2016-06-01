@@ -175,7 +175,7 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
 
-from .binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython

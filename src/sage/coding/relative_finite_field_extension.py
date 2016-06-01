@@ -5,6 +5,22 @@ Considering a *absolute field* `F_{q^m}` and a *relative_field* `F_q`, with
 `q = p^s`, `p` being a prime and `s, m` being integers, this file
 contains a class to take care of the representation of `F_{q^m}`-elements
 as `F_q`-elements.
+
+.. WARNING::
+
+    As this code is experimental, a warning is thrown when a
+    relative finite field extension is created for the first time
+    in a session (see :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: from sage.coding.relative_finite_field_extension import *
+        sage: Fqm.<aa> = GF(16)
+        sage: Fq.<a> = GF(4)
+        sage: RelativeFiniteFieldExtension(Fqm, Fq)
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/20284 for details.
+        Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
 #*****************************************************************************
@@ -25,6 +41,7 @@ from sage.structure.sage_object import SageObject
 from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
 from sage.modules.free_module_element import vector
+from sage.misc.superseded import experimental
 
 class RelativeFiniteFieldExtension(SageObject):
     r"""
@@ -60,6 +77,7 @@ class RelativeFiniteFieldExtension(SageObject):
         True
     """
 
+    @experimental(trac_number=20284)
     def __init__(self, absolute_field, relative_field, embedding=None):
         r"""
         TESTS:

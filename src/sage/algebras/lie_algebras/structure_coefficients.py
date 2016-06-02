@@ -302,18 +302,15 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L.bracket(x + y - z, x - y + z)
             -2*y - 2*z
         """
-        ordered = True
-        if x > y:
-            x,y = y,x
-            ordered = False
-        b = (x, y)
         try:
-            val = self._s_coeff[b]
+            return self._s_coeff[x,y]
+        except KeyError:
+            pass
+
+        try:
+            return -self._s_coeff[y,x]
         except KeyError:
             return self.zero()
-        if ordered:
-            return val
-        return -val
 
     def module(self, sparse=True):
         """

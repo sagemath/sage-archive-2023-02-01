@@ -1519,7 +1519,7 @@ def RandomTwoSphere(n):
 
 def ShiftedComplex(generators):
     r"""
-    Return the smallest shifted simplicial complex containing ``Generators``
+    Return the smallest shifted simplicial complex containing ``generators``
     as faces.
 
     Let `V` be a set of vertices equipped with a total order.  The
@@ -1640,7 +1640,7 @@ def DunceHat():
     Return the minimal triangulation of the dunce hat given by Hachimori
     [Ha2016]_.
 
-    This is a standard example of a space that is contractible,
+    This is a standard example of a space that is contractible
     but not collapsible.
 
     EXAMPLES::

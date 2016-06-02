@@ -1,11 +1,21 @@
 """
 Classical Lie Algebras
 
-These are the Lie algebras corresponding to types `A_n`, `B_n`, `C_n`, `D_n`.
+These are the Lie algebras corresponding to types `A_n`, `B_n`, `C_n`,
+and `D_n`. We also include support for the exceptional types
+`E_{6,7,8}`, `F_4`, and `G_2` in the Chevalley basis, and we
+give the matrix representation given in [HRT00]_.
 
 AUTHORS:
 
 - Travis Scrimshaw (2013-05-03): Initial version
+
+REFERENCES:
+
+.. [HRT00] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
+   *Matrix generators for exceptional groups of Lie type*.
+   J. Symbolic Computation. **11** (2000).
+   http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 """
 
 #*****************************************************************************
@@ -53,7 +63,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     INPUT:
 
     - ``R`` -- the base ring
-    - ``ct`` -- the Cartan type of type `A_n`, `B_n`, `C_n`, or `D_n`
+    - ``ct`` -- the finite Cartan type
 
     EXAMPLES::
 
@@ -95,7 +105,16 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
             return sp(R, 2*cartan_type.rank())
         if cartan_type.type() == 'D':
             return so(R, 2*cartan_type.rank())
-        raise NotImplementedError("only implemented for types A, B, C, D")
+        if cartan_type.type() == 'E':
+            if cartan_type.rank() == 6:
+                return e6(R)
+            if cartan_type.rank() in [7,8]:
+                raise NotImplementedError("not yet implemented")
+        if cartan_type.type() == 'F' and cartan_type.rank() == 4:
+            return f4(R)
+        if cartan_type.type() == 'G' and cartan_type.rank() == 2:
+            return g2(R)
+        raise ValueError("invalid Cartan type")
 
     def __init__(self, R, ct, e, f, h):
         """
@@ -209,7 +228,9 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         """
         return h[i-1,i-1]
 
-    @abstract_method
+    # Do we want this to be optional or requried?
+    # There probably is a generic implementation we can do.
+    @abstract_method(optional=True)
     def simple_root(self, i, h):
         r"""
         Return the action of the simple root
@@ -670,6 +691,131 @@ class sp(ClassicalMatrixLieAlgebra):
             return 2*h[i,i]
         return h[i,i] - h[i+1,i+1]
 
+class ExceptionalMatrixLieAlgebra(ClassicalMatrixLieAlgebra):
+    """
+    A matrix Lie algebra of exceptional type.
+    """
+    def __init__(self, R, cartan_type, e, f, h=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: g = LieAlgebra(QQ, cartan_type=['E',6], representation='matrix')
+            sage: all(g.h(i) == g.e(i).bracket(g.f(i)) for i in range(1,7))
+            True
+        """
+        if h is None:
+            h = [e[i] * f[i] - f[i] * e[i] for i in range(len(e))]
+        ClassicalMatrixLieAlgebra.__init__(self, R, cartan_type, e, f, h)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: LieAlgebra(QQ, cartan_type=['G',2], representation='matrix')
+            Simple matrix Lie algebra of type ['G', 2] over Rational Field
+        """
+        return "Simple matrix Lie algebra of type {} over {}".format(self.cartan_type(), self.base_ring())
+
+class e6(ExceptionalMatrixLieAlgebra):
+    r"""
+    The matrix Lie algebra `\mathfrak{e}_6`.
+
+    The simple Lie algebra `\mathfrak{e}_6` of type `E_6`. The matrix
+    representation is given following [HRT00]_.
+    """
+    def __init__(self, R):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: g = LieAlgebra(QQ, cartan_type=['E',6], representation='matrix')
+            sage: TestSuite(g).run()  # long time
+        """
+        MS = MatrixSpace(R, 27, sparse=True)
+        one = R.one()
+        coords = [[(0,1), (10,12), (13,15), (16,17), (18,19), (20,21)],
+                  [(3,4), (5,6), (7,9), (18,20), (19,21), (22,23)],
+                  [(1,2), (8,10), (11,13), (14,16), (19,22), (21,23)],
+                  [(2,3), (6,8), (9,11), (16,18), (17,19), (23,24)],
+                  [(3,5), (4,6), (11,14), (13,16), (15,17), (24,25)],
+                  [(5,7), (6,9), (8,11), (10,13), (12,15), (25,26)]]
+        e = [MS({c: one for c in coord}) for coord in coords]
+        f = [MS({(c[1],c[0]): one for c in coord}) for coord in coords]
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['E', 6]), e, f)
+
+class f4(ExceptionalMatrixLieAlgebra):
+    r"""
+    The matrix Lie algebra `\mathfrak{f}_4`.
+
+    The simple Lie algebra `\mathfrak{f}_f` of type `F_4`. The matrix
+    representation is given following [HRT00]_.
+    """
+    def __init__(self, R):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: g = LieAlgebra(QQ, cartan_type=['F',4], representation='matrix')
+            sage: TestSuite(g).run()  # long time
+        """
+        MS = MatrixSpace(R, 26, sparse=True)
+        one = R.one()
+
+        coords = [[(0,1), (5,7), (6,9), (8,11), (10,12), (10,13), (12,14),
+                   (15,16), (17,18), (19,20), (24,25)],
+                  [(1,2), (3,5), (4,6), (8,10), (11,12), (11,13), (13,15),
+                   (14,16), (18,21), (20,22), (23,24)],
+                  [(2,3), (6,8), (9,11), (15,17), (16,18), (22,23)],
+                  [(3,4), (5,6), (7,9), (17,19), (18,20), (21,22)]]
+        e = [MS({c: one for c in coord}) for coord in coords]
+        # Double (10, 12) in e1 and (11,13) in e2
+        e[0][10,12] = 2*one
+        e[1][11,13] = 2*one
+
+        coords = [[(1,0), (7,5), (9,6), (11,8), (12,10), (14,12), (14,13),
+                   (16,15), (18,17), (20,19), (25,24)],
+                  [(2,1), (5,3), (6,4), (10,8), (13,11), (15,12), (15,13),
+                   (16,14), (21,18), (22,20), (24,23)],
+                  [(3,2), (8,6), (11,9), (17,15), (18,16), (23,22)],
+                  [(4,3), (6,5), (9,7), (19,17), (20,18), (22,21)]]
+        f = [MS({c: one for c in coord}) for coord in coords]
+        # Double (14, 12) in f1 and (15,13) in f2
+        f[0][14,12] = 2*one
+        f[1][15,13] = 2*one
+
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f)
+
+class g2(ExceptionalMatrixLieAlgebra):
+    r"""
+    The matrix Lie algebra `\mathfrak{g}_2`.
+
+    The simple Lie algebra `\mathfrak{g}_2` of type `G_2`. The matrix
+    representation is given following [HRT00]_.
+    """
+    def __init__(self, R):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: g = LieAlgebra(QQ, cartan_type=['G',2], representation='matrix')
+            sage: TestSuite(g).run()
+        """
+        MS = MatrixSpace(R, 7, sparse=True)
+        one = R.one()
+        e = [MS({(0,1): one, (2,3): 2*one, (3,4): one, (5,6): one}),
+             MS({(1,2): one, (4,5): one})]
+        f = [MS({(1,0): one, (3,2): one, (4,3): 2*one, (6,5): one}),
+             MS({(2,1): one, (5,4): one})]
+        h = [MS({(0,0): one, (1,1): -one, (2,2): 2*one, (4,4): -2*one, (5,5): one, (6,6): -one}),
+             MS({(1,1): one, (2,2): -one, (4,4): one, (5,5): -one})]
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['G', 2]), e, f, h)
 
 #######################################
 ## Chevalley Basis
@@ -730,7 +876,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         TESTS::
 
             sage: L = LieAlgebra(QQ, cartan_type=['A',2])
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run()  # long time
         """
         self._cartan_type = cartan_type
         RL = cartan_type.root_system().root_lattice()

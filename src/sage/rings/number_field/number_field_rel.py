@@ -297,25 +297,13 @@ class NumberField_relative(NumberField_generic):
         if check and not self.pari_relative_polynomial().polisirreducible():
             raise ValueError("defining polynomial (%s) must be irreducible"%polynomial)
 
-        self.__gens = [None]
-
-        v = [None]
-        K = base
-        names = [name]
-        while K != QQ:
-            names.append(K.variable_name())
-            v.append(K.gen())
-            K = K.base_field()
-
+        names = (name,) + base.variable_names()
         self._assign_names(tuple(names), normalize=False)
 
         NumberField_generic.__init__(self, self.absolute_polynomial(), name=None,
                                      latex_name=latex_name, check=False,
                                      embedding=embedding, structure=structure)
 
-        v[0] = self._gen_relative()
-        v = [self(x) for x in v]
-        self.__gens = tuple(v)
         self._zero_element = self(0)
         self._one_element =  self(1)
 
@@ -475,7 +463,35 @@ class NumberField_relative(NumberField_generic):
             (0, a1)
 
         """
-        return self.__gens
+        return ((self._gen_relative(),) +
+                tuple(map(self, self.base_field().gens())))
+
+    def _first_ngens(self, n):
+        """
+        Return the first `n` generators of this relative number field.
+
+        If `n` is greater than the number of generators, the output is
+        the same as that of :meth:`gens`.
+
+        EXAMPLES::
+
+            sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
+            Number Field in a with defining polynomial x^4 + 3 over its base field
+            sage: K._first_ngens(0)
+            ()
+            sage: K._first_ngens(1)
+            (a,)
+            sage: K._first_ngens(2)
+            (a, b)
+            sage: K._first_ngens(3)
+            (a, b)
+        """
+        if n <= 0:
+            return ()
+        v = (self._gen_relative(),)
+        if n > 1:
+            v += tuple(map(self, self.base_field()._first_ngens(n - 1)))
+        return v
 
     def ngens(self):
         """
@@ -490,7 +506,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.ngens()
             2
         """
-        return len(self.__gens)
+        return self.base_field().ngens() + 1
 
     def gen(self, n=0):
         """
@@ -505,9 +521,9 @@ class NumberField_relative(NumberField_generic):
             sage: K.gen(0)
             a
         """
-        if n < 0 or n >= len(self.__gens):
-            raise IndexError("invalid generator %s"%n)
-        return self.__gens[n]
+        if n == 0:
+            return self._gen_relative()
+        return self(self.base_field().gen(n - 1))
 
     def galois_closure(self, names=None):
         r"""

@@ -65,7 +65,6 @@ to be aware of the modules described in this chapter.
    sage/libs/gap/element
    sage/libs/gap/saved_workspace
    sage/libs/ecl
-   sage/libs/homfly
 
    sage/gsl/gsl_array
 
@@ -73,6 +72,6 @@ to be aware of the modules described in this chapter.
 
 .. Cannot be imported independently of mpmath: sage/libs/mpmath/ext_main sage/libs/mpmath/ext_impl sage/libs/mpmath/ext_libmp
 
-.. Modules depending on optional packages: sage/libs/coxeter3/coxeter sage/libs/coxeter3/coxeter_group sage/libs/fes
+.. Modules depending on optional packages: sage/libs/coxeter3/coxeter sage/libs/coxeter3/coxeter_group sage/libs/fes sage/libs/homfly
 
 .. include:: ../footer.txt

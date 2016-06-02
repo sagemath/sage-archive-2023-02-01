@@ -2260,9 +2260,6 @@ class SimplicialSet(GenericCellComplex, Parent):
         """
         return ProductOfSimplicialSets([self] + list(others))
 
-    def pushout(self, f, g):
-        return PushoutOfSimplicialSets(self, f, g)
-
     def smash_product(self, other):
         """
         The smash product of this simplicial set with ``other``.
@@ -3052,96 +3049,6 @@ class ProductOfSimplicialSets(SimplicialSet):
             if not_base_pt <= 1:
                 simps.append(x)
         return self.subcomplex(simps)
-
-
-class PushoutOfSimplicialSets(SimplicialSet):
-    def __init__(self, domain, f, g):
-        r"""
-        The pushout obtained from the morphisms `f` and `g`.
-
-        Given a simplicial set `X` (= ``domain``) and maps `f: X \to Y`,
-        `g: X \to Z`, construct the pushout `P`: see
-        :wikipedia:`Pushout_(category_theory)`. This is constructed as
-        pushouts of sets for each set of `n`-simplices, so `P_n` is
-        the disjoint union of `Y_n` and `Z_n`, with elements `f(x)`
-        and `g(x)` identified for each `x \in X_n`.
-
-        Names: if simplices have names and are identified, choose
-        their names from ``Y``.  Decorate somehow?
-
-        Pointed if `f` and `g` are.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, 'v')
-            sage: a = NonDegenerateSimplex(0, 'a')
-            sage: b = NonDegenerateSimplex(0, 'b')
-            sage: c = NonDegenerateSimplex(0, 'c')
-            sage: e0 = NonDegenerateSimplex(1, 'e_0')
-            sage: e1 = NonDegenerateSimplex(1, 'e_1')
-            sage: e2 = NonDegenerateSimplex(1, 'e_2')
-            sage: X = SimplicialSet({e2: (b, a)})
-            sage: Y = SimplicialSet({e2: (b,a), e0: (c,b), e1: (c,a)})
-            sage: Z = simplicial_sets.Simplex(0)
-            sage: f_data = {a:a, b:b, e2: e2}
-            sage: v = Z.n_cells(0)[0]
-            sage: g_data = {a:v, b:v, e2:v.apply_degeneracies(0)}
-            sage: f = X.Hom(Y)(f_data)
-            sage: g = X.Hom(Z)(g_data)
-            sage: P = X.pushout(f,g)
-        """
-        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
-        if (not isinstance(f, SimplicialSetMorphism) or
-            not isinstance(g, SimplicialSetMorphism)):
-            raise ValueError('f and g must be morphisms of simplicial sets')
-        if not f.domain() == g.domain() == domain:
-            raise ValueError('the domain of f and g must both equal "self"')
-        # Data to define the pushout:
-        data = {}
-        X = f.domain()
-        Y = f.codomain()
-        Z = g.codomain()
-        # Dictionaries to translate from simplices in Y, Z to simplices in P.
-        Y_to_P = {}
-        Z_to_P = {}
-        for n in range(1 + max(Y.dimension(), Z.dimension())):
-            # This isn't doing the right thing.
-
-
-
-            Y_cells = {y:y for y in Y.n_cells(n)}
-            Z_cells = {z:z for z in Z.n_cells(n)}
-            for x in X.n_cells(n):
-                # Identify f(x) with g(x)
-                Y_cells[f(x)] = x
-                Z_cells[g(x)] = x
-
-
-            # Don't take a union here, in case Y and Z have cells in
-            # common. Maybe make copies of one of them.
-            cells = set(Y_cells.values()).union(Z_cells.values())
-            data[n] = {'Y': Y_cells, 'Z': Z_cells}
-            # data[n] = cells
-
-        self._data = data
-
-
-        if f.is_pointed() and g.is_pointed():
-            if Y_to_P[Y.base_point()] != Z_to_P[Z.base_point()]:
-                raise ValueError('something unexpected went wrong with base points')
-            pass
-            # SimplicialSet.__init__(self, data, base_point=Y_to_P[Y.base_point()])
-        else:
-            pass
-            # SimplicialSet.__init__(self, data)
-        # Would be good to keep track of the maps Y -> P, Z -> P. 
-        # Also the original maps X -> Y, X -> Z?
-        
-        # self._f = f
-        # self._g = g
-        # self._fbar = fbar
-        # self._gbar = gbar
 
 
 ########################################################################

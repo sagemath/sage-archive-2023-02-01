@@ -1918,7 +1918,7 @@ class Link(object):
             Link with 1 component represented by 3 crossings
             sage: K2.braid()
             s^-3
-            sage: GA = graphics_array((K.plot(), K2.plot()))
+            sage: GA = graphics_array(((K.plot(),), (K2.plot(),)))
             sage: GA.show(axes=False)
 
         .. PLOT::
@@ -1926,12 +1926,18 @@ class Link(object):
 
             g = BraidGroup(2).gen(0)
             K = Link(g^3)
-            GA = graphics_array((K.plot(), K.mirror_image().plot()))
-            sphinx_plot(GA.show(axes=False))
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            g = BraidGroup(2).gen(0)
+            K = Link(g^3)
+            sphinx_plot(K.mirror_image().plot()))
 
         ::
 
-            sage: K = Knot([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sage: K = Knot([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
             sage: K2 = K.mirror_image(); K2
             Knot represented by 3 crossings
             sage: K.pd_code()
@@ -1957,8 +1963,12 @@ class Link(object):
             K2 = K.mirror_image()
             sphinx_plot(K2.plot())
         """
-        if self._pd_code is None and self._braid:
-            return type(self)(~self._braid)
+        if self._braid:
+            lb = len(self._braid.Tietze())
+            logc = len(self.oriented_gauss_code()[-1])
+            lpd = len(self.pd_code())
+            if lb <= logc and lb <= lpd:
+                return type(self)(~self._braid)
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
         return type(self)(pd)
 

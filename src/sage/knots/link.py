@@ -2217,15 +2217,15 @@ class Link(object):
         - ``normalization`` -- (default: ``lm``) the system of coordinates
           and can be one of the following:
 
-            * ``'lm'`` -- corresponding to the Skein relation
-              `L\cdot P(K _+) + L^{-1}\cdot P(K _-) + M\cdot P(K _0) = 0`
+          * ``'lm'`` -- corresponding to the Skein relation
+            `L\cdot P(K _+) + L^{-1}\cdot P(K _-) + M\cdot P(K _0) = 0`
 
-            * ``'az'`` -- corresponding to the Skein relation
-              `a\cdot P(K _+) - a^{-1}\cdot P(K _-) = z  \cdot P(K _0)`
+          * ``'az'`` -- corresponding to the Skein relation
+            `a\cdot P(K _+) - a^{-1}\cdot P(K _-) = z  \cdot P(K _0)`
 
-            where `P(K _+)`, `P(K _-)` and `P(K _0)` represent the HOMFLY
-            polynomials of three links that vary only in one crossing;
-            that is the positive, negative, or smoothed links respectively
+          where `P(K _+)`, `P(K _-)` and `P(K _0)` represent the HOMFLY
+          polynomials of three links that vary only in one crossing;
+          that is the positive, negative, or smoothed links respectively
 
         OUTPUT:
 
@@ -2295,13 +2295,13 @@ class Link(object):
 
             sage: L = Link([[[1, -1], [2, -2]], [1, 1]])
             sage: L2 = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
-            sage: L2.homfly_polynomial()
+            sage: L2.homfly_polynomial()  # optional - libhomfly
             -L*M^-1 - L^-1*M^-1
-            sage: L.homfly_polynomial()
+            sage: L.homfly_polynomial()  # optional - libhomfly
             -L*M^-1 - L^-1*M^-1
-            sage: L.homfly_polynomial('a', 'z', 'az')
+            sage: L.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
             a*z^-1 - a^-1*z^-1
-            sage: L2.homfly_polynomial('a', 'z', 'az')
+            sage: L2.homfly_polynomial('a', 'z', 'az')  # optional - libhomfly
             a*z^-1 - a^-1*z^-1
 
         REFERENCES:

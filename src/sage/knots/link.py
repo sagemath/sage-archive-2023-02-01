@@ -1971,6 +1971,7 @@ class Link(object):
 
           * ``'jonesrep'`` - use the Jones representation of the braid
             representation
+
           * ``'statesum'`` - recursively computes the Kauffman bracket
 
         OUTPUT:
@@ -2214,15 +2215,15 @@ class Link(object):
         - ``var1`` -- (default: ``'L'``) the first variable
         - ``var2`` -- (default: ``'M'``) the second variable
         - ``normalization`` -- (default: ``lm``) the system of coordinates
-            and can be one of the following:
+          and can be one of the following:
 
             * ``'lm'`` -- corresponding to the Skein relation
-            `L \cdot P(K_+) + L ^{-1} \cdot P(K_-) + M \cdot P(K_0) = 0`
+              `L\cdot P(K _+) + L^{-1}\cdot P(K _-) + M\cdot P(K _0) = 0`
 
             * ``'az'`` -- corresponding to the Skein relation
-            `a \cdot P(K_+) - a ^{-1} \cdot P(K_-) = z  \cdot P(K_0)`
+              `a\cdot P(K _+) - a^{-1}\cdot P(K _-) = z  \cdot P(K _0)`
 
-            where `P(K_+)`, `P_(K_-)` and `P(K_0)` represent the HOMFLY
+            where `P(K _+)`, `P(K _-)` and `P(K _0)` represent the HOMFLY
             polynomials of three links that vary only in one crossing;
             that is the positive, negative, or smoothed links respectively
 

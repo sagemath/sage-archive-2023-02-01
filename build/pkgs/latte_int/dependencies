@@ -1,4 +1,4 @@
-$(PYTHON) gmp ntl 4ti2 | setuptools
+$(PYTHON) gmp mpir ntl 4ti2 cddlib | setuptools
 
 ----------
 All lines of this file are ignored except the first.

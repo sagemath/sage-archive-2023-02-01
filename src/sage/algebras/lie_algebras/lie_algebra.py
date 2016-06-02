@@ -1211,7 +1211,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
             sage: L = LieAlgebra(associative=F)
             sage: L.an_element()
-            x
+            1
 
         A finitely generated example::
 

@@ -414,7 +414,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
             sage: d.bracket_on_basis('c', 2)
             0
             sage: d.bracket_on_basis(2, -2)
-            -1/2*c - 4*d[0]
+            -4*d[0] - 1/2*c
         """
         if i == 'c' or j == 'c':
             return self.zero()

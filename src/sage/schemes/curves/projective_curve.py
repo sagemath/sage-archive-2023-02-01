@@ -105,7 +105,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z,w> = ProjectiveSpace(CC, 3)
             sage: C = Curve([y*z - x^2, w^2 - x*y], P)
             sage: C.affine_patch(0)
-            Affine Space Curve over Complex Field with 53 bits of precision defined by
+            Affine Curve over Complex Field with 53 bits of precision defined by
             x0*x1 - 1.00000000000000, x2^2 - x0
 
         ::
@@ -113,7 +113,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
             sage: C.affine_patch(1)
-            Affine Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
+            Affine Plane Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
         """
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i))

@@ -30,7 +30,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ToricCode, TrivialCode, WalshCode)
 
 from grs import GeneralizedReedSolomonCode
-from ReedMullerCode import ReedMullerCode, QAryReedMullerCode, BinaryReedMullerCode
+from reed_muller_code import ReedMullerCode, QAryReedMullerCode, BinaryReedMullerCode
 
 from guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')

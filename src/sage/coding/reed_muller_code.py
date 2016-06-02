@@ -1,7 +1,7 @@
 r"""
 Reed-Muller code
 
-Given integers `m, r` and a finite field `F` 
+Given integers `m, r` and a finite field `F`
 corresponding Reed Muller Code is the set:
 
 .. math::
@@ -11,7 +11,7 @@ corresponding Reed Muller Code is the set:
 This file contains the following elements:
 
     - :class:`QAryReedMullerCode`, the class for Reed Muller codes over non-binary field of size q and `r<q`
-    - :class:`BinaryReedMullerCode`, the class for Reed Muller codes over binary field and `r<=m` 
+    - :class:`BinaryReedMullerCode`, the class for Reed Muller codes over binary field and `r<=m`
     - :class:`ReedMullerVectorEncoder`, an encoder with a vectorial message space (for both the two code classes)
     - :class:`ReedMullerPolynomialEncoder`, an encoder with a polynomial message space (for both the code classes)
 """
@@ -42,93 +42,138 @@ from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.gap import gfq_gap_to_sage
 from sage.interfaces.all import gap
+from sage.misc.cachefunc import cached_method
+from functools import reduce
 
-#to compute the sum of n chose i where i ranges from 0 to k
-r"""
-Given ``n`` and ``k``, computes the sum of first `k+1` terms of the binomial expansion of `n`. Used to compute dimension of binomial reed muller code.
-"""
-def binomialSum(n,k):
-    s=1
-    nCi=1
+
+def _binomial_sum(n, k):
+    r"""
+    Given ``n`` and ``k``, computes the number of subsets of a set with `n` distinct elements with cardinality`<=k`. Used to compute dimension of binomial reed muller code.
+    INPUT:
+
+        - ``n`` -- The cardinality of the super set.
+        - ``k`` -- The upper limit on the size of the subset.
+
+    EXAMPLES::
+
+        sage: from sage.coding.reed_muller_code import _binomial_sum
+        sage: _binomial_sum(4, 2)
+        11
+    """
+    s = 1
+    nCi = 1
     for i in range(k):
-        nCi=((n-i)*nCi)/(i+1)
-        s=nCi+s
+        nCi = ((n - i) * nCi) / (i + 1)
+        s = nCi + s
     return s
-r"""
-Given the evaluation of a multivariate polynomial of certain number of variables and certain degree over `F` on every point, this function returns the polynomial. 
-INPUT:
 
-    - ``evaluation`` -- A vector or a list of evaluation of the polynomial at all the points.
 
-    - ``numberOfVariable`` -- The number of variables used in polynomial (i.e. `m`).
+def _multivariate_polynomial_interpolation(
+        evaluation,
+        num_of_var,
+        order,
+        q,
+        base_field,
+        polynomial_ring):
+    r"""
+    Given the evaluation of a multivariate polynomial of certain number of variables and certain degree over `F` on every point, this function returns the polynomial.
+    INPUT:
 
-    - ``order`` -- The degree of the polynomial in question.
+        - ``evaluation`` -- A vector or a list of evaluation of the polynomial at all the points.
 
-    - ``q`` -- The size of the finite field 
+        - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
-    - ``finiteField`` -- The finite field over which the computations are done
+        - ``order`` -- The degree of the polynomial in question.
 
-    - ``_R`` -- The Polynomial Ring the polynomial in question is from 
-"""
-def multivariatePolynomialInterpolation(evaluation, numberOfVariable, order, q, finiteField, _R):
-    if numberOfVariable==0 or order==0:
+        - ``q`` -- The size of the finite field
+
+        - ``base_field`` -- The finite field over which the computations are done
+
+        - ``_R`` -- The Polynomial Ring the polynomial in question is from
+
+    EXAMPLES::
+
+        sage: from sage.coding.reed_muller_code import _multivariate_polynomial_interpolation
+        sage: F = GF(3)
+        sage: R.<x,y> = F[]
+        sage: v = vector(F, [1, 2, 0, 0, 2, 1, 1, 1, 1])
+        sage: _multivariate_polynomial_interpolation(v, 2, 2, F.cardinality(), F, R)
+        x*y + y^2 + x + y + 1
+    """
+    if num_of_var == 0 or order == 0:
         return evaluation[0]
-    xcordinate=finiteField.list()
-    nq=q**(numberOfVariable-1)
-    d=min(order+1,q)
-    evaluation2=[]
-    uniPolyRing=PolynomialRing(finiteField,'x')
-    for k in range(nq):
-        points=[(xcordinate[i], evaluation[k+i*nq]) for i in range(q)]
-        polyVector=uniPolyRing.lagrange_polynomial(points).coefficients(sparse=False)
-        if len(polyVector)<d:
-            #adding zeros to represet a (d-1) degree polynomial
-            polyVector=polyVector+[0 for i in range(d-len(polyVector))]
-        evaluation2.append(polyVector)
-    poly=0
-    z=1
-    x=_R.gen(numberOfVariable-1)
-    for k in range(d):#computing the polynomial
-        poly=poly+z*multivariatePolynomialInterpolation([evaluation2[i][k] for i in range(nq)], numberOfVariable-1, order-k, q, finiteField, _R)
-        z=z*x
+    xcordinate = base_field.list()
+    n_by_q = q**(num_of_var - 1)
+    d = min(order + 1, q)
+    multipoint_evaluation_list = []
+    uni_poly_ring = PolynomialRing(base_field, 'x')
+    base_field_zero = base_field.zero()
+    for k in range(n_by_q):
+        points = [(xcordinate[i], evaluation[k + i * n_by_q])
+                  for i in range(d)]
+        polyVector = uni_poly_ring.lagrange_polynomial(
+            points).coefficients(sparse=False)
+        if len(polyVector) < d:
+            # adding zeros to represet a (d-1) degree polynomial
+            polyVector = polyVector + \
+                [base_field_zero for i in range(d - len(polyVector))]
+        multipoint_evaluation_list.append(polyVector)
+    poly = polynomial_ring.zero()
+    z = 1
+    x = polynomial_ring.gen(num_of_var - 1)
+    for k in range(d):  # computing the polynomial
+        poly = poly + z * _multivariate_polynomial_interpolation([multipoint_evaluation_list[i][k] for i in range(n_by_q)],
+                                                                 num_of_var - 1, order - k, q, base_field, polynomial_ring)
+        z = z * x
     return poly
 
-r"""
-Returns of a Reed Muller code. If the given field is binary it returns a binary Reed Muller code, otherwise it returns a q-ary Reed MUller Code.
 
-INPUT:
+def ReedMullerCode(base_field, order, num_of_var):
+    r"""
+    Returns a Reed Muller code. If the given field is binary it returns a binary Reed Muller code, otherwise it returns a q-ary Reed Muller Code.
 
-- ``baseField`` -- The finite field `F` over which code is built.
+    INPUT:
 
-- ``order`` -- The order of the Reed Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
+    - ``base_field`` -- The finite field `F` over which code is built.
 
-- ``numberOfVariable`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``order`` -- The order of the Reed Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
 
-EXAMPLES:
+    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
-A Reed-Muller code can be constructed by using a predefined field or using the value of q::
+    EXAMPLES::
 
-    sage: F = GF(3)
-    sage: C = codes.ReedMullerCode(F, 2, 2)
-    sage: C
-    3-ary Reed Muller Code of order 2 and number of variables 2
+    A Reed-Muller code can be constructed by using a predefined field or using the value of q::
 
-Simmilarly, using the finite field `F` of size 2 we can generate a binary reed muller code 
+        sage: F = GF(3)
+        sage: C = codes.ReedMullerCode(F, 2, 2)
+        sage: C
+        3-ary Reed Muller Code of order 2 and number of variables 2
 
-    sage: F = GF(2)
-    sage: C = codes.ReedMullerCode(F, 2, 2)
-    sage: C
-    Binary Reed Muller Code of order 2 and number of variables 2
+    Simmilarly, using the finite field `F` of size 2 we can generate a binary reed muller code::
 
-"""
-def ReedMullerCode(baseField, order, numberOfVariable):
-    if not(isinstance(baseField,FiniteField)):
-        raise ValueError("Incorrect data-type of input: The parameter `baseField` must be a finite")
-    q=baseField.cardinality()
+        sage: F = GF(2)
+        sage: C = codes.ReedMullerCode(F, 2, 2)
+        sage: C
+        Binary Reed Muller Code of order 2 and number of variables 2
+
+    WARNING::
+
+    For q-ary reed muller codes, the order of reed muller code must be LESS THAN q::
+
+        sage: C = codes.QAryReedMullerCode(GF(3), 4, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The order must be less than 3
+
+    """
+    if not(isinstance(base_field, FiniteField)):
+        raise ValueError("The parameter `base_field` must be a finite")
+    q = base_field.cardinality()
     if q == 2:
-        return BinaryReedMullerCode(order, numberOfVariable)
+        return BinaryReedMullerCode(order, num_of_var)
     else:
-        return QAryReedMullerCode(baseField, order, numberOfVariable)
+        return QAryReedMullerCode(base_field, order, num_of_var)
+
 
 class QAryReedMullerCode(AbstractLinearCode):
     r"""
@@ -136,13 +181,13 @@ class QAryReedMullerCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``baseField`` -- The finite field `F` or the size of finite field `F` over which code is built.
+    - ``base_field`` -- The finite field `F` or the size of finite field `F` over which code is built.
 
     - ``order`` -- The order of the Reed Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
 
-    - ``numberOfVariable`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
-    EXAMPLES:
+    EXAMPLES::
 
     A Reed-Muller code can be constructed by using a predefined field or using the value of q::
 
@@ -150,16 +195,25 @@ class QAryReedMullerCode(AbstractLinearCode):
         sage: C = codes.QAryReedMullerCode(F, 2, 2)
         sage: C
         3-ary Reed Muller Code of order 2 and number of variables 2
+
+    WARNING::
+
+    The order of reed muller code here must be LESS THAN q for this implementation::
+
+        sage: C = codes.QAryReedMullerCode(GF(3), 4, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The order must be less than 3
     """
 
-    _registered_encoders={}
-    _registered_decoders={}
+    _registered_encoders = {}
+    _registered_decoders = {}
 
-    def __init__(self, baseField, order, numberOfVariable):
+    def __init__(self, base_field, order, num_of_var):
         r"""
         TESTS:
 
-        If the order given is greater than (q-1) an error is raised::
+        Note that the order given cannot be greater than (q-1). An error is raised if that happens::
 
             sage: C = codes.QAryReedMullerCode(GF(3), 4, 4)
             Traceback (most recent call last):
@@ -171,31 +225,92 @@ class QAryReedMullerCode(AbstractLinearCode):
             sage: C = codes.QAryReedMullerCode(GF(3),1.1,4)
             Traceback (most recent call last):
             ...
-            ValueError: Incorrect data-type of input: The order of the code must be an integer
+            ValueError: The order of the code must be an integer
 
-        The baseField parameter must be a finite field::
+        The base_field parameter must be a finite field::
 
             sage: C = codes.QAryReedMullerCode(QQ,1,4)
             Traceback (most recent call last):
             ...
-            ValueError: Incorrect data-type of input: the input `baseField` must be a finiteField
+            ValueError: the input `base_field` must be a FiniteField
         """
-        #input sanitization
-        if not(isinstance(baseField,FiniteField)):
-            raise ValueError("Incorrect data-type of input: the input `baseField` must be a finiteField")
-        if not(isinstance(order,Integer)):
-            raise ValueError("Incorrect data-type of input: The order of the code must be an integer")
-        if not(isinstance(numberOfVariable, Integer)):
-            raise ValueError("Incorrect data-type of input: The number of variables must be an integer")
-        q=baseField.cardinality()
-        if (order>=q):
+        # input sanitization
+        if not(isinstance(base_field, FiniteField)):
+            raise ValueError("the input `base_field` must be a FiniteField")
+        if not(isinstance(order, Integer)):
+            raise ValueError("The order of the code must be an integer")
+        if not(isinstance(num_of_var, Integer)):
+            raise ValueError("The number of variables must be an integer")
+        q = base_field.cardinality()
+        if (order >= q):
             raise ValueError("The order must be less than %s" % q)
 
-        super(QAryReedMullerCode, self).__init__(baseField,q**numberOfVariable,"EvaluationVector","Syndrome")
-        self.order=order
-        self.numberOfVariable=numberOfVariable
-        self.q=q
-        self._dimension=binomial(numberOfVariable+order, order)
+        super(
+            QAryReedMullerCode,
+            self).__init__(
+            base_field,
+            q**num_of_var,
+            "EvaluationVector",
+            "Syndrome")
+        self._order = order
+        self._num_of_var = num_of_var
+        self._q = q
+        self._dimension = binomial(num_of_var + order, order)
+
+    def order(self):
+        r"""
+        Returns the order of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: C = codes.QAryReedMullerCode(F, 2, 4)
+            sage: C.order()
+            2
+        """
+        return self._order
+
+    def num_of_var(self):
+        r"""
+        Returns the number of variables used in ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: C = codes.QAryReedMullerCode(F, 2, 4)
+            sage: C.num_of_var()
+            4
+        """
+        return self._num_of_var
+
+    def q(self):
+        r"""
+        Returns the size of the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(59)
+            sage: C = codes.QAryReedMullerCode(F, 2, 4)
+            sage: C.q()
+            59
+        """
+        return self._q
+
+    def minimum_distance(self):
+        r"""
+        Returns the minimum distance of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(5)
+            sage: C = codes.QAryReedMullerCode(F, 2, 4)
+            sage: C.minimum_distance()
+            375
+        """
+        d = self.order()
+        q = self.q()
+        n = self.length()
+        return ((q - d) * n) / q
 
     def _repr_(self):
         r"""
@@ -208,7 +323,8 @@ class QAryReedMullerCode(AbstractLinearCode):
             sage: C
             59-ary Reed Muller Code of order 2 and number of variables 4
         """
-        return "%s-ary Reed Muller Code of order %s and number of variables %s" % (self.q, self.order, self.numberOfVariable)
+        return "%s-ary Reed Muller Code of order %s and number of variables %s"\
+            % (self.q(), self.order(), self.num_of_var())
 
     def _latex_(self):
         r"""
@@ -221,9 +337,10 @@ class QAryReedMullerCode(AbstractLinearCode):
             sage: latex(C)
             59\textnormal{-ary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "%s\\textnormal{-ary Reed Muller Code of order} %s \\textnormal{and number of variables} %s" % (self.q, self.order, self.numberOfVariable)
+        return "%s\\textnormal{-ary Reed Muller Code of order} %s \\textnormal{and number of variables} %s"\
+            % (self.q(), self.order(), self.num_of_var())
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         Tests equality between Reed-Muller Code objects.
 
@@ -235,7 +352,11 @@ class QAryReedMullerCode(AbstractLinearCode):
             sage: C1.__eq__(C2)
             True
         """
-        return (isinstance(other, QAryReedMullerCode)) and self.q==other.q and self.order==other.order and self.numberOfVariable==other.numberOfVariable
+        return isinstance(other, QAryReedMullerCode) \
+            and self.q() == other.q() \
+            and self.order() == other.order() \
+            and self.num_of_var() == other.num_of_var()
+
 
 class BinaryReedMullerCode(AbstractLinearCode):
     r"""
@@ -245,7 +366,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
 
     - ``order`` -- The order of the Reed Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
 
-    - ``numberOfVariable`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
     EXAMPLES:
 
@@ -254,12 +375,20 @@ class BinaryReedMullerCode(AbstractLinearCode):
         sage: C = codes.BinaryReedMullerCode(2, 4)
         sage: C
         Binary Reed Muller Code of order 2 and number of variables 4
+
+    WARNING::
+    The order of reed muller code here must be LESS THAN OR EQUAL TO the number of variables::
+
+        sage: C = codes.BinaryReedMullerCode(5, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The order must be less than or equal to 4
     """
 
-    _registered_encoders={}
-    _registered_decoders={}
+    _registered_encoders = {}
+    _registered_decoders = {}
 
-    def __init__(self, order, numberOfVariable):
+    def __init__(self, order, num_of_var):
         r"""
         TESTS:
 
@@ -275,21 +404,77 @@ class BinaryReedMullerCode(AbstractLinearCode):
             sage: C = codes.BinaryReedMullerCode(1.1,4)
             Traceback (most recent call last):
             ...
-            ValueError: Incorrect data-type of input: The order of the code must be an integer
+            ValueError: The order of the code must be an integer
         """
-        #input sanitization
-        if not(isinstance(order,Integer)):
-            raise ValueError("Incorrect data-type of input: The order of the code must be an integer")
-        if not(isinstance(numberOfVariable, Integer)):
-            raise ValueError("Incorrect data-type of input: The number of variables must be an integer")
-        if (numberOfVariable<order):
-            raise ValueError("The order must be less than or equal to %s" % numberOfVariable)
+        # input sanitization
+        if not(isinstance(order, Integer)):
+            raise ValueError("The order of the code must be an integer")
+        if not(isinstance(num_of_var, Integer)):
+            raise ValueError("The number of variables must be an integer")
+        if (num_of_var < order):
+            raise ValueError(
+                "The order must be less than or equal to %s" %
+                num_of_var)
 
-        super(BinaryReedMullerCode, self).__init__(GF(2), 2**numberOfVariable,"EvaluationVector","Syndrome")
-        self.order=order
-        self.numberOfVariable=numberOfVariable
-        self.q=2
-        self._dimension=binomialSum(numberOfVariable,order)
+        super(
+            BinaryReedMullerCode,
+            self).__init__(
+            GF(2),
+            2**num_of_var,
+            "EvaluationVector",
+            "Syndrome")
+        self._order = order
+        self._num_of_var = num_of_var
+        self._q = 2
+        self._dimension = _binomial_sum(num_of_var, order)
+
+    def order(self):
+        r"""
+        Returns the order of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.BinaryReedMullerCode(2, 4)
+            sage: C.order()
+            2
+        """
+        return self._order
+
+    def num_of_var(self):
+        r"""
+        Returns the number of variables used in ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.BinaryReedMullerCode(2, 4)
+            sage: C.num_of_var()
+            4
+        """
+        return self._num_of_var
+
+    def q(self):
+        r"""
+        Returns the size of the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.BinaryReedMullerCode(2, 4)
+            sage: C.q()
+            2
+        """
+        return self._q
+
+    def minimum_distance(self):
+        r"""
+        Returns the minimum distance of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.BinaryReedMullerCode(2, 4)
+            sage: C.minimum_distance()
+            4
+        """
+        return 2**(self.num_of_var() - self.order())
 
     def _repr_(self):
         r"""
@@ -301,7 +486,8 @@ class BinaryReedMullerCode(AbstractLinearCode):
             sage: C
             Binary Reed Muller Code of order 2 and number of variables 4
         """
-        return "Binary Reed Muller Code of order %s and number of variables %s" % (self.order, self.numberOfVariable)
+        return "Binary Reed Muller Code of order %s and number of variables %s" % (
+            self.order(), self.num_of_var())
 
     def _latex_(self):
         r"""
@@ -313,9 +499,10 @@ class BinaryReedMullerCode(AbstractLinearCode):
             sage: latex(C)
             \textnormal{Binary Reed Muller Code of order} 2 \textnormal{and number of variables} 4
         """
-        return "\\textnormal{Binary Reed Muller Code of order} %s \\textnormal{and number of variables} %s" % (self.order, self.numberOfVariable)
+        return "\\textnormal{Binary Reed Muller Code of order} %s \\textnormal{and number of variables} %s" % (
+            self.order(), self.num_of_var())
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         Tests equality between Reed-Muller Code objects.
 
@@ -326,7 +513,10 @@ class BinaryReedMullerCode(AbstractLinearCode):
             sage: C1.__eq__(C2)
             True
         """
-        return (isinstance(other, BinaryReedMullerCode)) and self.order==other.order and self.numberOfVariable==other.numberOfVariable
+        return isinstance(other, BinaryReedMullerCode) \
+            and self.order() == other.order() \
+            and self.num_of_var() == other.num_of_var()
+
 
 class ReedMullerVectorEncoder(Encoder):
     r"""
@@ -367,16 +557,14 @@ class ReedMullerVectorEncoder(Encoder):
             ...
             ValueError: the code has to be a Reed Muller code
         """
-        if not (isinstance(code, QAryReedMullerCode) or isinstance(code, BinaryReedMullerCode)):
+        if not (
+            isinstance(
+                code,
+                QAryReedMullerCode) or isinstance(
+                code,
+                BinaryReedMullerCode)):
             raise ValueError("the code has to be a Reed Muller code")
         super(ReedMullerVectorEncoder, self).__init__(code)
-        baseField=code.base_field()
-        order=code.order
-        numberOfVariable=code.numberOfVariable
-        q=code.q
-        baseFieldTuple=Tuples(baseField.list(),numberOfVariable)
-        exponents=Subsets(range(numberOfVariable)*(q-1), submultiset=True)[0:code.dimension()]
-        self.generator = matrix(baseField, [[reduce(mul, [x[i] for i in exponent],1) for x in baseFieldTuple.list()] for exponent in exponents])
 
     def _repr_(self):
         r"""
@@ -406,7 +594,7 @@ class ReedMullerVectorEncoder(Encoder):
         """
         return "\\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         Tests equality between ReedMullerVectorEncoder objects.
 
@@ -421,8 +609,10 @@ class ReedMullerVectorEncoder(Encoder):
             sage: D1 is D2
             False
         """
-        return (isinstance(other, ReedMullerVectorEncoder)) and self.code()==other.code()
+        return (isinstance(other, ReedMullerVectorEncoder)
+                ) and self.code() == other.code()
 
+    @cached_method
     def generator_matrix(self):
         r"""
         Returns a generator matrix of ``self``
@@ -440,7 +630,22 @@ class ReedMullerVectorEncoder(Encoder):
             [0 0 0 0 1 2 0 2 1]
             [0 0 0 1 1 1 1 1 1]
         """
-        return self.generator
+        base_field = self.code().base_field()
+        order = self.code().order()
+        num_of_var = self.code().num_of_var()
+        q = self.code().q()
+        dimension = self.code().dimension()
+        base_field_tuple = Tuples(base_field.list(), num_of_var)
+        exponents = Subsets(range(num_of_var) *
+                            min(order, (q - 1)), submultiset=True)
+        matrix_list = []
+        exponent = exponents.first()
+        for i in range(dimension):
+            matrix_list.append(
+                [reduce(mul, [x[i] for i in exponent], 1) for x in base_field_tuple])
+            exponent = exponents.next(exponent)
+        return matrix(base_field, matrix_list)
+
 
 class ReedMullerPolynomialEncoder(Encoder):
     r"""
@@ -450,7 +655,7 @@ class ReedMullerPolynomialEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
-    -``_R`` -- The polynomial field from which the message is chosen.
+    -``polynomial_ring`` -- The polynomial field from which the message is chosen.
 
     EXAMPLES::
 
@@ -463,12 +668,12 @@ class ReedMullerPolynomialEncoder(Encoder):
         sage: E2
         Evaluation polynomial-style encoder for 3-ary Reed Muller Code of order 2 and number of variables 2
 
-    We can also pass a predefined polynomial ring
+    We can also pass a predefined polynomial ring::
 
         sage: R=PolynomialRing(GF(3), 2, 'y')
         sage: C=codes.ReedMullerCode(GF(3), 2, 2)
         sage: E=codes.encoders.ReedMullerPolynomialEncoder(C, R)
-        sage: E 
+        sage: E
         Evaluation polynomial-style encoder for 3-ary Reed Muller Code of order 2 and number of variables 2
 
     Actually, we can construct the encoder from ``C`` directly::
@@ -478,7 +683,7 @@ class ReedMullerPolynomialEncoder(Encoder):
         Evaluation polynomial-style encoder for Binary Reed Muller Code of order 2 and number of variables 4
     """
 
-    def __init__(self, code, _R='default'):
+    def __init__(self, code, polynomial_ring='default'):
         r"""
         TESTS:
 
@@ -489,7 +694,7 @@ class ReedMullerPolynomialEncoder(Encoder):
             Traceback (most recent call last):
             ...
             ValueError: the code has to be a Reed Muller code
-        
+
         If the polynomial ring passed is not according to the requirement (over a different field or different number of variables) then an error is raised::
 
             sage: F=GF(59)
@@ -500,16 +705,22 @@ class ReedMullerPolynomialEncoder(Encoder):
             ...
             ValueError: The Polynomial ring should be on Finite Field of size 59 and should have 3 variables
         """
-        if not (isinstance(code, QAryReedMullerCode) or isinstance(code, BinaryReedMullerCode)):
+        if not (
+            isinstance(code, QAryReedMullerCode)
+                or isinstance(code, BinaryReedMullerCode)):
             raise ValueError("the code has to be a Reed Muller code")
         super(ReedMullerPolynomialEncoder, self).__init__(code)
-        if (_R=='default'):
-            self._R=PolynomialRing(code.base_field(), code.numberOfVariable, 'x')
+        if (polynomial_ring == 'default'):
+            self._polynomial_ring = PolynomialRing(
+                code.base_field(), code.num_of_var(), 'x')
         else:
-            if (_R.base_ring()==code.base_field()) and (len(_R.variable_names())==code.numberOfVariable):
-                self._R=_R
+            if (polynomial_ring.base_ring() == code.base_field()) and (
+                    len(polynomial_ring.variable_names()) == code.num_of_var()):
+                self._polynomial_ring = polynomial_ring
             else:
-                raise ValueError("The Polynomial ring should be on %s and should have %s variables" % (code.base_field(), code.numberOfVariable))
+                raise ValueError(
+                    "The Polynomial ring should be on %s and should have %s variables" %
+                    (code.base_field(), code.num_of_var()))
 
     def _repr_(self):
         r"""
@@ -539,7 +750,7 @@ class ReedMullerPolynomialEncoder(Encoder):
         """
         return "\\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         Tests equality between ReedMullerVectorEncoder objects.
 
@@ -554,7 +765,8 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: D1 is D2
             False
         """
-        return (isinstance(other, ReedMullerPolynomialEncoder)) and self.code()==other.code()
+        return (isinstance(other, ReedMullerPolynomialEncoder)
+                ) and self.code() == other.code()
 
     def encode(self, p):
         r"""
@@ -563,7 +775,7 @@ class ReedMullerPolynomialEncoder(Encoder):
         INPUT:
 
         - ``p`` -- A polynomial from the message space of ``self`` of degree
-          less than ``self.code().order``.
+          less than ``self.code().order()``.
 
         OUTPUT:
 
@@ -601,12 +813,14 @@ class ReedMullerPolynomialEncoder(Encoder):
         M = self.message_space()
         if p not in M:
             raise ValueError("The value to encode must be in %s" % M)
-        C=self.code()
-        if p.degree() > C.order:
-            raise ValueError("The polynomial to encode must have degree at most %s" % C.order)
-        baseFieldTuple = Tuples(C.base_field().list(), C.numberOfVariable)
-        return vector(C.base_ring(), [p(x) for x in baseFieldTuple])
-    
+        C = self.code()
+        if p.degree() > C.order():
+            raise ValueError(
+                "The polynomial to encode must have degree at most %s" %
+                C.order())
+        base_fieldTuple = Tuples(C.base_field().list(), C.num_of_var())
+        return vector(C.base_ring(), [p(x) for x in base_fieldTuple])
+
     def unencode_nocheck(self, c):
         r"""
         Returns the message corresponding to the codeword ``c``.
@@ -621,7 +835,7 @@ class ReedMullerPolynomialEncoder(Encoder):
 
         OUTPUT:
 
-        - An polynomial of degree less than ``self.code().order``.
+        - An polynomial of degree less than ``self.code().order()``.
 
         EXAMPLES::
 
@@ -639,17 +853,22 @@ class ReedMullerPolynomialEncoder(Encoder):
         Note that no error is thrown if ``c`` is not a codeword, and that the
         result is undefined::
 
-            sage: c = vector(F, (1, 2, 0, 0, 2, 1, 1, 1, 0))
+            sage: c = vector(F, (1, 2, 0, 0, 2, 1, 0, 1, 1))
             sage: c in C
             False
             sage: p = E.unencode_nocheck(c); p
-            x1^2 + x0 + x1 + 1
+            -x0*x1 - x1^2 + x0 + 1
             sage: E.encode(p) == c
             False
 
         """
-        return multivariatePolynomialInterpolation(c, self.code().numberOfVariable, self.code().order, self.code().q, self.code().base_field(), self._R)
-
+        return _multivariate_polynomial_interpolation(
+            c,
+            self.code().num_of_var(),
+            self.code().order(),
+            self.code().q(),
+            self.code().base_field(),
+            self.polynomial_ring())
 
     def message_space(self):
         r"""
@@ -663,14 +882,33 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: E.message_space()
             Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 11
         """
-        return self._R
+        return self._polynomial_ring
 
-QAryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
-QAryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+    def polynomial_ring(self):
+        r"""
+        Returns the polynomial ring associated with ``self``
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: C = codes.ReedMullerCode(F, 2, 4)
+            sage: E = C.encoder("EvaluationPolynomial")
+            sage: E.polynomial_ring()
+            Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 11
+        """
+        return self._polynomial_ring
+
+QAryReedMullerCode._registered_encoders[
+    "EvaluationVector"] = ReedMullerVectorEncoder
+QAryReedMullerCode._registered_encoders[
+    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
 QAryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 
-BinaryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
-BinaryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+BinaryReedMullerCode._registered_encoders[
+    "EvaluationVector"] = ReedMullerVectorEncoder
+BinaryReedMullerCode._registered_encoders[
+    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
-BinaryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+BinaryReedMullerCode._registered_decoders[
+    "Syndrome"] = LinearCodeSyndromeDecoder

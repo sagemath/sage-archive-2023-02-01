@@ -2292,18 +2292,35 @@ class Link(object):
 
         This works with isolated components::
 
-            sage: L = Link([[[1,-1], [2,-2]], [1,1]])
-            sage: K.homfly_polynomial()  # optional - libhomfly
-            2
+            sage: L = Link([[[1, -1], [2, -2]], [1, 1]])
+            sage: L2 = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
+            sage: L2.homfly_polynomial()
+            -L*M^-1 - L^-1*M^-1
+            sage: L.homfly_polynomial()
+            -L*M^-1 - L^-1*M^-1
+            sage: L.homfly_polynomial('a', 'z', 'az')
+            a*z^-1 - a^-1*z^-1
+            sage: L2.homfly_polynomial('a', 'z', 'az')
+            a*z^-1 - a^-1*z^-1
 
         REFERENCES:
 
         - :wikipedia:`HOMFLY_polynomial`
+
+        .. [MathWorld] http://mathworld.wolfram.com/HOMFLYPolynomial.html]
         """
-        if len(self._isolated_components()) > 1:
-            return sum(Link(comp).homfly_polynomial()
-                       for comp in self._isolated_components())
         L = LaurentPolynomialRing(ZZ, [var1, var2])
+        if len(self._isolated_components()) > 1:
+            if normalization == 'lm':
+                fact = L({(1, -1):-1, (-1, -1):-1})
+            elif normalization == 'az':
+                fact = L({(1, -1):1, (-1, -1):-1})
+            else:
+                raise ValueError('normalization must be either `lm` or `az`')
+            fact = fact ** (len(self._isolated_components())-1)
+            for i in self._isolated_components():
+                fact = fact * Link(i).homfly_polynomial(var1, var2, normalization)
+            return fact
         s = '{}'.format(self.number_of_components())
         ogc = self.oriented_gauss_code()
         for comp in ogc[0]:

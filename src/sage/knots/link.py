@@ -1924,8 +1924,8 @@ class Link(object):
         .. PLOT::
             :width: 300 px
 
-            sage: g = BraidGroup(2).gen(0)
-            sage: K = Link(g^3)
+            g = BraidGroup(2).gen(0)
+            K = Link(g^3)
             GA = graphics_array((K.plot(), K.mirror_image().plot()))
             sphinx_plot(GA.show(axes=False))
 
@@ -1957,7 +1957,7 @@ class Link(object):
             K2 = K.mirror_image()
             sphinx_plot(K2.plot())
         """
-        if self._braid:
+        if self._pd_code is None and self._braid:
             return type(self)(~self._braid)
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
         return type(self)(pd)

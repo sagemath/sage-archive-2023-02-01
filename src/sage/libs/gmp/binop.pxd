@@ -17,6 +17,7 @@ cdef inline void mpq_sub_z(mpq_t res, mpq_t op1, mpz_t op2):
     mpz_set(mpq_denref(res), mpq_denref(op1))
 
 cdef inline void mpq_mul_z(mpq_t res, mpq_t op1, mpz_t op2):
+    # (A/B) * C = (A/C) * B
     mpz_set(mpq_numref(res), op2)
     mpz_set(mpq_denref(res), mpq_denref(op1))
     mpq_canonicalize(res)
@@ -28,5 +29,9 @@ cdef inline void mpq_div_z(mpq_t res, mpq_t op1, mpz_t op2):
     mpz_set(mpq_denref(res), op2)
     mpq_canonicalize(res)
     mpz_mul(mpq_denref(res), mpq_denref(res), mpq_denref(op1))
+    if mpz_sgn(mpq_denref(res)) == -1:
+        mpz_neg(mpq_numref(res), mpq_numref(res))
+        mpz_neg(mpq_denref(res), mpq_denref(res))
+
 
 

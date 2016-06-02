@@ -1908,12 +1908,32 @@ class Link(object):
 
     def mirror_image(self):
         r"""
-        Return The mirror image of `self`
+        Return the mirror image of ``self``.
 
         EXAMPLES::
 
-            sage: K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
-            sage: K2 = K.mirror_image()
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Link(g^3)
+            sage: K2 = K.mirror_image(); K2
+            Link with 1 component represented by 3 crossings
+            sage: K2.braid()
+            s^-3
+            sage: GA = graphics_array((K.plot(), K2.plot()))
+            sage: GA.show(axes=False)
+
+        .. PLOT::
+            :width: 300 px
+
+            sage: g = BraidGroup(2).gen(0)
+            sage: K = Link(g^3)
+            GA = graphics_array((K.plot(), K.mirror_image().plot()))
+            sphinx_plot(GA.show(axes=False))
+
+        ::
+
+            sage: K = Knot([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sage: K2 = K.mirror_image(); K2
+            Knot represented by 3 crossings
             sage: K.pd_code()
             [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
             sage: K2.pd_code()
@@ -1927,7 +1947,7 @@ class Link(object):
             :width: 300 px
 
             K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
-            K2 = K.mirror_image()
+            GA = graphics_array((K.plot(), K.mirror_image().plot()))
             sphinx_plot(K.plot())
 
         .. PLOT::
@@ -1936,10 +1956,11 @@ class Link(object):
             K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
             K2 = K.mirror_image()
             sphinx_plot(K2.plot())
-
         """
+        if self._braid:
+            return type(self)(~self._braid)
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
-        return self.__class__(pd)
+        return type(self)(pd)
 
     def writhe(self):
         """

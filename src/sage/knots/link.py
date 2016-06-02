@@ -1906,6 +1906,33 @@ class Link(object):
             regions.append(region)
         return regions
 
+    def mirror_image(self):
+        r"""
+        Return The mirror image of `self`
+
+        EXAMPLES::
+
+            sage: K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sage: K2 = K.mirror_image()
+            sage: K.pd_code()
+            [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
+            sage: K2.pd_code()
+            [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
+            sage: GA = graphics_array((K.plot(), K2.plot()))
+            sage: GA.show(axes=False)
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            K2 = K.mirror_image()
+            GA = graphics_array((K.plot(), K2.plot()))
+            sphinx_plot(GA.show(axes=False))
+
+        """
+        pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
+        return self.__class__(pd)
+
     def writhe(self):
         """
         Return the writhe of ``self``.

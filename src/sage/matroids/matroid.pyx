@@ -6126,16 +6126,18 @@ cdef class Matroid(SageObject):
         """
         Check if the circuit ``C`` has a chord.
 
-        INPUT: 
+        INPUT:
 
         - ``C`` -- a circuit
-        - ``certificate`` -- (default: ``False``) boolean
+        - ``certificate`` -- (default: ``False``) boolean, if ``True``, finds an element
+          ``x`` and, disjoint except at ``x``, circuits ``Ax`` and ``Bx`` so that 
+          ``Ax`` union ``Bx`` is the elements of ``C`` together with ``x``.
 
         OUTPUT:
 
         - boolean and if certificate is ``True``, also return a tuple
-          ``(x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and ``Bx``
-          are circuits whose union is ``C`` and ``x``, or ``None`` if
+          ``(x, Ax, Bx)``, where ``x`` is a chord  of ``C`` with ``Ax`` and ``Bx``
+          circuits whose union is the elements of ``C`` together with ``x``, or ``None`` if
           ``C`` is not chordal
 
         EXAMPLES::
@@ -6180,7 +6182,7 @@ cdef class Matroid(SageObject):
         exists sets `A, B` such that `C = A \sqcup B` and `A + x` and
         `B + x` are circuits.
 
-        INPUT: 
+        INPUT:
 
         - ``C`` -- a circuit
         - ``certificate`` -- (default: ``False``) boolean

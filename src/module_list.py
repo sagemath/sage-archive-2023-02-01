@@ -591,6 +591,11 @@ ext_modules = [
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx']),
 
+    OptionalExtension('sage.libs.homfly',
+                      sources = ["sage/libs/homfly.pyx"],
+                      libraries = ["homfly", "gc"],
+                      package="libhomfly"),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
@@ -710,6 +715,7 @@ ext_modules = [
     ###################################
 
     Extension('*', ["sage/libs/eclib/*.pyx"]),
+
 
     ################################
     ##

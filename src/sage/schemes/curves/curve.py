@@ -1,5 +1,5 @@
 """
-Generic plane curves.
+Generic curves.
 """
 
 from sage.misc.all import latex

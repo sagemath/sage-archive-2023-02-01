@@ -1,5 +1,5 @@
 """
-Projective curves over fields.
+Projective curves.
 
 EXAMPLES:
 
@@ -804,3 +804,8 @@ def Hasse_bounds(q, genus=1):
     else:
         rq = (4*(genus**2)*q).isqrt()
     return (q+1-rq,q+1+rq)
+
+# Fix pickles from changing class names and plane_curves folder name
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.plane_curves.projective_curve',
+                           'ProjectiveCurve_generic', ProjectivePlaneCurve)

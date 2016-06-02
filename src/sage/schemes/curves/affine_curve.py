@@ -1,5 +1,5 @@
 """
-Affine curves over fields.
+Affine curves.
 
 EXAMPLES:
 

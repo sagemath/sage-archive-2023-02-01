@@ -2306,8 +2306,7 @@ class Link(object):
         REFERENCES:
 
         - :wikipedia:`HOMFLY_polynomial`
-
-        .. [MathWorld] http://mathworld.wolfram.com/HOMFLYPolynomial.html]
+        - http://mathworld.wolfram.com/HOMFLYPolynomial.html
         """
         L = LaurentPolynomialRing(ZZ, [var1, var2])
         if len(self._isolated_components()) > 1:

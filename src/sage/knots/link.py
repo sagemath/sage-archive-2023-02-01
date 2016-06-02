@@ -1918,16 +1918,24 @@ class Link(object):
             [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
             sage: K2.pd_code()
             [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
-            sage: GA = graphics_array((K.plot(), K2.plot()))
-            sage: GA.show(axes=False)
+            sage: K.plot()
+            Graphics object consisting of ... graphics primitives
+            sage: K2.plot()
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
 
             K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
             K2 = K.mirror_image()
-            GA = graphics_array((K.plot(), K2.plot()))
-            sphinx_plot(GA.show(axes=False))
+            sphinx_plot(K.plot())
+
+        .. PLOT::
+            :width: 300 px
+
+            K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            K2 = K.mirror_image()
+            sphinx_plot(K2.plot())
 
         """
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]

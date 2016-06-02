@@ -273,6 +273,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         ct = kwds.get("cartan_type", None)
         if ct is not None:
+            from sage.combinat.root_system.cartan_type import CartanType
             ct = CartanType(ct)
             if not ct.is_finite():
                 raise NotImplementedError("non-finite types are not implemented yet, see trac #14901 for details")

@@ -1924,8 +1924,8 @@ class Link(object):
         .. PLOT::
             :width: 300 px
 
-            sage: g = BraidGroup(2).gen(0)
-            sage: K = Link(g^3)
+            g = BraidGroup(2).gen(0)
+            K = Link(g^3)
             GA = graphics_array((K.plot(), K.mirror_image().plot()))
             sphinx_plot(GA.show(axes=False))
 

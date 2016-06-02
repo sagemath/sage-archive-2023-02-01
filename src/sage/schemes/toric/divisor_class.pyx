@@ -54,7 +54,7 @@ divisor representing a divisor class::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.libs.gmp.mpq cimport *
 
@@ -248,7 +248,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         TESTS::
 
             sage: D = toric_varieties.dP6().divisor(0).divisor_class()
-            sage: print D._latex_()
+            sage: print(D._latex_())
             \left[ 1, 0, 0, 0 \right]_{\mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{9}}\right)}
         """
         return r"\left[ %s \right]_{%s}" % (

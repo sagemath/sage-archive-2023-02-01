@@ -120,6 +120,7 @@ additional functionality (e.g. linear extensions).
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
+    - :meth:`is_max_weight_independent_generic() <sage.matroids.matroid.Matroid.is_max_weight_independent_generic>`
     - :meth:`intersection() <sage.matroids.matroid.Matroid.intersection>`
     - :meth:`intersection_unweighted() <sage.matroids.matroid.Matroid.intersection_unweighted>`
 
@@ -1448,7 +1449,7 @@ cdef class Matroid(SageObject):
 
     cpdef closure(self, X):
         """
-        Return the closure of a set.
+        Return the closure of a set ``X``.
 
         A set is *closed* if adding any extra element to it will increase the
         rank of the set. The *closure* of a set is the smallest closed set
@@ -1481,9 +1482,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the ``k``-closure of ``X``.
 
-        A set `S` is `k`-*closed* if the closure of any `k` element subsets
-        is contained in `S`. The `k`-*closure* of a set `X` is the smallest
-        `k`-closed set containing `X`.
+        A subset `S` of the groundset is `k`-*closed* if the closure of
+        any subset `T` of `S` satisfying `|T| \leq k` is contained in `S`.
+        The `k`-*closure* of a set `X` is the smallest `k`-closed set
+        containing `X`.
 
         INPUT:
 
@@ -1674,7 +1676,7 @@ cdef class Matroid(SageObject):
 
     cpdef max_coindependent(self, X):
         """
-        Compute a maximal coindependent subset.
+        Compute a maximal coindependent subset of ``X``.
 
         A set is *coindependent* if it is independent in the dual matroid.
         A set is coindependent if and only if the complement is *spanning*
@@ -1709,7 +1711,7 @@ cdef class Matroid(SageObject):
 
     cpdef coclosure(self, X):
         """
-        Return the coclosure of a set.
+        Return the coclosure of a set ``X``.
 
         A set is *coclosed* if it is closed in the dual matroid. The
         *coclosure* of `X` is the smallest coclosed set containing `X`.
@@ -1832,7 +1834,8 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of loops of the matroid.
 
-        A *loop* is a one-element dependent set.
+        A *loop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is dependent.
 
         OUTPUT:
 
@@ -1850,7 +1853,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_independent(self, X):
         r"""
-        Check if a subset is independent in the matroid.
+        Check if a subset ``X`` is independent in the matroid.
 
         INPUT:
 
@@ -1878,7 +1881,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_dependent(self, X):
         r"""
-        Check if a subset is dependent in the matroid.
+        Check if a subset ``X`` is dependent in the matroid.
 
         INPUT:
 
@@ -2061,8 +2064,9 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of coloops of the matroid.
 
-        A *coloop* is a one-element cocircuit. It is a loop of the dual of the
-        matroid.
+        A *coloop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is a cocircuit. In other words, a coloop
+        is a loop of the dual of the matroid.
 
         OUTPUT:
 
@@ -6407,6 +6411,299 @@ cdef class Matroid(SageObject):
             else:
                 res.discard(e)
         return frozenset(res)
+
+    cpdef is_max_weight_independent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one basis of the subset ``X`` has maximal
+        weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+
+        INPUT:
+
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as a list, tuple or set).
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before. If an element is not independent of the
+        previously selected elements, then we check if it is independent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_max_weight_independent_generic()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_independent_generic(weights={x: x for x in M.groundset()})
+            True
+            sage: M.is_max_weight_independent_generic()
+            False
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_independent_generic()
+            False
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
+            False
+            sage: M.is_max_weight_independent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            True
+        """
+        res = []
+        r = 0
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
+        if weights is None:
+            Y = list(X)
+            for e in Y:
+                res.append(e)
+                if self._rank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    if self._rank([e]) >= 1:
+                        return False
+            return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elements of ``X``.
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+
+        # ``res`` is a partially built maximal weighted basis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted basis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is independent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight basis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but dependent on ``res`` at the time of its iteration is
+        # already dependent on ``smres``, the our maximal weight basis is
+        # unique.
+        smres = []
+        for e in Y:
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
+                if wt_dic[e] < wt_dic[res[-1]]:
+                    smres=res[:]
+            res.append(e)
+            if self._rank(res) > r:
+                r += 1
+            else:
+                smres.append(e)
+                if self._rank(smres) >= len(smres):
+                    return False
+                del smres[-1]
+                del res[-1]
+        return True
+
+    cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one cobasis of the subset ``X`` has maximal
+        weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+        INPUT:
+
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as a list, tuple or set).
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by increasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are coindependent
+        of all that was selected before. If an element is not coindependent of the
+        previously selected elements, then we check if it is coindependent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_max_weight_coindependent_generic()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_coindependent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_coindependent_generic(weights={x: x for x in M.groundset()})
+            True
+            sage: M.is_max_weight_coindependent_generic()
+            False
+
+            sage: M=matroids.Uniform(2,5) 
+            sage: wt={0: 1, 1: 1, 2: 1, 3: 2, 4: 2}
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.dual().is_max_weight_coindependent_generic(weights=wt)
+            True
+
+
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_coindependent_generic()
+            False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
+            False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            False
+        """
+        res = []
+        r = 0
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
+        if weights is None:
+            Y = list(X)
+            for e in Y:
+                res.append(e)
+                if self._corank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    if self._corank([e]) >= 1:
+                        return False
+            return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elementns of X.
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse = True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+
+        # ``res`` is a partially built maximal weighted cobasis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted cobasis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is coindependent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight cobasis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but codependent on ``res`` at the time of its iteration is
+        # already codependent on ``smres``, the our maximal weight cobasis
+        # is unique.
+        smres = []
+        for e in Y:
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
+                if wt_dic[e] < wt_dic[res[-1]]:
+                    smres=res[:]
+            res.append(e)
+            if self._corank(res) > r:
+                r += 1
+            else:
+                smres.append(e)
+                if self._corank(smres) >= len(smres):
+                    return False
+                del smres[-1]
+                del res[-1]
+        return True
+
 
     cpdef intersection(self, other, weights=None):
         r"""

@@ -66,7 +66,7 @@ This is *the one thing* to have in mind when working with this data structure::
         cdef int i, j
         for i in range(g.n):
             for j in range(g.neighbors[i+1]-g.neighbors[i]):
-                print "There is an edge from",str(i),"to",g.neighbors[i][j]
+                print("There is an edge from {} to {}".format(i, g.neighbors[i][j]))
 
 **Advantages**
 
@@ -179,6 +179,7 @@ with C arguments).
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/data_structures/bitset.pxi"
 cimport cpython
@@ -625,7 +626,7 @@ def tarjan_strongly_connected_components(G):
         ....:      s1 = Set(map(Set,scc1))
         ....:      s2 = Set(map(Set,scc2))
         ....:      if s1 != s2:
-        ....:          print "Ooch !"
+        ....:          print("Ooch !")
     """
     from sage.graphs.digraph import DiGraph
 

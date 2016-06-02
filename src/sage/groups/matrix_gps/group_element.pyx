@@ -68,6 +68,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
@@ -491,7 +492,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: g = G([[1, 1], [0, 1]])
-            sage: print g._latex_()
+            sage: print(g._latex_())
             \left(\begin{array}{rr}
             1 & 1 \\
             0 & 1

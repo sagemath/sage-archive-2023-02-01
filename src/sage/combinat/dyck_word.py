@@ -279,9 +279,9 @@ class DyckWord(CombinatorialElement):
 
         sage: dw = DyckWord([1, 0, 1, 0]); dw
         [1, 0, 1, 0]
-        sage: print dw
+        sage: print(dw)
         ()()
-        sage: print dw.height()
+        sage: dw.height()
         1
         sage: dw.to_noncrossing_partition()
         [[1], [2]]
@@ -328,7 +328,7 @@ class DyckWord(CombinatorialElement):
 
     ::
 
-        sage: print DyckWord([1,0,1,1,0,0]).to_path_string()
+        sage: print(DyckWord([1,0,1,1,0,0]).to_path_string())
            /\
         /\/  \
         sage: DyckWord([1,0,1,1,0,0]).pretty_print()
@@ -526,10 +526,10 @@ class DyckWord(CombinatorialElement):
 
         TESTS::
 
-            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE")
+            sage: print(DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE"))
              /\
             /  \/\
-            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False)
+            sage: print(DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False))
                  _
              ___|  2
             | x  . 3
@@ -627,9 +627,9 @@ class DyckWord(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print DyckWord([1, 0, 1, 0])
+            sage: print(DyckWord([1, 0, 1, 0]))
             ()()
-            sage: print DyckWord([1, 1, 0, 0])
+            sage: print(DyckWord([1, 1, 0, 0]))
             (())
         """
         if self._has_2D_print:
@@ -644,12 +644,12 @@ class DyckWord(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print DyckWord([1, 0, 1, 0]).to_path_string()
+            sage: print(DyckWord([1, 0, 1, 0]).to_path_string())
             /\/\
-            sage: print DyckWord([1, 1, 0, 0]).to_path_string()
+            sage: print(DyckWord([1, 1, 0, 0]).to_path_string())
              /\
             /  \
-            sage: print DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
+            sage: print(DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string())
                 /\
              /\/  \/\/\
             /          \
@@ -834,7 +834,7 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([]).pretty_print()
             .
         """
-        print self._repr_lattice(type, labelling, underpath)
+        print(self._repr_lattice(type, labelling, underpath))
 
     pp = pretty_print
 
@@ -2927,7 +2927,6 @@ class DyckWord_complete(DyckWord):
         l.reverse()
 
         for move in l:
-            #print x_pos, y_pos, mode, move
             if mode == "left":
                 if move == close_symbol:
                     x_pos -= 1

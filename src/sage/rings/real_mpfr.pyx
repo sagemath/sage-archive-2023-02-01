@@ -110,6 +110,7 @@ Make sure we don't have a new field for every new literal::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import math # for log
 import sys
@@ -492,8 +493,8 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         global MY_MPFR_PREC_MAX
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
-            raise ValueError, "prec (=%s) must be >= %s and <= %s"%(
-                prec, MPFR_PREC_MIN, MY_MPFR_PREC_MAX)
+            raise ValueError("prec (=%s) must be >= %s and <= %s" % (
+                prec, MPFR_PREC_MIN, MY_MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
 
@@ -1152,7 +1153,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         cdef RealNumber x
         if n < 0:
-            raise ArithmeticError, "n must be nonnegative"
+            raise ArithmeticError("n must be nonnegative")
         x = self._new()
         if self.__prec > SIG_PREC_THRESHOLD and n < SIG_PREC_THRESHOLD: sig_on()
         mpfr_fac_ui(x.value, n, self.rnd)
@@ -1232,7 +1233,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
     def _factor_univariate_polynomial(self, f):
         """
@@ -1849,13 +1850,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Test various bases::
 
-            sage: print (65536.0).str(base=2)
+            sage: print((65536.0).str(base=2))
             1.0000000000000000000000000000000000000000000000000000e16
-            sage: print (65536.0).str(base=36)
+            sage: print((65536.0).str(base=36))
             1ekg.00000000
-            sage: print (65536.0).str(base=62)
+            sage: print((65536.0).str(base=62))
             H32.0000000
-            sage: print (65536.0).str(base=63)
+            sage: print((65536.0).str(base=63))
             Traceback (most recent call last):
             ...
             ValueError: base (=63) must be an integer between 2 and 62
@@ -2045,7 +2046,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_get_z(n.value, self.value, MPFR_RNDN)
             return n
 
-        raise TypeError, "Attempt to coerce non-integral RealNumber to Integer"
+        raise TypeError("Attempt to coerce non-integral RealNumber to Integer")
 
     def integer_part(self):
         """
@@ -2070,7 +2071,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             100000000000000000
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert infinity or NaN to Sage Integer'
+            raise ValueError('Cannot convert infinity or NaN to Sage Integer')
 
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, MPFR_RNDZ)
@@ -2107,7 +2108,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1
         """
         if mpfr_nan_p(self.value):
-            raise ValueError, "Cannot compute fp_rank of NaN"
+            raise ValueError("Cannot compute fp_rank of NaN")
 
         cdef Integer z = PY_NEW(Integer)
 
@@ -2409,7 +2410,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.375000000000000
         """
         if n > sys.maxsize:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         cdef RealNumber x = self._new()
         mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2428,11 +2429,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             TypeError: unsupported operands for >>
         """
         if not isinstance(x, RealNumber):
-            raise TypeError, "unsupported operands for >>"
+            raise TypeError("unsupported operands for >>")
         try:
             return x._rshift_(Integer(y))
         except TypeError:
-            raise TypeError, "unsupported operands for >>"
+            raise TypeError("unsupported operands for >>")
 
 
     def multiplicative_order(self):
@@ -2763,7 +2764,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Calling floor() on infinity or NaN'
+            raise ValueError('Calling floor() on infinity or NaN')
         x = self._new()
         mpfr_floor(x.value, self.value)
         return x.integer_part()
@@ -2794,7 +2795,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Calling ceil() on infinity or NaN'
+            raise ValueError('Calling ceil() on infinity or NaN')
         x = self._new()
         mpfr_ceil(x.value, self.value)
         return x.integer_part()
@@ -2971,7 +2972,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             <type 'int'>
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert infinity or NaN to Python int'
+            raise ValueError('Cannot convert infinity or NaN to Python int')
 
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, MPFR_RNDZ)
@@ -2989,7 +2990,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             <type 'long'>
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert infinity or NaN to Python long'
+            raise ValueError('Cannot convert infinity or NaN to Python long')
 
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, MPFR_RNDZ)
@@ -3106,7 +3107,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
-            raise ValueError, 'Cannot convert NaN or infinity to Pari float'
+            raise ValueError('Cannot convert NaN or infinity to Pari float')
 
         # wordsize for PARI
         cdef unsigned long wordsize = sizeof(long)*8
@@ -3267,7 +3268,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             ValueError: Cannot convert NaN or infinity to rational number
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+            raise ValueError('Cannot convert NaN or infinity to rational number')
 
         cdef Integer mantissa = Integer()
         cdef mp_exp_t exponent
@@ -3411,7 +3412,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             ValueError: Cannot convert NaN or infinity to rational number
         """
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+            raise ValueError('Cannot convert NaN or infinity to rational number')
 
         if mpfr_zero_p(self.value):
             return Rational(0)
@@ -3526,11 +3527,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
 
         if not mpfr_number_p(self.value):
-            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+            raise ValueError('Cannot convert NaN or infinity to rational number')
 
         if ((max_error is None and max_denominator is None) or
             (max_error is not None and max_denominator is not None)):
-            raise ValueError, 'Must specify exactly one of max_error or max_denominator in nearby_rational()'
+            raise ValueError('Must specify exactly one of max_error or max_denominator in nearby_rational()')
 
         if max_error is not None:
             from real_mpfi import RealIntervalField
@@ -3937,7 +3938,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     return [x, -x]
             return x
         if not extend:
-            raise ValueError, "negative number %s does not have a square root in the real field"%self
+            raise ValueError("negative number %s does not have a square root in the real field" % self)
         return self._complex_number_().sqrt(all=all)
 
     def is_square(self):
@@ -5197,14 +5198,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.999999995720382
         """
         if n <= 0:
-            raise ValueError, "n must be positive"
+            raise ValueError("n must be positive")
 
         cdef int odd = (n & 1)
 
         cdef int sgn = mpfr_sgn(self.value)
 
         if sgn < 0 and not odd:
-            raise ValueError, "taking an even root of a negative number"
+            raise ValueError("taking an even root of a negative number")
 
         if sgn == 0 or n == 1 or not mpfr_number_p(self.value):
             return self

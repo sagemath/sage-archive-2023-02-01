@@ -25,6 +25,8 @@ AUTHORS:
 
 - Vincent Delecroix (2015-02): comparisons/floor/ceil using embeddings
 
+- Kiran Kedlaya (2016-05): relative number fields hash based on relative polynomials
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -86,6 +88,7 @@ We do some arithmetic in a tower of relative number fields::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -2620,7 +2623,7 @@ class NumberField_generic(number_field_base.NumberField):
         Numbered variables are often correctly typeset::
 
             sage: k.<theta25> = NumberField(x^25+x+1)
-            sage: print k._latex_()
+            sage: print(k._latex_())
             \Bold{Q}[\theta_{25}]/(\theta_{25}^{25} + \theta_{25} + 1)
         """
         return "%s[%s]/(%s)"%(latex(QQ), self.latex_variable_name(),
@@ -2719,6 +2722,19 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: M['x'] == L['x']
             False
+            
+        Similarly, two relative number fields which are isomorphic as absolute
+        fields, but which are not presented the same way, should not be equal (see
+        :trac:`18942`)::
+
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
+            True
 
         """
         if self is other:
@@ -2730,7 +2746,7 @@ class NumberField_generic(number_field_base.NumberField):
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
         # compare coefficients so that the polynomial variable does not count
-        c = cmp(list(self.__polynomial), list(other.__polynomial))
+        c = cmp(list(self.relative_polynomial()), list(other.relative_polynomial()))
         if c: return c
         # Now we compare the embeddings (if any).
         f, g = self.coerce_embedding(), other.coerce_embedding()
@@ -2763,8 +2779,47 @@ class NumberField_generic(number_field_base.NumberField):
             sage: hash(K) == hash(L)
             True
 
+        The number fields ``K`` and ``L`` in the following example used to have
+        the same hash prior to :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2 + x + 1)
+            sage: y = polygen(F)
+            sage: K = F.extension(y^3 + 3*omega + 2, 'alpha')
+            sage: L = F.extension(y^3 - 3*omega - 1, 'alpha')
+            sage: K == L
+            False
+            sage: K.is_isomorphic(L)
+            True
+            sage: hash(K) == hash(L)
+            False
+            
+        This example illustrates the issue resolved in :trac:`18942`::
+        
+            sage: F.<omega> = NumberField(x^2+x+1)
+            sage: xx = polygen(F)
+            sage: ps = [p for p, _ in F(7).factor()]
+            sage: for mu in ps:
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print(K.defining_polynomial().roots(K))
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            sage: for mu in ps:
+            ....:     K = F.extension(xx^3 - mu, 'alpha')
+            ....:     print(K.defining_polynomial().roots(K))
+            [(alpha, 1), ((-omega - 1)*alpha, 1), (omega*alpha, 1)]
+            [(alpha, 1), (omega*alpha, 1), ((-omega - 1)*alpha, 1)]
+            
+        This example was suggested on sage-nt; see :trac:`18942`::
+
+            sage: G=DirichletGroup(80);
+            sage: for chi in G:
+            ....:     D=ModularSymbols(chi,2,-1).cuspidal_subspace().new_subspace().decomposition()
+            ....:     for f in D:
+            ....:         elt=f.q_eigenform(10,'alpha')[3];
+            ....:         assert(elt.is_integral())
+
         """
-        return hash((self.variable_name(), self.base_field(), tuple(self.__polynomial)))
+        return hash((self.variable_name(), self.base_field(), tuple(self.relative_polynomial())))
 
     def _ideal_class_(self, n=0):
         """
@@ -2891,9 +2946,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^2 + 23)
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
-            ....:     print n
+            ....:     print(n)
             ....:     for I in d[n]:
-            ....:         print I
+            ....:         print(I)
             1
             Fractional ideal (1)
             2
@@ -5882,6 +5937,8 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
+        ALGORITHM: Uses PARI's bnfunit command.
+
         INPUT:
 
         - ``proof`` (bool, default True) flag passed to ``pari``.
@@ -5890,7 +5947,11 @@ class NumberField_generic(number_field_base.NumberField):
 
             For more functionality see the unit_group() function.
 
-        ALGORITHM: Uses PARI's bnfunit command.
+        .. SEEALSO::
+
+            :meth:`unit_group`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 
@@ -5957,7 +6018,7 @@ class NumberField_generic(number_field_base.NumberField):
     def unit_group(self, proof=None):
         """
         Return the unit group (including torsion) of this number field.
-
+        
         ALGORITHM: Uses PARI's bnfunit command.
 
         INPUT:
@@ -5967,6 +6028,12 @@ class NumberField_generic(number_field_base.NumberField):
         .. note::
 
            The group is cached.
+           
+        .. SEEALSO::
+
+            :meth:`units`
+            :meth:`S_unit_group`
+            :meth:`S_units`
 
         EXAMPLES::
 
@@ -9407,7 +9474,6 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##             return self._element_class(self, x.polynomial())
 ##         n = K.zeta_order()
 ##         m = self.zeta_order()
-##         print n, m, x
 
 
 ##         self_gen = self.gen()

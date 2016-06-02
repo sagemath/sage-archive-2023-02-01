@@ -38,6 +38,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.calculus.functions import jacobian
 from sage.categories.number_fields import NumberFields
@@ -107,8 +108,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         sage: H = C.Hom(E)
         sage: H([zbar,xbar-ybar,-(xbar+ybar)/80])
         Scheme morphism:
-          From: Projective Curve over Rational Field defined by x^3 + y^3 + 60*z^3
-          To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
+          From: Projective Plane Curve over Rational Field defined by x^3 + y^3 + 60*z^3
+          To:   Projective Plane Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
           Defn: Defined on coordinates by sending (x : y : z) to
                 (z : x - y : -1/80*x - 1/80*y)
 
@@ -1521,7 +1522,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([1/3*x^2+1/2*y^2, y^2])
-            sage: print f.primes_of_bad_reduction()
+            sage: f.primes_of_bad_reduction()
             [2, 3]
 
         ::
@@ -3049,12 +3050,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+z^2, y^2+x^2, z^2+y^2])
             sage: f.periodic_points(1)
-            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
-            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
-            (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+            [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
             (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1), (1 : 1 : 1),
-            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
+            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1), (1 : 1 : 1),
+            (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1)]
 
         ::
 
@@ -3658,7 +3659,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([u^2 + v^2,v^2])
             sage: f.rational_periodic_points()
-            [(w : 1), (-w + 1 : 1), (1 : 0)]
+            [(w : 1), (1 : 0), (-w + 1 : 1)]
 
         ::
 
@@ -3842,7 +3843,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([x^2 + y^2, y^2])
             sage: f.rational_preimages(P(3,1))
-            [(a : 1), (-a : 1)]
+            [(-a : 1), (a : 1)]
 
         ::
 
@@ -4003,10 +4004,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([16*x^2 - 29*y^2, 16*y^2])
             sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
-            [(-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w + 1/2 : 1), (-w^2 - w +
-            25/16 : 1), (w^2 - 29/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 25/16 : 1),
-            (-w - 1/2 : 1), (w : 1), (-w : 1), (-w^2 + 29/16 : 1), (w^2 + w - 33/16
-            : 1)]
+            [(w^2 + w - 25/16 : 1), (-w - 1/2 : 1), (w^2 - 29/16 : 1), (-w : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
+            (w : 1), (-w^2 + 21/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 33/16 : 1), (-w^2 + 29/16 : 1),
+            (-w^2 - w + 33/16 : 1)]
 
         ::
 
@@ -4299,9 +4299,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 - 29/16*y^2, y^2])
             sage: P = PS([w,1])
             sage: f.connected_rational_component(P)
-            [(w : 1), (w^2 - 29/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 25/16 : 1),
-            (-w : 1), (-w^2 + 29/16 : 1), (-w - 1/2 : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
-            (-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w^2 + w - 33/16 : 1)]
+            [(w : 1), (w^2 - 29/16 : 1), (w^2 + w - 25/16 : 1), (-w^2 - w + 25/16 : 1), (-w : 1), (w + 1/2 : 1),
+            (-w - 1/2 : 1), (-w^2 + 29/16 : 1), (-w^2 + 21/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 33/16 : 1),
+            (-w^2 - w + 33/16 : 1)]
 
         ::
 
@@ -4311,9 +4311,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P = PS([17/16,7/4,1])
             sage: f.connected_rational_component(P,3)
             [(17/16 : 7/4 : 1), (-47/256 : 17/16 : 1), (-83807/65536 : -223/256 : 1), (17/16 : -7/4 : 1),
-            (-17/16 : -7/4 : 1), (-17/16 : 7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
-            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (-1/2 : -1/2 : 1),
-            (-1/2 : 1/2 : 1), (1/2 : 1/2 : 1), (1/2 : -1/2 : 1)]
+            (-17/16 : 7/4 : 1), (-17/16 : -7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
+            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (1/2 : 1/2 : 1),
+            (-1/2 : 1/2 : 1), (-1/2 : -1/2 : 1), (1/2 : -1/2 : 1)]
         """
         points = [[],[]] # list of points and a list of their corresponding levels
         points[0].append(P)

@@ -1,118 +1,92 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear code
+Generic structures for linear codes
 
-VERSION: 1.2
+Linear Codes
+============
 
-Let `F` be a finite field.  Here, we will denote the finite field with `q`
-elements by `\GF{q}`.  A subspace of `F^n` (with the standard basis) is
-called a linear code of length `n`.  If its dimension is denoted `k` then we
-typically store a basis of `C` as a `k \times n` matrix, with rows the basis
-vectors.  It is called the generator matrix of `C`. The rows of the parity
-check matrix of `C` are a basis for the code,
+Let `F = \GF{q}` be a finite field. A rank `k` linear subspace of the vector
+space `F^n` is called an `[n, k]`-linear code, `n` being the length of the
+code and `k` its dimension. Elements of a code `C` are called codewords.
 
-.. math::
+A linear map from `F^k` to an `[n,k]` code `C` is called an "encoding", and it
+can be represented as a `k \times n` matrix, called a generator matrix.
+Alternatively, `C` can be represented by its orthogonal complement in `F^n`,
+i.e. the `n-k`-dimensional vector space `C^\perp` such that the inner product
+of any element from `C` and any element from `C^\perp` is zero. `C^\perp`
+is called the dual code of `C`, and any generator matrix for `C^\perp` is called
+a parity check matrix for `C`.
 
-      C^* = \{ v \in GF(q)^n\ |\ v\cdot c = 0,\ for \ all\ c \in C \},
+We commonly endow `F^n` with the Hamming metric, i.e. the weight of a vector is
+the number of non-zero elements in it. The central operation of a linear code is
+then "decoding": given a linear code `C \subset F^n` and a "received word" `r
+\in F^n` , retrieve the codeword `c \in C` such that the Hamming distance
+between `r` and `c` is minimal.
 
-called the dual space of `C`.
 
-If `F=\GF{2}` then `C` is called a binary code.  If `F = \GF{q}` then `C` is
-called a `q`-ary code.  The elements of a code `C` are called codewords.
+Families or Generic codes
+=========================
 
-Let `C`, `D` be linear codes of length `n` and dimension `k`. There are
-several notions of equivalence for linear codes:
+Linear codes are either studied as generic vector spaces without any known
+structure, or as particular sub-families with special properties.
 
-`C` and `D` are
+The class :class:`sage.coding.linear_code.LinearCode` is used to represent the
+former.
 
-    - permutational equivalent, if there is some permutation `\pi \in S_n`
-      such that `(c_{\pi(0)}, \ldots, c_{\pi(n-1)}) \in D` for all `c \in C`.
+For the latter, these will be represented by specialised classes; for instance,
+the family of Hamming codes are represented by the class
+:class:`sage.coding.hamming_code.HammingCode`. Type ``codes.<tab>`` for a list
+of all code families known to Sage. Such code family classes should inherit from
+the abstract base class :class:`sage.coding.linear_code.AbstractLinearCode`.
 
-    - linear equivalent, if there is some permutation `\pi \in S_n` and a
-      vector `\phi` of units of length `n` such that
-      `(c_{\pi(0)} \phi_0^{-1}, \ldots, c_{\pi(n-1)} \phi_{n-1}^{-1}) \in D`
-      for all `c \in C`.
+``AbstractLinearCode``
+----------------------
 
-    - semilinear equivalent, if there is some permutation `\pi \in S_n`, a
-      vector `\phi` of units of length `n` and a field automorphism `\alpha`
-      such that
-      `(\alpha(c_{\pi(0)}) \phi_0^{-1}, \ldots, \alpha( c_{\pi(n-1)}) \phi_{n-1}^{-1} ) \in D`
-      for all `c \in C`.
+This is a base class designed to contain methods, features and parameters
+shared by every linear code. For instance, generic algorithms for computing the
+minimum distance, the covering radius, etc. Many of these algorithms are slow,
+e.g. exponential in the code length. For specific subfamilies, better algorithms
+or even closed formulas might be known, in which case the respective method
+should be overridden.
 
-These are group actions. If one of these group elements sends
-the linear code `C` to itself, then we will call it an automorphism.
-Depending on the group action we will call those groups:
+``AbstractLinearCode`` is an abstract class for linear codes, so any linear code
+class should inherit from this class. Also ``AbstractLinearCode`` should never
+itself be instantiated.
 
-    - permuation automorphism group
+See :class:`sage.coding.linear_code.AbstractLinearCode` for details and
+examples.
 
-    - monomial automorphism group (every linear Hamming isometry is a monomial
-      transformation of the ambient space, for `n\geq 3`)
+``LinearCode``
+--------------
 
-    - automorphism group (every semilinear Hamming isometry is a semimonomial
-      transformation of the ambient space, for `n\geq 3`)
+This class is used to represent arbitrary and unstructured linear codes.
+It mostly rely directly on generic methods provided by ``AbstractLinearCode``, which
+means that basic operations on the code (e.g. computation of the minimum
+distance) will use slow algorithms.
 
-This file contains
+A ``LinearCode`` is instantiated by providing a generator matrix::
 
-#. LinearCode class definition; LinearCodeFromVectorspace conversion function,
+    sage: M = matrix(GF(2), [[1, 0, 0, 1, 0],\
+                             [0, 1, 0, 1, 1],\
+                             [0, 0, 1, 1, 1]])
+    sage: C = codes.LinearCode(M)
+    sage: C
+    Linear code of length 5, dimension 3 over Finite Field of size 2
+    sage: C.generator_matrix()
+    [1 0 0 1 0]
+    [0 1 0 1 1]
+    [0 0 1 1 1]
 
-#. The spectrum (weight distribution), covering_radius, minimum distance
-   programs (calling Steve Linton's or CJ Tjhal's C programs),
-   characteristic_function, and several implementations of the Duursma zeta
-   function (sd_zeta_polynomial, zeta_polynomial, zeta_function,
-   chinen_polynomial, for example),
+See :class:`sage.coding.linear_code.AbstractLinearCode` for more details and
+examples.
 
-#. interface with best_known_linear_code_www (interface with codetables.de
-   since A. Brouwer's online tables have been disabled),
-   bounds_minimum_distance which call tables in GUAVA (updated May 2006)
-   created by Cen Tjhai instead of the online internet tables,
+Further references
+------------------
 
-#. generator_matrix, generator_matrix_systematic, information_set, list, parity_check_matrix,
-   decode, dual_code, extended_code, shortened, punctured, genus, binomial_moment,
-   and divisor methods for LinearCode,
+If you want to get started on Sage's linear codes library, see http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
-#. Boolean-valued functions such as "==", is_self_dual, is_self_orthogonal,
-   is_subcode, is_permutation_automorphism, is_permutation_equivalent (which
-   interfaces with Robert Miller's partition refinement code),
-
-#. permutation methods: is_permutation_automorphism,
-   permutation_automorphism_group, permuted_code, standard_form,
-   module_composition_factors,
-
-#. design-theoretic methods: assmus_mattson_designs (implementing
-   Assmus-Mattson Theorem),
-
-#. code constructions, such as HammingCode and ToricCode, are in a separate
-   ``code_constructions.py`` module; in the separate ``guava.py`` module, you
-   will find constructions, such as RandomLinearCodeGuava and
-   BinaryReedMullerCode, wrapped from the corresponding GUAVA codes.
-
-EXAMPLES::
-
-    sage: MS = MatrixSpace(GF(2),4,7)
-    sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-    sage: C = LinearCode(G)
-    sage: C.basis()
-    [(1, 1, 1, 0, 0, 0, 0),
-     (1, 0, 0, 1, 1, 0, 0),
-     (0, 1, 0, 1, 0, 1, 0),
-     (1, 1, 0, 1, 0, 0, 1)]
-    sage: c = C.basis()[1]
-    sage: c in C
-    True
-    sage: c.nonzero_positions()
-    [0, 3, 4]
-    sage: c.support()
-    [0, 3, 4]
-    sage: c.parent()
-    Vector space of dimension 7 over Finite Field of size 2
-
-To be added:
-
-#. More wrappers
-
-#. GRS codes and special decoders.
-
-#. `P^1` Goppa codes and group actions on `P^1` RR space codes.
+If you want to learn more on the design of this library, see
+http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:
 
@@ -212,7 +186,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 import sage.modules.module as module
 from sage.categories.modules import Modules
@@ -270,7 +244,7 @@ def code2leon(C):
         sage: C = codes.HammingCode(GF(2), 3); C
         [7, 4] Hamming Code over Finite Field of size 2
         sage: file_loc = sage.coding.linear_code.code2leon(C)
-        sage: f = open(file_loc); print f.read()
+        sage: f = open(file_loc); print(f.read())
         LIBRARY code;
         code=seq(2,4,7,seq(
         1,0,0,0,0,1,1,
@@ -295,45 +269,12 @@ def code2leon(C):
     return file_loc
 
 def wtdist_gap(Gmat, n, F):
-    r"""
-    INPUT:
-
-    -  ``Gmat`` - String representing a GAP generator matrix G of a linear code
-
-    -  ``n`` - Integer greater than 1, representing the number of columns of G
-       (i.e., the length of the linear code)
-
-    -  ``F`` - Finite field (in Sage), base field the code
-
-    OUTPUT:
-
-    -  Spectrum of the associated code
-
-    EXAMPLES::
-
-        sage: Gstr = 'Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]'
-        sage: F = GF(2)
-        sage: sage.coding.linear_code.wtdist_gap(Gstr, 7, F)
-        [1, 0, 0, 7, 7, 0, 0, 1]
-
-    Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
-
-    ALGORITHM:
-
-    Uses C programs written by Steve Linton in the kernel of GAP, so is fairly
-    fast.
-
-    AUTHORS:
-
-    - David Joyner (2005-11)
-    """
-    G = gap(Gmat)
-    q = F.order()
-    k = gap(F)
-    z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
-    _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
-    return v
+    from sage.misc.superseded import deprecation
+    deprecation(20565, "wtdist_gap is now deprecated. Please use AbstractLinearCode._spectrum_from_gap instead.")
+    G_gap = gap(Gmat)
+    G = G_gap._matrix_(F)
+    C = LinearCode(G)
+    return C._spectrum_from_gap()
 
 def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     r"""
@@ -473,7 +414,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     EXAMPLES::
 
         sage: L = best_known_linear_code_www(72, 36, GF(2)) # optional - internet
-        sage: print L                                       # optional - internet
+        sage: print(L)                                      # optional - internet
         Construction of a linear code
         [72,36,15] over GF(2):
         [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)
@@ -503,7 +444,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
 
     url = "http://iaks-www.ira.uka.de/home/grassl/codetables/BKLC/BKLC.php"+param
     if verbose:
-        print "Looking up the bounds at %s"%url
+        print("Looking up the bounds at %s" % url)
     f = urlopen(url)
     s = f.read()
     f.close()
@@ -540,7 +481,7 @@ def bounds_minimum_distance(n, k, F):
 
     EXAMPLES::
 
-        sage: print bounds_minimum_distance(10,5,GF(2)) # optional - gap_packages (Guava package)
+        sage: print(bounds_minimum_distance(10,5,GF(2))) # optional - gap_packages (Guava package)
         rec(
           construction :=
            [ <Operation "ShortenedCode">,
@@ -603,8 +544,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 3::
 
         sage: for B in self_orthogonal_binary_codes(7,3):
-        ...    print B
-        ...
+        ....:    print(B)
         Linear code of length 2, dimension 1 over Finite Field of size 2
         Linear code of length 4, dimension 2 over Finite Field of size 2
         Linear code of length 6, dimension 3 over Finite Field of size 2
@@ -618,8 +558,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 3::
 
         sage: for B in self_orthogonal_binary_codes(7,3,4):
-        ...    print B; print B.generator_matrix()
-        ...
+        ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
         Linear code of length 6, dimension 2 over Finite Field of size 2
@@ -634,7 +573,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     to 2::
 
         sage: for B in self_orthogonal_binary_codes(7,2,4):
-        ...    print B; print B.generator_matrix()
+        ....:    print(B); print(B.generator_matrix())
         Linear code of length 4, dimension 1 over Finite Field of size 2
         [1 1 1 1]
         Linear code of length 6, dimension 2 over Finite Field of size 2
@@ -645,7 +584,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     dimension equal to 4::
 
         sage: for B in self_orthogonal_binary_codes(8, 4, equal=True):
-        ...     print B; print B.generator_matrix()
+        ....:     print(B); print(B.generator_matrix())
         Linear code of length 8, dimension 4 over Finite Field of size 2
         [1 0 0 1 0 0 0 0]
         [0 1 0 0 1 0 0 0]
@@ -808,7 +747,7 @@ class AbstractLinearCode(module.Module):
             1
             sage: C.is_self_orthogonal()
             False
-            sage: print C.divisor() #long time
+            sage: print(C.divisor()) #long time
             1
 
         TESTS:
@@ -1534,8 +1473,6 @@ class AbstractLinearCode(module.Module):
         H = G.right_kernel()
         return H.basis_matrix()
 
-    check_mat = deprecated_function_alias(17973, parity_check_matrix)
-
     @cached_method
     def covering_radius(self):
         r"""
@@ -2254,8 +2191,6 @@ class AbstractLinearCode(module.Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
-    gen_mat = deprecated_function_alias(17973, generator_matrix)
-
     def generator_matrix_systematic(self):
         """
         Return a systematic generator matrix of the code.
@@ -2275,8 +2210,6 @@ class AbstractLinearCode(module.Module):
             [0 0 1]
         """
         return self.generator_matrix().echelon_form()
-
-    gen_mat_systematic = deprecated_function_alias(17973, generator_matrix_systematic)
 
     @cached_method
     def gens(self):
@@ -2709,7 +2642,7 @@ class AbstractLinearCode(module.Module):
             mats.append(m)
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
-        print gap("MTX.CompositionFactors( M )")
+        print(gap("MTX.CompositionFactors( M )"))
 
     def permutation_automorphism_group(self, algorithm="partition"):
         r"""
@@ -2824,7 +2757,7 @@ class AbstractLinearCode(module.Module):
             gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
             gap.eval("eltsC:=Elements(C)")
             if algorithm=="gap+verbose":
-                print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
+                print("\n Minimum distance: %s \n Weight distribution: \n %s" % (nonzerowts[1], wts))
             stop = 0                                          # only stop if all gens are autos
             for i in range(1,len(nonzerowts)):
                 if stop == 1:
@@ -2832,7 +2765,7 @@ class AbstractLinearCode(module.Module):
                 wt = nonzerowts[i]
                 if algorithm=="gap+verbose":
                     size = Gp.Size()
-                    print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
+                    print("\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n " % (wts[wt], wt, size))
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
                 gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
                 if gap("Length(matCwt)") > 0:
@@ -2913,43 +2846,46 @@ class AbstractLinearCode(module.Module):
 
     def punctured(self, L):
         r"""
-        Returns the code punctured at the positions `L`,
-        `L \subset \{1,2,...,n\}`. If this code `C` is of length `n` in
-        GF(q) then the code `C^L` obtained from `C` by puncturing at the
-        positions in `L` is the code of length `n-L` consisting of codewords
-        of `C` which have their `i-th` coordinate deleted if `i \in L` and
-        left alone if `i\notin L`:
-
-        .. math::
-
-            C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C\},
-
-        where `\{1,2,...,n\}-T = \{i_1,...,i_N\}`. In particular, if `L=\{j\}`
-        then `C^L` is simply the code obtainen from `C` by deleting the `j-th`
-        coordinate of each codeword. The code `C^L` is called the punctured
-        code at `L`. The dimension of `C^L` can decrease if `|L|>d-1`.
+        Returns a :class:`sage.coding.punctured_code` object from ``L``.
 
         INPUT:
 
-        - ``L`` - Subset of `\{1,...,n\}`, where `n` is the length of ``self``
+        - ``L`` - List of positions to puncture
 
         OUTPUT:
 
-        - Linear code, the punctured code described above
+        - an instance of :class:`sage.coding.punctured_code`
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.punctured([1,2])
-            Linear code of length 5, dimension 4 over Finite Field of size 2
+            Punctured code coming from [7, 4] Hamming Code over Finite Field of size 2 punctured on position(s) [1, 2]
         """
-        G = self.generator_matrix()
-        GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
-        r = GL.rank()
-        if r < GL.nrows():
-            GL.echelonize()
-            GL = GL[:r]
-        return LinearCode(GL)
+        from punctured_code import PuncturedCode
+        return PuncturedCode(self, set(L))
+
+    def _punctured_form(self, points):
+        r"""
+        Returns a representation of self as a :class:`LinearCode` punctured in ``points``.
+
+        INPUT:
+
+        - ``points`` -- a set of positions where to puncture ``self``
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(11, 4, GF(7))
+            sage: C._punctured_form({3})
+            Linear code of length 10, dimension 4 over Finite Field of size 7
+        """
+        if not isinstance(points, (Integer, int, set)):
+            raise TypeError("points must be either a Sage Integer, a Python int, or a set")
+        M = self.generator_matrix()
+        G = M.delete_columns(list(points))
+        G = G.echelon_form()
+        k = G.rank()
+        return LinearCode(G[:k])
 
     def random_element(self, *args, **kwds):
         """
@@ -3065,7 +3001,7 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C == C.dual_code()  # checks that C is self dual
             True
-            sage: for i in [1,2,3,4]: print C.sd_duursma_data(i)
+            sage: for i in [1,2,3,4]: print(C.sd_duursma_data(i))
             [2, -1]
             [2, -3]
             [2, -2]
@@ -3242,8 +3178,40 @@ class AbstractLinearCode(module.Module):
             Linear code of length 5, dimension 2 over Finite Field of size 2
         """
         Cd = self.dual_code()
-        Cdp = Cd.punctured(L)
+        Cdp = Cd.punctured(set(L))
         return Cdp.dual_code()
+
+    def _spectrum_from_gap(self):
+        r"""
+        Returns the weight distribution of the associated code. Uses the C programs 
+        available in the kernel of GAP and thus is fairly fast.
+        
+        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
+        where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
+        
+        OUTPUT:
+        - a vector of integers, the weight distribution of the code
+        
+        EXAMPLES::
+            sage: from sage.interfaces.all import gap
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G = MS([[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C._spectrum_from_gap()
+            [1, 0, 0, 7, 7, 0, 0, 1]
+        
+        AUTHORS:
+
+        - David Joyner (2005-11)
+        """
+        Gmat = self.generator_matrix()._gap_init_()
+        G = gap(Gmat)
+        q = self.base_ring().order()
+        k = gap(self.base_ring())
+        z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
+        _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
+        v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
+        return v
 
     def spectrum(self, algorithm=None):
         r"""
@@ -3306,13 +3274,11 @@ class AbstractLinearCode(module.Module):
                 algorithm = "binary"
             else:
                 algorithm = "gap"
-        n = self.length()
         F = self.base_ring()
+        n = self.length()
         G = self.generator_matrix()
         if algorithm=="gap":
-            Gstr = G._gap_init_()
-            spec = wtdist_gap(Gstr,n,F)
-            return spec
+            return self._spectrum_from_gap()
         elif algorithm=="binary":
             from sage.coding.binary_code import weight_dist
             return weight_dist(self.generator_matrix())
@@ -3606,8 +3572,8 @@ class AbstractLinearCode(module.Module):
         d = self.minimum_distance()
         dperp = (self.dual_code()).minimum_distance()
         if d == 1 or dperp == 1:
-            print "\n WARNING: There is no guarantee this function works when the minimum distance"
-            print "            of the code or of the dual code equals 1.\n"
+            print("\n WARNING: There is no guarantee this function works when the minimum distance")
+            print("            of the code or of the dual code equals 1.\n")
         RT = PolynomialRing(QQ,"%s"%name)
         R = PolynomialRing(QQ,3,"xy%s"%name)
         x,y,T = R.gens()
@@ -3759,16 +3725,16 @@ class LinearCode(AbstractLinearCode):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 5
-        
+
     Providing a code as the parameter in order to "forget" its structure (see
     :trac:`20198`)::
-    
+
         sage: C = codes.GeneralizedReedSolomonCode(GF(23).list(), 12)
         sage: LinearCode(C)
         Linear code of length 23, dimension 12 over Finite Field of size 23
-        
+
     Another example::
-    
+
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
         [57, 54] Hamming Code over Finite Field of size 7
@@ -3831,19 +3797,19 @@ class LinearCode(AbstractLinearCode):
             ...
             ValueError: this linear code contains no non-zero vector
         """
-        
+
         base_ring = generator.base_ring()
         if not base_ring.is_field():
             raise ValueError("'generator' must be defined on a field (not a ring)")
-        
+
         try:
             basis = generator.row_space().basis() # generator matrix case
-            
+
             # if the matrix does not have full rank we replace it
             if len(basis) != generator.nrows():
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
-    
+
                 if generator.nrows() == 0:
                     raise ValueError("this linear code contains no non-zero vector")
         except AttributeError:

@@ -66,6 +66,7 @@ All of this is not perfect. In the following scenario::
 
 The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will work anyway.
 """
+from __future__ import print_function
 
 import sys
 cdef dict sys_modules = sys.modules
@@ -319,9 +320,9 @@ class MainClass(object):
                 TESTS::
 
                     sage: from sage.misc.nested_class import MainClass
-                    sage: print MainClass.NestedClass.NestedSubClass.dummy.__doc__
+                    sage: print(MainClass.NestedClass.NestedSubClass.dummy.__doc__)
                     NestedSubClass.dummy(self, x, *args, r=(1, 2, 3.4), **kwds)
-                    File: sage/misc/nested_class.pyx (starting at line 314)
+                    File: sage/misc/nested_class.pyx (starting at line 315)
                     <BLANKLINE>
                                     A dummy method to demonstrate the embedding of
                                     method signature for nested classes.

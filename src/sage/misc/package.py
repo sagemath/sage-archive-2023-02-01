@@ -42,6 +42,8 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 
 def _list_to_table(list_of_packages):
     r"""
@@ -55,7 +57,7 @@ def _list_to_table(list_of_packages):
 
     EXAMPLE::
 
-        sage: print sage.misc.package._list_to_table([str(x) for x in range(10)])
+        sage: print(sage.misc.package._list_to_table([str(x) for x in range(10)]))
         .. csv-table::
             :class: contentstable
             :widths: 20, 20, 20, 20, 20

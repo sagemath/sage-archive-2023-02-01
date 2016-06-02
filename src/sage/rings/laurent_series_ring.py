@@ -17,6 +17,7 @@ EXAMPLES::
 
     * :func:`sage.misc.defaults.set_series_precision`
 """
+from __future__ import print_function
 
 import weakref
 
@@ -279,7 +280,7 @@ class LaurentSeriesRing_generic(ring.CommutativeRing):
 
             sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
-            sage: print R(t + t^2 + O(t^3))
+            sage: R(t + t^2 + O(t^3))
             (1 + O(5^10))*u + (1 + O(5^10))*u^2 + O(u^3)
 
         Note that coercing an element into its own parent just produces

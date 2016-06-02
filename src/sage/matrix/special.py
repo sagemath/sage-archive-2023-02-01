@@ -1880,7 +1880,6 @@ def block_matrix(*args, **kwds):
             if ncols is None:
                 if n.is_square():
                     import warnings
-                    warnings.resetwarnings()
                     warnings.warn("invocation of block_matrix with just a list whose length is a perfect square is deprecated. See the documentation for details.", DeprecationWarning, stacklevel=2)
                     nrows = ncols = n.sqrt()
                 else:

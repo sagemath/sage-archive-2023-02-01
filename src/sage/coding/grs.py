@@ -451,6 +451,35 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             w_en += wd[i + d] * x ** (i + d)
         return w_en
 
+    def _punctured_form(self, points):
+        r"""
+        Returns a representation of self as a
+        :class:`GeneralizedReedSolomonCode` punctured in ``points``.
+
+        INPUT:
+
+        - ``points`` -- a set of positions where to puncture ``self``
+
+        EXAMPLES::
+
+            sage: C_grs = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: C_grs._punctured_form({4, 3})
+            [38, 12, 27] Generalized Reed-Solomon Code over Finite Field of size 59
+        """
+        if not isinstance(points, (Integer, int, set)):
+            raise TypeError("points must be either a Sage Integer, a Python int, or a set")
+        alphas = list(self.evaluation_points())
+        col_mults = list(self.column_multipliers())
+        n = self.length()
+        punctured_alphas = []
+        punctured_col_mults = []
+        punctured_alphas = [alphas[i] for i in range(n) if i not in points]
+        punctured_col_mults = [col_mults[i] for i in range(n) if i not in points]
+        G = self.generator_matrix()
+        G = G.delete_columns(list(points))
+        dimension = G.rank()
+        return GeneralizedReedSolomonCode(punctured_alphas, dimension, punctured_col_mults)
+
     def decode_to_message(self, r):
         r"""
         Decodes``r`` to an element in message space of ``self``

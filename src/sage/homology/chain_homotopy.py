@@ -547,8 +547,8 @@ class ChainContraction(ChainHomotopy):
 
             sage: phi.iota().in_degree(2)
             [-1]
-            [-1]
             [ 1]
+            [-1]
             [ 1]
         """
         return self._iota
@@ -584,8 +584,8 @@ class ChainContraction(ChainHomotopy):
             [1]
             sage: phi.iota().in_degree(2)
             [-1]
-            [-1]
             [ 1]
+            [-1]
             [ 1]
             sage: phi.dual().iota().in_degree(2)
             [0]

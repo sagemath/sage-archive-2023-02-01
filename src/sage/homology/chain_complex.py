@@ -1207,13 +1207,14 @@ class ChainComplex_class(Parent):
             sage: T = simplicial_complexes.Torus()
             sage: C_t = T.chain_complex()
             sage: C_t.homology(base_ring=QQ, generators=True)
-            {0: [(Vector space of dimension 1 over Rational Field, Chain(0:(0, 0, 0, 0, 0, 0, 1)))],
+            {0: [(Vector space of dimension 1 over Rational Field,
+               Chain(0:(0, 0, 0, 0, 0, 0, 1)))],
              1: [(Vector space of dimension 1 over Rational Field,
-               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 1, 0))),
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 1))),
               (Vector space of dimension 1 over Rational Field,
-               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1)))],
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, -1, 0)))],
              2: [(Vector space of dimension 1 over Rational Field,
-               Chain(2:(1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1)))]}
+               Chain(2:(1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1)))]}
         """
         from sage.interfaces.chomp import have_chomp
 

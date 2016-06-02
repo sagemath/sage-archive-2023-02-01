@@ -372,7 +372,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return hash(self._x)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 
@@ -587,7 +587,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return hash(self._x)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 

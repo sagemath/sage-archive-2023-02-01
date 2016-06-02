@@ -898,7 +898,7 @@ cdef class Element(SageObject):
             ....:     cdef float x
             ....:     def __init__(self, float v):
             ....:         self.x = v
-            ....:     cpdef _richcmp_(self, Element other, int op):
+            ....:     cpdef _richcmp_(self, other, int op):
             ....:         cdef float x1 = (<FloatCmp>self).x
             ....:         cdef float x2 = (<FloatCmp>other).x
             ....:         return rich_to_bool(op, (x1 > x2) - (x1 < x2) )
@@ -944,11 +944,11 @@ cdef class Element(SageObject):
             return (<Element>left)._cmp_(<Element>right)
         except NotImplementedError:
             # Second attempt: use _richcmp_()
-            if (<Element>left)._richcmp_(<Element>right, Py_EQ):
+            if (<Element>left)._richcmp_(right, Py_EQ):
                 return 0
-            if (<Element>left)._richcmp_(<Element>right, Py_LT):
+            if (<Element>left)._richcmp_(right, Py_LT):
                 return -1
-            if (<Element>left)._richcmp_(<Element>right, Py_GT):
+            if (<Element>left)._richcmp_(right, Py_GT):
                 return 1
             raise
 
@@ -1002,11 +1002,11 @@ cdef class Element(SageObject):
             # Same parents, in particular self and other must both be
             # an instance of Element. The explicit casts below make
             # Cython generate optimized code for this call.
-            return (<Element>self)._richcmp_(<Element>other, op)
+            return (<Element>self)._richcmp_(other, op)
         else:
             return coercion_model.richcmp(self, other, op)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         r"""
         Default implementation of rich comparisons for elements with
         equal parents.
@@ -1046,7 +1046,7 @@ cdef class Element(SageObject):
         assert -1 <= c <= 1
         return rich_to_bool(op, c)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Default three-way comparison method which only checks for a
         Python class defining ``__cmp__``.
@@ -1124,7 +1124,7 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, Element right) except -2:",
+        ....:     "    cpdef int _cmp_(left, right) except -2:",
         ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
@@ -1139,7 +1139,7 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, Element right) except -2:",
+        ....:     "    cpdef int _cmp_(left, right) except -2:",
         ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",

@@ -571,7 +571,7 @@ cdef class GapElement(RingElement):
         """
         return hash(str(self))
 
-    cpdef _richcmp_(self, Element other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Compare ``self`` with ``other``.
 

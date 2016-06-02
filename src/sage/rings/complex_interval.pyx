@@ -1406,7 +1406,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return self.real().__nonzero__() or self.imag().__nonzero__()
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         r"""
         As with the real interval fields this never returns false positives.
         Thus, `a == b` is ``True`` iff both `a` and `b` represent the same
@@ -1475,7 +1475,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             elif op == 5: #>=
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Intervals are compared lexicographically on the 4-tuple:
         ``(x.real().lower(), x.real().upper(),

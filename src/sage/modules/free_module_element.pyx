@@ -1670,7 +1670,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 
@@ -4684,7 +4684,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two sparse free module elements.
 

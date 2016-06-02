@@ -708,7 +708,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             raise TypeError, "mutable matrices are unhashable"
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         Implements comparison of two cyclotomic matrices with
         identical parents.

@@ -175,7 +175,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __dealloc__(self):
         sig_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 

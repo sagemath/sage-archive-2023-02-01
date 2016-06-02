@@ -365,7 +365,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self._do_print(self[0], self[1], self[2], self[3])
 
-    cpdef int _cmp_(self, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         Comparing elements.
 
@@ -918,7 +918,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
         return bool(mpz_sgn(self.x) or mpz_sgn(self.y) or mpz_sgn(self.z) or mpz_sgn(self.w))
 
-    cpdef int _cmp_(self, sage.structure.element.Element _right) except -2:
+    cpdef int _cmp_(self, _right) except -2:
         """
         Compare two quaternions.  The comparison is fairly arbitrary
         -- first the denominators are compared and if equal then each

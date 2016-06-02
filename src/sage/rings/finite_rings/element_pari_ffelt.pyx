@@ -383,7 +383,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         x.construct(self.val)
         return x
 
-    cpdef int _cmp_(FiniteFieldElement_pari_ffelt self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Comparison of finite field elements.
 

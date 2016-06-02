@@ -960,7 +960,7 @@ cdef class PathAlgebraElement(RingElement):
             self._hash = hash(frozenset(self.monomial_coefficients().items()))
         return self._hash
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Helper for comparison of path algebra elements.
 

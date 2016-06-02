@@ -134,7 +134,7 @@ cdef class TropicalSemiringElement(RingElement):
         return hash(self._val)
 
     # Comparisons
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Return ``-1`` if ``left`` is less than ``right``, ``0`` if
         ``left`` and ``right`` are equal, and ``1`` if ``left`` is

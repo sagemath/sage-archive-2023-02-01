@@ -13,7 +13,7 @@ AUTHORS:
 #******************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-#from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 
@@ -117,6 +117,24 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             B = self.basis()
             return self.sum(v[i] * B[i] for i in v.support())
+
+        def pbw_basis(self, basis_cmp=None, **kwds):
+            """
+            Return the Poincare-Birkhoff-Witt basis of the universal
+            enveloping algebra corresponding to ``self``.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.sl(QQ, 2)
+                sage: PBW = L.pbw_basis()
+            """
+            from sage.algebras.lie_algebras.poincare_birkhoff_witt \
+                import PoincareBirkhoffWittBasis
+            return PoincareBirkhoffWittBasis(self, basis_cmp, **kwds)
+
+        poincare_birkhoff_witt_basis = pbw_basis
+
+        _construct_UEA = pbw_basis
 
     class ElementMethods:
         def _bracket_(self, y):

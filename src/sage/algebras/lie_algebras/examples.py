@@ -27,7 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-#from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
+from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra # this is used, just not in this file
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
@@ -173,54 +173,6 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         return L
 
     raise ValueError("Invalid rank")
-
-# This can probably be replaced (removed) by sl once the classical Lie
-#   algebras are implemented
-def sl(R, n, representation='bracket'):
-    r"""
-    Return the Lie algebra `\mathfrak{sl}_n`.
-
-    EXAMPLES::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2); sl2
-        sl2 over Rational Field
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
-
-    TESTS::
-
-        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
-        sage: E,F,H = sl2.gens()
-        sage: E.bracket(F) == H
-        True
-        sage: H.bracket(E) == 2*E
-        True
-        sage: H.bracket(F) == -2*F
-        True
-    """
-    if n != 2:
-        raise NotImplementedError("only n=2 is implemented")
-
-    if representation == 'matrix':
-        from sage.matrix.matrix_space import MatrixSpace
-        from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
-        MS = MatrixSpace(R, 2)
-        E = MS([[0,1],[0,0]])
-        F = MS([[0,0],[1,0]])
-        H = MS([[1,0],[0,-1]])
-        L = LieAlgebraFromAssociative(MS, [E, F, H], ['E', 'F', 'H'])
-        L.rename("sl2 as a matrix Lie algebra over {}".format(R))
-    elif representation == 'bracket':
-        L = three_dimensional_by_rank(R, 3, names=['E', 'F', 'H'])
-    else:
-        raise ValueError("invalid representation")
-
-    return L
 
 def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
     """
@@ -409,4 +361,212 @@ def strictly_upper_triangular_matrices(R, n):
     L = LieAlgebraFromAssociative(MS, gens, names=names)
     L.rename("Lie algebra of {}-dimensional strictly upper triangular matrices over {}".format(n, L.base_ring()))
     return L
+
+#####################################################################
+## Classical Lie algebras
+
+from sage.algebras.lie_algebras.classical_lie_algebra import gl
+from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
+
+def sl(R, n, representation='bracket'):
+    r"""
+    The Lie algebra `\mathfrak{sl}_n`.
+
+    The Lie algebra `\mathfrak{sl}_n` is the type `A_{n-1}` Lie algebra
+    and is finite dimensional. As a matrix Lie algebra, it is given by
+    the set of all `n \times n` matrices with trace 0.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``n`` -- the size of the matrix
+    - ``representation`` -- (default: ``'bracket'``) can be one of
+      the following:
+
+      * ``'bracket'`` - use brackets and the Chevalley basis
+      * ``'matrix'`` - use matrices
+
+    EXAMPLES:
+
+    We first construct `\mathfrak{sl}_2` using the Chevalley basis::
+
+        sage: sl2 = lie_algebras.sl(QQ, 2); sl2
+        Lie algebra of ['A', 1] in the Chevalley basis
+        sage: E,F,H = sl2.gens()
+        sage: E.bracket(F) == H
+        True
+        sage: H.bracket(E) == 2*E
+        True
+        sage: H.bracket(F) == -2*F
+        True
+
+    We now construct `\mathfrak{sl}_2` as a matrix Lie algebra::
+
+        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
+        sage: E,F,H = sl2.gens()
+        sage: E.bracket(F) == H
+        True
+        sage: H.bracket(E) == 2*E
+        True
+        sage: H.bracket(F) == -2*F
+        True
+    """
+    if representation == 'bracket':
+        from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
+        return LieAlgebraChevalleyBasis(R, ['A', n-1])
+    if representation == 'matrix':
+        from sage.algebras.lie_algebras.classical_lie_algebra import sl as sl_matrix
+        return sl_matrix(R, n)
+    raise ValueError("invalid representation")
+
+def so(R, n, representation='bracket'):
+    r"""
+    The Lie algebra `\mathfrak{so}_n`.
+
+    The Lie algebra `\mathfrak{so}_n` is the type `B_k` Lie algebra
+    if `n = 2k - 1` or the type `D_k` Lie algebra if `n = 2k`, and in
+    either case is finite dimensional. As a matrix Lie algebra, it
+    is given by the set of all real anti-symmetric `n \times n` matrices.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``n`` -- the size of the matrix
+    - ``representation`` -- (default: ``'bracket'``) can be one of
+      the following:
+
+      * ``'bracket'`` - use brackets and the Chevalley basis
+      * ``'matrix'`` - use matrices
+
+    EXAMPLES:
+
+    We first construct `\mathfrak{so}_5` using the Chevalley basis::
+
+        sage: so5 = lie_algebras.so(QQ, 5); so5
+        Lie algebra of ['B', 2] in the Chevalley basis
+        sage: E1,E2, F1,F2, H1,H2 = so5.gens()
+        sage: so5([E1, [E1, E2]])
+        0
+        sage: X = so5([E2, [E2, E1]]); X
+        2*E[alpha[1] + 2*alpha[2]]
+        sage: H1.bracket(X)
+        0
+        sage: H2.bracket(X)
+        4*E[alpha[1] + 2*alpha[2]]
+        sage: so5([H1, [E1, E2]])
+        -E[alpha[1] + alpha[2]]
+        sage: so5([H2, [E1, E2]])
+        0
+
+    We do the same construction of `\mathfrak{so}_4` using the Chevalley
+    basis::
+
+        sage: so4 = lie_algebras.so(QQ, 4); so4
+        Lie algebra of ['D', 2] in the Chevalley basis
+        sage: E1,E2, F1,F2, H1,H2 = so4.gens()
+        sage: H1.bracket(E1)
+        2*E[alpha[1]]
+        sage: H2.bracket(E1) == so4.zero()
+        True
+        sage: E1.bracket(E2) == so4.zero()
+        True
+
+    We now construct `\mathfrak{so}_4` as a matrix Lie algebra::
+
+        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
+        sage: E1,E2, F1,F2, H1,H2 = so4.gens()
+        sage: H2.bracket(E1) == so4.zero()
+        True
+        sage: E1.bracket(E2) == so4.zero()
+        True
+    """
+    if representation == 'bracket':
+        from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
+        if n % 2 == 0:
+            return LieAlgebraChevalleyBasis(R, ['D', n//2])
+        else:
+            return LieAlgebraChevalleyBasis(R, ['B', (n-1)//2])
+    if representation == 'matrix':
+        from sage.algebras.lie_algebras.classical_lie_algebra import so as so_matrix
+        return so_matrix(R, n)
+    raise ValueError("invalid representation")
+
+def sp(R, n, representation='bracket'):
+    r"""
+    The Lie algebra `\mathfrak{sp}_n`.
+
+    The Lie algebra `\mathfrak{sp}_n` where `n = 2k` is the type `C_k`
+    Lie algebra and is finite dimensional. As a matrix Lie algebra, it
+    is given by the set of all matrices `X` that satisfy the equation:
+
+    .. MATH::
+
+        X^T M - M X = 0
+
+    where
+
+    .. MATH::
+
+        M = \begin{pmatrix}
+        0 & I_k \\
+        -I_k & 0
+        \end{pmatrix}.
+
+    This is the Lie algebra of type `C_k`.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``n`` -- the size of the matrix
+    - ``representation`` -- (default: ``'bracket'``) can be one of
+      the following:
+
+      * ``'bracket'`` - use brackets and the Chevalley basis
+      * ``'matrix'`` - use matrices
+
+    EXAMPLES:
+
+    We first construct `\mathfrak{sp}_4` using the Chevalley basis::
+
+        sage: sp4 = lie_algebras.sp(QQ, 4); sp4
+        Lie algebra of ['C', 2] in the Chevalley basis
+        sage: E1,E2, F1,F2, H1,H2 = sp4.gens()
+        sage: sp4([E2, [E2, E1]])
+        0
+        sage: X = sp4([E1, [E1, E2]]); X
+        -2*E[2*alpha[1] + alpha[2]]
+        sage: H1.bracket(X)
+        -4*E[2*alpha[1] + alpha[2]]
+        sage: H2.bracket(X)
+        0
+        sage: sp4([H1, [E1, E2]])
+        0
+        sage: sp4([H2, [E1, E2]])
+        -E[alpha[1] + alpha[2]]
+
+    We now construct `\mathfrak{sp}_4` as a matrix Lie algebra::
+
+        sage: sp4 = lie_algebras.sp(QQ, 4, representation='matrix'); sp4
+        Symplectic Lie algebra of rank 4 over Rational Field
+        sage: E1,E2, F1,F2, H1,H2 = sp4.gens()
+        sage: H1.bracket(E1)
+        [ 0  2  0  0]
+        [ 0  0  0  0]
+        [ 0  0  0  0]
+        [ 0  0 -2  0]
+        sage: sp4([E1, [E1, E2]])
+        [0 0 2 0]
+        [0 0 0 0]
+        [0 0 0 0]
+        [0 0 0 0]
+    """
+    if n % 2 != 0:
+        raise ValueError("n must be even")
+    if representation == 'bracket':
+        from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
+        return LieAlgebraChevalleyBasis(R, ['C', n//2])
+    if representation == 'matrix':
+        from sage.algebras.lie_algebras.classical_lie_algebra import sp as sp_matrix
+        return sp_matrix(R, n)
+    raise ValueError("invalid representation")
 

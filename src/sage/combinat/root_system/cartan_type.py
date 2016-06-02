@@ -620,6 +620,9 @@ class CartanTypeFactory(SageObject):
             t = args[0]
         else:
             t = args
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+        if isinstance(t, CartanMatrix):
+            return t.cartan_type()
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):

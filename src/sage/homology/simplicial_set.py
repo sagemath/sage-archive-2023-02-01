@@ -3588,14 +3588,30 @@ def ComplexProjectiveSpace(n):
 
         sage: simplicial_sets.ComplexProjectiveSpace(2).homology(reduced=False)
         {0: Z, 1: 0, 2: Z, 3: 0, 4: Z}
+        sage: CP3 = simplicial_sets.ComplexProjectiveSpace(3)
+        sage: CP3
+        CP^3
+        sage: CP3.f_vector()
+        [1, 0, 3, 10, 25, 30, 15]
+
+        sage: K = CP3.suspension()
+        sage: R = K.cohomology_ring(GF(2))
+        sage: R.gens()
+        (h^{0,0}, h^{3,0}, h^{5,0}, h^{7,0})
+        sage: x = R.gens()[1]
+        sage: x.Sq(2)
+        h^{5,0}
+
+        sage: simplicial_sets.ComplexProjectiveSpace(4).f_vector()
+        [1, 0, 4, 22, 97, 255, 390, 315, 105]
 
         sage: simplicial_sets.ComplexProjectiveSpace(5)
         Traceback (most recent call last):
         ...
-        ValueError: complex projective spaces are only available in dimensions between 0 and 2
+        ValueError: complex projective spaces are only available in dimensions between 0 and 4
     """
-    if n < 0 or n > 2:
-        raise ValueError('complex projective spaces are only available in dimensions between 0 and 2')
+    if n < 0 or n > 4:
+        raise ValueError('complex projective spaces are only available in dimensions between 0 and 4')
     if n == 0:
         K = Simplex(0)
         v = K.n_cells(0)[0]
@@ -3638,3 +3654,95 @@ def ComplexProjectiveSpace(n):
                                           f3_110,
                                           f2_1.apply_degeneracies(0))},
                              name='CP^2', base_point=v)
+    if n == 3:
+        file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP3.txt')
+        K = SimplicialSet(simplicial_data_from_kenzo_output(file), name='CP^3')
+        v = K.n_cells(0)[0]
+        K.set_base_point(v)
+        return K
+    if n == 4:
+        file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP4.txt')
+        K = SimplicialSet(simplicial_data_from_kenzo_output(file), name='CP^4')
+        K.rename('CP^4')
+        v = K.n_cells(0)[0]
+        K.set_base_point(v)
+        return K
+
+
+def simplicial_data_from_kenzo_output(filename):
+    """
+    INPUT:
+
+    - ``filename`` -- name of file containing the output from Kenzo's
+      ``show-structure`` function
+
+    OUTPUT: data to construct a simplicial set from the Kenzo output
+
+    Several files with Kenzo output are in the directory
+    ``SAGE_ROOT/src/ext/kenzo/``.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_set import simplicial_data_from_kenzo_output, SimplicialSet
+        sage: sphere = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'S4.txt')
+        sage: S4 = SimplicialSet(simplicial_data_from_kenzo_output(sphere))
+        sage: S4.homology(reduced=False)
+        {0: Z, 1: 0, 2: 0, 3: 0, 4: Z}
+    """
+    with open(filename, 'r') as f:
+        data = f.read()
+    dim = 0
+    start = 0
+    # simplex_data: data for constructing the simplicial set.
+    simplex_data = {}
+    # simplex_names: simplices indexed by their names
+    simplex_names = {}
+    dim_idx = data.find('Dimension = {}:'.format(dim), start)
+    while dim_idx != -1:
+        start = dim_idx + len('Dimension = {}:'.format(dim))
+        new_dim_idx = data.find('Dimension = {}:'.format(dim+1), start)
+        if new_dim_idx == -1:
+            end = len(data)
+        else:
+            end = new_dim_idx
+        if dim == 0:
+            simplex_string = data[data.find('Vertices :') + len('Vertices :'):end]
+            vertices = OneOrMore(nestedExpr()).parseString(simplex_string).asList()[0]
+            for v in vertices:
+                vertex = NonDegenerateSimplex(0, name=v)
+                simplex_data[vertex] = None
+                simplex_names[v] = vertex
+        else:
+            simplex_string = data[start:end].strip()
+
+            for s in [_.strip() for _ in simplex_string.split('Simplex : ')]:
+                if s:
+                    name, face_str = [_.strip() for _ in s.split('Faces : ')]
+                    face_str = face_str.strip('()')
+                    face_str = face_str.split('<AbSm ')
+                    faces = []
+                    for f in face_str[1:]:
+                        # f has the form 'DEGENS NAME>', possibly with a trailing space.
+
+                        # DEGENS is a hyphen-separated list, like
+                        # '3-2-1-0' or '0' or '-'.
+                        m = re.match('[-[0-9]+', f)
+                        degen_str = m.group(0)
+                        if degen_str.find('-') != -1:
+                            if degen_str == '-':
+                                degens = []
+                            else:
+                                degens = [Integer(_) for _ in degen_str.split('-')]
+                        else:
+                            degens = [Integer(degen_str)]
+
+                        face_name = f[m.end(0):].strip()[:-1]
+                        nondegen = simplex_names[face_name]
+                        faces.append(nondegen.apply_degeneracies(*degens))
+
+                    simplex = NonDegenerateSimplex(dim, name=name)
+                    simplex_data[simplex] = faces
+                    simplex_names[name] = simplex
+        dim += 1
+        dim_idx = new_dim_idx
+    return simplex_data

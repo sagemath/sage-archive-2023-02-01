@@ -5,6 +5,7 @@ Lie Algebras
    :maxdepth: 2
 
    sage/algebras/lie_algebras/examples
+   sage/algebras/lie_algebras/free_lie_algebra
    sage/algebras/lie_algebras/heisenberg
    sage/algebras/lie_algebras/lie_algebra
    sage/algebras/lie_algebras/lie_algebra_element

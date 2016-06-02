@@ -21,25 +21,34 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-#from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.indexed_generators import IndexedGenerators
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras, LiftMorphism
 from sage.categories.rings import Rings
-from sage.categories.morphism import SetMorphism
+from sage.categories.morphism import Morphism, SetMorphism
+from sage.categories.map import Map
 from sage.categories.homset import Hom
 
-from sage.algebras.free_algebra import FreeAlgebra
+from sage.algebras.free_algebra import FreeAlgebra, is_FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
-    LieAlgebraElementWrapper, LieAlgebraMatrixWrapper)
+    LieAlgebraElementWrapper)
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
+from sage.rings.integer import Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.infinity import infinity
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
+from sage.modules.free_module import FreeModule, span
+from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.sets.family import Family, AbstractFamily
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 
@@ -47,13 +56,13 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     r"""
     A Lie algebra `L` over a base ring `R`.
 
-    A Lie algebra is an `R`-module `L` with a bilinear operation called
-    Lie bracket `[\cdot, \cdot] : L \times L \to L` such that
-    `[x, x] = 0` and the following relation holds:
+    A Lie algebra is an algebra with a bilinear operation called Lie bracket
+    `[\cdot, \cdot] : L \times L \to L` such that `[x, x] = 0` and
+    the following relation holds:
 
     .. MATH::
 
-        \bigl[ x, [y, z] \bigr] + \bigl[ y, [z, x] \bigr]
+        \bigl[x, [y, z] \bigr] + \bigl[ y, [z, x] \bigr]
         + \bigl[ z, [x, y] \bigr] = 0.
 
     This relation is known as the *Jacobi identity* (or sometimes the Jacobi
@@ -68,117 +77,39 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     thus `[x, y] = -[y, x]` and the Lie bracket is antisymmetric.
 
     Lie algebras are closely related to Lie groups. Let `G` be a Lie group
-    and fix some `g \in G`. We can construct the Lie algebra `L` of `G` by
+    and fix some `g \in G`, we can construct the Lie algebra `L` of `G` by
     considering the tangent space at `g`. We can also (partially) recover `G`
     from `L` by using what is known as the exponential map.
 
-    Given any associative algebra `A`, we can construct a Lie algebra `L`
-    on the `R`-module `A` by defining the Lie bracket to be the commutator
-    `[a, b] = ab - ba`. We call an associative algebra `A` which contains
-    `L` in this fashion an *enveloping algebra* of `L`. The embedding
-    `L \to A` which sends the Lie bracket to the commutator will be called
-    a Lie embedding. Now if we are given a Lie algebra `L`, we
+    Given any associative algebra `A`, we can construct a Lie algebra `L` by
+    defining the Lie bracket to be the commutator `[a, b] = ab - ba`. We call
+    an associative algebra `A` which contains `L` in this fashion an
+    *enveloping algebra*. We can the embedding which sends the Lie bracket to
+    the commutator a Lie embedding. Now if we are given a Lie algebra `L`, we
     can construct an enveloping algebra `U_L` with Lie embedding `h : L \to
     U_L` which has the following universal property: for any enveloping
     algebra `A` with Lie embedding `f : L \to A`, there exists a unique unital
     algebra homomorphism `g : U_L \to A` such that `f = g \circ h`. The
-    algebra `U_L` is known as the *universal enveloping algebra* of `L`.
+    algebra `U_L` is known as the *universal enveloping algebra*.
 
     EXAMPLES:
 
-    **1.** The simplest examples of Lie algebras are *abelian Lie
-    algebras*. These are Lie algebras whose Lie bracket is (identically)
-    zero. We can create them using the ``abelian`` keyword::
+    We can also create abelian Lie algebras using the ``abelian`` keyword::
 
         sage: L.<x,y,z> = LieAlgebra(QQ, abelian=True); L
         Abelian Lie algebra on 3 generators (x, y, z) over Rational Field
 
-    **2.** A Lie algebra can be built from any associative algebra by
-    defining the Lie bracket to be the commutator. For example, we can
-    start with the descent algebra::
-
-        sage: D = DescentAlgebra(QQ, 4).D()
-        sage: L = LieAlgebra(associative=D); L
-        Lie algebra of Descent algebra of 4 over Rational Field
-         in the standard basis
-        sage: L(D[2]).bracket(L(D[3]))
-        D{1, 2} - D{1, 3} + D{2} - D{3}
-
-    Next we use a free algebra and do some simple computations::
-
-        sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
-        sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
-        sage: x-y+z
-        a - b + c
-        sage: L.bracket(x-y, x-z)
-        a*b - a*c - b*a + b*c + c*a - c*b
-        sage: L.bracket(x-y, L.bracket(x,y))
-        a^2*b - 2*a*b*a + a*b^2 + b*a^2 - 2*b*a*b + b^2*a
-
-    We can also use a subset of the elements as a generating set
-    of the Lie algebra::
-
-        sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
-        sage: L.<x,y> = LieAlgebra(associative=[a,b+c])
-        sage: L.bracket(x, y)
-        a*b + a*c - b*a - c*a
-
-    Now for a more complicated example using the group ring of `S_3` as our
-    base algebra::
-
-        sage: G = SymmetricGroup(3)
-        sage: S = GroupAlgebra(G, QQ)
-        sage: L.<x,y> = LieAlgebra(associative=S.gens())
-        sage: L.bracket(x, y)
-        (2,3) - (1,3)
-        sage: L.bracket(x, y-x)
-        (2,3) - (1,3)
-        sage: L.bracket(L.bracket(x, y), y)
-        2*(1,2,3) - 2*(1,3,2)
-        sage: L.bracket(x, L.bracket(x, y))
-        (2,3) - 2*(1,2) + (1,3)
-        sage: L.bracket(x, L.bracket(L.bracket(x, y), y))
-        0
-
-    Here is an example using matrices::
-
-        sage: MS = MatrixSpace(QQ,2)
-        sage: m1 = MS([[0, -1], [1, 0]])
-        sage: m2 = MS([[-1, 4], [3, 2]])
-        sage: L.<x,y> = LieAlgebra(associative=[m1, m2])
-        sage: x
-        [ 0 -1]
-        [ 1  0]
-        sage: y
-        [-1  4]
-        [ 3  2]
-        sage: L.bracket(x,y)
-        [-7 -3]
-        [-3  7]
-        sage: L.bracket(y,y)
-        [0 0]
-        [0 0]
-        sage: L.bracket(y,x)
-        [ 7  3]
-        [ 3 -7]
-        sage: L.bracket(x, L.bracket(y,x))
-        [-6 14]
-        [14  6]
-
-    (See :class:`LieAlgebraFromAssociative` for other examples.)
-
-    **3.** We can also creating a Lie algebra by inputting a set of
-    structure coefficients. For example, we can create the Lie algebra
-    of `\QQ^3` under the Lie bracket `\times` (cross-product)::
+    We can also input a set of structure coefficients. For example, we want
+    to create the Lie algebra of `\QQ^3` under the Lie bracket of `\times`
+    (cross-product)::
 
         sage: d = {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}}
         sage: L.<x,y,z> = LieAlgebra(QQ, d)
         sage: L
         Lie algebra on 3 generators (x, y, z) over Rational Field
 
-    To compute the Lie bracket of two elements, you cannot use the ``*``
-    operator. Indeed, this automatically lifts up to the universal
-    enveloping algebra and takes the (associative) product there.
+    To compute the Lie backet of two objects, you cannot use the ``*``.
+    This will automatically lift up to the universal enveloping algebra.
     To get elements in the Lie algebra, you must use :meth:`bracket`::
 
         sage: L = LieAlgebra(QQ, {('e','h'): {'e':-2}, ('f','h'): {'f':2},
@@ -188,17 +119,12 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         2*e
         sage: elt = h*e; elt
         e*h + 2*e
-        sage: P = elt.parent(); P
+        sage: elt.parent()
         Noncommutative Multivariate Polynomial Ring in e, f, h over Rational Field,
-         nc-relations: {...}
-        sage: R = P.relations()
-        sage: for rhs in sorted(R, key=str): print("{} = {}".format(rhs, R[rhs]))
-        f*e = e*f - h
-        h*e = e*h + 2*e
-        h*f = f*h - 2*f
+         nc-relations: {f*e: e*f - h, h*f: f*h - 2*f, h*e: e*h + 2*e}
 
-    For convienence, there are two shorthand notations for computing
-    Lie brackets::
+    For convienence, there is are two shorthand notations for computing
+    Lie backets::
 
         sage: L([h,e])
         2*e
@@ -215,24 +141,42 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         Because this is a modified (abused) version of python syntax, it
         does **NOT** work with addition. For example ``L([e + [h, f], h])``
-        and ``L[e + [h, f], h]`` will both raise errors. Instead you must
+        or ``L[e + [h, f], h]`` will both raise errors. Instead you must
         use ``L[e + L[h, f], h]``.
 
     Now we construct a free Lie algebra in a few different ways. There are
-    two primary representations, as brackets and as polynomials::
+    two primary representations, as brackets::
 
-        sage: L = LieAlgebra(QQ, 'x,y,z'); L # not tested #16823
+        sage: L = LieAlgebra(QQ, 'x,y,z'); L
         Free Lie algebra generated by (x, y, z) over Rational Field
         sage: P.<a,b,c> = LieAlgebra(QQ, representation="polynomial"); P
         Lie algebra generated by (a, b, c) in
          Free Algebra on 3 generators (a, b, c) over Rational Field
 
-    We currently (:trac:`16823`) have the free Lie algebra given in the
-    polynomial representation, which is the Lie subalgebra of the Free
-    algebra generated by the degree-`1` component.
+    This has the basis given by Hall and the one indexed by Lyndon words.
+    We do some computations and convert between the bases::
+
+        sage: H = L.Hall()
+        sage: H
+        Free Lie algebra generated by (x, y, z) over Rational Field in the Hall basis
+        sage: Lyn = L.Lyndon()
+        sage: Lyn
+        Free Lie algebra generated by (x, y, z) over Rational Field in the Lyndon basis
+        sage: x,y,z = Lyn.lie_algebra_generators()
+        sage: a = Lyn([x, [[z, [x, y]], [y, x]]]); a
+        -[x, [[x, y], [x, [y, z]]]] - [x, [[x, y], [[x, z], y]]]
+        sage: H(a)
+        [[x, y], [z, [x, [x, y]]]] - [[x, y], [[x, y], [x, z]]]
+         + [[x, [x, y]], [z, [x, y]]]
+
+    We also have the free Lie algebra given in the polynomial
+    representation, which is the Lie algebra of the free algebra.
     So the generators of the free Lie algebra are the generators of the
     free algebra and the Lie bracket is the commutator::
 
+        sage: P.<a,b,c> = LieAlgebra(QQ, representation="polynomial"); P
+        Lie algebra generated by (a, c, b) in
+         Free Algebra on 3 generators (a, b, c) over Rational Field
         sage: P.bracket(a, b) + P.bracket(a - c, b + 3*c)
         2*a*b + 3*a*c - 2*b*a + b*c - 3*c*a - c*b
 
@@ -241,7 +185,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     .. [deGraaf] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
        North-Holland Mathemtaical Library. (2000). Elsevier Science B.V.
 
-    - [Kac]_
+    - Victor Kac. *Infinite Dimensional Lie Algebras*.
 
     - :wikipedia:`Lie_algebra`
     """
@@ -336,36 +280,15 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             #   free (associative unital) algebra
             # TODO: Change this to accept an index set once FreeAlgebra accepts one
             F = FreeAlgebra(R, names)
-            if index_set is None:
-                index_set = F.variable_names()
-            # TODO: As part of #16823, this should instead construct a
-            #   subclass with specialized methods for the free Lie algebra
             return LieAlgebraFromAssociative(F, F.gens(), names=names, index_set=index_set)
 
-        raise NotImplementedError("the free Lie algebra has only been implemented using polynomials in the free algebra, see trac ticket #16823")
+        from sage.algebras.lie_algebras.free_lie_algebra import FreeLieAlgebra
+        return FreeLieAlgebra(R, names, index_set)
 
     @staticmethod
     def _standardize_names_index_set(names=None, index_set=None, ngens=None):
         """
         Standardize the ``names`` and ``index_set`` for a Lie algebra.
-
-        The method is supposed to return a pair
-        ``(names', index_set')``, where ``names'`` is either
-        ``None`` or a tuple of strings, and where ``index_set'``
-        is a finite enumerated set. (The purpose of
-        ``index_set'`` is to index the basis elements or the
-        generators of some Lie algebra; the strings in
-        ``names'``, when they exist, are used for printing these
-        indices.)
-
-        .. TODO::
-
-            As far as I understand, the optional parameter ``ngens``
-            is only used to raise errors when it is wrong. There is
-            no automatic numbering like "if ``names`` is a string
-            with no commas and ``ngens`` is not ``None``, then set
-            ``names = [names + str(i) for i in range(ngens)]``". Do
-            we need this parameter then?
 
         .. TODO::
 
@@ -425,7 +348,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             index_set = FiniteEnumeratedSet(index_set)
 
         if names is not None:
-            if len(names) != index_set.cardinality():
+            if index_set is None:
+                index_set = names
+            elif len(names) != index_set.cardinality():
                 raise ValueError("the number of names must equal"
                                  " the size of the indexing set")
             if ngens is not None and len(names) != ngens:
@@ -479,12 +404,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
 
-        try:
-            if x in self.module():
-                return self.from_vector(x)
-        except AttributeError:
-            pass
-
         if x in self.base_ring():
             if x != 0:
                 raise ValueError("can only convert the scalar 0 into a Lie algebra element")
@@ -494,8 +413,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     def __getitem__(self, x):
         """
-        If `x` is a pair `(a, b)`, return the Lie bracket `[a, b]`.
-        Otherwise try to return the `x`-th element of ``self``.
+        If `x` is a pair `(a, b)`, return the Lie bracket `(a, b)`. Otherwise
+        try to return the `x`-th element of ``self``.
 
         EXAMPLES::
 
@@ -522,15 +441,15 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         TESTS::
 
             sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
-            sage: L._coerce_map_from_(L.module())
+            sage: L._coerce_map_from_(L.free_module())
             True
             sage: L._coerce_map_from_(FreeModule(ZZ, 2))
             True
         """
         if not isinstance(R, LieAlgebra):
             # Should be moved to LieAlgebrasWithBasis somehow since it is a generic coercion
-            if self.module is not NotImplemented:
-                return self.module().has_coerce_map_from(R)
+            if self.free_module is not NotImplemented:
+                return self.free_module().has_coerce_map_from(R)
             return False
 
         # We check if it is a subalgebra of something that can coerce into ``self``
@@ -543,6 +462,42 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             return False
 
         return self.base_ring().has_coerce_map_from(R.base_ring())
+
+    def _Hom_(self, Y, category):
+        """
+        Return the homset from ``self`` to ``Y`` in the category ``category``.
+
+        INPUT:
+
+        - ``Y`` -- a Lie algebra
+        - ``category`` -- a subcategory of :class:`LieAlgebras` or ``None``
+
+        The sole purpose of this method is to construct the homset
+        as a :class:`~sage.algebras.lie_algebras.morphism.LieAlgebraHomset`.
+
+        This method is not meant to be called directly. Please use
+        :func:`sage.categories.homset.Hom` instead.
+
+        EXAMPLES::
+
+            sage: H = QQ._Hom_(QQ, category = Rings()); H
+            Set of Homomorphisms from Rational Field to Rational Field
+
+        TESTS::
+
+            sage: Hom(QQ, QQ, category = Rings()).__class__
+            <class 'sage.rings.homset.RingHomset_generic_with_category'>
+            sage: Hom(CyclotomicField(3), QQ, category = Rings()).__class__
+            <class 'sage.rings.number_field.morphism.CyclotomicFieldHomset_with_category'>
+            sage: TestSuite(Hom(QQ, QQ, category = Rings())).run()
+        """
+        cat = LieAlgebras(self.base_ring())
+        if category is not None and not category.is_subcategory(cat):
+            raise TypeError("%s is not a subcategory of Lie algebras"%category)
+        if Y not in cat:
+            raise TypeError("%s is not a Lie algebra"%Y)
+        from sage.algebras.lie_algebras.morphism import LieAlgebraHomset
+        return LieAlgebraHomset(self, Y, category=category)
 
     @cached_method
     def zero(self):
@@ -594,14 +549,14 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: d = {'p1': 4, 'q3': 1/2, 'z': -2}
             sage: L._from_dict(d)
-            4*p1 + 1/2*q3 - 2*z
+            -2*z + 4*p1 + 1/2*q3
         """
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = {key: R(coeff) for key,coeff in d.iteritems()}
+            d = dict((key, R(coeff)) for key,coeff in d.iteritems())
         if remove_zeros:
-            d = {key: coeff for key, coeff in d.iteritems() if coeff}
+            d = dict((key, coeff) for key, coeff in d.iteritems() if coeff)
         return self.element_class(self, d)
 
     def monomial(self, i):
@@ -644,40 +599,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         return Family(self._indices, self.monomial, name="monomial map")
 
-    @cached_method
-    def gens(self):
-        """
-        Return a tuple whose entries are the generators for this
-        object, in some order.
-
-        EXAMPLES::
-
-            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
-            sage: L.gens()
-            (x, y)
-        """
-        G = self.lie_algebra_generators()
-        if G.cardinality() == float('inf'):
-            return G
-        try:
-            return tuple(G[i] for i in self.variable_names())
-        except (KeyError, IndexError):
-            return tuple(G[i] for i in self.indices())
-        except (KeyError, ValueError):
-            return tuple(G)
-
-    def gen(self, i):
-        """
-        Return the ``i``-th generator of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
-            sage: L.gen(0)
-            x
-        """
-        return tuple(self.gens())[i]
-
     def get_order(self):
         """
         Return an ordering of the basis indices.
@@ -687,6 +608,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             Remove this method and in :class:`CombinatorialFreeModule`
             in favor of a method in the category of (finite dimensional)
             modules with basis.
+
 
         EXAMPLES::
 
@@ -702,22 +624,22 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     Element = LieAlgebraElement # Default for all Lie algebras
 
 class FinitelyGeneratedLieAlgebra(LieAlgebra):
-    r"""
-    An finitely generated Lie algebra.
+    """
+    An fintely generated Lie algebra.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+
+    - ``names`` -- the names of the generators
+
+    - ``index_set`` -- the index set of the generators
+
+    - ``category`` -- the category of the Lie algebra
     """
     def __init__(self, R, names=None, index_set=None, category=None):
         """
         Initialize ``self``.
-
-        INPUT:
-
-        - ``R`` -- the base ring
-
-        - ``names`` -- the names of the generators
-
-        - ``index_set`` -- the index set of the generators
-
-        - ``category`` -- the category of the Lie algebra
 
         EXAMPLES::
 
@@ -744,13 +666,45 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
         return "Lie algebra on {0} generators {1} over {2}".format(
                 self.__ngens, self.gens(), self.base_ring())
 
+    @cached_method
+    def gens(self):
+        """
+        Return a tuple whose entries are the generators for this
+        object, in some order.
+
+        EXAMPLES::
+    
+            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
+            sage: L.gens()
+            (x, y)
+        """
+        G = self.lie_algebra_generators()
+        try:
+            return tuple(G[i] for i in self.variable_names())
+        except (KeyError, IndexError):
+            return tuple(G[i] for i in self.indices())
+        except (KeyError, ValueError):
+            return tuple(G)
+
+    def gen(self, i):
+        """
+        Return the ``i``-th generator of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
+            sage: L.gen(0)
+            x
+        """
+        return self.gens()[i]
+
     @lazy_attribute
     def _ordered_indices(self):
         """
         Return the index set of the basis of ``self`` in (some) order.
 
         EXAMPLES::
-
+    
             sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
             sage: L._ordered_indices
             ('x', 'y')
@@ -762,7 +716,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
         Return an element of ``self``.
 
         EXAMPLES::
-
+    
             sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
             sage: L.an_element()
             x + y
@@ -797,7 +751,7 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
         """
         return infinity
 
-class LieAlgebraFromAssociative(LieAlgebra):
+class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
     """
     A Lie algebra whose elements are from an associative algebra and whose
     bracket is the commutator.
@@ -807,7 +761,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
         Split this class into 2 classes, the base class for the Lie
         algebra corresponding to the full associative algebra and a
         subclass for the Lie subalgebra (of the full algebra)
-        generated by a generating set?
+        generated by a generating set.
 
     .. TODO::
 
@@ -816,20 +770,19 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
     EXAMPLES:
 
-    For the first example, we start with a commutative algebra.
+    We create a simple example with a commutative algebra as the base algebra.
     Note that the bracket of everything will be 0::
 
-        sage: R = SymmetricGroupAlgebra(QQ, 2)
+        sage: R.<a,b> = PolynomialRing(QQ)
         sage: L = LieAlgebra(associative=R)
-        sage: x, y = L.basis()
+        sage: x, y = L(a), L(b)
         sage: L.bracket(x, y)
         0
 
     Next we use a free algebra and do some simple computations::
 
         sage: R.<a,b> = FreeAlgebra(QQ, 2)
-        sage: L = LieAlgebra(associative=R)
-        sage: x,y = L(a), L(b)
+        sage: L.<x,y> = LieAlgebra(associative=R)
         sage: x-y
         a - b
         sage: L.bracket(x-y, x)
@@ -837,14 +790,14 @@ class LieAlgebraFromAssociative(LieAlgebra):
         sage: L.bracket(x-y, L.bracket(x,y))
         a^2*b - 2*a*b*a + a*b^2 + b*a^2 - 2*b*a*b + b^2*a
 
-    We can also use a subset of the generators as a generating set
+    We can also use a subset of the generators to use as a generating set
     of the Lie algebra::
 
         sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
         sage: L.<x,y> = LieAlgebra(associative=[a,b])
 
-    Now for a more complicated example using the group ring of `S_3`
-    as our base algebra::
+    Now for a more complicated example using the group ring of `S_3` as our
+    base algebra::
 
         sage: G = SymmetricGroup(3)
         sage: S = GroupAlgebra(G, QQ)
@@ -884,10 +837,17 @@ class LieAlgebraFromAssociative(LieAlgebra):
         sage: L.bracket(x, L.bracket(y,x))
         [-6 14]
         [14  6]
+
+    If we use a subset of the generators to construct our Lie algebra,
+    the result of :meth:`universal_enveloping_algebra()` can be too large::
+
+        sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
+        sage: L = LieAlgebra(associative=[a,b], names='x,y')
+        sage: L.universal_enveloping_algebra() is R
+        True
     """
     @staticmethod
-    def __classcall_private__(cls, A, gens=None, names=None, index_set=None,
-                              free_lie_algebra=False):
+    def __classcall_private__(cls, A, gens=None, names=None, index_set=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -901,18 +861,31 @@ class LieAlgebraFromAssociative(LieAlgebra):
             True
 
             sage: F.<x,y,z> = FreeAlgebra(QQ)
-            sage: L1 = LieAlgebra(associative=F.algebra_generators(), names='x,y,z')
+            sage: L1 = LieAlgebra(associative=F)
             sage: L2.<x,y,z> = LieAlgebra(associative=F.gens())
+            sage: L3.<x,y,z> = LieAlgebra(QQ, representation="polynomial")
             sage: L1 is L2
             True
         """
         # If A is not a ring, then we treat it as a set of generators
         if isinstance(A, Parent) and A.category().is_subcategory(Rings()):
-            if gens is None and index_set is None:
-                # Use the indexing set of the basis
+            # TODO: As part of #16823, this should instead construct a
+            #   subclass with specialized methods for the free Lie algebra
+            if is_FreeAlgebra(A):
+                if gens is None:
+                    gens = A.gens()
+                if index_set is None:
+                    index_set = A.variable_names()
+            elif gens is None:
+                # Parse possible generators (i.e., a basis) from the parent
                 try:
-                    index_set = A.basis().keys()
+                    gens = A.basis()
                 except (AttributeError, NotImplementedError):
+                    pass
+            if names is None:
+                try:
+                    names = A.variable_names()
+                except ValueError:
                     pass
         else:
             gens = A
@@ -924,52 +897,48 @@ class LieAlgebraFromAssociative(LieAlgebra):
                 index_set = gens.keys()
             except (AttributeError, ValueError):
                 pass
+        try:
+            ngens = len(gens)
+        except (TypeError, NotImplementedError):
+            ngens = None
 
-        ngens = None
+        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set, ngens)
+
+        is_fg = False # Is finitely generated
         if isinstance(gens, AbstractFamily):
-            if index_set is None and names is None:
-                index_set = gens.keys()
             if gens.cardinality() < float('inf'):
-                # TODO: This makes the generators of a finitely generated
-                #    Lie algebra into an ordered list for uniqueness and then
-                #    reconstructs the family. Instead create a key for the
-                #    cache this way and then pass the family.
+                is_fg = True
                 try:
                     gens = tuple([gens[i] for i in index_set])
                 except KeyError:
                     gens = tuple(gens)
-                ngens = len(gens)
 
         elif isinstance(gens, dict):
-            if index_set is None and names is None:
-                index_set = gens.keys()
+            is_fg = True
             gens = gens.values()
-            ngens = len(gens)
-        elif gens is not None: # Assume it is list-like
+        elif gens: # Assume it is list-like
+            is_fg = True
             gens = tuple(gens)
-            ngens = len(gens)
-            if index_set is None and names is None:
-                index_set = range(ngens)
 
-        if ngens is not None:
+        if is_fg: # If we have a finite generating set
             if A is None:
                 A = gens[0].parent()
             # Make sure all the generators have the same parent of A
-            gens = tuple([A(g) for g in gens])
+            gens = tuple(map(A, gens))
 
-        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set, ngens)
-
-        if isinstance(A, MatrixSpace):
-            if gens is not None:
+        if ngens:
+            try:
+                # Try to make things, such as matrices, immutable
+                #    since we need to hash them
                 for g in gens:
                     g.set_immutable()
-            return MatrixLieAlgebraFromAssociative(A, gens, names=names,
-                                                   index_set=index_set)
+            except AttributeError:
+                pass
 
         return super(LieAlgebraFromAssociative, cls).__classcall__(cls,
                      A, gens, names=names, index_set=index_set)
 
-    def __init__(self, A, gens=None, names=None, index_set=None, category=None):
+    def __init__(self, A, gens, names=None, index_set=None, category=None):
         """
         Initialize ``self``.
 
@@ -979,12 +948,6 @@ class LieAlgebraFromAssociative(LieAlgebra):
             sage: S = GroupAlgebra(G, QQ)
             sage: L = LieAlgebra(associative=S)
             sage: TestSuite(L).run()
-
-        TESTS::
-
-            sage: from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative as LAFA
-            sage: LAFA(MatrixSpace(QQ, 0, sparse=True), [], names=())
-            Lie algebra generated by () in Full MatrixSpace of 0 by 0 sparse matrices over Rational Field
         """
         self._assoc = A
         R = self._assoc.base_ring()
@@ -994,27 +957,24 @@ class LieAlgebraFromAssociative(LieAlgebra):
         category = LieAlgebras(R).or_subcategory(category)
         if 'FiniteDimensional' in self._assoc.category().axioms():
             category = category.FiniteDimensional()
-        if 'WithBasis' in self._assoc.category().axioms() and gens is None:
+        if 'WithBasis' in self._assoc.category().axioms():
             category = category.WithBasis()
 
-        LieAlgebra.__init__(self, R, names, index_set, category)
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, category)
 
         if isinstance(gens, tuple):
-            # This guarantees that the generators have a specified ordering
-            d = {self._indices[i]: self.element_class(self, v)
-                 for i,v in enumerate(gens)}
-            gens = Family(list(self._indices), lambda i: d[i])
+            gens = Family({self._indices[i]: self.element_class(self, v)
+                           for i,v in enumerate(gens)})
         elif gens is not None: # It is a family
-            gens = Family(self._indices,
-                          lambda i: self.element_class(self, gens[i]),
+            gens = Family(self._indices, lambda i: self.element_class(self, gens[i]),
                           name="generator map")
         self._gens = gens
-
         # We don't need to store the original generators because we can
         #   get them from lifting this object's generators
 
-        # We construct the lift map to the ambient associative algebra
-        LiftMorphismToAssociative(self, self._assoc).register_as_coercion()
+        # We construct the lift map to the associative algebra
+        self.lift = LiftMorphismFromAssociative(self, self._assoc)
+        self.lift.register_as_coercion()
 
     def _repr_option(self, key):
         """
@@ -1040,7 +1000,8 @@ class LieAlgebraFromAssociative(LieAlgebra):
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
             sage: LieAlgebra(associative=S)
-            Lie algebra of Group algebra of group
+            Lie algebra generated by ((2,3), (1,3), (1,2), (1,3,2), (), (1,2,3))
+             in Group algebra of group
              "Symmetric group of order 3! as a permutation group"
              over base ring Rational Field
             sage: LieAlgebra(associative=S.gens())
@@ -1059,19 +1020,18 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
         EXAMPLES::
 
-            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: G = SymmetricGroup(3)
+            sage: S = GroupAlgebra(G, QQ)
             sage: L = LieAlgebra(associative=S)
             sage: x,y = S.algebra_generators()
             sage: elt = L(x - y); elt
-            [2, 1, 3] - [2, 3, 1]
+            -(1,2) + (1,2,3)
             sage: elt.parent() is L
             True
             sage: elt == L(x) - L(y)
             True
             sage: L([x, y])
-            -[1, 3, 2] + [3, 2, 1]
-            sage: L(2)
-            2*[1, 2, 3]
+            (2,3) - (1,3)
         """
         if isinstance(x, list) and len(x) == 2:
             return self(x[0])._bracket_(self(x[1]))
@@ -1079,7 +1039,7 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
     def associative_algebra(self):
         """
-        Return the associative algebra used to construct ``self``.
+        Construct the associative algebra used to construct ``self``.
 
         EXAMPLES::
 
@@ -1101,18 +1061,10 @@ class LieAlgebraFromAssociative(LieAlgebra):
             sage: S = GroupAlgebra(G, QQ)
             sage: L = LieAlgebra(associative=S)
             sage: L.lie_algebra_generators()
-            Finite family {(2,3): (2,3), (1,2): (1,2), (1,3): (1,3),
-                           (1,2,3): (1,2,3), (1,3,2): (1,3,2), (): ()}
+            Finite family {(2,3): (2,3), (1,3): (1,3), (1,2,3): (1,2,3),
+                           (): (), (1,2): (1,2), (1,3,2): (1,3,2)}
         """
-        if self._gens is not None:
-            return self._gens
-        try:
-            ngens = self._indices.cardinality()
-        except AttributeError:
-            ngens = len(self._indices)
-        if ngens < float('inf'):
-            return Family(list(self._indices), self.monomial)
-        return Family(self._indices, self.monomial, name="generator map")
+        return self._gens
 
     def monomial(self, i):
         """
@@ -1122,13 +1074,13 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
             sage: F.<x,y> = FreeAlgebra(QQ)
             sage: L = LieAlgebra(associative=F)
-            sage: L.monomial(x.leading_support())
+            sage: L.monomial('x')
             x
         """
-        if i not in self.basis().keys():
+        if i not in self._indices:
             #return self(self._assoc.monomial(i))
             raise ValueError("not an index")
-        return self.element_class(self, self._assoc.monomial(i))
+        return self._gens[i]
 
     def term(self, i, c=None):
         """
@@ -1138,18 +1090,18 @@ class LieAlgebraFromAssociative(LieAlgebra):
 
             sage: F.<x,y> = FreeAlgebra(QQ)
             sage: L = LieAlgebra(associative=F)
-            sage: L.term(x.leading_support(), 4)
+            sage: L.term('x', 4)
             4*x
         """
-        if i not in self.basis().keys():
+        if i not in self._indices:
             #return self(self._assoc.term(i, c))
             raise ValueError("not an index")
-        return self.element_class(self, self._assoc.term(i, c))
+        return c * self._gens[i]
 
     @cached_method
     def zero(self):
         """
-        Return the element `0` in ``self``.
+        Return `0`.
 
         EXAMPLES::
 
@@ -1168,12 +1120,12 @@ class LieAlgebraFromAssociative(LieAlgebra):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 2, 'x,y')
-            sage: L = LieAlgebra(associative=R.gens())
+            sage: L = LieAlgebra(associative=R)
             sage: L.is_abelian()
             False
 
             sage: R = PolynomialRing(QQ, 'x,y')
-            sage: L = LieAlgebra(associative=R.gens())
+            sage: L = LieAlgebra(associative=R)
             sage: L.is_abelian()
             True
 
@@ -1198,31 +1150,6 @@ class LieAlgebraFromAssociative(LieAlgebra):
         if self._assoc.is_commutative():
             return True
         return super(LieAlgebraFromAssociative, self).is_abelian()
-
-    def _an_element_(self):
-        """
-        Return an element of ``self``.
-
-        EXAMPLES::
-
-            sage: F.<x,y> = FreeAlgebra(QQ)
-
-        An infinitely generated example::
-
-            sage: L = LieAlgebra(associative=F)
-            sage: L.an_element()
-            1
-
-        A finitely generated example::
-
-            sage: L = LieAlgebra(associative=F.gens())
-            sage: L.an_element()
-            x + y
-        """
-        G = self.lie_algebra_generators()
-        if G.cardinality() < float('inf'):
-            return self.sum(G)
-        return G[self._indices.an_element()]
 
     class Element(LieAlgebraElementWrapper):
         def _bracket_(self, rhs):
@@ -1249,48 +1176,22 @@ class LieAlgebraFromAssociative(LieAlgebra):
             ret = self.value * rhs.value - rhs.value * self.value
             return self.__class__(self.parent(), ret)
 
-        def lift_associative(self):
+        def lift(self):
             """
-            Lift ``self`` to the ambient associative algebra (which
-            might be larger than the universal envelopting algebra).
+            Lift ``self`` to the universal enveloping algebra.
 
             EXAMPLES::
 
                 sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
                 sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
-                sage: x.lift_associative()
+                sage: x.lift()
                 x
-                sage: x.lift_associative().parent()
+                sage: x.lift().parent()
                 Free Algebra on 3 generators (x, y, z) over Rational Field
             """
             return self.value
 
-        def monomial_coefficients(self, copy=True):
-            """
-            Return the monomial coefficients of ``self`` (if this
-            notion makes sense for ``self.parent()``).
-
-            EXAMPLES::
-
-                sage: R.<x,y,z> = FreeAlgebra(QQ)
-                sage: L = LieAlgebra(associative=R)
-                sage: elt = L(x) + 2*L(y) - L(z)
-                sage: sorted(elt.monomial_coefficients().items())
-                [(x, 1), (y, 2), (z, -1)]
-
-                sage: L = LieAlgebra(associative=[x,y])
-                sage: elt = L(x) + 2*L(y)
-                sage: elt.monomial_coefficients()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: the basis is not defined
-            """
-            if self.parent()._gens is not None:
-                raise NotImplementedError("the basis is not defined")
-            # Copy is ignored until #18066 is merged or a dependency
-            return self.value.monomial_coefficients(copy)
-
-class LiftMorphismToAssociative(LiftMorphism):
+class LiftMorphismFromAssociative(LiftMorphism):
     """
     The natural lifting morphism from a Lie algebra constructed from
     an associative algebra `A` to `A`.
@@ -1304,7 +1205,7 @@ class LiftMorphismToAssociative(LiftMorphism):
             sage: R = FreeAlgebra(QQ, 3, 'a,b,c')
             sage: L = LieAlgebra(associative=R)
             sage: x,y,z = R.gens()
-            sage: f = R.coerce_map_from(L)
+            sage: f = L.lift
             sage: p = f.preimage(x*y - z); p
             -c + a*b
             sage: p.parent() is L
@@ -1319,8 +1220,8 @@ class LiftMorphismToAssociative(LiftMorphism):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
-            sage: f = R.coerce_map_from(L)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: f = L.lift
             sage: a = f(L([x,y]) + z); a
             z + x*y - y*x
             sage: a.parent() is R
@@ -1335,17 +1236,13 @@ class LiftMorphismToAssociative(LiftMorphism):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
-            sage: f = R.coerce_map_from(L)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: f = L.lift
             sage: f.section()
             Generic morphism:
               From: Free Algebra on 3 generators (x, y, z) over Rational Field
-              To:   Lie algebra generated by (x, y, z) in Free Algebra on 3 generators (x, y, z) over Rational Field
+              To:   Lie algebra generated by (y, x, z) in Free Algebra on 3 generators (x, y, z) over Rational Field
         """
         return SetMorphism(Hom(self.codomain(), self.domain()),
                            self.preimage)
-
-class MatrixLieAlgebraFromAssociative(LieAlgebraFromAssociative):
-    class Element(LieAlgebraMatrixWrapper, LieAlgebraFromAssociative.Element):
-        pass
 

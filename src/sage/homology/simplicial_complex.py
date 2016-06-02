@@ -2339,7 +2339,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def add_face(self, face):
         """
-        Add a face to this simplicial complex
+        Add a face to this simplicial complex.
 
         :param face: a subset of the vertex set
 
@@ -2368,10 +2368,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         Check that the bug reported at :trac:`14354` has been fixed::
 
             sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
-            sage: T.homology()
+            sage: T.homology(algorithm='no_chomp')
             {0: 0, 1: Z x Z x Z}
             sage: T.add_face([1,2,3])
-            sage: T.homology()
+            sage: T.homology(algorithm='no_chomp')
             {0: 0, 1: Z x Z, 2: 0}
 
         Check that the ``_faces`` cache is treated correctly
@@ -2388,7 +2388,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         (:trac:`20758`)::
 
             sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
-            sage: T.homology() # to populate the __enlarged attribute
+            sage: T.homology(algorithm='no_chomp') # to populate the __enlarged attribute
             {0: 0, 1: Z x Z x Z}
             sage: T.add_face([1,2,3])
             sage: len(T._SimplicialComplex__enlarged) > 0
@@ -2434,15 +2434,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # Update self._faces.
             all_new_faces = SimplicialComplex([new_face]).faces()
             for L in self._faces:
-                for dim in range(0, new_face.dimension()+1):
-                    if dim in self._faces[L]:
-                        if isinstance(L, SimplicialComplex):
-                            new_faces = all_new_faces[dim].difference(L.faces()[dim])
-                        else:
+                L_complex = self._faces[L]
+                for dim in range(new_face.dimension()+1):
+                    if dim in L_complex:
+                        if L is None:
                             new_faces = all_new_faces[dim]
-                        self._faces[L][dim] = self._faces[L][dim].union(new_faces)
+                        else:
+                            new_faces = all_new_faces[dim].difference(L.faces()[dim])
+                        L_complex[dim] = L_complex[dim].union(new_faces)
                     else:
-                        self._faces[L][dim] = all_new_faces[dim]
+                        L_complex[dim] = all_new_faces[dim]
             # update self._graph if necessary
             if self._graph is not None:
                 d = new_face.dimension()+1
@@ -2490,7 +2491,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
             sage: _ = T.faces() # populate the _faces attribute
-            sage: _ = T.homology() # add more to _faces
+            sage: _ = T.homology(algorithm='no_chomp') # add more to _faces
             sage: T.add_face((1,2,3))
             sage: T.remove_face((1,2,3))
             sage: len(T._faces)

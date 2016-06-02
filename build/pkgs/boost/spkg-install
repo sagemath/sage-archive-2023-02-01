@@ -6,10 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-echo "Clean out old boost headers and libraries"
-rm -rf "$SAGE_LOCAL"/include/boost
-rm -rf "$SAGE_LOCAL"/lib/libboost*
-
 cd src
 
 echo "Running boost bootstrap"
@@ -19,6 +15,18 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+echo "Building boost"
+./b2
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Failed to build boost."
+    exit 1
+fi
+
+echo "Clean out old boost headers and libraries"
+rm -rf "$SAGE_LOCAL"/include/boost
+rm -rf "$SAGE_LOCAL"/lib/libboost*
+
+echo "Installing boost"
 ./b2 install --prefix="$SAGE_LOCAL"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Failed to install boost."

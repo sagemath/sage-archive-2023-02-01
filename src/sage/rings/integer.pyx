@@ -175,7 +175,7 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
 
-from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z, mpq_div_zz
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -1829,9 +1829,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if mpz_sgn((<Integer>right).value) == 0:
                 raise ZeroDivisionError("rational division by zero")
             x = <Rational> Rational.__new__(Rational)
-            mpz_set(mpq_numref(x.value), (<Integer>left).value)
-            mpz_set(mpq_denref(x.value), (<Integer>right).value)
-            mpq_canonicalize(x.value)
+            mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
             return x
         elif isinstance(right, Rational):
             if mpq_sgn((<Rational>right).value) == 0:
@@ -1857,9 +1855,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn((<Integer>right).value) == 0:
             raise ZeroDivisionError("rational division by zero")
         x = <Rational> Rational.__new__(Rational)
-        mpz_set(mpq_numref(x.value), self.value)
-        mpz_set(mpq_denref(x.value), (<Integer>right).value)
-        mpq_canonicalize(x.value)
+        mpq_div_zz(x.value, self.value, (<Integer>right).value)
         return x
 
     cpdef RingElement _floordiv_(self, RingElement right):

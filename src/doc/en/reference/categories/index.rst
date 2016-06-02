@@ -158,6 +158,7 @@ Individual Categories
    sage/categories/sets_with_partial_maps
    sage/categories/shephard_groups
    sage/categories/simplicial_complexes
+   sage/categories/simplicial_sets
    sage/categories/super_algebras
    sage/categories/super_algebras_with_basis
    sage/categories/super_hopf_algebras_with_basis

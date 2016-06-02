@@ -968,8 +968,8 @@ class GenericCellComplex(SageObject):
         :meth:`~sage.homology.cubical_complex.Cube.alexander_whitney`. Then
         the method for simplicial complexes just calls the method for
         individual simplices, and similarly for cubical complexes. For
-        `\Delta`-complexes, the method is instead defined at the level
-        of the cell complex.
+        `\Delta`-complexes and simplicial sets, the method is instead
+        defined at the level of the cell complex.
 
         EXAMPLES::
 

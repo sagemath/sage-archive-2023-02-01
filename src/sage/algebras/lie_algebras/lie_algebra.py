@@ -218,7 +218,36 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         and ``L[e + [h, f], h]`` will both raise errors. Instead you must
         use ``L[e + L[h, f], h]``.
 
-    Now we construct a free Lie algebra in a few different ways. There are
+    **4.** We can construct a Lie algebra from a Cartan type by using
+    the ``cartan_type`` option::
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['C',3])
+        sage: L.inject_variables()
+        Defining e1, e2, e3, f1, f2, f3, h1, h2, h3
+        sage: e1.bracket(e2)
+        -E[alpha[1] + alpha[2]]
+        sage: L([[e1, e2], e2])
+        0
+        sage: L([[e2, e3], e3])
+        0
+        sage: L([e2, [e2, e3]])
+        -2*E[2*alpha[2] + alpha[3]]
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['E',6])
+        sage: L
+        Lie algebra of ['E', 6] in the Chevalley basis
+
+    We also have matrix versions of the classical Lie algebras::
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['A',2], representation='matrix')
+        sage: L.gens()
+        (
+        [0 1 0]  [0 0 0]  [0 0 0]  [0 0 0]  [ 1  0  0]  [ 0  0  0]
+        [0 0 0]  [0 0 1]  [1 0 0]  [0 0 0]  [ 0 -1  0]  [ 0  1  0]
+        [0 0 0], [0 0 0], [0 0 0], [0 1 0], [ 0  0  0], [ 0  0 -1]
+        )
+
+    **5.** We construct a free Lie algebra in a few different ways. There are
     two primary representations, as brackets and as polynomials::
 
         sage: L = LieAlgebra(QQ, 'x,y,z'); L # not tested #16823

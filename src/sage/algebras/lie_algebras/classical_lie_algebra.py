@@ -257,24 +257,42 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     @cached_method
     def basis(self):
         """
-        Return the basis of ``self``.
+        Return a basis of ``self``.
 
         EXAMPLES::
 
-            sage: g = lie_algebras.sl(QQ, 3, representation='matrix')
-            sage: tuple(g.basis())
-            (
-            [0 0 0]  [0 0 0]  [ 0  0  0]  [ 1  0  0]  [0 1 0]  [0 0 0]
-            [1 0 0]  [0 0 0]  [ 0  1  0]  [ 0 -1  0]  [0 0 0]  [0 0 1]
-            [0 0 0], [0 1 0], [ 0  0 -1], [ 0  0  0], [0 0 0], [0 0 0]
-            )
+            sage: M = LieAlgebra(ZZ, cartan_type=['A',2], representation='matrix')
+            sage: list(M.basis())
+            [
+            [ 1  0  0]  [0 1 0]  [0 0 1]  [0 0 0]  [ 0  0  0]  [0 0 0]  [0 0 0]
+            [ 0  0  0]  [0 0 0]  [0 0 0]  [1 0 0]  [ 0  1  0]  [0 0 1]  [0 0 0]
+            [ 0  0 -1], [0 0 0], [0 0 0], [0 0 0], [ 0  0 -1], [0 0 0], [1 0 0],
+            <BLANKLINE>
+            [0 0 0]
+            [0 0 0]
+            [0 1 0]
+            ]
         """
-        d = {}
-        for i in self.index_set():
-            d['e{}'.format(i)] = self._e[i]
-            d['f{}'.format(i)] = self._f[i]
-            d['h{}'.format(i)] = self._h[i]
-        return Family(d)
+        # This is a fairly generic method of constructing a basis
+        from sage.matrix.constructor import matrix
+
+        R = self.base_ring()
+        basis = list(self.lie_algebra_generators())
+        expanded = True
+        while expanded:
+            expanded = False
+            mat = []
+            for i,x in enumerate(basis):
+                mat.append(x.value.list())
+                for y in basis[i+1:]:
+                    mat.append(x.bracket(y).value.list())
+            mat = matrix(R, mat)
+            mat.echelonize()
+            if mat.rank() != len(basis):
+                basis = [self.element_class( self, self._assoc(mat[i].list()) )
+                         for i in range(mat.rank())]
+                expanded = True
+        return Family(basis)
 
     # TODO: Uncomment once #16825 is done
     #def affine(self, kac_moody=False):
@@ -419,7 +437,7 @@ class sl(ClassicalMatrixLieAlgebra):
 
             sage: g = lie_algebras.sl(QQ, 5, representation='matrix')
             sage: x = g.an_element()
-            sage: y = g.basis()['e1']
+            sage: y = g.lie_algebra_generators()['e1']
             sage: g.killing_form(x, y)
             10
         """
@@ -513,14 +531,14 @@ class so(ClassicalMatrixLieAlgebra):
 
             sage: g = lie_algebras.so(QQ, 8, representation='matrix')
             sage: x = g.an_element()
-            sage: y = g.basis()['e1']
+            sage: y = g.lie_algebra_generators()['e1']
             sage: g.killing_form(x, y)
-            32
+            12
             sage: g = lie_algebras.so(QQ, 9, representation='matrix')
             sage: x = g.an_element()
-            sage: y = g.basis()['e1']
+            sage: y = g.lie_algebra_generators()['e1']
             sage: g.killing_form(x, y)
-            36
+            14
         """
         return (self._n - 2) * (x.value * y.value).trace()
 
@@ -626,7 +644,7 @@ class sp(ClassicalMatrixLieAlgebra):
 
             sage: g = lie_algebras.sp(QQ, 8, representation='matrix')
             sage: x = g.an_element()
-            sage: y = g.basis()['e1']
+            sage: y = g.lie_algebra_generators()['e1']
             sage: g.killing_form(x, y)
             36
         """
@@ -684,7 +702,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
     REFERNCES:
 
-    .. [CMT] A. M. Cohen, S. H. Murray, D. E. Talyor. *Groups of Lie type*.
+    .. [CMT03] \A. M. Cohen, S. H. Murray, D. E. Talyor.
+       *Computing in groups of Lie type*.
+       Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
        http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
     """
     @staticmethod
@@ -716,10 +736,12 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         RL = cartan_type.root_system().root_lattice()
         alpha = RL.simple_roots()
         p_roots = list(RL.positive_roots_by_height())
-        n_roots = map(lambda x: -x, p_roots)
+        n_roots = [-x for x in p_roots]
         alphacheck = RL.simple_coroots()
-        roots = RL.roots()
+        roots = frozenset(RL.roots())
         num_sroots = len(alpha)
+        p_root_index = {x: i for i,x in enumerate(p_roots)}
+        one = R.one()
 
         # Determine the signs for the structure coefficients from the root system
         # We first create the special roots
@@ -733,23 +755,30 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                 x, y = (a + b).extraspecial_pair()
 
                 if (x, y) == (a, b): # If it already is an extra special pair
-                    sp_sign[(x, y)] = 1
-                    sp_sign[(y, x)] = -1
+                    if (x, y) not in sp_sign:
+                        # This swap is so the structure coefficients match with GAP
+                        if (sum(x.coefficients()) == sum(y.coefficients())
+                            and str(x) > str(y)):
+                            y,x = x,y
+                        sp_sign[(x, y)] = -one
+                        sp_sign[(y, x)] = one
                     continue
 
                 if b - x in roots:
-                    t1 = (b-x).norm_squared() / b.norm_squared() * sp_sign[(x, b-x)] * sp_sign[(a, y-a)]
+                    t1 = ((b-x).norm_squared() / b.norm_squared()
+                          * sp_sign[(x, b-x)] * sp_sign[(a, y-a)])
                 else:
                     t1 = 0
                 if a - x in roots:
-                    t2 = (a-x).norm_squared() / a.norm_squared() * sp_sign[(x, a-x)] * sp_sign[(b, y-b)]
+                    t2 = ((a-x).norm_squared() / a.norm_squared()
+                          * sp_sign[(x, a-x)] * sp_sign[(b, y-b)])
                 else:
                     t2 = 0
 
                 if t1 - t2 > 0:
-                    sp_sign[(a,b)] = 1
-                else:
-                    sp_sign[(a,b)] = -1
+                    sp_sign[(a,b)] = -one
+                elif t2 - t1 > 0:
+                    sp_sign[(a,b)] = one
                 sp_sign[(b,a)] = -sp_sign[(a,b)]
 
         # Function to construct the structure coefficients (up to sign)
@@ -771,39 +800,39 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                 s_coeffs[(ac, -r)] = {-r: -c}
 
             # [e_r, f_r]
-            h_sum = {}
-            for j, c in r.associated_coroot():
-                h_sum[alphacheck[j]] = c
-            s_coeffs[(r, -r)] = h_sum
+            s_coeffs[(r, -r)] = {alphacheck[j]: c
+                                 for j, c in r.associated_coroot()}
 
             # [e_r, e_s] and [e_r, f_s] with r != +/-s
+            # We assume s is positive, as otherwise we negate
+            #   both r and s and the resulting coefficient
             for j, s in enumerate(p_roots[i+1:]):
-                j += i+1
-                # Since h(s) > h(r), we will always have s - r > 0 (if it is a root)
-                # [e_r, f_s]
+                j += i+1 # Offset
+                # Since h(s) >= h(r), we have s - r > 0 when s - r is a root
+                # [f_r, e_s]
                 if s - r in p_roots:
                     c = e_coeff(r, -s)
-                    a,b = s-r, r
-                    if p_roots.index(a) + 1 > p_roots.index(b): # Note a != b
-                        c = -c * sp_sign[(b, a)]
+                    a, b = s-r, r
+                    if p_root_index[a] > p_root_index[b]: # Note a != b
+                        c *= -sp_sign[(b, a)]
                     else:
                         c *= sp_sign[(a, b)]
                     s_coeffs[(-r, s)] = {a: -c}
-                    s_coeffs[(r, -s)] = {a: c}
+                    s_coeffs[(r, -s)] = {-a: c}
 
                 # [e_r, e_s]
                 a = r + s
                 if a in p_roots:
                     # (r, s) is a special pair
-                    c = e_coeff(r, s) * sp_sign[(r, s)]
+                    c = e_coeff(r, s) * sp_sign[(r, s)] 
                     s_coeffs[(r, s)] = {a: c}
                     s_coeffs[(-r, -s)] = {-a: -c}
 
         # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
-        for k in s_coeffs.keys():
+        for k in s_coeffs:
             a,b = k[0], k[1]
             if self._basis_cmp(a, b) > 0:
-                s_coeffs[(b,a)] = {k:-v for k,v in s_coeffs[k].items()}
+                s_coeffs[(b,a)] = {k: -v for k,v in s_coeffs[k].items()}
                 del s_coeffs[k]
 
         names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
@@ -825,6 +854,56 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             Lie algebra of ['A', 2] in the Chevalley basis
         """
         return "Lie algebra of {} in the Chevalley basis".format(self._cartan_type)
+
+    def _test_structure_coeffs(self, **options):
+        """
+        Check the structure coefficients against the GAP implementation.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(ZZ, cartan_type=['G',2])
+            sage: L._test_structure_coeffs()
+        """
+        tester = self._tester(**options)
+        ct = self.cartan_type()
+
+        # Setup the GAP objects
+        from sage.libs.gap.libgap import libgap
+        L = libgap.SimpleLieAlgebra(ct.letter, ct.n, libgap(self.base_ring()))
+        pos_B, neg_B, h_B = libgap.ChevalleyBasis(L)
+        gap_p_roots = libgap.PositiveRoots(libgap.RootSystem(L)).sage()
+        #E, F, H = libgap.CanonicalGenerators(L)
+
+        # Setup the conversion between the Sage roots and GAP roots.
+        #   The GAP roots are given in terms of the weight lattice.
+        p_roots = list(ct.root_system().root_lattice().positive_roots_by_height())
+        WL = ct.root_system().weight_lattice()
+        La = WL.fundamental_weights()
+        convert = {WL(root): root for root in p_roots}
+        index = {convert[sum(c*La[j+1] for j,c in enumerate(rt))]: i
+                 for i, rt in enumerate(gap_p_roots)}
+
+        # Run the check
+        basis = self.basis()
+        roots = frozenset(p_roots)
+        for i,x in enumerate(p_roots):
+            for y in p_roots[i+1:]:
+                if x + y in roots:
+                    c = basis[x].bracket(basis[y]).leading_coefficient()
+                    a, b = (x + y).extraspecial_pair()
+                    if (x, y) == (a, b): # If it already is an extra special pair
+                        tester.assertEqual(pos_B[index[x]] * pos_B[index[y]],
+                                           c * pos_B[index[x+y]],
+                                           "extra special pair differ for [{}, {}]".format(x, y))
+                    else:
+                        tester.assertEqual(pos_B[index[x]] * pos_B[index[y]],
+                                           c * pos_B[index[x+y]],
+                                           "incorrect structure coefficient for [{}, {}]".format(x, y))
+                if x - y in roots: # This must be a negative root if it is a root
+                    c = basis[x].bracket(basis[-y]).leading_coefficient()
+                    tester.assertEqual(pos_B[index[x]] * neg_B[index[y]],
+                                       c * neg_B[index[x-y]],
+                                       "incorrect structure coefficient for [{}, {}]".format(x, y))
 
     def _repr_term(self, m):
         """
@@ -855,7 +934,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['B', 3])
+            sage: L = LieAlgebra(QQ, cartan_type=['B', 2])
             sage: K = L.basis().keys()
             sage: S = sorted(K, cmp=L._basis_cmp); S
             [alpha[2],

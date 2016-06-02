@@ -946,6 +946,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S == S3
             True
 
+        Test that we have fixed a problem revealed in :trac:`20718`;
+        see also :trac:`20720`::
+
+            sage: SimplicialComplex([2], sort_facets=False)
+            Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+
             sage: S = SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
             sage: S == loads(dumps(S))
             True
@@ -992,7 +998,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             return
 
         try:  # vertex_set is an iterable
-            vertices = tuple(sorted(vertex_set))
+            if sort_facets:
+                vertices = tuple(sorted(vertex_set))
+            else:
+                vertices = tuple(vertex_set)
         except TypeError:  # vertex_set is an integer
             vertices = tuple(range(vertex_set+1))
         gen_dict = {}

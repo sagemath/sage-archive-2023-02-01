@@ -1918,8 +1918,6 @@ class Link(object):
             Link with 1 component represented by 3 crossings
             sage: K2.braid()
             s^-3
-            sage: GA = graphics_array(((K.plot(),), (K2.plot(),)))
-            sage: GA.show(axes=False)
 
         .. PLOT::
             :width: 300 px
@@ -1944,10 +1942,6 @@ class Link(object):
             [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
             sage: K2.pd_code()
             [[4, 2, 5, 1], [2, 6, 3, 5], [6, 4, 1, 3]]
-            sage: K.plot()
-            Graphics object consisting of ... graphics primitives
-            sage: K2.plot()
-            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -1962,12 +1956,25 @@ class Link(object):
             K2 = K.mirror_image()
             sphinx_plot(K2.plot())
         """
+        # Use the braid information if it is the shortest version
+        #   of what we have already computed
         if self._braid:
             lb = len(self._braid.Tietze())
-            logc = len(self.oriented_gauss_code()[-1])
-            lpd = len(self.pd_code())
+
+            if self._pd_code:
+                lpd = len(self.pd_code())
+            else:
+                lpd = float('inf')
+
+            if self._oriented_gauss_code:
+                logc = len(self.oriented_gauss_code()[-1])
+            else:
+                logc = float('inf')
+
             if lb <= logc and lb <= lpd:
                 return type(self)(~self._braid)
+
+        # Otherwise we fallback to the PD code
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
         return type(self)(pd)
 

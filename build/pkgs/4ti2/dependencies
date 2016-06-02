@@ -1,4 +1,4 @@
-$(PYTHON) $(MP_LIBRARY) glpk | setuptools
+$(MP_LIBRARY) glpk | setuptools
 
 ----------
 All lines of this file are ignored except the first.

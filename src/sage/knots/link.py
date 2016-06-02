@@ -1925,15 +1925,15 @@ class Link(object):
             :width: 300 px
 
             g = BraidGroup(2).gen(0)
-            K = Link(g^3)
+            K = Link(g**3)
             sphinx_plot(K.plot())
 
         .. PLOT::
             :width: 300 px
 
             g = BraidGroup(2).gen(0)
-            K = Link(g^3)
-            sphinx_plot(K.mirror_image().plot()))
+            K = Link(g**3)
+            sphinx_plot(K.mirror_image().plot())
 
         ::
 
@@ -1953,7 +1953,6 @@ class Link(object):
             :width: 300 px
 
             K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
-            GA = graphics_array((K.plot(), K.mirror_image().plot()))
             sphinx_plot(K.plot())
 
         .. PLOT::

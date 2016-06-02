@@ -2,7 +2,7 @@ r"""
 Cython wrapper for libhomfly library
 
 This is used to call the libhomfly library directly from python. Knots
-and Links are passed following the convention in libhomfly. It is basically
+and links are passed following the convention in libhomfly. It is basically
 the oriented Gauss code, represented as a string of integers separated
 by spaces as follows:
 
@@ -102,6 +102,6 @@ def homfly_polynomial_dict(link):
     d = dict()
     for i in range(l):
         ter = c_output.term[i]
-        d[(int(ter.m), int(ter.l))] = int(ter.coef)
+        d[(int(ter.l), int(ter.m))] = int(ter.coef)
     return d
 

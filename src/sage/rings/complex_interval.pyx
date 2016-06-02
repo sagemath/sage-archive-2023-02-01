@@ -652,7 +652,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im)
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -667,7 +667,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_add(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract ``self`` by ``right``.
 
@@ -682,7 +682,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sub(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
         return x
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -777,7 +777,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_clear(t1)
         return x
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 

@@ -50,8 +50,8 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-    cpdef _add_(self, ModuleElement right)
-    cpdef _sub_(self, ModuleElement right)
+    cpdef _add_(self, right)
+    cpdef _sub_(self, right)
     cpdef _neg_(self)
     # self._rmul_(x) is x * self
     cpdef _lmul_(self, RingElement right)
@@ -61,18 +61,18 @@ cdef class ModuleElement(Element):
     cdef _mul_long(self, long n)
 
 cdef class MonoidElement(Element):
-    cpdef _mul_(self, MonoidElement right)
+    cpdef _mul_(self, right)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    cpdef _div_(self, MultiplicativeGroupElement right)
+    cpdef _div_(self, right)
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef _mul_(self, RingElement right)
-    cpdef _div_(self, RingElement right)
-    cpdef _floordiv_(self, RingElement right)
+    cpdef _mul_(self, right)
+    cpdef _div_(self, right)
+    cpdef _floordiv_(self, right)
 
     cdef _add_long(self, long n)
 

@@ -4760,7 +4760,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Add two matrices with the same parent.
 
@@ -4783,7 +4783,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Subtract two matrices with the same parent.
 

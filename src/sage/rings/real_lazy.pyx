@@ -545,7 +545,7 @@ cdef int get_new_prec(R, int depth) except -1:
 
 cdef class LazyFieldElement(FieldElement):
 
-    cpdef _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add ``left`` with ``right``.
 
@@ -561,7 +561,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, add)
 
-    cpdef _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         Subtract ``right`` from ``left``.
 
@@ -577,7 +577,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, sub)
 
-    cpdef _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
         Mutliply ``left`` with ``right``.
 
@@ -593,7 +593,7 @@ cdef class LazyFieldElement(FieldElement):
                 pass
         return left._new_binop(left, right, mul)
 
-    cpdef _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         Divide ``left`` by ``right``.
 

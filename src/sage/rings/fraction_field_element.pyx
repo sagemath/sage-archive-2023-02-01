@@ -484,7 +484,7 @@ cdef class FractionFieldElement(FieldElement):
 
         return s
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -563,7 +563,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum*sden + rden*snum, rden*sden,
             coerce=False, reduce=False)
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Computes the difference of ``self`` and ``right``.
 
@@ -583,7 +583,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self._add_(-right)
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Computes the product of ``self`` and ``right``.
 
@@ -648,7 +648,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum * snum, rden * sden,
             coerce=False, reduce=False)
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Computes the quotient of ``self`` and ``right``.
 

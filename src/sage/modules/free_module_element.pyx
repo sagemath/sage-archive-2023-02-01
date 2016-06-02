@@ -4097,7 +4097,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add left and right.
 
@@ -4114,7 +4114,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         Subtract right from left.
 
@@ -4540,7 +4540,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries
 
-    cpdef _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add left and right.
 
@@ -4562,7 +4562,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = a
         return left._new_c(v)
 
-    cpdef _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         EXAMPLES::
 

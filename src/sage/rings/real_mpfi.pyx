@@ -2562,7 +2562,7 @@ cdef class RealIntervalFieldElement(RingElement):
     #   Basic Arithmetic
     ########################
 
-    cpdef _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real intervals with the same parent.
 
@@ -2608,7 +2608,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_inv(x.value, self.value)
         return x
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real intervals with the same parent.
 
@@ -2627,7 +2627,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_sub(x.value, self.value, (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real intervals with the same parent.
 
@@ -2665,7 +2665,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``, where both are real intervals with the
         same parent.

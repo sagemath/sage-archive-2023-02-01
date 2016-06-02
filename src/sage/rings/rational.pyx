@@ -2076,7 +2076,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return ``right`` plus ``self``.
 
@@ -2092,7 +2092,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return ``self`` minus ``right``.
 
@@ -2121,7 +2121,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Return ``self`` times ``right``.
 
@@ -2143,7 +2143,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Return ``self`` divided by ``right``.
 

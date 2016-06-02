@@ -549,7 +549,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef _add_(self, ModuleElement right_m):
+    cpdef _add_(self, right_m):
         """
         Add two power series with the same parent.
 
@@ -599,7 +599,7 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
 
-    cpdef _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, right_m):
         """
         Subtract two power series with the same parent.
 
@@ -684,7 +684,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, -self.__u, self.__n)
 
-    cpdef _mul_(self, RingElement right_r):
+    cpdef _mul_(self, right_r):
         """
         EXAMPLES::
 
@@ -809,7 +809,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
-    cpdef _div_(self, RingElement right_r):
+    cpdef _div_(self, right_r):
         """
         EXAMPLES::
 

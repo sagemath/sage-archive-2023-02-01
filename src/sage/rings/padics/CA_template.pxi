@@ -180,7 +180,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Return the sum of this element and ``_right``.
 
@@ -204,7 +204,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Return the difference of this element and ``_right``.
 
@@ -246,7 +246,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return ~self.parent().fraction_field()(self)
 
-    cpdef _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         """
         Return the product of this element and ``_right``.
 
@@ -269,7 +269,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Return the quotient of this element and ``right``.
 

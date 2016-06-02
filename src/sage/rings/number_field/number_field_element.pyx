@@ -2003,7 +2003,7 @@ cdef class NumberFieldElement(FieldElement):
         self.__numerator = t2
         self.__denominator = t1
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         EXAMPLE::
 
@@ -2024,7 +2024,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         EXAMPLES::
 
@@ -2043,7 +2043,7 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of self and other as elements of a number
         field.
@@ -2092,7 +2092,7 @@ cdef class NumberFieldElement(FieldElement):
         # but asymptotically fast poly multiplication means it's
         # actually faster to *not* build a table!?!
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Returns the quotient of self and other as elements of a number
         field.
@@ -4556,7 +4556,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         """
         return self._number_field
 
-    cpdef _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the right parent.
 
@@ -4684,7 +4684,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         x.__fld_denominator = self.__fld_denominator
         return x
 
-    cpdef _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the right parent.
 

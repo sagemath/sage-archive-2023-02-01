@@ -1028,7 +1028,7 @@ cdef class PathAlgebraElement(RingElement):
         return self._new_(homog_poly_neg(self.data))
 
     # addition
-    cpdef _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         EXAMPLES::
 
@@ -1105,7 +1105,7 @@ cdef class PathAlgebraElement(RingElement):
                     H1 = H1.nxt
                     H2 = H2.nxt
 
-    cpdef _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         EXAMPLES::
 
@@ -1298,7 +1298,7 @@ cdef class PathAlgebraElement(RingElement):
 
 ## Multiplication in the algebra
 
-    cpdef _mul_(self, RingElement  other):
+    cpdef _mul_(self, other):
         """
         EXAMPLES::
 

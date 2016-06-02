@@ -173,7 +173,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         r"""
         Return the sum of this element and ``_right``.
 
@@ -193,7 +193,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         r"""
         Return the difference of this element and ``_right``.
 
@@ -238,7 +238,7 @@ cdef class FMElement(pAdicTemplateElement):
         cinvert(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -256,7 +256,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         r"""
         Return the quotient of this element and ``right``. ``right`` must have
         valuation zero.

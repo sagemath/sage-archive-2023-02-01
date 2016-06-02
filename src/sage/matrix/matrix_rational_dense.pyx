@@ -342,7 +342,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over QQ.
 
@@ -377,7 +377,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two dense matrices over QQ.
 

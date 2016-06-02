@@ -287,7 +287,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 raise ZeroDivisionError("cannot divide by zero")
             return self._floordiv_(right)
 
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Implements floor division.
 

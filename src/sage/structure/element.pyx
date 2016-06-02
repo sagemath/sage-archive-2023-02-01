@@ -1305,16 +1305,16 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._add_(<ModuleElement>right)
+            return (<ModuleElement>left)._add_(right)
         return coercion_model.bin_op(left, right, add)
 
-    cpdef _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         raise TypeError(arith_error_message(left, right, add))
 
-    def __iadd__(ModuleElement self, right):
-        if have_same_parent_c(self, right):
-            return self._add_(<ModuleElement>right)
-        return coercion_model.bin_op(self, right, iadd)
+    def __iadd__(left, right):
+        if have_same_parent_c(left, right):
+            return (<ModuleElement>left)._add_(right)
+        return coercion_model.bin_op(left, right, iadd)
 
     ##################################################
     # Subtraction
@@ -1326,18 +1326,18 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._sub_(<ModuleElement>right)
+            return (<ModuleElement>left)._sub_(right)
         return coercion_model.bin_op(left, right, sub)
 
-    cpdef _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         # default implementation is to use the negation and addition
         # dispatchers:
         return left._add_(-right)
 
-    def __isub__(ModuleElement self, right):
-        if have_same_parent_c(self, right):
-            return self._sub_(<ModuleElement>right)
-        return coercion_model.bin_op(self, right, isub)
+    def __isub__(left, right):
+        if have_same_parent_c(left, right):
+            return (<ModuleElement>left)._sub_(right)
+        return coercion_model.bin_op(left, right, isub)
 
     ##################################################
     # Negation
@@ -1443,7 +1443,7 @@ cdef class MonoidElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            return (<MonoidElement>left)._mul_(<MonoidElement>right)
+            return (<MonoidElement>left)._mul_(right)
         try:
             return coercion_model.bin_op(left, right, mul)
         except TypeError as msg:
@@ -1454,7 +1454,7 @@ cdef class MonoidElement(Element):
             raise
 
 
-    cpdef _mul_(left, MonoidElement right):
+    cpdef _mul_(left, right):
         """
         Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
@@ -1578,7 +1578,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
             Fractional ideal (-i + 1)
         """
         if have_same_parent_c(left, right):
-            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
+            return (<MultiplicativeGroupElement>left)._div_(right)
         return coercion_model.bin_op(left, right, truediv)
 
     def __div__(left, right):
@@ -1587,10 +1587,10 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
+            return (<MultiplicativeGroupElement>left)._div_(right)
         return coercion_model.bin_op(left, right, div)
 
-    cpdef _div_(self, MultiplicativeGroupElement right):
+    cpdef _div_(self, right):
         """
         Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
@@ -1628,7 +1628,7 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._add_(<ModuleElement>right)
+            return (<ModuleElement>left)._add_(right)
         if type(right) is int:
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
         elif type(left) is int:
@@ -1649,7 +1649,7 @@ cdef class RingElement(ModuleElement):
         """
         cdef long n
         if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._sub_(<ModuleElement>right)
+            return (<ModuleElement>left)._sub_(right)
         if type(right) is int:
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
@@ -1782,14 +1782,14 @@ cdef class RingElement(ModuleElement):
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            return (<RingElement>left)._mul_(<RingElement>right)
+            return (<RingElement>left)._mul_(right)
         if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
         elif type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, mul)
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
@@ -1798,7 +1798,7 @@ cdef class RingElement(ModuleElement):
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
-            return (<RingElement>left)._mul_(<RingElement>right)
+            return (<RingElement>left)._mul_(right)
         return coercion_model.bin_op(left, right, imul)
 
     def __pow__(self, n, dummy):
@@ -1911,7 +1911,7 @@ cdef class RingElement(ModuleElement):
             1/3*pi
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(right)
         return coercion_model.bin_op(self, right, truediv)
 
     def __itruediv__(self, right):
@@ -1931,7 +1931,7 @@ cdef class RingElement(ModuleElement):
             1/3*pi
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(right)
         return coercion_model.bin_op(self, right, itruediv)
 
     def __div__(self, right):
@@ -1940,10 +1940,10 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(right)
         return coercion_model.bin_op(self, right, div)
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
@@ -1962,7 +1962,7 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(right)
         return coercion_model.bin_op(self, right, idiv)
 
     def __floordiv__(self, right):
@@ -1986,10 +1986,10 @@ cdef class RingElement(ModuleElement):
             TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._floordiv_(<RingElement>right)
+            return (<RingElement>self)._floordiv_(right)
         return coercion_model.bin_op(self, right, floordiv)
 
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Cython classes should override this function to implement floor
         division. See extensive documentation at the top of element.pyx.
@@ -2014,7 +2014,7 @@ cdef class RingElement(ModuleElement):
             3
         """
         if have_same_parent_c(self, right):
-            return (<RingElement>self)._floordiv_(<RingElement>right)
+            return (<RingElement>self)._floordiv_(right)
         return coercion_model.bin_op(self, right, ifloordiv)
 
     def __invert__(self):
@@ -3127,7 +3127,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             x, y = canonical_coercion(self, other)
             return x.quo_rem(y)
 
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
 
@@ -3186,7 +3186,7 @@ def is_FieldElement(x):
     return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Return the quotient of self and other. Since these are field
         elements, the floor division is exactly the same as usual division.

@@ -2610,7 +2610,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Return the sum of two balls, rounded to the ambient field's precision.
 
@@ -2628,7 +2628,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Return the difference of two balls, rounded to the ambient field's
         precision.
@@ -2647,7 +2647,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Return the product of two balls, rounded to the ambient field's
         precision.
@@ -2666,7 +2666,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         Return the quotient of two balls, rounded to the ambient field's
         precision.

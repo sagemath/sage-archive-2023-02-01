@@ -443,7 +443,7 @@ cdef class FpTElement(RingElement):
         nmod_poly_swap(x._numer, x._denom)
         return x
 
-    cpdef _add_(self, ModuleElement _other):
+    cpdef _add_(self, _other):
         """
         Returns the sum of this fraction field element and another.
 
@@ -471,7 +471,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef _sub_(self, ModuleElement _other):
+    cpdef _sub_(self, _other):
         """
         Returns the difference of this fraction field element and another.
 
@@ -493,7 +493,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef _mul_(self, RingElement _other):
+    cpdef _mul_(self, _other):
         """
         Returns the product of this fraction field element and another.
 
@@ -513,7 +513,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef _div_(self, RingElement _other):
+    cpdef _div_(self, _other):
         """
         Returns the quotient of this fraction field element and another.
 

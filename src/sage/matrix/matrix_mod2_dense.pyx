@@ -560,7 +560,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Matrix addition.
 
@@ -598,7 +598,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return A
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Matrix addition.
 

@@ -317,7 +317,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     #   * def _pickle
     #   * def _unpickle
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two matrices together.
 
@@ -340,7 +340,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         M._matrix_numpy = _left._matrix_numpy + _right._matrix_numpy
         return M
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return self - right
 

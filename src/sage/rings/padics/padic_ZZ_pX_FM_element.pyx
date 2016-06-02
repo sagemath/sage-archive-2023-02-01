@@ -734,7 +734,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sig_off()
         return ans
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Returns ``self`` + ``right``.
 
@@ -753,7 +753,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_add(ans.value, self.value, (<pAdicZZpXFMElement>right).value)
         return ans
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of ``self`` and ``right``.
 
@@ -776,7 +776,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_MulMod_pre(ans.value, self.value, (<pAdicZZpXFMElement>right).value, self.prime_pow.get_top_modulus()[0])
         return ans
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Returns the difference of ``self`` and ``right``.
 
@@ -797,7 +797,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ZZ_pX_sub(ans.value, self.value, (<pAdicZZpXFMElement>right).value)
         return ans
 
-    cpdef _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         """
         Returns the quotient of ``self`` by ``right``.
 

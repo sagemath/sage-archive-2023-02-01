@@ -1005,7 +1005,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cpdef _div_(self, RingElement denom_r):
+    cpdef _div_(self, denom_r):
         """
         EXAMPLES::
 
@@ -1039,7 +1039,7 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
-    cpdef _floordiv_(self, RingElement denom):
+    cpdef _floordiv_(self, denom):
         """
         Euclidean division (over fields) or ordinary division (over
         other rings; deprecated).

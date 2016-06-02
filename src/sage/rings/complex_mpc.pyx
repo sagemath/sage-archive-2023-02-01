@@ -1293,7 +1293,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
     # Basic Arithmetic
     ################################
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two complex numbers with the same parent.
 
@@ -1308,7 +1308,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_add(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two complex numbers with the same parent.
 
@@ -1323,7 +1323,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_sub(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two complex numbers with the same parent.
 
@@ -1338,7 +1338,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpc_mul(z.value, self.value, (<MPComplexNumber>right).value, (<MPComplexField_class>self._parent).__rnd)
         return z
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide two complex numbers with the same parent.
 

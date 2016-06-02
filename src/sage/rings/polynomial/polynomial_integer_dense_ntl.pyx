@@ -422,7 +422,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name, latex=True)
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -440,7 +440,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -664,7 +664,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             return S(rr), ss, tt
 
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 

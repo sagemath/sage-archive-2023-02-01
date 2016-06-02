@@ -427,7 +427,7 @@ cdef class QuiverPath(MonoidElement):
         for i in range(0,self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
-    cpdef _mul_(self, MonoidElement other):
+    cpdef _mul_(self, other):
         """
         Compose two paths.
 

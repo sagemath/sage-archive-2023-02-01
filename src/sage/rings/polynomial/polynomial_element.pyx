@@ -252,7 +252,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                   v[i] = z
           return v
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Add two polynomials.
 
@@ -1484,7 +1484,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError("cannot coerce nonconstant polynomial to long")
         return long(self[0])
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -2365,7 +2365,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise IndexError("polynomials are immutable")
 
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Quotient of division of self by other. This is denoted //.
 
@@ -8815,7 +8815,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         res.__normalize()
         return res
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Add two polynomials.
 
@@ -8846,7 +8846,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs

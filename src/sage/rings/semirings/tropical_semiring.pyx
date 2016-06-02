@@ -210,7 +210,7 @@ cdef class TropicalSemiringElement(RingElement):
             return 1
         return 0
 
-    cpdef _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add ``left`` to ``right``.
 
@@ -264,7 +264,7 @@ cdef class TropicalSemiringElement(RingElement):
             return self
         raise ArithmeticError("cannot negate any non-infinite element")
 
-    cpdef _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
         Multiply ``left`` and ``right``.
 
@@ -290,7 +290,7 @@ cdef class TropicalSemiringElement(RingElement):
         x._val = self._val + rhs._val
         return x
 
-    cpdef _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         Divide ``left`` by ``right``.
 

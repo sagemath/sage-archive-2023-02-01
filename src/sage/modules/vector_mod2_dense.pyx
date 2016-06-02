@@ -263,7 +263,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return unpickle_v0, (self._parent, self.list(), self._degree, self._is_mutable)
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLE::
 
@@ -278,7 +278,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLE::
 

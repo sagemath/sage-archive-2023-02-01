@@ -1552,7 +1552,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_to_ZZ(z, self.value)
         sig_off()
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Integer addition.
 
@@ -1611,7 +1611,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_sub_ui(x.value, self.value, 0 - <unsigned long>n)
         return x
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Integer subtraction.
 
@@ -1691,7 +1691,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul_si(x.value, self.value, n)
         return x
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Integer multiplication.
 
@@ -1716,7 +1716,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         r"""
         Computes `\frac{a}{b}`
 
@@ -1732,7 +1732,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # we can't cimport rationals.
         return the_integer_ring._div(self, right)
 
-    cpdef _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         r"""
         Computes the whole part of `\frac{x}{y}`.
 

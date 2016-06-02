@@ -320,7 +320,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         cdef int r = mzed_read_elem(self._entries, i, j)
         return word_to_poly(r, self._base_ring)
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return A+B
 
@@ -354,7 +354,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         return A
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLE::
 

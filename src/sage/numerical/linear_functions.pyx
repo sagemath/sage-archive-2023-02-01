@@ -905,7 +905,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         except KeyError:
             return self.parent().base_ring().zero()
 
-    cpdef _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Defining the + operator
 
@@ -934,7 +934,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
 
-    cpdef _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Defining the - operator (substraction).
 

@@ -25,7 +25,6 @@ This file contains the following elements:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import warnings
 from operator import mul
 from sage.matrix.constructor import matrix
 from sage.functions.other import binomial
@@ -157,7 +156,7 @@ def ReedMullerCode(base_field, order, num_of_var):
 
     .. WARNING::
 
-        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q.
+        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q. For now, this implementation only supports Reed-Muller codes whose order is less than q.
         Binary reed muller codes must have it's order less than or equal to the number of variables.
 
     .. WARNING::
@@ -199,7 +198,7 @@ class QAryReedMullerCode(AbstractLinearCode):
 
     .. WARNING::
 
-        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q.
+        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q. For now, this implementation only supports Reed-Muller codes whose order is less than q.
     """
 
     _registered_encoders = {}
@@ -368,7 +367,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
         Binary Reed Muller Code of order 2 and number of variables 4
 
     .. WARNING::
-        The order of reed muller code here must be LESS THAN OR EQUAL TO the number of variables::
+        The order of reed muller code here must be LESS THAN OR EQUAL TO the number of variables.
     """
 
     _registered_encoders = {}

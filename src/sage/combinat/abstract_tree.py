@@ -810,10 +810,7 @@ class AbstractTree(object):
             return 0
         if depth == 1:
             return 1
-        result = 0
-        for son in self:
-            result += son.node_number_at_depth(depth - 1)
-        return result
+        return sum(son.node_number_at_depth(depth - 1) for son in self)
 
     def paths_to_the_right(self, path):
         r"""
@@ -862,7 +859,7 @@ class AbstractTree(object):
             sage: list(g)
             []
         """
-        if not len(path) or path[0] >= len(self):
+        if (not path) or path[0] >= len(self):
             return
         for i in range(path[0] + 1, len(self)):
             for p in self[i].paths_at_depth(len(path), path=[i]):
@@ -909,9 +906,8 @@ class AbstractTree(object):
         depth = len(path) + 1
         if depth == 1:
             return 0
-        result = 0
-        for son in self[path[0] + 1:]:
-            result += son.node_number_at_depth(depth - 1)
+        result = sum(son.node_number_at_depth(depth - 1)
+                     for son in self[path[0] + 1:])
         if path[0] < len(self) and path[0] >= 0:
             result += self[path[0]].node_number_to_the_right(path[1:])
         return result

@@ -739,6 +739,8 @@ class AbstractTree(object):
         r"""
         Return a generator for all paths at a fixed depth.
 
+        This iterates over all paths for nodes that are at the given depth.
+
         Here the root is considered to have depth 1.
 
         INPUT:
@@ -746,7 +748,9 @@ class AbstractTree(object):
         - depth -- an integer
         - path -- optional starting path, serving as a new root
 
-        .. SEEALSO:: :meth:`paths`
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_to_the_right`, :meth:`node_number_at_depth`
 
         EXAMPLES::
 
@@ -784,11 +788,17 @@ class AbstractTree(object):
         r"""
         Return the number of nodes at a given depth.
 
+        This counts all nodes that are at the given depth.
+
         Here the root is considered to have depth 1.
 
         INPUT:
 
         - depth -- an integer
+
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_to_the_right`, :meth:`paths_at_depth`
 
         EXAMPLES::
 
@@ -824,7 +834,9 @@ class AbstractTree(object):
 
         - ``path`` -- any path in the tree
 
-        .. SEEALSO:: :meth:`node_number_to_the_right`
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_at_depth`, :meth:`node_number_to_the_right`
 
         EXAMPLES::
 
@@ -875,7 +887,9 @@ class AbstractTree(object):
         This counts the nodes that are at the same depth as the given
         one, and strictly to its right.
 
-        .. SEEALSO:: :meth:`paths_to_the_right`
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_at_depth`, :meth:`paths_to_the_right`
 
         EXAMPLES::
 
@@ -967,7 +981,9 @@ class AbstractTree(object):
 
         The root element is represented by the empty tuple ``()``.
 
-        .. SEEALSO:: :meth:`paths_at_depth`
+        .. SEEALSO::
+
+            :meth:`paths_at_depth`, :meth:`paths_to_the_right`
 
         EXAMPLES::
 
@@ -999,6 +1015,10 @@ class AbstractTree(object):
     def node_number(self):
         """
         The number of nodes of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`node_number_at_depth`, :meth:`node_number_to_the_right`
 
         EXAMPLES::
 

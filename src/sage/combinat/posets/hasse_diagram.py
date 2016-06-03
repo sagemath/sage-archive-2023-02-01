@@ -1420,6 +1420,164 @@ class HasseDiagram(DiGraph):
             e1 -= 1
         return e
 
+    def orthocomplementations_iterator(self):
+        r"""
+        Return an iterator over orthocomplementations of the lattice.
+
+        OUTPUT:
+
+        An iterator that gives plain list of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2], 1:[3,4], 3:[5], 4:[5], 2:[6,7],
+            ....:                   6:[8], 7:[8], 5:[9], 8:[9]})
+            sage: list(H.orthocomplementations_iterator())
+            [[9, 8, 5, 6, 7, 2, 3, 4, 1, 0], [9, 8, 5, 7, 6, 2, 4, 3, 1, 0]]
+
+        ALGORITHM::
+
+        As ``DiamondPoset(2*n+2)`` has `(2n)!/(n!2^n)` different
+        orthocomplementations, the complexity of listing all of
+        them is necessarily `O(n!)`.
+
+        An orthocomplemented lattice is self-dual, so that for example
+        orthocomplement of an atom is a coatom. This function
+        basically just computes list of possible orthocomplementations
+        for every element (i.e. they must be compelements and "duals"),
+        and then tries to fit them all.
+
+        TESTS:
+
+        Special and corner cases::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram()  # Empty
+            sage: list(H.orthocomplementations_iterator())
+            [[]]
+            sage: H = HasseDiagram({0:[]})  # One element
+            sage: list(H.orthocomplementations_iterator())
+            [[0]]
+            sage: H = HasseDiagram({0:[1]})  # Two elements
+            sage: list(H.orthocomplementations_iterator())
+            [[1, 0]]
+
+        Trivial cases: odd number of elements, not self-dual, not complemented::
+
+            sage: H = Posets.DiamondPoset(5)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = Posets.ChainPoset(4)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [1, 4], [1, 8], [4, 6], [4, 7], [6, 9], [7, 9], [2, 5], [3, 5], [5, 8], [8, 9]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram({0:[1, 2, 3], 1: [4], 2:[4], 3: [5], 4:[5]})
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Complemented, self-dual and even number of elements, but
+        not orthocomplemented::
+
+            sage: H = HasseDiagram( ([[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [0, 6], [3, 7], [5, 7], [6, 7]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Unique orthocomplementations; second is not uniquely complemented,
+        but has only one orthocomplementation.
+
+            sage: H = Posets.BooleanLattice(4)._hasse_diagram  # Uniquely complemented
+            sage: len(list(H.orthocomplementations_iterator()))
+            1
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[5]})
+            sage: len([_ for _ in H.orthocomplementations_iterator()])
+            1
+
+        "Lengthening diamond" must keep the number of orthocomplementations::
+
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [0, 4], [1, 5], [2, 5], [3, 5], [4, 5]]) )
+            sage: n = len([_ for _ in H.orthocomplementations_iterator()]); n
+            3
+            sage: H = HasseDiagram('M]??O?@??C??OA???OA??@?A??C?A??O??')
+            sage: len([_ for _ in H.orthocomplementations_iterator()]) == n
+            True
+        """
+        n = self.order()
+
+        # Special cases first
+        if n == 0:
+            yield []
+            raise(StopIteration)
+        if n == 1:
+            yield [0]
+            raise(StopIteration)
+        if n % 2 == 1:
+            raise(StopIteration)
+
+        dual_isomorphism = self.is_isomorphic(self.reverse(), certify=True)[1]
+        if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
+            raise(StopIteration)
+
+        # We compute possible orthocomplements, i.e. elements
+        # with "dual position" and complement to each other.
+
+        orbits = self.automorphism_group(return_group=False, orbits=True)
+
+        orbit_number = [None] * n
+        for ind, orbit in enumerate(orbits):
+            for e in orbit:
+                orbit_number[e] = ind
+
+        comps = [None] * n
+        for e in xrange(n):
+            # Fix following after ticket #20727
+            comps[e] = [x for x in xrange(n) if
+                        self._meet[e, x] == 0 and self._join[e, x] == n-1 and
+                        x in orbits[orbit_number[dual_isomorphism[e]]]]
+
+        # Fitting is done by this recursive function:
+        def recursive_fit(orthocomplements, unbinded):
+            if not unbinded:
+                yield orthocomplements
+            else:
+                next_to_fit = unbinded[0]
+                possible_values = [x for x in comps[next_to_fit] if not x in orthocomplements]
+                for x in self.lower_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(y, orthocomplements[x])]
+                for x in self.upper_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(orthocomplements[x], y)]
+
+                for e in possible_values:
+
+                    new_binded = orthocomplements[:]
+                    new_binded[next_to_fit] = e
+                    new_binded[e] = next_to_fit
+
+                    new_unbinded = unbinded[1:]  # Remove next_to_fit
+                    new_unbinded.remove(e)
+
+                    for i_want_python3_yield_from in recursive_fit(new_binded, new_unbinded):
+                        yield i_want_python3_yield_from
+
+        start = [None] * n
+        # A little optimization
+        for e in xrange(n):
+            if len(comps[e]) == 0:  # Not any possible orthocomplement
+                raise(StopIteration)
+            if len(comps[e]) == 1:  # Do not re-fit this every time
+                e_ = comps[e][0]
+                if start[e_] is None:
+                    start[e] = e_
+                    start[e_] = e
+        start_unbinded = [e for e in xrange(n) if start[e] is None]
+
+        for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
+            yield i_want_python3_yield_from
+
     def antichains_iterator(self):
         r"""
         Return an iterator over the antichains of the poset.

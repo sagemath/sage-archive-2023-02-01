@@ -6292,19 +6292,19 @@ def positive_integer_relations(points):
     a = nonpivot_relations.stack(a).transpose()
     # a = sage_matrix_to_maxima(a)
     # maxima.load("simplex")
-    MIP = MixedIntegerLinearProgram(maximization=False)
-    w = MIP.new_variable(integer=True, nonnegative=True)
     new_relations = []
     for i in range(n_nonpivots):
         # Find a non-negative linear combination of relations,
         # such that all components are non-negative and the i-th one is 1
+        MIP = MixedIntegerLinearProgram(maximization=False)
+        w = MIP.new_variable(integer=True, nonnegative=True)
         b = vector([0] * i + [1] + [0] * (n_nonpivots - i - 1))
-        c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
         MIP.add_constraint(a * w == b)
+        c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
         MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
         # x = maxima.linear_program(a, b, c)
         MIP.solve()
-        x = MIP.get_values(w).values()[:n]
+        x = [ZZ(k) for k in MIP.get_values(w).values()[:n]]
         # x = x.sage()[0][:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
@@ -6315,7 +6315,7 @@ def positive_integer_relations(points):
         for j in range(n):
             coef = relations[j,nonpivots[i]]
             if coef < 0:
-                relations.add_multiple_of_row(j, n+i, -coef)
+                relations.add_multiple_of_row(j, n + i, -coef)
     # Get a new basis
     relations = relations.matrix_from_rows(relations.transpose().pivots())
     # Switch to integers

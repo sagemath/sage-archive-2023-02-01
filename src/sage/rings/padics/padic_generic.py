@@ -433,7 +433,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R.teichmuller_system()
             [1 + O(3^5), 242 + O(3^5)]
 
-        Check that :trac:`20457` is fixed:
+        Check that :trac:`20457` is fixed::
 
             sage: F.<a> = Qq(5^2,6)
             sage: F.teichmuller_system()[3]

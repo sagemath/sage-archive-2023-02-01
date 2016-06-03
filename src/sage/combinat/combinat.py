@@ -465,11 +465,19 @@ def catalan_number(n):
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
-def euler_number(n):
+def euler_number(n, algorithm='flint'):
     """
     Return the `n`-th Euler number.
 
-    IMPLEMENTATION: Wraps Maxima's euler.
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    - ``algorithm`` -- (Default: ``'flint'``) any one of the following:
+
+      - ``'maxima'`` -- Wraps Maxima's ``euler``.
+
+      - ``'flint'`` -- Wrap FLINT's ``arith_euler_number``
 
     EXAMPLES::
 
@@ -490,8 +498,15 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError("n (=%s) must be a nonnegative integer"%n)
-    return ZZ(maxima.eval("euler(%s)"%n))
+        raise ValueError("n (=%s) must be a nonnegative integer" % n)
+    if algorithm == 'maxima':
+        return ZZ(maxima.eval("euler(%s)" % n))
+    elif algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.euler_number(n)
+    else:
+        raise ValueError("algorithm must be 'flint' or 'maxima'")
+
 
 def fibonacci(n, algorithm="pari"):
     """

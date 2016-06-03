@@ -85,7 +85,7 @@ Check that Cython source code appears in tracebacks::
        ...              if mpz_sgn((<Integer>right).value) == 0:
     -> ...                  raise ZeroDivisionError("rational division by zero")
        ...              x = <Rational> Rational.__new__(Rational)
-       ...              mpz_set(mpq_numref(x.value), (<Integer>left).value)
+       ...              mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()

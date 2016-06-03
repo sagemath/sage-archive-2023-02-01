@@ -2120,7 +2120,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __sub__(left, right):
         """
-        Return ``left`` plus ``right``
+        Return ``left`` minus ``right``
 
         EXAMPLES::
 

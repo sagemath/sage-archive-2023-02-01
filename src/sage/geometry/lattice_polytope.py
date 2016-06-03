@@ -6303,11 +6303,7 @@ def positive_integer_relations(points):
         MIP.add_constraint(a * w == b)
         MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
         # x = maxima.linear_program(a, b, c)
-        try:
-            x = MIP.solve()
-        except MIPSolverException:
-            # if x.str() == r'?Problem\not\feasible\!':
-            raise ValueError("cannot find required relations")
+        MIP.solve()
         x = MIP.get_values(w).values()[:n]
         # x = x.sage()[0][:n]
         v = relations.linear_combination_of_rows(x)

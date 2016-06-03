@@ -16,6 +16,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from cvxopt import solvers
@@ -90,7 +91,7 @@ cdef class CVXOPTBackend(GenericBackend):
                       "reltol":1e-6,
                       "feastol":1e-7,
                       "refinement":0 }
-
+        self.answer = {}
         if maximization:
             self.set_sense(+1)
         else:
@@ -116,7 +117,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: cp.get_objective_value()
             6.0
         """
-        cp = CVXOPTBackend()
+        cdef CVXOPTBackend cp = type(self)()
         cp.objective_function = self.objective_function[:]
         cp.G_matrix = [row[:] for row in self.G_matrix]
         cp.prob_name = self.prob_name
@@ -788,7 +789,7 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.problem_name()
             ''
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         if name == NULL:

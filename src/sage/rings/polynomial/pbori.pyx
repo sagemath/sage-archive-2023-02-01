@@ -181,6 +181,7 @@ REFERENCES:
   available at
   http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -1513,12 +1514,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def id(self):
         """
-        Returns a unique identifiert for this boolean polynomial ring.
+        Returns a unique identifier for this boolean polynomial ring.
 
         EXAMPLES::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: print "id: ", P.id()
+            sage: print("id: {}".format(P.id()))
             id: ...
 
         ::

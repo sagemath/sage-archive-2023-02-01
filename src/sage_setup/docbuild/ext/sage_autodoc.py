@@ -9,7 +9,7 @@
     the doctree, thus avoiding duplication between docstrings and documentation
     for those who like elaborate docstrings.
 
-    :copyright: Copyright 2007-2014 by the Sphinx team, see AUTHORS.
+    :copyright: Copyright 2007-2016 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 
     AUTHORS:
@@ -27,10 +27,13 @@ import inspect
 import traceback
 from types import FunctionType, BuiltinFunctionType, MethodType
 
+from six import PY2, iterkeys, iteritems, itervalues, text_type, class_types, \
+    string_types, StringIO
 from docutils import nodes
 from docutils.utils import assemble_option_dict
 from docutils.statemachine import ViewList
 
+import sphinx
 from sphinx.util import rpartition, force_decode
 from sphinx.locale import _
 from sphinx.pycode import ModuleAnalyzer, PycodeError
@@ -38,18 +41,17 @@ from sphinx.application import ExtensionError
 from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util.compat import Directive
 from sphinx.util.inspect import getargspec, isdescriptor, safe_getmembers, \
-     safe_getattr, safe_repr as sphinx_safe_repr, is_builtin_class_method
-from sphinx.util.pycompat import base_exception, class_types
+    safe_getattr, object_description, is_builtin_class_method
 from sphinx.util.docstrings import prepare_docstring
 
+try:
+    import typing
+except ImportError:
+    typing = None
+
 from sage.misc.sageinspect import (sage_getdoc_original,
-        sage_getargspec, sage_formatargspec, isclassinstance)
+        sage_getargspec, isclassinstance)
 from sage.misc.lazy_import import LazyImport
-
-
-_re_address = re.compile(" *at 0x[0-9a-fA-F]+")
-def safe_repr(*args):
-    return _re_address.sub("", sphinx_safe_repr(*args))
 
 
 #: extended signature RE: with explicit module name separated by ::
@@ -68,6 +70,7 @@ class DefDict(dict):
     def __init__(self, default):
         dict.__init__(self)
         self.default = default
+
     def __getitem__(self, key):
         try:
             return dict.__getitem__(self, key)
@@ -77,7 +80,9 @@ class DefDict(dict):
         # docutils check "if option_spec"
         return True
 
-identity = lambda x: x
+
+def identity(x):
+    return x
 
 
 class Options(dict):
@@ -92,11 +97,13 @@ class Options(dict):
 ALL = object()
 INSTANCEATTR = object()
 
+
 def members_option(arg):
     """Used to convert the :members: option to auto directives."""
     if arg is None:
         return ALL
     return [x.strip() for x in arg.split(',')]
+
 
 def members_set_option(arg):
     """Used to convert the :members: option to auto directives."""
@@ -106,12 +113,14 @@ def members_set_option(arg):
 
 SUPPRESS = object()
 
+
 def annotation_option(arg):
     if arg is None:
         # suppress showing the representation of the object
         return SUPPRESS
     else:
         return arg
+
 
 def bool_option(arg):
     """Used to convert flag options to auto directives.  (Instead of
@@ -189,6 +198,7 @@ def cut_lines(pre, post=0, what=None):
             lines.append('')
     return process
 
+
 def between(marker, what=None, keepempty=False, exclude=False):
     """Return a listener that either keeps, or if *exclude* is True excludes,
     lines between lines that match the *marker* regular expression.  If no line
@@ -199,6 +209,7 @@ def between(marker, what=None, keepempty=False, exclude=False):
     be processed.
     """
     marker_re = re.compile(marker)
+
     def process(app, what_, name, obj, options, lines):
         if what and what_ not in what:
             return
@@ -220,6 +231,128 @@ def between(marker, what=None, keepempty=False, exclude=False):
         if lines and lines[-1]:
             lines.append('')
     return process
+
+
+def format_annotation(annotation):
+    """Return formatted representation of a type annotation.
+
+    Show qualified names for types and additional details for types from
+    the ``typing`` module.
+
+    Displaying complex types from ``typing`` relies on its private API.
+    """
+    qualified_name = (annotation.__module__ + '.' + annotation.__qualname__
+                      if annotation else repr(annotation))
+
+    if not isinstance(annotation, type):
+        return repr(annotation)
+    elif annotation.__module__ == 'builtins':
+        return annotation.__qualname__
+    elif typing:
+        if isinstance(annotation, typing.TypeVar):
+            return annotation.__name__
+        elif hasattr(typing, 'GenericMeta') and \
+                isinstance(annotation, typing.GenericMeta) and \
+                hasattr(annotation, '__parameters__'):
+            params = annotation.__parameters__
+            if params is not None:
+                param_str = ', '.join(format_annotation(p) for p in params)
+                return '%s[%s]' % (qualified_name, param_str)
+        elif hasattr(typing, 'UnionMeta') and \
+                isinstance(annotation, typing.UnionMeta) and \
+                hasattr(annotation, '__union_params__'):
+            params = annotation.__union_params__
+            if params is not None:
+                param_str = ', '.join(format_annotation(p) for p in params)
+                return '%s[%s]' % (qualified_name, param_str)
+        elif hasattr(typing, 'CallableMeta') and \
+                isinstance(annotation, typing.CallableMeta) and \
+                hasattr(annotation, '__args__') and \
+                hasattr(annotation, '__result__'):
+            args = annotation.__args__
+            if args is Ellipsis:
+                args_str = '...'
+            else:
+                formatted_args = (format_annotation(a) for a in args)
+                args_str = '[%s]' % ', '.join(formatted_args)
+            return '%s[%s, %s]' % (qualified_name,
+                                   args_str,
+                                   format_annotation(annotation.__result__))
+        elif hasattr(typing, 'TupleMeta') and \
+                isinstance(annotation, typing.TupleMeta) and \
+                hasattr(annotation, '__tuple_params__') and \
+                hasattr(annotation, '__tuple_use_ellipsis__'):
+            params = annotation.__tuple_params__
+            if params is not None:
+                param_strings = [format_annotation(p) for p in params]
+                if annotation.__tuple_use_ellipsis__:
+                    param_strings.append('...')
+                return '%s[%s]' % (qualified_name,
+                                   ', '.join(param_strings))
+    return qualified_name
+
+
+def formatargspec(function, args, varargs=None, varkw=None, defaults=None,
+                  kwonlyargs=(), kwonlydefaults={}, annotations={}):
+    """Return a string representation of an ``inspect.FullArgSpec`` tuple.
+
+    An enhanced version of ``inspect.formatargspec()`` that handles typing
+    annotations better.
+    """
+
+    def format_arg_with_annotation(name):
+        if name in annotations:
+            return '%s: %s' % (name, format_annotation(get_annotation(name)))
+        return name
+
+    def get_annotation(name):
+        value = annotations[name]
+        if isinstance(value, string_types):
+            return introspected_hints.get(name, value)
+        else:
+            return value
+
+    introspected_hints = (typing.get_type_hints(function)
+                          if typing and hasattr(function, '__code__') else {})
+
+    fd = StringIO()
+    fd.write('(')
+
+    formatted = []
+    defaults_start = len(args) - len(defaults) if defaults else len(args)
+
+    for i, arg in enumerate(args):
+        arg_fd = StringIO()
+        arg_fd.write(format_arg_with_annotation(arg))
+        if defaults and i >= defaults_start:
+            arg_fd.write(' = ' if arg in annotations else '=')
+            arg_fd.write(object_description(defaults[i - defaults_start]))
+        formatted.append(arg_fd.getvalue())
+
+    if varargs:
+        formatted.append('*' + format_arg_with_annotation(varargs))
+
+    if kwonlyargs:
+        formatted.append('*')
+        for kwarg in kwonlyargs:
+            arg_fd = StringIO()
+            arg_fd.write(format_arg_with_annotation(kwarg))
+            if kwonlydefaults and kwarg in kwonlydefaults:
+                arg_fd.write(' = ' if kwarg in annotations else '=')
+                arg_fd.write(object_description(kwonlydefaults[kwarg]))
+            formatted.append(arg_fd.getvalue())
+
+    if varkw:
+        formatted.append('**' + format_arg_with_annotation(varkw))
+
+    fd.write(', '.join(formatted))
+    fd.write(')')
+
+    if 'return' in annotations:
+        fd.write(' -> ')
+        fd.write(format_annotation(get_annotation('return')))
+
+    return fd.getvalue()
 
 
 class Documenter(object):
@@ -313,7 +446,7 @@ class Documenter(object):
         # an autogenerated one
         try:
             explicit_modname, path, base, args, retann = \
-                 py_ext_sig_re.match(self.name).groups()
+                py_ext_sig_re.match(self.name).groups()
         except AttributeError:
             self.directive.warn('invalid signature for auto%s (%r)' %
                                 (self.objtype, self.name))
@@ -328,7 +461,7 @@ class Documenter(object):
             parents = []
 
         self.modname, self.objpath = \
-                      self.resolve_name(modname, parents, path, base)
+            self.resolve_name(modname, parents, path, base)
 
         if not self.modname:
             return False
@@ -430,7 +563,7 @@ class Documenter(object):
             # try to introspect the signature
             try:
                 args = self.format_args()
-            except Exception, err:
+            except Exception as err:
                 self.directive.warn('error while formatting arguments for '
                                     '%s: %s' % (self.fullname, err))
                 args = None
@@ -623,19 +756,19 @@ class Documenter(object):
 
             keep = False
             if want_all and membername.startswith('__') and \
-                   membername.endswith('__') and len(membername) > 4:
+                    membername.endswith('__') and len(membername) > 4:
                 # special __methods__
                 if self.options.special_members is ALL and \
                         membername != '__doc__':
                     keep = has_doc or self.options.undoc_members
                 elif self.options.special_members and \
-                     self.options.special_members is not ALL and \
+                    self.options.special_members is not ALL and \
                         membername in self.options.special_members:
                     keep = has_doc or self.options.undoc_members
             elif want_all and membername.startswith('_'):
                 # ignore members whose name starts with _ by default
                 keep = self.options.private_members and \
-                       (has_doc or self.options.undoc_members)
+                    (has_doc or self.options.undoc_members)
             elif (namespace, membername) in attr_docs:
                 # keep documented attributes
                 keep = True
@@ -671,7 +804,7 @@ class Documenter(object):
             self.env.temp_data['autodoc:class'] = self.objpath[0]
 
         want_all = all_members or self.options.inherited_members or \
-                   self.options.members is ALL
+            self.options.members is ALL
         # find out which members are documentable
         members_check_module, members = self.get_object_members(want_all)
 
@@ -693,11 +826,11 @@ class Documenter(object):
             # give explicitly separated module name, so that members
             # of inner classes can be documented
             full_mname = self.modname + '::' + \
-                              '.'.join(self.objpath + [mname])
+                '.'.join(self.objpath + [mname])
             documenter = classes[-1](self.directive, full_mname, self.indent)
             memberdocumenters.append((documenter, isattr))
         member_order = self.options.member_order or \
-                       self.env.config.autodoc_member_order
+            self.env.config.autodoc_member_order
         if member_order == 'groupwise':
             # sort by group; relies on stable sort to keep items in the
             # same group sorted alphabetically
@@ -705,6 +838,7 @@ class Documenter(object):
         elif member_order == 'bysource' and self.analyzer:
             # sort by source order, by virtue of the module analyzer
             tagorder = self.analyzer.tagorder
+
             def keyfunc(entry):
                 fullname = entry[0].name.split('::')[1]
                 return tagorder.get(fullname, len(tagorder))
@@ -755,7 +889,7 @@ class Documenter(object):
             # parse right now, to get PycodeErrors on parsing (results will
             # be cached anyway)
             self.analyzer.find_attr_docs()
-        except PycodeError, err:
+        except PycodeError as err:
             self.env.app.debug('[autodoc] module analyzer failed: %s', err)
             # no source file -- e.g. for builtin and C modules
             self.analyzer = None
@@ -863,7 +997,7 @@ class ModuleDocumenter(Documenter):
                 self.directive.warn(
                     'missing attribute mentioned in :members: or __all__: '
                     'module %s, attribute %s' % (
-                    safe_getattr(self.object, '__name__', '???'), mname))
+                        safe_getattr(self.object, '__name__', '???'), mname))
         return False, ret
 
 
@@ -882,7 +1016,7 @@ class ModuleLevelDocumenter(Documenter):
                 modname = self.env.temp_data.get('autodoc:module')
                 # ... or in the scope of a module directive
                 if not modname:
-                    modname = self.env.temp_data.get('py:module')
+                    modname = self.env.ref_context.get('py:module')
                 # ... else, it stays None, which means invalid
         return modname, parents + [base]
 
@@ -904,7 +1038,7 @@ class ClassLevelDocumenter(Documenter):
                 mod_cls = self.env.temp_data.get('autodoc:class')
                 # ... or from a class directive
                 if mod_cls is None:
-                    mod_cls = self.env.temp_data.get('py:class')
+                    mod_cls = self.env.ref_context.get('py:class')
                 # ... if still None, there's no way to know
                 if mod_cls is None:
                     return None, []
@@ -914,7 +1048,7 @@ class ClassLevelDocumenter(Documenter):
             if not modname:
                 modname = self.env.temp_data.get('autodoc:module')
             if not modname:
-                modname = self.env.temp_data.get('py:module')
+                modname = self.env.ref_context.get('py:module')
             # ... else, it stays None, which means invalid
         return modname, parents + [base]
 
@@ -1017,7 +1151,7 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         argspec = self.args_on_obj(self.object)
         if argspec is None:
             return None
-        args = sage_formatargspec(*argspec)
+        args = formatargspec(self.object, *argspec)
         # escape backslashes for reST
         args = args.replace('\\', '\\\\')
         return args
@@ -1104,8 +1238,8 @@ class ClassDocumenter(ModuleLevelDocumenter):
         # classes without __init__ method, default __init__ or
         # __init__ written in C?
         if initmeth is None or \
-               is_builtin_class_method(self.object, '__init__') or \
-               not(inspect.ismethod(initmeth) or inspect.isfunction(initmeth)):
+                is_builtin_class_method(self.object, '__init__') or \
+                not(inspect.ismethod(initmeth) or inspect.isfunction(initmeth)):
             return None
         try:
             argspec = sage_getargspec(initmeth)
@@ -1115,7 +1249,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
             return None
         if argspec[0] and argspec[0][0] in ('cls', 'self'):
             del argspec[0][0]
-        return sage_formatargspec(*argspec)
+        return formatargspec(initmeth, *argspec)
 
     def format_signature(self):
         if self.doc_as_attr:
@@ -1220,7 +1354,7 @@ class ExceptionDocumenter(ClassDocumenter):
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
         return isinstance(member, class_types) and \
-               issubclass(member, base_exception)
+            issubclass(member, BaseException)
 
 
 class DataDocumenter(ModuleLevelDocumenter):
@@ -1241,7 +1375,7 @@ class DataDocumenter(ModuleLevelDocumenter):
         ModuleLevelDocumenter.add_directive_header(self, sig)
         if not self.options.annotation:
             try:
-                objrepr = safe_repr(self.object)
+                objrepr = object_description(self.object)
             except ValueError:
                 pass
             else:
@@ -1267,7 +1401,7 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
         return inspect.isroutine(member) and \
-               not isinstance(parent, ModuleDocumenter)
+            not isinstance(parent, ModuleDocumenter)
 
     if sys.version_info >= (3, 0):
         def import_object(self):
@@ -1332,7 +1466,10 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):
         argspec = self.args_on_obj(self.object)
         if argspec is None:
             return None
-        return sage_formatargspec(*argspec)
+        args = formatargspec(self.object, *argspec)
+        # escape backslashes for reST
+        args = args.replace('\\', '\\\\')
+        return args
 
     def document_members(self, all_members=False):
         pass
@@ -1365,7 +1502,7 @@ class AttributeDocumenter(ClassLevelDocumenter):
     def import_object(self):
         ret = ClassLevelDocumenter.import_object(self)
         if isdescriptor(self.object) and \
-               not isinstance(self.object, self.method_types):
+                not isinstance(self.object, self.method_types):
             self._datadescriptor = True
         else:
             # if it's not a data descriptor
@@ -1374,14 +1511,14 @@ class AttributeDocumenter(ClassLevelDocumenter):
 
     def get_real_modname(self):
         return self.get_attr(self.parent or self.object, '__module__', None) \
-               or self.modname
+            or self.modname
 
     def add_directive_header(self, sig):
         ClassLevelDocumenter.add_directive_header(self, sig)
         if not self.options.annotation:
             if not self._datadescriptor:
                 try:
-                    objrepr = safe_repr(self.object)
+                    objrepr = object_description(self.object)
                 except ValueError:
                     pass
                 else:
@@ -1493,7 +1630,7 @@ class AutoDirective(Directive):
         try:
             self.genopt = Options(assemble_option_dict(
                 self.options.items(), doc_class.option_spec))
-        except (KeyError, ValueError, TypeError), err:
+        except (KeyError, ValueError, TypeError) as err:
             # an option is either unknown or has a wrong type
             msg = self.reporter.error('An option to %s is either unknown or '
                                       'has an invalid value: %s' % (self.name, err),
@@ -1537,7 +1674,7 @@ def add_documenter(cls):
         raise ExtensionError('autodoc documenter %r must be a subclass '
                              'of Documenter' % cls)
     # actually, it should be possible to override Documenters
-    #if cls.objtype in AutoDirective._registry:
+    # if cls.objtype in AutoDirective._registry:
     #    raise ExtensionError('autodoc documenter for %r is already '
     #                         'registered' % cls.objtype)
     AutoDirective._registry[cls.objtype] = cls

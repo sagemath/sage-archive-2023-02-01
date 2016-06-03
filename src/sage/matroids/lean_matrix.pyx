@@ -3006,7 +3006,6 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long i
-        # print "row-scale: ", x, ", ", s
         for i from 0 <= i < self._ncols:
             self.set(x, i, s * self.get(x, i))
         return 0

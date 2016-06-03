@@ -215,7 +215,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         if ZZ_IsOne(leftover):
             return val
         else:
-            raise ValueError, "context must be a power of the appropriate prime"
+            raise ValueError("context must be a power of the appropriate prime")
 
     cdef ext_p_list_precs(self, bint pos, long prec):
         """
@@ -607,7 +607,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
     cdef long aprec
     cdef ntl_ZZ py_tmp
     if not isinstance(L, list):
-        raise TypeError, "L must be a list"
+        raise TypeError("L must be a list")
     #print "before find_val_aprec"
     min_val, min_aprec, total_type = find_val_aprec(elt.prime_pow, L)
     #return "a","b","c"
@@ -615,7 +615,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
         # all integers
         return [ntl_ZZ(a) for a in L], zero, None
     if min_val < 0 and not elt.prime_pow.in_field:
-        raise ValueError, "negative valuation"
+        raise ValueError("negative valuation")
     if total_type == one:
         # rationals and integers
         py_tmp = ntl_ZZ.__new__(ntl_ZZ)
@@ -869,7 +869,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             val = a.valuation()
             return (val if val < zero else zero, a.precision_absolute(), zero)
         else:
-            raise TypeError, "primes must match"
+            raise TypeError("primes must match")
     cdef mpz_t leftover
     cdef long long_val
     cdef Integer Integer_val
@@ -885,7 +885,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
             return (zero, Integer_val, zero)
         else:
             mpz_clear(leftover)
-            raise TypeError, "modulus must be a positive power of the appropriate prime"
+            raise TypeError("modulus must be a positive power of the appropriate prime")
     cdef ZZ_c leftover_z
     #print "pre ntl_ZZ_p check"
     if isinstance(a, ntl_ZZ_p):
@@ -902,7 +902,5 @@ cdef get_val_prec(PowComputer_ext pp, a):
             print py_tmp
             py_tmp.x = leftover_z
             print py_tmp
-            raise TypeError, "modulus must be a positive power of the appropriate prime"
-    raise TypeError, "unsupported type for list element: %s"%(type(a))
-
-
+            raise TypeError("modulus must be a positive power of the appropriate prime")
+    raise TypeError("unsupported type for list element: %s" % type(a))

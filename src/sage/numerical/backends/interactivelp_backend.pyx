@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
@@ -105,7 +106,7 @@ cdef class InteractiveLPBackend:
             sage: cp.get_objective_value()
             6
         """
-        cp = InteractiveLPBackend(base_ring=self.base_ring())
+        cdef InteractiveLPBackend cp = type(self)(base_ring=self.base_ring())
         cp.lp = self.lp                   # it's considered immutable; so no need to copy.
         cp.row_names = copy(self.row_names)
         cp.prob_name = self.prob_name
@@ -184,7 +185,11 @@ cdef class InteractiveLPBackend:
         Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
-        the variable is both positive and real.
+        the variable is both nonnegative and real.
+
+        In this backend, variables are always continuous (real).
+        If integer variables are requested via the parameters
+        ``binary`` and ``integer``, an error will be raised.
 
         INPUT:
 
@@ -260,7 +265,11 @@ cdef class InteractiveLPBackend:
         Add ``n`` variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
+        the variables are both nonnegative and real.
+
+        In this backend, variables are always continuous (real).
+        If integer variables are requested via the parameters
+        ``binary`` and ``integer``, an error will be raised.
 
         INPUT:
 
@@ -302,7 +311,11 @@ cdef class InteractiveLPBackend:
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """
-        Set the type of a variable
+        Set the type of a variable.
+
+        In this backend, variables are always continuous (real).
+        If integer or binary variables are requested via the parameter
+        ``vtype``, an error will be raised.
 
         INPUT:
 
@@ -827,7 +840,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.problem_name("There_once_was_a_french_fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There_once_was_a_french_fry
         """
         if name == NULL:

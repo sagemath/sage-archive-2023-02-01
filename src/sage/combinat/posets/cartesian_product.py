@@ -14,6 +14,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.sets.cartesian_product import CartesianProduct
 
@@ -176,7 +177,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True
@@ -244,7 +245,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True
@@ -291,7 +292,7 @@ class CartesianProductPoset(CartesianProduct):
             sage: for a in T:
             ....:     for b in T:
             ....:         assert(Q.le(a, b) == (a <= b))
-            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            ....:         print('%s <= %s = %s' % (a, b, a <= b))
             (0, 0) <= (0, 0) = True
             (0, 0) <= (1, 1) = True
             (0, 0) <= (0, 1) = True

@@ -1067,7 +1067,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         REFERENCES:
 
-        .. [JohnsonPG90] D.L. Johnson. *Presentations of Groups*.
+        .. [JohnsonPG90] \D.L. Johnson. *Presentations of Groups*.
            Cambridge University Press. (1990).
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen

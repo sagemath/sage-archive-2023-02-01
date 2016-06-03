@@ -102,6 +102,7 @@ This came up in some subtle bug once::
     sage: sage.structure.parent.normalize_names(2, ['x','y'])
     ('x', 'y')
 """
+from __future__ import print_function
 
 from types import MethodType
 from .element cimport parent_c, coercion_model
@@ -236,7 +237,6 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(category_object.CategoryObject):
-
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  gens=None, names=None, normalize=True, facade=None, **kwds):
         """
@@ -342,11 +342,11 @@ cdef class Parent(category_object.CategoryObject):
 
         if len(kwds) > 0:
             if debug.bad_parent_warnings:
-                print "Illegal keywords for %s: %s" % (type(self), kwds)
+                print("Illegal keywords for %s: %s" % (type(self), kwds))
         # TODO: many classes don't call this at all, but __new__ crashes Sage
         if debug.bad_parent_warnings:
             if element_constructor is not None and not callable(element_constructor):
-                print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
+                print("coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor)
         if gens is not None:
             self._populate_generators_(gens, names, normalize)
         elif names is not None:
@@ -469,8 +469,7 @@ cdef class Parent(category_object.CategoryObject):
         if self._category is None:
             self._init_category_(category)
             if debug.refine_category_hash_check and hash_old != hash(self):
-                print 'hash of {0} changed in Parent._refine_category_ during initialisation' \
-                    .format(str(self.__class__))
+                print('hash of {0} changed in Parent._refine_category_ during initialisation'.format(str(self.__class__)))
             return
         if category is self._category:
             return
@@ -497,8 +496,7 @@ cdef class Parent(category_object.CategoryObject):
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
-            print 'hash of {0} changed in Parent._refine_category_ during refinement' \
-                .format(str(self.__class__))
+            print('hash of {0} changed in Parent._refine_category_ during refinement'.format(str(self.__class__)))
 
     def _unset_category(self):
         """
@@ -755,8 +753,7 @@ cdef class Parent(category_object.CategoryObject):
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
             if warn:
-                print "init_coerce() for ", type(self)
-                raise ZeroDivisionError("hello")
+                raise AssertionError(f"unexpected call of init_coerce() for {type(self)}")
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []
@@ -868,7 +865,7 @@ cdef class Parent(category_object.CategoryObject):
         EXAMPLES::
 
             sage: for s in dir(ZZ):
-            ....:     if s[:6] == "_test_": print s
+            ....:     if s[:6] == "_test_": print(s)
             _test_additive_associativity
             _test_an_element
             _test_associativity
@@ -1063,7 +1060,7 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: class MyParent(Parent):
             ....:     def _element_constructor_(self, x):
-            ....:         print self, x
+            ....:         print("{} {}".format(self, x))
             ....:         return sage.structure.element.Element(parent = self)
             ....:     def _repr_(self):
             ....:         return "my_parent"
@@ -1485,7 +1482,7 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: if ZZ: print "Yes"
+            sage: if ZZ: print("Yes")
             Yes
         """
         return True
@@ -2256,7 +2253,7 @@ cdef class Parent(category_object.CategoryObject):
             return True
         elif S == self:
             if debug.unique_parent_warnings:
-                print "Warning: non-unique parents %s"%(type(S))
+                print("Warning: non-unique parents %s" % (type(S)))
             return True
         return self._internal_coerce_map_from(S) is not None
 
@@ -2390,7 +2387,7 @@ cdef class Parent(category_object.CategoryObject):
         if S == self:
             # non-unique parents
             if debug.unique_parent_warnings:
-                print "Warning: non-unique parents %s"%(type(S))
+                print("Warning: non-unique parents %s" % (type(S)))
             mor = self._generic_convert_map(S)
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
@@ -2406,7 +2403,6 @@ cdef class Parent(category_object.CategoryObject):
             #        # so that it doesn't use this path for the existence of a coercion path.
             #        # We disable this for now because it is too strict
             #        pass
-            #        # print "embed problem: the following morphisms connect unconnected portions of the coercion graph\n%s\n%s"%(self._embedding, mor)
             #        # mor = None
             # if mor is not None:
             #     # NOTE: this line is what makes the coercion detection stateful

@@ -20,7 +20,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.
@@ -29,6 +29,8 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.arith.all import is_square, is_prime_power, divisors
@@ -184,7 +186,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Pa92] D. V. Pasechnik,
+    .. [Pa92] \D. V. Pasechnik,
       Skew-symmetric association schemes with two classes and strongly
       regular graphs of type `L_{2n-1}(4n- 1)`,
       Acta Applicandaie Math. 29(1992), 129-138
@@ -460,7 +462,7 @@ def is_goethals_seidel(int v,int k,int l,int mu):
         ....:           (144, 77, 40, 42), (256, 135, 70, 72), (400, 209, 108, 110),
         ....:           (496, 255, 126, 136), (540, 275, 130, 150), (576, 299, 154, 156),
         ....:           (780, 399, 198, 210), (784, 405, 208, 210), (976, 495, 238, 264)]:
-        ....:     print is_goethals_seidel(*p)
+        ....:     print(is_goethals_seidel(*p))
         [<function GoethalsSeidelGraph at ...>, 2, 3]
         [<function GoethalsSeidelGraph at ...>, 3, 3]
         [<function GoethalsSeidelGraph at ...>, 2, 7]
@@ -966,7 +968,7 @@ def is_polhill(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Polhill09] J. Polhill,
+    .. [Polhill09] \J. Polhill,
        Negative Latin square type partial difference sets and
        amorphic association schemes with Galois rings,
        Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
@@ -1806,7 +1808,7 @@ def SRG_100_44_18_20():
 
     REFERENCES:
 
-    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+    .. [JK03] \L. K. Jørgensen, M. Klin, M.,
       Switching of edges in strongly regular graphs.
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
@@ -1857,12 +1859,12 @@ def SRG_105_32_4_12():
 
     REFERENCES:
 
-    .. [GS70] J.-M. Goethals and J. J. Seidel,
+    .. [GS70] \J.-M. Goethals and J. J. Seidel,
        Strongly regular graphs derived from combinatorial designs,
        Can. J. Math. 22 (1970) 597-614.
        http://dx.doi.org/10.4153/CJM-1970-067-9
 
-    .. [Co06] K. Coolsaet,
+    .. [Co06] \K. Coolsaet,
        The uniqueness of the strongly regular graph srg(105,32,4,12),
        Bull. Belg. Math. Soc. 12(2006), 707-718.
        http://projecteuclid.org/euclid.bbms/1136902608
@@ -1948,7 +1950,7 @@ def SRG_176_49_12_14():
 
     REFERENCE:
 
-    .. [BrouwerPolarities82] A. Brouwer,
+    .. [BrouwerPolarities82] \A. Brouwer,
        Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
        Aequationes mathematicae 25, no. 1 (1982): 77-82.
     """
@@ -2013,12 +2015,12 @@ def SRG_210_99_48_45():
 
     REFERENCES:
 
-    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+    .. [KPRWZ10] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
        Examples of computer experimentation in algebraic combinatorics,
        ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
        http://amc-journal.eu/index.php/amc/article/viewFile/119/118
 
-    .. [COCO] I. A. Faradjev and M. H. Klin,
+    .. [COCO] \I. A. Faradjev and M. H. Klin,
        Computer package for computations with coherent configurations,
        Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
        code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
@@ -2069,7 +2071,7 @@ def SRG_243_110_37_60():
 
     REFERENCE:
 
-    .. [GS75] J.M. Goethals, and J. J. Seidel,
+    .. [GS75] \J.M. Goethals, and J. J. Seidel,
        The regular two-graph on 276 vertices,
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
@@ -2116,7 +2118,7 @@ def SRG_196_91_42_42():
 
     REFERENCE:
 
-    .. [IS06] Y.J. Ionin, S. Shrikhande,
+    .. [IS06] \Y.J. Ionin, S. Shrikhande,
       Combinatorics of symmetric designs.
       Cambridge University Press, 2006.
     """
@@ -2179,7 +2181,7 @@ def SRG_276_140_58_84():
 
     REFERENCE:
 
-    .. [HT96] W. H. Haemers and V. D. Tonchev,
+    .. [HT96] \W. H. Haemers and V. D. Tonchev,
       Spreads in strongly regular graphs,
       Designs, Codes and Cryptography 8 (1996) 145-157.
     """
@@ -2249,7 +2251,7 @@ def SRG_280_117_44_52():
 
     REFERENCE:
 
-    .. [MR85] R. Mathon and A. Rosa,
+    .. [MR85] \R. Mathon and A. Rosa,
        A new strongly regular graph,
        Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
        http://dx.doi.org/10.1016/0097-3165(85)90025-1
@@ -2299,7 +2301,7 @@ def strongly_regular_from_two_weight_code(L):
 
     REFERENCES:
 
-    .. [vLintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
+    .. [vLintSchrijver81] \J. H. van Lint, and A. Schrijver (1981),
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.
@@ -2409,7 +2411,7 @@ def strongly_regular_from_two_intersection_set(M):
 
     REFERENCES:
 
-    .. [CDB13] I. Cardinali and B. De Bruyn,
+    .. [CDB13] \I. Cardinali and B. De Bruyn,
       Spin-embeddings, two-intersection sets and two-weight codes,
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
@@ -2590,7 +2592,7 @@ def SRG_1288_792_476_504():
 
     REFERENCE:
 
-    .. [BvE92] A. Brouwer and C. Van Eijl,
+    .. [BvE92] \A. Brouwer and C. Van Eijl,
       On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
@@ -2787,7 +2789,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ....:     if graphs.strongly_regular_graph(*p,existence=True): # not tested
         ....:         try:                                             # not tested
         ....:             _ = graphs.strongly_regular_graph(*p)        # not tested
-        ....:             print p,"built successfully"                 # not tested
+        ....:             print(p, "built successfully")               # not tested
         ....:         except RuntimeError as e:                        # not tested
         ....:             if 'Brouwer' not in str(e):                  # not tested
         ....:                 raise                                    # not tested
@@ -3020,7 +3022,7 @@ def _build_small_srg_database():
 
     REFERENCES:
 
-    .. [CK86] R. Calderbank, W.M. Kantor,
+    .. [CK86] \R. Calderbank, W.M. Kantor,
       The geometry of two-weight codes,
       Bull. London Math. Soc. 18(1986) 97-122
     """
@@ -3165,11 +3167,11 @@ def _check_database():
         sage_answer = strongly_regular_graph(*params,existence=True)
         if dic['status'] == 'open':
             if sage_answer:
-                print "Sage can build a {}, Brouwer's database cannot".format(params)
+                print("Sage can build a {}, Brouwer's database cannot".format(params))
             assert sage_answer is not False
         elif dic['status'] == 'exists':
             if sage_answer is not True:
-                print (("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
+                print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
                        "Comment from Brouwer's database: ").format(*params)
                        +dic['comments'].encode('ascii','ignore'))
                 missed += 1
@@ -3180,10 +3182,10 @@ def _check_database():
             assert False # must not happen
 
     status = [x['status'] for x in saved_database.values()]
-    print "\nIn Andries Brouwer's database:"
-    print "- {} impossible entries".format(status.count('impossible'))
-    print "- {} undecided entries".format(status.count('open'))
-    print "- {} realizable entries (Sage misses {} of them)".format(status.count('exists'),missed)
+    print("\nIn Andries Brouwer's database:")
+    print("- {} impossible entries".format(status.count('impossible')))
+    print("- {} undecided entries".format(status.count('open')))
+    print("- {} realizable entries (Sage misses {} of them)".format(status.count('exists'), missed))
 
     # Reassign its value to the global database
     _brouwer_database = saved_database

@@ -726,19 +726,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        ..  [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
+        ..  [AHU] \A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
                      Matrix Multiplication and Related Operations.'
                      The Design and Analysis of Computer
                      Algorithms. Addison-Wesley, 1974.
 
-        ..  [ADKF70] V. Arlazarov, E. Dinic, M. Kronrod, and
+        ..  [ADKF70] \V. Arlazarov, E. Dinic, M. Kronrod, and
                      I. Faradzev. 'On Economical Construction of the
                      Transitive Closure of a Directed Graph.'
                      Dokl. Akad. Nauk. SSSR No. 194 (in Russian),
                      English Translation in Soviet Math Dokl. No. 11,
                      1970.
 
-        ..  [Bard06] G. Bard. 'Accelerating Cryptanalysis with the
+        ..  [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the
                      Method of Four Russians'. Cryptography E-Print
                      Archive (http://eprint.iacr.org/2006/251.pdf),
                      2006.
@@ -1087,7 +1087,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of
+        .. [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the Method of
            Four Russians'. Cryptography E-Print Archive
            (http://eprint.iacr.org/2006/251.pdf), 2006.
         """

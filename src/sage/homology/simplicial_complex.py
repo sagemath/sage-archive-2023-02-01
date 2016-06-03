@@ -146,6 +146,7 @@ We can also make mutable copies of an immutable simplicial complex
     sage: S == T
     True
 """
+from __future__ import print_function
 
 # possible future directions for SimplicialComplex:
 #
@@ -2011,7 +2012,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 differentials[first] = matrix(base_ring, 0, len(current))
         for n in dimensions[1:]:
             if verbose:
-                print "  starting dimension %s" % n
+                print("  starting dimension %s" % n)
             if (n, subcomplex) in self._complex:
                 if cochain:
                     differentials[n-1] = self._complex[(n, subcomplex)].transpose().change_ring(base_ring)
@@ -2020,7 +2021,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     differentials[n] = self._complex[(n, subcomplex)].change_ring(base_ring)
                     mat = differentials[n]
                 if verbose:
-                    print "    boundary matrix (cached): it's %s by %s." % (mat.nrows(), mat.ncols())
+                    print("    boundary matrix (cached): it's %s by %s." % (mat.nrows(), mat.ncols()))
             else:
                 # 'current' is the list of faces in dimension n
                 #
@@ -2059,7 +2060,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     self._complex[(n, subcomplex)] = mat
                     differentials[n] = mat.change_ring(base_ring)
                 if verbose:
-                    print "    boundary matrix computed: it's %s by %s." % (mat.nrows(), mat.ncols())
+                    print("    boundary matrix computed: it's %s by %s." % (mat.nrows(), mat.ncols()))
         # now for the cochain complex, compute the last dimension by
         # hand, and don't cache it.
         if cochain:
@@ -2189,39 +2190,39 @@ class SimplicialComplex(Parent, GenericCellComplex):
             dims = None
 
         if verbose:
-            print "starting calculation of the homology of this",
-            print "%s-dimensional simplicial complex" % self.dimension()
+            print("starting calculation of the homology of this")
+            print("%s-dimensional simplicial complex" % self.dimension())
         if subcomplex is None:
             if enlarge:
                 if verbose:
-                    print "Constructing contractible subcomplex..."
+                    print("Constructing contractible subcomplex...")
                 L = self._contractible_subcomplex(verbose=verbose)
                 if verbose:
-                    print "Done finding contractible subcomplex."
+                    print("Done finding contractible subcomplex.")
                     vec = [len(self.n_faces(n-1, subcomplex=L)) for n in range(self.dimension()+2)]
-                    print "The difference between the f-vectors is:"
-                    print "  %s" % vec
+                    print("The difference between the f-vectors is:")
+                    print("  %s" % vec)
             else:
                 L = SimplicialComplex([[self.vertices().tuple()[0]]])
         else:
             if enlarge:
                 if verbose:
-                    print "Enlarging subcomplex..."
+                    print("Enlarging subcomplex...")
                 L = self._enlarge_subcomplex(subcomplex, verbose=verbose)
                 if verbose:
-                    print "Done enlarging subcomplex:"
+                    print("Done enlarging subcomplex:")
             else:
                 L = subcomplex
         L.set_immutable()
 
         if verbose:
-            print "Computing the chain complex..."
+            print("Computing the chain complex...")
         kwds['subcomplex'] = L
         C = self.chain_complex(dimensions=dims, augmented=reduced,
                                cochain=cohomology, **kwds)
         if verbose:
-            print " Done computing the chain complex. "
-            print "Now computing homology..."
+            print(" Done computing the chain complex. ")
+            print("Now computing homology...")
         if 'subcomplex' in kwds:
             del kwds['subcomplex']
         answer = C.homology(**kwds)
@@ -3223,7 +3224,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             done = True
             remove_these = []
             if verbose:
-                print "  looping through %s facets" % len(faces)
+                print("  looping through %s facets" % len(faces))
             for f in faces:
                 f_set = f.set()
                 int_facets = set( a.set().intersection(f_set) for a in new_facets )
@@ -3235,11 +3236,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         remove_these.append(f)
                         done = False
             if verbose and not done:
-                print "    added %s facets" % len(remove_these)
+                print("    added %s facets" % len(remove_these))
             for f in remove_these:
                 faces.remove(f)
         if verbose:
-            print "  now constructing a simplicial complex with %s vertices and %s facets" % (self.vertices().dimension()+1, len(new_facets))
+            print("  now constructing a simplicial complex with %s vertices and %s facets" % (self.vertices().dimension()+1, len(new_facets)))
         L = SimplicialComplex(new_facets, maximality_check=False,
                               sort_facets=False, is_mutable=self._is_mutable)
         self.__enlarged[subcomplex] = L
@@ -3277,11 +3278,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BP2000] V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
+        .. [BP2000] \V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
            and combinatorics of simplicial manifolds," *Uspekhi
            Mat. Nauk* 55 (2000), 171--172.
 
-        .. [SS1992] M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+        .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
            manifolds and complexes into a cubic lattice", *Uspekhi
            Mat. Nauk* 47 (1992), 219-220.
 
@@ -3741,7 +3742,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: S = SimplicialComplex([(0,1,2), (2,3,5)])
-            sage: print S._chomp_repr_()
+            sage: print(S._chomp_repr_())
             (2, 3, 5)
             (0, 1, 2)
 

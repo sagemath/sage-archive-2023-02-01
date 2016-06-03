@@ -19,7 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
@@ -338,7 +338,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK")
             sage: p.problem_name("There once was a french fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There once was a french fry
         """
         cdef char * n
@@ -1625,7 +1625,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: copy(p).solve()
             6.0
         """
-        cdef GLPKBackend p = GLPKBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef GLPKBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
         p.simplex_or_intopt = self.simplex_or_intopt
         p.iocp.tm_lim = self.iocp.tm_lim
         glp_copy_prob(p.lp, self.lp, 1)
@@ -2287,8 +2287,8 @@ cdef class GLPKBackend(GenericBackend):
             if res == 0:
                 with open(fname) as f:
                     for line in f:
-                        print line,
-                print
+                        print(line, end=" ")
+                print("\n")
 
         return res
 

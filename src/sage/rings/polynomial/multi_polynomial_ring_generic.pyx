@@ -1,6 +1,7 @@
 r"""
 Base class for multivariate polynomial rings
 """
+from __future__ import print_function
 
 import sage.misc.latex
 import multi_polynomial_ideal
@@ -55,12 +56,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             True
         """
         if base_ring not in _CommutativeRings:
-            raise TypeError, "The base ring %s is not a commutative ring"%base_ring
+            raise TypeError("The base ring %s is not a commutative ring" % base_ring)
 
         n = int(n)
         if n < 0:
-            raise ValueError, "Multivariate Polynomial Rings must " + \
-                  "have more than 0 variables."
+            raise ValueError("Multivariate Polynomial Rings must " + \
+                  "have more than 0 variables.")
         order = TermOrder(order,n)
         self.__ngens = n
         self.__term_order = order
@@ -187,7 +188,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             #if p in self or type(p) == str and set(p).issubset(set([str(g) for g in self.gens()])):
 
         except ValueError:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
+            raise TypeError("Cannot complete %s with respect to %s" % (self, p))
 
     def remove_var(self, *var, order=None):
         """
@@ -366,7 +367,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
-            sage: print P.repr_long()
+            sage: print(P.repr_long())
             Polynomial Ring
              Base Ring : Rational Field
                   Size : 3 Variables
@@ -489,7 +490,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def gen(self, n=0):
         if n < 0 or n >= self.__ngens:
-            raise ValueError, "Generator not defined."
+            raise ValueError("Generator not defined.")
         return self._gens[int(n)]
 
     #def gens(self):
@@ -1028,13 +1029,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
                  Springer, 2005.
 
-        .. [Can] J. Canny. Generalised characteristic polynomials.
+        .. [Can] \J. Canny. Generalised characteristic polynomials.
                  J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
-        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
                  Cambridge university press, 1916.
 
         AUTHORS:

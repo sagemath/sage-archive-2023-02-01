@@ -53,6 +53,7 @@ Functions and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
@@ -845,7 +846,7 @@ def WittDesign(n):
         (True, (2, 9, 3, 1))
         sage: BD                             # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
-        sage: print BD                       # optional - gap_packages (design package)
+        sage: print(BD)                      # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
     """
     from sage.interfaces.gap import gap, GapElement
@@ -868,7 +869,7 @@ def HadamardDesign(n):
 
         sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
-        sage: print designs.HadamardDesign(7)
+        sage: print(designs.HadamardDesign(7))
         Incidence structure with 7 points and 7 blocks
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
@@ -949,7 +950,7 @@ def Hadamard3Design(n):
 
     REFERENCES:
 
-    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+    .. [CvL] \P. Cameron, J. H. van Lint, Designs, graphs, codes and
       their links, London Math. Soc., 1991.
     """
     if n == 1 or n == 4:

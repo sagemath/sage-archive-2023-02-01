@@ -13,6 +13,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import itertools
 
 from sage.misc.misc import attrcall
@@ -334,7 +336,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: c = C.an_element(); c
                 (47, 42, 1)
                 sage: for i in c:
-                ....:     print i
+                ....:     print(i)
                 47
                 42
                 1

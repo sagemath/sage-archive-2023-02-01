@@ -23,7 +23,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import math
 import shapes
@@ -1087,13 +1087,13 @@ def point3d(v, size=5, **kwds):
     We check to make sure this works with vectors and other iterables::
 
         sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
-        sage: print point(vector((2,3,4)))
+        sage: print(point(vector((2,3,4))))
         Graphics3d Object
 
         sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
         A vertex at (-1, -1, -1)
-        sage: print point(v)
+        sage: print(point(v))
         Graphics3d Object
 
     We check to make sure the options work::

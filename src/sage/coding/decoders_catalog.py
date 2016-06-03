@@ -17,6 +17,10 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`grs.GRSKeyEquationSyndromeDecoder <sage.coding.grs.GRSKeyEquationSyndromeDecoder>`
 - :class:`guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder <sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder>`
 
+**Punctured codes decoders**
+
+- :class:`punctured_code.PuncturedCodeOriginalCodeDecoder <sage.coding.punctured_code.PuncturedCodeOriginalCodeDecoder>`
+
 .. NOTE::
 
     To import these names into the global namespace, use:
@@ -37,6 +41,8 @@ from linear_code import (LinearCodeSyndromeDecoder,
                          LinearCodeNearestNeighborDecoder,
                          LinearCodeInformationSetDecoder)
 
+from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
+from punctured_code import PuncturedCodeOriginalCodeDecoder
 from guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from grs import (GRSBerlekampWelchDecoder,
                  GRSGaoDecoder,

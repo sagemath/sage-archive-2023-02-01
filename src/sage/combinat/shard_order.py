@@ -13,19 +13,20 @@ but can be easily converted from and to permutations::
     sage: from sage.combinat.shard_order import ShardPosetElement
     sage: p0 = Permutation([1,3,4,2])
     sage: e0 = ShardPosetElement(p0); e0
+    doctest:...: DeprecationWarning: object.__init__() takes no parameters
     (1, 3, 4, 2)
     sage: Permutation(list(e0)) == p0
     True
 
 REFERENCES:
 
-.. [Banc2011] E. E. Bancroft, *Shard Intersections and Cambrian Congruence
+.. [Banc2011] \E. E. Bancroft, *Shard Intersections and Cambrian Congruence
    Classes in Type A.*, Ph.D. Thesis, North Carolina State University. 2011.
 
-.. [Pete2013] T. Kyle Petersen, *On the shard intersection order of
+.. [Pete2013] \T. Kyle Petersen, *On the shard intersection order of
    a Coxeter group*, SIAM J. Discrete Math. 27 (2013), no. 4, 1880-1912.
 
-.. [Read2011] N. Reading, *Noncrossing partitions and the shard intersection
+.. [Read2011] \N. Reading, *Noncrossing partitions and the shard intersection
    order*, J. Algebraic Combin., 33 (2011), 483-530.
 """
 from sage.combinat.posets.posets import Poset

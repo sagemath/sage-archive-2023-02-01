@@ -130,16 +130,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
@@ -203,7 +203,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print out
+        sage: print(out)
         Found local metadata for sqlite-...
         = SQLite =
         ...
@@ -216,7 +216,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print out
+        sage: print(out)
         Found local metadata for sqlite-...
         = SQLite =
         ...
@@ -233,17 +233,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'python_test_file.py'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("print 3^33\n")
+        sage: F.write("print(3^33)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
@@ -256,17 +256,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("k.<a> = GF(5^3); print a^124\n")
+        sage: F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
@@ -278,17 +278,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint Integer(s)")
+        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
@@ -345,7 +345,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.close()
         sage: (out, err, ret) = test_executable([
         ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
-        sage: print out
+        sage: print(out)
         Debugging requires single-threaded operation, setting number of threads to 1.
         Running doctests with ID...
         Doctesting 1 file.
@@ -394,12 +394,12 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.mkdir(d)
         sage: os.chmod(d, 0o777)
         sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
         sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
@@ -470,7 +470,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--python"], "print 3^33\n")
+        sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -479,7 +479,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--cython"])
-        sage: print err
+        sage: print(err)
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
         ...
@@ -638,7 +638,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
-        sage: print out
+        sage: print(out)
         {{{id=0|
         2^10
         ///
@@ -665,7 +665,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.close()
         sage: test_executable(["sage", "--rst2txt", input, output])
         ('', '', 0)
-        sage: print open(output, 'r').read()
+        sage: print(open(output, 'r').read())
         {{{id=0|
         2^10
         ///
@@ -690,7 +690,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ('', '', 0)
         sage: import tarfile
         sage: f = tarfile.open(output, 'r')
-        sage: print f.extractfile('sage_worksheet/worksheet.html').read()
+        sage: print(f.extractfile('sage_worksheet/worksheet.html').read())
         <h1 class="title">Thetitle</h1>
         <BLANKLINE>
         {{{id=0|
@@ -704,7 +704,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: print f.extractfile('sage_worksheet/worksheet.txt').read()
+        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read())
         Thetitle
         system:sage
         <BLANKLINE>

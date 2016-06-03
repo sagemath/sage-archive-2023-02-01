@@ -39,6 +39,9 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
+
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -239,7 +242,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: ascii_art(BinaryTree([]))
             o
             sage: for bt in BinaryTrees(3):
-            ....:     print ascii_art(bt)
+            ....:     print(ascii_art(bt))
             o
              \
               o
@@ -1458,7 +1461,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         REFERENCES:
 
-        .. [DG94] S. Dulucq and O. Guibert. Mots de piles, tableaux
+        .. [DG94] \S. Dulucq and O. Guibert. Mots de piles, tableaux
            standards et permutations de Baxter, proceedings of
            Formal Power Series and Algebraic Combinatorics, 1994.
         """
@@ -1733,9 +1736,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: for T in BinaryTrees(4):
             ....:     for S in T.tamari_smaller():
             ....:         if S != T and T.tamari_lequal(S):
-            ....:             print "FAILURE"
+            ....:             print("FAILURE")
             ....:         if not S.tamari_lequal(T):
-            ....:             print "FAILURE"
+            ....:             print("FAILURE")
         """
         self_perm = self.to_312_avoiding_permutation()
         t2_perm = t2.to_312_avoiding_permutation()

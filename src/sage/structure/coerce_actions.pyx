@@ -742,7 +742,7 @@ cdef class IntegerMulAction(Action):
             ...
             TypeError: No generic module division by Z.
         """
-        raise TypeError, "No generic module division by Z."
+        raise TypeError("No generic module division by Z.")
 
     def _repr_name_(self):
         """

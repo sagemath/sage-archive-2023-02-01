@@ -19,6 +19,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
@@ -105,7 +107,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
         [0, 12, 0, 0, 0]
         sage: W12.cardinality()
         441
-        sage: for w in W12: print w
+        sage: for w in W12: print(w)
         [4, 0, 0, 0, 0]
         [3, 0, 0, 1, 1]
         [3, 0, 1, 1, 0]
@@ -297,6 +299,11 @@ def iterator_fast(n, l):
         [[1, 1, 0], [1, 0, 1], [0, 3, 0], [0, 2, 1], [0, 1, 2], [0, 0, 3]]
         sage: list(iterator_fast(2, [2]))
         [[1]]
+
+    Test that :trac:`20491` is fixed::
+
+        sage: type(list(iterator_fast(2, [2]))[0][0])
+        <type 'sage.rings.integer.Integer'>
     """
     if n < 0:
         return
@@ -310,7 +317,7 @@ def iterator_fast(n, l):
         return
     if len(l) == 1:
         if n % l[0] == 0:
-            yield [n / l[0]]
+            yield [n // l[0]]
         return
 
     k = 0

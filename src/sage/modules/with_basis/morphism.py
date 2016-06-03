@@ -103,6 +103,7 @@ sage.categories.modules_with_basis; see :trac:`8678` for the complete log.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
@@ -581,9 +582,10 @@ class TriangularModuleMorphism(ModuleMorphism):
         sage: ut = lambda i: sum(  y[j] for j in range(1,i+2) )
         sage: phi = X.module_morphism(ut, triangular="upper", codomain=Y,
         ....:                         inverse_on_support="compute")
+        sage: tx = "{} {} {}"
         sage: for j in Y.basis().keys():
         ....:     i = phi._inverse_on_support(j)
-        ....:     print j, i, phi(x[i]) if i is not None else None
+        ....:     print(tx.format(j, i, phi(x[i]) if i is not None else None))
         1 None None
         2 1 B[1] + B[2]
         3 2 B[1] + B[2] + B[3]

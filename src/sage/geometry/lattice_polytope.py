@@ -125,6 +125,8 @@ from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
 from sage.structure.sage_object import SageObject
+from sage.numerical.mip import MixedIntegerLinearProgram
+
 
 from copy import copy
 import collections
@@ -6240,10 +6242,8 @@ def positive_integer_relations(points):
 
     INPUT:
 
-
-    -  ``points`` - lattice points given as columns of a
-       matrix
-
+    - ``points`` - lattice points given as columns of a
+      matrix
 
     OUTPUT: matrix of relations between given points with non-negative
     integer coefficients
@@ -6251,7 +6251,7 @@ def positive_integer_relations(points):
     EXAMPLES: This is a 3-dimensional reflexive polytope::
 
         sage: p = LatticePolytope([(1,0,0), (0,1,0),
-        ...             (-1,-1,0), (0,0,1), (-1,0,-1)])
+        ....:         (-1,-1,0), (0,0,1), (-1,0,-1)])
         sage: p.points()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -6290,19 +6290,26 @@ def positive_integer_relations(points):
     for i in range(n_nonpivots):
         a[i, i] = -1
     a = nonpivot_relations.stack(a).transpose()
-    a = sage_matrix_to_maxima(a)
-    maxima.load("simplex")
-
+    # a = sage_matrix_to_maxima(a)
+    # maxima.load("simplex")
+    MIP = MixedIntegerLinearProgram(maximization=False)
+    w = MIP.new_variable(integer=True, nonnegative=True)
     new_relations = []
     for i in range(n_nonpivots):
         # Find a non-negative linear combination of relations,
         # such that all components are non-negative and the i-th one is 1
-        b = [0]*i + [1] + [0]*(n_nonpivots - i - 1)
-        c = [0]*(n+i) + [1] + [0]*(n_nonpivots - i - 1)
-        x = maxima.linear_program(a, b, c)
-        if x.str() == r'?Problem\not\feasible\!':
+        b = vector([0] * i + [1] + [0] * (n_nonpivots - i - 1))
+        c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
+        MIP.add_constraint(a * w == b)
+        MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
+        # x = maxima.linear_program(a, b, c)
+        try:
+            x = MIP.solve()
+        except MIPSolverException:
+            # if x.str() == r'?Problem\not\feasible\!':
             raise ValueError("cannot find required relations")
-        x = x.sage()[0][:n]
+        x = MIP.get_values(w).values()[:n]
+        # x = x.sage()[0][:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
 

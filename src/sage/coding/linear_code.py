@@ -3185,15 +3185,15 @@ class AbstractLinearCode(module.Module):
 
     def _spectrum_from_gap(self):
         r"""
-        Returns the weight distribution of the associated code. Uses the C programs 
+        Returns the weight distribution of the associated code. Uses the C programs
         available in the kernel of GAP and thus is fairly fast.
-        
-        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n` 
+
+        The weight distribution of a code of length `n` is the sequence `A_0, A_1,..., A_n`
         where `A_i` is the number of codewords of weight `i` (0 <= i <= n).
-        
+
         OUTPUT:
         - a vector of integers, the weight distribution of the code
-        
+
         EXAMPLES::
             sage: from sage.interfaces.all import gap
             sage: MS = MatrixSpace(GF(2),4,7)
@@ -3201,7 +3201,7 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C._spectrum_from_gap()
             [1, 0, 0, 7, 7, 0, 0, 1]
-        
+
         AUTHORS:
 
         - David Joyner (2005-11)
@@ -4891,4 +4891,4 @@ LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
 LinearCode._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
-LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}
+LinearCodeInformationSetDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}

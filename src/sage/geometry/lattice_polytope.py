@@ -101,7 +101,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
@@ -6302,7 +6302,7 @@ def positive_integer_relations(points):
         c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
         MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
         MIP.solve()
-        x = [ZZ(k) for k in MIP.get_values(w).values()[:n]]
+        x = MIP.get_values(w).values()[:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
 

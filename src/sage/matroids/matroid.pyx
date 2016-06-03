@@ -4908,7 +4908,7 @@ cdef class Matroid(SageObject):
 
         - ``k`` -- a integer greater or equal to 1.
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is k-connected,
+          then return ``True, None`` if the matroid is k-connected,
           and ``False, X`` otherwise, where ``X`` is a `<k`-separation
 
         OUTPUT:
@@ -5037,7 +5037,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 3-connectivity:
@@ -5116,7 +5116,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 4-connectivity:
@@ -5167,7 +5167,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -5296,7 +5296,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -5374,7 +5374,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
 
         OUTPUT:
@@ -5630,7 +5630,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:

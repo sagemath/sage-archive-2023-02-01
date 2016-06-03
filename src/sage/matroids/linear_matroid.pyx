@@ -2627,7 +2627,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -2705,7 +2705,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
 
         OUTPUT:

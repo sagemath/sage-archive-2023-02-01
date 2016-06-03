@@ -1197,7 +1197,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def _random_uniform_rec(self, degree, monom_counts, vars_set, dfirst, l):
         r"""
-        Recursively generate a random polynomial in in this ring, using the
+        Recursively generate a random polynomial in this ring, using the
         variables from ``vars_set``.
 
         INPUT:

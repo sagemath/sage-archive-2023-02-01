@@ -50,6 +50,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
@@ -257,7 +258,7 @@ class ModularSymbol(SageObject):
             ....:          E = EllipticCurve(la)
             ....:          me = E.modular_symbol(use_eclib = True)
             ....:          ms = E.modular_symbol(use_eclib = False)
-            ....:          print E.lseries().L_ratio()*E.real_components(), me(0), ms(0)
+            ....:          print("{} {} {}".format(E.lseries().L_ratio()*E.real_components(), me(0), ms(0)))
             1/5 1/5 1/5
             1 1 1
             1/4 1/4 1/4
@@ -284,7 +285,6 @@ class ModularSymbol(SageObject):
 
         if self._sign == 1 :
             at0 = self(0)
-            # print 'modular symbol evaluates to ',at0,' at 0'
             if at0 != 0 :
                 l1 = self.__lalg__(1)
                 if at0 != l1:
@@ -405,10 +405,10 @@ class ModularSymbol(SageObject):
         try :
             crla = parse_cremona_label(self._E.label())
         except RuntimeError: # raised when curve is outside of the table
-            print "Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by a rational number."
+            print("Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by a rational number.")
             self._scaling = 1
         else :
-            print "Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2."
+            print("Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.")
             cr0 = Integer(crla[0]).str() + crla[1] + '1'
             E0 = EllipticCurve(cr0)
             if self._sign == 1:

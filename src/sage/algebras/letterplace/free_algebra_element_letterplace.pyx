@@ -15,6 +15,7 @@ AUTHOR:
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
+from __future__ import print_function
 
 from sage.libs.singular.function import lib, singular_function
 from sage.misc.misc import repr_lincomb
@@ -128,6 +129,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return hash(self._poly)
+
     def __iter__(self):
         """
         Iterates over the pairs "tuple of exponents, coefficient".
@@ -141,6 +143,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return self._poly.dict().iteritems()
+
     def _repr_(self):
         """
         TEST::
@@ -154,9 +157,9 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
             sage: from sage.structure.parent_gens import localvars
             sage: with localvars(F, ['w', 'x','y']):
-            ...     print a+b*(z+1)-c
+            ....:     print(a+b*(z+1)-c)
             w + (z + 1)*x - y
-            sage: print a+b*(z+1)-c
+            sage: print(a+b*(z+1)-c)
             a + (z + 1)*b - c
 
         """

@@ -9,6 +9,8 @@ Root system data for type G
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import ambient_space
 from sage.sets.family import Family
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
@@ -201,7 +203,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['G',2])._latex_dynkin_diagram()
+            sage: print(CartanType(['G',2])._latex_dynkin_diagram())
             \draw (0,0) -- (2 cm,0);
             \draw (0, 0.15 cm) -- +(2 cm,0);
             \draw (0, -0.15 cm) -- +(2 cm,0);
@@ -229,7 +231,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['G',2]).ascii_art(label=lambda x: x+2)
+            sage: print(CartanType(['G',2]).ascii_art(label=lambda x: x+2))
               3
             O=<=O
             3   4

@@ -29,7 +29,7 @@ def expect_quitall(verbose=False):
         sage: gp('a')
         a
         sage: sage.interfaces.quit.expect_quitall(verbose=True)
-        Exiting PARI/GP interpreter with PID ... running .../local/bin/gp --fast --emacs --quiet --stacksize 10000000
+        Exiting PARI/GP interpreter with PID ... running .../bin/gp --fast --emacs --quiet --stacksize 10000000
     """
     for P in expect_objects:
         R = P()

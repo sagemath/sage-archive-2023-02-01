@@ -210,7 +210,7 @@ PARI.
 ::
 
     sage: E = EllipticCurve([0,0,1,-1,0])
-    sage: print E.anlist(30)  
+    sage: E.anlist(30)  
     [0, 1, -2, -3, 2, -2, 6, -1, 0, 6, 4, -5, -6, -2, 2, 6, -4, 0, -12, 0, -4, 
      3, 10, 2, 0, -1, 4, -9, -2, 6, -12]
     sage: v = E.anlist(10000)    

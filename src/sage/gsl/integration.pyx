@@ -276,12 +276,12 @@ def numerical_integral(func, a, b=None,
       if not func is None:
          wrapper.the_function = func
       else:
-         raise ValueError, "No integrand defined"
+         raise ValueError("No integrand defined")
       try:
          if params==[] and len(inspect.getargspec(wrapper.the_function)[0])==1:
             wrapper.the_parameters=[]
          elif params==[] and len(inspect.getargspec(wrapper.the_function)[0])>1:
-            raise ValueError, "Integrand has parameters but no parameters specified"
+            raise ValueError("Integrand has parameters but no parameters specified")
          elif params!=[]:
             wrapper.the_parameters = params
       except TypeError:
@@ -335,7 +335,7 @@ def numerical_integral(func, a, b=None,
          sig_off()
 
    else:
-      raise TypeError, "invalid integration algorithm"
+      raise TypeError("invalid integration algorithm")
 
    if W != NULL:
       gsl_integration_workspace_free(W)

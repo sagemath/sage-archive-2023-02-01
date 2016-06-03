@@ -47,6 +47,8 @@ References:
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
 from sage.categories.sets_cat import EmptySetError
@@ -162,10 +164,12 @@ def kirkman_triple_system(v,existence=False):
         sage: kts = designs.kirkman_triple_system(15)
         sage: classes = kts.is_resolvable(1)[1]
         sage: names = '0123456789abcde'
-        sage: to_name = lambda (r,s,t): ' '+names[r]+names[s]+names[t]+' '
+        sage: def to_name(r_s_t):
+        ....:     r, s, t = r_s_t
+        ....:     return ' ' + names[r] + names[s] + names[t] + ' '
         sage: rows = ['   '.join(('Day {}'.format(i) for i in range(1,8)))]
         sage: rows.extend('   '.join(map(to_name,row)) for row in zip(*classes))
-        sage: print '\n'.join(rows)
+        sage: print('\n'.join(rows))
         Day 1   Day 2   Day 3   Day 4   Day 5   Day 6   Day 7
          07e     18e     29e     3ae     4be     5ce     6de
          139     24a     35b     46c     05d     167     028

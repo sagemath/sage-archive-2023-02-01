@@ -442,6 +442,8 @@ this data.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -1465,7 +1467,7 @@ class CartanType_crystallographic(CartanType_abstract):
         EXAMPLES::
 
             sage: cartan_type = CartanType(['B',5,1])
-            sage: print cartan_type.ascii_art()
+            sage: print(cartan_type.ascii_art())
                 O 0
                 |
                 |
@@ -1477,7 +1479,7 @@ class CartanType_crystallographic(CartanType_abstract):
 
             sage: a = cartan_type.col_annihilator(); a
             Finite family {0: 1, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2}
-            sage: print CartanType(['B',5,1]).ascii_art(label=a.__getitem__)
+            sage: print(CartanType(['B',5,1]).ascii_art(label=a.__getitem__))
                 O 1
                 |
                 |
@@ -1625,24 +1627,24 @@ class CartanType_crystallographic(CartanType_abstract):
         Here is a neat trick to visualize it better::
 
             sage: T = CartanType(["B",5])
-            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            sage: print(T.ascii_art(T.symmetrizer().__getitem__))
             O---O---O---O=>=O
             2   2   2   2   1
 
             sage: T = CartanType(["BC",5, 2])
-            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            sage: print(T.ascii_art(T.symmetrizer().__getitem__))
             O=<=O---O---O---O=<=O
             1   2   2   2   2   4
 
        Here is the symmetrizer of some reducible Cartan types::
 
             sage: T = CartanType(["D", 2])
-            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            sage: print(T.ascii_art(T.symmetrizer().__getitem__))
             O   O
             1   1
 
             sage: T = CartanType(["B",5],["BC",5, 2])
-            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            sage: print(T.ascii_art(T.symmetrizer().__getitem__))
             O---O---O---O=>=O
             2   2   2   2   1
             O=<=O---O---O---O=<=O
@@ -1652,12 +1654,12 @@ class CartanType_crystallographic(CartanType_abstract):
         of the simple roots in the ambient space::
 
             sage: T = CartanType(["C",5])
-            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            sage: print(T.ascii_art(T.symmetrizer().__getitem__))
             O---O---O---O=<=O
             1   1   1   1   2
 
             sage: alpha = RootSystem(T).ambient_space().simple_roots()
-            sage: print T.ascii_art(lambda i: alpha[i].scalar(alpha[i]))
+            sage: print(T.ascii_art(lambda i: alpha[i].scalar(alpha[i])))
             O---O---O---O=<=O
             2   2   2   2   4
         """

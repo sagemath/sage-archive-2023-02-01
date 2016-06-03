@@ -211,7 +211,7 @@ la primer línea de abajo es exactamente igual a ``for(i=0; i<3; i++)`` en C++ o
 ::
 
     sage: for i in range(3):
-    ....:     print i
+    ....:     print(i)
     0
     1
     2
@@ -221,7 +221,7 @@ La primer línea de abajo es igual a ``for(i=2;i<5;i++)``.
 ::
 
     sage: for i in range(2,5):
-    ....:     print i
+    ....:     print(i)
     2
     3
     4
@@ -232,7 +232,7 @@ El tercer argumento controla el incremento, de modo que lo siguiente es igual a
 ::
 
     sage: for i in range(1,6,2):
-    ....:     print i
+    ....:     print(i)
     1
     3
     5
@@ -245,7 +245,7 @@ y hacemos una tabla de cuadrados y cubos.
 ::
 
     sage: for i in range(5):
-    ....:     print '%6s %6s %6s'%(i, i^2, i^3)
+    ....:     print('%6s %6s %6s' % (i, i^2, i^3))
          0      0      0
          1      1      1
          2      4      8

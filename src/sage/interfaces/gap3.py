@@ -226,6 +226,7 @@ Controlling variable names used by GAP3::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import Expect
@@ -488,7 +489,7 @@ class Gap3(Gap_generic):
             from sage.misc.pager import pager as pag
             pag()(helptext)
         else:
-            print helptext
+            print(helptext)
 
     def cputime(self, t=None):
         r"""
@@ -562,7 +563,7 @@ class Gap3(Gap_generic):
                 have GAP3 installed, or because it is not configured correctly.
             <BLANKLINE>
                 - If you do not have GAP3 installed, then you must either...
-            sage: print gap3._install_hints()
+            sage: print(gap3._install_hints())
             <BLANKLINE>
                 Your attempt to start GAP3 failed, either because you do not have
                 have GAP3 installed, or because it is not configured correctly.

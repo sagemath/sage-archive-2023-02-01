@@ -16,7 +16,7 @@ Ribbon Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -179,7 +179,7 @@ class RibbonTableaux(UniqueRepresentation, Parent):
         Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
 
         sage: R = RibbonTableaux([[5,4,3],[2,1]], [2,1], 3)
-        sage: for i in R: i.pp(); print
+        sage: for i in R: i.pp(); print("\n")
           .  .  0  0  0
           .  0  0  2
           1  0  1
@@ -778,7 +778,6 @@ def graph_implementation_rec(skp, weight, length, function):
                 selection.append([retire, perms[j]])
 
     #selection contains the list of current nodes
-    #print "selection", selection
 
     if len(weight) == 1:
         return function([], selection, skp, weight, length)
@@ -786,7 +785,6 @@ def graph_implementation_rec(skp, weight, length, function):
         #The recursive calls permit us to construct the list of the sons
         #of all current nodes in selection
         a = [graph_implementation_rec([p[0], skp[1]], weight[:-1], length, function) for p in selection]
-        #print "a", a
         return function(a, selection, skp, weight, length)
 
 

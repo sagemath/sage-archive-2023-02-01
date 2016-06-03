@@ -14,7 +14,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-
+from __future__ import print_function
 
 from copy import copy
 from math import sin, cos, pi
@@ -87,7 +87,7 @@ def KneserGraph(n,k):
     EXAMPLE::
 
         sage: KG=graphs.KneserGraph(5,2)
-        sage: print KG.vertices()
+        sage: print(KG.vertices())
         [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
         sage: P=graphs.PetersenGraph()
         sage: P.is_isomorphic(KG)
@@ -465,7 +465,7 @@ def chang_graphs():
         sage: T8 = K8.line_graph()
         sage: four_srg = chang_graphs + [T8]
         sage: for g in four_srg:
-        ....:     print g.is_strongly_regular(parameters=True)
+        ....:     print(g.is_strongly_regular(parameters=True))
         (28, 12, 6, 4)
         (28, 12, 6, 4)
         (28, 12, 6, 4)
@@ -1141,9 +1141,9 @@ def HararyGraph( k, n ):
 
         sage: n=10
         sage: for k in range(2,n):
-        ...       g = graphs.HararyGraph(k,n)
-        ...       if k != g.vertex_connectivity():
-        ...          print "Connectivity of Harary graphs not satisfied."
+        ....:     g = graphs.HararyGraph(k,n)
+        ....:     if k != g.vertex_connectivity():
+        ....:        print("Connectivity of Harary graphs not satisfied.")
     """
     if k < 2:
         raise ValueError("Connectivity parameter k should be at least 2.")
@@ -1547,7 +1547,7 @@ def OddGraph(n):
     EXAMPLE::
 
         sage: OG=graphs.OddGraph(3)
-        sage: print OG.vertices()
+        sage: print(OG.vertices())
         [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
         sage: P=graphs.PetersenGraph()
         sage: P.is_isomorphic(OG)
@@ -2313,7 +2313,7 @@ def trees(vertices):
 
         sage: tree_iterator = graphs.trees(7)
         sage: for T in tree_iterator:
-        ...     print T.degree_sequence()
+        ....:     print(T.degree_sequence())
         [2, 2, 2, 2, 2, 1, 1]
         [3, 2, 2, 2, 1, 1, 1]
         [3, 2, 2, 2, 1, 1, 1]
@@ -2519,7 +2519,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
         sage: ff=map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
-        sage: L=sum(map(lambda (i,(a,b)): i*(r[a]-r[b]), zip(range(1,len(ff)+1), ff))); L
+        sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
         [ 0  1 -1  2  3 -4 -2  4 -3]
         [-1  0  1 -4  2  3 -3 -2  4]
         [ 1 -1  0  3 -4  2  4 -3 -2]
@@ -2556,7 +2556,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     .. [ST78] \J. J. Seidel and D. E. Taylor,
        Two-graphs, a second survey.
-       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
+       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689--711,
        Colloq. Math. Soc. János Bolyai, 25,
        North-Holland, Amsterdam-New York, 1981.
     """
@@ -2564,7 +2564,6 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     from sage.rings.integer_ring import ZZ
     from sage.matrix.constructor import matrix, block_matrix, \
         ones_matrix, identity_matrix
-    from itertools import product
     from sage.arith.all import two_squares
     p = 4*t+1
     try:
@@ -2595,16 +2594,22 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         I = identity_matrix(q)
         J = ones_matrix(q)
         if m == 0:
-           f = lambda (i, j): 0*I if i==j                    else\
-                              I+F if (a[j]-a[i]).is_square() else\
-                              J-F
+            def f(i, j):
+                if i == j:
+                    return 0 * I
+                elif (a[j]-a[i]).is_square():
+                    return I + F
+                else:
+                    return J - F
         elif m < 2*t:
-           f = lambda (i, j): F*P[a.index(g**(2*m) * (a[i]+a[j]))]
+            def f(i, j):
+                return F * P[a.index(g**(2*m) * (a[i]+a[j]))]
         elif m == 2*t:
-           f = lambda (i, j): E*P[i]
-        return block_matrix(q,q, map(f, product(xrange(q), xrange(q))))
+            def f(i, j):
+                return E * P[i]
+        return block_matrix(q,q, [f(i, j) for i in xrange(q) for j in xrange(q)])
 
-    def Acon((i, j)):
+    def Acon(i, j):
         J = ones_matrix(q**2)
         if i==j:
             return              B(0)
@@ -2616,7 +2621,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
             return              B(-L[i,j]).T
         return                  J-B(-L[i,j]).T
 
-    A = Graph(block_matrix(p, p, map(Acon, product(xrange(p), xrange(p)))))
+    A = Graph(block_matrix(p, p, [Acon(i,j) for i in xrange(p) for j in xrange(p)]))
     A.name("Mathon's PC SRG on "+str(p*q**2)+" vertices")
     A.relabel()
     return A

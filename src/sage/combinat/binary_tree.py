@@ -1360,14 +1360,25 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: ascii_art(bt)
+              __o__
+             /     \
+            o       o
+             \       \
+              o       o
+             / \     /
+            o   o   o
             sage: bt.left_children_node_number('left')
             3
             sage: bt.left_children_node_number('right')
             4
+
             sage: all([5 == 1 + bt.left_children_node_number()
             ....:             + bt.left_children_node_number('right')
             ....:     for bt in BinaryTrees(5)])
             True
+
+        TESTS::
 
             sage: BinaryTree([[],None]).left_children_node_number()
             1
@@ -1377,9 +1388,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             0
             sage: BinaryTree().left_children_node_number()
             0
-            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
-            sage: bt.left_children_node_number()
-            3
 
             sage: BinaryTree([[],None]).left_children_node_number('right')
             0
@@ -1389,9 +1397,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             0
             sage: BinaryTree().left_children_node_number('right')
             0
-            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
-            sage: bt.left_children_node_number('right')
-            4
         """
         if self.is_empty():
             return 0

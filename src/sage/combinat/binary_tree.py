@@ -1343,82 +1343,68 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.permutation import Permutation
         return Permutation(self._postfix_word(left_first=False))
 
-    def _left_right_node_number(self, direction):
+    def left_children_node_number(self, direction='left'):
         r"""
-        Return the number of left nodes if ``direction`` is set to 0,
-        and the number of right nodes if ``direction`` is set to 1.
+        Return the number of nodes which are left children in ``self``.
+
+        Every node (except the root) is either the left child or the
+        right child of its parent node. The total number of nodes
+        is `1` plus the number of left-children nodes plus the number of
+        right-children nodes.
+
+        INPUT:
+
+        - ``direction`` -- either ``'left'`` (default) or ``'right'``
+          if set to ``'right'``, instead counts nodes that are right children
 
         EXAMPLES::
 
             sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
-            sage: bt._left_right_node_number(0)
+            sage: bt.left_children_node_number('left')
             3
-            sage: bt._left_right_node_number(1)
+            sage: bt.left_children_node_number('right')
             4
-            sage: all([
-            ....:     bt.node_number() == 1 + bt._left_right_node_number(0)
-            ....:                           + bt._left_right_node_number(1)
-            ....:     for bt in BinaryTrees(3)])
+            sage: all([5 == 1 + bt.left_children_node_number()
+            ....:             + bt.left_children_node_number('right')
+            ....:     for bt in BinaryTrees(5)])
             True
+
+            sage: BinaryTree([[],None]).left_children_node_number()
+            1
+            sage: BinaryTree([None,[]]).left_children_node_number()
+            0
+            sage: BinaryTree([]).left_children_node_number()
+            0
+            sage: BinaryTree().left_children_node_number()
+            0
+            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: bt.left_children_node_number()
+            3
+
+            sage: BinaryTree([[],None]).left_children_node_number('right')
+            0
+            sage: BinaryTree([None,[]]).left_children_node_number('right')
+            1
+            sage: BinaryTree([]).left_children_node_number('right')
+            0
+            sage: BinaryTree().left_children_node_number('right')
+            0
+            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
+            sage: bt.left_children_node_number('right')
+            4
         """
         if self.is_empty():
             return 0
         res = 0
-        if not self[direction].is_empty():
-            res += 1
-        res += self[0]._left_right_node_number(direction)
-        res += self[1]._left_right_node_number(direction)
+        if self[0]:
+            if direction == 'left':
+                res += 1
+            res += self[0].left_children_node_number(direction)
+        if self[1]:
+            if direction == 'right':
+                res += 1
+            res += self[1].left_children_node_number(direction)
         return res
-
-    def left_node_number(self):
-        r"""
-        Return the number of left nodes in the tree.
-
-        EXAMPLES::
-
-            sage: BinaryTree([[],None]).left_node_number()
-            1
-            sage: BinaryTree([None,[]]).left_node_number()
-            0
-            sage: BinaryTree([]).left_node_number()
-            0
-            sage: BinaryTree().left_node_number()
-            0
-            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
-            sage: bt.left_node_number()
-            3
-            sage: all([
-            ....:     bt.node_number() == 1 + bt.right_node_number()
-            ....:                           + bt.left_node_number()
-            ....:     for bt in BinaryTrees(5)])
-            True
-        """
-        return self._left_right_node_number(0)
-
-    def right_node_number( self ):
-        r"""
-        Return the number of right nodes in the tree.
-
-        EXAMPLES::
-
-            sage: BinaryTree([[],None]).right_node_number()
-            0
-            sage: BinaryTree([None,[]]).right_node_number()
-            1
-            sage: BinaryTree([]).right_node_number()
-            0
-            sage: BinaryTree().right_node_number()
-            0
-            sage: bt = BinaryTree([[None,[[],[]]],[None,[[],None]]])
-            sage: bt.right_node_number()
-            4
-            sage: all([
-            ....:     bt.node_number() == 1 + bt.right_node_number()
-            ....:                           + bt.left_node_number()
-            ....:     for bt in BinaryTrees(4)])
-            True
-        """
-        return self._left_right_node_number(1)
 
     @combinatorial_map(order = 2, name="Left-right symmetry")
     def left_right_symmetry(self):

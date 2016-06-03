@@ -6295,7 +6295,7 @@ def positive_integer_relations(points):
     for i in range(n_nonpivots):
         # Find a non-negative linear combination of relations,
         # such that all components are non-negative and the i-th one is 1
-        MIP = MixedIntegerLinearProgram(maximization=False)
+        MIP = MixedIntegerLinearProgram(maximization=False, base_ring=QQ)
         w = MIP.new_variable(integer=True, nonnegative=True)
         b = vector([0] * i + [1] + [0] * (n_nonpivots - i - 1))
         MIP.add_constraint(a * w == b)

@@ -40,7 +40,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division
+from __future__ import division, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -2959,16 +2959,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             True
             sage: test_bst_of_sc(5, False)   # long time
             True
-            sage: test_bst_of_sc(6, False)   # long time
-            True
 
         The same with the left-to-right version of binary search::
 
             sage: test_bst_of_sc(4, True)
             True
             sage: test_bst_of_sc(5, True)   # long time
-            True
-            sage: test_bst_of_sc(6, True)   # long time
             True
 
         Checking that the sylvester class is the set of linear extensions
@@ -3111,7 +3107,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: lst = lambda i: filter(lambda bt: bt.is_perfect(), BinaryTrees(i))
-            sage: for i in range(10): ascii_art(lst(i)) # long time
+            sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]
             [  ]
@@ -3126,8 +3122,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [   o       o   ]
             [  / \     / \  ]
             [ o   o   o   o ]
-            [  ]
-            [  ]
         """
         return 2 ** self.depth() - 1 == self.node_number()
 
@@ -3168,7 +3162,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: lst = lambda i: filter(lambda bt: bt.is_complete(), BinaryTrees(i))
-            sage: for i in range(9): ascii_art(lst(i)) # long time
+            sage: for i in range(8): ascii_art(lst(i)) # long time
             [  ]
             [ o ]
             [   o ]
@@ -3197,13 +3191,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [   o       o   ]
             [  / \     / \  ]
             [ o   o   o   o ]
-            [       __o__     ]
-            [      /     \    ]
-            [     o       o   ]
-            [    / \     / \  ]
-            [   o   o   o   o ]
-            [  /              ]
-            [ o               ]
         """
         if self.is_empty():
             return True
@@ -3465,7 +3452,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(5).cardinality()
             42
         """
-        from combinat import catalan_number
+        from .combinat import catalan_number
         return catalan_number(self._size)
 
     def random_element(self):

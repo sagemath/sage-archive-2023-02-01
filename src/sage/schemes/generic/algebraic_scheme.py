@@ -1825,6 +1825,9 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         Returns a morphism from this affine scheme into an ambient
         projective space of the same dimension.
 
+        The codomain of this morphism is the projective closure of this affine scheme in ``PP``,
+        if given, or otherwise in a new projective space that is constructed.
+
         INPUT:
 
         -  ``i`` -- integer (default: dimension of self = last
@@ -1912,8 +1915,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         # Groebner basis w.r.t. a graded monomial order computed here to ensure
         # after homogenization, the basis elements will generate the defining
         # ideal of the projective closure of this affine subscheme
-        R = AA.coordinate_ring().change_ring(order='degrevlex')
-        G = R.ideal([R(f) for f in self.defining_polynomials()]).groebner_basis()
+        R = AA.coordinate_ring()
+        G = self.defining_ideal().groebner_basis()
         v = list(PP.gens())
         z = v.pop(i)
         phi = R.hom(v,PR)
@@ -1925,7 +1928,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         self.__projective_embedding[i] = phi
         return phi
 
-    def projective_closure(self,i=None):
+    def projective_closure(self, i=None, PP=None):
         r"""
         Return the projective closure of this affine subscheme.
 
@@ -1934,6 +1937,9 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         - ``i`` -- (default: None) determines the embedding to use to compute the projective
           closure of this affine subscheme. The embedding used is the one which has a 1 in the
           i-th coordinate, numbered from 0.
+
+        -  ``PP`` -- (default: None) ambient projective space, i.e., ambient space
+           of codomain of morphism; this is constructed if it is not given.
 
         OUTPUT:
 
@@ -1952,8 +1958,16 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               x0*x2 - x3*x4,
               x1*x2 - x0*x3,
               x2^2 - x1*x3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: P.<a,b,c,d> = ProjectiveSpace(QQ, 3)
+            sage: X = A.subscheme([z - x^2 - y^2])
+            sage: X.projective_closure(1, P).ambient_space() == P
+            True
         """
-        return self.projective_embedding(i).codomain()
+        return self.projective_embedding(i, PP).codomain()
 
     def is_smooth(self, point=None):
         r"""

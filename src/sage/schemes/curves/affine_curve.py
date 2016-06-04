@@ -91,14 +91,17 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-    def projective_closure(self, i=0):
+    def projective_closure(self, i=0, PP=None):
         r"""
         Return the projective closure of this affine curve.
 
         INPUT:
 
-        - ``i`` - (default: 0) the index of the affine coordinate chart of the projective space that the affine ambient space
-          of this curve embeds into.
+        - ``i`` -- (default: 0) the index of the affine coordinate chart of the projective space that the affine
+          ambient space of this curve embeds into.
+
+        - ``PP`` -- (default: None) ambient projective space to compute the projective closure in. This is
+          constructed if it is not given.
 
         OUTPUT:
 
@@ -127,9 +130,17 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C.projective_closure(1)
             Projective Plane Curve over Complex Field with 53 bits of precision defined by
             x0^3 - x0*x1^2 + x1^3 - x1^2*x2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: P.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y - x^2], A)
+            sage: C.projective_closure(1, P).ambient_space() == P
+            True
         """
         from constructor import Curve
-        return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i))
+        return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
 
 class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):

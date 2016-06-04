@@ -87,14 +87,16 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the i-th affine patch of this projective curve.
 
         INPUT:
 
-        - ``i`` - affine coordinate chart of the projective ambient space of this curve to compute affine patch
+        - ``i`` -- affine coordinate chart of the projective ambient space of this curve to compute affine patch
           with respect to.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed if it is not given.
 
         OUTPUT:
 
@@ -114,9 +116,17 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
             sage: C.affine_patch(1)
             Affine Plane Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: P.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([u^2 - v^2], P)
+            sage: C.affine_patch(1, A).ambient_space() == A
+            True
         """
         from constructor import Curve
-        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i))
+        return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):

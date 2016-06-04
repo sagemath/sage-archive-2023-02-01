@@ -77,7 +77,7 @@ class InducedHomologyMorphism(Morphism):
         sage: T = simplicial_complexes.Torus()
         sage: y = T.homology_with_basis(QQ).basis()[(1,1)]
         sage: y.to_cycle()
-        (0, 3) - (0, 6) + (3, 6)
+        (0, 2) - (0, 5) + (2, 5)
 
     Since `(0,3) - (0,6) + (3,6)` is a cycle representing a homology
     class in the torus, we can define a map `S^1 \to T` inducing an
@@ -95,22 +95,22 @@ class InducedHomologyMorphism(Morphism):
         sage: g_star.to_matrix(0)
         [1]
         sage: g_star.to_matrix(1)
-        [0]
-        [1]
+        [ 0]
+        [-1]
         sage: g_star.to_matrix()
-        [1|0]
-        [-+-]
-        [0|0]
-        [0|1]
-        [-+-]
-        [0|0]
+        [ 1| 0]
+        [--+--]
+        [ 0| 0]
+        [ 0|-1]
+        [--+--]
+        [ 0| 0]
 
     We can evaluate such a map on (co)homology classes::
 
         sage: H = S1.homology_with_basis(QQ)
         sage: a = H.basis()[(1,0)]
         sage: g_star(a)
-        h_{1,1}
+        -h_{1,1}
 
         sage: T = S1.product(S1, is_mutable=False)
         sage: diag = Hom(S1,T).diagonal_morphism()
@@ -119,7 +119,7 @@ class InducedHomologyMorphism(Morphism):
         sage: diag_c(b)
         h^{1,0}
         sage: diag_c(c)
-        h^{1,0}
+        0
     """
     def __init__(self, map, base_ring=None, cohomology=False):
         """

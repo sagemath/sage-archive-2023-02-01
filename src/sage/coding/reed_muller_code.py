@@ -159,11 +159,6 @@ def ReedMullerCode(base_field, order, num_of_var):
         For q-ary reed muller codes, the order of reed muller code must be LESS THAN q. For now, this implementation only supports Reed-Muller codes whose order is less than q.
         Binary reed muller codes must have it's order less than or equal to the number of variables.
 
-    .. WARNING::
-
-        This version of the method is made available to the user only temporarily to maintain support for an older version of binary reed muller codes.
-        It will be preferable for you if you use the function ReedMullerCode() to generate your code.
-
     """
     if not(isinstance(base_field, FiniteField)):
         raise ValueError("The parameter `base_field` must be a finite")
@@ -368,6 +363,12 @@ class BinaryReedMullerCode(AbstractLinearCode):
 
     .. WARNING::
         The order of reed muller code here must be LESS THAN OR EQUAL TO the number of variables.
+
+    .. WARNING::
+
+        This version of the method is made available to the user only temporarily to maintain support for an older version of binary reed muller codes.
+        It will be preferable for you if you use the function ReedMullerCode() to generate your code.
+
     """
 
     _registered_encoders = {}

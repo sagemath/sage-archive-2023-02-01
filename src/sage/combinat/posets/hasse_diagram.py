@@ -1503,6 +1503,15 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram('M]??O?@??C??OA???OA??@?A??C?A??O??')
             sage: len([_ for _ in H.orthocomplementations_iterator()]) == n
             True
+
+        This lattice has an unique "possible orthocomplemet" for every
+        element, but they can not be fit together; ortohocomplement pairs
+        would be 0-11, 1-7, 2-4, 3-10, 5-9 and 6-8, and then orthocomplements
+        for chain 0-1-6-11 would be 11-7-8-0, which is not a chain::
+
+            sage: H = HasseDiagram('KTGG_?AAC?O?o?@?@?E?@?@??')
+            sage: list([_ for _ in H.orthocomplementations_iterator()])
+            []
         """
         n = self.order()
 
@@ -1570,6 +1579,12 @@ class HasseDiagram(DiGraph):
                 raise(StopIteration)
             if len(comps[e]) == 1:  # Do not re-fit this every time
                 e_ = comps[e][0]
+                # Every element might have one possible orthocomplement,
+                # but so that they don't fit together. Must check that.
+                for lc in self.lower_covers_iterator(e):
+                    if start[lc] is not None:
+                        if not self.has_edge(e_, start[lc]):
+                            raise(StopIteration)
                 if start[e_] is None:
                     start[e] = e_
                     start[e_] = e

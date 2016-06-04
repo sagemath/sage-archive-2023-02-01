@@ -741,7 +741,7 @@ class AbstractTree(object):
 
         This iterates over all paths for nodes that are at the given depth.
 
-        Here the root is considered to have depth 1.
+        Here the root is considered to have depth 0.
 
         INPUT:
 
@@ -765,19 +765,19 @@ class AbstractTree(object):
               o o     o o   
                 |           
                 o           
-            sage: list(T.paths_at_depth(1))
+            sage: list(T.paths_at_depth(0))
             [()]
-            sage: list(T.paths_at_depth(3))
+            sage: list(T.paths_at_depth(2))
             [(0, 0), (0, 1), (2, 0)]
-            sage: list(T.paths_at_depth(5))
+            sage: list(T.paths_at_depth(4))
             [(0, 1, 1, 0)]
-            sage: list(T.paths_at_depth(6))
+            sage: list(T.paths_at_depth(5))
             []
             sage: T = OrderedTree( [] )
-            sage: list(T.paths_at_depth(1))
+            sage: list(T.paths_at_depth(0))
             [()]
         """
-        if depth == 1:
+        if depth == 0:
             yield tuple(path)
         else:
             for i in range(len(self)):
@@ -790,7 +790,7 @@ class AbstractTree(object):
 
         This counts all nodes that are at the given depth.
 
-        Here the root is considered to have depth 1.
+        Here the root is considered to have depth 0.
 
         INPUT:
 
@@ -808,18 +808,16 @@ class AbstractTree(object):
                /    /  /
               o_   o_ o
              / /  / /
-            o o  o o 
-              |    | 
-              o    o 
-                   | 
-                   o 
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
             sage: [T.node_number_at_depth(i) for i in range(6)]
-            [0, 1, 3, 4, 2, 1]
+            [1, 3, 4, 2, 1, 0]
         """
         if depth == 0:
-            return 0
-        if depth == 1:
-            return 1
+            return Integer(1)
         return sum(son.node_number_at_depth(depth - 1) for son in self)
 
     def paths_to_the_right(self, path):
@@ -871,10 +869,11 @@ class AbstractTree(object):
             sage: list(g)
             []
         """
-        if (not path) or path[0] >= len(self):
+        depth = len(path)
+        if (not depth) or path[0] >= len(self):
             return
         for i in range(path[0] + 1, len(self)):
-            for p in self[i].paths_at_depth(len(path), path=[i]):
+            for p in self[i].paths_at_depth(depth - 1, path=[i]):
                 yield p
         for p in self[path[0]].paths_to_the_right(path[1:]):
             yield tuple([path[0]] + list(p))
@@ -917,9 +916,9 @@ class AbstractTree(object):
             sage: T.node_number_to_the_right(())
             0
         """
-        depth = len(path) + 1
-        if depth == 1:
-            return 0
+        depth = len(path)
+        if depth == 0:
+            return Integer(0)
         result = sum(son.node_number_at_depth(depth - 1)
                      for son in self[path[0] + 1:])
         if path[0] < len(self) and path[0] >= 0:

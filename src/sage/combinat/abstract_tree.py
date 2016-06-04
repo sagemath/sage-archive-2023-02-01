@@ -759,12 +759,12 @@ class AbstractTree(object):
                  ______o_______
                 /    /   /  / /
               _o__  o   o  o o
-             /   /      |   
-            o   o_      o_  
-               / /     / /  
-              o o     o o   
-                |           
-                o           
+             /   /      |
+            o   o_      o_
+               / /     / /
+              o o     o o
+                |
+                o
             sage: list(T.paths_at_depth(0))
             [()]
             sage: list(T.paths_at_depth(2))
@@ -844,11 +844,11 @@ class AbstractTree(object):
                /    /  /
               o_   o_ o
              / /  / /
-            o o  o o 
-              |    | 
-              o    o 
-                   | 
-                   o 
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
             sage: g = T.paths_to_the_right(())
             sage: list(g)
             []
@@ -898,11 +898,11 @@ class AbstractTree(object):
                /    /  /
               o_   o_ o
              / /  / /
-            o o  o o 
-              |    | 
-              o    o 
-                   | 
-                   o 
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
             sage: T.node_number_to_the_right(())
             0
             sage: T.node_number_to_the_right((0,))

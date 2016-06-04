@@ -175,7 +175,7 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
 
-from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z, mpq_div_zz
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -1659,8 +1659,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return x
         elif isinstance(right, Rational):
             y = <Rational> Rational.__new__(Rational)
-            mpq_sub_z(y.value, (<Rational>right).value, (<Integer>left).value)
-            mpq_neg(y.value, y.value)
+            mpz_mul(mpq_numref(y.value), (<Integer>left).value,
+                    mpq_denref((<Rational>right).value))
+            mpz_sub(mpq_numref(y.value), mpq_numref(y.value),
+                    mpq_numref((<Rational>right).value))
+            mpz_set(mpq_denref(y.value), mpq_denref((<Rational>right).value))
             return y
 
         return coercion_model.bin_op(left, right, operator.sub)
@@ -1834,9 +1837,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif isinstance(right, Rational):
             if mpq_sgn((<Rational>right).value) == 0:
                 raise ZeroDivisionError("rational division by zero")
+            # left * den(right) / num(right)
             y = <Rational> Rational.__new__(Rational)
-            mpq_div_z(y.value, (<Rational>right).value, (<Integer>left).value)
-            mpq_inv(y.value, y.value)
+            mpq_div_zz(y.value, (<Integer>left).value,
+                                mpq_numref((<Rational>right).value))
+            mpz_mul(mpq_numref(y.value), mpq_numref(y.value),
+                       mpq_denref((<Rational>right).value))
             return y
 
         return coercion_model.bin_op(left, right, operator.div)

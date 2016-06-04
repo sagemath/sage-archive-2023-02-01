@@ -78,7 +78,7 @@ import sage.structure.factorization
 import sage.rings.real_mpfr
 import sage.rings.real_double
 from libc.stdint cimport uint64_t
-from sage.libs.gmp.binop cimport mpq_add_z, mpq_sub_z, mpq_mul_z, mpq_div_z
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -2145,7 +2145,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
         elif isinstance(right, Integer):
             x = <Rational> Rational.__new__(Rational)
-            mpq_sub_z(x.value, (<Rational>left).value, (<Integer>right).value)
+            mpz_mul(mpq_numref(x.value), mpq_denref((<Rational>left).value),
+                    (<Integer>right).value)
+            mpz_sub(mpq_numref(x.value), mpq_numref((<Rational>left).value),
+                    mpq_numref(x.value))
+            mpz_set(mpq_denref(x.value), mpq_denref((<Rational>left).value))
             return x
 
         return coercion_model.bin_op(left, right, operator.sub)
@@ -2253,7 +2257,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             if mpz_cmp_si((<Integer> right).value, 0) == 0:
                 raise ZeroDivisionError('rational division by zero')
             x = <Rational> Rational.__new__(Rational)
-            mpq_div_z(x.value, (<Rational>left).value, (<Integer>right).value)
+            mpq_div_zz(x.value, mpq_numref((<Rational>left).value), (<Integer>right).value)
+            mpz_mul(mpq_denref(x.value), mpq_denref(x.value),
+                    mpq_denref((<Rational>left).value))
             return x
 
         return coercion_model.bin_op(left, right, operator.div)

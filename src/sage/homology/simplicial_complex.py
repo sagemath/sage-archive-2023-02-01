@@ -1199,7 +1199,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not isinstance(x, Simplex):
             return False
         dim = x.dimension()
-        return x in self.faces()[dim]
+        return dim in self.faces() and x in self.faces()[dim]
 
     def __call__(self, simplex):
         """
@@ -1527,9 +1527,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             ValueError: this simplex is not in this simplicial complex
         """
-        if not simplex in self.faces()[simplex.dimension()]:
+        d = simplex.dimension()
+        if d in self.faces() and simplex in self.faces()[d]:
+            return simplex.face(i)
+        else:
             raise ValueError('this simplex is not in this simplicial complex')
-        return simplex.face(i)
 
     def flip_graph(self):
         """
@@ -3220,7 +3222,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.set_immutable()
             sage: X.n_skeleton(2)
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            sage: X.n_skeleton(4)
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
+        if n >= self.dimension():
+            return self
         # make sure it's a list (it will be a tuple if immutable)
         facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.faces()[n])

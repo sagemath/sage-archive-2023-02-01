@@ -697,7 +697,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
-            sage: for i in pd: print i # indirect doctest
+            sage: for i in pd: print(i) # indirect doctest
             {{-2, -1, 1, 2}}
             {{-2, -1, 2}, {1}}
             {{-2, -1, 1}, {2}}

@@ -212,15 +212,14 @@ three following parameters:
 
 Here is an example or how to deal with timeout::
 
-
     sage: from sage.parallel.map_reduce import RESetMPExample, AbortError
     sage: EX = RESetMPExample(maxl = 8)
     sage: try:
-    ....:     res = EX.run(timeout=0.1)
+    ....:     res = EX.run(timeout=0.01)
     ....: except AbortError:
-    ....:     print "Computation timeout"
+    ....:     print("Computation timeout")
     ....: else:
-    ....:     print "Computation normally finished"
+    ....:     print("Computation normally finished")
     ....:     res
     Computation timeout
 
@@ -229,9 +228,9 @@ The following should not timeout even on a very slow machine::
     sage: try:
     ....:     res = EX.run(timeout=60)
     ....: except AbortError:
-    ....:     print "Computation Timeout"
+    ....:     print("Computation Timeout")
     ....: else:
-    ....:     print "Computation normally finished"
+    ....:     print("Computation normally finished")
     ....:     res
     Computation normally finished
     40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -486,12 +485,12 @@ Tests
 Generating series for sum of strictly decreassing list of integer smaller than
 15::
 
-    sage: y = var('y')
+    sage: y = polygen(ZZ, 'y')
     sage: R = RESetMapReduce(
-    ....:  roots = [([], 0, 0)] +[([i], i, i) for i in range(1,15)],
-    ....:  children = lambda (list, sum, last):
-    ....:      [(list + [i], sum + i, i) for i in range(1,last)],
-    ....:  map_function = lambda (li, sum, unused): y**sum)
+    ....:     roots = [([], 0, 0)] +[([i], i, i) for i in range(1,15)],
+    ....:     children = lambda list_sum_last:
+    ....:         [(list_sum_last[0] + [i], list_sum_last[1] + i, i) for i in range(1, list_sum_last[2])],
+    ....:     map_function = lambda li_sum_dummy: y**li_sum_dummy[1])
     sage: sg = R.run()
     sage: bool(sg == expand(prod((1+y^i) for i in range(1,15))))
     True
@@ -500,6 +499,8 @@ Generating series for sum of strictly decreassing list of integer smaller than
 Classes and methods
 -------------------
 """
+from __future__ import print_function
+
 from multiprocessing import Process, Value, Semaphore, Lock, cpu_count
 from multiprocessing.queues import Pipe, SimpleQueue
 from multiprocessing.sharedctypes import RawArray
@@ -1362,11 +1363,11 @@ class RESetMapReduce(object):
 
             sage: from sage.parallel.map_reduce import AbortError
             sage: try:
-            ....:     res = EX.run(timeout=0.1)
+            ....:     res = EX.run(timeout=0.01)
             ....: except AbortError:
-            ....:     print "Computation timeout"
+            ....:     print("Computation timeout")
             ....: else:
-            ....:     print "Computation normally finished"
+            ....:     print("Computation normally finished")
             ....:     res
             Computation timeout
 
@@ -1376,9 +1377,9 @@ class RESetMapReduce(object):
             sage: try:
             ....:     res = EX.run(timeout=60)
             ....: except AbortError:
-            ....:     print "Computation Timeout"
+            ....:     print("Computation Timeout")
             ....: else:
-            ....:     print "Computation normally finished"
+            ....:     print("Computation normally finished")
             ....:     res
             Computation normally finished
             40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
@@ -1448,7 +1449,7 @@ class RESetMapReduce(object):
             pstat("reqs rcvs: ", start, end, 1)
             pstat("- thefs:   ", start, end, 2)
             pstat("+ thefs:   ", start, end, 3)
-        print res[0]
+        print(res[0])
 
     def run_serial(self):
         r"""
@@ -1814,8 +1815,9 @@ class RESetMPExample(RESetMapReduce):
             <sage.parallel.map_reduce.RESetMPExample object at 0x...>
         """
         RESetMapReduce.__init__(self)
-        from sage.calculus.var import var
-        self.x = var('x')
+        from sage.rings.polynomial.polynomial_ring import polygen
+        from sage.rings.integer_ring import ZZ
+        self.x = polygen(ZZ, 'x')
         self.maxl = maxl
 
     def roots(self):

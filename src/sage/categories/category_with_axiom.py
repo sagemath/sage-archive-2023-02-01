@@ -62,7 +62,7 @@ axioms)::
     ....:     class Finite(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on finite C's"
+    ....:                 print("I am a method on finite C's")
 
 ::
 
@@ -146,7 +146,7 @@ elsewhere, typically in a separate file, with just a link from
     sage: class FiniteCs(CategoryWithAxiom):
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
     sage: Cs.Finite = FiniteCs
     sage: Cs().Finite()
     Category of finite cs
@@ -238,7 +238,7 @@ failed (try it!). In general, one needs to set the attribute explicitly::
     ....:     _base_category_class_and_axiom = (Cs, 'Finite')
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
 
 Having to set explicitly this link back from ``FiniteCs`` to ``Cs``
 introduces redundancy in the code. It would therefore be desirable to
@@ -334,7 +334,7 @@ out the largest category where the axiom makes sense. For example
     ....:     class Green(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on green C's"
+    ....:                 print("I am a method on green C's")
 
 With the current implementation, the name of the axiom must also be
 added to a global container::
@@ -1653,6 +1653,7 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import importlib
 import re
@@ -1692,10 +1693,12 @@ def uncamelcase(s,separator=" "):
 
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras")
         'finite dimensional algebras'
+        sage: sage.categories.category_with_axiom.uncamelcase("JTrivialMonoids")
+        'j trivial monoids'
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras", "_")
         'finite_dimensional_algebras'
     """
-    return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
+    return re.sub("(?!^)[A-Z]", lambda match: separator+match.group()[0], s).lower()
 
 def base_category_class_and_axiom(cls):
     """

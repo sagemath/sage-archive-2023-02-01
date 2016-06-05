@@ -31,7 +31,7 @@ Pickling test::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -921,7 +921,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
             sage: Q
             Quaternion Algebra (-5, -2) with base ring Rational Field
-            sage: print Q
+            sage: print(Q)
             Quaternion Algebra (-5, -2) with base ring Rational Field
             sage: str(Q)
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
@@ -1903,9 +1903,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
            R = \{\alpha \in Q : \alpha b_n \in I, n=1,2,3,4\}.
         """
-        if side == 'left': action = 'right'
-        elif side == 'right': action = 'left'
-        else: ValueError, "side must be 'left' or 'right'"
+        if side == 'left':
+            action = 'right'
+        elif side == 'right':
+            action = 'left'
+        else:
+            raise ValueError("side must be 'left' or 'right'")
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
             raise NotImplementedError("computation of left and right orders only implemented over QQ")
@@ -1933,7 +1936,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         We do a consistency check::
 
             sage: B = BrandtModule(11,19); R = B.right_ideals()
-            sage: print [r.left_order().discriminant() for r in R]
+            sage: [r.left_order().discriminant() for r in R]
             [209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209]
         """
         if self.__left_order is None:

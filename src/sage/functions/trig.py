@@ -47,28 +47,40 @@ class Function_sin(GinacFunction):
             1/4*sqrt(-2*sqrt(6) - 2*sqrt(2) + 8)
             sage: sin(pi/30)
             -1/8*sqrt(5) + 1/4*sqrt(-3/2*sqrt(5) + 15/2) - 1/8
+            sage: sin(104*pi/105)
+            sin(1/105*pi)
             sage: cos(pi/8)
             1/2*sqrt(sqrt(2) + 2)
             sage: cos(pi/10)
-            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            1/4*sqrt(2*sqrt(5) + 10)
             sage: cos(pi/12)
-            1/12*sqrt(6)*(sqrt(3) + 3)
+            1/4*sqrt(6) + 1/4*sqrt(2)
             sage: cos(pi/15)
             1/8*sqrt(5) + 1/4*sqrt(3/2*sqrt(5) + 15/2) - 1/8
             sage: cos(pi/24)
             1/4*sqrt(2*sqrt(6) + 2*sqrt(2) + 8)
+            sage: cos(104*pi/105)
+            -cos(1/105*pi)
             sage: tan(pi/5)
             sqrt(-2*sqrt(5) + 5)
             sage: tan(pi/8)
             sqrt(2) - 1
             sage: tan(pi/10)
-            sqrt(-2/5*sqrt(5) + 1)
+            1/5*sqrt(-10*sqrt(5) + 25)
             sage: tan(pi/16)
             -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
             sage: tan(pi/20)
-            sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+            sqrt(5) - sqrt(2*sqrt(5) + 5) + 1
             sage: tan(pi/24)
             sqrt(6) - sqrt(3) + sqrt(2) - 2
+            sage: tan(104*pi/105)
+            -tan(1/105*pi)
+            sage: cot(104*pi/105)
+            -cot(1/105*pi)
+            sage: sec(104*pi/105)
+            -sec(1/105*pi)
+            sage: csc(104*pi/105)
+            csc(1/105*pi)
 
             sage: all(sin(rat*pi).n(200)-sin(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/30,7/30,11/30,13/30,1/8,3/8,1/24,5/24,7/24,11/24])
             True
@@ -76,6 +88,13 @@ class Function_sin(GinacFunction):
             True
             sage: all(tan(rat*pi).n(200)-tan(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/10,3/10,1/20,3/20,7/20,9/20,1/8,3/8,1/16,3/16,5/16,7/16,1/24,5/24,7/24,11/24])
             True
+
+        Check that :trac:`20456` is fixed::
+
+            sage: assume(x>0)
+            sage: sin(pi*x)
+            sin(pi*x)
+            sage: forget()
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))

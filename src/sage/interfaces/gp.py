@@ -38,7 +38,7 @@ PARI interpreter)::
 
 ::
 
-    sage: print gp("taylor(sin(x),x)")
+    sage: print(gp("taylor(sin(x),x)"))
     x - 1/6*x^3 + 1/120*x^5 - 1/5040*x^7 + 1/362880*x^9 - 1/39916800*x^11 + 1/6227020800*x^13 - 1/1307674368000*x^15 + O(x^16)
 
 GP has a powerful very efficient algorithm for numerical
@@ -58,7 +58,7 @@ computation of integrals.
 
 Note that gp ASCII plots *do* work in Sage, as follows::
 
-    sage: print gp.eval("plot(x=0,6,sin(x))")
+    sage: print(gp.eval("plot(x=0,6,sin(x))"))
     <BLANKLINE>
     0.9988963 |''''''''''''_x...x_''''''''''''''''''''''''''''''''''''''''''|
               |          x"        "x                                        |
@@ -138,6 +138,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
@@ -525,7 +526,7 @@ class Gp(ExtraTabCompletion, Expect):
             sage: gp.get_default('log')
             0
             sage: gp.get_default('datadir')
-            '.../local/share/pari'
+            '.../share/pari'
             sage: gp.get_default('seriesprecision')
             16
             sage: gp.get_default('realprecision')

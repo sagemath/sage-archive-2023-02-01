@@ -399,9 +399,9 @@ corresponding value representing the coefficient of that term::
 
     sage: c = Sq(5).antipode(); c
     Sq(2,1) + Sq(5)
-    sage: for mono, coeff in c: print coeff, mono
-    1 (5,)
-    1 (2, 1)
+    sage: for mono, coeff in c: print((coeff, mono))
+    (1, (5,))
+    (1, (2, 1))
     sage: c.monomial_coefficients()
     {(2, 1): 1, (5,): 1}
     sage: sorted(c.monomials(), key=lambda x: x.support())
@@ -471,6 +471,7 @@ REFERENCES:
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
@@ -634,7 +635,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             sage: A = SteenrodAlgebra(3,basis='adem')
             sage: for (idx,key) in zip((1,..,10),A._basis_key_iterator()):
-            ...     print "> %2d %-20s %s" % (idx,key,A.monomial(key))
+            ....:     print("> %2d %-20s %s" % (idx,key,A.monomial(key)))
             >  1 ()                   1
             >  2 (1,)                 beta
             >  3 (0, 1, 0)            P^1
@@ -2243,7 +2244,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: A7.basis()
             Lazy family (Term map from basis key family of mod 7 Steenrod algebra, milnor basis to mod 7 Steenrod algebra, milnor basis(i))_{i in basis key family of mod 7 Steenrod algebra, milnor basis}
             sage: for (idx,a) in zip((1,..,9),A7.basis()):
-            ...      print idx, a
+            ....:      print("{} {}".format(idx, a))
             1 1
             2 Q_0
             3 P(1)
@@ -3111,9 +3112,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             sage: c = Sq(5).antipode(); c
             Sq(2,1) + Sq(5)
-            sage: for mono, coeff in c: print coeff, mono
-            1 (5,)
-            1 (2, 1)
+            sage: for mono, coeff in c: print((coeff, mono))
+            (1, (5,))
+            (1, (2, 1))
             sage: c.monomial_coefficients()
             {(2, 1): 1, (5,): 1}
             sage: sorted(c.monomials(), key=lambda x: x.support())
@@ -3648,8 +3649,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 sage: a.is_decomposable()
                 True
                 sage: for i in range(9):
-                ...       if not Sq(i).is_decomposable():
-                ...           print Sq(i)
+                ....:     if not Sq(i).is_decomposable():
+                ....:         print(Sq(i))
                 1
                 Sq(1)
                 Sq(2)

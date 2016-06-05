@@ -241,6 +241,7 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
+from __future__ import print_function
 
 from gap_includes cimport *
 
@@ -258,7 +259,7 @@ from sage.libs.gap.element cimport *
 ############################################################################
 
 cdef void report(libGAP_Obj bag):
-    print libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag)
+    print(libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag))
 
 
 cdef void print_gasman_objects():
@@ -272,7 +273,7 @@ cdef void print_gasman_objects():
 from sage.misc.lazy_import import is_during_startup
 if is_during_startup():
     import sys, traceback
-    print 'Importing libgap during startup!'
+    print('Importing libgap during startup!')
     traceback.print_stack(None, None, sys.stdout)
 
 
@@ -554,7 +555,7 @@ class Gap(Parent):
 
             sage: libgap.set_global('FooBar', 1)
             sage: with libgap.global_context('FooBar', 2):
-            ....:     print libgap.get_global('FooBar')
+            ....:     print(libgap.get_global('FooBar'))
             2
             sage: libgap.get_global('FooBar')
             1
@@ -709,9 +710,8 @@ class Gap(Parent):
             livekb := 47367, time := 33, totalkb := 68608 ),
             nfull := 3, npartial := 14 )
         """
-        print self.count_GAP_objects(), 'LibGAP elements currently alive'
-        print self.eval('GasmanStatistics()')
-        # print_gasman_objects()
+        print('{} LibGAP elements currently alive'.format(self.count_GAP_objects()))
+        print(self.eval('GasmanStatistics()'))
 
     def count_GAP_objects(self):
         """

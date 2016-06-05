@@ -101,6 +101,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
@@ -1028,7 +1029,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         For 2- and 3-d reflexive polytopes the index in the internal database
         appears as a subscript::
 
-            sage: print ReflexivePolytope(2, 3)._latex_()
+            sage: print(ReflexivePolytope(2, 3)._latex_())
             \Delta^{2}_{3}
         """
         result = r"\Delta^{%d}" % self.dim()
@@ -1054,7 +1055,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o._palp("poly.x -f")
             'M:7 6 N:27 8 Pic:17 Cor:0\n'
-            sage: print o._palp("nef.x -f -N -p") # random time information
+            sage: print(o._palp("nef.x -f -N -p")) # random time information
             M:27 8 N:7 6  codim=2 #part=5
             H:[0] P:0 V:2 4 5       0sec  0cpu
             H:[0] P:2 V:3 4 5       0sec  0cpu
@@ -1152,7 +1153,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1)
             in 2-d lattice M
             sage: s = p.poly_x("e")
-            sage: print s
+            sage: print(s)
             3 2  Vertices of P-dual <-> Equations of P
                2  -1
               -1   2
@@ -1179,7 +1180,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: "_facet_constants" in p.__dict__
             False
             sage: s = p.poly_x("e")
-            sage: print s
+            sage: print(s)
             3 2  Equations of P
                5  -1     2
               -2  -1     2
@@ -1247,7 +1248,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: s = o.poly_x("i")
-            sage: print s
+            sage: print(s)
             Incidences as binary numbers [F-vector=(6 12 8)]:
             v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j
             v[0]: 100000 000010 000001 001000 010000 000100
@@ -1275,7 +1276,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = o.polar()
             sage: s = c.poly_x("i")
-            sage: print s
+            sage: print(s)
             Incidences as binary numbers [F-vector=(8 12 6)]:
             v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j
             v[0]: 00010000 00000001 01000000 00000100 00100000 00000010 10000000 00001000
@@ -1336,7 +1337,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: s = o.nef_x("-p -N -Lv")
-            sage: print s # random time values
+            sage: print(s) # random time values
             M:27 8 N:7 6  codim=2 #part=5
             3 6 Vertices in N-lattice:
                 1    0    0   -1    0    0
@@ -1475,8 +1476,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: # indirect doctest
             sage: for i, face in enumerate(o.faces_lp(0)):
-            ...       if face.vertex(0) != o.vertex(i):
-            ...           print "Wrong order!"
+            ....:     if face.vertex(0) != o.vertex(i):
+            ....:         print("Wrong order!")
         """
         faces = tuple(faces)
         if len(faces) > 1: # Otherwise there is nothing to sort
@@ -2046,7 +2047,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         To see all faces arranged by dimension, you can do this::
 
-            sage: for level in L.level_sets(): print level
+            sage: for level in L.level_sets(): print(level)
             [-1-d face of 2-d lattice polytope in 2-d lattice M]
             [0-d face of 2-d lattice polytope in 2-d lattice M,
              0-d face of 2-d lattice polytope in 2-d lattice M,
@@ -3695,7 +3696,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(1),
             M(2)
             in 1-d lattice M
-            sage: print p.origin()
+            sage: print(p.origin())
             None
 
         Now we make sure that the origin of non-full-dimensional polytopes can
@@ -4105,7 +4106,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         reflexive or not::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: print o.poly_x("e")
+            sage: print(o.poly_x("e"))
             8 3  Vertices of P-dual <-> Equations of P
               -1  -1   1
                1  -1   1
@@ -4142,7 +4143,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         But if you know what you are doing, you can call it for the polytope in
         some basis of the spanned space::
 
-            sage: print p.poly_x("e", reduce_dimension=True)
+            sage: print(p.poly_x("e", reduce_dimension=True))
             4 2  Equations of P
               -1   1     0
                1   1     2
@@ -5811,7 +5812,7 @@ def _read_nef_x_partitions(data):
 
         sage: o = lattice_polytope.cross_polytope(3)
         sage: s = o.nef_x("-N -p")
-        sage: print s # random
+        sage: print(s) # random
         M:27 8 N:7 6  codim=2 #part=5
          P:0 V:2 4 5       0sec  0cpu
          P:2 V:3 4 5       0sec  0cpu
@@ -5873,7 +5874,7 @@ def _read_poly_x_incidences(data, dim):
         sage: p = lattice_polytope.cross_polytope(2)
         sage: result_name = lattice_polytope._palp("poly.x -fi", [p])
         sage: with open(result_name) as f:
-        ....:     print f.read()
+        ....:     print(f.read())
         Incidences as binary numbers [F-vector=(4 4)]:
         v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j
         v[0]: 1000 0001 0100 0010 
@@ -6341,7 +6342,7 @@ def read_all_polytopes(file_name):
         sage: o = lattice_polytope.cross_polytope(3)
         sage: result_name = lattice_polytope._palp("poly.x -fe", [d, o])
         sage: with open(result_name) as f:
-        ....:     print f.read()
+        ....:     print(f.read())
         4 2  Vertices of P-dual <-> Equations of P
           -1   1
            1   1
@@ -6522,7 +6523,7 @@ def skip_palp_matrix(data, n=1):
         sage: o = lattice_polytope.cross_polytope(3)
         sage: result_name = lattice_polytope._palp("poly.x -fe", [d, o])
         sage: with open(result_name) as f:
-        ....:     print f.read()
+        ....:     print(f.read())
         4 2  Vertices of P-dual <-> Equations of P
           -1   1
            1   1
@@ -6600,12 +6601,12 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
         format = "%" + str(n) + "d"
     s = "%d %d %s\n" % (m.nrows(),m.ncols(),comment)
     if ofile is None:
-        print s,
+        print(s, end=" ")
     else:
         ofile.write(s)
     for i in range(m.nrows()):
         s = " ".join(format % m[i,j] for j in range(m.ncols()))+"\n"
         if ofile is None:
-            print s,
+            print(s, end=" ")
         else:
             ofile.write(s)

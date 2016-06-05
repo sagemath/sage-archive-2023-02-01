@@ -29,6 +29,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
+
 from copy import copy
 
 cdef class GenericBackend:
@@ -784,7 +786,7 @@ cdef class GenericBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")   # optional - Nonexistent_LP_solver
             sage: p.problem_name("There once was a french fry") # optional - Nonexistent_LP_solver
-            sage: print p.problem_name()                        # optional - Nonexistent_LP_solver
+            sage: print(p.problem_name())                       # optional - Nonexistent_LP_solver
             There once was a french fry
         """
 
@@ -1408,7 +1410,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("PPL")
         sage: default_mip_solver()
         'Ppl'
-        sage: default_mip_solver("GUROBI")
+        sage: default_mip_solver("GUROBI") # random
         Traceback (most recent call last):
         ...
         ValueError: Gurobi is not available. Please refer to the documentation to install it.
@@ -1571,7 +1573,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
     Passing a callable as the 'solver'::
 
         sage: from sage.numerical.backends.glpk_backend import GLPKBackend
-        sage: p = get_solver(GLPKBackend); p
+        sage: p = get_solver(solver=GLPKBackend); p
         <...sage.numerical.backends.glpk_backend.GLPKBackend...>
 
     Passing a callable that customizes a backend::

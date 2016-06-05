@@ -171,6 +171,8 @@ cdef class Matroid(SageObject):
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)
     cpdef max_weight_coindependent(self, X=*, weights=*)
+    cpdef is_max_weight_independent_generic(self, X=*, weights=*)
+    cpdef is_max_weight_coindependent_generic(self, X=*, weights=*)
     cpdef intersection(self, other, weights=*)
     cpdef _intersection(self, other, weights)
     cpdef _intersection_augmentation(self, other, weights, Y)

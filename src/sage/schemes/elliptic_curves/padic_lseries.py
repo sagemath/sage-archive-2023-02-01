@@ -78,7 +78,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
-
+from __future__ import print_function
 
 from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
@@ -193,7 +193,7 @@ class pAdicLseries(SageObject):
         try :
             crla = E.label()
         except RuntimeError :
-            print "Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !"
+            print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
         self._modular_symbol = E.modular_symbol(sign=+1, use_eclib = use_eclib, normalize=normalize)
 
@@ -850,7 +850,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         We calculate the `L`-series in the nontrivial Teichmueller components::
 
             sage: L = EllipticCurve('110a1').padic_lseries(5)
-            sage: for j in [0..3]: print L.series(4, eta=j)
+            sage: for j in [0..3]: print(L.series(4, eta=j))
             O(5^6) + (2 + 2*5 + 2*5^2 + O(5^3))*T + (5 + 5^2 + O(5^3))*T^2 + (4 + 4*5 + 2*5^2 + O(5^3))*T^3 + (1 + 5 + 3*5^2 + O(5^3))*T^4 + O(T^5)
             4 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^6) + (1 + 3*5 + 4*5^2 + O(5^3))*T + (3 + 4*5 + 3*5^2 + O(5^3))*T^2 + (3 + 3*5^2 + O(5^3))*T^3 + (1 + 2*5 + 2*5^2 + O(5^3))*T^4 + O(T^5)
             2 + O(5^6) + (1 + 5 + O(5^3))*T + (2 + 4*5 + 3*5^2 + O(5^3))*T^2 + (4 + 5 + 2*5^2 + O(5^3))*T^3 + (4 + O(5^3))*T^4 + O(T^5)
@@ -883,7 +883,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         p = self._p
 
         if p == 2 and self._normalize :
-            print 'Warning : For p=2 the normalization might not be correct !'
+            print('Warning : For p=2 the normalization might not be correct !')
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
         if prec == 1:
@@ -1138,7 +1138,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         p = self._p
         eta = ZZ(eta) % (p-1)
         if p == 2 and self._normalize :
-            print 'Warning : for p = 2 the normalization might not be correct !'
+            print('Warning : for p = 2 the normalization might not be correct !')
 
         if prec == 1:
             if eta == 0:
@@ -1384,7 +1384,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         if algorithm == "approx":
             return self.__phi_bpr(prec=prec)
         if p < 4 and algorithm == "mw":
-            print "Warning: If this fails try again using algorithm=\"approx\""
+            print("Warning: If this fails try again using algorithm=\"approx\"")
         Ew = E.integral_short_weierstrass_model()
         adjusted_prec = sage.schemes.hyperelliptic_curves.monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
@@ -1449,7 +1449,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         E = self._E
         p = self._p
         if prec > 10:
-            print "Warning: Very large value for the precision."
+            print("Warning: Very large value for the precision.")
         if prec == 0:
             prec = floor((log(10000)/log(p)))
             verbose("prec set to %s"%prec)

@@ -44,8 +44,13 @@ from sphinx.util.inspect import getargspec, isdescriptor, safe_getmembers, \
     safe_getattr, object_description, is_builtin_class_method
 from sphinx.util.docstrings import prepare_docstring
 
+try:
+    import typing
+except ImportError:
+    typing = None
+
 from sage.misc.sageinspect import (sage_getdoc_original,
-        sage_getargspec, sage_formatargspec, isclassinstance)
+        sage_getargspec, isclassinstance)
 from sage.misc.lazy_import import LazyImport
 
 
@@ -226,6 +231,128 @@ def between(marker, what=None, keepempty=False, exclude=False):
         if lines and lines[-1]:
             lines.append('')
     return process
+
+
+def format_annotation(annotation):
+    """Return formatted representation of a type annotation.
+
+    Show qualified names for types and additional details for types from
+    the ``typing`` module.
+
+    Displaying complex types from ``typing`` relies on its private API.
+    """
+    qualified_name = (annotation.__module__ + '.' + annotation.__qualname__
+                      if annotation else repr(annotation))
+
+    if not isinstance(annotation, type):
+        return repr(annotation)
+    elif annotation.__module__ == 'builtins':
+        return annotation.__qualname__
+    elif typing:
+        if isinstance(annotation, typing.TypeVar):
+            return annotation.__name__
+        elif hasattr(typing, 'GenericMeta') and \
+                isinstance(annotation, typing.GenericMeta) and \
+                hasattr(annotation, '__parameters__'):
+            params = annotation.__parameters__
+            if params is not None:
+                param_str = ', '.join(format_annotation(p) for p in params)
+                return '%s[%s]' % (qualified_name, param_str)
+        elif hasattr(typing, 'UnionMeta') and \
+                isinstance(annotation, typing.UnionMeta) and \
+                hasattr(annotation, '__union_params__'):
+            params = annotation.__union_params__
+            if params is not None:
+                param_str = ', '.join(format_annotation(p) for p in params)
+                return '%s[%s]' % (qualified_name, param_str)
+        elif hasattr(typing, 'CallableMeta') and \
+                isinstance(annotation, typing.CallableMeta) and \
+                hasattr(annotation, '__args__') and \
+                hasattr(annotation, '__result__'):
+            args = annotation.__args__
+            if args is Ellipsis:
+                args_str = '...'
+            else:
+                formatted_args = (format_annotation(a) for a in args)
+                args_str = '[%s]' % ', '.join(formatted_args)
+            return '%s[%s, %s]' % (qualified_name,
+                                   args_str,
+                                   format_annotation(annotation.__result__))
+        elif hasattr(typing, 'TupleMeta') and \
+                isinstance(annotation, typing.TupleMeta) and \
+                hasattr(annotation, '__tuple_params__') and \
+                hasattr(annotation, '__tuple_use_ellipsis__'):
+            params = annotation.__tuple_params__
+            if params is not None:
+                param_strings = [format_annotation(p) for p in params]
+                if annotation.__tuple_use_ellipsis__:
+                    param_strings.append('...')
+                return '%s[%s]' % (qualified_name,
+                                   ', '.join(param_strings))
+    return qualified_name
+
+
+def formatargspec(function, args, varargs=None, varkw=None, defaults=None,
+                  kwonlyargs=(), kwonlydefaults={}, annotations={}):
+    """Return a string representation of an ``inspect.FullArgSpec`` tuple.
+
+    An enhanced version of ``inspect.formatargspec()`` that handles typing
+    annotations better.
+    """
+
+    def format_arg_with_annotation(name):
+        if name in annotations:
+            return '%s: %s' % (name, format_annotation(get_annotation(name)))
+        return name
+
+    def get_annotation(name):
+        value = annotations[name]
+        if isinstance(value, string_types):
+            return introspected_hints.get(name, value)
+        else:
+            return value
+
+    introspected_hints = (typing.get_type_hints(function)
+                          if typing and hasattr(function, '__code__') else {})
+
+    fd = StringIO()
+    fd.write('(')
+
+    formatted = []
+    defaults_start = len(args) - len(defaults) if defaults else len(args)
+
+    for i, arg in enumerate(args):
+        arg_fd = StringIO()
+        arg_fd.write(format_arg_with_annotation(arg))
+        if defaults and i >= defaults_start:
+            arg_fd.write(' = ' if arg in annotations else '=')
+            arg_fd.write(object_description(defaults[i - defaults_start]))
+        formatted.append(arg_fd.getvalue())
+
+    if varargs:
+        formatted.append('*' + format_arg_with_annotation(varargs))
+
+    if kwonlyargs:
+        formatted.append('*')
+        for kwarg in kwonlyargs:
+            arg_fd = StringIO()
+            arg_fd.write(format_arg_with_annotation(kwarg))
+            if kwonlydefaults and kwarg in kwonlydefaults:
+                arg_fd.write(' = ' if kwarg in annotations else '=')
+                arg_fd.write(object_description(kwonlydefaults[kwarg]))
+            formatted.append(arg_fd.getvalue())
+
+    if varkw:
+        formatted.append('**' + format_arg_with_annotation(varkw))
+
+    fd.write(', '.join(formatted))
+    fd.write(')')
+
+    if 'return' in annotations:
+        fd.write(' -> ')
+        fd.write(format_annotation(get_annotation('return')))
+
+    return fd.getvalue()
 
 
 class Documenter(object):
@@ -1024,7 +1151,7 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         argspec = self.args_on_obj(self.object)
         if argspec is None:
             return None
-        args = sage_formatargspec(*argspec)
+        args = formatargspec(self.object, *argspec)
         # escape backslashes for reST
         args = args.replace('\\', '\\\\')
         return args
@@ -1122,7 +1249,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
             return None
         if argspec[0] and argspec[0][0] in ('cls', 'self'):
             del argspec[0][0]
-        return sage_formatargspec(*argspec)
+        return formatargspec(initmeth, *argspec)
 
     def format_signature(self):
         if self.doc_as_attr:
@@ -1339,7 +1466,10 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):
         argspec = self.args_on_obj(self.object)
         if argspec is None:
             return None
-        return sage_formatargspec(*argspec)
+        args = formatargspec(self.object, *argspec)
+        # escape backslashes for reST
+        args = args.replace('\\', '\\\\')
+        return args
 
     def document_members(self, all_members=False):
         pass

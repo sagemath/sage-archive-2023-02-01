@@ -1109,7 +1109,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object,
-        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns 
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
           ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
           and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
@@ -3906,7 +3906,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object,
-        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns 
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
           ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
           and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 

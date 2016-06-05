@@ -119,8 +119,8 @@ cdef class Matroid(SageObject):
     cpdef dual(self)
     cpdef truncation(self)
     cpdef has_minor(self, N)
-    cpdef has_line_minor(self, k, hyperlines=*)
-    cpdef _has_line_minor(self, k, hyperlines)
+    cpdef has_line_minor(self, k, hyperlines=*, certificate=*)
+    cpdef _has_line_minor(self, k, hyperlines, certificate=*)
 
     # extension
     cpdef extension(self, element=*, subsets=*)

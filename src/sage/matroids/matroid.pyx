@@ -1109,13 +1109,13 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object,
-        - ``certificate`` -- Boolean (Defalt: ``False``) If true, returns frozensets
-          ``X`` and ``Y`` where ``N`` is isomorphic to ``self.minor(X, Y)``.
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns 
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         OUTPUT:
 
-        Boolean,
-        and (if ``certificate`` is ``True``,) frozensets ``X``, ``Y``, where ``N`` is isomorphic to ``self.minor(X, Y)``.
+        boolean or tuple.
 
         EXAMPLES::
 
@@ -1148,7 +1148,7 @@ cdef class Matroid(SageObject):
                 if X.isdisjoint(Y):
                     if N._is_isomorphic(self._minor(contractions=X, deletions=Y)):
                         if certificate:
-                            return True, X, Y
+                            return True, (X, Y, N._isomorphism(self._minor(contractions=X, deletions=Y)))
                         return True
         if certificate:
             return False, None

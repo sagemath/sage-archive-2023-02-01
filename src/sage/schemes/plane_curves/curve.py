@@ -180,5 +180,25 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
     __add__ = union
 
+    def singular_points(self, F=None):
+        r"""
+        Return the set of singular points of this curve.
+
+        INPUT:
+
+        - ``F`` -- a field extension of the base ring of this curve over which to find
+          singular points.
+
+        OUTPUT:
+
+        - a set of points in the ambient space of this curve.
+
+        EXAMPLES::
+
+        
+        """
+        X = self.ambient_space().subscheme(self.Jacobian())
+        return X.rational_points(F)
+
 class Curve_generic_projective(Curve_generic, AlgebraicScheme_subscheme_projective):
     pass

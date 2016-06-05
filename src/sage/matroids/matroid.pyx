@@ -6129,16 +6129,14 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``C`` -- a circuit
-        - ``certificate`` -- (default: ``False``) boolean, if ``True``, finds an element
-          ``x`` and, disjoint except at ``x``, circuits ``Ax`` and ``Bx`` so that 
-          ``Ax`` union ``Bx`` is the elements of ``C`` together with ``x``.
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``.
 
         OUTPUT:
 
-        - boolean and if certificate is ``True``, also return a tuple
-          ``(x, Ax, Bx)``, where ``x`` is a chord  of ``C`` with ``Ax`` and ``Bx``
-          circuits whose union is the elements of ``C`` together with ``x``, or ``None`` if
-          ``C`` is not chordal
+        - boolean or tuple
 
         EXAMPLES::
 
@@ -6185,14 +6183,14 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``C`` -- a circuit
-        - ``certificate`` -- (default: ``False``) boolean
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``.
 
         OUTPUT:
 
-        - boolean and if certificate is ``True``, also return a tuple
-          ``(x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and ``Bx``
-          are circuits whose union is ``C`` and ``x``, or ``None`` if
-          ``C`` is not chordal
+        - boolean or tuple
 
         EXAMPLES::
 
@@ -6226,7 +6224,12 @@ cdef class Matroid(SageObject):
         - ``k2`` -- (optional) the integer `k_2`; if not specified,
           then this method returns if ``self`` is `k_1`-chordal
         - ``certificate`` -- (default: ``False``) boolean;  if
-          ``True`` and ``self`` is not chordal, return a circuit
+          ``True`` return ``True, C``, where ``C`` is a non
+          ``k1`` ``k2`` circuit
+
+        Output:
+
+        - boolean or tuple
 
         .. SEEALSO::
 

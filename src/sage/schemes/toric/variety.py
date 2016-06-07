@@ -1917,7 +1917,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - If the toric variety is is over `\CC` and has at most finite
+        - If the toric variety is over `\CC` and has at most finite
           orbifold singularities: `H^\bullet(X,\QQ)` as a polynomial
           quotient ring.
 

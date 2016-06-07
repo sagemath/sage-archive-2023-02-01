@@ -18,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import cmp_to_key
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
@@ -1204,7 +1205,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                              algebra.base_ring(),
                                              algebra._W,
                                              category=algebra._BasesCategory(),
-                                             monomial_cmp=index_cmp,
+                                             sorting_key=cmp_to_key(index_cmp),
                                              prefix=self._prefix)
 
         # This **must** match the name of the class in order for

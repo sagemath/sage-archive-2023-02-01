@@ -125,7 +125,7 @@ class TensorFreeModule(FiniteRankFreeModule):
     ``T`` is a module (actually a free module) over `\ZZ`::
 
         sage: T.category()
-        Category of modules over Integer Ring
+        Category of finite dimensional modules over Integer Ring
         sage: T in Modules(ZZ)
         True
         sage: T.rank()
@@ -282,9 +282,9 @@ class TensorFreeModule(FiniteRankFreeModule):
         Free module of type-(1,1) tensors on the Rank-3 free module M over the
          Integer Ring
         sage: End(M)
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-3 free module M over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-3 free module M over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: T11.has_coerce_map_from(End(M))
         True
         sage: End(M).has_coerce_map_from(T11)

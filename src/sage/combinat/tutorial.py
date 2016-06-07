@@ -862,7 +862,8 @@ there are 34 simple graphs with 5 vertices::
 
 Here are those with at most `4` edges::
 
-    sage: show(graphs(5, lambda G: G.size() <= 4))
+    sage: up_to_four_edges = list(graphs(5, lambda G: G.size() <= 4))
+    sage: pretty_print(*up_to_four_edges)
 
 .. image:: ../../media/graphs-5.png
 

@@ -91,7 +91,7 @@ cdef class ntl_ZZ_pE(object):
             self.c = v[1]
             v = v[0]
         else:
-            raise ValueError, "You must specify a modulus when creating a ZZ_pE."
+            raise ValueError("You must specify a modulus when creating a ZZ_pE.")
         self.c.restore_c()
 
         cdef ZZ_c temp
@@ -100,11 +100,11 @@ cdef class ntl_ZZ_pE(object):
             sig_on()
             if isinstance(v, ntl_ZZ_pE):
                 if (<ntl_ZZ_pE>v).c is not self.c:
-                    raise ValueError, "You cannot cast between rings with different moduli"
+                    raise ValueError("You cannot cast between rings with different moduli")
                 self.x = (<ntl_ZZ_pE>v).x
             elif isinstance(v, ntl_ZZ_pX):
                 if (<ntl_ZZ_pX>v).c is not self.c.pc:
-                    raise ValueError, "You cannot cast between rings with different moduli"
+                    raise ValueError("You cannot cast between rings with different moduli")
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
             elif isinstance(v, list) or isinstance(v, tuple):
                 tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
@@ -224,7 +224,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         self.c.restore_c()
         ZZ_pE_mul(r.x, self.x, y.x)
@@ -234,7 +234,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pE r = self._new()
         self.c.restore_c()
         ZZ_pE_sub(r.x, self.x, (<ntl_ZZ_pE>other).x)
@@ -246,7 +246,7 @@ cdef class ntl_ZZ_pE(object):
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         sig_on()
         self.c.restore_c()

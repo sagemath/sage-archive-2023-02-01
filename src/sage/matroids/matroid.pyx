@@ -1101,7 +1101,7 @@ cdef class Matroid(SageObject):
         import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
-    cpdef _has_minor(self, N, certificate=False):
+    cpdef _has_minor(self, N, bint certificate=False):
         """
         Test if matroid has the specified minor,
         and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
@@ -1125,7 +1125,8 @@ cdef class Matroid(SageObject):
             sage: M._has_minor(matroids.Uniform(2, 4))
             True
             sage: M._has_minor(matroids.Uniform(2, 4), certificate=True)
-            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'})))
+            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'}),
+                {0: 'h', 1: 'd', 2: 'g', 3: 'f'}))
 
         .. TODO::
 
@@ -3898,7 +3899,7 @@ cdef class Matroid(SageObject):
         return self._extension(l, [])._minor(contractions=frozenset([l]),
                                              deletions=frozenset([]))
 
-    cpdef has_minor(self, N, certificate=False):
+    cpdef has_minor(self, N, bint certificate=False):
         """
         Check if ``self`` has a minor isomorphic to ``N``,
         and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
@@ -3932,7 +3933,8 @@ cdef class Matroid(SageObject):
             sage: matroids.named_matroids.NonFano().has_minor(M)
             True
             sage: matroids.named_matroids.NonFano().has_minor(M, certificate=True)
-            (True, (frozenset(), frozenset({'g'})))
+            (True, (frozenset(), frozenset({'g'}),
+                {0: 'b', 1: 'c', 2: 'a', 3: 'd', 4: 'e', 5: 'f'}))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")

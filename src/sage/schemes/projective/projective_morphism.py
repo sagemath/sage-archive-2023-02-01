@@ -1001,14 +1001,28 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               -y^2 + x*z
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x^4 : x^2*z^2 : z^4)
-        """
-        E = self.domain()
-        if E is not self.codomain():
-            raise TypeError("domain and Codomain of function not equal")
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P2)
+            sage: f = H([x^2, y^2, x^2-y^2])
+            sage: f.nth_iterate_map(1)
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 : y^2 : x^2 - y^2)
+        """
         D = int(n)
         if D < 0:
             raise TypeError("iterate number must be a positive integer")
+        if D == 1:
+            return self
+        if not self.is_endomorphism():
+            raise TypeError("map is not an endomorphism")
+
         N = self.codomain().ambient_space().dimension_relative() + 1
         F = list(self._polys)
         Coord_ring = self.codomain().coordinate_ring()
@@ -1023,7 +1037,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if D > 1: #avoid extra iterate
                 F = [F[j](*F) for j in range(N)] #'square'
             D >>= 1
-        return End(E)(PHI)
+        return End(self.domain())(PHI)
 
     def nth_iterate(self, P, n, **kwds):
         r"""
@@ -2774,7 +2788,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         P = F.codomain()
         wr = F.wronskian_ideal()
         X = P.subscheme(wr)
-        crit_points = X.rational_points()
+        crit_points = [P(Q) for Q in X.rational_points()]
         return crit_points
 
     def is_postcritically_finite(self, err=0.01, embedding=None):
@@ -3144,7 +3158,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 F = f.nth_iterate_map(n)
                 L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
                 X = PS.subscheme(L)
-                points = X.rational_points()
+                points = [PS(Q) for Q in X.rational_points()]
 
                 if not minimal:
                     return points
@@ -3771,23 +3785,22 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         else:
             raise TypeError("base field must be an absolute number field")
 
-    def rational_preimages(self, Q):
+    def rational_preimages(self, Q, k=1):
         r"""
-        Determine all of the rational first preimages of ``Q`` by this map.
+        Determine all of the rational ``k``th preimages of ``Q`` by this map.
 
         Given a rational point `Q` in the domain of this map, return all the rational points `P`
-        in the domain with `self(P)==Q`. In other words, the set of first preimages of `Q`.
-        The map must be defined over number fields and be an endomorphism.
+        in the domain with `f^k(P)==Q`. In other words, the set of `k`th preimages of `Q`.
+        The map must be defined over a number field and be an endomorphism for `k > 1`.
 
-        In ``Q`` is a subscheme, the return the subscheme that maps to ``Q`` by this map.
-        In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
-
-        ALGORITHM:
-            points: Use elimination via groebner bases to find the rational pre-images
+        If ``Q`` is a subscheme, then return the subscheme that maps to ``Q`` by this map.
+        In particular, `f^{-k}(V(h_1,\ldots,h_t)) = V(h_1 \circ f^k, \ldots, h_t \circ f^k)`.
 
         INPUT:
 
         - ``Q`` - a rational point or subscheme in the domain of this map.
+
+        - ``k`` - positive integer.
 
         OUTPUT:
 
@@ -3799,7 +3812,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([16*x^2 - 29*y^2, 16*y^2])
             sage: f.rational_preimages(P(-1,4))
-            [(5/4 : 1), (-5/4 : 1)]
+            [(-5/4 : 1), (5/4 : 1)]
 
         ::
 
@@ -3815,7 +3828,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([x^2 + y^2, 2*x*y])
             sage: f.rational_preimages(P(17,15))
-            [(5/3 : 1), (3/5 : 1)]
+            [(3/5 : 1), (5/3 : 1)]
 
         ::
 
@@ -3876,81 +3889,60 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Closed subscheme of Projective Space of dimension 1 over Rational Field
             defined by:
               x^2 - y^2
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 29/16*y^2, y^2])
+            sage: f.rational_preimages(P(5/4,1), k=4)
+            [(-3/4 : 1), (3/4 : 1), (-7/4 : 1), (7/4 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P2)
+            sage: f = H([x^2, y^2, x^2-y^2])
+            sage: f.rational_preimages(P2(1, 1, 0))
+            [(-1 : 1), (1 : 1)]
         """
+        k = ZZ(k)
+        if k <= 0:
+            raise ValueError("k (=%s) must be a positive integer"%(k))
         #first check if subscheme
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         if isinstance(Q, AlgebraicScheme_subscheme_projective):
-            return(Q.preimage(self))
+            return(Q.preimage(self, k))
 
         #else assume a point
         BR = self.base_ring()
-        if not self.is_endomorphism():
-            raise NotImplementedError("must be an endomorphism of projective space")
-        if (Q in self.codomain()) == False:
+        if k >1 and not self.is_endomorphism():
+            raise TypeError("must be an endomorphism of projective space")
+        if not Q in self.codomain():
             raise TypeError("point must be in codomain of self")
         if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
             raise NotImplementedError("not implemented over precision fields")
-        Dom = self.domain()
         PS = self.domain().ambient_space()
-        R = PS.coordinate_ring()
         N = PS.dimension_relative()
-        #need a lexicographic ordering for elimination
-        R = PolynomialRing(R.base_ring(), N + 1, R.gens(), order='lex')
-        BR = R.base_ring()
-        I = list(self.domain().defining_polynomials())
-        preimages = set()
-        for i in range(N + 1):
-            for j in range(i + 1, N + 1):
-                I.append(Q[i] * self[j] - Q[j] * self[i])
-        I = I * R
-        if I.dimension() > 1:
-            raise NotImplementedError("subschemes as preimages not implemented")
-        I0 = R.ideal(0)
-        #Determine the points through elimination
-        #This is much faster than using the I.variety() function on each affine chart.
-        for k in range(N + 1):
-            #create the elimination ideal for the kth affine patch
-            G = I.substitute({R.gen(k):1}).groebner_basis()
-            if G != [1]:
-                P = {}
-                #keep track that we know the kth coordinate is 1
-                P.update({R.gen(k):1})
-                points = [P]
-                #work backwards from solving each equation for the possible
-                #values of the next coordiante
-                for i in range(len(G) - 1, -1, -1):
-                    new_points = []
-                    good = 0
-                    for P in points:
-                        #subsitute in our dictionary entry that has the values
-                        #of coordinates known so far. This results in a single
-                        #variable polynomial (by elimination)
-                        L = G[i].substitute(P)
-                        if L != 0:
-                            L = L.factor()
-                            #the linear factors give the possible rational values of
-                            #this coordinate
-                            for pol, pow in L:
-                                if pol.degree() == 1 and len(pol.variables()) == 1:
-                                    good = 1
-                                    r = pol.variables()[0]
-                                    varindex = R.gens().index(r)
-                                    #add this coordinates information to
-                                    #each dictionary entry
-                                    P.update({R.gen(varindex):-BR(pol.coefficient({r:0})) / BR(pol.coefficient({r:1}))})
-                                    new_points.append(copy(P))
-                    if good:
-                        points = new_points
-                #the dictionary entries now have values for all coordinates
-                #they are the rational solutions to the equations
-                #make them into projective points
-                for i in range(len(points)):
-                    if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
-                        S = Dom([points[i][R.gen(j)] for j in range(N + 1)])
-                        S.normalize_coordinates()
-                        if not all([g(tuple(S)) == 0 for g in self]):
-                            preimages.add(S)
-        return(list(preimages))
+        L = [Q]
+        for n in range(k):
+            L2 = []
+            for P in L:
+                I = list(self.domain().defining_polynomials())
+                for i in range(N+1):
+                    for j in range(i+1, N+1):
+                        I.append(P[i]*self[j] - P[j]*self[i])
+                X = PS.subscheme(I)
+                if X.dimension() > 0:
+                    raise NotImplementedError("subschemes as preimages not implemented")
+                preimages = []
+                for T in X.rational_points():
+                    if not all([g(tuple(T)) == 0 for g in self]):
+                        preimages.append(PS(T))
+                L2 = L2 + preimages
+            L = L2
+        return L
 
     def all_rational_preimages(self, points):
         r"""
@@ -4299,9 +4291,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 - 29/16*y^2, y^2])
             sage: P = PS([w,1])
             sage: f.connected_rational_component(P)
-            [(w : 1), (w^2 - 29/16 : 1), (w^2 + w - 25/16 : 1), (-w^2 - w + 25/16 : 1), (-w : 1), (w + 1/2 : 1),
-            (-w - 1/2 : 1), (-w^2 + 29/16 : 1), (-w^2 + 21/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 33/16 : 1),
-            (-w^2 - w + 33/16 : 1)]
+            [(w : 1),
+             (w^2 - 29/16 : 1),
+             (w^2 + w - 25/16 : 1),
+             (-w^2 - w + 25/16 : 1),
+             (-w : 1),
+             (w + 1/2 : 1),
+             (-w - 1/2 : 1),
+             (-w^2 + 29/16 : 1),
+             (-w^2 + 21/16 : 1),
+             (w^2 - 21/16 : 1),
+             (w^2 + w - 33/16 : 1),
+             (-w^2 - w + 33/16 : 1)]
 
         ::
 
@@ -4310,10 +4311,21 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
             sage: P = PS([17/16,7/4,1])
             sage: f.connected_rational_component(P,3)
-            [(17/16 : 7/4 : 1), (-47/256 : 17/16 : 1), (-83807/65536 : -223/256 : 1), (17/16 : -7/4 : 1),
-            (-17/16 : 7/4 : 1), (-17/16 : -7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
-            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (1/2 : 1/2 : 1),
-            (-1/2 : 1/2 : 1), (-1/2 : -1/2 : 1), (1/2 : -1/2 : 1)]
+            [(17/16 : 7/4 : 1),
+             (-47/256 : 17/16 : 1),
+             (-83807/65536 : -223/256 : 1),
+             (-17/16 : -7/4 : 1),
+             (-17/16 : 7/4 : 1),
+             (17/16 : -7/4 : 1),
+             (1386468673/4294967296 : -81343/65536 : 1),
+             (-47/256 : -17/16 : 1),
+             (47/256 : -17/16 : 1),
+             (47/256 : 17/16 : 1),
+             (-1/2 : -1/2 : 1),
+             (-1/2 : 1/2 : 1),
+             (1/2 : -1/2 : 1),
+             (1/2 : 1/2 : 1)]
+
         """
         points = [[],[]] # list of points and a list of their corresponding levels
         points[0].append(P)

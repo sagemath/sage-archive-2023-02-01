@@ -4001,11 +4001,22 @@ cdef class Matroid(SageObject):
             sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
             ....:                                   ['a', 'b', 'd' ]])
             True
+            sage: M.has_line_minor(4, certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
+            sage: M.has_line_minor(5, certificate=True)
+            (False, None)
+            sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
+            ....:                                   ['a', 'b', 'd' ]], certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
 
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -4046,10 +4057,16 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.NonPappus()
             sage: M._has_line_minor(5, M.flats(1))
             True
+            sage: M._has_line_minor(5, M.flats(1), certificate=True)
+            (True, frozenset({'a'}))
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         for F in hyperlines:
             if self._line_length(F) >= k:
@@ -4057,7 +4074,7 @@ cdef class Matroid(SageObject):
                     return True, F
                 return True
         if certificate:
-            return False, True
+            return False, None
         return False
 
     # extensions

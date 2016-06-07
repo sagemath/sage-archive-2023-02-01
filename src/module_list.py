@@ -591,6 +591,11 @@ ext_modules = [
     Extension('sage.libs.gmp.rational_reconstruction',
               sources = ['sage/libs/gmp/rational_reconstruction.pyx']),
 
+    OptionalExtension('sage.libs.homfly',
+                      sources = ["sage/libs/homfly.pyx"],
+                      libraries = ["homfly", "gc"],
+                      package="libhomfly"),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
@@ -618,8 +623,10 @@ ext_modules = [
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.pari.closure',
-              sources = ["sage/libs/pari/closure.pyx"],
-              libraries = ['pari', 'gmp']),
+              sources = ["sage/libs/pari/closure.pyx"]),
+
+    Extension('sage.libs.pari.convert',
+              sources = ["sage/libs/pari/convert.pyx"]),
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"]),
@@ -708,6 +715,7 @@ ext_modules = [
     ###################################
 
     Extension('*', ["sage/libs/eclib/*.pyx"]),
+
 
     ################################
     ##

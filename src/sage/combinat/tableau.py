@@ -464,11 +464,33 @@ class Tableau(ClonableList):
               4  5
               1  2  3
             sage: Tableaux.global_options.reset()
+
+        TESTS:
+
+        Check that :trac:`20768` is fixed::
+
+            sage: T = Tableau([[1523, 1, 2],[1,12341, -2]])
+            sage: T.pp()
+             1523     1  2
+                1 12341 -2
         """
-        if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
-        else:
-            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
+        if not self:
+            return "  -"
+
+        # Get the widths of the columns
+        str_tab = [[str(data) for data in row] for row in self]
+        col_widths = [2]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        if self.parent().global_options('convention') == "French":
+            str_tab = reversed(str_tab)
+
+        return "\n".join(" "
+                         + " ".join("{:>{width}}".format(e,width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         for row in str_tab)
 
     def _repr_compact(self):
         """
@@ -642,7 +664,7 @@ class Tableau(ClonableList):
             h = '-'
             dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
 
-        if len(self) == 0:
+        if not self:
             return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
@@ -716,8 +738,12 @@ class Tableau(ClonableList):
             sage: print(t._ascii_art_compact())
             |1 |2 |3 |10|15|
             |12|15|17|
+
+            sage: t = Tableau([])
+            sage: print(t._ascii_art_compact())
+            .
         """
-        if len(self) == 0:
+        if not self:
             return "."
 
         if self.parent().global_options('convention') == "English":
@@ -733,8 +759,9 @@ class Tableau(ClonableList):
                 col_widths[i] = max(col_widths[i], len(e))
 
         return "\n".join("|"
-                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
-                       + "|" for row in str_tab)
+                         + "|".join("{:^{width}}".format(e, width=col_widths[i])
+                                    for i,e in enumerate(row))
+                         + "|" for row in str_tab)
 
     def _latex_(self):
         r"""
@@ -3074,10 +3101,10 @@ class Tableau(ClonableList):
 
         EXAMPLES::
 
-            sage: s=StandardTableau([[1,2,5],[3,4]]); s.pp()
+            sage: s = StandardTableau([[1,2,5],[3,4]]); s.pp()
               1  2  5
               3  4
-            sage: t=s.add_entry( (1,2), 6); t.pp()
+            sage: t = s.add_entry( (1,2), 6); t.pp()
               1  2  5
               3  4  6
             sage: t.category()
@@ -3086,7 +3113,7 @@ class Tableau(ClonableList):
               1  2  5
               3  4
               6
-            sage: u=s.add_entry( (1,2), 3); u.pp()
+            sage: u = s.add_entry( (1,2), 3); u.pp()
               1  2  5
               3  4  3
             sage: u.category()

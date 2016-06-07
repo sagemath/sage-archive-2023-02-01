@@ -145,9 +145,9 @@ cdef class FrozenBitset:
 
         sage: def bitcmp(a, b, c):  # custom function for comparing bitsets
         ....:     print(a == b == c)
-        ....:     print(a <= b, b <= c, a <= c)
-        ....:     print(a >= b, b >= c, a >= c)
-        ....:     print(a != b, b != c, a != c)
+        ....:     print((a <= b, b <= c, a <= c))
+        ....:     print((a >= b, b >= c, a >= c))
+        ....:     print((a != b, b != c, a != c))
         sage: a = Bitset("1010110"); b = FrozenBitset(a); c = FrozenBitset(b)
         sage: a; b; c
         1010110

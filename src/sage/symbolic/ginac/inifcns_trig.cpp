@@ -171,26 +171,24 @@ static ex sin_eval(const ex & x)
                                 return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
                 }
                 
-                // evaluate sin(integer * pi) -> 0
+                // Reflection at Pi/2
                 const ex ExOverPi = x_red/Pi;
                 if (ExOverPi.info(info_flags::integer))
                         return _ex0;
-
-                // Reflection at Pi/2
-                
-                else if (is_exactly_a<numeric>(ExOverPi)) {
-                        if (is_exactly_a<numeric>(coef_pi)) {
-                                const numeric c = ex_to<numeric>(coef_pi);
-                                if (c.is_rational()) {
-                                        const numeric num = c.numer();
-                                        const numeric den = c.denom();
-                                        const numeric rm = num.mod(den);
-                                        
-                                        if (rm.mul(2) > den) {
-                                                return sin(den.sub(rm)*Pi/den).hold();
-                                        }
-                                        return sin(rm*Pi/den).hold();
+                if (is_exactly_a<numeric>(ExOverPi)) {
+                        const numeric c = ex_to<numeric>(ExOverPi);
+                        if (c.is_rational()) {
+                                numeric den = c.denom();
+                                numeric num = c.numer().mod(den * *_num2_p);
+                                numeric fac = *_num1_p;
+                                if (num > den) {
+                                        num -= den;
+                                        fac = *_num_1_p;
                                 }
+                                if (num*(*_num2_p) > den)
+                                        return fac*sin_eval((den-num)*Pi/den);
+                                else
+                                        return fac*sin((num*Pi)/den).hold();
                         }
                 }
         }
@@ -388,25 +386,23 @@ static ex cos_eval(const ex & x)
                                 return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
                 }
 
-                // cos(integer*pi) --> (-1)^integer
-                const ex ExOverPi = x_red/Pi;
-                if (ExOverPi.info(info_flags::integer))
-                        return pow(_ex_1, ExOverPi);
                 
                 // Reflection at Pi/2
-                else if (is_exactly_a<numeric>(ExOverPi)) {
-                        if (is_exactly_a<numeric>(coef_pi)) {
-                                const numeric c = ex_to<numeric>(coef_pi);
-                                if (c.is_rational()) {
-                                        const numeric num = c.numer();
-                                        const numeric den = c.denom();
-                                        const numeric rm = num.mod(den);
-                                        
-                                        if (rm.mul(2) > den) {
-                                                return _ex_1*cos(den.sub(rm)*Pi/den).hold();
-                                        }
-                                        return cos(rm*Pi/den).hold();
-                                }
+                const ex ExOverPi = x_red/Pi;
+                if (is_exactly_a<numeric>(ExOverPi)) {
+                        const numeric c = ex_to<numeric>(ExOverPi);
+                        // cos(integer*pi) --> (-1)^integer
+                        if (c.info(info_flags::integer))
+                                return pow(*_num_1_p, c);
+                        if (c.is_rational()) {
+                                numeric den = c.denom();
+                                numeric num = c.numer().mod(den * *_num2_p);
+                                if (num > den)
+                                        num = den * *_num2_p - num;
+                                if (num*(*_num2_p) > den)
+                                        return mul(_ex_1, cos_eval((den-num)*Pi/den));
+                                else
+                                        return cos((num*Pi)/den).hold();
                         }
                 }
 	}
@@ -618,18 +614,14 @@ static ex tan_eval(const ex & x)
                 // Reflection at Pi/2
                 const ex ExOverPi = x_red/Pi;
                 if (is_exactly_a<numeric>(ExOverPi)) {
-                        if (is_exactly_a<numeric>(coef_pi)) {
-                                const numeric c = ex_to<numeric>(coef_pi);
-                                if (c.is_rational()) {
-                                        const numeric num = c.numer();
-                                        const numeric den = c.denom();
-                                        const numeric rm = num.mod(den);
-                                        
-		                        if (rm.mul(2) > den) {
-		                                return _ex_1*tan(den.sub(rm)*Pi/den).hold();
-		                        }
-		                        return tan(rm*Pi/den).hold();       
-                                }
+                        const numeric c = ex_to<numeric>(ExOverPi);
+                        if (c.is_rational()) {
+                                numeric den = c.denom();
+                                numeric num = c.numer().mod(den);
+                                if (num*(*_num2_p) > den)
+                                        return mul(_ex_1, tan((den-num)*Pi/den).hold());
+                                else
+                                        return tan((num*Pi)/den).hold();
                         }
                 }
         }
@@ -928,36 +920,20 @@ static ex sec_eval(const ex & x)
 	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
 		return cos(ex_to<numeric>(x)).inverse();
 	}
-        ex res = cos_eval(x);
-	if (not is_ex_the_function(res, cos) && not is_ex_the_function(_ex_1*res, cos)) {
-                if (not res.is_zero()) {
-                        return power(res, _ex_1);
-                }
-                else
-                        return UnsignedInfinity;
-        }
-        // Reflection at Pi/2
-        const ex ExOverPi = x/Pi;
-	if(is_exactly_a<numeric>(ExOverPi)) {
-		ex coef_pi = x.coeff(Pi).expand();
-		if (is_exactly_a<numeric>(coef_pi)) {
-		        const numeric c = ex_to<numeric>(coef_pi);
-		        if (c.is_rational()) {
-		                const numeric num = c.numer();
-		                const numeric den = c.denom();
-			        const numeric rm = num.mod(den);
 
-		                if (rm.mul(2) > den) {
-                                        return _ex_1*sec(den.sub(rm)*Pi/den).hold();
-                                }
-		                if (rm == 0) {
-	                                return (num.mod(2) == 0) ? _ex1: _ex_1;
-        	                }
-                                return sec(rm*Pi/den).hold();
-	                }
-	        }       
-        }                               
-        return sec(x).hold();
+        // Handle simplification via cos
+        ex res = cos_eval(x);
+        if (not is_ex_the_function(res, cos) && not is_ex_the_function(_ex_1*res, cos)) {
+                if (res.is_zero())
+                        return UnsignedInfinity;
+                else
+                        return power(res, _ex_1);
+        }
+        // cos has reflected also the argument so take it
+        if (is_ex_the_function(res, cos))
+                return sec(res.op(0)).hold();
+        else
+                return -sec((-res).op(0)).hold();
 }
 
 static ex sec_deriv(const ex & x, unsigned deriv_param)
@@ -1063,36 +1039,19 @@ static ex csc_eval(const ex & x)
 		return sin(ex_to<numeric>(x)).inverse();
 	}
 
+        // Handle simplification via sin
         ex res = sin_eval(x);
-	if (not is_ex_the_function(res, sin)) {
-                if (not res.is_zero()) {
-                        return power(res, _ex_1);
-                }
-                else
+        if (not is_ex_the_function(res, sin) && not is_ex_the_function(_ex_1*res, sin)) {
+                if (res.is_zero())
                         return UnsignedInfinity;
+                else
+                        return power(res, _ex_1);
         }
-        // Reflection at Pi/2
-        const ex ExOverPi = x/Pi;
-        if(is_exactly_a<numeric>(ExOverPi)) {
-                ex coef_pi = x.coeff(Pi).expand();
-                if (is_exactly_a<numeric>(coef_pi)) {
-                        const numeric c = ex_to<numeric>(coef_pi);
-                        if (c.is_rational()) {
-                                const numeric num = c.numer();
-                                const numeric den = c.denom();
-                                const numeric rm = num.mod(den);
-                                if (rm.mul(2) == den) {
-                                        return (num.mod(4) == 1) ? _ex1: _ex_1;
-                                }
-                                if (rm.mul(2) > den) {
-                                        return csc(den.sub(rm)*Pi/den).hold();
-                                }
-                                                
-                                return csc(rm*Pi/den).hold();
-                        }
-                }       
-        }
-	return csc(x).hold();
+        // sin has reflected also the argument so take it
+        if (is_ex_the_function(res, sin))
+                return csc(res.op(0)).hold();
+        else
+                return -csc((-res).op(0)).hold();
 }
 
 static ex csc_deriv(const ex & x, unsigned deriv_param)

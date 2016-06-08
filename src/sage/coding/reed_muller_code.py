@@ -34,8 +34,8 @@ from sage.coding.linear_code import AbstractLinearCode, LinearCodeSyndromeDecode
 from sage.coding.encoder import Encoder
 from sage.combinat.subset import Subsets
 from sage.combinat.tuple import Tuples
+from sage.categories.finite_fields import FiniteFields
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -103,12 +103,11 @@ def _multivariate_polynomial_interpolation(
     uni_poly_ring = PolynomialRing(base_field, 'x')
     base_field_zero = base_field.zero()
     for k in range(n_by_q):
-        xcordinate = base_field.first()
+        iterator = iter(base_field)
         points = []
         for i in range(d):
+            xcordinate = iterator.next()
             points.append((xcordinate, evaluation[k + i * n_by_q]))
-            if (xcordinate != base_field.last()):
-                xcordinate = base_field.next(xcordinate)
         polyVector = uni_poly_ring.lagrange_polynomial(
             points).coefficients(sparse=False)
         if len(polyVector) < d:
@@ -160,8 +159,8 @@ def ReedMullerCode(base_field, order, num_of_var):
         Binary reed muller codes must have it's order less than or equal to the number of variables.
 
     """
-    if not(isinstance(base_field, FiniteField)):
-        raise ValueError("The parameter `base_field` must be a finite")
+    if not(base_field in FiniteFields):
+        raise ValueError("The parameter `base_field` must be a finite field")
     q = base_field.cardinality()
     if q == 2:
         return BinaryReedMullerCode(order, num_of_var)
@@ -226,11 +225,11 @@ class QAryReedMullerCode(AbstractLinearCode):
             ValueError: the input `base_field` must be a FiniteField
         """
         # input sanitization
-        if not(isinstance(base_field, FiniteField)):
+        if not(base_field in FiniteFields):
             raise ValueError("the input `base_field` must be a FiniteField")
-        if not(isinstance(order, Integer)):
+        if not(isinstance(order, (Integer, int))):
             raise ValueError("The order of the code must be an integer")
-        if not(isinstance(num_of_var, Integer)):
+        if not(isinstance(num_of_var, (Integer, int))):
             raise ValueError("The number of variables must be an integer")
         q = base_field.cardinality()
         if (order >= q):
@@ -290,7 +289,7 @@ class QAryReedMullerCode(AbstractLinearCode):
         d = self.order()
         q = self.base_field().cardinality()
         n = self.length()
-        return ((q - d) * n) / q
+        return ((q - d) * n) // q
 
     def _repr_(self):
         r"""
@@ -393,9 +392,9 @@ class BinaryReedMullerCode(AbstractLinearCode):
             ValueError: The order of the code must be an integer
         """
         # input sanitization
-        if not(isinstance(order, Integer)):
+        if not(isinstance(order, (Integer, int))):
             raise ValueError("The order of the code must be an integer")
-        if not(isinstance(num_of_var, Integer)):
+        if not(isinstance(num_of_var, (Integer, int))):
             raise ValueError("The number of variables must be an integer")
         if (num_of_var < order):
             raise ValueError(
@@ -613,11 +612,11 @@ class ReedMullerVectorEncoder(Encoder):
         exponents = Subsets(range(num_of_var) *
                             min(order, (q - 1)), submultiset=True)
         matrix_list = []
-        exponent = exponents.first()
+        iterator = iter(exponents)
         for i in range(dimension):
+            exponent = iterator.next()
             matrix_list.append(
                 [reduce(mul, [x[i] for i in exponent], 1) for x in base_field_tuple])
-            exponent = exponents.next(exponent)
         return matrix(base_field, matrix_list)
 
 

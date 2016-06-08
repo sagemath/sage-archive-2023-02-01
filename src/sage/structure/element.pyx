@@ -125,6 +125,7 @@ underscores).
 # Generic element, so all this functionality must be defined
 # by any element.  Derived class must call __init__
 ##################################################################
+from __future__ import print_function
 
 from libc.limits cimport LONG_MAX, LONG_MIN
 
@@ -3454,7 +3455,7 @@ def coercion_traceback(dump=True):
     """
     if dump:
         for traceback in coercion_model.exception_stack():
-            print traceback
+            print(traceback)
     else:
         return coercion_model.exception_stack()
 

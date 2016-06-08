@@ -24,6 +24,7 @@ AUTHORS:
 - William Stein (2007-07-03): add more
 - Bobby Moretti (2007-07-03): add doctests
 """
+from __future__ import print_function
 
 import math
 import os
@@ -351,7 +352,7 @@ class Wave(SageObject):
         start = start * self._width
         stop = stop * self._width
         channels_sliced = [self._channel_data[i][start:stop] for i in range(self._nchannels)]
-        print stop - start
+        print(stop - start)
 
         return Wave(nchannels = self._nchannels,
                     width = self._width,

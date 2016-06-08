@@ -689,12 +689,12 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     l=[]
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -830,12 +830,12 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
 
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -1098,7 +1098,7 @@ def _basic_lemma_vec(a, b, c, r, s, t, n):
     elif t%n != 0:
         return 1, 1, 0
 
-    raise ValueError, "not primitive form"
+    raise ValueError("not primitive form")
 
 def _basic_lemma(a, b, c, r, s, t, n):
     """
@@ -1131,5 +1131,4 @@ def _basic_lemma(a, b, c, r, s, t, n):
     elif t%n != 0:
         return a + b + t
 
-    raise ValueError, "not primitive form"
-
+    raise ValueError("not primitive form")

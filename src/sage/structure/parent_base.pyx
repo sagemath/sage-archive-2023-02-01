@@ -83,5 +83,5 @@ cdef class ParentWithBase(parent_old.Parent):
     # Derived class *must* define base_extend.
     def base_extend(self, X):
         check_old_coerce(self)
-        raise CoercionException, "BUG: the base_extend method must be defined for '%s' (class '%s')"%(
-            self, type(self))
+        raise CoercionException("BUG: the base_extend method must be defined for '%s' (class '%s')" %
+                                (self, type(self)))

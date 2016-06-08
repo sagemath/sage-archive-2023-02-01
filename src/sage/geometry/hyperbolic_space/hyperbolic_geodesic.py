@@ -15,11 +15,48 @@ EXAMPLES:
 We can construct geodesics in the upper half plane model, abbreviated
 UHP for convenience::
 
-    sage: g = HyperbolicPlane().UHP().get_geodesic(2, 3); g
+    sage: g = HyperbolicPlane().UHP().get_geodesic(2, 3)
+    sage: g
     Geodesic in UHP from 2 to 3
+
+This geodesic can be plotted using :meth:`plot`, in this example we will show
+the axis.
+
+::
+
+    sage: P = g.plot(axes=True)
+    sage: show(P)
+
+.. PLOT::
+
+    #hyperbolic_geodesic-1.png
+    g = HyperbolicPlane().UHP().get_geodesic(2.0, 3.0)
+    sphinx_plot(g.plot(axes=True))
+
+::
+
     sage: g = HyperbolicPlane().UHP().get_geodesic(I, 3 + I)
     sage: g.length()
     arccosh(11/2)
+    sage: P = g.plot(axes=True)
+    sage: show(P)
+
+.. PLOT::
+
+    #hyperbolic_geodesic-2.png
+    sphinx_plot(HyperbolicPlane().UHP().get_geodesic(I, 3 + I).plot(axes=True))
+
+Geodesics of both types in UHP are supported::
+
+    sage: g = HyperbolicPlane().UHP().get_geodesic(I, 3*I)
+    sage: g
+    Geodesic in UHP from I to 3*I
+    sage: show(g.plot())
+
+.. PLOT::
+
+    #hyperbolic_geodesic-3.png
+    sphinx_plot(HyperbolicPlane().UHP().get_geodesic(I, 3*I).plot())
 
 Geodesics are oriented, which means that two geodesics with the same
 graph will only be equal if their starting and ending points are
@@ -137,7 +174,7 @@ class HyperbolicGeodesic(SageObject):
     def _complete(self):
         r"""
         Return whether the geodesic is complete.  This is used for
-        geodesics in non-bounded models.  For thse models,
+        geodesics in non-bounded models.  For these models,
         ``self.complete()`` simply sets ``_complete`` to ``True``.
 
         EXAMPLES::
@@ -361,16 +398,46 @@ class HyperbolicGeodesic(SageObject):
         Return ``True`` if ``self`` is a complete geodesic (that is, both
         endpoints are on the ideal boundary) and ``False`` otherwise.
 
+        If we represent complete geodesics using green color and incomplete
+        using red colors we have the following graphic:
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-12.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(1.5*I, 2.5*I)
+            h = UHP.get_geodesic(0, I)
+            l = UHP.get_geodesic(2, 4)
+            m = UHP.get_geodesic(3, infinity)
+            G = g.plot(color='red') +\
+                text('is_complete()=False',
+                     (0, 2),
+                     horizontal_alignement='left')
+            H = h.plot(color='red') +\
+                text('is_complete()=False',
+                     (0, 0.5),
+                     horizontal_alignement='left')
+            L = l.plot(color='green') +\
+                text('is_complete()=True',
+                     (5, 1.5))
+            M = m.plot(color='green') + text('is complete()=True',
+                                             (5, 4),
+                                             horizontal_alignement='left')
+            sphinx_plot(G+H+L+M)
+
+        Notice, that there is no visual indication that the *vertical* geodesic
+        is complete
+
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: UHP.get_geodesic(I, 2*I).is_complete()
+            sage: UHP.get_geodesic(1.5*I, 2.5*I).is_complete()
             False
-
             sage: UHP.get_geodesic(0, I).is_complete()
             False
-
-            sage: UHP.get_geodesic(0, infinity).is_complete()
+            sage: UHP.get_geodesic(3, infinity).is_complete()
+            True
+            sage: UHP.get_geodesic(2,5).is_complete()
             True
 
         """
@@ -393,12 +460,27 @@ class HyperbolicGeodesic(SageObject):
             sage: g.is_asymptotically_parallel(h)
             True
 
+        .. PLOT::
+
+             #hyperbolic_geodesic-10.png
+             g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
+             h = HyperbolicPlane().UHP().get_geodesic(-2.0,4.0)
+             sphinx_plot(g.plot(color='green')+h.plot(color='green'))
+
         Ultraparallel geodesics are not asymptotically parallel::
 
             sage: g = HyperbolicPlane().UHP().get_geodesic(-2,5)
             sage: h = HyperbolicPlane().UHP().get_geodesic(-1,4)
             sage: g.is_asymptotically_parallel(h)
             False
+
+        .. PLOT::
+
+             #hyperbolic_geodesic-11.png
+             g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
+             h = HyperbolicPlane().UHP().get_geodesic(-1.0,4.0)
+             sphinx_plot(g.plot(color='red')+h.plot(color='red'))
+
 
         No hyperbolic geodesic is asymptotically parallel to itself::
 
@@ -427,9 +509,16 @@ class HyperbolicGeodesic(SageObject):
             sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic \
             ....:   import *
             sage: g = HyperbolicPlane().UHP().get_geodesic(0,1)
-            sage: h = HyperbolicPlane().UHP().get_geodesic(-3,3)
+            sage: h = HyperbolicPlane().UHP().get_geodesic(-3,-1)
             sage: g.is_ultra_parallel(h)
             True
+
+        .. PLOT::
+
+             #hyperbolic_geodesic-16.png
+             g = HyperbolicPlane().UHP().get_geodesic(0.0,1.1)
+             h = HyperbolicPlane().UHP().get_geodesic(-3.0,-1.0)
+             sphinx_plot(g.plot(color='green')+h.plot(color='green'))
 
         ::
 
@@ -437,6 +526,13 @@ class HyperbolicGeodesic(SageObject):
             sage: h = HyperbolicPlane().UHP().get_geodesic(2,6)
             sage: g.is_ultra_parallel(h)
             False
+
+        .. PLOT::
+
+             #hyperbolic_geodesic-17.png
+             g = HyperbolicPlane().UHP().get_geodesic(-2,5)
+             h = HyperbolicPlane().UHP().get_geodesic(2,6)
+             sphinx_plot(g.plot(color='red')+h.plot(color='red'))
 
         ::
 
@@ -471,12 +567,41 @@ class HyperbolicGeodesic(SageObject):
             sage: g.is_parallel(h)
             True
 
+        .. PLOT::
+
+            #hyperbolic_geodesic-13.png
+            g = HyperbolicPlane().UHP().get_geodesic(-2,5)
+            h = HyperbolicPlane().UHP().get_geodesic(5,12)
+            sphinx_plot(g.plot(color='green')+h.plot(color='green'))
+
         ::
 
             sage: g = HyperbolicPlane().UHP().get_geodesic(-2,5)
             sage: h = HyperbolicPlane().UHP().get_geodesic(-2,4)
             sage: g.is_parallel(h)
             True
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-14.png
+            g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
+            h = HyperbolicPlane().UHP().get_geodesic(-2.0,4.0)
+            sphinx_plot(g.plot(color='green')+h.plot(color='green'))
+
+        ::
+
+            sage: g = HyperbolicPlane().UHP().get_geodesic(-2,2)
+            sage: h = HyperbolicPlane().UHP().get_geodesic(-1,4)
+            sage: g.is_parallel(h)
+            False
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-15.png
+            g = HyperbolicPlane().UHP().get_geodesic(-2,2)
+            h = HyperbolicPlane().UHP().get_geodesic(-1,4)
+            sphinx_plot(g.plot(color='red')+h.plot(color='red'))
+
 
         No hyperbolic geodesic is either ultra parallel or
         asymptotically parallel to itself::
@@ -533,6 +658,8 @@ class HyperbolicGeodesic(SageObject):
         r"""
         Return the geodesic with ideal endpoints in bounded models.  Raise a
         ``NotImplementedError`` in models that are not bounded.
+        In the following examples we represent complete geodesics by a dashed
+        line.
 
         EXAMPLES::
 
@@ -541,17 +668,59 @@ class HyperbolicGeodesic(SageObject):
             sage: UHP.get_geodesic(1 + I, 1 + 3*I).complete()
             Geodesic in UHP from 1 to +Infinity
 
+        .. PLOT::
+
+             #hyperbolic_geodesic-6.png
+             g = HyperbolicPlane().UHP().get_geodesic(1 + I, 1 + 3*I)
+             h = g.complete()
+             sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
+
+        ::
+
             sage: PD = H.PD()
             sage: PD.get_geodesic(0, I/2).complete()
             Geodesic in PD from -I to I
+            sage: PD.get_geodesic(0.25*(-1-I),0.25*(1-I)).complete()
+            Geodesic in PD from -0.895806416477617 - 0.444444444444444*I to 0.895806416477617 - 0.444444444444444*I
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-7.png
+            PD = HyperbolicPlane().PD()
+            g = PD.get_geodesic(0, I/2)
+            h = g. complete()
+            m = PD.get_geodesic(0.25*(-1-I),0.25*(1-I))
+            l = m.complete()
+            sphinx_plot(g.plot()+h.plot(linestyle='dashed') +
+                        m.plot()+l.plot(linestyle='dashed'))
+
+        ::
 
             sage: KM = H.KM()
             sage: KM.get_geodesic((0,0), (0, 1/2)).complete()
             Geodesic in KM from (0, -1) to (0, 1)
 
+        .. PLOT::
+
+            #hyperbolic_geodesic-8.png
+            g = HyperbolicPlane().KM().get_geodesic((0.0,0.0), (0.0, 0.5))
+            h = g.complete()
+            sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
+
+        ::
+
             sage: HM = H.HM()
             sage: HM.get_geodesic((0,0,1), (1, 0, sqrt(2))).complete()
             Geodesic in HM from (0, 0, 1) to (1, 0, sqrt(2))
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-9.png
+            g = HyperbolicPlane().HM().get_geodesic((0,0,1), (1, 0, sqrt(2)))
+            h = g.complete()
+            sphinx_plot(g.plot(color='black')+h.plot(linestyle='dashed',color='black'))
+
+        ::
 
             sage: g = HM.get_geodesic((0,0,1), (1, 0, sqrt(2))).complete()
             sage: g.is_complete()
@@ -654,6 +823,17 @@ class HyperbolicGeodesic(SageObject):
             sage: g.common_perpendicular(h)
             Geodesic in UHP from 1/2*sqrt(3) + 7/2 to -1/2*sqrt(3) + 7/2
 
+        .. PLOT::
+
+            #hyperbolic_geodesic-5.png
+            g = HyperbolicPlane().UHP().get_geodesic(2.0, 3.0)
+            h = HyperbolicPlane().UHP().get_geodesic(4.0, 5.0)
+            l = g.common_perpendicular(h)
+            P = g.plot(color='blue') +\
+                h.plot(color='blue') +\
+                l.plot(color='orange')
+            sphinx_plot(P)
+
         It is an error to ask for the common perpendicular of two
         intersecting geodesics::
 
@@ -709,12 +889,20 @@ class HyperbolicGeodesic(SageObject):
 
         EXAMPLES::
 
-            sage: g = HyperbolicPlane().PD().random_geodesic()
+            sage: PD = HyperbolicPlane().PD()
+            sage: g = PD.get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
             sage: h = g.perpendicular_bisector()
             sage: hc = h.intersection(g)[0].coordinates()
             sage: gc = g.midpoint().coordinates()
             sage: bool( hc - gc < 10**-9)
             True
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-18.png
+            g = HyperbolicPlane().PD().get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
+            h = g.perpendicular_bisector()
+            sphinx_plot(g.plot(color='blue')+h.plot(color='orange'))
 
         Complete geodesics cannot be bisected::
 
@@ -818,9 +1006,17 @@ class HyperbolicGeodesic(SageObject):
 
             sage: PD = HyperbolicPlane().PD()
             sage: g = PD.get_geodesic(3/5*I + 4/5, 15/17*I + 8/17)
-            sage: h = PD.get_geodesic(4/5*I + 3/5, 9/13*I + 6/13)
+            sage: h = PD.get_geodesic(4/5*I + 3/5, I)
             sage: g.angle(h)
             1/2*pi
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-4.png
+            PD = HyperbolicPlane().PD()
+            g = PD.get_geodesic(3.0/5.0*I + 4.0/5.0, 15.0/17.0*I + 8.0/17.0)
+            h = PD.get_geodesic(4.0/5.0*I + 3.0/5.0, I)
+            sphinx_plot(g.plot()+h.plot(color='orange'))
 
         """
 
@@ -852,6 +1048,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     r"""
     Create a geodesic in the upper half plane model.
 
+    The geodesics in this model are represented by circular arcs perpendicular
+    to the real axis (half-circles whose origin is on the real axis) and
+    straight vertical lines ending on the real axis.
+
     INPUT:
 
     - ``start`` -- a :class:`HyperbolicPoint` in hyperbolic space
@@ -865,6 +1065,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         sage: UHP = HyperbolicPlane().UHP()
         sage: g = UHP.get_geodesic(UHP.get_point(I), UHP.get_point(2 + I))
         sage: g = UHP.get_geodesic(I, 2 + I)
+        sage: h = UHP.get_geodesic(-1, -1+2*I)
+
+    .. PLOT::
+
+        #hyperbolic_geodesic-27.png
+        UHP = HyperbolicPlane().UHP()
+        g = UHP.get_geodesic(I, 2 + I)
+        h = UHP.get_geodesic(-1, -1+2*I)
+        sphinx_plot(g.plot()+h.plot())
 
     """
 
@@ -896,18 +1105,46 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             M = matrix([[(x+y)/(y-x), -2*x*y/(y-x)], [2/(y-x), -(x+y)/(y-x)]])
         return self._model.get_isometry(M)
 
-    def show(self, boundary=True, **options):
+    def plot(self, boundary=True, **options):
         r"""
         Plot ``self``.
 
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: UHP.get_geodesic(0, 1).show()
+            sage: UHP.get_geodesic(0, 1).plot()
             Graphics object consisting of 2 graphics primitives
-            sage: UHP.get_geodesic(I, 3+4*I).show(linestyle="dashed",
-            ....:                                 color="red")
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-31.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(0.0, 1.0).plot()
+            sphinx_plot(g)
+
+        ::
+
+            sage: UHP.get_geodesic(I, 3+4*I).plot(linestyle="dashed", color="brown")
             Graphics object consisting of 2 graphics primitives
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-32.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(I, 3+4*I).plot(linestyle="dashed", color="brown")
+            sphinx_plot(g)
+
+        ::
+
+            sage: UHP.get_geodesic(1, infinity).plot(color='orange')
+            Graphics object consisting of 2 graphics primitives
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-33.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(1, infinity).plot(color='orange')
+            sphinx_plot(g)
 
         """
 
@@ -1019,6 +1256,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g.common_perpendicular(h)
             Geodesic in UHP from 1/2*sqrt(3) + 7/2 to -1/2*sqrt(3) + 7/2
 
+        .. PLOT::
+
+            #hyperbolic_geodesic-29.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(2.0, 3.0)
+            h = UHP.get_geodesic(4.0, 5.0)
+            p = g.common_perpendicular(h)
+            sphinx_plot(g.plot(color='blue')+h.plot(color='blue')+p.plot(color='orange'))
+
         It is an error to ask for the common perpendicular of two
         intersecting geodesics::
 
@@ -1112,6 +1358,21 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
             True
 
+        ::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g = UHP.get_geodesic(1+I,2+0.5*I)
+            sage: h = g.perpendicular_bisector()
+            sage: show(g.plot(color='blue')+h.plot(color='orange'))
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-30.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(1+I,2+0.5*I)
+            h = g.perpendicular_bisector()
+            sphinx_plot(g.plot(color='blue')+h.plot(color='orange'))
+
         Infinite geodesics cannot be bisected::
 
             sage: UHP.get_geodesic(0, 1).perpendicular_bisector()
@@ -1161,7 +1422,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         TESTS:
 
-        This checks :trac:`20330` so that geodesics defined symbolic
+        This checks :trac:`20330` so that geodesics defined by symbolic
         expressions do not generate runtime errors. ::
 
             sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
@@ -1227,6 +1488,14 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             1/2*pi
             sage: numerical_approx(g.angle(h))
             1.57079632679490
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-28.png
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(2, 4)
+            h = UHP.get_geodesic(3, 3 + I)
+            sphinx_plot(g.plot()+h.plot())
 
         If the geodesics are identical, return angle 0::
 
@@ -1336,7 +1605,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         from sage.symbolic.expression import Expression
         from sage.rings.complex_double import CDF
 
-        if isinstance(a, (int,float,complex)):  # Python number
+        if isinstance(a, (int, float, complex)):  # Python number
             a = CDF(a)
 
         if isinstance(a, Expression):           # symbolic
@@ -1464,6 +1733,10 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
     r"""
     A geodesic in the Poincaré disk model.
 
+    Geodesics in this model are represented by segments of circles contained
+    within the unit disk that are orthogonal to the boundary of the disk,
+    plus all diameters of the disk.
+
     INPUT:
 
     - ``start`` -- a :class:`HyperbolicPoint` in hyperbolic space
@@ -1475,12 +1748,22 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: PD = HyperbolicPlane().PD()
-        sage: g = PD.get_geodesic(PD.get_point(I), PD.get_point(I/2))
-        sage: g = PD.get_geodesic(I, I/2)
+        sage: g = PD.get_geodesic(PD.get_point(I), PD.get_point(-I/2))
+        sage: g = PD.get_geodesic(I,-I/2)
+        sage: h = PD.get_geodesic(-1/2+I/2,1/2+I/2)
+
+    .. PLOT::
+
+         #hyperbolic_geodesic-23.png
+         PD = HyperbolicPlane().PD()
+         g = PD.get_geodesic(I,-I/2)
+         h = PD.get_geodesic(-0.5+I*0.5,0.5+I*0.5)
+         sphinx_plot(g.plot()+h.plot(color='green'))
 
     """
 
-    def show(self, boundary=True, **options):
+    def plot(self, boundary=True, **options):
+
         r"""
         Plot ``self``.
 
@@ -1489,21 +1772,47 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         First some lines::
 
             sage: PD = HyperbolicPlane().PD()
-            sage: PD.get_geodesic(0, 1).show()
+            sage: PD.get_geodesic(0, 1).plot()
             Graphics object consisting of 2 graphics primitives
-            sage: PD.get_geodesic(0, 0.3+0.8*I).show()
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-24.png
+            sphinx_plot(HyperbolicPlane().PD().get_geodesic(0, 1).plot())
+
+        ::
+
+            sage: PD.get_geodesic(0, 0.3+0.8*I).plot()
             Graphics object consisting of 2 graphics primitives
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-25.png
+            PD = HyperbolicPlane().PD()
+            sphinx_plot(PD.get_geodesic(0, 0.3+0.8*I).plot())
 
         Then some generic geodesics::
 
-            sage: PD.get_geodesic(-0.5, 0.3+0.4*I).show()
+            sage: PD.get_geodesic(-0.5, 0.3+0.4*I).plot()
             Graphics object consisting of 2 graphics primitives
             sage: g = PD.get_geodesic(-1, exp(3*I*pi/7))
-            sage: g.show(linestyle="dashed",color="red")
+            sage: G = g.plot(linestyle="dashed",color="red"); G
             Graphics object consisting of 2 graphics primitives
-            sage: g = PD.get_geodesic(exp(2*I*pi/11), exp(1*I*pi/11))
-            sage: g.show(thickness=6, color="orange")
+            sage: h = PD.get_geodesic(exp(2*I*pi/11), exp(1*I*pi/11))
+            sage: H = h.plot(thickness=6, color="orange"); H
             Graphics object consisting of 2 graphics primitives
+            sage: show(G+H)
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-26.png
+            PD = HyperbolicPlane().PD()
+            PD.get_geodesic(-0.5, 0.3+0.4*I).plot()
+            g = PD.get_geodesic(-1, exp(3*I*pi/7))
+            G = g.plot(linestyle="dashed",color="red")
+            h = PD.get_geodesic(exp(2*I*pi/11), exp(1*I*pi/11))
+            H = h.plot(thickness=6, color="orange")
+            sphinx_plot(G+H)
 
         """
 
@@ -1541,6 +1850,9 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     r"""
     A geodesic in the Klein disk model.
 
+    Geodesics are represented by the chords, straight line segments with ideal
+    endpoints on the boundary circle.
+
     INPUT:
 
     - ``start`` -- a :class:`HyperbolicPoint` in hyperbolic space
@@ -1552,22 +1864,42 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: KM = HyperbolicPlane().KM()
-        sage: g = KM.get_geodesic(KM.get_point((0,1)), KM.get_point((0,1/2)))
-        sage: g = KM.get_geodesic((0,1), (0,1/2))
+        sage: g = KM.get_geodesic(KM.get_point((0.1,0.9)), KM.get_point((-0.1,-0.9)))
+        sage: g = KM.get_geodesic((0.1,0.9),(-0.1,-0.9))
+        sage: h = KM.get_geodesic((-0.707106781,-0.707106781),(0.707106781,-0.707106781))
+        sage: show(g.plot(color='orange')+h.plot())
+
+    .. PLOT::
+
+        #hyperbolic_geodesic-21.png
+        KM = HyperbolicPlane().KM()
+        g = KM.get_geodesic((0.1,0.9),
+                            (-0.1,-0.9))
+        h = KM.get_geodesic((-0.707106781,-0.707106781),
+                            (0.707106781,-0.707106781))
+        sphinx_plot(g.plot(color='orange')+h.plot())
 
     """
 
-    def show(self, boundary=True, **options):
+    def plot(self, boundary=True, **options):
         r"""
         Plot ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane().KM().get_geodesic((0,0), (1,0)).show()
+            sage: HyperbolicPlane().KM().get_geodesic((0,0), (1,0)).plot()
             Graphics object consisting of 2 graphics primitives
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-22.png
+            KM = HyperbolicPlane().KM()
+            sphinx_plot(KM.get_geodesic((0,0), (1,0)).plot())
+
         """
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
+        opts.update(options)
         pic = line([k.coordinates() for k in self.endpoints()], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
@@ -1577,6 +1909,8 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
 class HyperbolicGeodesicHM(HyperbolicGeodesic):
     r"""
     A geodesic in the hyperboloid model.
+
+    Valid points in the hyperboloid model satisfy :math:`x^2+y^2-z^2=-1`
 
     INPUT:
 
@@ -1590,14 +1924,23 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
         sage: HM = HyperbolicPlane().HM()
-        sage: p1 = HM.get_point((0, 0, 1))
-        sage: p2 = HM.get_point((0,1,sqrt(2)))
+        sage: p1 = HM.get_point((4, -4, sqrt(33)))
+        sage: p2 = HM.get_point((-3,-3,sqrt(19)))
         sage: g = HM.get_geodesic(p1, p2)
-        sage: g = HM.get_geodesic((0, 0, 1), (0, 1, sqrt(2)))
+        sage: g = HM.get_geodesic((4, -4, sqrt(33)), (-3, -3, sqrt(19)))
+
+    .. PLOT::
+
+        #hyperbolic_geodesic-19.png
+        HM = HyperbolicPlane().HM()
+        p1 = HM.get_point((4, -4, sqrt(33)))
+        p2 = HM.get_point((-3,-3,sqrt(19)))
+        g = HM.get_geodesic(p1, p2)
+        sphinx_plot(g.plot(color='blue'))
 
     """
 
-    def show(self, show_hyperboloid=True, **graphics_options):
+    def plot(self, show_hyperboloid=True, **graphics_options):
         r"""
         Plot ``self``.
 
@@ -1606,8 +1949,13 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
             sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic \
             ....:    import *
             sage: g = HyperbolicPlane().HM().random_geodesic()
-            sage: g.show()
+            sage: g.plot()
             Graphics3d Object
+
+        .. PLOT::
+
+            #hyperbolic_geodesic-20.png
+            sphinx_plot(HyperbolicPlane().HM().random_geodesic().plot())
 
         """
 

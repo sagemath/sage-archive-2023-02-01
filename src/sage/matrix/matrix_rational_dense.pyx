@@ -2025,7 +2025,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##         cdef Py_ssize_t k
 
 ##         if not self.is_square():
-##             raise ArithmeticError, "self must be a square matrix"
+##             raise ArithmeticError("self must be a square matrix")
 
 ##         if self.nrows() == 0:
 ##             return decomp_seq([])
@@ -2105,7 +2105,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##                         W.rank(), m*g.degree()), level=2, caller_name='simple decomp')
 ##                     j += 1
 ##                     if j > 3*m:
-##                         raise RuntimeError, "likely bug in decomposition"
+##                         raise RuntimeError("likely bug in decomposition")
 ##                 # end if
 ##             #end while
 ##         #end for

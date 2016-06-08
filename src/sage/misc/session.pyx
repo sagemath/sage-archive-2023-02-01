@@ -57,17 +57,19 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # Standard python imports
-import cPickle, os, types
+import cPickle
+import os
+import types
 
 # We want the caller's locals, but locals() is emulated in Cython
-import __builtin__
-cdef caller_locals = __builtin__.locals
+from six.moves import builtins
+cdef caller_locals = builtins.locals
 
 # Sage imports
-from misc import embedded
+from .misc import embedded
 from sage.structure.sage_object import load, save
 
 # This module-scope variables is used to save the

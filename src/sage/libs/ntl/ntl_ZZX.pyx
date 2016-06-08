@@ -180,7 +180,7 @@ cdef class ntl_ZZX(object):
             [1 4 3]
         """
         if i < 0:
-            raise IndexError, "index (i=%s) must be >= 0"%i
+            raise IndexError("index (i=%s) must be >= 0" % i)
         cdef ntl_ZZ cc
         if isinstance(a, ntl_ZZ):
             cc = a
@@ -892,11 +892,10 @@ cdef class ntl_ZZX(object):
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -512 1344 -1176 343]
         """
         if m < 0:
-            raise ArithmeticError, "m (=%s) must be positive"%m
+            raise ArithmeticError("m (=%s) must be positive" % m)
         n = self.constant_term()
         if n != ntl_ZZ(1) and n != ntl_ZZ(-1):
-            raise ArithmeticError, \
-                  "The constant term of self must be 1 or -1."
+            raise ArithmeticError("The constant term of self must be 1 or -1.")
         sig_on()
         return make_ZZX_sig_off(ZZX_invert_and_truncate(&self.x, m))
 
@@ -949,7 +948,7 @@ cdef class ntl_ZZX(object):
             ValueError: polynomial must be monic.
         """
         if not self.is_monic():
-            raise ValueError, "polynomial must be monic."
+            raise ValueError("polynomial must be monic.")
         sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)

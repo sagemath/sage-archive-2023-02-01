@@ -933,6 +933,24 @@ class AffineSpace_field(AffineSpace_generic):
             self.__weil_restriction = X
         return X
 
+    def curve(self,F):
+        r"""
+        Return a curve defined by ``F`` in this affine space.
+
+        INPUT:
+
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
+          of this affine space.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A.curve([y - x^4, z - y^5])
+            Affine Space Curve over Rational Field defined by -x^4 + y, -y^5 + z
+        """
+        from sage.schemes.plane_curves.constructor import Curve
+        return Curve(F, self)
+
 class AffineSpace_finite_field(AffineSpace_field):
     def _point(self, *args, **kwds):
         """

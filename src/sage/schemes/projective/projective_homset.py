@@ -179,7 +179,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                 S = X([points[i][R.gen(j)] for j in range(N + 1)])
                                 S.normalize_coordinates()
                                 rat_points.add(S)
-                rat_points = sorted(list(rat_points))
+                rat_points = sorted(rat_points)
                 return rat_points
         R = self.value_ring()
         if is_RationalField(R):

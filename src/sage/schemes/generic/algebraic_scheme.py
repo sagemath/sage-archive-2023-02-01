@@ -2673,11 +2673,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``f`` - a map whose codomain contains ``self``
+        - ``f`` - a map whose codomain contains this scheme
 
         - ``k`` - a positive integer
 
-        - ``check`` -- Boolean, if `False` no input checking is done
+        - ``check`` -- Boolean, if ``False`` no input checking is done
 
         OUTPUT:
 
@@ -2708,11 +2708,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ,3)
+            sage: P1.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ, 3)
             sage: H = Hom(P1, P3)
-            sage: X = P3.subscheme([u-v,2*u-w,u+t])
-            sage: f = H([x^2,y^2,x^2+y^2,x*y])
+            sage: X = P3.subscheme([u-v, 2*u-w, u+t])
+            sage: f = H([x^2,y^2, x^2+y^2, x*y])
             sage: X.preimage(f)
             Closed subscheme of Projective Space of dimension 1 over Rational Field
             defined by:
@@ -2777,7 +2777,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             if k <= 0:
                 raise ValueError("k (=%s) must be a positive integer"%(k))
             if k > 1 and not f.is_endomorphism():
-                raise TypeError("Map must be an endomorphism")
+                raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
         F = f.nth_iterate_map(k)
         dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}

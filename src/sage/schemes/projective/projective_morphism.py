@@ -3787,10 +3787,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def rational_preimages(self, Q, k=1):
         r"""
-        Determine all of the rational ``k``th preimages of ``Q`` by this map.
+        Determine all of the rational `k`-th preimages of ``Q`` by this map.
 
-        Given a rational point `Q` in the domain of this map, return all the rational points `P`
-        in the domain with `f^k(P)==Q`. In other words, the set of `k`th preimages of `Q`.
+        Given a rational point ``Q`` in the domain of this map, return all the rational points ``P``
+        in the domain with `f^k(P)==Q`. In other words, the set of `k`-th preimages of ``Q``.
         The map must be defined over a number field and be an endomorphism for `k > 1`.
 
         If ``Q`` is a subscheme, then return the subscheme that maps to ``Q`` by this map.
@@ -3808,42 +3808,44 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         Examples::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([16*x^2 - 29*y^2, 16*y^2])
-            sage: f.rational_preimages(P(-1,4))
+            sage: f.rational_preimages(P(-1, 4))
             [(-5/4 : 1), (5/4 : 1)]
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: H = End(P)
-            sage: f = H([76*x^2 - 180*x*y + 45*y^2 + 14*x*z + 45*y*z - 90*z^2, 67*x^2 - 180*x*y - 157*x*z + 90*y*z, -90*z^2])
-            sage: f.rational_preimages(P(-9,-4,1))
+            sage: f = H([76*x^2 - 180*x*y + 45*y^2 + 14*x*z + 45*y*z\
+            - 90*z^2, 67*x^2 - 180*x*y - 157*x*z + 90*y*z, -90*z^2])
+            sage: f.rational_preimages(P(-9, -4, 1))
             [(0 : 4 : 1)]
 
         A non-periodic example ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2, 2*x*y])
-            sage: f.rational_preimages(P(17,15))
+            sage: f.rational_preimages(P(17, 15))
             [(3/5 : 1), (5/3 : 1)]
 
         ::
 
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: H = End(P)
-            sage: f = H([x^2 - 2*y*w - 3*w^2, -2*x^2 + y^2 - 2*x*z + 4*y*w + 3*w^2, x^2 - y^2 + 2*x*z + z^2 - 2*y*w - w^2, w^2])
-            sage: f.rational_preimages(P(0,-1,0,1))
+            sage: f = H([x^2 - 2*y*w - 3*w^2, -2*x^2 + y^2 - 2*x*z\
+            + 4*y*w + 3*w^2, x^2 - y^2 + 2*x*z + z^2 - 2*y*w - w^2, w^2])
+            sage: f.rational_preimages(P(0, -1, 0, 1))
             []
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2, 2*x*y])
-            sage: f.rational_preimages([CC.0,1])
+            sage: f.rational_preimages([CC.0, 1])
             Traceback (most recent call last):
             ...
             TypeError: point must be in codomain of self
@@ -3852,30 +3854,30 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
             sage: z = QQ['z'].0
             sage: K.<a> = NumberField(z^2 - 2);
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2, y^2])
-            sage: f.rational_preimages(P(3,1))
+            sage: f.rational_preimages(P(3, 1))
             [(-a : 1), (a : 1)]
 
         ::
 
             sage: z = QQ['z'].0
             sage: K.<a> = NumberField(z^2 - 2);
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
             sage: X = P.subscheme([x^2 - z^2])
-            sage: H = Hom(X,X)
+            sage: H = End(X)
             sage: f= H([x^2 - z^2, a*y^2, z^2 - x^2])
-            sage: f.rational_preimages(X([1,2,-1]))
+            sage: f.rational_preimages(X([1, 2, -1]))
             []
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme([x^2 - z^2])
-            sage: H = Hom(X,X)
+            sage: H = End(X)
             sage: f= H([x^2-z^2, y^2, z^2-x^2])
-            sage: f.rational_preimages(X([0,1,0]))
+            sage: f.rational_preimages(X([0, 1, 0]))
             Traceback (most recent call last):
             ...
             NotImplementedError: subschemes as preimages not implemented
@@ -3892,10 +3894,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([x^2 - 29/16*y^2, y^2])
-            sage: f.rational_preimages(P(5/4,1), k=4)
+            sage: f.rational_preimages(P(5/4, 1), k=4)
             [(-3/4 : 1), (3/4 : 1), (-7/4 : 1), (7/4 : 1)]
 
         ::
@@ -3917,7 +3919,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         #else assume a point
         BR = self.base_ring()
-        if k >1 and not self.is_endomorphism():
+        if k > 1 and not self.is_endomorphism():
             raise TypeError("must be an endomorphism of projective space")
         if not Q in self.codomain():
             raise TypeError("point must be in codomain of self")

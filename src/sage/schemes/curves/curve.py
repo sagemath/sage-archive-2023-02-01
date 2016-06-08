@@ -1,12 +1,11 @@
 """
-Generic plane curves
+Generic curves.
 """
 
 from sage.misc.all import latex
 
 
-from sage.schemes.generic.algebraic_scheme import (
-    AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_projective)
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 from sage.schemes.generic.divisor_group import DivisorGroup
 
@@ -14,6 +13,8 @@ from sage.schemes.generic.divisor import Divisor_curve
 
 class Curve_generic(AlgebraicScheme_subscheme):
     r"""
+    Generic curve class.
+
     EXAMPLES::
 
         sage: A.<x,y,z> = AffineSpace(QQ,3)
@@ -24,26 +25,41 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
     def _repr_(self):
         """
+        Return a string representation of this curve.
+
         EXAMPLES::
 
             sage: A.<x,y,z> = AffineSpace(QQ,3)
             sage: C = Curve([x-y,z-2])
             sage: C
-            Affine Space Curve over Rational Field defined by x - y, z - 2
+            Affine Curve over Rational Field defined by x - y, z - 2
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: C = Curve(x-y)
             sage: C
-            Projective Curve over Rational Field defined by x - y
+            Projective Plane Curve over Rational Field defined by x - y
         """
         return "%s Curve over %s defined by %s"%(
             self._repr_type(), self.base_ring(), ', '.join([str(x) for x in self.defining_polynomials()]))
 
     def _repr_type(self):
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([w^3 - z^3, w*x - x^2])
+            sage: from sage.schemes.curves.curve import Curve_generic
+            sage: Curve_generic._repr_type(C)
+            'Generic'
+        """
         return "Generic"
 
     def _latex_(self):
         """
+        Return a latex representation of this curve.
+
         EXAMPLES::
 
             sage: x,y,z = PolynomialRing(QQ, 3, names='x,y,z').gens()
@@ -179,6 +195,3 @@ class Curve_generic(AlgebraicScheme_subscheme):
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union
-
-class Curve_generic_projective(Curve_generic, AlgebraicScheme_subscheme_projective):
-    pass

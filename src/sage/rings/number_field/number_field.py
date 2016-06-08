@@ -633,7 +633,11 @@ class NumberFieldFactory(UniqueFactory):
         base, polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure = key
 
         if isinstance(base, NumberField_generic):
-            return base.extension(polynomial, name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings
+            from sage.rings.number_field.number_field_rel import NumberField_relative
+            # Relative number fields do not support embeddings.
+            return NumberField_relative(base, polynomial, name[0], latex_name,
+                                        check=check, embedding=None,
+                                        structure=structure)
         if polynomial.degree() == 2:
             return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         else:
@@ -4799,7 +4803,7 @@ class NumberField_generic(number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return [self(x, check=False) for x in B]
 
-    def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None, structure=None):
+    def extension(self, poly, name=None, names=None, *args, **kwds):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -4831,20 +4835,26 @@ class NumberField_generic(number_field_base.NumberField):
             sage: R.<z> = k[]
             sage: L.<b> = NumberField(z^3 + 3 + a); L
             Number Field in b with defining polynomial z^3 + a0 + 3 over its base field
+
+        Extension fields with given defining data are unique
+        (:trac:20791)::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.extension(x^2 - 2, 'b') is K.extension(x^2 - 2, 'b')
+            True
         """
         if not isinstance(poly, polynomial_element.Polynomial):
             try:
                 poly = poly.polynomial(self)
             except (AttributeError, TypeError):
                 raise TypeError("polynomial (=%s) must be a polynomial."%repr(poly))
-        if not names is None:
+        if poly.base_ring() is not self:
+            poly = poly.change_ring(self)
+        if names is not None:
             name = names
         if isinstance(name, tuple):
             name = name[0]
-        if name is None:
-            raise TypeError("the variable name must be specified.")
-        from sage.rings.number_field.number_field_rel import NumberField_relative
-        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding, latex_name=latex_name, structure=structure)
+        return NumberField(poly, name, *args, **kwds)
 
     def factor(self, n):
         r"""

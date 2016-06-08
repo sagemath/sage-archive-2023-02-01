@@ -47,11 +47,11 @@ from functools import reduce
 
 def _binomial_sum(n, k):
     r"""
-    Given ``n`` and ``k``, computes the number of subsets of a set with `n` distinct elements with cardinality`<=k`. Used to compute dimension of binomial reed muller code.
+    Returns the sum of all binomials `\binom{n}{i}`, with `i` ranging from `0` to `k`.
+
     INPUT:
 
-        - ``n`` -- The cardinality of the super set.
-        - ``k`` -- The upper limit on the size of the subset.
+    - ``n, k`` - integers
 
     EXAMPLES::
 
@@ -73,16 +73,18 @@ def _multivariate_polynomial_interpolation(
         order,
         polynomial_ring):
     r"""
-    Given the evaluation of a multivariate polynomial of certain number of variables and certain degree over `F` on every point, this function returns the polynomial.
+    Returns a multivariate polynomial over `polynomial_ring`, with `num_of_var` variables
+    and of degree `order` from the list of the evaluation of this polynomial at all the points.
+
     INPUT:
 
-        - ``evaluation`` -- A vector or a list of evaluation of the polynomial at all the points.
+    - ``evaluation`` -- A vector or a list of evaluation of the polynomial at all the points.
 
-        - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in the polynomial to interpolate
 
-        - ``order`` -- The degree of the polynomial in question.
+    - ``order`` -- The degree of the polynomial to interpolate
 
-        - ``polynomial_ring`` -- The Polynomial Ring the polynomial in question is from
+    - ``polynomial_ring`` -- The Polynomial Ring the polynomial in question is from
 
     EXAMPLES::
 
@@ -127,7 +129,9 @@ def _multivariate_polynomial_interpolation(
 
 def ReedMullerCode(base_field, order, num_of_var):
     r"""
-    Returns a Reed Muller code. If the given field is binary it returns a binary Reed Muller code, otherwise it returns a q-ary Reed Muller Code.
+    Returns a Reed Muller code.
+    If the given field is binary it returns a binary Reed Muller code,
+    otherwise it returns a q-ary Reed Muller Code.
 
     INPUT:
 
@@ -137,7 +141,13 @@ def ReedMullerCode(base_field, order, num_of_var):
 
     - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
-    EXAMPLES::
+    .. WARNING::
+
+        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q.
+        For now, this implementation only supports Reed-Muller codes whose order is less than q.
+        Binary reed muller codes must have it's order less than or equal to the number of variables.
+
+    EXAMPLES:
 
     A Reed-Muller code can be constructed by using a predefined field or using the value of q::
 
@@ -152,12 +162,6 @@ def ReedMullerCode(base_field, order, num_of_var):
         sage: C = codes.ReedMullerCode(F, 2, 2)
         sage: C
         Binary Reed Muller Code of order 2 and number of variables 2
-
-    .. WARNING::
-
-        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q. For now, this implementation only supports Reed-Muller codes whose order is less than q.
-        Binary reed muller codes must have it's order less than or equal to the number of variables.
-
     """
     if not(base_field in FiniteFields):
         raise ValueError("The parameter `base_field` must be a finite field")
@@ -168,9 +172,17 @@ def ReedMullerCode(base_field, order, num_of_var):
         return QAryReedMullerCode(base_field, order, num_of_var)
 
 
+
+
+
+
+
+
+
+
 class QAryReedMullerCode(AbstractLinearCode):
     r"""
-    Representation of a q-ary Reed Muller code with `r<q`.
+    Representation of a q-ary Reed Muller code.
 
     INPUT:
 
@@ -180,19 +192,18 @@ class QAryReedMullerCode(AbstractLinearCode):
 
     - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
 
-    EXAMPLES::
+    .. WARNING::
 
-    A Reed-Muller code can be constructed by using a predefined field or using the value of q::
+        The order of a reed muller code must be LESS THAN q.
+        For now, this implementation only supports Reed-Muller codes whose order is less than q.
+
+    EXAMPLES::
 
         sage: from sage.coding.reed_muller_code import QAryReedMullerCode
         sage: F = GF(3)
         sage: C = QAryReedMullerCode(F, 2, 2)
         sage: C
         3-ary Reed Muller Code of order 2 and number of variables 2
-
-    .. WARNING::
-
-        For q-ary reed muller codes, the order of reed muller code must be LESS THAN q. For now, this implementation only supports Reed-Muller codes whose order is less than q.
     """
 
     _registered_encoders = {}
@@ -342,6 +353,14 @@ class QAryReedMullerCode(AbstractLinearCode):
             and self.number_of_variables() == other.number_of_variables()
 
 
+
+
+
+
+
+
+
+
 class BinaryReedMullerCode(AbstractLinearCode):
     r"""
     Representation of a binary Reed Muller code with `r<=m`.
@@ -362,12 +381,6 @@ class BinaryReedMullerCode(AbstractLinearCode):
 
     .. WARNING::
         The order of reed muller code here must be LESS THAN OR EQUAL TO the number of variables.
-
-    .. WARNING::
-
-        This version of the method is made available to the user only temporarily to maintain support for an older version of binary reed muller codes.
-        It will be preferable for you if you use the function ReedMullerCode() to generate your code.
-
     """
 
     _registered_encoders = {}
@@ -488,6 +501,14 @@ class BinaryReedMullerCode(AbstractLinearCode):
         return isinstance(other, BinaryReedMullerCode) \
             and self.order() == other.order() \
             and self.number_of_variables() == other.number_of_variables()
+
+
+
+
+
+
+
+
 
 
 class ReedMullerVectorEncoder(Encoder):
@@ -618,6 +639,14 @@ class ReedMullerVectorEncoder(Encoder):
             matrix_list.append(
                 [reduce(mul, [x[i] for i in exponent], 1) for x in base_field_tuple])
         return matrix(base_field, matrix_list)
+
+
+
+
+
+
+
+
 
 
 class ReedMullerPolynomialEncoder(Encoder):
@@ -871,17 +900,15 @@ class ReedMullerPolynomialEncoder(Encoder):
         """
         return self._polynomial_ring
 
-QAryReedMullerCode._registered_encoders[
-    "EvaluationVector"] = ReedMullerVectorEncoder
-QAryReedMullerCode._registered_encoders[
-    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+
+####################### registration ###############################
+
+QAryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
+QAryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
 QAryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 
-BinaryReedMullerCode._registered_encoders[
-    "EvaluationVector"] = ReedMullerVectorEncoder
-BinaryReedMullerCode._registered_encoders[
-    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+BinaryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
+BinaryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
-BinaryReedMullerCode._registered_decoders[
-    "Syndrome"] = LinearCodeSyndromeDecoder
+BinaryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder

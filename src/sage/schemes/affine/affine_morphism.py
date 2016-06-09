@@ -431,9 +431,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.homogenize(2)
             Scheme endomorphism of Closed subscheme of Projective Space
             of dimension 2 over Integer Ring defined by:
-              -x1^2 + x0*x2
-              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
-                    (9*x1^2 : 3*x1*x2 : x2^2)
+                x1^2 - x0*x2
+                Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                      (9*x1^2 : 3*x1*x2 : x2^2)
 
         ::
 

@@ -21,7 +21,9 @@ from sage.categories.all import GradedModulesWithBasis
 from sage.combinat.free_module import (CombinatorialFreeModule,
                                        CombinatorialFreeModuleElement)
 from sage.combinat.words.alphabet import Alphabet
-from sage.combinat.rooted_tree import RootedTrees, LabelledRootedTrees
+from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
+                                       LabelledRootedTrees,
+                                       LabelledRootedTree)
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
@@ -147,8 +149,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         if names.cardinality() == 1:
             Trees = RootedTrees()
+            key = RootedTree.sort_key
         else:
             Trees = LabelledRootedTrees()
+            key = LabelledRootedTree.sort_key
         # Here one would need LabelledRootedTrees(names)
         # so that one can restrict the labels to some fixed set
 
@@ -156,7 +160,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         cat = MagmaticAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
-                                         sorting_key=lambda x: x.sort_key(),
+                                         sorting_key=key,
                                          category=cat)
 
     def variable_names(self):

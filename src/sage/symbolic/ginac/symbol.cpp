@@ -198,16 +198,13 @@ void symbol::set_domain(unsigned d)
                 case domain::positive:
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::positive, true);
-                        iflags.set(info_flags::nonnegative, true);
                         break;
                 case domain::integer:
                         if(iflags.get(info_flags::positive)) {
                                 iflags.set(info_flags::positive, true);
-                                iflags.set(info_flags::nonnegative, true);
                         }
                         else {
                                 iflags.set(info_flags::positive, false);
-                                iflags.set(info_flags::nonnegative, false);
                         }
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::integer, true);
@@ -262,7 +259,7 @@ ex symbol::real_part() const
 ex symbol::imag_part() const
 {
 	if (domain==domain::real || domain==domain::positive)
-		return 0;
+		return _ex0;
 	return imag_part_function(*this).hold();
 }
 

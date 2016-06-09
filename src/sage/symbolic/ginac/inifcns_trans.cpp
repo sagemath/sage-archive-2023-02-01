@@ -391,7 +391,7 @@ static ex log_real_part(const ex & x)
 static ex log_imag_part(const ex & x)
 {
 	if (x.info(info_flags::positive))
-		return 0;
+		return _ex0;
 	return atan2(GiNaC::imag_part(x), GiNaC::real_part(x));
 }
 

@@ -1530,7 +1530,6 @@ void function::set_domain(unsigned d)
                 case domain::positive:
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::positive, true);
-                        iflags.set(info_flags::nonnegative, true);
                         break;
                 case domain::integer:
                         iflags.set(info_flags::real, true);
@@ -1561,7 +1560,7 @@ bool function::info(unsigned inf) const
                 case info_flags::positive:
                         return arg.info(info_flags::real) and
                                 is_exactly_a<numeric>(arg) and
-                                ex_to<numeric>(arg) >= *_num1_p;
+                                ex_to<numeric>(arg) > *_num1_p;
                 case info_flags::negative:
                         return arg.info(info_flags::real) and
                                 is_exactly_a<numeric>(arg) and

@@ -471,22 +471,22 @@ relational::result relational::decide() const
                         else
                                 return result::notimplemented;
                 case less:
-                        if (df.info(info_flags::nonzero) and (-df).info(info_flags::positive))
-                                return result::True;
-                        else
-                                return result::notimplemented;
-                case greater:
-                        if (df.info(info_flags::nonzero) and df.info(info_flags::positive))
-                                return result::True;
-                        else
-                                return result::notimplemented;
-		case less_or_equal:
                         if ((-df).info(info_flags::positive))
                                 return result::True;
                         else
                                 return result::notimplemented;
-		case greater_or_equal:
+                case greater:
                         if (df.info(info_flags::positive))
+                                return result::True;
+                        else
+                                return result::notimplemented;
+		case less_or_equal:
+                        if (df.is_zero() or (-df).info(info_flags::positive))
+                                return result::True;
+                        else
+                                return result::notimplemented;
+		case greater_or_equal:
+                        if (df.is_zero() or df.info(info_flags::positive))
                                 return result::True;
                         else
                                 return result::notimplemented;

@@ -154,9 +154,11 @@ bool constant::info(unsigned inf) const
         if (inf == info_flags::inexact)
                 return false;
 	if (inf == info_flags::real)
-		return domain==domain::real || domain==domain::positive ;
-	if (inf==info_flags::positive || inf==info_flags::nonnegative)
+		return domain==domain::real or domain==domain::positive ;
+	if (inf==info_flags::positive)
 		return domain == domain::positive;
+	if (inf==info_flags::nonnegative)
+		return domain == domain::positive and evalf(0, nullptr).is_zero();
 	if (inf==info_flags::infinity) {
 		return domain == domain::infinity;
 	}
@@ -196,7 +198,7 @@ ex constant::real_part() const
 ex constant::imag_part() const
 {
 	if ( domain==domain::real || domain==domain::positive )
-		return 0;
+		return _ex0;
 	return imag_part_function(*this).hold();
 }
 

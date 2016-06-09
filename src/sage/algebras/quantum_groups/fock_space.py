@@ -38,7 +38,11 @@ from sage.combinat.partition import (Partition, _Partitions,
         RegularPartitions_all, RegularPartitions_truncated)
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.partition_tuple import PartitionTuples
+
 from sage.algebras.quantum_groups.q_numbers import q_factorial
+# should use instead :
+# from sage.combinat.q_analogues import q_factorial
+
 
 class FockSpace(CombinatorialFreeModule):
     r"""
@@ -109,7 +113,8 @@ class FockSpace(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          prefix='', bracket=['|', '>'],
                                          latex_bracket=['\\lvert', '\\rangle'],
-                                         monomial_cmp=lambda x,y: -cmp(x,y),
+                                         sorting_key=lambda x: x,
+                                         sorting_reverse=True,
                                          category=ModulesWithBasis(base_ring))
 
     def __getitem__(self, i):
@@ -566,7 +571,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             indices = PartitionTuples(level=len(basic._fock._r), regular=basic._fock._n)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='A', bracket=False,
-                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             sorting_key=lambda x: x,
+                                             sorting_reverse=True,
                                              category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._A_to_fock_basis,
                                  triangular='upper', unitriangular=True,
@@ -785,7 +791,8 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             indices = PartitionTuples(level=len(basic._fock._r), regular=basic._fock._n)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='G', bracket=False,
-                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             sorting_key=lambda x: x,
+                                             sorting_reverse=True,
                                              category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._G_to_fock_basis,
                                  triangular='upper', unitriangular=True,
@@ -1299,7 +1306,8 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             indices = RegularPartitions_truncated(basic._fock._n, basic._fock._k)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='A', bracket=False,
-                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             sorting_key=lambda x: x,
+                                             sorting_reverse=True,
                                              category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._A_to_fock_basis,
                                  triangular='upper', unitriangular=True,
@@ -1565,7 +1573,8 @@ class HighestWeightRepresentationTruncated(Parent, UniqueRepresentation):
             indices = RegularPartitions_truncated(basic._fock._n, basic._fock._k)
             CombinatorialFreeModule.__init__(self, basic.base_ring(), indices,
                                              prefix='G', bracket=False,
-                                             monomial_cmp=lambda x,y: -cmp(x,y),
+                                             sorting_key=lambda x: x,
+                                             sorting_reverse=True,
                                              category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._G_to_fock_basis,
                                  triangular='upper', unitriangular=True,

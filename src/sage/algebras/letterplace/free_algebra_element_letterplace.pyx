@@ -91,7 +91,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = A
         if check:
             if not x.is_homogeneous():
-                raise ValueError, "Free algebras based on Letterplace can currently only work with weighted homogeneous elements"
+                raise ValueError("Free algebras based on Letterplace can currently only work with weighted homogeneous elements")
             P.set_degbound(x.degree())
             x = P._current_ring(x)
         AlgebraElement.__init__(self,P)
@@ -432,7 +432,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         if self._parent is not p._parent:
-            raise TypeError, "The two arguments must be elements in the same free algebra."
+            raise TypeError("The two arguments must be elements in the same free algebra.")
         cdef FreeAlgebra_letterplace A = self._parent
         P = A._current_ring
         p_poly = p._poly = P(p._poly)
@@ -510,7 +510,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError, "Can only add elements of the same weighted degree"
+            raise ArithmeticError("Can only add elements of the same weighted degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
@@ -549,7 +549,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             return -other
         cdef FreeAlgebraElement_letterplace right = other
         if right._poly.degree()!=self._poly.degree():
-            raise ArithmeticError, "Can only subtract elements of the same degree"
+            raise ArithmeticError("Can only subtract elements of the same degree")
         # update the polynomials
         cdef FreeAlgebra_letterplace A = self._parent
         self._poly = A._current_ring(self._poly)
@@ -617,7 +617,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         cdef FreeAlgebra_letterplace A = self._parent
         if n<0:
-            raise ValueError, "Negative exponents are not allowed"
+            raise ValueError("Negative exponents are not allowed")
         if n==0:
             return FreeAlgebraElement_letterplace(A, A._current_ring(1),
                                                   check=False)
@@ -761,6 +761,6 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         if self._parent != I.ring():
-            raise ValueError, "Can not compute normal form wrt an ideal that does not belong to %s"%self._parent
+            raise ValueError("Can not compute normal form wrt an ideal that does not belong to %s" % self._parent)
         sdeg = self._poly.degree()
         return self.reduce(self._parent._reductor_(I.groebner_basis(degbound=sdeg).gens(), sdeg))

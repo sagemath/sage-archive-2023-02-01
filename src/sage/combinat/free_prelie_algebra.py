@@ -72,7 +72,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: F = algebras.FreePreLie(ZZ, 'xyz')
         sage: x,y,z = F.gens()
         sage: (x * y) * z
-        B[x[y[], z[]]] + B[x[y[z[]]]]
+        B[x[y[z[]]]] + B[x[y[], z[]]]
         sage: (x * y) * z - x * (y * z) == (x * z) * y - x * (z * y)
         True
 
@@ -101,7 +101,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: w = F1.gen(0); w
         B[[]]
         sage: w * w * w * w
-        B[[[], [], []]] + 3*B[[[], [[]]]] + B[[[[], []]]] + B[[[[[]]]]]
+        B[[[[[]]]]] + B[[[[], []]]] + 3*B[[[], [[]]]] + B[[[], [], []]]
 
     REFERENCES:
 
@@ -156,6 +156,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         cat = MagmaticAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
+                                         sorting_key=lambda x: x.sort_key(),
                                          category=cat)
 
     def variable_names(self):
@@ -274,7 +275,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.FreePreLie(QQ, 'xy')
             sage: A.an_element()
-            B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]]
+            B[x[x[x[x[]]]]] + B[x[x[], x[x[]]]]
         """
         o = self.gen(0)
         return (o * o) * (o * o)
@@ -287,8 +288,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.FreePreLie(QQ,'@')
             sage: A.some_elements()
-            [B[[]], B[[[]]], B[[[], [[]]]] + B[[[[[]]]]],
-             B[[[], []]] + B[[[[]]]], B[[[]]]]
+            [B[[]], B[[[]]], B[[[[[]]]]] + B[[[], [[]]]], B[[[[]]]] + B[[[], []]], B[[[]]]]
 
         With several generators::
 
@@ -296,9 +296,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: A.some_elements()
             [B[x[]],
              B[x[x[]]],
-             B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]],
-             B[x[x[], x[]]] + B[x[x[x[]]]],
-             B[x[x[], y[]]] + B[x[x[y[]]]]]
+             B[x[x[x[x[]]]]] + B[x[x[], x[x[]]]],
+             B[x[x[x[]]]] + B[x[x[], x[]]],
+             B[x[x[y[]]]] + B[x[x[], y[]]]]
         """
         o = self.gen(0)
         x = o * o
@@ -331,7 +331,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.product_on_basis(x, x)
-            B[[[], [[]]]] + B[[[[[]]]]]
+            B[[[[[]]]]] + B[[[], [[]]]]
         """
         return self.sum(self.basis()[u] for u in x.graft_list(y))
 
@@ -352,7 +352,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.pre_Lie_product(x, x)
-            B[[[], [[]]]] + B[[[[[]]]]]
+            B[[[[[]]]]] + B[[[], [[]]]]
         """
         plb = self.pre_Lie_product_on_basis
         return self._module_morphism(self._module_morphism(plb, position=0,

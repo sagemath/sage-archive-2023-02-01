@@ -1369,7 +1369,7 @@ unsigned G3_SERIAL::serial = function::register_new(function_options("G", 3).
 //
 //////////////////////////////////////////////////////////////////////
 
-
+#if 0
 static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
 {
 	// classical polylogs
@@ -1609,7 +1609,7 @@ unsigned Li_SERIAL::serial = function::register_new(function_options("polylog", 
                   derivative_func(Li_deriv).
                   print_func<print_latex>(Li_print_latex).
                   do_not_evalf_params());
-
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //

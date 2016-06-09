@@ -1065,7 +1065,7 @@ class AbstractTree(object):
                 return str(t.label())
             else:
                 return u"o"
-        # autres choix possibles pour les noeuds u"█▓░╋╬"
+        # other possible choices for nodes would be u"█ ▓ ░ ╋ ╬"
 
         if self.is_empty():
             from sage.typeset.unicode_art import empty_unicode_art

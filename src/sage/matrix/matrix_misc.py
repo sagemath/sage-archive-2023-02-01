@@ -435,7 +435,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
 
     REFERENCES:
 
-    .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
+    .. [ButPer] \P. Butera and M. Pernici "Sums of permanental minors
        using Grassmann algebra", :arxiv:`1406.5337`
     """
     if permanent_only:

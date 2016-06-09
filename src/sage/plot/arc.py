@@ -15,6 +15,8 @@ Arcs of circles and ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.colors import to_mpl_color
 
@@ -45,7 +47,7 @@ class Arc(GraphicPrimitive):
     Note that the construction should be done using ``arc``::
 
         sage: from sage.plot.arc import Arc
-        sage: print Arc(0,0,1,1,pi/4,pi/4,pi/2,{})
+        sage: print(Arc(0,0,1,1,pi/4,pi/4,pi/2,{}))
         Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.785398163397 inside the sector (0.785398163397,1.57079632679)
     """
     def __init__(self, x, y, r1, r2, angle, s1, s2, options):
@@ -74,7 +76,7 @@ class Arc(GraphicPrimitive):
 
             sage: from sage.plot.arc import Arc
             sage: a = Arc(0,0,1,1,0,0,1,{})
-            sage: print loads(dumps(a))
+            sage: print(loads(dumps(a)))
             Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.0 inside the sector (0.0,1.0)
         """
         self.x = float(x)
@@ -325,7 +327,7 @@ class Arc(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.arc import Arc
-            sage: print Arc(2,3,2.2,2.2,0,2,3,{})
+            sage: print(Arc(2,3,2.2,2.2,0,2,3,{}))
             Arc with center (2.0,3.0) radii (2.2,2.2) angle 0.0 inside the sector (2.0,3.0)
         """
         return "Arc with center (%s,%s) radii (%s,%s) angle %s inside the sector (%s,%s)" % (self.x, self.y, self.r1, self.r2, self.angle, self.s1, self.s2)

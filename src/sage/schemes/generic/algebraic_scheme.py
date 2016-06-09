@@ -1231,9 +1231,18 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [   y -2*x    w    0]
             [   z   -y   -x    w]
             [   0    z -2*y    x]
+            
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian_matrix().base_ring() == P3.coordinate_ring()
+            True
         """
         R = self.ambient_space().coordinate_ring()
-        return jacobian(self.defining_polynomials(), R.gens())
+        l = self.defining_polynomials()
+        if len(l) == 0:
+            return sage.matrix.constructor.Matrix(R, 0)
+        return jacobian(l, R.gens())
 
     def Jacobian(self):
         r"""
@@ -1272,6 +1281,12 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
+        
+        This example addresses ticket :trac:`20512`::
+        
+            sage: X = P3.subscheme([])
+            sage: X.Jacobian() == P3.coordinate_ring().unit_ideal()
+            True
         """
         d = self.codimension()
         minors = self.Jacobian_matrix().minors(d)
@@ -1502,7 +1517,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         if F is None:
             F = self.base_ring()
-        X = self(F)
+        X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
                 return X.points(bound) # checks for proper bound done in points functions
@@ -3054,7 +3069,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                 PP = X.ambient_space()
                 I = X.defining_ideal().radical()
                 #check if the irrelevant ideal of any component is in the radical
-                if any([all([t in I for t in PS.gens()]) for PS in PP]):
+                if any([all([t in I for t in PS.gens()]) for PS in PP.components()]):
                     self.__dimension = -1
                 else:
                     self.__dimension = I.dimension() - PP.num_components()

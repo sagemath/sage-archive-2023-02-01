@@ -59,9 +59,10 @@ from package import (install_package,
 
 from pager import pager
 
-from sagedoc import (search_src, search_def, search_doc, browse_sage_doc,
-                     tutorial, reference, manual, developer, constructions,
-                     python_help, help)
+lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
+        'search_src', 'search_def', 'search_doc',
+        'tutorial', 'reference', 'manual', 'developer',
+        'constructions', 'python_help', 'help'])
 
 from classgraph import class_graph
 

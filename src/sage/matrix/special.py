@@ -201,8 +201,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         Matrices generated are not uniformly distributed. For unimodular
         matrices over finite field this function does not even generate
-        all of them: for example ``Matrix.random(GF(3), 2)`` never
-        generates ``[[2,0],[0,2]]``. This function is made for
+        all of them: for example ``Matrix.random(GF(3), 2, algorithm='unimodular')``
+        never generates ``[[2,0],[0,2]]``. This function is made for
         teaching purposes.
 
     .. warning::
@@ -1880,7 +1880,6 @@ def block_matrix(*args, **kwds):
             if ncols is None:
                 if n.is_square():
                     import warnings
-                    warnings.resetwarnings()
                     warnings.warn("invocation of block_matrix with just a list whose length is a perfect square is deprecated. See the documentation for details.", DeprecationWarning, stacklevel=2)
                     nrows = ncols = n.sqrt()
                 else:

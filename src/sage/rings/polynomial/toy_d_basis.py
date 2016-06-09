@@ -278,7 +278,7 @@ def select(P):
         sage: fx = f.derivative(x)
         sage: fy = f.derivative(y)
         sage: G = [f, fx, fy]
-        sage: B = set(filter(lambda (x,y): x!=y, [(f1,f2) for f1 in G for f2 in G]))
+        sage: B = set((f1, f2) for f1 in G for f2 in G if f1 != f2)
         sage: select(B)
         (-2*y - 1, 3*x^2 + 7)
     """

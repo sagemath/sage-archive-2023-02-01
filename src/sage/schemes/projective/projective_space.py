@@ -67,6 +67,8 @@ AUTHORS:
 - Ben Hutz: (June 2012): support for rings
 
 - Ben Hutz (9/2014): added support for Cartesian products
+
+- Rebecca Lauren Miller (March 2016) : added point_transformation_matrix
 """
 
 #*****************************************************************************
@@ -76,6 +78,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.all import (PolynomialRing,
                             Integer,
@@ -89,7 +92,7 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 _Fields = Fields()
 
-from sage.categories.homset import Hom
+from sage.categories.homset import Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.categories.map import Map
 
@@ -419,7 +422,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: print latex(ProjectiveSpace(1, ZZ, 'x'))
+            sage: print(latex(ProjectiveSpace(1, ZZ, 'x')))
             {\mathbf P}_{\Bold{Z}}^1
 
         TESTS::
@@ -907,6 +910,74 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.product_projective.space import ProductProjectiveSpaces
         return ProductProjectiveSpaces([self, other])
 
+    def chebyshev_polynomial(self, n, kind='first'):
+        """
+        Generates an endomorphism of this projective line by a Chebyshev polynomial.
+    
+        Chebyshev polynomials are a sequence of recursively defined orthogonal
+        polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
+        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
+        the second kind are defined as `U_0(x) = 1`,
+        `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
+    
+        INPUT:
+    
+        - ``n`` -- a non-negative integer.
+    
+        - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
+          to generate. Defaults to ``first``.
+    
+        OUTPUT: :class:`SchemeMorphism_polynomial_projective_space`
+    
+        EXAMPLES::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(5, 'first')
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x : y) to
+            (16*x^5 - 20*x^3*y^2 + 5*x*y^4 : y^5)
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(3, 'second')
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x : y) to
+            (8*x^3 - 4*x*y^2 : y^3)
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: keyword 'kind' must have a value of either 'first' or 'second'
+    
+        ::
+    
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P.chebyshev_polynomial(-4, 'second')
+            Traceback (most recent call last):
+            ...
+            ValueError: first parameter 'n' must be a non-negative integer
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 2, 'x')
+            sage: P.chebyshev_polynomial(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: projective space must be of dimension 1
+        """
+        if self.dimension_relative() != 1:
+            raise TypeError("projective space must be of dimension 1")
+        n = ZZ(n)
+        if (n < 0):
+            raise ValueError("first parameter 'n' must be a non-negative integer")
+        #use the affine version and then homogenize.        
+        A = self.affine_patch(1)
+        f = A.chebyshev_polynomial(n, kind)
+        return f.homogenize(1)
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -960,7 +1031,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         Bound check is strict for the rational field. Requires self to be projective space
         over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
-        up to a given height [Doyle-Krumm].
+        up to a given height [Doyle-Krumm]_.
 
         INPUT:
 
@@ -974,7 +1045,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         .. WARNING::
 
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
            cannot be guaranteed to be correct due to the necessity of floating point
            computations. In some cases, the default 53-bit precision is
            considerably lower than would be required for the algorithm to
@@ -1031,6 +1102,157 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     P[j] = zero
                     j += 1
             i -= 1
+
+    def point_transformation_matrix(self, points_source, points_target):
+        r"""
+
+        Returns a unique element of PGL that transforms one set of points to another.
+
+        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
+        points in the same projective space, such that no n+1 points of each set are linearly dependent
+        finds the unique element of PGL that translates the source points to the target points.
+
+
+        Warning :: will not work over precision fields
+
+        INPUT:
+
+            - ``points_source`` - points in source projective space.
+
+            - ``points_target`` - points in target projective space.
+
+        OUTPUT: Transformation matrix - element of PGL.
+
+        EXAMPLES::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: m = P1.point_transformation_matrix(points_source, points_target); m
+            [ -13/59 -128/59  -25/59]
+            [538/177    8/59  26/177]
+            [ -45/59 -196/59       1]
+            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
+            [True, True, True, True]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
+            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [10  4]
+            [10  1]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not independent
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not independent
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in source, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in target, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not in self
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not in self
+        """
+        r = self.base_ring()
+        n = self.dimension_relative()
+        P = ProjectiveSpace(r, n**2+2*n,'p')
+        # makes sure there aren't to few or two many points
+        if len(points_source)!= n + 2:
+            raise ValueError ("incorrect number of points in source, need %d points"%(n+2))
+        if len(points_target)!= n + 2:
+            raise ValueError ("incorrect number of points in target, need %d points"%(n+2))
+        if any([x.codomain()!=self for x in points_source]):
+            raise ValueError ("source points not in self")
+        if any([x.codomain()!=self for x in points_target]):
+            raise ValueError ("target points not in self")
+        # putting points as the rows of the matrix
+        Ms = matrix(r, [list(s) for s in points_source])
+        if any([m == 0 for m in Ms.minors(n+1)]):
+            raise ValueError("source points not independent")
+        Mt = matrix(r, [list(t) for t in points_target])
+        if any([l == 0 for l in Mt.minors(n+1)]):
+            raise ValueError("target points not independent")
+        A = matrix(P.coordinate_ring(), n+1, n+1, P.gens())
+        #transpose to get image points and then get the list of image points with columns
+        funct = (A*Ms.transpose()).columns()
+        eq = []
+        for k in range(n+2):# n+2 num f point and n is size of pts
+            eq = eq+ [funct[k][i]*points_target[k][j] - funct[k][j]*points_target[k][i]\
+                for i in range(0,n+1) for j in range(i+1, n+1)]
+        v = P.subscheme(eq)
+        w = v.rational_points()
+        return matrix(r, n+1, n+1, list(w[0]))
+
+    def curve(self,F):
+        r"""
+        Return a curve defined by ``F`` in this projective space.
+
+        INPUT:
+
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
+          of this projective space.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P.curve([y^2 - x*z])
+            Projective Curve over Rational Field defined by y^2 - x*z
+        """
+        from sage.schemes.plane_curves.constructor import Curve
+        return Curve(F, self)
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):

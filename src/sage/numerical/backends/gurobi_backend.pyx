@@ -26,11 +26,25 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from __future__ import print_function
+
 include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
 
 cdef class GurobiBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the Gurobi solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="Gurobi")                # optional - Gurobi
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - Gurobi
+    """
+
     def __init__(self, maximization = True):
         """
         Constructor
@@ -196,8 +210,21 @@ cdef class GurobiBackend(GenericBackend):
             4
             sage: p.ncols()                                                                # optional - Gurobi
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])      # optional - Gurobi
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - Gurobi
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - Gurobi
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - Gurobi
+            True
+            sage: p.col_name(5)              # optional - Gurobi
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - Gurobi
+            42.0
         """
         cdef int i
         cdef int value
@@ -329,14 +356,14 @@ cdef class GurobiBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver      # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                   # optional - Gurobi
             sage: p.problem_name("There once was a french fry")                       # optional - Gurobi
-            sage: print p.problem_name()                                              # optional - Gurobi
+            sage: print(p.problem_name())                                             # optional - Gurobi
             There once was a french fry
 
         TESTS::
 
             sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
-            sage: print p.problem_name()                                            # optional - Gurobi
+            sage: print(p.problem_name())                                           # optional - Gurobi
         """
         cdef int error
         cdef char * pp_name[1]
@@ -1146,7 +1173,7 @@ cdef class GurobiBackend(GenericBackend):
         else:
             raise RuntimeError("This should not happen.")
 
-    cpdef GurobiBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -1160,7 +1187,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: copy(p).solve()                                                   # optional - Gurobi
             6.0
         """
-        cdef GurobiBackend p = GurobiBackend(maximization = self.is_maximization())
+        cdef GurobiBackend p = type(self)(maximization = self.is_maximization())
         p.model = GRBcopymodel(self.model)
         p.env = GRBgetenv(p.model)
         return p

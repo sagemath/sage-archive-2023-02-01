@@ -12,6 +12,7 @@ Symbolic Integration
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************`
+from __future__ import print_function
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, Function
@@ -466,14 +467,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z
         sage: g = mathematica(f)                           # optional - mathematica
-        sage: print g                                      # optional - mathematica
+        sage: print(g)                                      # optional - mathematica
                   z        2
                  y  + Sin[x ]
-        sage: print g.Integrate(x)                         # optional - mathematica
+        sage: print(g.Integrate(x))                         # optional - mathematica
                     z        Pi                2
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
-        sage: print f.integral(x)
+        sage: print(f.integral(x))
         x*y^z + 1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
@@ -736,8 +737,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(f(z,1)*f(z,3)*f(z,5)*f(z,7),z,0,oo)
         22/315*pi
         sage: for k in srange(1, 16, 2):
-        ....:     print integrate(prod(f(z, ell)
-        ....:                     for ell in srange(1, k+1, 2)), z, 0, oo)
+        ....:     print(integrate(prod(f(z, ell)
+        ....:                     for ell in srange(1, k+1, 2)), z, 0, oo))
         1/2*pi
         1/6*pi
         1/10*pi

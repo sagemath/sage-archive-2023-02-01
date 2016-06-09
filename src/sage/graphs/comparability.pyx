@@ -209,7 +209,7 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "cysignals/memory.pxi"
 
@@ -626,31 +626,31 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
 
        sage: from sage.graphs.comparability import is_permutation
        sage: for i in range(20):
-       ...       p = Permutations(10).random_element()
-       ...       g1 = graphs.PermutationGraph(p)
-       ...       isit, certif = is_permutation(g1, certificate = True)
-       ...       if not isit:
-       ...          print "Something is wrong here !!"
-       ...          break
-       ...       g2 = graphs.PermutationGraph(*certif)
-       ...       if not g1.is_isomorphic(g2):
-       ...          print "Something is wrong here !!"
-       ...          break
+       ....:     p = Permutations(10).random_element()
+       ....:     g1 = graphs.PermutationGraph(p)
+       ....:     isit, certif = is_permutation(g1, certificate = True)
+       ....:     if not isit:
+       ....:        print("Something is wrong here !!")
+       ....:        break
+       ....:     g2 = graphs.PermutationGraph(*certif)
+       ....:     if not g1.is_isomorphic(g2):
+       ....:        print("Something is wrong here !!")
+       ....:        break
 
     Then with MILP::
 
        sage: from sage.graphs.comparability import is_permutation
        sage: for i in range(20):
-       ...       p = Permutations(10).random_element()
-       ...       g1 = graphs.PermutationGraph(p)
-       ...       isit, certif = is_permutation(g1, algorithm = "MILP", certificate = True)
-       ...       if not isit:
-       ...          print "Something is wrong here !!"
-       ...          break
-       ...       g2 = graphs.PermutationGraph(*certif)
-       ...       if not g1.is_isomorphic(g2):
-       ...          print "Something is wrong here !!"
-       ...          break
+       ....:     p = Permutations(10).random_element()
+       ....:     g1 = graphs.PermutationGraph(p)
+       ....:     isit, certif = is_permutation(g1, algorithm = "MILP", certificate = True)
+       ....:     if not isit:
+       ....:        print("Something is wrong here !!")
+       ....:        break
+       ....:     g2 = graphs.PermutationGraph(*certif)
+       ....:     if not g1.is_isomorphic(g2):
+       ....:        print("Something is wrong here !!")
+       ....:        break
 
     """
     from sage.graphs.comparability import is_comparability

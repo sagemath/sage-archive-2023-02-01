@@ -76,6 +76,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent_gens import localvars
 
@@ -712,9 +713,9 @@ class NumberField_relative(NumberField_generic):
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L.<z> = K.extension(Z^3 + 2)
             sage: K = loads(dumps(L))
-            sage: print K
+            sage: K
             Number Field in z with defining polynomial Z^3 + 2 over its base field
-            sage: print L == K
+            sage: L == K
             True
 
         The structure of a relative number field is lost when pickling, this is
@@ -1324,7 +1325,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: for g in G:
             ....:   if L1.is_isomorphic_relative(L2, g.as_hom()):
-            ....:       print g.as_hom()
+            ....:       print(g.as_hom())
             Ring endomorphism of Number Field in z9 with defining polynomial x^6 + x^3 + 1
               Defn: z9 |--> z9^4
         """

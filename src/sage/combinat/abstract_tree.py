@@ -62,6 +62,8 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
@@ -979,7 +981,7 @@ class AbstractTree(object):
             if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
             else: lf_sep += "_"*(t_repr._l+1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
         node = node_to_str( self )
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid
@@ -1174,7 +1176,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = BinaryTree()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                              \\
@@ -1187,14 +1189,14 @@ class AbstractTree(object):
                 r"""
                 TESTS::
 
-                    sage: t = BinaryTree([]); print latex(t)
+                    sage: t = BinaryTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                      \nodea  \\
                     };
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([]); print latex(t)
+                    sage: t = OrderedTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
@@ -1257,7 +1259,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[[],[]],[[],[]]]).\
-                    ....:     canonical_labelling(); print latex(t)
+                    ....:     canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1276,7 +1278,7 @@ class AbstractTree(object):
                         (e) edge (f) edge (g)
                         (a) edge (b) edge (e);
                     \end{tikzpicture}}
-                    sage: t = BinaryTree([[],[[],[]]]); print latex(t)
+                    sage: t = BinaryTree([[],[[],[]]]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$$}
@@ -1321,7 +1323,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[]]).canonical_labelling()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\begin{tikzpicture}[auto]
@@ -1332,7 +1334,7 @@ class AbstractTree(object):
                     <BLANKLINE>
                     \path[ultra thick, red] (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1347,7 +1349,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1363,7 +1365,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d) edge (e)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1724,7 +1726,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LBTS = LabelledOrderedTrees()
             sage: class Foo(LabelledOrderedTree):
             ....:     def bar(self):
-            ....:         print "bar called"
+            ....:         print("bar called")
             sage: foo = Foo(LBTS, [], label=1); foo
             1[]
             sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1

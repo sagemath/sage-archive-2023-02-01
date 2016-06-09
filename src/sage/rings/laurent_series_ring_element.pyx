@@ -51,6 +51,7 @@ AUTHORS:
 
 - Robert Bradshaw: Cython version
 """
+from __future__ import print_function
 
 import operator
 
@@ -134,7 +135,6 @@ cdef class LaurentSeries(AlgebraElement):
 
 
         # self is that t^n * u:
-        cdef long val
         if not f:
             if n == infinity:
                 self.__n = 0
@@ -144,7 +144,10 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f
         else:
             val = f.valuation()
-            if val == 0:
+            if val == infinity:
+                self.__n = 0
+                self.__u = f
+            elif val == 0:
                 self.__n = n    # power of the variable
                 self.__u = f    # unit part
             else:
@@ -416,7 +419,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: R.<t> = LaurentSeriesRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0
@@ -524,7 +527,7 @@ cdef class LaurentSeries(AlgebraElement):
             ...
             IndexError: Laurent series are immutable
         """
-        raise IndexError, "Laurent series are immutable"
+        raise IndexError("Laurent series are immutable")
 
     def _unsafe_mutate(self, i, value):
         """
@@ -717,7 +720,7 @@ cdef class LaurentSeries(AlgebraElement):
         cdef LaurentSeries self = _self
         right=int(r)
         if right != r:
-            raise ValueError, "exponent must be an integer"
+            raise ValueError("exponent must be an integer")
         return LaurentSeries(self._parent, self.__u**right, self.__n*right)
 
     def shift(self, k):
@@ -827,7 +830,7 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__n - right.__n)
         except TypeError as msg:
             # todo: this could also make something in the formal fraction field.
-            raise ArithmeticError, "division not defined"
+            raise ArithmeticError("division not defined")
 
     def common_prec(self, other):
         r"""
@@ -1250,8 +1253,7 @@ cdef class LaurentSeries(AlgebraElement):
         cdef long i, n = self.__n
         a = self.__u.list()
         if self[-1] != 0:
-            raise ArithmeticError, \
-                  "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
+            raise ArithmeticError("The integral of is not a Laurent series, since t^-1 has nonzero coefficient.")
 
         if n < 0:
             v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
@@ -1261,7 +1263,7 @@ cdef class LaurentSeries(AlgebraElement):
         try:
             u = self._parent.power_series_ring()(v, self.__u.prec())
         except TypeError:
-            raise ArithmeticError, "Coefficients of integral cannot be coerced into the base ring"
+            raise ArithmeticError("Coefficients of integral cannot be coerced into the base ring")
         return LaurentSeries(self._parent, u, n+1)
 
 
@@ -1353,7 +1355,7 @@ cdef class LaurentSeries(AlgebraElement):
             name = self.parent().variable_name()
             if name in kwds: # a keyword specifies the Laurent series generator
                 if len(x) > 0:
-                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                    raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
                 try:

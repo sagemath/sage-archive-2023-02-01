@@ -50,7 +50,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -2025,7 +2025,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##         cdef Py_ssize_t k
 
 ##         if not self.is_square():
-##             raise ArithmeticError, "self must be a square matrix"
+##             raise ArithmeticError("self must be a square matrix")
 
 ##         if self.nrows() == 0:
 ##             return decomp_seq([])
@@ -2105,7 +2105,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##                         W.rank(), m*g.degree()), level=2, caller_name='simple decomp')
 ##                     j += 1
 ##                     if j > 3*m:
-##                         raise RuntimeError, "likely bug in decomposition"
+##                         raise RuntimeError("likely bug in decomposition")
 ##                 # end if
 ##             #end while
 ##         #end for
@@ -2308,17 +2308,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
         ``.T`` is a convenient shortcut for the transpose::
 
-            sage: print A.T
+            sage: print(A.T)
             [0 3]
             [1 4]
             [2 5]

@@ -116,17 +116,17 @@ removed before passing the data to TOPCOM which cannot handle it::
 
 REFERENCES:
 
-    .. [TOPCOM]
-       J. Rambau,
-       TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+.. [TOPCOM]
+   J. Rambau,
+   TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
-    .. [GKZ]
-       Gel'fand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
-       "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994.
+.. [GKZ]
+   Gel'fand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
+   "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994.
 
-    .. [PUNTOS]
-       Jesus A. De Loera
-       http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
+.. [PUNTOS]
+   Jesus A. De Loera
+   http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
 AUTHORS:
 
@@ -166,6 +166,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element

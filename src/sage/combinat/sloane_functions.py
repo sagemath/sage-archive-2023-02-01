@@ -55,7 +55,7 @@ We agree with the online database::
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
-    ....:         print t, 'seems wrong'
+    ....:         print('{} seems wrong'.format(t))
 
 .. SEEALSO::
 
@@ -122,6 +122,7 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
+from __future__ import print_function
 
 import inspect
 from sage.structure.sage_object import SageObject
@@ -372,7 +373,7 @@ class A000001(SloaneSequence):
         try:
             return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
         except Exception:  # help, don't know what to do here? Jaap
-            print "Install database_gap first. See optional packages"
+            print("Install database_gap first. See optional packages")
 
 
 

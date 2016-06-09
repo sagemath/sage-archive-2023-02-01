@@ -10,6 +10,7 @@ Affine Permutations
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
@@ -689,8 +690,8 @@ class AffinePermutationTypeA(AffinePermutation):
                     y=y.apply_simple_reflection(j,side)
                     T.append(j%(k+1))
             if verbose:
-                print i, T
-            if len(T)>len(best_T):
+                print(i, T)
+            if len(T) > len(best_T):
                 best_T=T
         #if (typ[0],side[0])==('i','r'): best_T.reverse()
         #if (typ[0],side[0])==('d','l'): best_T.reverse()
@@ -745,7 +746,8 @@ class AffinePermutationTypeA(AffinePermutation):
         """
         y=self.clone()
         listy=[]
-        if verbose: print 'length of x:', self.length()
+        if verbose:
+            print('length of x:', self.length())
         while not y.is_one():
             S=y.maximal_cyclic_factor(typ, side, verbose)
             listy.append(S[:])
@@ -755,7 +757,8 @@ class AffinePermutationTypeA(AffinePermutation):
                     y=y.apply_simple_reflection_right(i)
                 else:
                     y=y.apply_simple_reflection_left(i)
-            if verbose: print S, y.length()
+            if verbose:
+                print(S, y.length())
         if side[0]=='r': listy.reverse()
         return listy
 

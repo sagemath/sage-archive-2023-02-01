@@ -11,7 +11,7 @@ Constructors for special matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -1831,7 +1831,7 @@ def block_matrix(*args, **kwds):
     if len(args) == 0:
         args = [[]]
     if len(args) > 1:
-        print args
+        print(args)
         raise TypeError("invalid block_matrix invocation")
 
     sub_matrices = args[0]

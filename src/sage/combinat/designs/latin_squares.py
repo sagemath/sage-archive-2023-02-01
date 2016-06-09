@@ -122,6 +122,8 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 
@@ -181,18 +183,18 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     k = len(l)
     if any(M.ncols() != n or M.nrows() != n for M in l):
         if verbose:
-            print "Not all matrices are square matrices of the same dimensions"
+            print("Not all matrices are square matrices of the same dimensions")
         return False
 
     # Check that all matrices are latin squares
     for i,M in enumerate(l):
         if any(len(set(R)) != n for R in M):
             if verbose:
-                print "Matrix {} is not row latin".format(i)
+                print("Matrix {} is not row latin".format(i))
             return False
         if any(len(set(R)) != n for R in zip(*M)):
             if verbose:
-                print "Matrix {} is not column latin".format(i)
+                print("Matrix {} is not column latin".format(i))
             return False
 
     from designs_pyx import is_orthogonal_array
@@ -551,11 +553,11 @@ def MOLS_table(start,stop=None,compare=False,width=None):
         from sage.rings.integer import Integer
         width = max(3,Integer(stop-1).ndigits(10))
 
-    print " "*(width+2) + "".join("{i:>{width}}".format(i=i,width=width) for i in range(20))
-    print " "*(width+1) + "_"*((width+1)*20),
+    print(" "*(width+2) + "".join("{i:>{width}}".format(i=i,width=width) for i in range(20)))
+    print(" "*(width+1) + "_"*((width+1)*20), end="")
     for i in range(start,stop):
         if i%20==0:
-            print "\n{:>{width}}|".format(i,width=width),
+            print("\n{:>{width}}|".format(i,width=width), end="")
         k = largest_available_k(i)-2
         if compare:
             if i < 2 or hb[i] == k:
@@ -569,4 +571,4 @@ def MOLS_table(start,stop=None,compare=False,width=None):
                 c = "+oo"
             else:
                 c = k
-        print '{:>{width}}'.format(c,width=width),
+        print('{:>{width}}'.format(c,width=width), end="")

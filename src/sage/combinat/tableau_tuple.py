@@ -3904,9 +3904,6 @@ class ResidueSequence(ClonableArray):
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3, [0,0,1], [0,0,1,1,2,2,3,3]).check()
             sage: ResidueSequence(3, [0,0,1], [2,0,1,1,2,2,3,3]).check()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a residue sequence with multicharge (0, 0, 1)
         """
         self.parent().check_element(self)
 
@@ -4241,7 +4238,6 @@ class ResidueSequences(UniqueRepresentation, Parent):
         """
         return self._base_ring(self._multicharge[k]+c-r)
 
-
     @lazy_attribute
     def cell_residue(self, *args):
         r"""
@@ -4297,17 +4293,22 @@ class ResidueSequences(UniqueRepresentation, Parent):
     def check_element(self, element):
         r"""Check that ``elemnent`` is a residue sequence with multicharge ``self.multicharge()``.
 
+        This is weak criteria in tat we only require that ``element`` is a tuple
+        of elements in the underlying base ring of ``self``. Such a sequence is
+        always a valid residue sequence, although there may be no tableaux with
+        this residue sequence
+
         EXAMPLES::
 
             sage: from sage.combinat.tableau_tuple import ResidueSequence
             sage: ResidueSequence(3,(0,0,1),[0,0,1,1,2,2,3,3]) # indirect doctest
             3-residue sequence (0,0,1,1,2,2,0,0) with multicharge (0,0,1)
+            sage: ResidueSequence(3,(0,0,1),[2,0,1,4,2,2,5,3]) # indirect doctest
+            3-residue sequence (2,0,1,1,2,2,2,0) with multicharge (0,0,1)
             sage: ResidueSequence(3,(0,0,1),[2,0,1,1,2,2,3,3]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: not a residue sequence with multicharge (0, 0, 1)
+            3-residue sequence (2,0,1,1,2,2,0,0) with multicharge (0,0,1)
         """
-        if len(element)>0 and element[1] not in self._multicharge:
-            raise ValueError('not a residue sequence with multicharge {}'.format(self._multicharge))
+        if any([r not in self._base_ring for r in element]):
+            raise ValueError('not a {}-residue sequence {}'.format(self._quantum_characteristic))
 
 

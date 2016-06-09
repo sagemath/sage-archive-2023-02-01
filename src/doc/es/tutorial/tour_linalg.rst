@@ -238,4 +238,3 @@ El algoritmo multi-modular de Sage es bueno para matrices cuadradas
     sage: A = M.random_element()
     sage: E = A.echelon_form()
 
-.. [Max] Maxima, http://maxima.sf.net/

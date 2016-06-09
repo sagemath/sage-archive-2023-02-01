@@ -4837,7 +4837,7 @@ class NumberField_generic(number_field_base.NumberField):
             Number Field in b with defining polynomial z^3 + a0 + 3 over its base field
 
         Extension fields with given defining data are unique
-        (:trac:20791)::
+        (:trac:`20791`)::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: K.extension(x^2 - 2, 'b') is K.extension(x^2 - 2, 'b')

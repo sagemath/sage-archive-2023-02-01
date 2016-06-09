@@ -1199,12 +1199,23 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(39,4,names='a')[1] ; f
             q + a1*q^2 - 3*q^3 + (2*a1 + 5)*q^4 + (-2*a1 + 14)*q^5 + O(q^6)
             sage: f._compute([2,3,7])
-            [alpha, -3, -2*alpha + 2]
+            [a1, -3, -2*a1 + 2]
             sage: f._compute([])
             []
+
+        Check that :trac:`20793` is fixed::
+
+            sage: f = Newforms(83, 2, names='a')[1]; f
+            q + a1*q^2 + (1/2*a1^4 - 1/2*a1^3 - 7/2*a1^2 + 3/2*a1 + 4)*q^3 + (a1^2 - 2)*q^4 + (-1/2*a1^5 - 1/2*a1^4 + 9/2*a1^3 + 7/2*a1^2 - 8*a1 - 2)*q^5 + O(q^6)
+            sage: K = f.hecke_eigenvalue_field(); K
+            Number Field in a1 with defining polynomial x^6 - x^5 - 9*x^4 + 7*x^3 + 20*x^2 - 12*x - 8
+            sage: l = f.coefficients(20); l[-1]
+            -a1^4 + 5*a1^2 - 4
+            sage: l[-1].parent() is K
+            True
         """
         M = self.modular_symbols(1)
-        return [M.eigenvalue(x) for x in X]
+        return [M.eigenvalue(x, name=self._name()) for x in X]
 
     def element(self):
         """

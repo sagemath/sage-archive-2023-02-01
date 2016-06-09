@@ -13,6 +13,7 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 from __future__ import print_function
 
+include "cysignals/signals.pxi"
 import copy
 import itertools
 
@@ -515,6 +516,27 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
          ((1, 0, 1), frozenset({0, 2})),
          ((1, 1, 0), frozenset({1, 2})),
          ((1, 1, 1), frozenset({0, 1, 2})))
+
+    TESTS:
+
+    Check that this can be interrupted, see :trac:`20781`::
+
+        sage: ieqs = [(-1, -1, -1, -1, -1, -1, -1, -1, -1),
+        ....:         (0, -1, 0, 0, 0, 0, 0, 0, 0),
+        ....:         (0, -1, 0, 2, -1, 0, 0, 0, 0),
+        ....:         (0, 0, -1, -1, 2, -1, 0, 0, 0),
+        ....:         (0, 2, 0, -1, 0, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, -1, 2),
+        ....:         (1, 0, 2, 0, -1, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, -1, 2, -1, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, 0, -1),
+        ....:         (0, 0, 0, 0, 0, -1, 2, -1, 0),
+        ....:         (0, 0, 0, 0, 0, 0, -1, 2, -1)]
+        sage: P = Polyhedron(ieqs=ieqs)
+        sage: alarm(0.5); P.integral_points()
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     assert len(box_min)==len(box_max)
     assert not (count_only and return_saturated)
@@ -584,6 +606,7 @@ cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d, bin
     p = copy.copy(box_min)
     inequalities.prepare_next_to_inner_loop(p)
     while True:
+        sig_check()
         inequalities.prepare_inner_loop(p)
         i_min = box_min[0]
         i_max = box_max[0]
@@ -1293,12 +1316,14 @@ cdef class InequalityCollection:
         """
         cdef int i
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_not_satisfied(inner_loop_variable):
                 if i>0:
                     self.swap_ineq_to_front(i)
                 return False
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_not_satisfied(inner_loop_variable):
                 return False
@@ -1337,10 +1362,12 @@ cdef class InequalityCollection:
         cdef int i
         result = []
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_int>ineq).index )
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_generic>ineq).index )

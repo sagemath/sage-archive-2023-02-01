@@ -2116,6 +2116,8 @@ const numeric numeric::atanh() const {
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
         PyObject *aa = to_pyobject();
         PyObject* nn = n.to_pyobject();
+        if (parent == nullptr)
+                parent = RR;
         PyObject *ans = py_funcs.py_li(aa, nn, parent);
         if (ans == nullptr) py_error("error calling function");
         Py_DECREF(aa);

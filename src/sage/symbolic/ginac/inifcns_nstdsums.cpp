@@ -383,9 +383,9 @@ numeric S_num(int n, int p, const numeric& x);
 */
 
 // helper function for classical polylog Li
-numeric Lin_numeric(const numeric& n, const numeric& x, PyObject* parent)
-{
-  return Li2(x, n, parent);
+//numeric Lin_numeric(const numeric& n, const numeric& x, PyObject* parent)
+//{
+//  return Li2(x, n, parent);
 
 // 	if (n == 1) {
 // 		// just a log
@@ -453,7 +453,7 @@ numeric Lin_numeric(const numeric& n, const numeric& x, PyObject* parent)
 // 	else {
 // 		return Li_projection(n, value, prec);
 // 	}
-}
+//}
 
 
 } // end of anonymous namespace

@@ -424,26 +424,29 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
 
 static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
 {
-	return Li(m_,x_).hold();
+	if (is_exactly_a<numeric>(m_) and is_exactly_a<numeric>(x_))
+                return Li2(ex_to<numeric>(m_), ex_to<numeric>(x_), parent);
+
+        return Li(m_,x_).hold();
 }
 
 
 static ex Li_eval(const ex& m_, const ex& x_)
 {
 	// classical polylogs
-	if (x_ == _ex0) {
+	if (x_.is_zero()) {
 		return _ex0;
 	}
-	if (x_ == _ex1) {
+	if (x_.is_integer_one()) {
 		return zeta(m_);
 	}
-	if (x_ == _ex_1) {
+	if ((-x_).is_integer_one()) {
 		return (pow(2,1-m_)-1) * zeta(m_);
 	}
-	if (m_ == _ex1) {
+	if (m_.is_integer_one()) {
 		return -log(1-x_);
 	}
-	if (m_ == _ex2) {
+	if (m_.is_equal(_ex2)) {
 		if (x_.is_equal(I)) {
 			return power(Pi,_ex2)/_ex_48 + Catalan*I;
 		}

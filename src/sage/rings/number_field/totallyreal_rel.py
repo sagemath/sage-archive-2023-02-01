@@ -95,7 +95,8 @@ from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_total
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, QQ
 
-import math, sys
+import math
+import sys
 
 
 def integral_elements_in_box(K, C):

@@ -4310,7 +4310,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             l.remove(zero)
         # Remember to include the no-error-vector to handle codes of minimum
         # distance 1 gracefully
-        zero_syndrome = vector(F,[F.zero()]*Integer(n-k))
+        zero_syndrome = vector(F,[F.zero()]*(n-k))
         zero_syndrome.set_immutable()
         lookup = { zero_syndrome : vector(F,[F.zero()]*n) }
         error_position_tables = [cartesian_product([l]*i) for i in range(1, t+1)]

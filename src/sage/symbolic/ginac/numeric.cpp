@@ -276,6 +276,146 @@ PyObject* Integer(const long int& x) {
         return ans;
 }
 
+int precision(const GiNaC::numeric& num, PyObject* a_parent) {
+        int prec = 0;
+        PyObject* the_parent = a_parent;
+        if (a_parent == nullptr) {
+                PyObject* m = PyImport_ImportModule("sage.structure.element");
+                if (m == nullptr)
+                        py_error("Error importing element");
+                PyObject* f = PyObject_GetAttrString(m, "parent");
+                if (f == nullptr)
+                        py_error("Error getting parent attribute");
+                PyObject* obj = num.to_pyobject();
+                the_parent = PyObject_CallFunctionObjArgs(f, obj, NULL);
+                Py_DECREF(obj);
+                Py_DECREF(f);
+                Py_DECREF(m);
+        }
+        else if (PyDict_Check(a_parent)) {
+                PyObject* pkey = PyString_FromString(const_cast<char*>("parent"));
+                the_parent = PyDict_GetItem(a_parent, pkey);
+                Py_DECREF(pkey);
+        }
+        PyObject *mprec = nullptr;
+        if (the_parent != nullptr)
+                mprec = PyObject_CallMethod(the_parent, const_cast<char*>("precision"), NULL);
+        if (mprec == nullptr) {
+                prec = 53;
+        }
+        else {
+                prec = PyLong_AsLong(mprec);
+                Py_DECREF(mprec);
+        }
+        if (a_parent == nullptr)
+                Py_DECREF(the_parent);
+        return prec;
+}
+
+PyObject* CBF(int res) {
+        PyObject* m = PyImport_ImportModule("sage.rings.complex_arb");
+        if (m == nullptr)
+                py_error("Error importing arb");
+        PyObject* f = PyObject_GetAttrString(m, "ComplexBallField");
+        if (f == nullptr)
+                py_error("Error getting ComplexBallField attribute");
+        PyObject* list = PyTuple_New(1);
+        if (list == nullptr)
+                throw(std::runtime_error("GiNaC::CBF(): PyTuple_New returned NULL"));
+        PyObject *iobj = Integer(res);
+        int ret = PyTuple_SetItem(list, 0, iobj);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC::CBF(): PyTuple_SetItem unsuccessful"));
+        PyObject *obj = PyObject_Call(f, list, NULL);
+        if (obj == nullptr)
+                throw(std::runtime_error("GiNaC::CBF(): PyObject_Call unsuccessful"));
+        Py_DECREF(m);
+        Py_DECREF(f);
+        Py_DECREF(list);
+        return obj;
+}
+
+// Convert a to field elt, return a.meth(b)
+PyObject* CallBallMethod1Arg(PyObject* field, const char* meth, const GiNaC::numeric& a, const GiNaC::numeric& b) {
+        PyObject* list1 = PyTuple_New(1);
+        if (list1 == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_New returned NULL"));
+        PyObject *aobj = a.to_pyobject();
+        int ret = PyTuple_SetItem(list1, 0, aobj);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_SetItem unsuccessful"));
+        PyObject *aball = PyObject_Call(field, list1, NULL);
+        if (aball == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_Call unsuccessful"));
+        PyObject* list2 = PyTuple_New(1);
+        if (list2 == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_New returned NULL"));
+        PyObject *bobj = b.to_pyobject();
+        ret = PyTuple_SetItem(list2, 0, bobj);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyTuple_SetItem unsuccessful"));
+        PyObject *bball = PyObject_Call(field, list2, NULL);
+        if (bball == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_Call unsuccessful"));
+
+        PyObject* name = PyString_FromString(meth);
+        PyObject* ret_ball = PyObject_CallMethodObjArgs(bball, name, aball, NULL);
+        if (ret_ball == nullptr)
+                throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_CallMethodObjArgs unsuccessful"));
+        Py_DECREF(list1);
+        Py_DECREF(list2);
+        Py_DECREF(aball);
+        Py_DECREF(bball);
+        Py_DECREF(name);
+
+        return ret_ball;
+}
+
+PyObject* CoerceBall(PyObject* ball, int prec) {
+        PyObject* m = PyImport_ImportModule("sage.rings.complex_field");
+        if (m == nullptr)
+                py_error("Error importing sage.complex_field");
+        PyObject* f = PyObject_GetAttrString(m, "ComplexField");
+        if (f == nullptr)
+                py_error("Error getting ComplexField attribute");
+        PyObject* list1 = PyTuple_New(1);
+        if (list1 == nullptr)
+                throw(std::runtime_error("GiNaC: PyTuple_New returned NULL"));
+        PyObject *iobj = Integer(prec);
+        int ret = PyTuple_SetItem(list1, 0, iobj);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC: PyTuple_SetItem unsuccessful"));
+        PyObject *field = PyObject_CallObject(f, list1);
+        if (field == nullptr)
+                throw(std::runtime_error("GiNaC: PyObject_Call unsuccessful"));
+        PyObject* list2 = PyTuple_New(1);
+        if (list2 == nullptr)
+                throw(std::runtime_error("GiNaC: PyTuple_New returned NULL"));
+        ret = PyTuple_SetItem(list2, 0, ball);
+        if (ret != 0)
+                throw(std::runtime_error("GiNaC: PyTuple_SetItem unsuccessful"));
+        PyObject *celt = PyObject_CallObject(field, list2);
+        if (celt == nullptr)
+                throw(std::runtime_error("GiNaC: PyObject_Call unsuccessful"));
+
+        Py_INCREF(ball);
+        Py_DECREF(list1);
+        Py_DECREF(list2);
+        Py_DECREF(field);
+        Py_DECREF(f);
+        Py_DECREF(m);
+
+        PyObject* bret = PyObject_CallMethod(celt, const_cast<char*>("is_real"), NULL);
+        if (PyObject_IsTrue(bret)) {
+                PyObject* rret = PyObject_CallMethod(celt, const_cast<char*>("real"), NULL);
+                Py_DECREF(bret);
+                Py_DECREF(celt);
+                return rret;
+        }
+        Py_DECREF(bret);
+        return celt;
+}
+
 namespace GiNaC {
 
 numeric I;
@@ -2114,15 +2254,13 @@ const numeric numeric::atanh() const {
 }
 
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
-        PyObject *aa = to_pyobject();
-        PyObject* nn = n.to_pyobject();
-        if (parent == nullptr)
-                parent = RR;
-        PyObject *ans = py_funcs.py_li(aa, nn, parent);
-        if (ans == nullptr) py_error("error calling function");
-        Py_DECREF(aa);
-        Py_DECREF(nn);
-        return ans;
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec);
+        PyObject* ball = CallBallMethod1Arg(field, const_cast<char*>("polylog"), *this, n);
+        PyObject* ret = CoerceBall(ball, prec);
+        Py_DECREF(field);
+        Py_DECREF(ball);
+        return ret;
 }
 
 const numeric numeric::Li2() const {

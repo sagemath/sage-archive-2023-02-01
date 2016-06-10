@@ -8146,7 +8146,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         This is computed using Newton method in the ring of power series. This
         method works only when the base ring is an integral domain. Morever, for
         polynomial whose coefficient of lower degree is different from 1, the
-        elemehts of the base ring should have a method ``nth_root`` implemented.
+        elements of the base ring should have a method ``nth_root`` implemented.
 
         EXAMPLES::
 
@@ -8288,9 +8288,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif self[0].is_zero():
             # p = x^k q
             # p^(1/n) = x^(k/n) q^(1/n)
-            i = 1
-            while self[i].is_zero():
-                i += 1
+            i = self.valuation()
             if i%m:
                 raise ValueError("not a %s power"%m.ordinal_str())
             S = self.parent()
@@ -8314,7 +8312,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 p = self
 
-            # begining of Newton method
+            # beginning of Newton method
             Sorig = p.parent()
             if p[0].is_one():
                 q = Sorig.one()
@@ -8327,7 +8325,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             from sage.misc.misc import newton_method_sizes
             x = p.parent().gen()
-            for i in newton_method_sizes(p.degree()+1):
+            for i in newton_method_sizes(p.degree()//m+1):
                 # NOTE: if we had a _power_trunc_ we might preferably use it
                 # rather than the generic power modulo below
                 qi = pow(q, m-1, x**i).inverse_series_trunc(i)

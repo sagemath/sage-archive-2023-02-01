@@ -13,14 +13,14 @@ A *simplicial set* `X` is a collection of sets `X_n` indexed by the
 non-negative integers; the set `X_n` is called the set of
 `n`-simplices. These sets are connected by maps
 
-.. math::
+.. MATH::
 
     d_i: X_n \to X_{n-1}, \ \ 0 \leq i \leq n \ \  \text{(face maps)} \\
     s_j: X_n \to X_{n+1}, \ \ 0 \leq j \leq n \ \  \text{(degeneracy maps)}
 
 satisfying the *simplicial identities*:
 
-.. math::
+.. MATH::
 
     d_i d_j &= d_{j-1} d_i \ \  \text{if } i<j \\
     d_i s_j &= s_{j-1} d_i \ \  \text{if } i<j \\
@@ -69,7 +69,7 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.sets.set import Set
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from pyparsing import OneOrMore, nestedExpr
 from sage.graphs.graph import Graph
 from sage.env import SAGE_ENV
@@ -77,10 +77,12 @@ import copy
 import itertools
 import re
 import os
+from functools import total_ordering
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 
+@total_ordering
 class AbstractSimplex(SageObject):
     """
     An abstract simplex, a building block of a simplicial set.
@@ -93,8 +95,8 @@ class AbstractSimplex(SageObject):
     - ``dim`` -- a non-negative integer, the dimension of the
       underlying non-degenerate simplex.
 
-    - ``degeneracies`` -- a list or tuple of non-negative integers,
-      the degeneracies to be applied.
+    - ``degeneracies`` (optional, default `()`) -- a list or tuple of
+      non-negative integers, the degeneracies to be applied.
 
     - ``underlying`` (optional) -- a non-degenerate simplex to which
       the degeneracies are being applied.
@@ -111,17 +113,19 @@ class AbstractSimplex(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
+        sage: from sage.homology.simplicial_set import AbstractSimplex
         sage: AbstractSimplex(3, (3, 1))
         Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
         sage: AbstractSimplex(3, None)
         Non-degenerate simplex of dimension 3
+        sage: AbstractSimplex(3)
+        Non-degenerate simplex of dimension 3
 
     Simplices may be named (or renamed), affecting how they are printed::
 
-        sage: NonDegenerateSimplex(0)
+        sage: AbstractSimplex(0)
         Non-degenerate simplex of dimension 0
-        sage: v = NonDegenerateSimplex(0, name='v')
+        sage: v = AbstractSimplex(0, name='v')
         sage: v
         v
         sage: v.rename('w_0')
@@ -139,7 +143,7 @@ class AbstractSimplex(SageObject):
 
     Use of the ``underlying`` argument::
 
-        sage: v = NonDegenerateSimplex(0, name='v')
+        sage: v = AbstractSimplex(0, name='v')
         sage: e = AbstractSimplex(0, (0,), underlying=v)
         sage: e
         Simplex obtained by applying degeneracy s_0 to v
@@ -177,26 +181,26 @@ class AbstractSimplex(SageObject):
 
     then the faces are three different degenerate vertices.
     """
-    def __init__(self, dim, degeneracies, **kwds):
+    def __init__(self, dim, degeneracies=(), underlying=None, name=None):
         """
         A simplex of dimension ``dim``.
 
         INPUT:
 
         - ``dim`` -- integer, the dimension
-        - ``degeneracies`` -- iterable, the indices of the degeneracy maps
+        - ``degeneracies`` (optional) -- iterable, the indices of the degeneracy maps
         - ``underlying`` (optional) -- a non-degenerate simplex
         - ``name`` (optional) -- string
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
+            sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (1,2))
             Simplex obtained by applying degeneracies s_3 s_1 to Non-degenerate simplex of dimension 3
             sage: AbstractSimplex(3, None)
             Non-degenerate simplex of dimension 3
 
-            sage: v = NonDegenerateSimplex(0, name='v')
+            sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(0, (0,), underlying=v)
             sage: e
             Simplex obtained by applying degeneracy s_0 to v
@@ -230,12 +234,18 @@ class AbstractSimplex(SageObject):
                 if d + dim < s:
                     raise ValueError('invalid list of degeneracy maps '
                                      'on {}-simplex'.format(dim))
-            self._underlying = kwds.get('underlying', AbstractSimplex(dim, None))
+            if underlying is None:
+                self._underlying = AbstractSimplex(dim, None)
+            else:
+                self._underlying = underlying
         else:
             self._degens = ()
-            self._underlying = kwds.get('underlying', self)
-        if 'name' in kwds:
-            self.rename(kwds['name'])
+            if underlying is None:
+                self._underlying = self
+            else:
+                self._underlying = underlying
+        if name is not None:
+            self.rename(name)
         # _faces: a dictionary storing the faces of this simplex in any
         # given simplicial set. Each key: a simplicial set. The
         # corresponding value: the tuple of faces of this simplex, or
@@ -254,9 +264,9 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: hash(v) == hash(w)
             False
             sage: x = v.apply_degeneracies(2,1,0)
@@ -278,9 +288,9 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: v == w
             False
             sage: v.apply_degeneracies(2,1,0) is v.apply_degeneracies(2,1,0)
@@ -299,9 +309,9 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: v != w
             True
             sage: x = v.apply_degeneracies(1, 0)
@@ -325,9 +335,9 @@ class AbstractSimplex(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, AbstractSimplex
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
 
         At this point, comparision between v and w is random, based on
         their location in memory. ::
@@ -358,15 +368,15 @@ class AbstractSimplex(SageObject):
 
         Test other sorting. Dimensions::
 
-            sage: NonDegenerateSimplex(0) < NonDegenerateSimplex(3)
+            sage: AbstractSimplex(0) < AbstractSimplex(3)
             True
-            sage: AbstractSimplex(0, ((0,0,0))) <= NonDegenerateSimplex(2)
+            sage: AbstractSimplex(0, ((0,0,0))) <= AbstractSimplex(2)
             False
 
         Degenerate comes after non-degenerate, and if both are
         degenerate, sort on the degeneracies::
 
-            sage: AbstractSimplex(0, ((0,0))) <= NonDegenerateSimplex(2)
+            sage: AbstractSimplex(0, ((0,0))) <= AbstractSimplex(2)
             False
             sage: AbstractSimplex(1, ((0,))) < AbstractSimplex(1, ((1,)))
             True
@@ -375,6 +385,31 @@ class AbstractSimplex(SageObject):
             sage: w.rename('a')
             sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
             True
+
+        Testing `<=`, `>`, `>=`::
+
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: v <= v
+            True
+            sage: w <= v
+            False
+            sage: v.apply_degeneracies(1,0) <= w.apply_degeneracies(1,0)
+            True
+
+            sage: v > v
+            False
+            sage: w > v
+            True
+            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
+            False
+
+            sage: v >= v
+            True
+            sage: w >= v
+            True
+            sage: v.apply_degeneracies(1,0) >= w.apply_degeneracies(1,0)
+            False
         """
         if self.dimension() < other.dimension():
             return True
@@ -395,66 +430,6 @@ class AbstractSimplex(SageObject):
                 return False
         return id(self) < id(other)
 
-    def __le__(self, other):
-        """
-        True if ``self`` is less than or equal to ``other``.
-
-        See :meth:`__lt__` for details on the ordering.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, AbstractSimplex
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: v <= v
-            True
-            sage: w <= v
-            False
-            sage: v.apply_degeneracies(1,0) <= w.apply_degeneracies(1,0)
-            True
-        """
-        return self == other or self < other
-
-    def __gt__(self, other):
-        """
-        True if ``self`` is greater than ``other``.
-
-        See :meth:`__lt__` for details on the ordering.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, AbstractSimplex
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: v > v
-            False
-            sage: w > v
-            True
-            sage: v.apply_degeneracies(1,0) > w.apply_degeneracies(1,0)
-            False
-        """
-        return not self <= other
-
-    def __ge__(self, other):
-        """
-        True if ``self`` is greater than or equal to ``other``.
-
-        See :meth:`__lt__` for details on the ordering.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, AbstractSimplex
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: v >= v
-            True
-            sage: w >= v
-            True
-            sage: v.apply_degeneracies(1,0) >= w.apply_degeneracies(1,0)
-            False
-        """
-        return not self < other
-
     def nondegenerate(self):
         """
         The non-degenerate simplex underlying this one.
@@ -463,8 +438,8 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, AbstractSimplex
-            sage: v = NonDegenerateSimplex(0, name='v')
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0, name='v')
             sage: sigma = v.apply_degeneracies(1, 0)
             sage: sigma.nondegenerate()
             v
@@ -518,12 +493,12 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
+            sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (2,1)).is_nondegenerate()
             False
             sage: AbstractSimplex(3, None).is_nondegenerate()
             True
-            sage: NonDegenerateSimplex(5).is_nondegenerate()
+            sage: AbstractSimplex(5).is_nondegenerate()
             True
         """
         return not self.is_degenerate()
@@ -534,12 +509,12 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
+            sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (2,1)).dimension()
             5
             sage: AbstractSimplex(3, None).dimension()
             3
-            sage: NonDegenerateSimplex(7).dimension()
+            sage: AbstractSimplex(7).dimension()
             7
         """
         return self._dim + len(self.degeneracies())
@@ -555,8 +530,8 @@ class AbstractSimplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
-            sage: v = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
             sage: e = v.apply_degeneracies(0)
             sage: e.nondegenerate() == v
             True
@@ -601,8 +576,8 @@ class AbstractSimplex(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: v = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: v = AbstractSimplex(0)
             sage: copy(v) == v
             False
             sage: copy(v).nondegenerate() == v
@@ -636,7 +611,7 @@ class AbstractSimplex(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, NonDegenerateSimplex
+            sage: from sage.homology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, None)
             Non-degenerate simplex of dimension 3
             sage: AbstractSimplex(3, (0,))
@@ -646,7 +621,7 @@ class AbstractSimplex(SageObject):
 
         Test renaming::
 
-            sage: v = NonDegenerateSimplex(0)
+            sage: v = AbstractSimplex(0)
             sage: v
             Non-degenerate simplex of dimension 0
             sage: v.rename('v')
@@ -683,52 +658,8 @@ class AbstractSimplex(SageObject):
         return simplex
 
 
-class NonDegenerateSimplex(AbstractSimplex):
-    """
-    A non-degenerate simplex of dimension ``dim``.
-
-    INPUT:
-
-    - ``dim`` -- a non-negative integer, the dimension
-    - ``name`` (optional) -- string, a name for the simplex
-
-    EXAMPLES::
-
-        sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-        sage: e = NonDegenerateSimplex(1, name='e')
-        sage: e
-        e
-        sage: e.rename('e_1')
-        sage: e
-        e_1
-
-    You can apply degeneracy maps to a non-degenerate simplex to get a
-    degenerate simplex::
-
-        sage: sigma = e.apply_degeneracies(2,0); sigma
-        Simplex obtained by applying degeneracies s_2 s_0 to e_1
-        sage: sigma.dimension()
-        3
-    """
-    def __init__(self, dim, name=None):
-        """
-        A non-degenerate simplex of dimension ``dim``.
-
-        This is just a shortcut to a special case of :class:`AbstractSimplex`.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: NonDegenerateSimplex(0)
-            Non-degenerate simplex of dimension 0
-
-            sage: NonDegenerateSimplex(pi)
-            Traceback (most recent call last):
-            ...
-            ValueError: the dimension must be an integer
-        """
-        AbstractSimplex.__init__(self, dim, degeneracies=None, name=name)
-
+########################################################################
+# The main class
 
 class SimplicialSet(GenericCellComplex, Parent):
     r"""
@@ -738,14 +669,14 @@ class SimplicialSet(GenericCellComplex, Parent):
     *n-simplices*, indexed by the non-negative integers, together with
     maps
 
-    .. math::
+    .. MATH::
 
         d_i: X_n \to X_{n-1}, \ \ 0 \leq i \leq n \ \  \text{(face maps)} \\
         s_j: X_n \to X_{n+1}, \ \ 0 \leq j \leq n \ \  \text{(degeneracy maps)}
 
     satisfying the *simplicial identities*:
 
-    .. math::
+    .. MATH::
 
         d_i d_j &= d_{j-1} d_i \ \  \text{if } i<j \\
         d_i s_j &= s_{j-1} d_i \ \  \text{if } i<j \\
@@ -791,9 +722,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-        sage: v = NonDegenerateSimplex(0)
-        sage: e = NonDegenerateSimplex(1)
+        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: v = AbstractSimplex(0)
+        sage: e = AbstractSimplex(1)
         sage: S1 = SimplicialSet({e: (v, v)})  # the circle
         sage: S1
         Simplicial set with 2 non-degenerate simplices
@@ -804,7 +735,7 @@ class SimplicialSet(GenericCellComplex, Parent):
         Simplicial circle
 
         sage: s_0_v = v.apply_degeneracies(0) # s_0 applied to v
-        sage: sigma = NonDegenerateSimplex(2)
+        sage: sigma = AbstractSimplex(2)
         sage: S2 = SimplicialSet({sigma: (s_0_v, s_0_v, s_0_v)})  # the 2-sphere
         sage: S2
         Simplicial set with 2 non-degenerate simplices
@@ -817,8 +748,8 @@ class SimplicialSet(GenericCellComplex, Parent):
     which is not contained in the face of any non-degenerate simplex.
     For example, to form a 0-sphere::
 
-        sage: v = NonDegenerateSimplex(0)
-        sage: w = NonDegenerateSimplex(0)
+        sage: v = AbstractSimplex(0)
+        sage: w = AbstractSimplex(0)
         sage: S0 = SimplicialSet({v: None, w: None})
         sage: S0.nondegenerate_simplices()
         [Non-degenerate simplex of dimension 0, Non-degenerate simplex of dimension 0]
@@ -871,7 +802,7 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         sage: Y = simplicial_complexes.Sphere(1)
         sage: Y.n_cells(1)
-        [(1, 2), (0, 2), (0, 1)]
+        [(0, 1), (0, 2), (1, 2)]
         sage: SimplicialSet(Y).n_cells(1)
         [(0, 1), (0, 2), (1, 2)]
 
@@ -901,9 +832,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
             sage: SimplicialSet({e: (v, v, v)})
             Traceback (most recent call last):
             ...
@@ -915,7 +846,7 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         Base points::
 
-            sage: SimplicialSet({e: (v,v)}, base_point=NonDegenerateSimplex(0))
+            sage: SimplicialSet({e: (v,v)}, base_point=AbstractSimplex(0))
             Traceback (most recent call last):
             ...
             ValueError: the base point is not a simplex in this simplicial set
@@ -926,8 +857,8 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         Simplicial identity::
 
-            sage: sigma = NonDegenerateSimplex(2)
-            sage: w = NonDegenerateSimplex(0)
+            sage: sigma = AbstractSimplex(2)
+            sage: w = AbstractSimplex(0)
             sage: K = SimplicialSet({sigma: (v.apply_degeneracies(0),
             ....:                            v.apply_degeneracies(0),
             ....:                            v.apply_degeneracies(0))})
@@ -937,6 +868,14 @@ class SimplicialSet(GenericCellComplex, Parent):
             Traceback (most recent call last):
             ...
             ValueError: simplicial identity d_i d_j = d_{j-1} d_i fails in dimension 2
+
+        Returning a copy of the orignal::
+
+            sage: v = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
+            sage: S1 = SimplicialSet({e: (v, v)})
+            sage: SimplicialSet(S1) == S1
+            False
         """
         def face(sigma, i):
             """
@@ -964,7 +903,7 @@ class SimplicialSet(GenericCellComplex, Parent):
                     old_faces = faces
                     faces = {}
                     for idx, sigma in enumerate(data.n_faces(d)):
-                        new_sigma = NonDegenerateSimplex(d)
+                        new_sigma = AbstractSimplex(d)
                         new_sigma.rename(str(sigma))
                         if d > 0:
                             simplices[new_sigma] = [old_faces[_] for _ in sigma.faces()]
@@ -980,7 +919,7 @@ class SimplicialSet(GenericCellComplex, Parent):
                     faces = tuple(current)
                     current = []
                     for idx, sigma in enumerate(data.n_cells(d)):
-                        new_sigma = NonDegenerateSimplex(d)
+                        new_sigma = AbstractSimplex(d)
                         # Name: Delta_{d,idx} where d is dimension,
                         # idx is its index in the list of d-simplices.
                         new_sigma.rename('Delta_{{{},{}}}'.format(d, idx))
@@ -991,17 +930,20 @@ class SimplicialSet(GenericCellComplex, Parent):
                         current.append(new_sigma)
                 data = simplices
             elif isinstance(data, SimplicialSet):
-                return copy.copy(self)
+                data = dict(copy.deepcopy(data._data))
             else:
-                raise NotImplementedError('I do not know how to convert this to a simplicial set')
+                raise NotImplementedError('I do not know how to convert this '
+                                          'to a simplicial set')
         # Convert each value in data to a tuple, and then convert all
         # of data to a tuple, so that it is hashable.
         for x in data:
             if data[x]:
                 if x.dimension() != len(data[x]) - 1:
-                    raise ValueError('wrong number of faces for simplex in dimension {}'.format(x.dimension()))
+                    raise ValueError('wrong number of faces for simplex '
+                                     'in dimension {}'.format(x.dimension()))
                 if not all(y.dimension() == x.dimension() - 1 for y in data[x]):
-                    raise ValueError('faces of a {}-simplex have the wrong dimension'.format(x.dimension()))
+                    raise ValueError('faces of a {}-simplex have the wrong '
+                                     'dimension'.format(x.dimension()))
                 data[x] = tuple(data[x])
 
         # To obtain the non-degenerate simplices, look at both the
@@ -1026,8 +968,9 @@ class SimplicialSet(GenericCellComplex, Parent):
                     for j in range(d+1):
                         for i in range(j):
                             if face(face(sigma, j), i) != face(face(sigma, i), j-1):
-                                raise ValueError('simplicial identity d_i d_j = d_{{j-1}} d_i'
-                                                 ' fails in dimension {}'.format(d))
+                                raise ValueError('simplicial identity d_i d_j '
+                                                 '= d_{{j-1}} d_i fails '
+                                                 'in dimension {}'.format(d))
 
         # Now define the attributes for an instance of this class.
         # self._data: a tuple representing the defining data of the
@@ -1038,7 +981,8 @@ class SimplicialSet(GenericCellComplex, Parent):
         # self._basepoint: the base point, or None.
         if base_point is not None:
             if base_point not in simplices:
-                raise ValueError('the base point is not a simplex in this simplicial set')
+                raise ValueError('the base point is not a simplex in '
+                                 'this simplicial set')
             if base_point.dimension() != 0:
                 raise ValueError('the base "point" is not a zero-simplex')
         else:
@@ -1067,10 +1011,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
             sage: X = SimplicialSet({e: (v, v)})
             sage: Y = SimplicialSet({e: (w, w)})
             sage: X == X
@@ -1088,9 +1032,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None})
             sage: Y = SimplicialSet({w: None})
             sage: X != X
@@ -1114,11 +1058,11 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None})
             sage: degen = v.apply_degeneracies(0)
-            sage: tau = NonDegenerateSimplex(2)
+            sage: tau = AbstractSimplex(2)
             sage: Y = SimplicialSet({tau: (degen, degen, degen)})
 
             sage: hash(X) # random
@@ -1134,10 +1078,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: e = NonDegenerateSimplex(1, name='e')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, w)})
             sage: X.face_data()[e]
             (v, w)
@@ -1179,8 +1123,8 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: S2.faces(v_0) is None
             True
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: w = AbstractSimplex(0)
             sage: S2.faces(w)
             Traceback (most recent call last):
             ...
@@ -1228,6 +1172,33 @@ class SimplicialSet(GenericCellComplex, Parent):
         if faces is not None:
             return self.faces(simplex)[i]
         return None
+
+    def __contains__(self, x):
+        """
+        True if ``x`` is a simplex which is contained in this complex.
+
+        EXAMPLES::
+
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: v0 = S0.n_cells(0)[0]
+            sage: v0 in S0
+            True
+            sage: v0 in S1
+            False
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
+            sage: K = SimplicialSet({e: (v, v)})  # the circle
+            sage: v in K
+            True
+            sage: v0 in K
+            False
+            sage: S1.n_cells(1)[0] in K
+            False
+        """
+        return x.nondegenerate() in self._simplices
 
     def alexander_whitney(self, simplex, dim_left):
         r"""
@@ -1284,7 +1255,10 @@ class SimplicialSet(GenericCellComplex, Parent):
         """
         The sorted list of non-degenerate simplices in this simplicial set.
 
-        .. note::
+        The sorting is in increasing order of dimension, and within
+        each dimension, by the name (if present) of each simplex.
+
+        .. NOTE::
 
             The sorting is done when the simplicial set is
             constructed, so changing the name of a simplex after
@@ -1292,9 +1266,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
             sage: S0.nondegenerate_simplices()
             [Non-degenerate simplex of dimension 0, Non-degenerate simplex of dimension 0]
@@ -1327,8 +1301,8 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         INPUT:
 
-        - ``subcomplex`` (optional) -- a subcomplex of this simplicial
-          set
+        - ``subcomplex`` (optional) -- a subsimplicial set of this
+          simplicial set
 
         Each key is a dimension, and the corresponding value is the
         list of simplices in that dimension. If ``subcomplex`` is
@@ -1337,9 +1311,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
             sage: S0.cells()
             {0: [Non-degenerate simplex of dimension 0, Non-degenerate simplex of dimension 0]}
@@ -1349,16 +1323,16 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: S0.cells()
             {0: [v, w]}
 
-            sage: e = NonDegenerateSimplex(1, name='e')
+            sage: e = AbstractSimplex(1, name='e')
             sage: S1 = SimplicialSet({e: (v, v)})
             sage: S1.cells()
             {0: [v], 1: [e]}
 
-            sage: S0.cells(S0.subcomplex([v, w]))
+            sage: S0.cells(S0.subsimplicial_set([v, w]))
             {0: [*]}
 
             sage: X = SimplicialSet({e: (v,w)})
-            sage: X.cells(X.subcomplex([v, w]))
+            sage: X.cells(X.subsimplicial_set([v, w]))
             {0: [*], 1: [e]}
         """
         if subcomplex is None:
@@ -1382,14 +1356,14 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
             sage: S0.f_vector()
             [2]
 
-            sage: e = NonDegenerateSimplex(1)
+            sage: e = AbstractSimplex(1)
             sage: S1 = SimplicialSet({e: (v, v)})
             sage: S1.f_vector()
             [1, 1]
@@ -1421,11 +1395,11 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
             sage: degen = v.apply_degeneracies(0)
-            sage: tau = NonDegenerateSimplex(2, name='tau')
+            sage: tau = AbstractSimplex(2, name='tau')
             sage: Y = SimplicialSet({tau: (degen, degen, degen), w: None})
 
         ``Y`` is the disjoint union of a 2-sphere, with vertex ``v``
@@ -1456,9 +1430,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='*')
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='*')
+            sage: e = AbstractSimplex(1)
             sage: S1 = SimplicialSet({e: (v, v)})  # the circle
             sage: S1.base_point()  # no base point, so no output
             sage: S1 = SimplicialSet({e: (v, v)}, base_point=v)
@@ -1473,10 +1447,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
+            sage: e = AbstractSimplex(1)
             sage: X = SimplicialSet({e: (v, w)})
             sage: Y = SimplicialSet({e: (v, w)}, base_point=w)
             sage: X.is_pointed()
@@ -1492,10 +1466,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v_0')
-            sage: w = NonDegenerateSimplex(0, name='w_0')
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v_0')
+            sage: w = AbstractSimplex(0, name='w_0')
+            sage: e = AbstractSimplex(1)
             sage: X = SimplicialSet({e: (v, w)})
             sage: Y = SimplicialSet({e: (v, w)}, base_point=w)
             sage: Y.base_point()
@@ -1513,7 +1487,7 @@ class SimplicialSet(GenericCellComplex, Parent):
             Traceback (most recent call last):
             ...
             ValueError: the "point" is not a zero-simplex
-            sage: pt = NonDegenerateSimplex(0)
+            sage: pt = AbstractSimplex(0)
             sage: X.set_base_point(pt)
             Traceback (most recent call last):
             ...
@@ -1523,7 +1497,8 @@ class SimplicialSet(GenericCellComplex, Parent):
             if point.dimension() != 0:
                 raise ValueError('the "point" is not a zero-simplex')
             if point not in self._simplices:
-                raise ValueError('the point is not a simplex in this simplicial set')
+                raise ValueError('the point is not a simplex in this '
+                                 'simplicial set')
         self._basepoint = point
 
     def unset_base_point(self):
@@ -1532,10 +1507,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v_0')
-            sage: w = NonDegenerateSimplex(0, name='w_0')
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v_0')
+            sage: w = AbstractSimplex(0, name='w_0')
+            sage: e = AbstractSimplex(1)
             sage: Y = SimplicialSet({e: (v, w)}, base_point=w)
             sage: Y.is_pointed()
             True
@@ -1550,18 +1525,129 @@ class SimplicialSet(GenericCellComplex, Parent):
         """
         self._basepoint = None
 
-    def n_skeleton(self, n):
+    def base_point_map(self, domain=None):
         """
-        The `n`-skeleton of this simplicial set, obtained by removing all
-        non-degenerate simplices of dimension larger than `n`.
+        Return a map from a one-point space to this one, with image the
+        base point.
+
+        This raises an error if this simplicial set does not have a
+        base point.
+
+        INPUT:
+
+        - ``domain`` -- optional, default ``None``. Use this to
+          specify a particular one-point space as the domain. The
+          default behavior is to use the :func:`Point` function to use
+          a standard one-point space.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
+            sage: T = simplicial_sets.Torus()
+            sage: f = T.base_point_map(); f
+            Simplicial set morphism:
+              From: Point
+              To:   Torus
+              Defn: [*] --> [(v_0, v_0)]
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: g = S3.base_point_map()
+            sage: f.domain() == g.domain()
+            True
+            sage: RP3 = simplicial_sets.RealProjectiveSpace(3)
+            sage: h = RP3.base_point_map(domain=simplicial_sets.Simplex(0))
+            sage: f.domain() == h.domain()
+            False
+        """
+        if domain is None:
+            domain = Point()
+        else:
+            if len(domain._simplices) > 1:
+                raise ValueError('domain has more than one nondegenerate simplex')
+        if not self.is_pointed():
+            raise ValueError('this simplicial set does not have a base point')
+        src = domain.base_point()
+        target = self.base_point()
+        return domain.Hom(self)({src: target})
+
+    def _map_from_empty_set(self):
+        """
+        The unique map from the empty set to this simplicial set.
+
+        This is used to in the method :meth:`disjoint_union` to
+        construct disjoint unions as pushouts.
+
+        EXAMPLES::
+
+            sage: T = simplicial_sets.Torus()
+            sage: T._map_from_empty_set()
+            Simplicial set morphism:
+              From: Empty simplicial set
+              To:   Torus
+              Defn: [] --> []
+        """
+        return Empty().Hom(self)({})
+
+    def constant_map(self, codomain=None):
+        """
+        Return a constant map with this space as its domain.
+
+        INPUT:
+
+        - ``codomain`` -- optional, default ``None``. If ``None``, the
+          codomain is the standard one-point space constructed by
+          :func:`Point`. Otherwise, the codomain must be a pointed
+          simplicial set, in which case the map is constant at the
+          base point.
+
+        EXAMPLES::
+
+            sage: S4 = simplicial_sets.Sphere(4)
+            sage: S4.constant_map()
+            Simplicial set morphism:
+              From: S^4
+              To:   Point
+              Defn: [v_0, sigma_4] --> [*, Simplex obtained by applying degeneracies s_3 s_2 s_1 s_0 to *]
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: S4.constant_map(codomain=S0)
+            Simplicial set morphism:
+              From: S^4
+              To:   S^0
+              Defn: [v_0, sigma_4] --> [v_0, Simplex obtained by applying degeneracies s_3 s_2 s_1 s_0 to v_0]
+
+        TESTS::
+
+            sage: S0.unset_base_point()
+            sage: S4.constant_map(codomain=S0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the codomain must have a base point
+        """
+        if codomain is not None:
+            if not codomain.is_pointed():
+                raise ValueError('the codomain must have a base point')
+        else:
+            codomain = Point()
+        base_pt = codomain.base_point()
+        d = {}
+        cells = self.cells()
+        for dim in cells:
+            d.update({sigma:base_pt.apply_degeneracies(*range(dim-1, -1, -1))
+                      for sigma in cells[dim]})
+        return self.Hom(codomain)(d)
+
+    def n_skeleton(self, n):
+        """
+        The `n`-skeleton of this simplicial set.
+
+        That is, the subsimplicial set generated by all nondegenerate
+        simplices of dimension at most `n`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
             sage: degen = v.apply_degeneracies(0)
-            sage: tau = NonDegenerateSimplex(2, name='tau')
+            sage: tau = AbstractSimplex(2, name='tau')
             sage: Y = SimplicialSet({tau: (degen, degen, degen), w: None})
 
         ``Y`` is the disjoint union of a 2-sphere, with vertex ``v``
@@ -1574,23 +1660,22 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: Y.n_skeleton(2).nondegenerate_simplices()
             [v, w, tau]
         """
-        vertices = self.n_cells(0)
-        data = [_ for _ in self._data if _[0].dimension() <= n]
-        for v in vertices:
-            if all(_[0] != v for _ in data):
-                data.append((v, None))
-        return SimplicialSet(dict(data))
+        data = [x for x in self.nondegenerate_simplices()
+                if x.dimension() <= n]
+        return self.subsimplicial_set(data)
 
-    def chain_complex(self, **kwds):
+    def chain_complex(self, dimensions=None, base_ring=ZZ, augmented=False,
+                      cochain=False, verbose=False, subcomplex=None,
+                      check=False):
         r"""
         The normalized chain complex.
 
         INPUT:
 
-        - ``max_dimension`` -- if ``None`` (the default), compute the
-          chain complex up to the maximum dimension of the
-          non-degenerate simplices. Otherwise, compute the chain
-          complex through this dimension.
+        - ``dimensions`` -- if ``None``, compute the chain complex in all
+           dimensions.  If a list or tuple of integers, compute the
+           chain complex in those dimensions, setting the chain groups
+           in all other dimensions to zero.
 
         - ``base_ring`` (optional, default ``ZZ``) -- commutative ring
 
@@ -1602,6 +1687,15 @@ class SimplicialSet(GenericCellComplex, Parent):
           return the cochain complex (that is, the dual of the chain
           complex).
 
+        - ``verbose`` (optional, default ``False``) -- ignored.
+
+        - ``subcomplex`` (optional, default ``None``) -- if present,
+          compute the chain complex relative to this subcomplex.
+
+        - ``check`` (optional, default ``False``) -- If ``True``, make
+           sure that the chain complex is actually a chain complex:
+           the differentials are composable and their product is zero.
+
         The normalized chain complex of a simplicial set is isomorphic
         to the chain complex obtained by modding out by degenerate
         simplices, and the latter is what is actually constructed
@@ -1609,17 +1703,22 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
             sage: degen = v.apply_degeneracies(1, 0) # s_1 s_0 applied to v
-            sage: sigma = NonDegenerateSimplex(3)
+            sage: sigma = AbstractSimplex(3)
             sage: S3 = SimplicialSet({sigma: (degen, degen, degen, degen)}) # the 3-sphere
             sage: S3.chain_complex().homology()
             {0: Z, 3: Z}
             sage: S3.chain_complex(augmented=True).homology()
             {-1: 0, 0: 0, 3: Z}
-            sage: S3.chain_complex(max_dimension=2, base_ring=QQ).homology()
+            sage: S3.chain_complex(dimensions=range(3), base_ring=QQ).homology()
             {0: Vector space of dimension 1 over Rational Field}
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP5.chain_complex(subcomplex=RP2).homology()
+            {0: Z, 3: C2, 4: 0, 5: Z}
 
         TESTS:
 
@@ -1635,36 +1734,52 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: RP2.cohomology(base_ring=GF(2)) == SimplicialSet(RP2).cohomology(base_ring=GF(2))
             True
         """
-        augmented = kwds.get('augmented', False)
-        cochain = kwds.get('cochain', False)
-        base_ring = kwds.get('base_ring', ZZ)
-        max_dim = kwds.get('max_dimension', None)
-
-        if not max_dim:
-            max_dim = self.dimension()
+        if dimensions is None:
+            if not self.cells(): # Empty
+                if cochain:
+                    return ChainComplex({-1: matrix(base_ring, 0, 0)},
+                                        degree_of_differential=1)
+                return ChainComplex({0: matrix(base_ring, 0, 0)},
+                                    degree_of_differential=-1)
+            dimensions = range(self.dimension()+1)
+        else:
+            if not isinstance(dimensions, (list, tuple)):
+                dimensions = range(dimensions-1, dimensions+2)
+            augmented = False
 
         differentials = {}
         # Convert the tuple self._data to a dictionary indexed by the
         # non-degenerate simplices.
-        face_data = self.face_data()
+        if subcomplex:
+            X = self.quotient(subcomplex)
+            face_data = X.face_data()
+            nondegens = X.nondegenerate_simplices()
+        else:
+            face_data = self.face_data()
+            nondegens = self.nondegenerate_simplices()
         # simplices: dictionary indexed by dimension, values the list
         # of non-degenerate simplices in that dimension.
         simplices = {}
-        for sigma in self.nondegenerate_simplices():
+        for sigma in nondegens:
             if sigma.dimension() in simplices:
                 simplices[sigma.dimension()].append(sigma)
             else:
                 simplices[sigma.dimension()] = [sigma]
-        rank = len(simplices[0])
+        first = dimensions.pop(0)
+        if first in simplices:
+            rank = len(simplices[first])
+            current = sorted(simplices[first])
+        else:
+            rank = 0
+            current = []
         if augmented:
-            differentials[-1] = matrix(base_ring, 0, 1)
-            differentials[0] = matrix(base_ring, 1, rank,
+            differentials[first-1] = matrix(base_ring, 0, 1)
+            differentials[first] = matrix(base_ring, 1, rank,
                                       [1] * rank)
         else:
-            differentials[0] = matrix(base_ring, 0, rank)
-        current = sorted(simplices[0])
+            differentials[first] = matrix(base_ring, 0, rank)
 
-        for d in range(1, max_dim + 1):
+        for d in dimensions:
             old_rank = rank
             faces = {_[1]:_[0] for _ in enumerate(current)}
             if d in simplices:
@@ -1701,12 +1816,10 @@ class SimplicialSet(GenericCellComplex, Parent):
             new_diffs = {}
             for d in differentials:
                 new_diffs[d-1] = differentials[d].transpose()
-            return ChainComplex(new_diffs, degree_of_differential=1)
-
-        try:
-            return ChainComplex(differentials, degree_of_differential=-1)
-        except ValueError:
-            return differentials
+            return ChainComplex(new_diffs, degree_of_differential=1,
+                                check=check)
+        return ChainComplex(differentials, degree_of_differential=-1,
+                            check=check)
 
     @cached_method
     def algebraic_topological_model(self, base_ring=None):
@@ -1776,9 +1889,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: e = NonDegenerateSimplex(1, name='e')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v,v)})
             sage: Y = copy(X)
             sage: Y
@@ -1818,15 +1931,15 @@ class SimplicialSet(GenericCellComplex, Parent):
         C = SimplicialSet(new_data, base_point=base_point)
         return C
 
-    def subcomplex(self, simplices):
+    def subsimplicial_set(self, simplices):
         """
-        The subcomplex of this simplicial set determined by ``simplices``,
-        a set of nondegenerate simplices.
+        The subsimplicial_set of this simplicial set determined by
+        ``simplices``, a set of nondegenerate simplices.
 
         INPUT:
 
         - ``simplices`` -- set, list, or tuple of nondegenerate
-          simplices in this simplicial set, or a simplicial 
+          simplices in this simplicial set, or a simplicial
           complex -- see below.
 
         If ``simplices`` is a simplicial complex, then the original
@@ -1836,14 +1949,14 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: e = NonDegenerateSimplex(1, name='e')
-            sage: f = NonDegenerateSimplex(1, name='f')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: f = AbstractSimplex(1, name='f')
 
             sage: X = SimplicialSet({e: (v, w), f: (w, v)})
-            sage: Y = X.subcomplex([e])
+            sage: Y = X.subsimplicial_set([e])
             sage: Y
             Simplicial set with 3 non-degenerate simplices
             sage: Y.nondegenerate_simplices()
@@ -1854,26 +1967,26 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: tau = K.n_cells(3)[0]
             sage: tau.dimension()
             3
-            sage: K.subcomplex([tau])
+            sage: K.subsimplicial_set([tau])
             Simplicial set with 15 non-degenerate simplices
 
         TESTS:
 
         Make sure vertices are treated properly::
 
-            sage: X.subcomplex([v]).nondegenerate_simplices()
+            sage: X.subsimplicial_set([v]).nondegenerate_simplices()
             [v]
-            sage: X.subcomplex([v, w]).nondegenerate_simplices()
+            sage: X.subsimplicial_set([v, w]).nondegenerate_simplices()
             [v, w]
             sage: S0 = SimplicialSet({v: None, w: None})
-            sage: S0.subcomplex([w]).nondegenerate_simplices()
+            sage: S0.subsimplicial_set([w]).nondegenerate_simplices()
             [w]
 
         Raise an error if an element of ``simplices`` is not actually
         in the original simplicial set::
 
-            sage: sigma = NonDegenerateSimplex(2, name='sigma_2')
-            sage: Z = X.subcomplex([e, sigma])
+            sage: sigma = AbstractSimplex(2, name='sigma_2')
+            sage: Z = X.subsimplicial_set([e, sigma])
             Traceback (most recent call last):
             ...
             ValueError: not all simplices are in the original simplicial set
@@ -1883,7 +1996,7 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: X = simplicial_complexes.ComplexProjectivePlane()
             sage: Y = X._contractible_subcomplex()
             sage: CP2 = SimplicialSet(X)
-            sage: sub = CP2.subcomplex(Y)
+            sage: sub = CP2.subsimplicial_set(Y)
             sage: CP2.f_vector()
             [9, 36, 84, 90, 36]
             sage: CP2.quotient(sub).f_vector()
@@ -1895,7 +2008,7 @@ class SimplicialSet(GenericCellComplex, Parent):
         is not actually contained in ``self``::
 
             sage: Z = SimplicialComplex([[0,1,2,3,4]])
-            sage: CP2.subcomplex(Z)
+            sage: CP2.subsimplicial_set(Z)
             Traceback (most recent call last):
             ...
             ValueError: not all simplices are in the original simplicial set
@@ -1923,40 +2036,39 @@ class SimplicialSet(GenericCellComplex, Parent):
         while keep != old_keep:
             old_keep = copy.copy(keep)
             for x in old_keep:
-                if x not in data and x.dimension() > 0:
+                underlying = x.nondegenerate()
+                if underlying not in self._simplices:
                     raise ValueError('not all simplices are in the original simplicial set')
-                keep.add(x)
-                if x in data and data[x]:
-                    keep.update([f.nondegenerate() for f in data[x]])
+                keep.add(underlying)
+                if underlying in data and data[underlying]:
+                    keep.update([f.nondegenerate() for f in data[underlying]])
                 else:
                     # x is a vertex
-                    assert(x.dimension() == 0)
-                    vertices.add(x)
+                    assert(underlying.dimension() == 0)
+                    vertices.add(underlying)
         missing = set(self.nondegenerate_simplices()).difference(keep)
         for x in missing:
             if x in data:
                 del data[x]
         for x in vertices:
             data[x] = None
-        return SimplicialSet(data)
+        return SubSimplicialSet(data, self)
 
-    def is_subcomplex(self, other):
+    def is_subset(self, other):
         """
-        Return ``True`` iff ``self`` is a subcomplex of ``other``.
+        Return ``True`` iff ``self`` is a subsimplicial set of ``other``.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: S1 = simplicial_sets.Sphere(1)
             sage: pt = S1.n_cells(0)[0]
-            sage: other_pt = NonDegenerateSimplex(0)
+            sage: other_pt = AbstractSimplex(0)
 
-            sage: SimplicialSet({pt: None}).is_subcomplex(S1)
+            sage: SimplicialSet({pt: None}).is_subset(S1)
             True
-            sage: SimplicialSet({other_pt: None}).is_subcomplex(S1)
+            sage: SimplicialSet({other_pt: None}).is_subset(S1)
             False
-            sage: S1.is_subcomplex(S1.wedge(S1))
-            True
         """
         return all(x in other._simplices for x in self.nondegenerate_simplices())
 
@@ -1968,8 +2080,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         INPUT:
 
-        - ``subcomplex`` -- subcomplex of this simplicial set, or a
-          list, tuple, or set of simplices defining a subcomplex.
+        - ``subcomplex`` -- subsimplicial set of this simplicial set,
+          or a list, tuple, or set of simplices defining a
+          subsimplicial set.
 
         - ``vertex_name`` (optional) -- string, name to be given to the new
           vertex. If omitted, use '*'.
@@ -1983,11 +2096,11 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: e = NonDegenerateSimplex(1, name='e')
-            sage: f = NonDegenerateSimplex(1, name='f')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: f = AbstractSimplex(1, name='f')
             sage: X = SimplicialSet({e: (v, w), f: (v, w)})
             sage: Y = X.quotient([f])
             sage: Y.nondegenerate_simplices()
@@ -2025,123 +2138,101 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: pt
             Simplicial set with 1 non-degenerate simplex
         """
-        # v: new vertex, to replace ``subcomplex``.
-        if vertex_name:
-            v = NonDegenerateSimplex(0, name=vertex_name)
-        else:
-            v = NonDegenerateSimplex(0, name='*')
         if not isinstance(subcomplex, SimplicialSet):
             # If it's not a simplicial set, subcomplex should be a
             # list, tuple, or set of simplices, so form the actual
             # subcomplex:
-            subcomplex = self.subcomplex(subcomplex)
+            subcomplex = self.subsimplicial_set(subcomplex)
         else:
             # Test whether subcomplex is actually a subcomplex of
             # self.
-            if not subcomplex.is_subcomplex(self):
+            if not subcomplex.is_subset(self):
                 raise ValueError('the "subcomplex" is not actually a subcomplex')
             pass
-        removed = subcomplex.nondegenerate_simplices()
-        data = self.face_data()
-        # Remove the simplices in the subcomplex as keys:
-        for x in removed:
-            if x in data:
-                del data[x]
-        # Remove the simplices in the subcomplex as faces, replacing
-        # them with v:
-        for y in data:
-            if data[y]:
-                d = y.dimension()
-                faces = []
-                for x in data[y]:
-                    if x.nondegenerate() in removed:
-                        faces.append(v.apply_degeneracies(*range(d-2, -1, -1)))
-                    else:
-                        faces.append(x)
-                data[y] = faces
+        return QuotientOfSimplicialSet(subcomplex, vertex_name=vertex_name)
 
-        if self.is_pointed():
-            if self.base_point() in removed:
-                base_pt = v
-            else:
-                base_pt = self.base_point()
-        else:
-            base_pt = v
-        data[v] = None
-        return SimplicialSet(data, base_point = base_pt)
-
-    def disjoint_union(self, other):
+    def disjoint_union(self, *others):
         """
-        The disjoint union of this simplicial set with ``other``.
+        The disjoint union of this simplicial set with ``others``.
 
-        If there are any simplices in common between the two
-        simplicial sets, use a copy of ``other``.
+        INPUT:
+
+        - ``others`` -- one or several simplicial sets
+
+        The simplicial sets must have no simplices in common.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: e = NonDegenerateSimplex(1, name='e')
-            sage: f = NonDegenerateSimplex(1, name='f')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: f = AbstractSimplex(1, name='f')
             sage: X = SimplicialSet({e: (v, v)})
             sage: Y = SimplicialSet({f: (v, w)})
+
+        Since ``X`` and ``Y`` have simplices in common, trying to
+        construct their disjoint union will result in an error. Since
+        the disjoint union is constructed as a pushout, the error
+        message mentions pushouts. ::
+
             sage: Z = X.disjoint_union(Y)
+            Traceback (most recent call last):
+            ...
+            ValueError: pushout: the codomains must have no simplices in common (other than those in the domain)
 
-        Since ``X`` and ``Y`` have simplices in common, ``Y`` has been
-        copied and so its simplices have been renamed::
+        To repair this, use a copy of ``Y``::
 
+            sage: Z = X.disjoint_union(copy(Y))
             sage: Z.nondegenerate_simplices()
             [v, v', w', e, f']
-
-        Test that copying works properly::
-
-            sage: Y = copy(X)
-            sage: Y.nondegenerate_simplices()
-            [v', e']
-            sage: Z = Y.disjoint_union(Y)
-            sage: Z.nondegenerate_simplices()
-            [v', v'', e', e'']
         """
-        X = other
-        simps = set(self.nondegenerate_simplices())
-        while not simps.isdisjoint(set(X.nondegenerate_simplices())):
-            X = copy.copy(X)
-        data = self.face_data()
-        data.update(X._data)
-        return SimplicialSet(data)
+        maps = [self._map_from_empty_set()] + [X._map_from_empty_set() for X in others]
+        return PushoutOfSimplicialSets(maps)
 
-    def wedge(self, other):
+    def wedge(self, *others):
         r"""
-        The wedge product of this simplicial set with ``other``.
+        The wedge sum of this pointed simplicial set with ``others``.
 
-        If there are any simplices in common between the two
-        simplicial sets, use a copy of ``other``, unless of course the
-        base point is the only simplex in common.
+        - ``others`` -- one or several simplicial sets
 
         Both this simplicial set and ``other`` must be pointed. Their
         base points need not be the same, but during the construction,
-        the base points will become identified.
+        the base points will become identified and renamed '*'. The
+        simplicial sets must have no simplices in common (except
+        possibly for the base point). Thus to take the wedge of a
+        simplicial set with itself, use a copy for one of the factors.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: e = NonDegenerateSimplex(1, name='e')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: f = NonDegenerateSimplex(1, name='f')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: f = AbstractSimplex(1, name='f')
             sage: X = SimplicialSet({e: (v, v)}, base_point=v)
             sage: Y = SimplicialSet({f: (w, w)}, base_point=w)
             sage: W = X.wedge(Y)
             sage: W.nondegenerate_simplices()
-            [v, e, f]
+            [*, e, f]
             sage: W.homology()
             {0: 0, 1: Z x Z}
             sage: S2 = simplicial_sets.Sphere(2)
             sage: X.wedge(S2).homology(reduced=False)
             {0: Z, 1: Z, 2: Z}
-            sage: X.wedge(X).nondegenerate_simplices()
-            [v, e, e']
+
+        Try to take the wedge of a space with itself::
+
+            sage: X.wedge(X)
+            Traceback (most recent call last):
+            ...
+            ValueError: pushout: the codomains must have no simplices in common (other than those in the domain)
+
+        Fix this by using a copy for one of the factors. In this copy,
+        the simplices are renamed: a prime is added::
+
+            sage: X.wedge(copy(X)).nondegenerate_simplices()
+            [*, e, e']
 
         TESTS::
 
@@ -2149,43 +2240,9 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: X.wedge(Z)
             Traceback (most recent call last):
             ...
-            ValueError: both simplicial sets must be pointed
+            ValueError: the simplicial sets must be pointed
         """
-        if not self.is_pointed() or not other.is_pointed():
-            raise ValueError('both simplicial sets must be pointed')
-        basept = self.base_point()
-        X = other
-        simps = set(self.nondegenerate_simplices())
-        points = set([basept]).intersection(set([X.base_point()]))
-        while not simps.intersection(set(X.nondegenerate_simplices())).issubset(points):
-            X = copy.copy(X)
-            points = set([basept]).intersection(set([X.base_point()]))
-        # Now X and self have no simplices in common, except perhaps
-        # for the base point. If the base point is not in common,
-        # replace the base point in X with basept.
-        data = X.face_data()
-        y = X.base_point()
-        if basept != y:
-            if basept in data:
-                data[basept] = None
-            try:
-                del data[y]
-            except KeyError:
-                pass
-            for x in data:
-                faces = data[x]
-                new_faces = []
-                if faces:
-                    for f in faces:
-                        if f.nondegenerate() == y:
-                            new_faces.append(basept.apply_degeneracies(*f.degeneracies()))
-                        else:
-                            new_faces.append(f)
-                    data[x] = tuple(new_faces)
-        # Now that the base points agree, we just have to merge the
-        # data for the two simplicial sets.
-        data.update(self._data)
-        return SimplicialSet(data, base_point=basept)
+        return WedgeOfSimplicialSets((self,) + others)
 
     def product(self, *others):
         r"""
@@ -2207,10 +2264,10 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: e = NonDegenerateSimplex(1, name='e')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, w)})
             sage: square = X.product(X)
 
@@ -2258,7 +2315,88 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: W.factors()
             (S^1, S^1, S^1)
         """
-        return ProductOfSimplicialSets([self] + list(others))
+        return ProductOfSimplicialSets((self,) + others)
+
+    def fat_wedge(self, n):
+        """
+        The $n$-th fat wedge of this pointed simplicial set.
+
+        This is the subcomplex of the $n$-fold product `X^n`
+        consisting of those points in which at least one factor is the
+        base point. Thus when $n=2$, this is the wedge of the
+        simplicial set with itself, but when $n$ is larger, the fat
+        wedge is larger than the $n$-fold wedge.
+
+        This raises an error if this simplicial set is not pointed.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: S1.fat_wedge(0)
+            Point
+            sage: S1.fat_wedge(1)
+            S^1
+            sage: S1.fat_wedge(2).fundamental_group()
+            Finitely presented group < e0, e1 |  >
+            sage: S1.fat_wedge(4).homology()
+            {0: 0, 1: Z x Z x Z x Z, 2: Z^6, 3: Z x Z x Z x Z}
+
+        TESTS::
+
+            sage: S1.unset_base_point()
+            sage: S1.fat_wedge(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: the simplicial set must be pointed
+        """
+        if not self.is_pointed():
+            raise ValueError('the simplicial set must be pointed')
+        if n == 0:
+            return Point()
+        if n == 1:
+            return self
+        return self.product(*[self]*(n-1)).fat_wedge()
+
+    def pushout(self, *maps):
+        r"""
+        The pushout obtained from given ``maps``.
+
+        INPUT:
+
+        - ``maps`` -- several maps of simplicial sets, each of which
+          has this simplicial set as its domain
+
+        If only a single map `f: X \to Y` is given, then return
+        `Y`. If more than one map is given, say `f_i: X \to Y_i` for
+        `0 \leq i \leq m`, then return the pushout defined by those
+        maps. If no maps are given, return the empty simplicial set.
+
+        EXAMPLES:
+
+        Construct the 4-sphere as a quotient of a 4-simplex::
+
+            sage: K = simplicial_sets.Simplex(4)
+            sage: L = K.n_skeleton(3)
+            sage: S4 = L.pushout(L.constant_map(), L.inclusion_map())
+            sage: S4
+            Simplicial set with 2 non-degenerate simplices
+            sage: S4.homology(4)
+            Z
+
+        TESTS::
+
+            sage: K = simplicial_sets.Simplex(5)
+            sage: K.pushout()
+            Simplicial set with 0 non-degenerate simplices
+
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: pt_map = S0.base_point_map()
+            sage: pt_map.domain().pushout(pt_map) == S0
+            True
+        """
+        if any(self != f.domain() for f in maps):
+            raise ValueError('the domains of the maps must be equal')
+        return PushoutOfSimplicialSets(maps)
 
     def smash_product(self, other):
         """
@@ -2281,7 +2419,7 @@ class SimplicialSet(GenericCellComplex, Parent):
             {0: Z, 1: 0, 2: Z x Z, 3: Z}
         """
         prod = self.product(other)
-        wedge = prod._wedge_as_subcomplex()
+        wedge = prod.wedge_as_subset()
         return prod.quotient(wedge)
 
     def cone(self, reduced=None):
@@ -2308,9 +2446,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: e = NonDegenerateSimplex(1, name='e')
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})
             sage: CX = X.cone()  # unreduced cone, since X not pointed
             sage: CX.nondegenerate_simplices()
@@ -2331,39 +2469,13 @@ class SimplicialSet(GenericCellComplex, Parent):
             ValueError: this simplicial set is not pointed, so cannot construct the reduced cone
         """
         if self.is_pointed():
-            if reduced is None:
-                reduced = True
+            if reduced is None or reduced:
+                return ReducedConeOfSimplicialSet(self)
         else:
             if reduced:
                 raise ValueError('this simplicial set is not pointed, so '
                                  'cannot construct the reduced cone')
-        star = NonDegenerateSimplex(0, name='*')
-        data = {}
-        data[star] = None
-        # Dictionary for translating old simplices to new: keys are
-        # old simplices, corresponding value is the new simplex
-        # (sigma, *).
-        new_simplices = {None: star}
-        for sigma in self.nondegenerate_simplices():
-            new = NonDegenerateSimplex(sigma.dimension()+1,
-                                       name='({},*)'.format(sigma))
-            if sigma.dimension() == 0:
-                data[sigma] = None
-                if reduced:
-                    if sigma == self.base_point():
-                        edge = new
-                data[new] = (star, sigma)
-            else:
-                sigma_faces = self.face_data()[sigma]
-                data[sigma] = sigma_faces
-                new_faces = [new_simplices[face.nondegenerate()].apply_degeneracies(*face.degeneracies())
-                             for face in sigma_faces]
-                data[new] = (new_faces + [sigma])
-            new_simplices[sigma] = new
-        Cone = SimplicialSet(data, base_point=star)
-        if reduced:
-            return Cone.quotient([edge])
-        return Cone
+        return ConeOfSimplicialSet(self)
 
     def suspension(self, n=1, reduced=None):
         """
@@ -2396,7 +2508,8 @@ class SimplicialSet(GenericCellComplex, Parent):
             True
 
         The version of the suspension obtained by the smash product is
-        typically less efficient than the model produced here::
+        typically less efficient than the reduced suspension produced
+        here::
 
             sage: SigmaRP4
             Simplicial set with 5 non-degenerate simplices
@@ -2408,7 +2521,7 @@ class SimplicialSet(GenericCellComplex, Parent):
             sage: RP4.suspension(-3)
             Traceback (most recent call last):
             ...
-            ValueError: n must be positive
+            ValueError: n must be non-negative
         """
         if n == 0:
             return self
@@ -2420,11 +2533,14 @@ class SimplicialSet(GenericCellComplex, Parent):
                 raise ValueError('this simplicial set is not pointed, so '
                                  'cannot construct the reduced suspension')
         if n < 0:
-            raise ValueError('n must be positive')
+            raise ValueError('n must be non-negative')
         CX = self.cone(reduced=reduced)
-        X = set(self.nondegenerate_simplices()).intersection(CX.nondegenerate_simplices())
-        Sigma = CX.quotient(CX.subcomplex(X))
-        return Sigma.suspension(n-1)
+        if reduced:
+            X = CX.map_from_X().image()
+        else:
+            X = CX.X_as_subset()
+        Sigma = CX.quotient(X)
+        return Sigma.suspension(n-1, reduced=reduced)
 
     def is_reduced(self):
         """
@@ -2580,7 +2696,7 @@ class SimplicialSet(GenericCellComplex, Parent):
         EXAMPLES::
 
             sage: S1 = simplicial_sets.Sphere(1)
-            sage: eight = S1.wedge(S1)
+            sage: eight = S1.wedge(copy(S1))
             sage: eight.fundamental_group() # free group on 2 generators
             Finitely presented group < e0, e1 |  >
 
@@ -2631,7 +2747,7 @@ class SimplicialSet(GenericCellComplex, Parent):
         spanning_tree = [e[2] for e in graph.min_spanning_tree()]
         gens = [e for e in edges if e not in spanning_tree]
 
-        if len(gens) == 0:
+        if not gens:
             return gap.TrivialGroup()
 
         gens_dict = dict(zip(gens, range(len(gens))))
@@ -2660,12 +2776,12 @@ class SimplicialSet(GenericCellComplex, Parent):
         """
         True if this simplicial set is simply connected.
 
-        .. warning::
+        .. WARNING::
 
            Determining simple connectivity is not always possible,
            because it requires determining when a group, as given by
-           generators and relations, is trivial. So this may give a
-           false negative in some cases.
+           generators and relations, is trivial. So this conceivably
+           may give a false negative in some cases.
 
         EXAMPLES::
 
@@ -2699,7 +2815,7 @@ class SimplicialSet(GenericCellComplex, Parent):
             except (NotImplementedError, RuntimeError):
                 # I don't know of any simplicial sets for which the
                 # code reaches this point, but there are certainly
-                # groups for which these errors are raised. 'IsTrivial' 
+                # groups for which these errors are raised. 'IsTrivial'
                 # works for all of the examples I've seen, though.
                 raise ValueError('unable to determine if the fundamental group is trival')
 
@@ -2709,9 +2825,9 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         The dimension of the first nonzero homotopy group. If simply
         connected, this is the same as the dimension of the first
-        nonzero homology group. 
+        nonzero homology group.
 
-        .. warning::
+        .. WARNING::
 
            See the warning for the :meth:`is_simply_connected` method.
 
@@ -2773,11 +2889,11 @@ class SimplicialSet(GenericCellComplex, Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0)
-            sage: w = NonDegenerateSimplex(0)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: w = AbstractSimplex(0)
             sage: degen = v.apply_degeneracies(0)
-            sage: tau = NonDegenerateSimplex(2)
+            sage: tau = AbstractSimplex(2)
             sage: SimplicialSet({tau: (degen, degen, degen), w: None})
             Simplicial set with 3 non-degenerate simplices
             sage: SimplicialSet({w: None})
@@ -2796,6 +2912,83 @@ class SimplicialSet(GenericCellComplex, Parent):
         if num == 1:
             return "Simplicial set with 1 non-degenerate simplex"
         return "Simplicial set with {} non-degenerate simplices".format(num)
+
+
+########################################################################
+# classes which inherit from SimplicialSet
+
+class SubSimplicialSet(SimplicialSet):
+    def __init__(self, data, ambient=None):
+        r"""
+        A simplicial set as a subsimplicial set of another simplicial set.
+
+        This keeps track of the ambient simplicial set and the
+        inclusion map from the subcomplex into it.
+
+        INPUT:
+
+        - ``data`` -- the data defining the subset: a list of
+          nondegenerate simplices in the ambient simplicial set
+
+        - ``ambient`` -- the ambient simplicial set. If omitted, use
+          the same simplicial set as the subset and the ambient
+          complex.
+
+        This is intended to be accessed via the
+        :meth:`SimplicialSet.subsimplicial_set` method for the class
+        :class:`SimplicialSet`, rather than be called directly.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: K = simplicial_sets.KleinBottle()
+            sage: X = S3.disjoint_union(K)
+            sage: Y = X.induced_map(0).image() # the S3 summand
+            sage: Y.inclusion_map()
+            Simplicial set morphism:
+              From: Simplicial set with 2 non-degenerate simplices
+              To:   Simplicial set with 8 non-degenerate simplices
+              Defn: [v_0, sigma_3] --> [v_0, sigma_3]
+            sage: Y.ambient_space()
+            Simplicial set with 8 non-degenerate simplices
+        """
+        SimplicialSet.__init__(self, data)
+        if ambient is None:
+            ambient = self
+        self._inclusion = self.Hom(ambient)({x:x for x in data})
+
+    def inclusion_map(self):
+        """
+        The inclusion map from this subsimplicial set into its ambient space.
+
+        EXAMPLES::
+
+            sage: RP6 = simplicial_sets.RealProjectiveSpace(6)
+            sage: K = RP6.n_skeleton(2)
+            sage: K.inclusion_map()
+            Simplicial set morphism:
+              From: Simplicial set with 3 non-degenerate simplices
+              To:   RP^6
+              Defn: [1, f, f * f] --> [1, f, f * f]
+        """
+        return self._inclusion
+
+    def ambient_space(self):
+        """
+        The simplicial set of which this is a subsimplicial set.
+
+        EXAMPLES::
+
+            sage: T = simplicial_sets.Torus()
+            sage: eight = T.wedge_as_subset()
+            sage: eight
+            Simplicial set with 3 non-degenerate simplices
+            sage: eight.fundamental_group()
+            Finitely presented group < e0, e1 |  >
+            sage: eight.ambient_space()
+            Torus
+        """
+        return self._inclusion.codomain()
 
 
 class ProductOfSimplicialSets(SimplicialSet):
@@ -2831,10 +3024,10 @@ class ProductOfSimplicialSets(SimplicialSet):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-        sage: v = NonDegenerateSimplex(0, name='v')
-        sage: w = NonDegenerateSimplex(0, name='w')
-        sage: e = NonDegenerateSimplex(1, name='e')
+        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: v = AbstractSimplex(0, name='v')
+        sage: w = AbstractSimplex(0, name='w')
+        sage: e = AbstractSimplex(1, name='e')
         sage: X = SimplicialSet({e: (v, w)})
         sage: square = X.product(X)
 
@@ -2878,16 +3071,16 @@ class ProductOfSimplicialSets(SimplicialSet):
     """
     def __init__(self, factors=None):
         r"""
-        The product of this simplicial set with ``other``.
+        The product of simplicial sets.
 
         See :class:`ProductOfSimplicialComplexes` for more
         information.
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet, ProductOfSimplicialSets
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: e = NonDegenerateSimplex(1)
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet, ProductOfSimplicialSets
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1)
             sage: X = SimplicialSet({e: (v, v)})
             sage: W = ProductOfSimplicialSets([X, X, X])
             sage: W.homology()
@@ -2896,8 +3089,8 @@ class ProductOfSimplicialSets(SimplicialSet):
             False
 
             sage: X.set_base_point(v)
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: f = NonDegenerateSimplex(1)
+            sage: w = AbstractSimplex(0, name='w')
+            sage: f = AbstractSimplex(1)
             sage: Y = SimplicialSet({f: (v,w)}, base_point=w)
             sage: Z = ProductOfSimplicialSets([Y, X])
             sage: Z.is_pointed()
@@ -2931,7 +3124,7 @@ class ProductOfSimplicialSets(SimplicialSet):
                     simplex_factors = tuple(zip(simplices, tuple(degens)))
                     s = '(' + ', '.join(['{}'.format(_[0].apply_degeneracies(*_[1]))
                                          for _ in simplex_factors]) + ')'
-                    simplex = NonDegenerateSimplex(d, name=s)
+                    simplex = AbstractSimplex(d, name=s)
                     translate[simplex_factors] = simplex
                     # Now compute the faces of simplex.
                     if d == 0:
@@ -2994,8 +3187,13 @@ class ProductOfSimplicialSets(SimplicialSet):
             basept = translate[tuple([(sset.base_point(), ()) for sset in factors])]
             SimplicialSet.__init__(self, data, base_point=basept)
         else:
-             SimplicialSet.__init__(self, data)
+            SimplicialSet.__init__(self, data)
         self._factors = tuple(factors)
+        # self._translation: tuple converted from dict. keys: tuples
+        # of pairs (sigma, degens), with sigma a nondegenerate simplex
+        # in one of the factors, degens the tuple of applied
+        # degeneracies. The associated value is the actual simplex in
+        # the product.
         self._translation = tuple(translate.items())
 
     def factors(self):
@@ -3008,26 +3206,108 @@ class ProductOfSimplicialSets(SimplicialSet):
             sage: S3 = simplicial_sets.Sphere(3)
             sage: S2.product(S3).factors() == (S2, S3)
             True
-            sage: S2.product(S3).factors() == (S3, S2)
-            False
+            sage: S2.product(S3).factors()[0]
+            S^2
         """
         return self._factors
 
-    def _wedge_as_subcomplex(self):
+    def projection_map(self, i):
         """
-        The wedge of this product of simplicial sets as a subcomplex.
+        The map projecting onto the $i$-th factor.
+
+        INPUT:
+
+        - ``i`` -- integer, the index of the projection map
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex, SimplicialSet
-            sage: v = NonDegenerateSimplex(0, name='v')
-            sage: e = NonDegenerateSimplex(1, name='e')
-            sage: w = NonDegenerateSimplex(0, name='w')
-            sage: f = NonDegenerateSimplex(1, name='f')
+            sage: T = simplicial_sets.Torus()
+            sage: f_0 = T.projection_map(0)
+            sage: f_1 = T.projection_map(1)
+            sage: m_0 = f_0.induced_homology_morphism().to_matrix(1) # matrix in dim 1
+            sage: m_1 = f_1.induced_homology_morphism().to_matrix(1)
+            sage: m_0.rank()
+            1
+            sage: m_0 == m_1
+            False
+        """
+        f = {}
+        for x in self._translation:
+            f[x[1]] = x[0][i][0].apply_degeneracies(*x[0][i][1])
+        return self.Hom(self.factors()[i])(f)
+
+    def factor(self, i, as_subset=False):
+        r"""
+        The $i$-th factor of the product.
+
+        INPUT:
+
+        - ``i`` -- integer, the index of the factor
+
+        - ``as_subset`` -- boolean, optional (default ``False``)
+
+        If ``as_subset`` is ``True``, return the $i$-th factor as a
+        subsimplicial set of the product, identifying it with its
+        product with the base point in each other factor. As a
+        subsimplicial set, it comes equipped with an inclusion
+        map. This option will raise an error if any factor does not
+        have a base point.
+
+        If ``as_subset`` is ``False``, return the $i$-th factor in
+        its original form as a simplicial set.
+
+        EXAMPLES::
+
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: K = S2.product(S3)
+            sage: K.factor(0)
+            S^2
+
+            sage: K.factor(0, as_subset=True)
+            Simplicial set with 2 non-degenerate simplices
+            sage: K.factor(0, as_subset=True).homology()
+            {0: 0, 1: 0, 2: Z}
+
+            sage: K.factor(0) is S2
+            True
+            sage: K.factor(0, as_subset=True) is S2
+            False
+        """
+        if as_subset:
+            if any(not _.is_pointed() for _ in self.factors()):
+                raise ValueError('"as_subset=True" is only valid '
+                                 'if each factor is pointed')
+
+            basept_factors = [sset.base_point() for sset in self.factors()]
+            basept_factors = basept_factors[:i] + basept_factors[i+1:]
+            to_factors = dict((v,k) for k,v in self._translation)
+            simps = []
+            for x in self.nondegenerate_simplices():
+                simplices = [sigma[0] for sigma in to_factors[x]]
+                if simplices[:i] + simplices[i+1:] == basept_factors:
+                    simps.append(x)
+            return self.subsimplicial_set(simps)
+        return self.factors()[i]
+
+    def wedge_as_subset(self):
+        """
+        The wedge as a subsimplicial set of this product of pointed
+        simplicial sets.
+
+        This will raise an error if any factor is not pointed.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: f = AbstractSimplex(1, name='f')
             sage: X = SimplicialSet({e: (v, v)}, base_point=v)
             sage: Y = SimplicialSet({f: (w, w)}, base_point=w)
             sage: P = X.product(Y)
-            sage: W = P._wedge_as_subcomplex()
+            sage: W = P.wedge_as_subset()
             sage: W.nondegenerate_simplices()
             [(v, w),
              (Simplex obtained by applying degeneracy s_0 to v, f),
@@ -3048,7 +3328,580 @@ class ProductOfSimplicialSets(SimplicialSet):
                     not_base_pt += 1
             if not_base_pt <= 1:
                 simps.append(x)
-        return self.subcomplex(simps)
+        return self.subsimplicial_set(simps)
+
+    def fat_wedge(self):
+        """
+        The fat wedge as a subsimplicial set of this product of pointed
+        simplicial sets.
+
+        The fat wedge consists of those terms where at least one
+        factor is the base point. Thus with two factors this is the
+        ordinary wedge, but with more factors, it is larger.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: X = S1.product(S1, S1)
+            sage: W = X.fat_wedge()
+            sage: W.homology()
+            {0: 0, 1: Z x Z x Z, 2: Z x Z x Z}
+        """
+        basept_factors = [sset.base_point() for sset in self.factors()]
+        to_factors = dict((v,k) for k,v in self._translation)
+        N = len(basept_factors)
+        simps = []
+        for x in self.nondegenerate_simplices():
+            simplices = to_factors[x]
+            combined = zip(simplices, basept_factors)
+            if any(sigma[0] == pt for (sigma,pt) in combined):
+                simps.append(x)
+        return self.subsimplicial_set(simps)
+
+
+class PushoutOfSimplicialSets(SimplicialSet):
+    def __init__(self, maps=None):
+        r"""
+        The pushout obtained from the morphisms ``maps``.
+
+        Given a simplicial set `X` (= ``domain``) and maps `f_0: X \to
+        Y_i` for `0 \leq i \leq m`, construct the pushout `P`: see
+        :wikipedia:`Pushout_(category_theory)`. This is constructed as
+        pushouts of sets for each set of `n`-simplices, so `P_n` is
+        the disjoint union of the sets `(Y_i)_n`, with elements
+        `f_i(x)` identified for `n`-simplex `x` in `X`.
+
+        The simplicial sets `Y_i` must have no simplices in common,
+        except possibly those in `X` (in case `X` is a subsimplicial
+        set of several of them -- this is allowed).
+
+        This is pointed if the maps `f_i` are.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: a = AbstractSimplex(0, name='a')
+            sage: b = AbstractSimplex(0, name='b')
+            sage: c = AbstractSimplex(0, name='c')
+            sage: e0 = AbstractSimplex(1, name='e_0')
+            sage: e1 = AbstractSimplex(1, name='e_1')
+            sage: e2 = AbstractSimplex(1, name='e_2')
+            sage: X = SimplicialSet({e2: (b, a)})
+            sage: Y0 = SimplicialSet({e2: (b,a), e0: (c,b), e1: (c,a)})
+            sage: Y1 = simplicial_sets.Simplex(0)
+            sage: f0_data = {a:a, b:b, e2: e2}
+            sage: v = Y1.n_cells(0)[0]
+            sage: f1_data = {a:v, b:v, e2:v.apply_degeneracies(0)}
+            sage: f0 = X.Hom(Y0)(f0_data)
+            sage: f1 = X.Hom(Y1)(f1_data)
+            sage: P = X.pushout(f0, f1)
+
+        There are two defining maps, `f_i: X \to Y_i`, and two induced
+        maps `\bar{f}_i: Y_i \to P`. ::
+
+            sage: P.defining_map(0) == f0
+            True
+            sage: P.induced_map(1)
+            Simplicial set morphism:
+              From: 0-simplex
+              To:   Simplicial set with 4 non-degenerate simplices
+              Defn: [(0,)] --> [set([(0,), a, b])]
+            sage: P.induced_map(0).domain() == Y0
+            True
+            sage: P.induced_map(0).codomain() == P
+            True
+
+        TESTS:
+
+        ``Y_0`` and ``Y_1`` may only intersect in simplices of `X`::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: pt = simplicial_sets.Point()
+            sage: eight = pt.pushout(S1.base_point_map(), S1.base_point_map())
+            Traceback (most recent call last):
+            ...
+            ValueError: pushout: the codomains must have no simplices in common (other than those in the domain)
+
+        Use a copy of one of the pieces to remedy this::
+
+            sage: X = copy(S1)
+            sage: eight = pt.pushout(S1.base_point_map(), X.base_point_map())
+            sage: Y = copy(X)
+            sage: bouquet = pt.pushout(S1.base_point_map(), X.base_point_map(), Y.base_point_map())
+        """
+        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        if any(not isinstance(f, SimplicialSetMorphism) for f in maps):
+            raise ValueError('the maps must be morphisms of simplicial sets')
+        if not maps:
+            SimplicialSet.__init__(self, {})
+            self._f = ()
+            self._fbar = ()
+            return
+        if len(maps) == 1:
+            f = maps[0]
+            if f.is_pointed():
+                SimplicialSet.__init__(self, f.codomain().face_data(),
+                                       base_point=f.codomain().base_point())
+            else:
+                SimplicialSet.__init__(self, f.codomain().face_data())
+            self._f = (f,)
+            self._fbar = (f,)
+            return
+        domain = maps[0].domain()
+        if any(domain != f.domain() for f in maps[1:]):
+            raise ValueError('the domains of the maps must be equal')
+        # Data to define the pushout:
+        data = {}
+        codomains = [f.codomain() for f in maps]
+        spaces = [domain] + codomains
+        # The codomains must be disjoint, except possibly for
+        # simplices contained in the domain.
+        simplices_of_domain = domain.nondegenerate_simplices()
+        simplices_of_codomains = [set(space.nondegenerate_simplices()).difference(simplices_of_domain)
+                                for space in codomains]
+        all_simplices = set([]).union(*simplices_of_codomains)
+        if len(all_simplices) != sum(len(_) for _ in simplices_of_codomains):
+            raise ValueError('pushout: the codomains must have no simplices in '
+                             'common (other than those in the domain)')
+
+        # Dictionaries to translate from simplices in domain,
+        # codomains to simplices in the pushout.
+        _to_P = {Y:{} for Y in spaces}
+        max_dim = max(Y.dimension() for Y in codomains)
+        for n in range(1 + max_dim):
+            # Now we impose an equivalence relation on the simplices,
+            # setting x equivalent to f_0(x) and to f_1(x), for each
+            # simplex x in X. We do this by constructing a graph and
+            # finding its connected components: the vertices of the
+            # graph are be the n-cells of X, Y0, Y1, and there are edges
+            # from x to f_i(x).
+            vertices = list(itertools.chain(*[Y.n_cells(n) for Y in spaces]))
+            edges = []
+            for x in domain.n_cells(n):
+                edges.extend([[x, f(x)] for f in maps])
+            G = Graph([vertices, edges], format='vertices_and_edges')
+            data[n] = [set(_) for _ in G.connected_components()]
+        # data is now a dictionary indexed by dimension, and data[n]
+        # consists of sets of n-simplices of the domain and the
+        # codomains, each set an equivalence class of n-simplices
+        # under the gluing. So if any element of one of those sets is
+        # degenerate, we can throw the whole thing away. Otherwise, we
+        # can choose a representative to compute the faces.
+        simplices = {}
+        for dim in sorted(data.keys()):
+            for s in data[dim]:
+                degenerate = any(sigma.is_degenerate() for sigma in s)
+                if degenerate:
+                    # Identify the degeneracies involved.
+                    degens = []
+                    for sigma in s:
+                        if len(sigma.degeneracies()) > len(degens):
+                            degens = sigma.degeneracies()
+                            underlying = sigma
+                            for space in spaces:
+                                if sigma in space:
+                                    old = _to_P[space][sigma.nondegenerate()]
+                                    break
+
+                    # Now update the _to_P dictionaries.  Note that
+                    # sigma may be in several of these simplicial sets
+                    # simultaneously, for example if the domain is a
+                    # subcomplex of one of the codomains.
+                    for sigma in s:
+                        for space in spaces:
+                            if sigma in space:
+                                _to_P[space][sigma] = old.apply_degeneracies(*degens)
+                else: # nondegenerate
+                    if len(s) == 1:
+                        name = str(list(s)[0])
+                    else:
+                        name = str(s)
+                    new = AbstractSimplex(dim, name=name)
+                    if dim == 0:
+                        faces = None
+                    for sigma in s:
+                        for space in spaces:
+                            if sigma in space:
+                                _to_P[space][sigma] = new
+                                if dim > 0:
+                                    faces = [_to_P[space][tau.nondegenerate()].apply_degeneracies(*tau.degeneracies())
+                                             for tau in space.faces(sigma)]
+                    simplices[new] = faces
+
+        if all(f.is_pointed() for f in maps):
+            pt = _to_P[codomains[0]][codomains[0].base_point()]
+            if any(_to_P[Y][Y.base_point()] != pt for Y in codomains[1:]):
+                raise ValueError('something unexpected went wrong with base points')
+            SimplicialSet.__init__(self, simplices, base_point=_to_P[domain][domain.base_point()])
+        else:
+            SimplicialSet.__init__(self, simplices)
+        # The relevant maps:
+        self._f = maps
+        self._fbar = tuple([Y.Hom(self)(_to_P[Y]) for Y in codomains])
+
+    def defining_map(self, i):
+        r"""
+        The `i`-th map defining the pushout.
+
+        INPUT:
+
+        - ``i`` -- integer
+
+        If this pushout was constructed as ``X.pushout(f_0, f_1)``,
+        this returns `f_i`.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: T = simplicial_sets.Torus()
+            sage: X = S1.wedge(T) # a pushout
+            sage: X.defining_map(0)
+            Simplicial set morphism:
+              From: Point
+              To:   S^1
+              Defn: [*] --> [v_0]
+            sage: X.defining_map(1).domain()
+            Point
+            sage: X.defining_map(1).codomain()
+            Torus
+        """
+        return self._f[i]
+
+    def induced_map(self, i):
+        r"""
+        The $i$-th induced map to the pushout.
+
+        INPUT:
+
+        - ``i`` -- integer
+
+        If this pushout was constructed as ``X.pushout(f_0, f_1)``,
+        then there are induced maps `\bar{f}_0` and `\bar{f}_1` from
+        the codomains of the maps `f_i` to the pushout. This constructs
+        `\bar{f}_i`.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: T = simplicial_sets.Torus()
+            sage: X = S1.disjoint_union(T) # a pushout
+            sage: X.induced_map(0)
+            Simplicial set morphism:
+              From: S^1
+              To:   Simplicial set with 8 non-degenerate simplices
+              Defn: [v_0, sigma_1] --> [v_0, sigma_1]
+            sage: X.induced_map(1).domain()
+            Torus
+            sage: X.induced_map(1).codomain()
+            Simplicial set with 8 non-degenerate simplices
+        """
+        return self._fbar[i]
+
+
+class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
+    def __init__(self, subcomplex, vertex_name=None):
+        r"""
+        The quotient of a simplicial set by a subsimplicial set
+
+        INPUT:
+
+        - ``subcomplex`` -- a subcomplex (= subsimplicial set) of a
+          simplicial set
+        - ``vertex_name`` -- optional, default ``None``
+
+        A subcomplex `A` comes equipped with the inclusion map `A \to
+        X` to its ambient complex `X`, so the ambient complex is not
+        specified explicitly. This constructs the quotient `X/A`,
+        collapsing `A` to a point.
+
+        If ``vertex_name`` is not specified, then the new point is
+        called ``'*'``; otherwise, ``vertex_name`` is used.
+
+        Quotients come equipped with a quotient map, available using
+        the :meth:`quotient_map` method.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2
+            Simplicial set with 4 non-degenerate simplices
+            sage: RP5_2.quotient_map()
+            Simplicial set morphism:
+              From: RP^5
+              To:   Simplicial set with 4 non-degenerate simplices
+              Defn: [1, f, f * f, f * f * f, f * f * f * f, f * f * f * f * f] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracies s_1 s_0 to *, f * f * f, f * f * f * f, f * f * f * f * f]
+        """
+        PushoutOfSimplicialSets.__init__(self, [subcomplex.inclusion_map(),
+                                                subcomplex.constant_map()])
+        one_point_space = self.constant_map().codomain()
+        base_pt = self.induced_map(1)(one_point_space.base_point())
+        if vertex_name is None:
+            base_pt.rename('*')
+        else:
+            base_pt.rename(vertex_name)
+        self.set_base_point(base_pt)
+
+    def quotient_map(self):
+        """
+        The quotient map from the original simplicial set to the quotient.
+
+        EXAMPLES::
+
+            sage: K = simplicial_sets.Simplex(1)
+            sage: S1 = K.quotient(K.n_skeleton(0))
+            sage: q = S1.quotient_map()
+            sage: q
+            Simplicial set morphism:
+              From: 1-simplex
+              To:   Simplicial set with 2 non-degenerate simplices
+              Defn: [(0,), (1,), (0, 1)] --> [*, *, (0, 1)]
+            sage: q.domain() == K
+            True
+            sage: q.codomain() == S1
+            True
+        """
+        return self.induced_map(0)
+
+
+class WedgeOfSimplicialSets(PushoutOfSimplicialSets):
+    def __init__(self, factors=None):
+        r"""
+        The wedge sum of pointed simplicial sets.
+
+        INPUT:
+
+        - ``factors`` -- a list or tuple of simplicial sets
+
+        Return the wedge of the simplicial sets in ``factors``.
+
+        All of the simplicial sets must be pointed. Their base points
+        need not be the same, but during the construction, the base
+        points will become identified and renamed '*'. The simplicial
+        sets must have no simplices in common (except possibly for the
+        base point).
+
+        The wedge comes equipped with maps to and from each factor, or
+        actually, maps from each factor, and maps to simplicial sets
+        isomorphic to each factor. The codomains of the latter maps
+        are quotients of the wedge, not identical to the original
+        factors.
+
+        EXAMPLES::
+
+            sage: CP2 = simplicial_sets.ComplexProjectiveSpace(2)
+            sage: K = simplicial_sets.KleinBottle()
+            sage: W = CP2.wedge(K)
+            sage: W.homology()
+            {0: 0, 1: Z x C2, 2: Z, 3: 0, 4: Z}
+
+            sage: W.inclusion(1)
+            Simplicial set morphism:
+              From: Simplicial set with 6 non-degenerate simplices
+              To:   Simplicial set with 14 non-degenerate simplices
+              Defn: [Delta_{0,0}, Delta_{1,0}, Delta_{1,1}, Delta_{1,2}, Delta_{2,0}, Delta_{2,1}] --> [*, Delta_{1,0}, Delta_{1,1}, Delta_{1,2}, Delta_{2,0}, Delta_{2,1}]
+
+            sage: W.projection(0).domain()
+            Simplicial set with 14 non-degenerate simplices
+            sage: W.projection(0).codomain() # copy of CP^2
+            Simplicial set with 9 non-degenerate simplices
+            sage: W.projection(0).codomain().homology()
+            {0: 0, 1: 0, 2: Z, 3: 0, 4: Z}
+
+        An error occurs if any of the factors is not pointed::
+
+            sage: CP2.wedge(simplicial_sets.Simplex(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: the simplicial sets must be pointed
+        """
+        if any(not space.is_pointed() for space in factors):
+            raise ValueError('the simplicial sets must be pointed')
+        PushoutOfSimplicialSets.__init__(self, [space.base_point_map()
+                                                for space in factors])
+        self.base_point().rename('*')
+        self._factors = factors
+
+    def inclusion(self, i):
+        """
+        Inclusion map of the $i$-th factor.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: K1 = copy(S1)
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: W = S1.wedge(S2, K1)
+            sage: W.inclusion(1)
+            Simplicial set morphism:
+              From: S^2
+              To:   Simplicial set with 4 non-degenerate simplices
+              Defn: [v_0, sigma_2] --> [*, sigma_2]
+            sage: W.inclusion(0).domain()
+            S^1
+            sage: W.inclusion(2).domain()
+            Simplicial set with 2 non-degenerate simplices
+        """
+        return self.induced_map(i)
+
+    def projection(self, i):
+        """
+        Projection map onto the $i$-th factor.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: K1 = copy(S1)
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: W = S1.wedge(S2, K1)
+            sage: W.projection(1)
+            Simplicial set morphism:
+              From: Simplicial set with 4 non-degenerate simplices
+              To:   Simplicial set with 2 non-degenerate simplices
+              Defn: [*, sigma_1, sigma_1', sigma_2] --> [*, Simplex obtained by applying degeneracy s_0 to *, Simplex obtained by applying degeneracy s_0 to *, sigma_2]
+            sage: W.projection(1).image().homology(1)
+            0
+            sage: W.projection(1).image().homology(2)
+            Z
+        """
+        m = len(self._factors)
+        simplices = ([self.inclusion(j).image().nondegenerate_simplices() for j in range(i)]
+                     + [self.inclusion(j).image().nondegenerate_simplices() for j in range(i+1,m)])
+        return self.quotient(list(itertools.chain(*simplices))).quotient_map()
+
+
+class ConeOfSimplicialSet(SimplicialSet):
+    def __init__(self, X):
+        r"""
+        The unreduced cone on a simplicial set.
+
+        INPUT:
+
+        - ``X`` -- return the cone on this simplicial set.
+
+        Add a point `*` (which will become the base point) and for
+        each simplex `\sigma` in `X`, add both `\sigma` and a simplex
+        made up of `*` and `\sigma` (topologically, form the join of
+        `*` and `\sigma`).
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: X = SimplicialSet({e: (v, v)})
+            sage: CX = X.cone(reduced=False) # indirect doctest
+            sage: CX.nondegenerate_simplices()
+            [*, v, (v,*), e, (e,*)]
+            sage: CX.base_point()
+            *
+            sage: X.set_base_point(v)
+            sage: CX = X.cone(reduced=False)
+            sage: CX.nondegenerate_simplices()
+            [*, v, (v,*), e, (e,*)]
+        """
+        star = AbstractSimplex(0, name='*')
+        data = {}
+        data[star] = None
+        # Dictionary for translating old simplices to new: keys are
+        # old simplices, corresponding value is the new simplex
+        # (sigma, *).
+        new_simplices = {None: star}
+        for sigma in X.nondegenerate_simplices():
+            new = AbstractSimplex(sigma.dimension()+1,
+                                       name='({},*)'.format(sigma))
+            if sigma.dimension() == 0:
+                data[sigma] = None
+                data[new] = (star, sigma)
+            else:
+                sigma_faces = X.face_data()[sigma]
+                data[sigma] = sigma_faces
+                new_faces = [new_simplices[face.nondegenerate()].apply_degeneracies(*face.degeneracies())
+                             for face in sigma_faces]
+                data[new] = (new_faces + [sigma])
+            new_simplices[sigma] = new
+        SimplicialSet.__init__(self, data, base_point=star)
+        self._X = X
+
+    def X_as_subset(self):
+        """
+        If this is the cone `CX` on `X`, return `X` as a subsimplicial set.
+
+        EXAMPLES::
+
+            sage: X = simplicial_sets.RealProjectiveSpace(4)
+            sage: Y = X.cone(reduced=False)
+            sage: Y.X_as_subset()
+            Simplicial set with 5 non-degenerate simplices
+            sage: Y.X_as_subset() == X
+            True
+        """
+        return self.subsimplicial_set(self._X.nondegenerate_simplices())
+
+
+class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
+    def __init__(self, X):
+        r"""
+        The reduced cone on a simplicial set.
+
+        INPUT:
+
+        - ``X`` -- return the cone on this simplicial set.
+
+        Start with the unreduced cone: take `X` and add a point `*`
+        (which will become the base point) and for each simplex
+        `\sigma` in `X`, add both `\sigma` and a simplex made up of ``
+        and `\sigma` (topologically, form the join of `*` and
+        `\sigma`).
+
+        Now reduce: take the quotient by the 1-simplex connecting the
+        old base point to the new one.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: e = AbstractSimplex(1, name='e')
+            sage: X = SimplicialSet({e: (v, v)})
+            sage: X.set_base_point(v)
+            sage: CX = X.cone()  # indirect doctest
+            sage: CX.nondegenerate_simplices()
+            [*, e, (e,*)]
+        """
+        CX = ConeOfSimplicialSet(X)
+        edge_faces = sorted([CX.base_point(), X.base_point()])
+        for t in CX.n_cells(1):
+            if sorted(CX.faces(t)) == edge_faces:
+                edge = t
+                break
+        QuotientOfSimplicialSet.__init__(self, CX.subsimplicial_set([edge]))
+
+    def map_from_X(self):
+        r"""
+        If this is the cone `\tilde{C}X` on `X`, return the map from `X`.
+
+        The map is defined to be the composite `X \to CX \to
+        \tilde{C}X`.  This is used by the
+        :meth:`SimplicialSet.suspension` method to construct the
+        reduced suspension: take the quotient of the reduced cone by
+        the image of `X` therein.
+
+        EXAMPLES::
+
+            sage: S3 = simplicial_sets.Sphere(3)
+            sage: CS3 = S3.cone(reduced=True)
+            sage: CS3.map_from_X()
+            Simplicial set morphism:
+              From: Simplicial set with 2 non-degenerate simplices
+              To:   Simplicial set with 3 non-degenerate simplices
+              Defn: [v_0, sigma_3] --> [*, sigma_3]
+        """
+        quotient_map = self.quotient_map()
+        unreduced = quotient_map.domain()
+        X = unreduced.X_as_subset()
+        return quotient_map * X.inclusion_map()
 
 
 ########################################################################
@@ -3064,7 +3917,7 @@ def standardize_degeneracies(*L):
     OUTPUT: an equivalent list of degeneracies, standardized to be
     written in decreasing order, using the simplicial identity
 
-    .. math::
+    .. MATH::
 
         s_i s_j = s_{j+1} s_i \ \   \text{if }   i \leq j.
 
@@ -3128,7 +3981,7 @@ def all_degeneracies(n, l=1):
     `s_i` for `0 \leq i \leq n+1`, and so on. But one also has to take
     into account the simplicial identity
 
-    .. math::
+    .. MATH::
 
         s_i s_j = s_{j+1} s_i \ \   \text{if }   i \leq j.
 
@@ -3164,9 +4017,9 @@ def standardize_face_maps(*L):
     OUTPUT: an equivalent list of face maps, standardized to be
     written in non-increasing order, using the simplicial identity
 
-    .. math::
+    .. MATH::
 
-        d_i d_j &= d_{j-1} d_i \ \   \text{if }   i<j.
+        d_i d_j = d_{j-1} d_i \ \   \text{if }   i<j.
 
     For example, `d_0 d_2 = d_1 d_0` and `d_0 d_1 = d_0 d_0`.
 
@@ -3209,13 +4062,13 @@ def face_degeneracies(m, I):
     Using the simplicial identities (see :class:`SimplicialSet`), we
     can rewrite
 
-    .. math::
+    .. MATH::
 
         d_m s_{i_1} s_{i_2} ... s_{i_n}
 
     in one of the forms
 
-    .. math::
+    .. MATH::
 
         s_{j_1} s_{j_2} ... s_{j_n} d_t, \quad
         s_{j_1} s_{j_2} ... s_{j_{n-1}}.
@@ -3304,9 +4157,10 @@ def shrink_simplicial_complex(K):
 
 def Sphere(n):
     r"""
-    The `n`-sphere as a simplicial set,
-    constructed with two non-degenerate simplices:
-    a vertex `v_0` and an `n`-simplex `\sigma_n`.
+    The `n`-sphere as a simplicial set.
+
+    It is constructed with two non-degenerate simplices: a vertex
+    `v_0` (which is the base point) and an `n`-simplex `\sigma_n`.
 
     INPUT:
 
@@ -3316,27 +4170,29 @@ def Sphere(n):
 
         sage: S0 = simplicial_sets.Sphere(0)
         sage: S0
-        Simplicial set with 2 non-degenerate simplices
+        S^0
         sage: S0.nondegenerate_simplices()
         [v_0, w_0]
+        sage: S0.is_pointed()
+        True
         sage: simplicial_sets.Sphere(4)
         S^4
         sage: simplicial_sets.Sphere(4).nondegenerate_simplices()
         [v_0, sigma_4]
     """
-    v_0 = NonDegenerateSimplex(0, name='v_0')
+    v_0 = AbstractSimplex(0, name='v_0')
     if n == 0:
-        w_0 = NonDegenerateSimplex(0, name='w_0')
-        return SimplicialSet({v_0: None, w_0: None})
+        w_0 = AbstractSimplex(0, name='w_0')
+        return SimplicialSet({v_0: None, w_0: None}, base_point=v_0, name='S^0')
     degens = range(n-2, -1, -1)
     degen_v = v_0.apply_degeneracies(*degens)
-    sigma = NonDegenerateSimplex(n, name='sigma_{}'.format(n))
+    sigma = AbstractSimplex(n, name='sigma_{}'.format(n))
     return SimplicialSet({sigma: [degen_v] * (n+1)}, base_point=v_0, name='S^{}'.format(n))
 
 
 def ClassifyingSpace(group, n):
     r"""
-    The `n` skeleton of the classifying space of ``group``,
+    The `n`-skeleton of the classifying space of ``group``,
     as a simplicial set.
 
     INPUT:
@@ -3412,7 +4268,9 @@ def KleinBottle():
         sage: K.homology(reduced=False)
         {0: Z, 1: Z x C2, 2: 0}
     """
-    return SimplicialSet(delta_complexes.KleinBottle())
+    K = SimplicialSet(delta_complexes.KleinBottle())
+    K.set_base_point(K.n_cells(0)[0])
+    return K
 
 
 def Torus():
@@ -3457,12 +4315,58 @@ def Simplex(n):
     return SimplicialSet(simplicial_complexes.Simplex(n), name='{}-simplex'.format(n))
 
 
+@cached_function
+def Empty():
+    """
+    The empty simplicial set.
+
+    This should return the same simplicial set each time it is called.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_set import Empty
+        sage: E = Empty()
+        sage: E
+        Empty simplicial set
+        sage: E.nondegenerate_simplices()
+        []
+        sage: E is Empty()
+        True
+    """
+    return SimplicialSet({}, name='Empty simplicial set')
+
+
+@cached_function
+def Point():
+    """
+    A single point called "*" as a simplicial set.
+
+    This should return the same simplicial set each time it is called.
+
+    EXAMPLES::
+
+        sage: P = simplicial_sets.Point()
+        sage: P.is_pointed()
+        True
+        sage: P.nondegenerate_simplices()
+        [*]
+
+        sage: Q = simplicial_sets.Point()
+        sage: P is Q
+        True
+        sage: P == Q
+        True
+    """
+    star = AbstractSimplex(0, name='*')
+    return SimplicialSet({star: None}, base_point=star, name='Point')
+
+
 def Horn(n, k):
     r"""
     The horn $\Lambda^n_k$.
 
-    This is the subcomplex of the $n$-simplex obtained by removing its
-    $k$th face.
+    This is the subsimplicial set of the $n$-simplex obtained by
+    removing its $k$-th face.
 
     EXAMPLES::
 
@@ -3474,7 +4378,7 @@ def Horn(n, k):
     """
     K = Simplex(n)
     sigma = K.n_cells(n)[0]
-    return K.subcomplex(K.faces(sigma)[:k] + K.faces(sigma)[k+1:])
+    return K.subsimplicial_set(K.faces(sigma)[:k] + K.faces(sigma)[k+1:])
 
 
 def ComplexProjectiveSpace(n):
@@ -3527,15 +4431,15 @@ def ComplexProjectiveSpace(n):
     if n == 1:
         return Sphere(2)
     if n == 2:
-        v = NonDegenerateSimplex(0, name='<<GBar>>')
-        f2_1 = NonDegenerateSimplex(2, name='<<GBar<- (1)><- NIL>>>')
-        f2_2 = NonDegenerateSimplex(2, name='<<GBar<- (2)><- NIL>>>')
-        f3_110 = NonDegenerateSimplex(3, name='<<GBar<- (1 1)><0 NIL><- NIL>>>')
-        f3_011 = NonDegenerateSimplex(3, name='<<GBar<0 (1)><- (1)><- NIL>>>')
-        f3_111 = NonDegenerateSimplex(3, name='<<GBar<1 (1)><- (1)><- NIL>>>')
-        f4_101101 = NonDegenerateSimplex(4, name='<<GBar<1-0 (1)><1-0 NIL><- (1)><- NIL>>>')
-        f4_201110 = NonDegenerateSimplex(4, name='<<GBar<2-0 (1)><1 (1)><0 NIL><- NIL>>>')
-        f4_211010 = NonDegenerateSimplex(4, name='<<GBar<2-1 (1)><0 (1)><0 NIL><- NIL>>>')
+        v = AbstractSimplex(0, name='<<GBar>>')
+        f2_1 = AbstractSimplex(2, name='<<GBar<- (1)><- NIL>>>')
+        f2_2 = AbstractSimplex(2, name='<<GBar<- (2)><- NIL>>>')
+        f3_110 = AbstractSimplex(3, name='<<GBar<- (1 1)><0 NIL><- NIL>>>')
+        f3_011 = AbstractSimplex(3, name='<<GBar<0 (1)><- (1)><- NIL>>>')
+        f3_111 = AbstractSimplex(3, name='<<GBar<1 (1)><- (1)><- NIL>>>')
+        f4_101101 = AbstractSimplex(4, name='<<GBar<1-0 (1)><1-0 NIL><- (1)><- NIL>>>')
+        f4_201110 = AbstractSimplex(4, name='<<GBar<2-0 (1)><1 (1)><0 NIL><- NIL>>>')
+        f4_211010 = AbstractSimplex(4, name='<<GBar<2-1 (1)><0 (1)><0 NIL><- NIL>>>')
         return SimplicialSet({f2_1: (v.apply_degeneracies(0),
                                      v.apply_degeneracies(0),
                                      v.apply_degeneracies(0)),
@@ -3616,7 +4520,7 @@ def simplicial_data_from_kenzo_output(filename):
             simplex_string = data[data.find('Vertices :') + len('Vertices :'):end]
             vertices = OneOrMore(nestedExpr()).parseString(simplex_string).asList()[0]
             for v in vertices:
-                vertex = NonDegenerateSimplex(0, name=v)
+                vertex = AbstractSimplex(0, name=v)
                 simplex_data[vertex] = None
                 simplex_names[v] = vertex
         else:
@@ -3647,7 +4551,7 @@ def simplicial_data_from_kenzo_output(filename):
                         nondegen = simplex_names[face_name]
                         faces.append(nondegen.apply_degeneracies(*degens))
 
-                    simplex = NonDegenerateSimplex(dim, name=name)
+                    simplex = AbstractSimplex(dim, name=name)
                     simplex_data[simplex] = faces
                     simplex_names[name] = simplex
         dim += 1

@@ -176,10 +176,10 @@ class FiniteMonoids(CategoryWithAxiom):
                 3: Vector space of dimension 1 over Finite Field of size 5,
                 4: Vector space of dimension 205 over Finite Field of size 5}
             """
-            from sage.homology.simplicial_set import SimplicialSet, NonDegenerateSimplex
+            from sage.homology.simplicial_set import SimplicialSet, AbstractSimplex
             # There is a single vertex. Name it after the identity
             # element of the monoid.
-            e = NonDegenerateSimplex(0, name=str(self.one()))
+            e = AbstractSimplex(0, name=str(self.one()))
 
             # Build the dictionary simplices, to be used for
             # constructing the simplicial set.
@@ -196,7 +196,7 @@ class FiniteMonoids(CategoryWithAxiom):
             face_dict = {}
             for g in self:
                 if g != self.one():
-                    x = NonDegenerateSimplex(1, name=str(g))
+                    x = AbstractSimplex(1, name=str(g))
                     simplices[x] = (e, e)
                     face_dict[(g,)] = x
 
@@ -214,7 +214,7 @@ class FiniteMonoids(CategoryWithAxiom):
                         # bdries: the face maps applied to chain, in a
                         # format suitable for passing to the DeltaComplex
                         # constructor.
-                        x = NonDegenerateSimplex(d,
+                        x = AbstractSimplex(d,
                                   name=' * '.join(str(_) for _ in chain))
                         new_faces[chain] = x
 

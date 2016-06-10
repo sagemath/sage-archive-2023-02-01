@@ -68,32 +68,10 @@ class SimplicialSets(Category_singleton):
         simplices.
         """
         class ParentMethods:
-            @cached_method
-            def dimension(self):
-                """
-                Return the dimension of ``self``.
+            pass
 
-                EXAMPLES::
+        class ElementMethods:
+            pass
 
-                    sage: S = simplicial_sets.Sphere(8)
-                    sage: S.dimension()
-                    8
-                """
-                return max(c.dimension() for c in self.nondegenerate_simplices())
-
-    class ParentMethods:
-        @abstract_method
-        def faces(self):
-            """
-            Return the faces of ``self``.
-
-            EXAMPLES::
-
-                sage: S = SimplicialComplex([[1,3,4], [1,2],[2,5],[4,5]])
-                sage: S.faces()
-                {-1: {()},
-                 0: {(1,), (2,), (3,), (4,), (5,)},
-                 1: {(1, 2), (1, 3), (1, 4), (2, 5), (3, 4), (4, 5)},
-                 2: {(1, 3, 4)}}
-            """
-
+        class MorphismMethods:
+            pass

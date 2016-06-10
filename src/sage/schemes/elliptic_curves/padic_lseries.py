@@ -253,7 +253,7 @@ class pAdicLseries(SageObject):
 
     def prime(self):
         r"""
-        Returns the prime `p` as in 'p-adic L-function'.
+        Return the prime `p` as in 'p-adic L-function'.
 
         EXAMPLES::
 
@@ -764,7 +764,7 @@ class pAdicLseries(SageObject):
 class pAdicLseriesOrdinary(pAdicLseries):
     def series(self, n=2, quadratic_twist=+1, prec=5, eta=0):
         r"""
-        Returns the `n`-th approximation to the `p`-adic L-series, in the
+        Return the `n`-th approximation to the `p`-adic L-series, in the
         component corresponding to the `\eta`-th power of the Teichmueller
         character, as a power series in `T` (corresponding to `\gamma-1` with
         `\gamma=1+p` as a generator of `1+p\ZZ_p`). Each coefficient is a
@@ -856,7 +856,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             2 + O(5^6) + (1 + 5 + O(5^3))*T + (2 + 4*5 + 3*5^2 + O(5^3))*T^2 + (4 + 5 + 2*5^2 + O(5^3))*T^3 + (4 + O(5^3))*T^4 + O(T^5)
             3 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + O(5^6) + (1 + 2*5 + 4*5^2 + O(5^3))*T + (1 + 4*5 + O(5^3))*T^2 + (3 + 2*5 + 2*5^2 + O(5^3))*T^3 + (5 + 5^2 + O(5^3))*T^4 + O(T^5)
 
-        It should now also work with `p=2` (:trac: `20798`)::
+        It should now also work with `p=2` (:trac:`20798`)::
 
             sage: E = EllipticCurve("53a1")
             sage: lp = E.padic_lseries(2)
@@ -1137,11 +1137,18 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L = E.padic_lseries(3)
             sage: L.series(4,prec=1)
             alpha^-2 + alpha^-1 + 2 + 2*alpha + ... + O(alpha^38) + O(T)
+
+        It works also for `p=2`::
+
+            sage: E = EllipticCurve("11a1")
+            sage: lp = E.padic_lseries(2)
+            sage: lp.series(10)
+            O(alpha^-3) + (alpha^-4 + O(alpha^-3))*T + (alpha^-4 + O(alpha^-3))*T^2 + (alpha^-5 + alpha^-4 + O(alpha^-3))*T^3 + (alpha^-4 + O(alpha^-3))*T^4 + O(T^5)
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError("n (=%s) must be a positive integer"%n)
-        if p == 2 and n == 1:
+        if self._p == 2 and n == 1:
             raise ValueError("n (=%s) must be at least 2 when p=2"%n)
         if prec < 1:
             raise ValueError("Insufficient precision (%s)"%prec)
@@ -1164,8 +1171,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         p = self._p
         eta = ZZ(eta) % (p-1)
-        if p == 2 and self._normalize :
-            print('Warning : for p = 2 the normalization might not be correct !')
+        #if p == 2 and self._normalize :
+            #print('Warning : for p = 2 the normalization might not be correct !')
 
         if prec == 1:
             if eta == 0:
@@ -1198,24 +1205,33 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         alpha = self.alpha(prec=padic_prec)
         K = alpha.parent()
-        gamma = 1 + p
         R = PowerSeriesRing(K,'T',prec)
         T = R(R.gen(), prec)
         L = R(0)
         one_plus_T_factor = R(1)
         gamma_power = 1
         teich = self.teichmuller(padic_prec)
+        if p == 2:
+            teich = [0, 1,-1]
+            gamma = 5
+            p_power = 2**(n-2)
+            a_range = 3
+        else:
+            teich = self.teichmuller(padic_prec)
+            gamma = 1+ p
+            p_power = p**(n-1)
+            a_range = p
         si = 1-2*(eta % 2)
 
-        verbose("Now iterating over %s summands"%((p-1)*p**(n-1)))
+        verbose("Now iterating over %s summands"%((p-1)*p_power))
         verbose_level = get_verbose()
         count_verb = 0
-        for j in range(p**(n-1)):
+        for j in range(p_power):
             s = K(0)
-            if verbose_level >= 2 and j/p**(n-1)*100 > count_verb + 3:
-                verbose("%.2f percent done"%(float(j)/p**(n-1)*100))
+            if verbose_level >= 2 and j/p_power*100 > count_verb + 3:
+                verbose("%.2f percent done"%(float(j)/p_power*100))
                 count_verb += 3
-            for a in range(1,p):
+            for a in range(1,a_range):
                 b = teich[a] * gamma_power
                 s += teich[a]**eta * self.measure(b, n, padic_prec, quadratic_twist=D, sign=si)
             L += s * one_plus_T_factor
@@ -1284,7 +1300,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: Lp._prec_bounds(10,5)
             [+Infinity, 6, 6, 6, 6]
         """
-        e = self._e_bounds(n-1,prec)
+        if self._p == 2:
+            e = self._e_bounds(n-2, prec)
+        else:
+            e = self._e_bounds(n-1, prec)
         c0 = ZZ(n+2)
         return [infinity] + [ 2* e[j] - c0 for j in range(1,len(e))]
 
@@ -1569,7 +1588,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_height(self,prec=20):
         r"""
-        Returns the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
+        Return the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
         It is defined to be
 
             `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
@@ -1630,7 +1649,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
         r"""
-        Returns the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
+        Return the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
         as defined by Perrin-Riou using the `p`-adic height with values in `D_p(E)`.
         The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.

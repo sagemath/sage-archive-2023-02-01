@@ -244,6 +244,7 @@ Internals
    sage/categories/category_types
    sage/categories/category_singleton
    sage/categories/category_cy_helper
+   sage/categories/coercion_methods
    sage/categories/poor_man_map
 
 .. include:: ../footer.txt

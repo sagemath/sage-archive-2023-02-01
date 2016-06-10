@@ -99,19 +99,3 @@ contener valores de cualquier tipo Python dentro de un ámbito dado:
 El lenguaje de programación C, que es un lenguaje de tipado estático, es muy
 diferente; una variable declarada como int solo puede contener un int
 en su ámbito.
-
-Una fuente posible de confusión en Python es el que un entero
-literal que comienza con un cero es tratado como un número octal,
-es decir, un número en base 8.
-
-::
-
-    sage: 011
-    9
-    sage: 8 + 1
-    9
-    sage: n = 011
-    sage: n.str(8)   # representación en cadena de n en base 8
-    '11'
-
-Esto es consistente con el lenguaje de programación C.

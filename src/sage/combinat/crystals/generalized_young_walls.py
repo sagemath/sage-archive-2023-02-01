@@ -487,7 +487,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             0
         """
         if i not in self.index_set():
-            raise ValueError("i must in in the index set")
+            raise ValueError("i must be in the index set")
         eps = 0
         while True:
             self = self.e(i)

@@ -1924,7 +1924,7 @@ done from the right side.""")
             (0, 0)
         """
         # Do *not* cache this -- it must be computed fresh each time, since
-        # it is is used by __call__ to make a new copy of the 0 element.
+        # it is used by __call__ to make a new copy of the 0 element.
 
         return self.element_class(self, 0)
 

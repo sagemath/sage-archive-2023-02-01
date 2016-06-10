@@ -2842,7 +2842,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is a half-transitive graph.
 
-        A graph is is half-transitive if it is both vertex and edge transitive
+        A graph is half-transitive if it is both vertex and edge transitive
         but not arc-transitive.
 
         See :wikipedia:`the wikipedia article on half-transitive graphs
@@ -3133,7 +3133,7 @@ class Graph(GenericGraph):
         Returns an orientation of ``self`` with the smallest possible maximum
         outdegree.
 
-        Given a Graph `G`, is is polynomial to compute an orientation
+        Given a Graph `G`, it is polynomial to compute an orientation
         `D` of the edges of `G` such that the maximum out-degree in
         `D` is minimized. This problem, though, is NP-complete in the
         weighted case [AMOZ06]_.

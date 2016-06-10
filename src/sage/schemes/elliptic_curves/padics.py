@@ -657,7 +657,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         raise ValueError("prec (=%s) must be at least 1" % prec)
 
     if self.conductor() % p == 0:
-        Eq = self.tate_curve(p,prec=prec)
+        Eq = self.tate_curve(p)
         return Eq.height(prec=prec)
     elif self.ap(p) % p == 0:
         lp = self.padic_lseries(p)

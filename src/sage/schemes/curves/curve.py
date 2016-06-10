@@ -2,6 +2,7 @@
 Generic curves.
 """
 
+from sage.categories.fields import Fields
 from sage.misc.all import latex
 
 
@@ -202,16 +203,37 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``F`` -- a field extension of the base ring of this curve over which to find
-          singular points.
+        - ``F`` -- (default: None) field over which to find the singular points. If not given,
+          the base ring of this curve is used.
 
         OUTPUT:
 
-        - a set of points in the ambient space of this curve.
+        - a list of points in the ambient space of this curve.
 
         EXAMPLES::
 
-        
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y^2 - x^5, x - z], A)
+            sage: C.singular_points()
+            [(0, 0, 0)]
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^8 - a^4 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([359/12*x*y^2*z^2 + 2*y*z^4 + 187/12*y^3*z^2 + x*z^4\
+            + 67/3*x^2*y*z^2 + 117/4*y^5 + 9*x^5 + 6*x^3*z^2 + 393/4*x*y^4\
+            + 145*x^2*y^3 + 115*x^3*y^2 + 49*x^4*y], P)
+            sage: C.singular_points(K)
+            [(1/2*b^5 + 1/2*b^3 - 1/2*b - 1 : 1 : 0), (-2/3*b^4 + 1/3 : 0 : 1),
+            (2/3*b^4 - 1/3 : 0 : 1), (b^6 : -b^6 : 1), (-b^6 : b^6 : 1),
+            (-1/2*b^5 - 1/2*b^3 + 1/2*b - 1 : 1 : 0)]
         """
+        if F is None:
+            if not self.base_ring() in Fields():
+                raise TypeError("curve must be defined over a field")
+        elif not F in Fields():
+            raise TypeError("(=%s) must be a field"%F)
         X = self.ambient_space().subscheme(self.Jacobian())
-        return X.rational_points(F)
+        return X.rational_points(0, F)

@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
@@ -127,6 +128,66 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         """
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
+
+    def multiplicity(self, P):
+        r"""
+        Return the multiplicity of this projective curve at the point ``P``.
+
+        This is computed as the corresponding multiplicity of an affine patch of this curve that
+        contains the point. This curve must be defined over a field.
+
+        INPUT:
+
+        - ``P`` -- a point in the ambient space of this curve.
+
+        OUTPUT:
+
+        - an integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
+            sage: Q1 = P([0,0,1])
+            sage: C.multiplicity(Q1)
+            2
+            sage: Q2 = P([1,1,1])
+            sage: C.multiplicity(Q2)
+            0
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
+            sage: Q1 = P([-1,-1,1,1])
+            sage: C.multiplicity(Q1)
+            1
+            sage: Q2 = P([1,0,0,0])
+            sage: C.multiplicity(Q2)
+            7
+            sage: Q3 = P([0,0,1,0])
+            sage: C.multiplicity(Q3)
+            8
+        """
+        if not self.base_ring() in Fields():
+            raise TypeError("curve must be defined over a field")
+
+        # Check whether P is in the ambient space of this curve
+        try:
+            P = self.ambient_space()(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+
+        # Find an affine chart of the ambient space of self that contains P
+        n = self.ambient_space().dimension_relative()
+        for i in range(n + 1):
+            if P[i] != 0:
+                break
+        C = self.affine_patch(i)
+        Q = list(P)
+        t = Q.pop(i)
+        Q = [1/t*Q[j] for j in range(n)]
+        return C.multiplicity(C.ambient_space()(Q))
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
@@ -432,6 +493,101 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         poly = C.defining_polynomial()
         return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
 
+    def tangents(self, P):
+            r"""
+            Return the tangents of this projective plane curve at the point ``P``.
+
+            These are found by homogenizing the tangents of an affine patch of this curve
+            containing ``P``.
+
+            INPUT:
+
+            - ``P`` -- a point on this curve.
+
+            OUTPUT:
+
+            - a list of polynomials in the coordinate ring of the ambient space of this curve.
+
+            EXAMPLES::
+
+                sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+                sage: C = P.curve([x^2*y^3*z^4 - y^6*z^3 - 4*x^2*y^4*z^3 - 4*x^4*y^2*z^3 + 3*y^7*z^2 +\
+                10*x^2*y^5*z^2 + 9*x^4*y^3*z^2 + 5*x^6*y*z^2 - 3*y^8*z - 9*x^2*y^6*z - 11*x^4*y^4*z -\
+                7*x^6*y^2*z - 2*x^8*z + y^9 + 2*x^2*y^7 + 3*x^4*y^5 + 4*x^6*y^3 + 2*x^8*y])
+                sage: Q = P([0,1,1])
+                sage: C.tangents(Q)
+                [-y + z, -3*x^2 + y^2 - 2*y*z + z^2]
+            """
+            # Check whether P in in the ambient space of this curve
+            try:
+                P = self.ambient_space()(P)
+            except TypeError:
+                raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+    
+            # Find an affine chart of the ambient space of self that contains P
+            n = self.ambient_space().dimension_relative()
+            for i in range(n + 1):
+                if P[i] != 0:
+                    break
+            C = self.affine_patch(i)
+            Q = list(P)
+            t = Q.pop(i)
+            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(n)]))
+            R = self.ambient_space().coordinate_ring()
+            H = Hom(C.ambient_space().coordinate_ring(), R)
+            G = list(R.gens())
+            x = G.pop(i)
+            phi = H(G)
+            return [phi(g).homogenize(x) for g in L]
+
+    def is_ordinary_singularity(self, P):
+        r"""
+        Return whether the singular point ``P`` of this projective plane curve is an ordinary singularity.
+
+        The point ``P`` is an ordinary singularity of this curve if it is a singular point, and
+        if the tangents of this curve at ``P`` are distinct.
+
+        INPUT:
+
+        - ``P`` -- a point on this curve.
+
+        OUTPUT:
+
+        - Boolean. True or False depending on whether ``P`` is or is not an ordinary singularity of this
+          curve, respectively.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^2*z^3 - x^5], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_ordinary_singularity(Q)
+            False
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = P.curve([x^2*y^3*z^4 - y^6*z^3 - 4*x^2*y^4*z^3 - 4*x^4*y^2*z^3 + 3*y^7*z^2 + 10*x^2*y^5*z^2\
+            + 9*x^4*y^3*z^2 + 5*x^6*y*z^2 - 3*y^8*z - 9*x^2*y^6*z - 11*x^4*y^4*z - 7*x^6*y^2*z - 2*x^8*z + y^9 +\
+            2*x^2*y^7 + 3*x^4*y^5 + 4*x^6*y^3 + 2*x^8*y])
+            sage: Q = P([0,1,1])
+            sage: C.is_ordinary_singularity(Q)
+            True
+        """
+        r = self.multiplicity(P)
+        if r < 2:
+            raise TypeError("(=%s) must be a singular point of (=%s)"%(P,self))
+
+        T = self.tangents(P)
+
+        # when there is a tangent of higher multiplicity
+        if len(T) < r:
+            return False
+
+        # otherwise they are distinct
+        return True
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

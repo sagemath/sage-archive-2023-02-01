@@ -11,6 +11,7 @@ Parallel iterator built using the ``fork()`` system call
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 

@@ -17,7 +17,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ

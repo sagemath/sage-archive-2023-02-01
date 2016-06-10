@@ -662,9 +662,9 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals("0x10.sqrt()")
         'Integer(0x10).sqrt()'
         sage: preparse_numeric_literals('0o100')
-        "Integer('100', 8)"
+        'Integer(0o100)'
         sage: preparse_numeric_literals('0b111001')
-        "Integer('111001', 2)"
+        'Integer(0b111001)'
         sage: preparse_numeric_literals('0xe')
         'Integer(0xe)'
         sage: preparse_numeric_literals('0xEAR')
@@ -721,25 +721,18 @@ def preparse_numeric_literals(code, extract=False):
                     end += 1
                     num += '.'
 
+            num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
 
-            if len(num)>2 and num[1] in 'oObBxX':
-                # Py3 oct and bin support
-                num_name = numeric_literal_prefix + num
-                if num[1] in 'bB':
-                    num_make = "Integer('%s', 2)" % num[2:]
-                elif num[1] in 'oO':
-                    num_make = "Integer('%s', 8)" % num[2:]
-                else:
-                    num_make = "Integer(%s)" % num
-            elif '.' in num or 'e' in num or 'E' in num or 'J' in postfix:
-                num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
-                if 'J' in postfix:
-                    num_make = "ComplexNumber(0, '%s')" % num
-                    num_name += 'j'
-                else:
-                    num_make = "RealNumber('%s')" % num
+            if 'J' in postfix:
+                num_make = "ComplexNumber(0, '%s')" % num
+                num_name += 'j'
+            elif len(num) < 2 or num[1] in 'oObBxX':
+                num_make = "Integer(%s)" % num
+            elif '.' in num or 'e' in num or 'E' in num:
+                num_make = "RealNumber('%s')" % num
+            elif num[0] == "0":
+                num_make = "Integer('%s')" % num
             else:
-                num_name = numeric_literal_prefix + num
                 num_make = "Integer(%s)" % num
 
             literals[num_name] = num_make

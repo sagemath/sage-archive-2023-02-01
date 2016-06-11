@@ -359,7 +359,7 @@ PyObject* CallBallMethod1Arg(PyObject* field, const char* meth, const GiNaC::num
                 throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_Call unsuccessful"));
 
         PyObject* name = PyString_FromString(meth);
-        PyObject* ret_ball = PyObject_CallMethodObjArgs(bball, name, aball, NULL);
+        PyObject* ret_ball = PyObject_CallMethodObjArgs(aball, name, bball, NULL);
         if (ret_ball == nullptr)
                 throw(std::runtime_error("GiNaC::CallBallMethod1Arg(): PyObject_CallMethodObjArgs unsuccessful"));
         Py_DECREF(list1);
@@ -2255,16 +2255,17 @@ const numeric numeric::atanh() const {
 
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
         int prec = precision(*this, parent);
-        PyObject* field = CBF(prec);
+        PyObject* field = CBF(prec+15);
         PyObject* ball = CallBallMethod1Arg(field, const_cast<char*>("polylog"), *this, n);
         PyObject* ret = CoerceBall(ball, prec);
         Py_DECREF(field);
         Py_DECREF(ball);
-        return ret;
-}
 
-const numeric numeric::Li2() const {
-        PY_RETURN(py_funcs.py_li2);
+        numeric rnum(ret);
+        if (is_real() and n.is_integer() and (*this)<(*_num1_p))
+                return rnum.real();
+        else
+                return rnum;
 }
 
 const numeric numeric::lgamma() const {
@@ -2724,23 +2725,11 @@ const numeric atanh(const numeric &x) {
 }
 
 
-/** Numeric evaluation of Dilogarithm within circle of convergence (unit
- *  circle) using a power series. */
-
-/** Numeric evaluation of Dilogarithm.  The domain is the entire complex plane,
- *  the branch cut lies along the positive real axis, starting at 1 and
- *  continuous with quadrant IV.
- *
- *  @return  arbitrary precision numerical Li2(x). */
-const numeric Li(const numeric &x) {
-        return x.Li2();
-}
-
 const numeric Li2(const numeric &x) {
-        return x.Li2();
+        return x.Li2(*_num2_p, nullptr);
 }
 
-const numeric Li2(const numeric &x, const numeric &n, PyObject* parent) {
+const numeric Li2(const numeric &n, const numeric &x, PyObject* parent) {
         return x.Li2(n, parent);
 }
 

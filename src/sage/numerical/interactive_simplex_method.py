@@ -927,13 +927,13 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx
 
-    def add_constraint(self, new_row, new_b, new_constraint_type="<="):
+    def add_constraint(self, coefficients, new_b, new_constraint_type="<="):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
         INPUT:
 
-        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+        - ``coefficients`` -- coefficients of the new constraint
 
         - ``new_b`` -- a constant term of the new constraint
 
@@ -969,14 +969,14 @@ class InteractiveLPProblem(SageObject):
             sage: P2 = P.add_constraint(([2, 4, 6]), 2000, new_constraint_type="<=")
             Traceback (most recent call last):
             ...
-            ValueError: A and new_row have incompatible dimensions
+            ValueError: A and coefficients have incompatible dimensions
             sage: P3 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<")
             Traceback (most recent call last):
             ...
             ValueError: unknown constraint type
         """
-        if self.n_variables() != matrix(new_row).ncols():
-            raise ValueError("A and new_row have incompatible dimensions")
+        if self.n_variables() != matrix(coefficients).ncols():
+            raise ValueError("A and coefficients have incompatible dimensions")
         if new_constraint_type in ["<=", ">=", "=="]:
             constraint_type = self._constraint_types + (new_constraint_type,)
         else:
@@ -984,7 +984,7 @@ class InteractiveLPProblem(SageObject):
         A = self.Abcx()[0]
         b = self.Abcx()[1]
         c = self.Abcx()[2]
-        A = A.stack(matrix(new_row))
+        A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
         return InteractiveLPProblem(A, b, c, constraint_type=constraint_type)
 
@@ -2018,13 +2018,13 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
-    def add_constraint(self, new_row, new_b, new_slack_variable):
+    def add_constraint(self, coefficients, new_b, new_slack_variable):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
         INPUT:
 
-        - ``new_row`` -- a 1 by n matrix of the new constraint coefficients
+        - ``coefficients`` -- coefficients of the new constraint
 
         - ``new_b`` -- a constant term of the new constraint
 
@@ -2059,10 +2059,10 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P2 = P.add_constraint(([2, 4, 6]), 2000, 'c')
             Traceback (most recent call last):
             ...
-            ValueError: A and new_row have incompatible dimensions
+            ValueError: A and coefficients have incompatible dimensions
         """
-        if self.n_variables() != matrix(new_row).ncols():
-            raise ValueError("A and new_row have incompatible dimensions")
+        if self.n_variables() != matrix(coefficients).ncols():
+            raise ValueError("A and coefficients have incompatible dimensions")
         A = self.Abcx()[0]
         b = self.Abcx()[1]
         c = self.Abcx()[2]
@@ -2076,7 +2076,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
         new_slack_variable = R1.gens()[len(R1.gens())-1]
         slack.append(new_slack_variable)
-        A = A.stack(matrix(new_row))
+        A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
 
         return InteractiveLPProblemStandardForm(
@@ -4967,7 +4967,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         #new nonbasic coefficient after reordering
         d = [dic[item] for item
              in variables if item in set_nonbasic]
-        new_row = vector(QQ, [0] * n)
+        coefficients = vector(QQ, [0] * n)
 
         def standard_unit_vector(index, length):
             v = vector(QQ, [0] * length)
@@ -4979,16 +4979,16 @@ class LPRevisedDictionary(LPAbstractDictionary):
         slack_index = 0
         for item in original:
             if item in set_nonbasic:
-                new_row += d[d_index] * standard_unit_vector(original_index, n)
+                coefficients += d[d_index] * standard_unit_vector(original_index, n)
                 d_index += 1
             original_index += 1
         for item in slack:
             if item in set_nonbasic:
-                new_row -= d[d_index] * A[slack_index]
+                coefficients -= d[d_index] * A[slack_index]
                 new_b -= d[d_index] * b[slack_index]
                 d_index += 1
             slack_index += 1
-        new_problem = problem.add_constraint(new_row, new_b, slack_variable)
+        new_problem = problem.add_constraint(coefficients, new_b, slack_variable)
         new_basic_var = [str(i) for i in self.basic_variables()] + [slack_variable]
         R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
         return new_problem.revised_dictionary(*R.gens())

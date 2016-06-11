@@ -336,6 +336,28 @@ class FreeModuleBasis(Basis_abstract):
 
     ###### End of methods to be redefined by derived classes ######
 
+    def module(self):
+        r"""
+        Return the free module on which the basis is defined.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
+          representing the free module of which ``self`` is a basis
+
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e.module()
+            Rank-3 free module M over the Integer Ring
+            sage: e.module() is M
+            True
+
+        """
+        return self._fmodule
+
     def dual_basis(self):
         r"""
         Return the basis dual to ``self``.

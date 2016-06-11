@@ -11,3 +11,11 @@ Differentiable Manifolds
    diff_scalarfield
 
    diff_map
+
+   tangent_space
+
+   vectorfield
+
+   tensorfield
+
+   diff_form

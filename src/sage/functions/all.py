@@ -32,8 +32,8 @@ from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w)
 from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                                   Bessel, struve_H, struve_L)
+from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                    Bessel, struve_H, struve_L)
 
 from .special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,

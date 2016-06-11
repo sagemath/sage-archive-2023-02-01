@@ -1495,7 +1495,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
     simple_roots = L.simple_roots()
     positive_roots = L.positive_roots()
 
-    while len(current_layer):
+    while current_layer:
         next_layer = {}
         for mu in current_layer:
             if current_layer[mu] != 0:

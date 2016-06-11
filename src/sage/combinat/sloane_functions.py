@@ -371,10 +371,9 @@ class A000001(SloaneSequence):
         if n <= 50:
             return self._small[n-1]
         try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
+            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
         except Exception:  # help, don't know what to do here? Jaap
-            print("Install database_gap first. See optional packages")
-
+            print("Install database_gap first. See optional packages.")
 
 
 class A000027(SloaneSequence):

@@ -781,7 +781,7 @@ class EllipticE(BuiltinFunction):
         Here arccoth doesn't have 1 in its domain, so we just hold the expression:
 
             sage: elliptic_e(arccoth(1), x^2*e)
-            elliptic_e(arccoth(1), x^2*e)
+            elliptic_e(+Infinity, x^2*e)
         """
         if z == 0:
             return Integer(0)

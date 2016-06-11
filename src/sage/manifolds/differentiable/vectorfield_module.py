@@ -4,8 +4,10 @@ Vector Field Modules
 The set of vector fields along a differentiable manifold `U` with values on
 a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`
 (possibly `U=M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
-`C^k(U)` of differentiable scalar fields on `U`. It is a free module iff `M` is
-parallelizable. Accordingly, two classes are devoted to vector field modules:
+`C^k(U)` of differentiable scalar fields on `U`. It is considered a
+:wikipedia:`Lie_algebroid` under the Lie bracket `[\ ,\ ]` if `\Phi`
+is the identity map. It is a free module iff `M` is parallelizable.
+Accordingly, two classes are devoted to vector field modules:
 
 - :class:`VectorFieldModule` for vector fields with values on a
   generic (in practice, not parallelizable) differentiable manifold `M`
@@ -73,6 +75,15 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The set `\mathcal{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
+    Furthermore, it is a :wikipedia:`Lie_algebroid` under the Lie bracket
+
+    .. MATH::
+
+        [X, Y] = X \circ Y - Y \circ X
+
+    over the scalarfields if `\Phi` is the identity map. That is to say
+    the Lie bracket is antisymmetric, bilinear over the base field,
+    satisfies the Jacobi identity, and `[X, fY] = X(f) Y + f[X, Y]`.
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
@@ -894,6 +905,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     over `C^k(U)`, the ring (algebra) of differentiable scalar fields on `U`
     (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
+    In fact, it carries the structure of a finite-dimensional
+    :wikipedia:`Lie_algebroid`.
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
@@ -927,8 +940,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Free module X(R^2) of vector fields on the 2-dimensional differentiable
          manifold R^2
         sage: XM.category()
-        Category of modules over Algebra of differentiable scalar fields on the
-         2-dimensional differentiable manifold R^2
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 2-dimensional differentiable manifold R^2
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -966,8 +980,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
          differentiable manifold I mapped into the 2-dimensional differentiable
          manifold R^2
         sage: XIM.category()
-        Category of modules over Algebra of differentiable scalar fields on the
-         1-dimensional differentiable manifold I
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 1-dimensional differentiable manifold I
 
     The rank of the free module `\mathcal{X}(I,\Phi)` is the dimension
     of the manifold `\RR^2`, namely two::
@@ -1046,8 +1061,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: isinstance(XM, FiniteRankFreeModule)
         True
         sage: XM.category()
-        Category of modules over Algebra of differentiable scalar fields on the
-         1-dimensional differentiable manifold S^1
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 1-dimensional differentiable manifold S^1
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -1118,10 +1134,12 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             name += "," + self._dest_map._name + ")"
             latex_name += "," + self._dest_map._latex_name + r"\right)"
         manif = self._ambient_domain.manifold()
+        cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
                                manif._dim, name=name, latex_name=latex_name,
                                start_index=manif._sindex,
-                               output_formatter=DiffScalarField.coord_function)
+                               output_formatter=DiffScalarField.coord_function,
+                               category=cat)
         #
         # Special treatment when self._dest_map != identity:
         # bases of self are created from vector frames of the ambient domain

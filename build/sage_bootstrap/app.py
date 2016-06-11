@@ -23,6 +23,7 @@ from sage_bootstrap.env import SAGE_DISTFILES
 from sage_bootstrap.package import Package
 from sage_bootstrap.tarball import Tarball
 from sage_bootstrap.updater import ChecksumUpdater, PackageUpdater
+from sage_bootstrap.creator import PackageCreator
 
 
 
@@ -161,4 +162,15 @@ class Application(object):
             print('Updating checksum of {0}'.format(pkg.tarball_filename))
             update.fix_checksum()
         
-        
+    def create(self, package_name, version, tarball, pkg_type):
+        log.debug('Creating %s: %s, %s, %s', package_name, version, tarball, pkg_type)
+        creator = PackageCreator(package_name)
+        if version:
+            creator.set_version(version)
+        if pkg_type:
+            creator.set_type(pkg_type)
+        if tarball:
+            creator.set_tarball(tarball)
+            update = ChecksumUpdater(package_name)
+            update.fix_checksum()
+            

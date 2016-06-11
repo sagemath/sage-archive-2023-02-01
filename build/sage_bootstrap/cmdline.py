@@ -135,6 +135,16 @@ EXAMPLE:
     Updating checksum of pari-2.8-2044-g89b0f1e.tar.gz
 """
 
+epilog_create = \
+"""
+Create new package, or overwrite existing package
+    
+EXAMPLE:
+
+    $ sage --package create foo --version=3.14 --tarball=Foo-VERSION.tar.bz2 --type=standard
+    Creating new package "foo"
+"""
+
 
 def make_parser():
     """
@@ -205,6 +215,20 @@ def make_parser():
         'package_name', nargs='?', default=None, type=str,
         help='Package name. Default: fix all packages.')
     
+    parser_create = subparsers.add_parser(
+        'create', epilog=epilog_create,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Create or overwrite package.')
+    parser_create.add_argument(
+        'package_name', nargs='?', default=None, type=str,
+        help='Package name. Default: fix all packages.')
+    parser_create.add_argument(
+        '--version', type=str, default=None, help='Package version')
+    parser_create.add_argument(
+        '--tarball', type=str, default=None, help='Tarball filename pattern, e.g. Foo-VERSION.tar.bz2')
+    parser_create.add_argument(
+        '--type', type=str, default=None, help='Package type')
+
     return parser
 
 
@@ -234,6 +258,8 @@ def run():
         app.update(args.package_name, args.new_version, url=args.url)
     elif args.subcommand == 'download':
         app.download(args.package_name)
+    elif args.subcommand == 'create':
+        app.create(args.package_name, args.version, args.tarball, args.type)
     elif args.subcommand == 'fix-checksum':
         if args.package_name is None:
             app.fix_all_checksums()

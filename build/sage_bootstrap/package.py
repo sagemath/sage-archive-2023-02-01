@@ -207,9 +207,9 @@ class Package(object):
                     continue
                 var, value = match.groups()
                 result[var] = value
-        self.__md5 = result['md5']
-        self.__sha1 = result['sha1']
-        self.__cksum = result['cksum']
+        self.__md5 = result.get('md5', None)
+        self.__sha1 = result.get('sha1', None)
+        self.__cksum = result.get('cksum', None)
         self.__tarball_pattern = result['tarball']
         
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')

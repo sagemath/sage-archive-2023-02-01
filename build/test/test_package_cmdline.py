@@ -15,7 +15,9 @@ Test sage-download-file commandline utility
 
 import os
 import unittest
+import tempfile
 import subprocess
+import shutil
 
 from sage_bootstrap.env import SAGE_DISTFILES
 from sage_bootstrap.download.mirror_list import MIRRORLIST_FILENAME
@@ -33,11 +35,13 @@ EXECUTABLE = os.path.join(
 
 class SagePackageTestCase(unittest.TestCase):
 
-    def run_command(self, *args):
-        proc = subprocess.Popen(
-            args,
-            stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    def run_command(self, *args, **kwds):
+        kwds.update(
+            stdin=None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
+        proc = subprocess.Popen(args, **kwds)
         stdout, stderr = proc.communicate()
         stdout = stdout.decode('utf-8')
         stderr = stderr.decode('utf-8')
@@ -124,3 +128,36 @@ class SagePackageTestCase(unittest.TestCase):
         self.assertEqual(stdout.rstrip(), 'Checksum of {0} unchanged'.format(pkg.tarball_filename))
         # Prints nothing to stderr
         self.assertEqual(stderr, '')
+
+    def test_create(self):
+        tmp = tempfile.mkdtemp()
+        with open(os.path.join(tmp, 'configure.ac'), 'w+') as f:
+            f.write('test')
+        os.mkdir(os.path.join(tmp, 'build'))
+        os.mkdir(os.path.join(tmp, 'build', 'pkgs'))
+        os.mkdir(os.path.join(tmp, 'upstream'))
+        with open(os.path.join(tmp, 'upstream', 'Foo-13.5.tgz'), 'w+') as f:
+            f.write('tarball content')
+        rc, stdout, stderr = self.run_command(
+            EXECUTABLE,
+            'create', 'foo',
+            '--version', '13.5',
+            '--tarball', 'Foo-VERSION.tgz',
+            '--type', 'standard',
+            env=dict(SAGE_ROOT=tmp)
+        )
+        self.assertEqual(rc, 0)
+        with open(os.path.join(tmp, 'build', 'pkgs', 'foo', 'package-version.txt')) as f:
+            self.assertEqual(f.read(), '13.5\n')
+        with open(os.path.join(tmp, 'build', 'pkgs', 'foo', 'type')) as f:
+            self.assertEqual(f.read(), 'standard\n')
+        with open(os.path.join(tmp, 'build', 'pkgs', 'foo', 'checksums.ini')) as f:
+            self.assertEqual(
+                f.read(),
+                'tarball=Foo-VERSION.tgz\n' + 
+                'sha1=15d0e36e27c69bc758231f8e9add837f40a40cd0\n' +
+                'md5=bc62fed5e35f31aeea2af95c00473d4d\n' +
+                'cksum=1436769867\n'
+            )
+        shutil.rmtree(tmp)
+        

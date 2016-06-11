@@ -455,7 +455,8 @@ static ex Li_eval(const ex& m_, const ex& x_)
 		}
 	}
 
-        if (m_.info(info_flags::posint) && x_.info(info_flags::numeric) && !x_.info(info_flags::crational)) {
+        if ((is_exactly_a<numeric>(x_) and not ex_to<numeric>(x_).is_exact())
+            or (is_exactly_a<numeric>(m_) and not ex_to<numeric>(m_).is_exact())) {
 	        return Li_evalf(m_, x_, nullptr);
 	}
 

@@ -243,7 +243,6 @@ public:
 	const numeric asinh() const;
 	const numeric acosh() const;
 	const numeric atanh() const;
-	const numeric Li2() const;
 	const numeric Li2(const numeric &n, PyObject* parent) const;
 	const numeric zeta() const;
 	const numeric stieltjes() const;

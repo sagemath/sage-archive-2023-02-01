@@ -53,8 +53,10 @@ AUTHOR:
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -63,15 +65,15 @@ import operator
 
 from matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
+from sage.structure.element cimport coercion_model
 
 
 cdef class MatrixMulAction(Action):
     def __init__(self, G, S, is_left):
         if not is_MatrixSpace(G):
-            raise TypeError, "Not a matrix space: %s" % G
+            raise TypeError("Not a matrix space: %s" % G)
         if G.base_ring() is not S.base_ring():
-            from sage.structure.element import get_coercion_model
-            base = get_coercion_model().common_parent(G.base_ring(), S.base_ring())
+            base = coercion_model.common_parent(G.base_ring(), S.base_ring())
         else:
             base = G.base_ring()
         Action.__init__(self, G, S, is_left, operator.mul)
@@ -148,7 +150,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
 
         """
         if not is_MatrixSpace(S):
-            raise TypeError, "Not a matrix space: %s" % S
+            raise TypeError("Not a matrix space: %s" % S)
         MatrixMulAction.__init__(self, G, S, True)
 
     def _create_codomain(self, base):
@@ -271,7 +273,7 @@ cdef class MatrixVectorAction(MatrixMulAction):
             TypeError: incompatible dimensions 3, 4
             """
         if not is_FreeModule(S):
-            raise TypeError, "Not a free module: %s" % S
+            raise TypeError("Not a free module: %s" % S)
         MatrixMulAction.__init__(self, G, S, True)
 
     def _create_codomain(self, base):
@@ -287,8 +289,8 @@ cdef class MatrixVectorAction(MatrixMulAction):
             Vector space of dimension 5 over Complex Double Field
         """
         if self.G.ncols() != self.underlying_set().degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),
-                                                                 self.underlying_set().degree())
+            raise TypeError("incompatible dimensions %s, %s" % (self.G.ncols(),
+                                                                 self.underlying_set().degree()))
         return FreeModule(base, self.G.nrows(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, g, s):
@@ -318,7 +320,7 @@ cdef class VectorMatrixAction(MatrixMulAction):
             TypeError: incompatible dimensions 5, 3
         """
         if not is_FreeModule(S):
-            raise TypeError, "Not a free module: %s" % S
+            raise TypeError("Not a free module: %s" % S)
         MatrixMulAction.__init__(self, G, S, False)
 
     def _create_codomain(self, base):
@@ -332,8 +334,8 @@ cdef class VectorMatrixAction(MatrixMulAction):
             Vector space of dimension 5 over Complex Double Field
         """
         if self.G.nrows() != self.underlying_set().degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.nrows(),
-                                                                 self.underlying_set().degree())
+            raise TypeError("incompatible dimensions %s, %s" % (self.G.nrows(),
+                                                                 self.underlying_set().degree()))
         return FreeModule(base, self.G.ncols(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, s, g):

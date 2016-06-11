@@ -42,15 +42,14 @@ class LeftRegularBand(UniqueRepresentation, Parent):
     It follows that the elements of `S` are strings without
     repetitions over the alphabet `a`, `b`, `c`, `d`::
 
-        sage: S.list()
-        ['a', 'c', 'b', 'bd', 'bda', 'd', 'bdc', 'bc', 'bcd', 'cb',
-         'ca', 'ac', 'cba', 'ba', 'cbd', 'bdca', 'db', 'dc', 'cd',
-         'bdac', 'ab', 'abd', 'da', 'ad', 'cbad', 'acb', 'abc',
-         'abcd', 'acbd', 'cda', 'cdb', 'dac', 'dba', 'dbc', 'dbca',
-         'dcb', 'abdc', 'cdab', 'bcda', 'dab', 'acd', 'dabc', 'cbda',
-         'bca', 'dacb', 'bad', 'adb', 'bac', 'cab', 'adc', 'cdba',
-         'dca', 'cad', 'adbc', 'adcb', 'dbac', 'dcba', 'acdb', 'bacd',
-         'cabd', 'cadb', 'badc', 'bcad', 'dcab']
+        sage: sorted(S.list())
+        ['a', 'ab', 'abc', 'abcd', 'abd', 'abdc', 'ac', 'acb', 'acbd', 'acd',
+         'acdb', 'ad', 'adb', 'adbc', 'adc', 'adcb', 'b', 'ba', 'bac',
+         'bacd', 'bad', 'badc', 'bc', 'bca', 'bcad', 'bcd', 'bcda', 'bd',
+         'bda', 'bdac', 'bdc', 'bdca', 'c', 'ca', 'cab', 'cabd', 'cad',
+         'cadb', 'cb', 'cba', 'cbad', 'cbd', 'cbda', 'cd', 'cda', 'cdab',
+         'cdb', 'cdba', 'd', 'da', 'dab', 'dabc', 'dac', 'dacb', 'db',
+         'dba', 'dbac', 'dbc', 'dbca', 'dc', 'dca', 'dcab', 'dcb', 'dcba']
 
     It also follows that there are finitely many of them::
 
@@ -80,6 +79,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()

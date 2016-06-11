@@ -280,7 +280,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -330,7 +330,7 @@ cdef void hold_reference(libGAP_Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):
@@ -464,7 +464,7 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()

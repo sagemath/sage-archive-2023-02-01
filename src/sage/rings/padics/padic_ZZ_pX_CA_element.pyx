@@ -20,8 +20,7 @@ element contains the following data:
   `\mathbb{Q}_p` or `\mathbb{Z}_p`.  Then the modulus is given by
   `p^{ceil(a/e)}`.  Note that all kinds of problems arise if you try
   to mix moduli.  ``ZZ_pX_conv_modulus`` gives a semi-safe way to
-  convert between different moduli without having to pass through ZZX
-  (see ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntlwrap.cpp``)
+  convert between different moduli without having to pass through ZZX.
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common
@@ -160,8 +159,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "cysignals/signals.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -291,7 +291,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef Integer xlift
         if isinstance(x, pAdicGenericElement):
             if x.valuation() < 0:
-                raise ValueError, "element has negative valuation"
+                raise ValueError("element has negative valuation")
             if x._is_base_elt(self.prime_pow.prime):
                 xlift = <Integer>x.lift()
                 if mpz_sgn(xlift.value) == 0:
@@ -307,13 +307,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                     self._set_from_mpz_both(xlift.value, aprec, rprec)
                 return
             if parent.prime() != x.parent().prime():
-                raise TypeError, "Cannot coerce between p-adic parents with different primes."
+                raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, pari_gen) or isinstance(x, GpElement):
             if isinstance(x, GpElement):
                 x = x._pari_()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
-                    raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."
+                    raise TypeError("Cannot coerce a pari p-adic with the wrong prime.")
                 ltmp = x.padicprec(self.prime_pow.prime) * self.prime_pow.e
                 if ltmp < aprec:
                     aprec = ltmp
@@ -330,7 +330,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                     L.append(Integer(x.polcoeff(i)))
                 x = L
             else:
-                raise TypeError, "unsupported coercion from pari: only p-adics, integers, rationals, polynomials and pol_mods allowed"
+                raise TypeError("unsupported coercion from pari: only p-adics, integers, rationals, polynomials and pol_mods allowed")
         elif is_IntegerMod(x):
             mpz_init(tmp)
             ctx_prec = mpz_remove(tmp, (<Integer>x.modulus()).value, self.prime_pow.prime.value)
@@ -341,7 +341,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                     aprec = ctx_prec
             else:
                 mpz_clear(tmp)
-                raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
+                raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
         elif isinstance(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
@@ -352,7 +352,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 if ctx_prec < aprec:
                     aprec = ctx_prec
             else:
-                raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
+                raise TypeError("cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)")
         elif isinstance(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
             ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
@@ -404,7 +404,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 if __x._is_exact_zero():
                     self._set_inexact_zero(self.prime_pow.ram_prec_cap)
                 elif __x.ordp < 0:
-                    raise ValueError, "x has negative valuation"
+                    raise ValueError("x has negative valuation")
                 elif __x._is_inexact_zero():
                     if __x.ordp <= self.prime_pow.ram_prec_cap:
                         self._set_inexact_zero(__x.ordp)
@@ -418,7 +418,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                         aprec = rprec + __x.ordp
                     self._set(&(<ntl_ZZ_pX>poly).x, aprec)
             else:
-                raise NotImplementedError, "Conversion from different p-adic extensions not yet supported"
+                raise NotImplementedError("Conversion from different p-adic extensions not yet supported")
         else:
             try:
                 x = list(x)
@@ -426,7 +426,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 try:
                     x = x.list()
                 except AttributeError:
-                    raise TypeError, "cannot convert x to a p-adic element"
+                    raise TypeError("cannot convert x to a p-adic element")
             self._set_from_list_both(x, aprec, rprec)
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
@@ -583,7 +583,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             self._set_inexact_zero(absprec)
             return 0
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
-            raise ValueError, "p divides the denominator"
+            raise ValueError("p divides the denominator")
         self._set_prec_abs(absprec) # restores context
         self._set_from_mpq_part2(x)
 
@@ -613,7 +613,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef long num_ordp
         cdef mpz_t num_unit
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
-            raise ValueError, "p divides the denominator"
+            raise ValueError("p divides the denominator")
         sig_on()
         mpz_init(num_unit)
         num_ordp = mpz_remove(num_unit, mpq_numref(x), self.prime_pow.prime.value)
@@ -791,19 +791,17 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + O(w^13)
         """
         if absprec < 0:
-            raise ValueError, "absprec must be non-negative"
+            raise ValueError("absprec must be non-negative")
         if self.absprec == absprec:
             return False
-        if self.absprec > 0:
-            ZZ_pX_destruct(&self.value)
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&self.value)
+            self.value = ZZ_pX_c()
         self.absprec = absprec
         return True
 
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
-        raise TypeError, "use _set_prec_both_with_ord"
+        raise TypeError("use _set_prec_both_with_ord")
 
     cdef bint _set_prec_both_with_ordp(self, long ordp, long absprec, long relprec) except -1:
         """
@@ -838,22 +836,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             self._set_prec_abs(ordp + relprec)
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpCA(5,5)
-            sage: S.<x> = ZZ[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(25/3, relprec = 6)
-            sage: del z #indirect doctest
-        """
-        if self.absprec != 0:
-            ZZ_pX_destruct(&self.value)
-
     cdef pAdicZZpXCAElement _new_c(self, long absprec):
         """
         Returns a new element with the same parent as ``self`` and
@@ -874,9 +856,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.absprec = absprec
         if absprec > 0:
             self.prime_pow.restore_context_capdiv(absprec)
-            ZZ_pX_construct(&ans.value)
         elif absprec < 0:
-            raise ValueError, "absprec must be positive"
+            raise ValueError("absprec must be positive")
         return ans
 
     def __reduce__(self):
@@ -977,7 +958,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.relprec = -self.absprec
         if self.absprec != 0:
             self.prime_pow.restore_context_capdiv(self.absprec)
-            ZZ_pX_construct(&ans.unit)
             ans.unit = self.value
         return ans
 
@@ -1282,9 +1262,9 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 mpz_clear(tmp)
                 return ans
             elif isinstance(_right, Rational) or (isinstance(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime)):
-                raise ValueError, "Need more precision"
+                raise ValueError("Need more precision")
             else:
-                raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"
+                raise TypeError("exponent must be an integer, rational or base p-adic with the same prime")
         if isinstance(_right, (int, long)):
             _right = Integer(_right)
         cdef pAdicZZpXCAElement unit
@@ -1301,26 +1281,26 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             exp_val = _right.valuation(self.prime_pow.prime) ##
         elif isinstance(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime):
             if self_ordp != 0:
-                raise ValueError, "in order to raise to a p-adic exponent, base must be a unit"
+                raise ValueError("in order to raise to a p-adic exponent, base must be a unit")
             right = Integer(_right)
             padic_exp = True
             exp_prec = _right.precision_absolute() ##
             exp_val = _right.valuation() ##
             if exp_val < 0:
-                raise NotImplementedError, "negative valuation exponents not yet supported"
+                raise NotImplementedError("negative valuation exponents not yet supported")
             # checks to see if the residue of self's unit is in the prime field.
             if self.prime_pow.e == 1:
                 unit = self.unit_part()
                 for i from 1 <= i <= ZZ_pX_deg(unit.value):
                     if not ZZ_divide_test(ZZ_p_rep(ZZ_pX_coeff(unit.value, i)), self.prime_pow.pow_ZZ_tmp(1)[0]):
-                        raise ValueError, "in order to raise to a p-adic exponent, base must reduce to an element of F_p mod the uniformizer"
+                        raise ValueError("in order to raise to a p-adic exponent, base must reduce to an element of F_p mod the uniformizer")
             # compute the "level"
             teich_part = self.parent().teichmuller(self)
             base_level = (self / teich_part - 1).valuation() ##
         elif isinstance(_right, Rational):
             raise NotImplementedError
         else:
-            raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"
+            raise TypeError("exponent must be an integer, rational or base p-adic with the same prime")
         # Now we compute the increased relprec due to the exponent having positive p-adic valuation
         if exp_val > 0:
             mpz_init_set_si(tmp, self_relprec)
@@ -1586,7 +1566,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef Integer ans
         cdef ZZ_c tmp_z
         if ZZ_pX_deg(self.value) > 0:
-            raise ValueError, "This element not well approximated by an integer."
+            raise ValueError("This element not well approximated by an integer.")
         ans = PY_NEW(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(self.value))
         ZZ_to_mpz(ans.value, &tmp_z)
@@ -1651,13 +1631,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 if mpz_sgn((<Integer>absprec).value) < 0:
                     ans = True
                 elif ZZ_pX_IsZero(self.value):
-                    raise PrecisionError, "Not enough precision to determine if element is zero"
+                    raise PrecisionError("Not enough precision to determine if element is zero")
                 else:
                     ans = False
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
                 if ZZ_pX_IsZero(self.value) and aprec > self.absprec:
-                    raise PrecisionError, "Not enough precision to determine if element is zero"
+                    raise PrecisionError("Not enough precision to determine if element is zero")
                 else:
                     ans = (self.valuation_c() >= aprec)
         return ans
@@ -1677,7 +1657,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             [775]
         """
         if self.absprec == 0:
-            raise ValueError, "self has 0 absolute precision"
+            raise ValueError("self has 0 absolute precision")
         self.prime_pow.restore_context_capdiv(self.absprec)
         cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_context_capdiv(self.absprec)
@@ -1853,7 +1833,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         if lift_mode == 'simple':
             ulist = self.ext_p_list(1)
@@ -1862,7 +1842,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         elif lift_mode == 'teichmuller':
             ulist = self.teichmuller_list()
         else:
-            raise ValueError, "lift mode must be one of 'simple', 'smallest' or 'teichmuller'"
+            raise ValueError("lift mode must be one of 'simple', 'smallest' or 'teichmuller'")
         ordp = self.valuation()
         if self.is_zero():
             ordp = 1
@@ -2040,7 +2020,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             True
         """
         if self.absprec == 0:
-            raise ValueError, "not enough precision known"
+            raise ValueError("not enough precision known")
         elif self.valuation_c() > 0:
             return self._new_c(self.prime_pow.ram_prec_cap)
         else:
@@ -2243,4 +2223,4 @@ def make_ZZpXCAElement(parent, value, absprec, version):
             ans._set(&poly, mpz_get_si((<Integer>absprec).value))
         return ans
     else:
-        raise ValueError, "unknown unpickling version"
+        raise ValueError("unknown unpickling version")

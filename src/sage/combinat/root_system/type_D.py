@@ -9,6 +9,8 @@ Root system data for type D
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
@@ -278,7 +280,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
 
         EXAMPLES::
 
-            sage: print CartanType(['D',4])._latex_dynkin_diagram()
+            sage: print(CartanType(['D',4])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (2 cm,0);
             \draw (2 cm,0) -- (4 cm,0.7 cm);
             \draw (2 cm,0) -- (4 cm,-0.7 cm);
@@ -311,25 +313,25 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
 
         EXAMPLES::
 
-            sage: print CartanType(['D',3]).ascii_art()
+            sage: print(CartanType(['D',3]).ascii_art())
             O 3
             |
             |
             O---O
             1   2
-            sage: print CartanType(['D',4]).ascii_art()
+            sage: print(CartanType(['D',4]).ascii_art())
                 O 4
                 |
                 |
             O---O---O
             1   2   3
-            sage: print CartanType(['D',4]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['D',4]).ascii_art(label = lambda x: x+2))
                 O 6
                 |
                 |
             O---O---O
             3   4   5
-            sage: print CartanType(['D',6]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['D',6]).ascii_art(label = lambda x: x+2))
                         O 8
                         |
                         |

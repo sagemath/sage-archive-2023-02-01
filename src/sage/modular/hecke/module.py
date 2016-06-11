@@ -2,24 +2,19 @@
 Hecke modules
 """
 
-##########################################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################################
+#*****************************************************************************
+from __future__ import print_function
 
 import sage.rings.all
-from sage.rings.commutative_ring import is_CommutativeRing
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence
@@ -79,7 +74,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: ModularForms(3, 3).category()
             Category of Hecke modules over Rational Field
         """
-        if not is_CommutativeRing(base_ring):
+        if not isinstance(base_ring, sage.rings.all.CommutativeRing):
             raise TypeError("base_ring must be commutative ring")
 
         from sage.categories.hecke_modules import HeckeModules
@@ -979,6 +974,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             ]
 
         TESTS::
+
             sage: M = ModularSymbols(1000,2,sign=1).new_subspace().cuspidal_subspace()
             sage: M.decomposition(3, sort_by_basis = True)
             [
@@ -1715,10 +1711,10 @@ class HeckeModule_free_module(HeckeModule_generic):
         Next we define a function that does the above::
 
             sage: def b(N,k=2):
-            ...    t=cputime()
-            ...    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()
-            ...    for A in S.decomposition():
-            ...        print N, A.system_of_eigenvalues(5)
+            ....:    t=cputime()
+            ....:    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()
+            ....:    for A in S.decomposition():
+            ....:        print("{} {}".format(N, A.system_of_eigenvalues(5)))
 
         ::
 

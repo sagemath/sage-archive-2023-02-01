@@ -13,7 +13,7 @@ Classes for symbolic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ginac cimport *
+from .ginac cimport *
 
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -22,7 +22,7 @@ from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type
-from sage.structure.element import get_coercion_model
+from sage.structure.element cimport coercion_model
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -135,7 +135,7 @@ cdef class Function(SageObject):
         functions was broken. We check here that this is fixed
         (:trac:`11919`)::
 
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: s = dumps(f)
             sage: loads(s)
             f(x)
@@ -255,7 +255,7 @@ cdef class Function(SageObject):
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
                 if not any(isinstance(x, Expression) for x in args):
-                    p = get_coercion_model().common_parent(*args)
+                    p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
             pass
@@ -303,7 +303,8 @@ cdef class Function(SageObject):
 
     def __cmp__(self, other):
         """
-        TESTS:
+        TESTS::
+
             sage: foo = function("foo", nargs=2)
             sage: foo == foo
             True
@@ -451,7 +452,6 @@ cdef class Function(SageObject):
         else:
             symbolic_input = False
 
-
         cdef Py_ssize_t i
         if coerce:
             try:
@@ -468,27 +468,8 @@ cdef class Function(SageObject):
                     method = getattr(args[0], self._name, None)
                     if callable(method):
                         return method()
+                raise TypeError("cannot coerce arguments: %s" % (err))
 
-                # There is no natural coercion from QQbar to the symbolic ring
-                # in order to support
-                #     sage: QQbar(sqrt(2)) + sqrt(3)
-                #     3.146264369941973?
-                # to work around this limitation, we manually convert
-                # elements of QQbar to symbolic expressions here
-                from sage.rings.qqbar import QQbar, AA
-                nargs = [None]*len(args)
-                for i in range(len(args)):
-                    carg = args[i]
-                    if isinstance(carg, Element) and \
-                            (<Element>carg)._parent is QQbar or \
-                            (<Element>carg)._parent is AA:
-                        nargs[i] = SR(carg)
-                    else:
-                        try:
-                            nargs[i] = SR.coerce(carg)
-                        except Exception:
-                            raise TypeError("cannot coerce arguments: %s" % (err))
-                args = nargs
         else: # coerce == False
             for a in args:
                 if not isinstance(a, Expression):
@@ -755,7 +736,7 @@ cdef class Function(SageObject):
 
         To ensure that we actually can fall back to an implementation
         not using mpmath, we have to create a custom function which
-        will certainly never get created in mpmath.
+        will certainly never get created in mpmath. ::
 
             sage: import mpmath
             sage: from sage.symbolic.function import BuiltinFunction
@@ -796,7 +777,7 @@ cdef class GinacFunction(BuiltinFunction):
     There is also no need to register these functions.
     """
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            ginac_name=None, evalf_params_first=True):
+            ginac_name=None, evalf_params_first=True, preserved_arg=None):
         """
         TESTS::
 
@@ -811,7 +792,7 @@ cdef class GinacFunction(BuiltinFunction):
         """
         self._ginac_name = ginac_name
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
-                evalf_params_first=evalf_params_first)
+                evalf_params_first=evalf_params_first, preserved_arg=preserved_arg)
 
     def __call__(self, *args, **kwds):
         """
@@ -819,14 +800,7 @@ cdef class GinacFunction(BuiltinFunction):
         Python ``int``s which are returned by Ginac to Sage Integers.
 
         This is needed to fix :trac:`10133`, where Ginac evaluates
-        ``sin(0)`` to the Python int ``0``::
-
-            sage: from sage.symbolic.function import BuiltinFunction
-            sage: out = BuiltinFunction.__call__(sin, 0)
-            sage: out, parent(out)
-            (0, <type 'int'>)
-
-        With this wrapper we have::
+        ``sin(0)`` to the Python int ``0``. With this wrapper we have::
 
             sage: out = sin(0)
             sage: out, parent(out)
@@ -925,7 +899,7 @@ cdef class BuiltinFunction(Function):
     of this class.
     """
     def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            evalf_params_first=True, alt_name=None):
+            evalf_params_first=True, alt_name=None, preserved_arg=None):
         """
         TESTS::
 
@@ -934,6 +908,10 @@ cdef class BuiltinFunction(Function):
             sage: c(pi/2)
             0
         """
+        self._preserved_arg = preserved_arg
+        if preserved_arg and (preserved_arg < 1 or preserved_arg > nargs):
+            raise ValueError("preserved_arg must be between 1 and nargs")
+
         # If we have an _evalf_ method, change _eval_ to a
         # wrapper function which first tries to call _evalf_.
         if hasattr(self, '_evalf_'):
@@ -994,10 +972,28 @@ cdef class BuiltinFunction(Function):
                 res = super(BuiltinFunction, self).__call__(
                         *args, coerce=coerce, hold=hold)
 
-        # If none of the input arguments was a Sage Element but the
-        # output is, then convert the output back to the corresponding
+        # Convert the output back to the corresponding
         # Python type if possible.
         if any(isinstance(x, Element) for x in args):
+            if (self._preserved_arg
+                    and isinstance(args[self._preserved_arg-1], Element)):
+                from sage.structure.all import parent
+                arg_parent = parent(args[self._preserved_arg-1])
+                if arg_parent is SR:
+                    return res
+                from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
+                from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+                if (isinstance(arg_parent, PolynomialRing_commutative)
+                    or isinstance(arg_parent, MPolynomialRing_polydict_domain)):
+                    try:
+                        return SR(res).polynomial(ring=arg_parent)
+                    except TypeError:
+                        return res
+                else:
+                    try:
+                        return arg_parent(res)
+                    except TypeError:
+                        return res
             return res
         if not isinstance(res, Element):
             return res
@@ -1032,7 +1028,7 @@ cdef class BuiltinFunction(Function):
             sage: p3 = AFunction('p3', 3)
             sage: p3(x)
             x^3
-            sage: loads(dumps(cot)) == cot    # :trac:`15138`
+            sage: loads(dumps(cot)) == cot    # trac #15138
             True
         """
         # check if already defined

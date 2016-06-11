@@ -43,14 +43,14 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
     REFERENCES:
 
-    .. [KL79] D. Kazhdan and G. Lusztig. *Representations of Coxeter
+    .. [KL79] \D. Kazhdan and G. Lusztig. *Representations of Coxeter
        groups and Hecke algebras*. Invent. Math. **53** (1979).
        no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
 
-    .. [Dy93] M. J. Dyer. *Hecke algebras and shellings of Bruhat
+    .. [Dy93] \M. J. Dyer. *Hecke algebras and shellings of Bruhat
        intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
 
-    .. [BB05] A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+    .. [BB05] \A. Bjorner, F. Brenti. *Combinatorics of Coxeter
        groups*. New York: Springer, 2005.
 
     EXAMPLES::
@@ -66,7 +66,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
         sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
-        1 + q
+        q + 1
     """
     def __init__(self, W, q, trace=False):
         """

@@ -38,7 +38,7 @@ include 'sage/ext/stdsage.pxi'
 
 cdef inline check_old_coerce(Parent p):
     if p._element_constructor is not None:
-        raise RuntimeError, "%s still using old coercion framework" % p
+        raise RuntimeError("%s still using old coercion framework" % p)
 
 
 ## def make_parent_v0(_class, _dict, has_coerce_map_from):
@@ -109,9 +109,6 @@ cdef class Parent(parent.Parent):
     # New Coercion support functionality
     #################################################################################
 
-#    def coerce_map_from(self, S):
-#        return self.coerce_map_from_c(S)
-
     cpdef coerce_map_from_c(self, S):
         """
         EXAMPLES:
@@ -151,10 +148,7 @@ cdef class Parent(parent.Parent):
         except KeyError:
             pass
 
-        if HAS_DICTIONARY(self):
-            mor = self.coerce_map_from_impl(S)
-        else:
-            mor = self.coerce_map_from_c_impl(S)
+        mor = self.coerce_map_from_c_impl(S)
         import sage.categories.morphism
         import sage.categories.map
         if mor is True:
@@ -162,7 +156,7 @@ cdef class Parent(parent.Parent):
         elif mor is False:
             mor = None
         elif mor is not None and not isinstance(mor, sage.categories.map.Map):
-            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Map"
+            raise TypeError("coerce_map_from_c_impl must return a boolean, None, or an explicit Map")
 
         if mor is None and isinstance(S, type):
             #Convert Python types to native Sage types
@@ -178,10 +172,6 @@ cdef class Parent(parent.Parent):
             self._coerce_from_hash.set(S, mor) # TODO: if this is None, could it be non-None in the future?
 
         return mor
-
-    def coerce_map_from_impl(self, S):
-        check_old_coerce(self)
-        return self.coerce_map_from_c_impl(S)
 
     cdef coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
@@ -213,9 +203,6 @@ cdef class Parent(parent.Parent):
         else:
             return None
 
-#    def get_action(self, S, op=operator.mul, self_on_left=True):
-#        return self.get_action_c(S, op, self_on_left)
-
     cpdef get_action_c(self, S, op, bint self_on_left):
         check_old_coerce(self)
         try:
@@ -231,7 +218,7 @@ cdef class Parent(parent.Parent):
         if action is not None:
             from sage.categories.action import Action
             if not isinstance(action, Action):
-                raise TypeError, "get_action_impl must return None or an Action"
+                raise TypeError("get_action_impl must return None or an Action")
             self._action_hash.set(S, op, self_on_left, action)
         return action
 
@@ -305,31 +292,7 @@ cdef class Parent(parent.Parent):
                 return self(y)
             except (TypeError, AttributeError) as msg:
                 pass
-        raise TypeError, "no canonical coercion of element into self"
-
-    def _coerce_self(self, x):
-        check_old_coerce(self)
-        return self._coerce_self_c(x)
-
-    cdef _coerce_self_c(self, x):
-        """
-        Try to canonically coerce x into self.
-        Return result on success or raise TypeError on failure.
-        """
-        check_old_coerce(self)
-        # todo -- optimize?
-        try:
-            P = x.parent()
-            if P is self:
-                return x
-            elif P == self:
-                return self(x)
-        except AttributeError:
-            pass
-        raise TypeError, "no canonical coercion to self defined"
-
-#    def has_coerce_map_from(self, S):
-#        return self.has_coerce_map_from_c(S)
+        raise TypeError("no canonical coercion of element into self")
 
     cpdef has_coerce_map_from_c(self, S):
         """
@@ -346,16 +309,9 @@ cdef class Parent(parent.Parent):
                 return self._has_coerce_map_from.get(S)
             except KeyError:
                 pass
-        if HAS_DICTIONARY(self):
-            x = self.has_coerce_map_from_impl(S)
-        else:
-            x = self.has_coerce_map_from_c_impl(S)
+        x = self.has_coerce_map_from_c_impl(S)
         self._has_coerce_map_from.set(S, x)
         return x
-
-    def has_coerce_map_from_impl(self, S):
-        check_old_coerce(self)
-        return self.has_coerce_map_from_c_impl(S)
 
     cdef has_coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
@@ -365,8 +321,6 @@ cdef class Parent(parent.Parent):
             self._coerce_c((<parent.Parent>S).an_element())
         except TypeError:
             return False
-        except NotImplementedError as msg:
-            raise NotImplementedError, "%s\nAlso, please make sure you have implemented has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%(msg,self)
         return True
 
     def _an_element_impl(self):     # override this in Python
@@ -397,7 +351,7 @@ cdef class Parent(parent.Parent):
             except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
                 pass
 
-        raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
+        raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)
 
     def _an_element(self):        # do not override this (call from Python)
         check_old_coerce(self)

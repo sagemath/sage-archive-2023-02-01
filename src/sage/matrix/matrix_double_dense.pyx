@@ -96,7 +96,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -129,9 +128,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     def __dealloc__(self):
         """ Deallocate any memory that was initialized."""
         return
-
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -303,11 +299,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         """
         cdef Matrix_double_dense m
-        if nrows == -1:
+        if nrows == -1 and ncols == -1:
             nrows = self._nrows
-        if ncols == -1:
             ncols = self._ncols
-        parent = self.matrix_space(nrows, ncols)
+            parent = self._parent
+        else:
+            if nrows == -1: nrows = self._nrows
+            if ncols == -1: ncols = self._ncols
+            parent = self.matrix_space(nrows, ncols)
         m = self.__class__.__new__(self.__class__,parent,None,None,None)
         return m
 
@@ -531,7 +530,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             []
         """
         if self._nrows == 0 or self._ncols == 0:
-            # Create a brand new empy matrix. This is needed to prevent a
+            # Create a brand new empty matrix. This is needed to prevent a
             # recursive loop: a copy of zero_matrix is asked otherwise.
             return self.__class__(self.parent(), [], self._nrows, self._ncols)
 
@@ -665,7 +664,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         an identity matrix can hit the minimum with the right norm.  ::
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
-            sage: A.condition()  # tol 3e-5
+            sage: A.condition()  # tol 1e-4
             16332197709146.014
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
@@ -1141,7 +1140,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
 
-        Trac 10839 made this routine available for rectangular matrices.  ::
+        :trac:`10839` made this routine available for rectangular matrices.  ::
 
             sage: A = matrix(RDF, 5, 6, range(30)); A
             [ 0.0  1.0  2.0  3.0  4.0  5.0]
@@ -1184,7 +1183,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Trivial cases return matrices of the right size and
         characteristics.  ::
 
-            sage: A = matrix(RDF, 5, 0, entries=0)
+            sage: A = matrix(RDF, 5, 0)
             sage: P, L, U = A.LU()
             sage: P.parent()
             Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
@@ -1686,7 +1685,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_right(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])
@@ -1789,7 +1788,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-18) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field
@@ -1826,7 +1825,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.solve_left(vector(RDF,[]))
             ()
 
-        The coefficent matrix must be square. ::
+        The coefficient matrix must be square. ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: b = vector(RDF, [1,2,3])

@@ -104,14 +104,14 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__',
-     '__fraction_field',
+    ['__fraction_field',
      '__ideal_monoid',
      '__iter__',
      '__pow__',
-     '__rdiv__',
      '__rpow__',
+     '__rtruediv__',
      '__rxor__',
+     '__truediv__',
      '__xor__',
      '_an_element',
      '_an_element_c',
@@ -119,7 +119,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_',
      '_coerce_c',
      '_coerce_impl',
-     '_coerce_self',
      '_coerce_try',
      '_default_category',
      '_gcd_univariate_polynomial',
@@ -140,7 +139,6 @@ This base class provides a lot more methods than a general parent::
      'cardinality',
      'class_group',
      'coerce_map_from_c',
-     'coerce_map_from_impl',
      'content',
      'divides',
      'epsilon',
@@ -153,7 +151,6 @@ This base class provides a lot more methods than a general parent::
      'get_action_c',
      'get_action_impl',
      'has_coerce_map_from_c',
-     'has_coerce_map_from_impl',
      'ideal',
      'ideal_monoid',
      'integral_closure',
@@ -469,19 +466,19 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    57
+    59
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    85
+    89
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
 
     sage: MS1.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
-     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    <class 'sage.categories.category.JoinCategory.parent_class'>)
     sage: MS2.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
-     <class 'sage.categories.algebras.Algebras.parent_class'>)
+    <class 'sage.categories.category.JoinCategory.parent_class'>)
 
 .. end of output
 
@@ -677,7 +674,7 @@ both ``MyElement`` defined above and of ``P.category().element_class``::
     sage: P.element_class
     <class '__main__.MyFrac_with_category.element_class'>
     sage: type(P.element_class)
-    <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+    <class 'sage.structure.dynamic_class.DynamicInheritComparisonMetaclass'>
     sage: issubclass(P.element_class, MyElement)
     True
     sage: issubclass(P.element_class,P.category().element_class)
@@ -881,7 +878,7 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Category of euclidean domains
+          Join of Category of euclidean domains and Category of metric spaces
 
       .. end of output
 
@@ -1544,6 +1541,7 @@ Here are the tests that form the test suite of quotient fields::
     ['_test_additive_associativity',
      '_test_an_element',
      '_test_associativity',
+     '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
      '_test_distributivity',
@@ -1587,6 +1585,7 @@ Let us see what tests are actually performed::
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
@@ -1755,6 +1754,7 @@ interesting.
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass

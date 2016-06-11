@@ -3,17 +3,17 @@ Quasisymmetric functions
 
 REFERENCES:
 
-.. [Ges] I. Gessel, *Multipartite P-partitions and inner products of skew Schur
+.. [Ges] \I. Gessel, *Multipartite P-partitions and inner products of skew Schur
    functions*, Contemp. Math. **34** (1984), 289-301.
    http://people.brandeis.edu/~gessel/homepage/papers/multipartite.pdf
 
-.. [MR] C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
+.. [MR] \C. Malvenuto and C. Reutenauer, *Duality between quasi-symmetric
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
 .. [GriRei2014] Darij Grinberg, Victor Reiner,
    *Hopf algebras in combinatorics*,
-   30 September 2014. :arxiv:`1409.8356v1`.
+   25 August 2015. :arxiv:`1409.8356v3`.
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -22,7 +22,7 @@ REFERENCES:
 
 .. [Haz2004] Michiel Hazewinkel, *Explicit polynomial generators for the
    ring of quasisymmetric functions over the integers*.
-   :arXiv:`math/0410366v1`
+   :arxiv:`math/0410366v1`
 
 .. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
    and an application to group schemes*, J. Algebra **58** (1979), 432-454.
@@ -32,7 +32,7 @@ REFERENCES:
    *Noncommutative symmetric functions*.
    :arxiv:`hep-th/9407124v1`
 
-.. [NCSF2] D. Krob, B. Leclerc, J.-Y. Thibon,
+.. [NCSF2] \D. Krob, B. Leclerc, J.-Y. Thibon,
    *Noncommutative symmetric functions II: Transformations of alphabets*.
    http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
 
@@ -41,6 +41,12 @@ REFERENCES:
    quasisymmetric functions, and Young composition tableaux*,
    May 23, 2013, Springer.
    http://www.math.ubc.ca/%7Esteph/papers/QuasiSchurBook.pdf
+
+.. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
+   Luis Serrano, Mike Zabrocki,
+   *A lift of the Schur and Hall-Littlewood bases to
+   non-commutative symmetric functions*,
+   :arxiv:`1208.5191v3`.
 
 AUTHOR:
 
@@ -59,8 +65,8 @@ AUTHOR:
 
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.categories.all import CommutativeRings
 from sage.categories.rings import Rings
+from sage.categories.fields import Fields
 from sage.categories.realizations import Category_realization_of_parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -523,9 +529,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: QuasiSymmetricFunctions(QQ)
             Quasisymmetric functions over the Rational Field
+            sage: QSym1 = QuasiSymmetricFunctions(FiniteField(23))
+            sage: QSym2 = QuasiSymmetricFunctions(Integers(23))
             sage: TestSuite(QuasiSymmetricFunctions(QQ)).run()
         """
-        assert R in Rings()
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
         category = GradedHopfAlgebras(R)  # TODO: .Commutative()
         self._category = category
@@ -1060,10 +1069,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 unexpectedly, the `n`-th Frobenius operator of the ring of
                 symmetric functions.
 
-                :meth:`adams_operation` serves as alias for :meth:`frobenius`,
-                since the Frobenius operators are the Adams operations of
-                the `\Lambda`-ring of quasi-symmetric functions.
-
                 .. SEEALSO::
 
                     :meth:`Symmetric functions plethsym
@@ -1128,7 +1133,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
 
-            adams_operation = frobenius
+            def adams_operation(self, *args, **opts):
+                from sage.misc.superseded import deprecation
+                deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
             def star_involution(self):
                 r"""
@@ -2730,14 +2737,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             This basis first appears in [BBSSZ2012]_.
 
-            REFERENCES:
-
-            .. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
-               Luis Serrano, Mike Zabrocki,
-               *A lift of the Schur and Hall-Littlewood bases to
-               non-commutative symmetric functions*,
-               :arXiv:`1208.5191v3`.
-
             EXAMPLES::
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
@@ -2773,13 +2772,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-            sage: dI = QuasiSymmetricFunctions(QQ).dI()
-            sage: dI._to_Monomial_on_basis(Composition([1,3]))
-            M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
-            sage: dI._to_Monomial_on_basis(Composition([]))
-            M[]
-            sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
-            4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
+                sage: dI = QuasiSymmetricFunctions(QQ).dI()
+                sage: dI._to_Monomial_on_basis(Composition([1,3]))
+                M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
+                sage: dI._to_Monomial_on_basis(Composition([]))
+                M[]
+                sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
+                4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
             """
             M = self.realization_of().Monomial()
             if not J._list:
@@ -2877,7 +2876,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_. See also
-        Chapter 6 of [GriRei2014]_, specifically Theorem 6.99, for a
+        Chapter 6 of [GriRei2014]_, specifically Theorem 6.107, for a
         complete proof.) More precisely, he showed that
         `\mathrm{QSym}` is generated, as a free commutative
         `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where
@@ -3296,7 +3295,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M = self.realization_of().M()
             if l <= n:
                 from sage.misc.cachefunc import cached_function
-                from sage.rings.arith import gcd
+                from sage.arith.all import gcd
                 @cached_function
                 def monolambda(I):
                     # expansion of self[I] in monomial basis,

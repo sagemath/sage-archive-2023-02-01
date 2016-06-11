@@ -47,6 +47,7 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -186,6 +187,27 @@ class BackendBase(SageObject):
         """
         raise NotImplementedError('derived classes must implement this method')
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
+
+        OUTPUT:
+
+        Defaults to ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.is_in_terminal()
+            False
+        """
+        return False
+    
     def max_width(self):
         """
         Return the number of characters that fit into one output line
@@ -488,8 +510,8 @@ class BackendBase(SageObject):
             sage: _     # indirect doctest
             'foo'
         """
-        import __builtin__
-        __builtin__._ = obj
+        from six.moves import builtins
+        builtins._ = obj
 
     def displayhook(self, plain_text, rich_output):
         """

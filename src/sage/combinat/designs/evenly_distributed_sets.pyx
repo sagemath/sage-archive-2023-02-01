@@ -15,15 +15,14 @@ might want to update this database with more values.
 Classes and methods
 -------------------
 """
-
-include "sage/ext/stdsage.pxi"
+from __future__ import print_function
 
 cimport cython
 
 from libc.limits cimport UINT_MAX
 from libc.string cimport memset, memcpy
 
-from sage.ext.memory cimport check_malloc, check_calloc
+include "cysignals/memory.pxi"
 
 from sage.rings.integer cimport Integer,smallInteger
 
@@ -99,14 +98,14 @@ cdef class EvenlyDistributedSetsBacktracker:
     It is also possible to run over all evenly distributed sets::
 
         sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=False)
-        sage: for B in E: print B
+        sage: for B in E: print(B)
         [0, 1, 11, 5]
         [0, 1, 4, 6]
         [0, 1, 9, 3]
         [0, 1, 8, 10]
 
         sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=True)
-        sage: for B in E: print B
+        sage: for B in E: print(B)
         [0, 1, 11, 5]
 
 
@@ -118,7 +117,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         ....:         K = GF(k,'a')
         ....:         E1 = EvenlyDistributedSetsBacktracker(K, 4, False)
         ....:         E2 = EvenlyDistributedSetsBacktracker(K, 4, True)
-        ....:         print "{:3} {:3} {:3}".format(k, E1.cardinality(), E2.cardinality())
+        ....:         print("{:3} {:3} {:3}".format(k, E1.cardinality(), E2.cardinality()))
          13   4   1
          25  40   4
          37  12   1
@@ -172,15 +171,15 @@ cdef class EvenlyDistributedSetsBacktracker:
 
     def __dealloc__(self):
         if self.diff != NULL:
-            sage_free(self.diff[0])
-            sage_free(self.diff)
+            sig_free(self.diff[0])
+            sig_free(self.diff)
         if self.ratio != NULL:
-            sage_free(self.ratio[0])
-            sage_free(self.ratio)
-        sage_free(self.min_orb)
-        sage_free(self.B)
-        sage_free(self.cosets)
-        sage_free(self.t)
+            sig_free(self.ratio[0])
+            sig_free(self.ratio)
+        sig_free(self.min_orb)
+        sig_free(self.B)
+        sig_free(self.cosets)
+        sig_free(self.t)
 
     def __init__(self, K, k, up_to_isomorphism=True, check=False):
         r"""
@@ -345,7 +344,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         from sage.categories.sets_cat import EmptySetError
         it = iter(self)
         try:
-            B = it.next()
+            B = next(it)
         except StopIteration:
             raise EmptySetError("no {}-evenly distributed set in {}".format(self.k,self.K))
         self.to_difference_family(B, check=True) # check the validity
@@ -489,7 +488,7 @@ cdef class EvenlyDistributedSetsBacktracker:
 
             sage: E = EvenlyDistributedSetsBacktracker(Zmod(13),4)
             sage: for B in E:
-            ....:     print B
+            ....:     print(B)
             [0, 1, 11, 5]
         """
         cdef unsigned int k_m_1 = self.k - 1

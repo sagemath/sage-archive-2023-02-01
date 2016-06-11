@@ -130,14 +130,14 @@ def FinitelyGeneratedAbelianPresentation(int_list):
         sage: groups.presentation.FGAbelian([0,0])
         Finitely presented group < a, b | a^-1*b^-1*a*b >
         sage: groups.presentation.FGAbelian([0,0,0])
-        Finitely presented group < a, b, c | a^-1*c^-1*a*c, a^-1*b^-1*a*b, c^-1*b^-1*c*b >
+        Finitely presented group < a, b, c | a^-1*b^-1*a*b, a^-1*c^-1*a*c, b^-1*c^-1*b*c >
 
     And various infinite abelian groups::
 
         sage: groups.presentation.FGAbelian([0,2])
         Finitely presented group < a, b | a^2, a^-1*b^-1*a*b >
         sage: groups.presentation.FGAbelian([0,2,2])
-        Finitely presented group < a, b, c | a^2, b^2, a^-1*c^-1*a*c, a^-1*b^-1*a*b, c^-1*b^-1*c*b >
+        Finitely presented group < a, b, c | a^2, b^2, a^-1*b^-1*a*b, a^-1*c^-1*a*c, b^-1*c^-1*b*c >
 
     Outputs are reduced to minimal generators and relations::
 
@@ -193,7 +193,7 @@ def FinitelyGeneratedAbelianPresentation(int_list):
     ret_rls = [F([i+1])**invariants[i] for i in range(len(invariants)) if invariants[i]!=0]
 
     # Build commutator relations
-    gen_pairs = list(Set(F.gens()).subsets(2))
+    gen_pairs = [[F.gen(i),F.gen(j)] for i in range(F.ngens()-1) for j in range(i+1,F.ngens())]
     ret_rls = ret_rls + [x[0]**(-1)*x[1]**(-1)*x[0]*x[1] for x in gen_pairs]
     return FinitelyPresentedGroup(F, tuple(ret_rls))
 

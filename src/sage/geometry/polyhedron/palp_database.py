@@ -9,7 +9,7 @@ EXAMPLES::
     ....:     fan = Fan([cone])
     ....:     X = ToricVariety(fan)
     ....:     ideal = X.affine_algebraic_patch(cone).defining_ideal()
-    ....:     print lp.n_vertices(), ideal.hilbert_series()
+    ....:     print("{} {}".format(lp.n_vertices(), ideal.hilbert_series()))
     3 (-t^2 - 7*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (-t^2 - t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
@@ -27,6 +27,7 @@ EXAMPLES::
     5 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     6 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 """
+from __future__ import print_function
 
 from subprocess import Popen, PIPE
 
@@ -134,7 +135,7 @@ class PALPreader(SageObject):
         return Popen(["class.x", "-b2a", "-di", self._data_basename], stdout=PIPE)
 
     def _read_vertices(self, stdout, rows, cols):
-        """
+        r"""
         Read vertex data from the PALP output pipe.
 
         OUTPUT:
@@ -158,7 +159,7 @@ class PALPreader(SageObject):
         return m
 
     def _read_vertices_transposed(self, stdout, rows, cols):
-        """
+        r"""
         Read vertex data from the PALP output pipe.
 
         OUTPUT:
@@ -331,7 +332,7 @@ class PALPreader(SageObject):
 
         A function generating lattice polytopes in the specified output format.
 
-        EAMPLES::
+        EXAMPLES::
 
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
@@ -402,7 +403,7 @@ class Reflexive4dHodge(PALPreader):
     Read the PALP database for Hodge numbers of 4d polytopes.
 
     The database is very large and not installed by default. You can
-    install it with the command ``install_package('polytopes_db_4d')``.
+    install it with the shell command ``sage -i polytopes_db_4d``.
 
     INPUT:
 
@@ -428,9 +429,9 @@ class Reflexive4dHodge(PALPreader):
 
         TESTS::
 
-        sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
-        sage: Reflexive4dHodge(1,101)  # optional - polytopes_db_4d
-        <class 'sage.geometry.polyhedron.palp_database.Reflexive4dHodge'>
+            sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
+            sage: Reflexive4dHodge(1,101)  # optional - polytopes_db_4d
+            <class 'sage.geometry.polyhedron.palp_database.Reflexive4dHodge'>
         """
         dim = 4
         if data_basename is None:

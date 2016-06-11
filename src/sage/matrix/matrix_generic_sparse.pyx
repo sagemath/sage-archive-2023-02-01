@@ -313,9 +313,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
-
     def __hash__(self):
         return self._hash()
 
@@ -556,7 +553,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ##         """
 ##         R = set(rows)
 ##         if not R.issubset(set(xrange(self.nrows()))):
-##             raise ArithmeticError, "Invalid rows."
+##             raise ArithmeticError("Invalid rows.")
 ##         X = []
 ##         i = 0
 ##         for j in xrange(self.nrows()):

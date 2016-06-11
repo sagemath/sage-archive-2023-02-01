@@ -2,7 +2,7 @@
 
 # WARNING -- if you add a package here, also add it to
 # the gap_reset_workspace() command in 
-#    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
+#    <SAGE_ROOT>/src/sage/interfaces/gap.py
 #
 
 if [ -z "$SAGE_LOCAL" ]; then 
@@ -27,10 +27,21 @@ fi
 
 cd src/
 
-# HAPprime should be added in the future?
+# Apply fixes to upstream source
+echo "Applying patches..."
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+
 for p in \
-    crime ctbllib design factint grape \
-    guava-3.12 Hap1.10 HAPcryst laguna polymaking \
+    aclib crime ctbllib cryst crystcat design factint grape \
+    guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \
     sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
@@ -58,8 +69,7 @@ fi
 
 
 # Build GUAVA package
-cd "$PKG_DIR/guava-3.12"
-./configure "$GAP_DIR"
+cd "$PKG_DIR"/guava-3* && ./configure "$GAP_DIR"
 if [ $? -ne 0 ]; then 
     echo >&2 "Error configuring GUAVA packagae."
     exit 1

@@ -2,7 +2,7 @@ r"""
 Optimised Cython code for counting congruence solutions
 """
 
-from sage.rings.arith import valuation, kronecker_symbol, is_prime
+from sage.arith.all import valuation, kronecker_symbol, is_prime
 from sage.rings.finite_rings.integer_mod import IntegerMod, Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
@@ -58,7 +58,7 @@ def extract_sublist_indices(Biglist, Smalllist):
     ## Check that Biglist has no repeated entries
     Big_set = Set(Biglist)
     if len(Set(Biglist)) != len(Biglist):
-        raise TypeError, "Biglist must not have repeated entries!"
+        raise TypeError("Biglist must not have repeated entries!")
 
     ## Extract the indices of Biglist needed to make Sublist
     index_list = []
@@ -125,15 +125,15 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
     """
     ## Check that Qdet is non-degenerate
     if Qdet % p == 0:
-        raise RuntimeError, "Qdet must be non-zero."
+        raise RuntimeError("Qdet must be non-zero.")
 
     ## Check that p is prime > 0
     if not is_prime(p) or p == 2:
-        raise RuntimeError, "p must be a prime number > 2."
+        raise RuntimeError("p must be a prime number > 2.")
 
     ## Check that n >= 1
     if n < 1:
-        raise RuntimeError, "the dimension n must be >= 1."
+        raise RuntimeError("the dimension n must be >= 1.")
 
     ## Compute the Gauss sum
     neg1 = -1

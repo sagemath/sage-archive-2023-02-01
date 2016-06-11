@@ -81,7 +81,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: x * (y * z) == (x * y) * z
         False
 
-    The default product is with left paretheses::
+    The default product is with left parentheses::
 
         sage: x * y * z == (x * y) * z
         True
@@ -105,9 +105,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [ChLi] F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
+    .. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
        operad*, International Math. Research Notices (2001) no 8, pages 395-408.
-    .. [Liv] M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
+    .. [Liv] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
        Algebra 207 (2006), no 1, pages 1-18.
     """
     @staticmethod

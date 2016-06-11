@@ -107,11 +107,12 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+from __future__ import print_function
 
-include '../../ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
-from sage.libs.mpfr cimport mpfr_set, GMP_RNDN
+from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -334,7 +335,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sig_off()
             self._gen_dp = NULL
             self.sigma = sigma.parent()(0)
-            mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
+            mpfr_set(self.sigma.value, self._gen_mp.sigma, MPFR_RNDN)
             self.c = c
         elif precision == "dp":
             RR = RealField()
@@ -364,24 +365,24 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
 
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
-            sage: for i in range(16):
-            ....:     print D(),
-            ....:
-            21 23 37 6 -64 29 8 -22 -3 -10 7 -43 1 -29 25 38
+            sage: [D() for k in range(16)]
+            [21, 23, 37, 6, -64, 29, 8, -22, -3, -10, 7, -43, 1, -29, 25, 38]
 
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
+            sage: l = []
             sage: for i in range(16):
-            ....:     f(); print D(),
-            ....:
-            21 21 21 21 -21 21 21 -21 -21 -21 21 -21 21 -21 21 21
+            ....:     f(); l.append(D())
+            sage: l
+            [21, 21, 21, 21, -21, 21, 21, -21, -21, -21, 21, -21, 21, -21, 21, 21]
 
             sage: f()
             sage: D = DiscreteGaussianDistributionIntegerSampler(30.0)
+            sage: l = []
             sage: for i in range(16):
-            ....:     f(); D._flush_cache(); print D(),
-            ....:
-            21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21
+            ....:     f(); D._flush_cache(); l.append(D())
+            sage: l
+            [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
         """
         if self._gen_mp:
             dgs_disc_gauss_mp_flush_cache(self._gen_mp)

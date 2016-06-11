@@ -205,8 +205,6 @@ Command-line options for Sage
   directory ``dir``
 - ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
-- ``--bdist VER`` -- build a binary distribution of Sage, with
-  version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
 
 .. rubric:: Valgrind memory debugging

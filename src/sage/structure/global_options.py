@@ -381,7 +381,7 @@ class GlobalOptions(SageObject):
     which specifies the individual options. The allowed/expected keys in the
     dictionary are the following:
 
-    INPUTS:
+    INPUT:
 
     - ``name`` -- Specifies a name for the options class (required)
 

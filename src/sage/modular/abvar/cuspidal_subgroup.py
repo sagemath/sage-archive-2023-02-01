@@ -59,17 +59,22 @@ TESTS::
     True
 """
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from finite_subgroup                import FiniteSubgroup
-from sage.rings.all                 import infinity, QQ, gcd, ZZ
+from sage.rings.all                 import infinity, QQ, ZZ
 from sage.matrix.all                import matrix
 from sage.modular.arithgroup.all    import is_Gamma0
 from sage.modular.cusps             import Cusp
+from sage.arith.all import gcd
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
     def _compute_lattice(self, rational_only=False, rational_subgroup=False):

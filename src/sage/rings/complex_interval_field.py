@@ -195,6 +195,7 @@ class ComplexIntervalField_class(ring.Field):
         Initialize ``self``.
 
         EXAMPLES::
+
             sage: ComplexIntervalField()
             Complex Interval Field with 53 bits of precision
             sage: ComplexIntervalField(200)
@@ -214,6 +215,39 @@ class ComplexIntervalField_class(ring.Field):
             True
         """
         return ComplexIntervalField, (self._prec, )
+
+    def construction(self):
+        """
+        Returns the functorial construction of this complex interval field,
+        namely as the algebraic closure of the real interval field with
+        the same precision.
+
+        EXAMPLES::
+
+            sage: c, S = CIF.construction(); c, S
+            (AlgebraicClosureFunctor,
+             Real Interval Field with 53 bits of precision)
+            sage: CIF == c(S)
+            True
+
+        TESTS:
+
+        Test that :trac:`19922` is fixed::
+
+            sage: c = ComplexIntervalField(128).an_element()
+            sage: r = RealIntervalField(64).an_element()
+            sage: c + r
+            1 + 1*I
+            sage: r + c
+            1 + 1*I
+            sage: parent(c+r)
+            Complex Interval Field with 64 bits of precision
+            sage: R = ComplexIntervalField(128)['x']
+            sage: (R.gen() * RIF.one()).parent()
+            Univariate Polynomial Ring in x over Complex Interval Field with 53 bits of precision
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
 
     def is_exact(self):
         """
@@ -376,10 +410,15 @@ class ComplexIntervalField_class(ring.Field):
             2 + 3*I
             sage: CIF(pi, e)
             3.141592653589794? + 2.718281828459046?*I
+            sage: ComplexIntervalField(100)(CIF(RIF(2,3)))
+            3.?
         """
         if im is None:
-            if isinstance(x, complex_interval.ComplexIntervalFieldElement) and x.parent() is self:
-                return x
+            if isinstance(x, complex_interval.ComplexIntervalFieldElement):
+                if x.parent() is self:
+                    return x
+                else:
+                    return complex_interval.ComplexIntervalFieldElement(self, x)
             elif isinstance(x, complex_double.ComplexDoubleElement):
                 return complex_interval.ComplexIntervalFieldElement(self, x.real(), x.imag())
             elif isinstance(x, str):

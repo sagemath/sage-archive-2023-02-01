@@ -45,6 +45,7 @@ class LeftZeroSemigroup(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -281,9 +282,6 @@ class FreeSemigroup(UniqueRepresentation, Parent):
             sage: bad in F
             True
 
-
-        TESTS::
-
             sage: S = Semigroups().Subquotients().example()
             sage: type(S._element_constructor_(17))
             <class 'sage.categories.examples.semigroups.QuotientOfLeftZeroSemigroup_with_category.element_class'>
@@ -331,6 +329,7 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -552,6 +551,7 @@ class IncompleteSubquotientSemigroup(UniqueRepresentation,Parent):
               ...
             NotImplementedError: <abstract method retract at ...>
             ------------------------------------------------------------
+            running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()

@@ -246,7 +246,7 @@ As an element of a vector space, ``el`` has a particular behavior::
 
     sage: 2*el
     2*B[[1, 2, 3]] + 6*B[[1, 3, 2]] + B[[3, 2, 1]]
-    sage: el.support()
+    sage: sorted(el.support())
     [[1, 2, 3], [1, 3, 2], [3, 2, 1]]
     sage: el.coefficient([1, 2, 3])
     1
@@ -304,7 +304,7 @@ Some particular actions modify the data structure of ``el``::
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)
-        <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
+        <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
         sage: id4.__dict__
         <dictproxy {'__doc__': ...
         '_sage_src_lines_': <staticmethod object at 0x...>}>
@@ -532,7 +532,7 @@ Summary
 
         sage: class Spoon(AbstractDish):
         ....:     def __init__(self):
-        ....:         print "Building a spoon"
+        ....:         print("Building a spoon")
         ....:         super(Spoon, self).__init__()
         ....:     def __repr__(self):
         ....:         return "A %s spoon"%self.state()

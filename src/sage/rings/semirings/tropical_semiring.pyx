@@ -134,10 +134,11 @@ cdef class TropicalSemiringElement(RingElement):
         return hash(self._val)
 
     # Comparisons
-
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        Rich comparisons.
+        Return ``-1`` if ``left`` is less than ``right``, ``0`` if
+        ``left`` and ``right`` are equal, and ``1`` if ``left`` is
+        greater than ``right``.
 
         EXAMPLES::
 
@@ -169,30 +170,6 @@ cdef class TropicalSemiringElement(RingElement):
             sage: T(2) >= T(4)
             False
             sage: T.infinity() >= T.infinity()
-            True
-        """
-        return (<RingElement>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Return ``-1`` if ``left`` is less than ``right``, ``0`` if
-        ``left`` and ``right`` are equal, and ``1`` if ``left`` is
-        greater than ``right``.
-
-        EXAMPLES::
-
-            sage: T = TropicalSemiring(QQ)
-            sage: T(2) == T(2)
-            True
-            sage: T(2) != T(4)
-            True
-            sage: T(2) < T(4)
-            True
-            sage: T(2) > T(4)
-            False
-            sage: T.infinity() == T.infinity()
-            True
-            sage: T(4) <= T.infinity()
             True
 
         Using the `\max` definition::

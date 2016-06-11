@@ -129,6 +129,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -139,8 +140,8 @@ from sage.interfaces.gap import GapElement
 from sage.combinat.permutation import Permutation
 from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.rings.arith import is_prime
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.arith.all import is_prime
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.misc.misc import uniq
 from sage.misc.flatten import flatten
 
@@ -213,11 +214,11 @@ class LatinSquare:
 
         EXAMPLES::
 
-            sage: print LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__str__()
+            sage: print(LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__str__())
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
+        return str(self.square)
 
     def __repr__(self):
         """
@@ -226,12 +227,11 @@ class LatinSquare:
 
         EXAMPLES::
 
-            sage: print LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__repr__()
+            sage: print(LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__repr__())
             [0 1]
             [2 3]
         """
-        return self.square.__str__()
-        return self.square.__repr__()
+        return repr(self.square)
 
     def __getitem__(self, rc):
         """
@@ -296,8 +296,7 @@ class LatinSquare:
             sage: L.__hash__()
             12
         """
-
-        return self.square.__hash__()
+        return hash(self.square)
 
     def __eq__(self, Q):
         """
@@ -1013,7 +1012,7 @@ class LatinSquare:
         EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
-            sage: print back_circulant(3).latex()
+            sage: print(back_circulant(3).latex())
             \begin{array}{|c|c|c|}\hline 0 & 1 & 2\\\hline 1 & 2 & 0\\\hline 2 & 0 & 1\\\hline\end{array}
         """
 
@@ -1243,12 +1242,12 @@ class LatinSquare:
             sage: B1 = next(g)
             sage: B0, B1 = bitrade(B, B1)
             sage: assert is_bitrade(B0, B1)
-            sage: print B0, "\n,\n", B1
+            sage: print(B0)
             [-1  1  2 -1]
             [-1  2 -1  0]
             [-1 -1 -1 -1]
             [-1  0  1  2]
-            ,
+            sage: print(B1)
             [-1  2  1 -1]
             [-1  0 -1  2]
             [-1 -1 -1 -1]
@@ -2175,24 +2174,12 @@ def LatinSquare_generator(L_start, check_assertions = False):
         sage: next(g).is_latin_square()
         True
 
-    REFERENCE::
+    REFERENCES:
 
-        @article{MR1410617,
-            AUTHOR = {Jacobson, Mark T. and Matthews, Peter},
-             TITLE = {Generating uniformly distributed random {L}atin squares},
-           JOURNAL = {J. Combin. Des.},
-          FJOURNAL = {Journal of Combinatorial Designs},
-            VOLUME = {4},
-              YEAR = {1996},
-            NUMBER = {6},
-             PAGES = {405--437},
-              ISSN = {1063-8539},
-           MRCLASS = {05B15 (60J10)},
-          MRNUMBER = {MR1410617 (98b:05021)},
-        MRREVIEWER = {Lars D{\o}vling Andersen},
-        }
+    .. [JacMat96] Mark T. Jacobson and Peter Matthews, "Generating uniformly
+       distributed random Latin squares", Journal of Combinatorial Designs,
+       4 (1996)
     """
-
     if check_assertions: assert L_start.is_latin_square()
 
     n = L_start.nrows()
@@ -2296,6 +2283,7 @@ def LatinSquare_generator(L_start, check_assertions = False):
                 # usual
                 proper = False # for emphasis
 
+
 def group_to_LatinSquare(G):
     """
     Construct a latin square on the symbols [0, 1, ..., n-1] for a
@@ -2333,6 +2321,7 @@ def group_to_LatinSquare(G):
 
     T = G.cayley_table()
     return matrix(ZZ, T.table())
+
 
 def alternating_group_bitrade_generators(m):
     """
@@ -2429,6 +2418,7 @@ def pq_group_bitrade_generators(p, q):
 
     return (a, b, c, PermutationGroup([P, Q]))
 
+
 def p3_group_bitrade_generators(p):
     """
     Generators for a group of order p3 where p is a prime.
@@ -2439,7 +2429,6 @@ def p3_group_bitrade_generators(p):
         sage: p3_group_bitrade_generators(3)
         ((2,6,7)(3,8,9), (1,2,3)(4,7,8)(5,6,9), (1,9,2)(3,7,4)(5,8,6), Permutation Group with generators [(2,6,7)(3,8,9), (1,2,3)(4,7,8)(5,6,9)])
     """
-
     assert is_prime(p)
 
     F = gap.new("FreeGroup(3)")
@@ -2464,6 +2453,7 @@ def p3_group_bitrade_generators(p):
     y = PermutationGroupElement(gap.Image(iso, G.gen(2)))
 
     return (x, y, (x*y)**(-1), PermutationGroup([x, y]))
+
 
 def check_bitrade_generators(a, b, c):
     """
@@ -2490,6 +2480,7 @@ def check_bitrade_generators(a, b, c):
     X = gap.Intersection(gap.Intersection(A, B), C)
     return X.Size() == 1
 
+
 def is_bitrade(T1, T2):
     """
     Combinatorially, a pair (T1, T2) of partial latin squares is a
@@ -2515,6 +2506,7 @@ def is_bitrade(T1, T2):
 
     return True
 
+
 def is_primary_bitrade(a, b, c, G):
     """
     A bitrade generated from elements a, b, c is primary if a, b, c =
@@ -2531,6 +2523,7 @@ def is_primary_bitrade(a, b, c, G):
     H = PermutationGroup([a, b, c])
 
     return G == H
+
 
 def tau_to_bitrade(t1, t2, t3):
     """
@@ -2648,6 +2641,7 @@ def bitrade_from_group(a, b, c, G):
 
     return tau_to_bitrade(t1, t2, t3)
 
+
 def is_disjoint(T1, T2):
     """
     The partial latin squares T1 and T2 are disjoint if T1[r, c] !=
@@ -2704,6 +2698,7 @@ def is_same_shape(T1, T2):
 
     return True
 
+
 def is_row_and_col_balanced(T1, T2):
     """
     Partial latin squares T1 and T2 are balanced if the symbols
@@ -2736,6 +2731,7 @@ def is_row_and_col_balanced(T1, T2):
         if val1 != val2: return False
 
     return True
+
 
 def dlxcpp_rows_and_map(P):
     """
@@ -2793,8 +2789,6 @@ def dlxcpp_rows_and_map(P):
 
                 cmap[(c_OFFSET, r_OFFSET, xy_OFFSET)] = (r,c,e)
 
-                #print "possibility: ", r, c, e, "offsets:", c_OFFSET, r_OFFSET, xy_OFFSET
-
                 #if P[r, c] >= 0: continue
 
                 # We only want the correct value to pop in here
@@ -2828,8 +2822,6 @@ def dlxcpp_find_completions(P, nr_to_find = None):
         [[0 1]
         [1 0]]
     """
-
-
     assert P.nrows() == P.ncols()
 
     n = P.nrows()
@@ -2862,6 +2854,7 @@ def dlxcpp_find_completions(P, nr_to_find = None):
         comps.append(Q)
 
     return comps
+
 
 def bitrade(T1, T2):
     r"""
@@ -2907,5 +2900,3 @@ def bitrade(T1, T2):
                 Q2[r, c] = -1
 
     return Q1, Q2
-
-

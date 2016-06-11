@@ -1,8 +1,6 @@
-# Copied from ntl_ZZ_decl to avoid circular cimports
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    ctypedef struct ZZ_c "struct ZZ":
-        pass
+# distutils: depends = NTL/ZZ.h
 
+from .types cimport ZZ_c
 from sage.libs.gmp.types cimport mpz_t, mpz_srcptr
 
 cdef void ZZ_to_mpz(mpz_t output, ZZ_c* x)

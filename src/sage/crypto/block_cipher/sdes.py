@@ -76,10 +76,10 @@ class SimplifiedDES(SageObject):
 
     REFERENCES:
 
-    .. [Pha02] R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
+    .. [Pha02] \R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
       testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
 
-    .. [Sch96] E. Schaefer. A simplified data encryption algorithm.
+    .. [Sch96] \E. Schaefer. A simplified data encryption algorithm.
       Cryptologia, 20(1):77--84, 1996.
     """
 
@@ -1255,7 +1255,7 @@ class SimplifiedDES(SageObject):
         if len(key) != 8:
             raise ValueError("input key must be an 8-bit subkey")
 
-        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         GF = FiniteField(2, "x")
         bin = BinaryStrings()
         bin_to_GF2 = {bin("0"): GF(0), bin("1"): GF(1)}

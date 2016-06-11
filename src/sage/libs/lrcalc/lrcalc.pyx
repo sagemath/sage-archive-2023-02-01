@@ -185,8 +185,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer
-from sage.combinat.all import Partition, Permutation, SkewTableau
+from sage.rings.integer cimport Integer
+from sage.structure.parent cimport Parent
+from sage.combinat.partition import _Partitions
+from sage.combinat.permutation import Permutation
+from sage.combinat.skew_tableau import SkewTableau
 
 cdef vector* iterable_to_vector(it):
     """
@@ -199,14 +202,15 @@ cdef vector* iterable_to_vector(it):
         [3, 2, 1]
     """
     cdef vector* v
-    it = list(it)
-    cdef int n = len(it)
+    cdef list itr = list(it)
+    cdef int n = len(itr)
+    cdef int i
     v = v_new(n)
     for i from 0 <= i < n:
-        v.array[i] = int(it[i])
+        v.array[i] = int(itr[i])
     return v
 
-cdef vector_to_list(vector *v):
+cdef list vector_to_list(vector *v):
     """
     Converts a lrcalc vector to Python list.
 
@@ -218,7 +222,7 @@ cdef vector_to_list(vector *v):
     """
     cdef int i, n
     n = v_length(v)
-    result = [None]*n
+    cdef list result = [None]*n
     for i from 0 <= i < n:
         result[i] = Integer(v_elem(v, i))
     return result
@@ -252,12 +256,15 @@ cdef skewtab_to_SkewTableau(skewtab *st):
     """
     inner = vector_to_list(st.inner)
     outer = vector_to_list(st.outer)
-    return SkewTableau(expr=[[ inner[y] for y in range(len(outer))],
-                             [[ st.matrix[x + y * st.cols]+1 for x in range(inner[y], outer[y]) ] for y in range(len(outer)-1,-1,-1) ]])
+    return SkewTableau(expr=[[inner[y] for y in range(len(outer))],
+                             [[st.matrix[x + y * st.cols] + 1
+                                for x in range(inner[y], outer[y])]
+                              for y in range(len(outer) - 1, -1, -1)]])
 
 def test_skewtab_to_SkewTableau(outer, inner):
     """
-    A wrapper function for the cdef function ``skewtab_to_SkewTableau`` for testing purposes.
+    A wrapper function for the cdef function ``skewtab_to_SkewTableau``
+    for testing purposes.
 
     It constructs the first LR skew tableau of shape ``outer/inner``
     as an ``lrcalc`` ``skewtab``, and converts it to a
@@ -279,7 +286,7 @@ def test_skewtab_to_SkewTableau(outer, inner):
     cdef skewtab* st = st_new(o, i, NULL, 0)
     return skewtab_to_SkewTableau(st)
 
-cdef sf_hashtab_to_dict(hashtab *ht):
+cdef dict sf_hashtab_to_dict(hashtab *ht):
     """
     Return a dictionary representing a Schur function. The keys are
     partitions and the values are integers <type 'sage.rings.integer.Integer'>.
@@ -292,15 +299,16 @@ cdef sf_hashtab_to_dict(hashtab *ht):
         sage: assert isinstance(mult([1],[1]),dict)#indirect doctest
     """
     cdef hash_itr itr
-    result = {}
+    cdef dict result = {}
+    cdef list p
     hash_first(ht, itr)
     while hash_good(itr):
         p = vector_to_list(<vector*> hash_key(itr))
-        result[Partition(p)] = Integer(hash_intvalue(itr))
+        result[_Partitions(p)] = Integer(hash_intvalue(itr))
         hash_next(itr)
     return result
 
-cdef schubert_hashtab_to_dict(hashtab *ht):
+cdef dict schubert_hashtab_to_dict(hashtab *ht):
     """
     Return a dictionary corresponding to a Schubert polynomial whose keys
     are permutations and whose values are integers <type 'sage.rings.integer.Integer'>.
@@ -312,7 +320,7 @@ cdef schubert_hashtab_to_dict(hashtab *ht):
         {[3, 2, 1]: 1}
     """
     cdef hash_itr itr
-    result = {}
+    cdef dict result = {}
     hash_first(ht, itr)
     while hash_good(itr):
         p = vector_to_list(<vector*> hash_key(itr))
@@ -321,7 +329,7 @@ cdef schubert_hashtab_to_dict(hashtab *ht):
     return result
 
 
-cdef vp_hashtab_to_dict(hashtab *ht):
+cdef dict vp_hashtab_to_dict(hashtab *ht):
     """
     Return a dictionary corresponding to the coproduct of a Schur function whose keys are
     pairs of partitions and whose values are integers <type 'sage.rings.integer.Integer'>.
@@ -334,16 +342,15 @@ cdef vp_hashtab_to_dict(hashtab *ht):
     """
     cdef hash_itr itr
     cdef vecpair* vp
-    result = {}
+    cdef dict result = {}
     hash_first(ht, itr)
     while hash_good(itr):
         vp = <vecpair*> hash_key(itr)
-        p1 = Partition(vector_to_list(vp_first(vp)))
-        p2 = Partition(vector_to_list(vp_second(vp)))
+        p1 = _Partitions(vector_to_list(vp_first(vp)))
+        p2 = _Partitions(vector_to_list(vp_second(vp)))
         result[(p1, p2)] = Integer(hash_intvalue(itr))
         hash_next(itr)
     return result
-
 
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""
@@ -418,9 +425,9 @@ def lrcoef(outer, inner1, inner2):
         0
 
     """
-    return lrcoef_unsafe(Partition(outer), Partition(inner1), Partition(inner2))
+    return lrcoef_unsafe(_Partitions(outer), _Partitions(inner1), _Partitions(inner2))
 
-def mult(part1, part2, maxrows=None, level=None):
+def mult(part1, part2, maxrows=None, level=None, quantum=None):
     r"""
     Compute a product of two Schur functions.
 
@@ -429,20 +436,26 @@ def mult(part1, part2, maxrows=None, level=None):
 
     INPUT:
 
-    - ``part1`` -- a partition.
+    - ``part1`` -- a partition
 
-    - ``part2`` -- a partition.
+    - ``part2`` -- a partition
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- (optional) an integer
 
-    - ``level`` -- an integer or None.
+    - ``level`` -- (optional) an integer
+
+    - ``quantum`` -- (optional) an element of a ring
 
     If ``maxrows`` is specified, then only partitions with at most
-    this number of rows is included in the result.
+    this number of rows are included in the result.
 
     If both ``maxrows`` and ``level`` are specified, then the function
-    calculates the fusion product for `sl(\mathrm{maxrows})` of the
-    given level.
+    calculates the fusion product for `\mathfrak{sl}(\mathrm{maxrows})`
+    of the given level.
+
+    If ``quantum`` is set, then this returns the product in the quantum
+    cohomology ring of the Grassmannian. In particular, both ``maxrows``
+    and ``level`` need to be specified.
 
     EXAMPLES::
 
@@ -464,18 +477,59 @@ def mult(part1, part2, maxrows=None, level=None):
         ...
         ValueError: maxrows needs to be specified if you specify the level
 
+     The quantum product::
+
+        sage: q = polygen(QQ, 'q')
+        sage: sorted(mult([1],[2,1], 2, 2, quantum=q).items())
+        [([], q), ([2, 2], 1)]
+        sage: sorted(mult([2,1],[2,1], 2, 2, quantum=q).items())
+        [([1, 1], q), ([2], q)]
+
+        sage: mult([2,1],[2,1], quantum=q)
+        Traceback (most recent call last):
+        ...
+        ValueError: missing parameters maxrows or level
     """
-    if maxrows is None and not(level is None):
-        raise ValueError, 'maxrows needs to be specified if you specify the level'
+    if maxrows is None and level is not None:
+        raise ValueError('maxrows needs to be specified if you specify'
+                         ' the level')
+    if quantum is not None and (level is None or maxrows is None):
+        raise ValueError('missing parameters maxrows or level')
+
     cdef vector* v1 = iterable_to_vector(part1)
     cdef vector* v2 = iterable_to_vector(part2)
     if maxrows is None:
         maxrows = 0
     cdef hashtab* ht = mult_c(v1, v2, int(maxrows))
-    if not(level is None):
-        fusion_reduce_c(ht, int(maxrows), int(level), int(0))
-    result = sf_hashtab_to_dict(ht)
-    v_free(v1); v_free(v2); hash_free(ht)
+    cdef hashtab* tab
+    cdef dict result
+
+    if quantum is None:
+        if level is not None:
+            fusion_reduce_c(ht, int(maxrows), int(level), int(0))
+        result = sf_hashtab_to_dict(ht)
+        v_free(v1)
+        v_free(v2)
+        hash_free(ht)
+        return result
+
+    # Otherwise do quantum multiplication
+    cdef _list *qlist
+    cdef dict temp
+    qlist = quantum_reduce_c(ht, int(maxrows), int(level))
+    # The above call frees the memory associated with ht
+    v_free(v1)
+    v_free(v2)
+
+    cdef Parent P = quantum.parent()
+    result = {}
+    for i in range(qlist.length):
+        tab = <hashtab*>(qlist.array[i])
+        temp = sf_hashtab_to_dict(tab)
+        for k in temp:
+            result[k] = result.get(k, P.zero()) + quantum**i * temp[k]
+        hash_free(tab)
+    l_free(qlist)
     return result
 
 def skew(outer, inner, maxrows=0):
@@ -492,7 +546,7 @@ def skew(outer, inner, maxrows=0):
 
     - ``inner`` -- a partition.
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- an integer or ``None``.
 
     If ``maxrows`` is specified, then only partitions with at most
     this number of rows are included in the result.
@@ -637,5 +691,6 @@ def lrskew(outer, inner, weight=None, maxrows=0):
         #yield skewtab_to_SkewTableau(st)
     st_free(st)
     if weight is not None:
-        result = [r for r in result if r.weight() == Partition(weight) ]
+        result = [r for r in result if r.weight() == _Partitions(weight) ]
     return result # todo: remove
+

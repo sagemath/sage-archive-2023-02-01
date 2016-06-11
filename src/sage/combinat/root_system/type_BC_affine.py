@@ -9,6 +9,7 @@ Root system data for type BC affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cartan_type import CartanType_standard_affine
 from sage.rings.integer_ring import ZZ
@@ -145,7 +146,7 @@ class CartanType(CartanType_standard_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['BC',4,2])._latex_dynkin_diagram()
+            sage: print(CartanType(['BC',4,2])._latex_dynkin_diagram())
             \draw (0, 0.1 cm) -- +(2 cm,0);
             \draw (0, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(0.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
@@ -163,7 +164,7 @@ class CartanType(CartanType_standard_affine):
             \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
             <BLANKLINE>
 
-            sage: print CartanType(['BC',4,2]).dual()._latex_dynkin_diagram()
+            sage: print(CartanType(['BC',4,2]).dual()._latex_dynkin_diagram())
             \draw (0, 0.1 cm) -- +(2 cm,0);
             \draw (0, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(1.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
@@ -215,17 +216,17 @@ class CartanType(CartanType_standard_affine):
 
         EXAMPLES::
 
-            sage: print CartanType(['BC',2,2]).ascii_art()
+            sage: print(CartanType(['BC',2,2]).ascii_art())
             O=<=O=<=O
             0   1   2
-            sage: print CartanType(['BC',3,2]).ascii_art()
+            sage: print(CartanType(['BC',3,2]).ascii_art())
             O=<=O---O=<=O
             0   1   2   3
-            sage: print CartanType(['BC',5,2]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['BC',5,2]).ascii_art(label = lambda x: x+2))
             O=<=O---O---O---O=<=O
             2   3   4   5   6   7
 
-            sage: print CartanType(['BC',1,2]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['BC',1,2]).ascii_art(label = lambda x: x+2))
               4
             O=<=O
             2   3

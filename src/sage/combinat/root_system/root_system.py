@@ -447,6 +447,11 @@ class RootSystem(UniqueRepresentation, SageObject):
             True
             sage: r1 == r2
             False
+
+        Check that they inherit a hash method from ``UniqueRepresentation``::
+
+            sage: hash(r1)  # random
+            42
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)
@@ -664,7 +669,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         root or weight lattice (and dually).
 
         There is no mechanical way to define the ambient space just
-        from the Cartan matrix. Instead is is constructed from hard
+        from the Cartan matrix. Instead it is constructed from hard
         coded type by type data, according to the usual Bourbaki
         conventions. Such data is provided for all the finite
         (crystallographic) types. From this data, ambient spaces can be

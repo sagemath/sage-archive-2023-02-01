@@ -47,17 +47,12 @@ AUTHORS:
 #  Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #                2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 import types, copy_reg
 
@@ -74,7 +69,9 @@ for i in range(len(sage_version)):
         pass
 sage_version = tuple(sage_version)
 
-import sage.misc.weak_dict
+cimport sage.misc.weak_dict
+from sage.misc.cachefunc cimport cache_key as _cache_key
+
 
 cdef class UniqueFactory(SageObject):
     """
@@ -154,7 +151,7 @@ cdef class UniqueFactory(SageObject):
 
     The below examples are rather artificial and illustrate particular
     aspects. For a "real-life" usage case of ``UniqueFactory``, see
-    the finite field factory in :mod:`sage.rings.finite_rings.constructor`.
+    the finite field factory in :mod:`sage.rings.finite_rings.finite_field_constructor`.
 
     In many cases, a factory class is implemented by providing the two
     methods :meth:`create_key` and :meth:`create_object`. In our example,
@@ -402,7 +399,6 @@ cdef class UniqueFactory(SageObject):
             try:
                 return self._cache[version, cache_key]
             except TypeError: # key is unhashable
-                from sage.misc.cachefunc import _cache_key
                 cache_key = _cache_key(cache_key)
                 return self._cache[version, cache_key]
         except KeyError:
@@ -414,7 +410,6 @@ cdef class UniqueFactory(SageObject):
                 try:
                     self._cache[version, key] = obj
                 except TypeError: # key is unhashable
-                    from sage.misc.cachefunc import _cache_key
                     self._cache[version, _cache_key(key)] = obj
             obj._factory_data = self, version, key, extra_args
             if obj.__class__.__reduce__.__objclass__ is object:
@@ -723,7 +718,7 @@ def generic_factory_reduce(self, proto):
         True
     """
     if self._factory_data is None:
-        raise NotImplementedError, "__reduce__ not implemented for %s" % type(self)
+        raise NotImplementedError("__reduce__ not implemented for %s" % type(self))
     else:
         return self._factory_data[0].reduce_data(self)
 

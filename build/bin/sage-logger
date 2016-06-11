@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# sage-logger [-p] COMMAND LOGFILE
+#
+# Evaluate shell command COMMAND while logging stdout and stderr to
+# LOGFILE. If either the command or the logging failed, return a
+# non-zero exit status.
+#
+# If the -p argument is given, each line printed to stdout is prefixed
+# with the name of the log file.
+#
+# AUTHOR:
+#
+# - Jeroen Demeyer (2015-07-26): initial version based on old pipestatus
+#   script (#18953)
+#
+#*****************************************************************************
+#       Copyright (C) 2015 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+use_prefix=false
+
+if [[ "$1" = -p ]]; then
+    use_prefix=true
+    shift
+fi
+
+cmd="$1"
+logfile="$2"
+logname="$(basename $logfile .log)"
+logdir=`dirname "$logfile"`
+
+if [[ $use_prefix = true ]]; then
+    prefix="[${logname}] "
+else
+    prefix=""
+fi
+
+# Use sed option to reduce buffering, to make the output appear more
+# smoothly. For GNU sed, this is the --unbuffered option.
+# For BSD sed (which is also on OS X), this is the -l option.
+if sed </dev/null 2>/dev/null --unbuffered ""; then
+    SED="sed --unbuffered"
+elif sed </dev/null 2>/dev/null -l ""; then
+    SED="sed -l"
+else
+    SED="sed"
+fi
+
+mkdir -p "$logdir"
+
+# Redirect stdout and stderr to a subprocess running tee.
+# We trap SIGINT such that SIGINT interrupts the main process being
+# run, not the logging.
+( exec 2>&1; eval "$cmd" ) | \
+    ( trap '' SIGINT; tee -a "$logfile" | $SED "s/^/$prefix/" )
+
+pipestatus=(${PIPESTATUS[*]})
+
+if [ ${pipestatus[1]} -ne 0 ]; then
+    exit ${pipestatus[1]}
+else
+    exit ${pipestatus[0]}
+fi

@@ -45,8 +45,8 @@ EXAMPLES::
 We make a table of the order of the cuspidal subgroup for the first
 few levels::
 
-    sage: for N in range(11,40): print N, J0(N).cuspidal_subgroup().order()
-    ...
+    sage: for N in range(11,40):
+    ....:     print("{} {}".format(N, J0(N).cuspidal_subgroup().order()))
     11 5
     12 1
     13 1
@@ -87,11 +87,16 @@ TESTS::
     True
 """
 
-###########################################################################
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
-#  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import print_function
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
@@ -99,8 +104,10 @@ from sage.modules.free_module import is_FreeModule
 from sage.structure.element import ModuleElement
 from sage.structure.gens_py import abelian_iterator
 from sage.structure.sequence import Sequence
-from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
+from sage.rings.all import QQ, ZZ, QQbar, Integer
+from sage.arith.all import gcd, lcm
 from sage.misc.all import prod
+from sage.structure.element import get_coercion_model
 
 import abvar as abelian_variety
 
@@ -298,7 +305,7 @@ class FiniteSubgroup(Module):
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
             raise ValueError("self and other must be in the same ambient Jacobian")
-        K = composite_field(self.field_of_definition(), other.field_of_definition())
+        K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:
             lattice += C.lattice()
@@ -384,7 +391,7 @@ class FiniteSubgroup(Module):
             amb = other
             B = other
             M = B.lattice().scale(Integer(1)/self.exponent())
-            K = composite_field(self.field_of_definition(), other.base_field())
+            K = get_coercion_model().common_parent(self.field_of_definition(), other.base_field())
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
@@ -393,7 +400,7 @@ class FiniteSubgroup(Module):
             if A.ambient_variety() != B.ambient_variety():
                 raise TypeError("finite subgroups must be in the same ambient product Jacobian")
             M = other.lattice()
-            K = composite_field(self.field_of_definition(), other.field_of_definition())
+            K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
 
         L = self.lattice()
         if A != B:

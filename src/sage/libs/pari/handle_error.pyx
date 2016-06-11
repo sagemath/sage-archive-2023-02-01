@@ -19,9 +19,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
-include "decl.pxi"
+from .paridecl cimport *
+from .paripriv cimport *
+include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
 from pari_instance cimport pari_instance
@@ -42,7 +44,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('1/0')
             ....: except PariError as err:
-            ....:     print err.errnum()
+            ....:     print(err.errnum())
             31
         """
         return self.args[0]
@@ -56,7 +58,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('pi()')
             ....: except PariError as e:
-            ....:     print e.errtext()
+            ....:     print(e.errtext())
             not a function in function call
 
         """
@@ -101,7 +103,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('1/0')
             ....: except PariError as err:
-            ....:     print err
+            ....:     print(err)
             _/_: impossible inverse in gdiv: 0
 
         A syntax error::
@@ -123,7 +125,7 @@ cdef void _pari_init_error_handling():
         sage: try:
         ....:     p = pari.polcyclo(-1)
         ....: except PariError as e:
-        ....:     print e.errtext()
+        ....:     print(e.errtext())
         domain error in polcyclo: index <= 0
 
     Warnings still work just like in GP::
@@ -157,18 +159,20 @@ cdef int _pari_err_handle(GEN E) except 0:
 
     """
     cdef long errnum = E[1]
-    if errnum == e_STACK:
-        # PARI is out of memory.  We double the size of the PARI stack
-        # and retry the computation.
-        pari_instance.allocatemem(silent=True)
-        return 0
 
     sig_block()
     cdef char* errstr
     cdef char* s
     try:
-        errstr = pari_err2str(E)
-        pari_error_string = errstr.decode('ascii')
+        if errnum == e_STACK:
+            # Custom error message for PARI stack overflow
+            pari_error_string = "the PARI stack overflows (current size: {}; maximum size: {})\n"
+            pari_error_string += "You can use pari.allocatemem() to change the stack size and try again"
+            pari_error_string = pari_error_string.format(pari_mainstack.size, pari_mainstack.vsize)
+        else:
+            errstr = pari_err2str(E)
+            pari_error_string = errstr.decode('ascii')
+            pari_free(errstr)
 
         s = closure_func_err()
         if s is not NULL:
@@ -176,7 +180,6 @@ cdef int _pari_err_handle(GEN E) except 0:
 
         raise PariError(errnum, pari_error_string, pari_instance.new_gen_noclear(E))
     finally:
-        pari_free(errstr)
         sig_unblock()
 
 
@@ -191,19 +194,13 @@ cdef void _pari_err_recover(long errnum):
     Perform a computation that requires doubling the default stack
     several times::
 
-        sage: pari.allocatemem(2^12)
-        PARI stack size set to 4096 bytes
+        sage: pari.allocatemem(2^12, 2^26)
+        PARI stack size set to 4096 bytes, maximum size set to 67108864
         sage: x = pari('2^(2^26)')
         sage: x == 2^(2^26)
         True
 
     """
-    if not PyErr_Occurred():
-        # No exception was raised => retry the computation starting
-        # from sig_on(). This can happen if we successfully enlarged the
-        # PARI stack in _pari_handle_exception().
-        sig_retry()
-    else:
-        # An exception was raised.  Jump to the signal-handling code
-        # which will cause sig_on() to see the exception.
-        sig_error()
+    # An exception was raised.  Jump to the signal-handling code
+    # which will cause sig_on() to see the exception.
+    sig_error()

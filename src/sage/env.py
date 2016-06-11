@@ -102,7 +102,8 @@ _add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythoniz
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
 _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))
-_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
+_add_variable_or_fallback('SAGE_DOC_SRC',    opj('$SAGE_SRC', 'doc'))
+_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SHARE', 'doc', 'sage'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
 _add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
 _add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
@@ -164,7 +165,7 @@ def sage_include_directories(use_sources=False):
         sage: sage.env.sage_include_directories()
         ['.../include',
         '.../include/python...',
-        '.../python.../site-packages/numpy/core/include',
+        '.../python.../numpy/core/include',
         '.../python.../site-packages',
         '.../python.../site-packages/sage/ext']
     """
@@ -179,7 +180,8 @@ def sage_include_directories(use_sources=False):
 
     if use_sources :
         include_directories.extend([SAGE_SRC,
-                                    opj(SAGE_SRC, 'sage','ext'),
+                                    opj(SAGE_SRC, 'sage', 'ext')])
+        include_directories.extend([SAGE_CYTHONIZED,
                                     opj(SAGE_CYTHONIZED, 'sage', 'ext')])
     else:
         include_directories.extend([SAGE_LIB,

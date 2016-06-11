@@ -14,22 +14,22 @@ the graded Frobenius image of the Garsia-Haiman modules [GH1993]_.
 
 REFERENCES:
 
-.. [Macdonald1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+.. [Macdonald1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 
-.. [GH1993] A. Garsia, M. Haiman, A graded representation module for Macdonald's
+.. [GH1993] \A. Garsia, M. Haiman, A graded representation module for Macdonald's
    polynomials, Proc. Nat. Acad. U.S.A. no. 90, 3607--3610.
 
-.. [BGHT1999] F. Bergeron, A. M. Garsia, M. Haiman, and G. Tesler, Identities and
+.. [BGHT1999] \F. Bergeron, A. M. Garsia, M. Haiman, and G. Tesler, Identities and
    positivity conjectures for some remarkable operators in the theory of symmetric
    functions, Methods Appl. Anal. 6 (1999), no. 3, 363--420.
 
-.. [LLM1998] L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
+.. [LLM1998] \L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
    Macdonald Polynomials, IRMN no. 18 (1998).
    :arXiv:`math/9808050`.
 
-.. [BH2013] F. Bergeron, M. Haiman, Tableaux Formulas for Macdonald Polynomials,
+.. [BH2013] \F. Bergeron, M. Haiman, Tableaux Formulas for Macdonald Polynomials,
    Special edition in honor of Christophe Reutenauer 60 birthday, International
    Journal of Algebra and Computation, Volume 23, Issue 4, (2013), pp. 833-852.
 """
@@ -132,7 +132,7 @@ class Macdonald(UniqueRepresentation):
             if str(q) =='q':
                 self._name_suffix += " with "
             self._name_suffix += "t=%s"%t
-        self._name = "Macdonald polynomials"+self._name_suffix+" over "+Sym.base_ring().__repr__()
+        self._name = "Macdonald polynomials"+self._name_suffix+" over "+repr(Sym.base_ring())
 
     def base_ring( self ):
         r"""
@@ -1391,7 +1391,7 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             mu_to_H = lambda mu: self._self_to_m(self(mu)).theta_qt(q=self.t, t=0)
         out = {}
         while not g.is_zero():
-            sprt = g.support()
+            sprt = sorted(g.support())
             Hmu = mu_to_H(sprt[-1])
             fl_sprt = fl(sprt[-1])
             out[fl_sprt] = self._base(g.coefficient(sprt[-1]) / Hmu.coefficient(sprt[-1]))
@@ -1625,7 +1625,7 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
         g = f.omega_qt(q=subsval, t=0)
         out = {}
         while not g.is_zero():
-            sprt = g.support()
+            sprt = sorted(g.support())
             Htmu = self._self_to_m(self(fl(sprt[-1]))).omega_qt(q=subsval, t=0)
             out[fl(sprt[-1])] = self._base(g.coefficient(sprt[-1]) / Htmu.coefficient(sprt[-1]))
             g -= out[fl(sprt[-1])] * Htmu

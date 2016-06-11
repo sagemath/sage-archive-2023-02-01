@@ -26,6 +26,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
 import os
 from sage.structure.sage_object import SageObject

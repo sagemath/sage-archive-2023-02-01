@@ -99,7 +99,7 @@ If the vertices along the path do not match, a value error is raised::
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
 
-    sage: print p*q
+    sage: print(p*q)
     None
 
 Let us now construct a larger quiver::
@@ -134,7 +134,7 @@ The length of a path is the number of edges in that path::
 List index and slice notation can be used to access the edges in a path.
 QuiverPaths can also be iterated over.  Trivial paths have no elements::
 
-    sage: for x in p: print x
+    sage: for x in p: print(x)
     (1, 2, 'a')
     (2, 3, 'd')
     sage: triv[:]
@@ -193,7 +193,7 @@ base ring::
     a*d + e_2
     sage: y = A(p) + A(r)
     sage: y
-    a*d + b*d
+    b*d + a*d
 
 :class:`~sage.quivers.algebra.QuiverAlgebras` are `\NN`-graded algebras.
 The grading is given by assigning to each basis element the length of the
@@ -447,6 +447,8 @@ the ``*`` operator::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
 from sage.modules.module_element import ModuleElement
@@ -1501,24 +1503,9 @@ class QuiverRep_generic(WithEqualityById, Module):
         """
         return "Representation with dimension vector {}".format(self.dimension_vector())
 
-    def __div__(self, sub):
-        """
-        This and :meth:`__truediv__` below together overload the ``/``
-        operator.
-
-        TESTS::
-
-            sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
-            sage: P = Q.P(GF(3), 1)
-            sage: R = P.radical()
-            sage: (P/R).is_simple()
-            True
-        """
-        return self.quotient(sub)
-
     def __truediv__(self, sub):
         """
-        This and :meth:`__div__` above together overload the ``/`` operator.
+        Overload the ``/`` operator.
 
         TESTS::
 

@@ -22,7 +22,7 @@ from sage.modular.modform.constructor import ModularForms
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.fast_arith import prime_range
-from sage.rings.arith import crt
+from sage.arith.all import crt
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function
@@ -364,6 +364,15 @@ class TypeSpace(SageObject):
             14
             sage: TypeSpace(g, 7).is_minimal()
             True
+
+        Test that :trac:`13158` is fixed::
+
+            sage: f = Newforms(256,names='a')[0]
+            sage: T = TypeSpace(f,2)
+            sage: g = T.minimal_twist(); g
+            q - a*q^3 + O(q^6)
+            sage: g.level()
+            64
         """
         if self.is_minimal():
             raise ValueError( "Form is already minimal" )
@@ -382,8 +391,9 @@ class TypeSpace(SageObject):
             V = A.submodule(VV, check=False)
 
         D = V.decomposition()[0]
-        if len(D.star_eigenvalues()) == 1:
-            D._set_sign(D.star_eigenvalues()[0])
+        if len(D.star_eigenvalues()) == 2:
+            D = D.sign_submodule(1)
+        D._set_sign(D.star_eigenvalues()[0])
         M = ModularForms(D.group(), D.weight())
         ff = Newform(M, D, names='a')
         return ff

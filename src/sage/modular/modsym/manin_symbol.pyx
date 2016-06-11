@@ -436,13 +436,13 @@ def _print_polypart(i, j):
 
     EXAMPLES::
 
-    sage: from sage.modular.modsym.manin_symbol import _print_polypart
-    sage: _print_polypart(2,3)
-    'X^2*Y^3'
-    sage: _print_polypart(2,0)
-    'X^2'
-    sage: _print_polypart(0,1)
-    'Y'
+        sage: from sage.modular.modsym.manin_symbol import _print_polypart
+        sage: _print_polypart(2,3)
+        'X^2*Y^3'
+        sage: _print_polypart(2,0)
+        'X^2'
+        sage: _print_polypart(0,1)
+        'Y'
     """
     if i > 1:
         xpart = "X^%s"%i

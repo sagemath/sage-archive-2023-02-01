@@ -1,7 +1,7 @@
 from sage.libs.gmp.types cimport mpq_t
 
 cimport sage.structure.element
-cimport integer
+from . cimport integer
 
 cpdef rational_power_parts(a, b, factor_limit=?)
 

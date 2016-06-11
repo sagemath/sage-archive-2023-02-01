@@ -41,7 +41,7 @@ def _Functor_unpickle(Cl, D, domain, codomain):
 
     AUTHOR:
 
-    - Simon King (2010-12): Trac ticket #10460
+    - Simon King (2010-12): :trac:`10460`
 
     EXAMPLES::
 
@@ -175,11 +175,22 @@ cdef class Functor(SageObject):
 
         """
         if not category.is_Category(domain):
-            raise TypeError, "domain (=%s) must be a category"%domain
+            raise TypeError("domain (=%s) must be a category" % domain)
         if not category.is_Category(codomain):
-            raise TypeError, "codomain (=%s) must be a category"%codomain
+            raise TypeError("codomain (=%s) must be a category" % codomain)
         self.__domain = domain
         self.__codomain = codomain
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.categories.functor import Functor
+            sage: F = Functor(Rings(), Fields())
+            sage: hash(F)  # random
+            42
+        """
+        return hash(self.__domain) ^ hash(self.__codomain)
 
     def __reduce__(self):
         """
@@ -187,7 +198,7 @@ cdef class Functor(SageObject):
 
         AUTHOR:
 
-        - Simon King (2010-12):  Trac ticket #10460
+        - Simon King (2010-12):  :trac:`10460`
 
         TESTS::
 
@@ -254,7 +265,7 @@ cdef class Functor(SageObject):
         try:
             return self(f.domain()).hom(f, self(f.codomain()))
         except Exception:
-            raise TypeError, 'unable to transform %s into a morphism in %s'%(f,self.codomain())
+            raise TypeError('unable to transform %s into a morphism in %s' % (f,self.codomain()))
 
     def _coerce_into_domain(self, x):
         """
@@ -282,7 +293,7 @@ cdef class Functor(SageObject):
 
         """
         if not (x in  self.__domain):
-            raise TypeError, "x (=%s) is not in %s"%(x, self.__domain)
+            raise TypeError("x (=%s) is not in %s" % (x, self.__domain))
         return x
 
     def _repr_(self):
@@ -345,7 +356,7 @@ cdef class Functor(SageObject):
         The last example shows that it is tested whether the result of
         applying the functor lies in the functor's codomain. Note that
         the matrix functor used to be defined similar to this example,
-        which was fixed in trac ticket #8807::
+        which was fixed in :trac:`8807`::
 
             sage: class IllFunctor(Functor):
             ...     def __init__(self, m,n):
@@ -370,7 +381,7 @@ cdef class Functor(SageObject):
             return self._apply_functor_to_morphism(x)
         y = self._apply_functor(self._coerce_into_domain(x))
         if not ((y in self.__codomain) or (y in self.__codomain.hom_category())):
-            raise TypeError, "%s is ill-defined, since it sends x (=%s) to something that is not in %s."%(repr(self), x, self.__codomain)
+            raise TypeError("%s is ill-defined, since it sends x (=%s) to something that is not in %s." % (repr(self), x, self.__codomain))
         return y
 
     def domain(self):
@@ -489,7 +500,7 @@ class ForgetfulFunctor_generic(Functor):
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
 
         This is to test against a bug occuring in a previous version
-        (see ticket 8800)::
+        (see :trac:`8800`)::
 
             sage: F1 == QQ #indirect doctest
             False
@@ -610,7 +621,7 @@ def IdentityFunctor(C):
 
     The identity functor in ``C``.
 
-    EXAPLES::
+    EXAMPLES::
 
         sage: rings = Rings()
         sage: F = IdentityFunctor(rings)
@@ -662,6 +673,6 @@ def ForgetfulFunctor(domain, codomain):
     if domain == codomain:
         return IdentityFunctor(domain)
     if not domain.is_subcategory(codomain):
-        raise ValueError, "Forgetful functor not supported for domain %s"%domain
+        raise ValueError("Forgetful functor not supported for domain %s" % domain)
     return ForgetfulFunctor_generic(domain, codomain)
 

@@ -197,6 +197,44 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
     __add__ = union
 
+    def singular_subscheme(self):
+        r"""
+        Return the subscheme of singular points of this curve.
+
+        OUTPUT:
+
+        - a subscheme in the ambient space of this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: C = Curve([y^4 - 2*x^5 - x^2*y], A)
+            sage: C.singular_subscheme()
+            Closed subscheme of Affine Space of dimension 2 over Complex Field with
+            53 bits of precision defined by:
+              (-2.00000000000000)*x^5 + y^4 - x^2*y,
+              (-10.0000000000000)*x^4 + (-2.00000000000000)*x*y,
+              4.00000000000000*y^3 - x^2
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
+            sage: C.singular_subscheme()
+            Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+              y^8 - x^2*z*w^5,
+              -2*y^2 - x*z + w^2,
+              -x^3*y*z^4 + 3*x^2*y*z^3*w^2 - 3*x*y*z^2*w^4 + 8*x*y*z*w^5 + y*z*w^6,
+              x^2*z*w^5,
+              -5*x^2*z^2*w^4 - 4*x*z*w^6,
+              x^4*y*z^3 - 3*x^3*y*z^2*w^2 + 3*x^2*y*z*w^4 - 4*x^2*y*w^5 - x*y*w^6,
+              -2*x^3*y*z^3*w + 6*x^2*y*z^2*w^3 - 20*x^2*y*z*w^4 - 6*x*y*z*w^5 +
+            2*y*w^7,
+              -5*x^3*z*w^4 - 2*x^2*w^6
+        """
+        return self.ambient_space().subscheme(self.Jacobian())
+
     def singular_points(self, F=None):
         r"""
         Return the set of singular points of this curve.
@@ -235,5 +273,39 @@ class Curve_generic(AlgebraicScheme_subscheme):
                 raise TypeError("curve must be defined over a field")
         elif not F in Fields():
             raise TypeError("(=%s) must be a field"%F)
-        X = self.ambient_space().subscheme(self.Jacobian())
-        return X.rational_points(0, F)
+        X = self.singular_subscheme()
+        return X.rational_points(F=F)
+
+    def is_singular(self, P=None):
+        r"""
+        Return whether ``P`` is a singular point of this curve, or if no point is passed,
+        whether this curve is singular or not.
+
+        This just uses the is_smooth function for algebraic subschemes.
+
+        INPUT:
+
+        - ``P`` -- (default: None) a point on this curve.
+
+        OUTPUT:
+
+        - Boolean. If a point ``P`` is provided, and if ``P`` lies on this curve, returns True
+          if ``P`` is a singular point of this curve, and False otherwise. If no point is provided,
+          returns True or False depending on whether this curve is or is not singular, respectively.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = P.curve([y^2 - x^2 - z^2, z - w])
+            sage: C.is_singular()
+            False
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(11), 3)
+            sage: C = A.curve([y^3 - z^5, x^5 - y + 1])
+            sage: Q = A([7,0,0])
+            sage: C.is_singular(Q)
+            True
+        """
+        return not self.is_smooth(P)

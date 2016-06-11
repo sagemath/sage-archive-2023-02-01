@@ -134,7 +134,8 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Return the multiplicity of this projective curve at the point ``P``.
 
         This is computed as the corresponding multiplicity of an affine patch of this curve that
-        contains the point. This curve must be defined over a field.
+        contains the point. This curve must be defined over a field. An error is returned if ``P``
+        not a point on this curve.
 
         INPUT:
 
@@ -142,22 +143,19 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
         OUTPUT:
 
-        - an integer.
+        An integer.
 
         EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve([y^4 - x^3*z - x^2*z^2], P)
-            sage: Q1 = P([0,0,1])
-            sage: C.multiplicity(Q1)
+            sage: Q = P([0,0,1])
+            sage: C.multiplicity(Q)
             2
-            sage: Q2 = P([1,1,1])
-            sage: C.multiplicity(Q2)
-            0
 
         ::
 
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: P.<x,y,z,w> = ProjectiveSpace(RR, 3)
             sage: C = Curve([y^8 - x^2*z*w^5, w^2 - 2*y^2 - x*z], P)
             sage: Q1 = P([-1,-1,1,1])
             sage: C.multiplicity(Q1)
@@ -168,25 +166,32 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: Q3 = P([0,0,1,0])
             sage: C.multiplicity(Q3)
             8
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(29), 3)
+            sage: C = Curve([y^17 - x^5*w^4*z^8, x*y - z^2], P)
+            sage: Q = P([3,0,0,1])
+            sage: C.multiplicity(Q)
+            8
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
 
-        # Check whether P is in the ambient space of this curve
+        # Check whether P is a point on this curve
         try:
-            P = self.ambient_space()(P)
+            P = self(P)
         except TypeError:
             raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
 
         # Find an affine chart of the ambient space of self that contains P
-        n = self.ambient_space().dimension_relative()
-        for i in range(n + 1):
-            if P[i] != 0:
-                break
+        i = 0
+        while(P[i] == 0):
+            i = i + 1
         C = self.affine_patch(i)
         Q = list(P)
         t = Q.pop(i)
-        Q = [1/t*Q[j] for j in range(n)]
+        Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
         return C.multiplicity(C.ambient_space()(Q))
 
 class ProjectivePlaneCurve(ProjectiveCurve):
@@ -438,9 +443,20 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 
-    def is_singular(C):
+    def is_singular(self, P=None):
         r"""
-        Returns whether the curve is singular or not.
+        Return whether this curve is singular or not, or if a point ``P`` is provided,
+        whether ``P`` is a singular point of this curve.
+
+        INPUT:
+
+        - ``P`` -- (default: None) a point on this curve.
+
+        OUTPUT:
+
+        - Boolean. If no point ``P`` is provided, returns True of False depending on whether
+          this curve is singular or not. If a point ``P`` is provided, returns True or False
+          depending on whether ``P`` is or is not a singular point of this curve.
 
         EXAMPLES:
 
@@ -489,16 +505,27 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: G = Curve(X^2+Y*Z)
             sage: G.is_singular()
             False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(CC, 2)
+            sage: C = Curve([y^4 - x^3*z], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_singular()
+            True
         """
-        poly = C.defining_polynomial()
-        return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
+        if P is None:
+            poly = self.defining_polynomial()
+            return poly.parent().ideal(poly.gradient()+[poly]).dimension() > 0
+        else:
+            return not self.is_smooth(P)
 
     def tangents(self, P):
             r"""
             Return the tangents of this projective plane curve at the point ``P``.
 
             These are found by homogenizing the tangents of an affine patch of this curve
-            containing ``P``.
+            containing ``P``. The point ``P`` must be a point on this curve.
 
             INPUT:
 
@@ -525,14 +552,13 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
     
             # Find an affine chart of the ambient space of self that contains P
-            n = self.ambient_space().dimension_relative()
-            for i in range(n + 1):
-                if P[i] != 0:
-                    break
+            i = 0
+            while(P[i] == 0):
+                i = i + 1
             C = self.affine_patch(i)
             Q = list(P)
             t = Q.pop(i)
-            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(n)]))
+            L = C.tangents(C.ambient_space()([1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]))
             R = self.ambient_space().coordinate_ring()
             H = Hom(C.ambient_space().coordinate_ring(), R)
             G = list(R.gens())
@@ -554,7 +580,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         OUTPUT:
 
         - Boolean. True or False depending on whether ``P`` is or is not an ordinary singularity of this
-          curve, respectively.
+          curve, respectively. An error is raised if ``P`` is not a singular point of this curve.
 
         EXAMPLES::
 

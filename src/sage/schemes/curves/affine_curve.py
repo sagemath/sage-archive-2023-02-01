@@ -149,7 +149,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         Return the multiplicity of this affine curve at the point ``P``.
 
         This is computed as the multiplicity of the local ring of self corresponding to ``P``. This
-        curve must be defined over a field.
+        curve must be defined over a field. An error is raised if ``P`` is not a point on this curve.
 
         INPUT:
 
@@ -157,18 +157,15 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         OUTPUT:
 
-        - an integer.
+        An integer.
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A.<x,y,z> = AffineSpace(CC, 3)
             sage: C = A.curve([y - x^2, z - x^3])
-            sage: Q1 = A([1,1,1])
-            sage: C.multiplicity(Q1)
+            sage: Q = A([1,1,1])
+            sage: C.multiplicity(Q)
             1
-            sage: Q2 = A([1,2,1])
-            sage: C.multiplicity(Q2)
-            0
 
         ::
 
@@ -176,25 +173,32 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = A.curve([y^9 - x^5, z^10 - w - y^4, z - y])
             sage: C.multiplicity(A([0,0,0,0]))
             5
+
+        ::
+
+            sage: A.<x,y,z,w,v> = AffineSpace(GF(23), 5)
+            sage: C = A.curve([x^8 - y, y^7 - z, z^3 - 1, w^5 - v^3])
+            sage: Q = A([22,1,1,0,0])
+            sage: C.multiplicity(Q)
+            3
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
 
-        # Check whether P is in the ambient space of this curve
+        # Check whether P is a point on this curve
         try:
-            P = self.ambient_space()(P)
+            P = self(P)
         except TypeError:
             raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P is sent to the origin
+        # and then compute the multiplicity of the local ring of the translated curve 
+        # corresponding to the point (0,...,0)
         AA = self.ambient_space()
         chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
-        I = AA.coordinate_ring().ideal([f(chng_coords) for f in self.defining_polynomials()])
-
-        # Compute the multiplicity of the local ring of the new curve defined by I
-        # corresponding to the point (0,...,0)
         R = AA.coordinate_ring().change_ring(order='negdegrevlex')
-        return singular.mult(singular.std(I.change_ring(R))).sage()
+        I = R.ideal([f(chng_coords) for f in self.defining_polynomials()])
+        return singular.mult(singular.std(I)).sage()
 
 class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):
@@ -411,7 +415,8 @@ class AffinePlaneCurve(AffineCurve):
         of the homogeneous components of its defining polynomial. To compute the
         multiplicity of a different point, a linear change of coordinates is used.
 
-        This curve must be defined over a field.
+        This curve must be defined over a field. An error if raised if ``P`` is
+        not a point on this curve.
 
         INPUT:
 
@@ -419,30 +424,36 @@ class AffinePlaneCurve(AffineCurve):
 
         OUTPUT:
 
-        - an integer.
+        An integer.
 
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = Curve([y^2 - x^3], A)
-            sage: Q1 = A([1,0])
+            sage: Q1 = A([1,1])
             sage: C.multiplicity(Q1)
-            0
-            sage: Q2 = A([1,1])
-            sage: C.multiplicity(Q2)
             1
-            sage: Q3 = A([0,0])
-            sage: C.multiplicity(Q3)
+            sage: Q2 = A([0,0])
+            sage: C.multiplicity(Q2)
             2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQbar,2)
+            sage: C = Curve([-x^7 + (-7)*x^6 + y^6 + (-21)*x^5 + 12*y^5 + (-35)*x^4 + 60*y^4 +\
+            (-35)*x^3 + 160*y^3 + (-21)*x^2 + 240*y^2 + (-7)*x + 192*y + 63], A)
+            sage: Q = A([-1,-2])
+            sage: C.multiplicity(Q)
+            6
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
 
-        # Check whether P in in the ambient space of this curve
+        # Check whether P is a point on this curve
         try:
-            P = self.ambient_space()(P)
+            P = self(P)
         except TypeError:
-            raise TypeError("(=%s) must be a point in the ambient space of (=%s)"%(P,self))
+            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P becomes (0,0)
         AA = self.ambient_space()
@@ -455,6 +466,8 @@ class AffinePlaneCurve(AffineCurve):
     def tangents(self, P):
         r"""
         Return the tangents of this affine plane curve at the point ``P``.
+
+        The point ``P`` must be a point on this curve.
 
         INPUT:
 
@@ -473,10 +486,16 @@ class AffinePlaneCurve(AffineCurve):
             sage: Q = A([0,0])
             sage: C.tangents(Q)
             [x + (-1/3*b)*y, x + (1/3*b)*y]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y^2 - x^3 - x^2])
+            sage: Q = A([0,0])
+            sage: C.tangents(Q)
+            [x - y, x + y]
         """
         r = self.multiplicity(P)
-        if r < 1:
-            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
         f = self.defining_polynomials()[0]
         vars = self.ambient_space().gens()
         deriv = [f.derivative(vars[0],i).derivative(vars[1],r-i)(list(P)) for i in range(r+1)]
@@ -499,7 +518,7 @@ class AffinePlaneCurve(AffineCurve):
         OUTPUT:
 
         - Boolean. True or False depending on whether ``P`` is or is not an ordinary singularity of this
-          curve, respectively.
+          curve, respectively. An error is raised if ``P`` is not a singular point of this curve.
 
         EXAMPLES::
 

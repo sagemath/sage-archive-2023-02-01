@@ -880,7 +880,7 @@ class Function_cos_integral(BuiltinFunction):
         sage: cos_integral(3.0)
         0.119629786008000
 
-    The alias `Ci` can be used instead of `cos_integral`::
+    The alias ``Ci`` can be used instead of ``cos_integral``::
 
         sage: Ci(3.0)
         0.119629786008000
@@ -1160,7 +1160,7 @@ class Function_cosh_integral(BuiltinFunction):
         sage: cosh_integral(1.0)
         0.837866940980208
 
-    The alias `Chi` can be used instead of `cosh_integral`::
+    The alias ``Chi`` can be used instead of ``cosh_integral``::
 
         sage: Chi(1.0)
         0.837866940980208

@@ -369,12 +369,13 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 			q = rem_i*power(ab, a_exp - 1);
 			return true;
 		}
-		for (int i=2; i < a_exp; i++) {
-			if (divide(power(ab, i), b, rem_i, false)) {
-				q = rem_i*power(ab, a_exp - i);
-				return true;
-			}
-		} // ... so we *really* need to expand expression.
+// code below is commented-out because it leads to a significant slowdown
+//		for (int i=2; i < a_exp; i++) {
+//			if (divide(power(ab, i), b, rem_i, false)) {
+//				q = rem_i*power(ab, a_exp - i);
+//				return true;
+//			}
+//		} // ... so we *really* need to expand expression.
 	}
 	
 	// Polynomial long division (recursive)

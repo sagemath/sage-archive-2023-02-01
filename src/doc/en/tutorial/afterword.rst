@@ -110,7 +110,8 @@ behaves differently from Python in several ways.
    behave the way mathematicians might expect. In Python2, if ``m`` and
    ``n`` are ints, then ``m/n`` is also an int, namely the quotient of ``m``
    divided by ``n``. Therefore ``2/3=0``. In Python3, ``2/3`` returns the
-   floating point number ``0.6666...`` and ``2//3`` returns ``0``.
+   floating point number ``0.6666...``. In both Python2 and Python3, ``//``
+   is the Euclidean division and ``2//3`` returns ``0``.
 
    We deal with this in the Sage interpreter, by wrapping integer
    literals in ``Integer( )`` and making division a constructor for rational

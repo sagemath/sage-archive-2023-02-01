@@ -24,12 +24,11 @@ the axis.
 
 ::
 
-    sage: P = g.plot(axes=True)
-    sage: show(P)
+    sage: g.plot(axes=True)
+    Graphics object consisting of 2 graphics primitives
 
 .. PLOT::
 
-    #hyperbolic_geodesic-1.png
     g = HyperbolicPlane().UHP().get_geodesic(2.0, 3.0)
     sphinx_plot(g.plot(axes=True))
 
@@ -38,12 +37,11 @@ the axis.
     sage: g = HyperbolicPlane().UHP().get_geodesic(I, 3 + I)
     sage: g.length()
     arccosh(11/2)
-    sage: P = g.plot(axes=True)
-    sage: show(P)
+    sage: g.plot(axes=True)
+    Graphics object consisting of 2 graphics primitives
 
 .. PLOT::
 
-    #hyperbolic_geodesic-2.png
     sphinx_plot(HyperbolicPlane().UHP().get_geodesic(I, 3 + I).plot(axes=True))
 
 Geodesics of both types in UHP are supported::
@@ -51,11 +49,11 @@ Geodesics of both types in UHP are supported::
     sage: g = HyperbolicPlane().UHP().get_geodesic(I, 3*I)
     sage: g
     Geodesic in UHP from I to 3*I
-    sage: show(g.plot())
+    sage: g.plot()
+    Graphics object consisting of 2 graphics primitives
 
 .. PLOT::
 
-    #hyperbolic_geodesic-3.png
     sphinx_plot(HyperbolicPlane().UHP().get_geodesic(I, 3*I).plot())
 
 Geodesics are oriented, which means that two geodesics with the same
@@ -100,6 +98,7 @@ from sage.functions.log import exp
 from sage.functions.hyperbolic import sinh, cosh, arcsinh
 from sage.symbolic.ring import SR
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
@@ -403,7 +402,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-12.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(1.5*I, 2.5*I)
             h = UHP.get_geodesic(0, I)
@@ -462,7 +460,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-             #hyperbolic_geodesic-10.png
              g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
              h = HyperbolicPlane().UHP().get_geodesic(-2.0,4.0)
              sphinx_plot(g.plot(color='green')+h.plot(color='green'))
@@ -476,7 +473,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-             #hyperbolic_geodesic-11.png
              g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
              h = HyperbolicPlane().UHP().get_geodesic(-1.0,4.0)
              sphinx_plot(g.plot(color='red')+h.plot(color='red'))
@@ -515,7 +511,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-             #hyperbolic_geodesic-16.png
              g = HyperbolicPlane().UHP().get_geodesic(0.0,1.1)
              h = HyperbolicPlane().UHP().get_geodesic(-3.0,-1.0)
              sphinx_plot(g.plot(color='green')+h.plot(color='green'))
@@ -529,7 +524,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-             #hyperbolic_geodesic-17.png
              g = HyperbolicPlane().UHP().get_geodesic(-2,5)
              h = HyperbolicPlane().UHP().get_geodesic(2,6)
              sphinx_plot(g.plot(color='red')+h.plot(color='red'))
@@ -569,7 +563,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-13.png
             g = HyperbolicPlane().UHP().get_geodesic(-2,5)
             h = HyperbolicPlane().UHP().get_geodesic(5,12)
             sphinx_plot(g.plot(color='green')+h.plot(color='green'))
@@ -583,7 +576,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-14.png
             g = HyperbolicPlane().UHP().get_geodesic(-2.0,5.0)
             h = HyperbolicPlane().UHP().get_geodesic(-2.0,4.0)
             sphinx_plot(g.plot(color='green')+h.plot(color='green'))
@@ -597,7 +589,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-15.png
             g = HyperbolicPlane().UHP().get_geodesic(-2,2)
             h = HyperbolicPlane().UHP().get_geodesic(-1,4)
             sphinx_plot(g.plot(color='red')+h.plot(color='red'))
@@ -670,7 +661,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-             #hyperbolic_geodesic-6.png
              g = HyperbolicPlane().UHP().get_geodesic(1 + I, 1 + 3*I)
              h = g.complete()
              sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
@@ -685,7 +675,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-7.png
             PD = HyperbolicPlane().PD()
             g = PD.get_geodesic(0, I/2)
             h = g. complete()
@@ -702,7 +691,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-8.png
             g = HyperbolicPlane().KM().get_geodesic((0.0,0.0), (0.0, 0.5))
             h = g.complete()
             sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
@@ -715,7 +703,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-9.png
             g = HyperbolicPlane().HM().get_geodesic((0,0,1), (1, 0, sqrt(2)))
             h = g.complete()
             sphinx_plot(g.plot(color='black')+h.plot(linestyle='dashed',color='black'))
@@ -825,7 +812,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-5.png
             g = HyperbolicPlane().UHP().get_geodesic(2.0, 3.0)
             h = HyperbolicPlane().UHP().get_geodesic(4.0, 5.0)
             l = g.common_perpendicular(h)
@@ -892,14 +878,11 @@ class HyperbolicGeodesic(SageObject):
             sage: PD = HyperbolicPlane().PD()
             sage: g = PD.get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
             sage: h = g.perpendicular_bisector()
-            sage: hc = h.intersection(g)[0].coordinates()
-            sage: gc = g.midpoint().coordinates()
-            sage: bool( hc - gc < 10**-9)
-            True
+            sage: P = g.plot(color='blue')+h.plot(color='orange');P
+            Graphics object consisting of 4 graphics primitives
 
         .. PLOT::
 
-            #hyperbolic_geodesic-18.png
             g = HyperbolicPlane().PD().get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
             h = g.perpendicular_bisector()
             sphinx_plot(g.plot(color='blue')+h.plot(color='orange'))
@@ -911,6 +894,13 @@ class HyperbolicGeodesic(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: the length must be finite
+
+        TEST:
+
+            sage: g = HyperbolicPlane().PD().random_geodesic()
+            sage: h = g.perpendicular_bisector()
+            sage: bool(h.intersection(g)[0].coordinates() - g.midpoint().coordinates() < 10**-9)
+            True
 
         """
 
@@ -1012,7 +1002,6 @@ class HyperbolicGeodesic(SageObject):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-4.png
             PD = HyperbolicPlane().PD()
             g = PD.get_geodesic(3.0/5.0*I + 4.0/5.0, 15.0/17.0*I + 8.0/17.0)
             h = PD.get_geodesic(4.0/5.0*I + 3.0/5.0, I)
@@ -1069,7 +1058,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
     .. PLOT::
 
-        #hyperbolic_geodesic-27.png
         UHP = HyperbolicPlane().UHP()
         g = UHP.get_geodesic(I, 2 + I)
         h = UHP.get_geodesic(-1, -1+2*I)
@@ -1117,7 +1105,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-31.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(0.0, 1.0).plot()
             sphinx_plot(g)
@@ -1129,7 +1116,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-32.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(I, 3+4*I).plot(linestyle="dashed", color="brown")
             sphinx_plot(g)
@@ -1141,7 +1127,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-33.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(1, infinity).plot(color='orange')
             sphinx_plot(g)
@@ -1192,6 +1177,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 bd_pic = self._model.get_background_graphic(**bd_dict)
                 pic = bd_pic + pic
             return pic
+
+    show = deprecated_function_alias(20530, plot)
 
     def ideal_endpoints(self):
         r"""
@@ -1258,7 +1245,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-29.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(2.0, 3.0)
             h = UHP.get_geodesic(4.0, 5.0)
@@ -1367,7 +1353,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-30.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(1+I,2+0.5*I)
             h = g.perpendicular_bisector()
@@ -1491,7 +1476,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-28.png
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(2, 4)
             h = UHP.get_geodesic(3, 3 + I)
@@ -1754,7 +1738,6 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
 
     .. PLOT::
 
-         #hyperbolic_geodesic-23.png
          PD = HyperbolicPlane().PD()
          g = PD.get_geodesic(I,-I/2)
          h = PD.get_geodesic(-0.5+I*0.5,0.5+I*0.5)
@@ -1777,7 +1760,6 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-24.png
             sphinx_plot(HyperbolicPlane().PD().get_geodesic(0, 1).plot())
 
         ::
@@ -1787,7 +1769,6 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-25.png
             PD = HyperbolicPlane().PD()
             sphinx_plot(PD.get_geodesic(0, 0.3+0.8*I).plot())
 
@@ -1805,7 +1786,6 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-26.png
             PD = HyperbolicPlane().PD()
             PD.get_geodesic(-0.5, 0.3+0.4*I).plot()
             g = PD.get_geodesic(-1, exp(3*I*pi/7))
@@ -1845,6 +1825,8 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
             pic += self._model.get_background_graphic()
         return pic
 
+    show = deprecated_function_alias(20530, plot)
+
 
 class HyperbolicGeodesicKM(HyperbolicGeodesic):
     r"""
@@ -1867,11 +1849,12 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
         sage: g = KM.get_geodesic(KM.get_point((0.1,0.9)), KM.get_point((-0.1,-0.9)))
         sage: g = KM.get_geodesic((0.1,0.9),(-0.1,-0.9))
         sage: h = KM.get_geodesic((-0.707106781,-0.707106781),(0.707106781,-0.707106781))
-        sage: show(g.plot(color='orange')+h.plot())
+        sage: P = g.plot(color='orange')+h.plot(); P
+        Graphics object consisting of 4 graphics primitives
+
 
     .. PLOT::
 
-        #hyperbolic_geodesic-21.png
         KM = HyperbolicPlane().KM()
         g = KM.get_geodesic((0.1,0.9),
                             (-0.1,-0.9))
@@ -1892,7 +1875,6 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-22.png
             KM = HyperbolicPlane().KM()
             sphinx_plot(KM.get_geodesic((0,0), (1,0)).plot())
 
@@ -1905,12 +1887,14 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
             pic += self._model.get_background_graphic()
         return pic
 
+    show = deprecated_function_alias(20530, plot)
+
 
 class HyperbolicGeodesicHM(HyperbolicGeodesic):
     r"""
     A geodesic in the hyperboloid model.
 
-    Valid points in the hyperboloid model satisfy :math:`x^2+y^2-z^2=-1`
+    Valid points in the hyperboloid model satisfy :math:`x^2 + y^2 - z^2 = -1`
 
     INPUT:
 
@@ -1931,7 +1915,6 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
 
     .. PLOT::
 
-        #hyperbolic_geodesic-19.png
         HM = HyperbolicPlane().HM()
         p1 = HM.get_point((4, -4, sqrt(33)))
         p2 = HM.get_point((-3,-3,sqrt(19)))
@@ -1954,7 +1937,6 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
 
         .. PLOT::
 
-            #hyperbolic_geodesic-20.png
             sphinx_plot(HyperbolicPlane().HM().random_geodesic().plot())
 
         """
@@ -1983,3 +1965,5 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         if show_hyperboloid:
             pic += self._model.get_background_graphic()
         return pic
+
+    show = deprecated_function_alias(20530, plot)

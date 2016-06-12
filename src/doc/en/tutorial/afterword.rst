@@ -107,7 +107,7 @@ behaves differently from Python in several ways.
        10
 
 -  **Integer division:** The Python expression ``2/3`` does not
-   behave the way mathematicians might expect. In Python, if ``m`` and
+   behave the way mathematicians might expect. In Python2, if ``m`` and
    ``n`` are ints, then ``m/n`` is also an int, namely the quotient of ``m``
    divided by ``n``. Therefore ``2/3=0``. In Python3, ``2/3`` returns the
    floating point number ``0.6666...`` and ``2//3`` returns ``0``.

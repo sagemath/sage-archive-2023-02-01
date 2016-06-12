@@ -1135,7 +1135,7 @@ def hnf_with_transformation_tests(n=10, m=5, trials=10):
     """
     import sys
     for i in range(trials):
-        print(i, end="")
+        print(i, end=" ")
         sys.stdout.flush()
         A = random_matrix(ZZ, n, m)
         H, U = hnf_with_transformation(A)
@@ -1233,7 +1233,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
         for i,a in enumerate(v):
             global sanity
             sanity = a
-            print(i, end="")
+            print(i, end=" ")
             sys.stdout.flush()
             if check_using_magma:
                 if magma(hnf(a)[0]) != magma(a).EchelonForm():

@@ -687,7 +687,7 @@ class Function_sin_integral(BuiltinFunction):
         sage: sin_integral(ComplexField(100)(3+I))
         2.0277151656451253616038525998 + 0.015210926166954211913653130271*I
 
-    The alias `Si` can be used instead of `sin_integral`::
+    The alias ``Si`` can be used instead of ``sin_integral``::
 
         sage: Si(3.0)
         1.84865252799947
@@ -1008,7 +1008,7 @@ class Function_sinh_integral(BuiltinFunction):
         sage: sinh_integral(-1.0)
         -1.05725087537573
 
-    The alias `Shi` can be used instead of `sinh_integral`::
+    The alias ``Shi`` can be used instead of ``sinh_integral``::
 
         sage: Shi(3.0)
         4.97344047585981

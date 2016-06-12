@@ -932,7 +932,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     m = loterm + maxdeg + 1
     oldgrob = _eta_relations_helper(eta1, eta2, degree, m, labels, verbose)
     if verbose:
-        print("Check:", end="")
+        print("Check: ", end="")
     newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels, verbose)
     if oldgrob != newgrob:
         if verbose:

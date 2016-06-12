@@ -986,7 +986,15 @@ class InteractiveLPProblem(SageObject):
         c = self.Abcx()[2]
         A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
-        return InteractiveLPProblem(A, b, c, constraint_type=constraint_type)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        return InteractiveLPProblem(A, b, c, x=self.Abcx()[3],
+                    constraint_type=constraint_type,
+                    variable_type=self.variable_types(),
+                    problem_type=problem_type,
+                    objective_constant_term=self.objective_constant_term())
 
     def base_ring(self):
         r"""
@@ -2070,6 +2078,20 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         G = list(R.gens())
         slack = list(self.slack_variables())
 
+        if new_slack_variable is None:
+            new_slack_variable = default_variable_name("primal slack")
+            if style() == "UAlberta":
+                index = self.n() + self.m() + 1
+            elif style() == 'Vanderbei':
+                index = self.m() + 1
+            new_slack_variable = "{}{:d}".format(new_slack_variable, index)
+        if not isinstance(new_slack_variable, str):
+            new_slack_variable = str(new_slack_variable)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        
         # Construct a larger ring for variables
         G.append(new_slack_variable)
         R1 = PolynomialRing(self.base_ring(), G, order="neglex")
@@ -2080,7 +2102,10 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         b = vector(tuple(b) + (new_b,))
 
         return InteractiveLPProblemStandardForm(
-            A, b, c, slack_variables=slack)
+                    A, b, c, x=self.Abcx()[3],
+                    problem_type=problem_type,
+                    slack_variables=slack,
+                    objective_constant_term=self.objective_constant_term())
 
     def auxiliary_problem(self, objective_name=None):
         r"""

@@ -48,7 +48,7 @@ def runsnake(command):
 
     ``command`` is first preparsed (see :func:`preparse`)::
 
-        sage: runsnake('for x in range(1,4): print x^2') # optional - runsnake
+        sage: runsnake('for x in range(1,4): print(x^2)') # optional - runsnake
         1
         4
         9

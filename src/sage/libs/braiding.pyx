@@ -15,7 +15,20 @@ first list contains only an integer, representing the power of
 permutation braids.
 """
 
+#*****************************************************************************
+#       Copyright (C) 2016 Miguel Marco  <mmarco@unizar.es>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at youroption) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+include 'cysignals/signals.pxi'
+
 from libcpp.list cimport list
+
 
 
 cdef extern from "braiding.h" namespace "Braiding":
@@ -47,7 +60,8 @@ def conjugatingbraid(braid1, braid2):
     are not conjugate, an empty list is returned.
     
     EXAMPLES::
-    
+
+        sage: from sage.libs.braiding import conjugatingbraid
         sage: B = BraidGroup(3)
         sage: b = B([1,2,1,-2])
         sage: c = B([1,2])
@@ -78,6 +92,7 @@ def leftnormalform(braid):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import leftnormalform
         sage: B = BraidGroup(3)
         sage: b = B([1,2,1,-2])
         sage: leftnormalform(b) # optional - libbraiding
@@ -105,7 +120,8 @@ def rightnormalform(braid):
     power of delta. The subsequent lists are the elementary permutation braids.
     
     EXAMPLES::
-    
+        
+        sage: from sage.libs.braiding import rightnormalform
         sage: B = BraidGroup(3)
         sage: b = B([1,2,1,-2])
         sage: rightnormalform(b) # optional - libbraiding
@@ -135,10 +151,11 @@ def greatestcommondivisor(braid1, braid2):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import greatestcommondivisor
         sage: B = BraidGroup(3)
         sage: b1 = B([1, 2, -1])
         sage: b2 = B([2, 2, 2])
-        sage: greatestcommondivisor(b1, b2)
+        sage: greatestcommondivisor(b1, b2) # optional - libbraiding
         [[-1], [2, 1]]
 
     """
@@ -166,10 +183,11 @@ def leastcommonmultiple(braid1, braid2):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import leastcommonmultiple
         sage: B = BraidGroup(3)
         sage: b1 = B([1, 2, -1])
         sage: b2 = B([2, 2, 2])
-        sage: leastcommonmultiple(b1, b2)
+        sage: leastcommonmultiple(b1, b2) # optional - libbraiding
         [[1], [1], [1]]
 
     """
@@ -195,9 +213,10 @@ def centralizer(braid):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import centralizer
         sage: B = BraidGroup(3)
         sage: b = B([1,2,-1])
-        sage: centralizer(b)
+        sage: centralizer(b) # optional - libbraiding
         [[[-1], [2, 1], [1, 2]], [[0], [1], [1, 2], [2]]]
 
     """
@@ -230,9 +249,10 @@ def supersummitset(braid):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import supersummitset
         sage: B = BraidGroup(3)
         sage: b = B([1,2,-1])
-        sage: supersummitset(b)
+        sage: supersummitset(b) # optional - libbraiding
         [[[0], [2]], [[0], [1]]]
 
     """
@@ -258,10 +278,11 @@ def ultrasummitset(braid):
     
     EXAMPLES::
     
+        sage: from sage.libs.braiding import ultrasummitset
         sage: B = BraidGroup(3)
         sage: b = B([1,2,-1])
-        sage: supersummitset(b)
-        [[[0], [2]], [[0], [1]]] 
+        sage: ultrasummitset(b) # optional - libbraiding
+        [[[[0], [2]]], [[[0], [1]]]]
     
     """
     nstrands = braid.parent().strands()
@@ -275,6 +296,29 @@ def ultrasummitset(braid):
 def thurston_type(braid):
     r"""
     Return the Thurston type of the braid
+    
+    INPUT:
+    
+    - ``braid`` -- a braid
+    
+    OUTPUT:
+    
+    One of 'periodic', 'reucible' or 'pseudo-anosov'.
+    
+    EXAMPLES::
+    
+        sage: from sage.libs.braiding import thurston_type
+        sage: B = BraidGroup(3)
+        sage: b = B([1,2,-1])
+        sage: thurston_type(b) # optional - libbraiding
+        'reducible'
+        sage: c = B([1,2,1])   
+        sage: thurston_type(c) # optional - libbraiding
+        'periodic'
+        sage: d = B([1,1,1,2,2])
+        sage: thurston_type(d) # optional - libbraiding
+        'pseudo-anosov'
+
     """
     nstrands = braid.parent().strands()
     l = braid.Tietze()
@@ -291,6 +335,23 @@ def thurston_type(braid):
 def rigidity(braid):
     r"""
     Return the rigidity of the braid
+    
+    INPUT:
+    
+    - ``braid`` -- a braid
+    
+    OUTPUT:
+    
+    The rigidity of the braid
+    
+    EXAMPLES::
+    
+        sage: from sage.libs.braiding import rigidity
+        sage: B = BraidGroup(3)
+        sage: c = B([1,1,1,2,2])
+        sage: rigidity(c) # optional - libbraiding
+        3
+
     """
     nstrands = braid.parent().strands()
     l = braid.Tietze()
@@ -302,6 +363,28 @@ def rigidity(braid):
 def sliding_circuits(braid):
     r"""
     Return the set of sliding circuits of the braid
+    
+    INPUT:
+    
+    - ``braid`` -- a braid.
+    
+    OUTPUT:
+    
+    A list with the sliding circuits of ``braid``. Each sliding circuit is a list of braids.
+    
+    EXAMPLES::
+    
+        sage: from sage.libs.braiding import sliding_circuits
+        sage: B = BraidGroup(3)
+        sage: c = B([1,1,1,2,2])
+        sage: sliding_circuits(c) # optional - libbraiding
+        [[[[0], [1], [1, 2], [2, 1]]],
+        [[[0], [2], [2, 1], [1, 2]]],
+        [[[0], [1, 2], [2, 1], [1]]],
+        [[[0], [2, 1], [1, 2], [2]]],
+        [[[0], [1, 2], [2], [2, 1]]],
+        [[[0], [2, 1], [1], [1, 2]]]]
+
     """
     nstrands = braid.parent().strands()
     l = braid.Tietze()

@@ -1770,6 +1770,10 @@ cdef object py_asinh(object x) except +:
     try:
         return x.arcsinh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arcsinh()
+    except TypeError:
         return CC(x).arcsinh()
 
 cdef object py_acosh(object x) except +:

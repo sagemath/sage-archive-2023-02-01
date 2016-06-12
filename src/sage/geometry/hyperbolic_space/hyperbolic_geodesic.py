@@ -895,7 +895,7 @@ class HyperbolicGeodesic(SageObject):
             ...
             ValueError: the length must be finite
 
-        TEST:
+        TEST::
 
             sage: g = HyperbolicPlane().PD().random_geodesic()
             sage: h = g.perpendicular_bisector()

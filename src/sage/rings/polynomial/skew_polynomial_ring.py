@@ -96,9 +96,11 @@ from sage.structure.element import Element
 import sage.algebras.algebra
 import sage.categories.basic as categories
 import sage.rings.ring as ring
-import sage.rings.ring_element as ring_element
-import sage.rings.integral_domain as integral_domain
-import sage.rings.principal_ideal_domain as principal_ideal_domain
+#import sage.rings.ring_element as ring_element
+from sage.structure.element import RingElement
+#import sage.rings.integral_domain as integral_domain
+#import sage.rings.principal_ideal_domain as principal_ideal_domain
+from sage.rings.ring import is_Ring, PrincipalIdealDomain
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing

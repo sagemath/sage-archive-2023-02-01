@@ -33,7 +33,6 @@ from sage.categories.map cimport Map
 from complex_double cimport ComplexDoubleElement
 from real_mpfr cimport RealNumber
 
-import complex_field
 import sage.misc.misc
 import integer
 import infinity
@@ -589,7 +588,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            from complex_field import ComplexField
+            from .complex_field import ComplexField
             return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
@@ -2497,8 +2496,8 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
                int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
     #else:
     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
-
-    C = complex_field.ComplexField(prec=max(bits+pad, min_prec))
+    from .complex_field import ComplexField
+    C = ComplexField(prec=max(bits+pad, min_prec))
 
     return ComplexNumber(C, s_real, s_imag)
 

@@ -381,7 +381,6 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
 
     ## Error if we get here! =o
-    print "   Solution vector is " + str(w)
-    print "   and Q is \n" + str(Q) + "\n"
-    raise RuntimeError, "Error in IsLocalSolutionType: Should not execute this line... =( \n"
-
+    print("   Solution vector is " + str(w))
+    print("   and Q is \n" + str(Q) + "\n")
+    raise RuntimeError("Error in IsLocalSolutionType: Should not execute this line... =( \n")

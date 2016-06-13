@@ -2730,17 +2730,20 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 newL.append(psi(G[i]))
         return(codom.subscheme(newL))
 
-    def preimage(self, f, check = True):
+    def preimage(self, f, k=1, check=True):
         r"""
-        The subscheme that maps to this scheme by the map ``f``.
+        The subscheme that maps to this scheme by the map `f^k`.
 
-        In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
+        In particular, `f^{-k}(V(h_1,\ldots,h_t)) = V(h_1 \circ f^k, \ldots, h_t \circ f^k)`.
+        Map must be a morphism and also must be an endomorphism for `k > 1`.
 
         INPUT:
 
-        - ``f`` - a map whose codomain contains ``self``
+        - ``f`` - a map whose codomain contains this scheme
 
-        - ``check`` -- Boolean, if `False` no input checking is done
+        - ``k`` - a positive integer
+
+        - ``check`` -- Boolean, if ``False`` no input checking is done
 
         OUTPUT:
 
@@ -2771,11 +2774,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ,3)
+            sage: P1.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P3.<u,v,w,t> = ProjectiveSpace(QQ, 3)
             sage: H = Hom(P1, P3)
-            sage: X = P3.subscheme([u-v,2*u-w,u+t])
-            sage: f = H([x^2,y^2,x^2+y^2,x*y])
+            sage: X = P3.subscheme([u-v, 2*u-w, u+t])
+            sage: f = H([x^2,y^2, x^2+y^2, x*y])
             sage: X.preimage(f)
             Closed subscheme of Projective Space of dimension 1 over Rational Field
             defined by:
@@ -2817,6 +2820,17 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             Traceback (most recent call last):
             ...
             TypeError: subscheme must be in ambient space of codomain
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: Y = P.subscheme([x-y])
+            sage: H = End(P)
+            sage: f = H([x^2, y^2, z^2])
+            sage: Y.preimage(f, k=2)
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              x^4 - y^4
         """
         dom = f.domain()
         codom = f.codomain()
@@ -2825,8 +2839,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 raise TypeError("map must be a morphism")
             if self.ambient_space() != codom:
                 raise TypeError("subscheme must be in ambient space of codomain")
+            k = ZZ(k)
+            if k <= 0:
+                raise ValueError("k (=%s) must be a positive integer"%(k))
+            if k > 1 and not f.is_endomorphism():
+                raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
-        dict = {R.gen(i): f[i] for i in range(codom.dimension_relative()+1)}
+        F = f.nth_iterate_map(k)
+        dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 
     def dual(self):

@@ -204,7 +204,8 @@ def is_SkewPolynomial(a):
         sage: is_SkewPolynomial(a)
         True
     """
-    return PY_TYPE_CHECK(a, SkewPolynomial)
+    return type(a) is SkewPolynomial
+#    return PY_TYPE_CHECK(a, SkewPolynomial)
 
 
 cdef class CenterSkewPolynomial_generic_dense(Polynomial_generic_dense):
@@ -279,7 +280,8 @@ cdef class SkewPolynomial(AlgebraElement):
         return (<Element>left)._richcmp(right,op)
 
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+#    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compare the two skew polynomials self and other.
 
@@ -2725,7 +2727,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         R = parent.base_ring()
-        if PY_TYPE_CHECK(x, list):
+#        if PY_TYPE_CHECK(x, list):
+        if type(x) is list:
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -2733,7 +2736,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 self.__coeffs = x
             return
 
-        if PY_TYPE_CHECK(x, SkewPolynomial):
+#        if PY_TYPE_CHECK(x, SkewPolynomial):
+        if type(x) is SkewPolynomial:
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
             elif R.has_coerce_map_from((<Element>x)._parent):# is R or (<Element>x)._parent == R:
@@ -2750,7 +2754,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                     self.__normalize()
                 return
 
-        elif PY_TYPE_CHECK(x, int) and x == 0:
+#        elif PY_TYPE_CHECK(x, int) and x == 0:
+        elif type(x) is int and x == 0:
             self.__coeffs = []
             return
 
@@ -2785,7 +2790,9 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         Fast creation of a new skew polynomial
         """
-        cdef SkewPolynomial_generic_dense f = <SkewPolynomial_generic_dense>PY_NEW_SAME_TYPE(self)
+#        cdef SkewPolynomial_generic_dense f = <SkewPolynomial_generic_dense>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef SkewPolynomial_generic_dense f = t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
         if check:
@@ -2974,8 +2981,10 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         """
         cdef SkewPolynomial_generic_dense r
 
-        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
-                PY_TYPE_CHECK_EXACT(exp, int):
+#        if not PY_TYPE_CHECK_EXACT(exp, Integer) or \
+#                PY_TYPE_CHECK_EXACT(exp, int):
+        if not type(exp) is Integer or \
+                type(exp) is int:
                     try:
                         exp = Integer(exp)
                     except TypeError:

@@ -1389,7 +1389,7 @@ def exponential_integral_1(x, n=0):
 
     .. math::
 
-                      E_1(x) = \int_{x}^{\infty} e^{-t}/t dt
+                      E_1(x) = \int_{x}^{\infty} \frac{e^{-t}}{t} dt
 
     INPUT:
 
@@ -1440,8 +1440,8 @@ def exponential_integral_1(x, n=0):
         ....:         if e >= 1.0:
         ....:             print("exponential_integral_1(%s) with precision %s has error of %s ulp"%(a, prec, e))
 
-    The absolute error for a vector should be less than `c 2^{-p}`, where
-    `p` is the precision in bits of `x` and `c = 2 max(1, exponential_integral_1(x))`::
+    The absolute error for a vector should be less than `2^{-p} c`, where
+    `p` is the precision in bits of `x` and `c = 2` ``max(1, exponential_integral_1(x))``::
 
         sage: for prec in [20..128]:  # long time (15s on sage.math, 2013)
         ....:     R = RealField(prec)

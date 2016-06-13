@@ -192,7 +192,9 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
         Fast creation of a new skew polynomial
         """
-        cdef SkewPolynomial_finite_field_dense f = <SkewPolynomial_finite_field_dense>PY_NEW_SAME_TYPE(self)
+#        cdef SkewPolynomial_finite_field_dense f = <SkewPolynomial_finite_field_dense>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef SkewPolynomial_generic_dense f = t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
         f._init_cache()

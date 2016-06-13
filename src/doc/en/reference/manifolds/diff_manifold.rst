@@ -12,6 +12,8 @@ Differentiable Manifolds
 
    diff_map
 
+   tangent_space
+
    vectorfield
 
    tensorfield

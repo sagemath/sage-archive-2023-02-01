@@ -234,6 +234,15 @@ Vector fields act on scalar fields::
     sage: w(f) == f.differential()(w)
     True
 
+The value of the vector field at point `p` is a vector tangent to the sphere::
+
+    sage: w.at(p)
+    Tangent vector w at Point p on the 2-dimensional differentiable manifold S^2
+    sage: w.at(p).display()
+    w = d/dx + 2 d/dy
+    sage: w.at(p).parent()
+    Tangent space at Point p on the 2-dimensional differentiable manifold S^2
+
 A 1-form on the sphere::
 
     sage: df = f.differential() ; df
@@ -247,6 +256,18 @@ A 1-form on the sphere::
     sage: df.parent().category()
     Category of modules over Algebra of differentiable scalar fields on the
      2-dimensional differentiable manifold S^2
+
+The value of the 1-form at point `p` is a linear form on the tangent space
+at `p`::
+
+    sage: df.at(p)
+    Linear form df on the Tangent space at Point p on the 2-dimensional
+     differentiable manifold S^2
+    sage: df.at(p).display()
+    df = 1/13 dx + 2/13 dy
+    sage: df.at(p).parent()
+    Dual of the Tangent space at Point p on the 2-dimensional differentiable
+     manifold S^2
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
@@ -378,6 +399,16 @@ Since `f` is constant, `v(f)` is vanishing::
     v(f): C* --> C
     on U: z |--> 0
     on V: w |--> 0
+
+The value of the vector field `v` at the point `\infty` is a vector tangent to
+the Riemann sphere::
+
+    sage: v.at(inf)
+    Tangent vector v at Point inf on the 1-dimensional complex manifold C*
+    sage: v.at(inf).display()
+    v = -d/dw
+    sage: v.at(inf).parent()
+    Tangent space at Point inf on the 1-dimensional complex manifold C*
 
 AUTHORS:
 
@@ -2400,3 +2431,48 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         return not self._covering_frames == []
+
+    def tangent_space(self, point):
+        r"""
+        Tangent space to the manifold at a given point.
+
+        INPUT:
+
+        - ``point`` -- (instance of
+          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` on the
+          manifold
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+          representing the tangent vector space `T_{p} M`, where `M` is the
+          current manifold.
+
+        EXAMPLE:
+
+        A tangent space to a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((2, -3), name='p')
+            sage: Tp = M.tangent_space(p); Tp
+            Tangent space at Point p on the 2-dimensional differentiable
+             manifold M
+            sage: Tp.category()
+            Category of finite dimensional vector spaces over Symbolic Ring
+            sage: dim(Tp)
+            2
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+        for more examples.
+
+        """
+        from sage.manifolds.point import ManifoldPoint
+        from sage.manifolds.differentiable.tangent_space import TangentSpace
+        if not isinstance(point, ManifoldPoint):
+            raise TypeError("{} is not a manifold point".format(point))
+        if point not in self:
+            raise ValueError("{} is not a point on the {}".format(point, self))
+        return TangentSpace(point)

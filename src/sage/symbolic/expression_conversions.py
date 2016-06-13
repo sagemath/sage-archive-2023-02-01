@@ -1860,3 +1860,46 @@ class SubstituteFunction(ExpressionTreeWalker):
         else:
             return operator(*[self(_) for _ in ex.operands()])
 
+class HoldRemover(ExpressionTreeWalker):
+    def __init__(self, ex, exclude=None):
+        """
+        A class that walks the tree and evaluates every operator
+        that is not in a given list of exceptions.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import HoldRemover
+            sage: ex = sin(pi*cos(0, hold=True), hold=True); ex
+            sin(pi*cos(0))
+            sage: h = HoldRemover(ex)
+            sage: h()
+            0
+            sage: h = HoldRemover(ex, [sin])
+            sage: h()
+            sin(pi)
+            sage: h = HoldRemover(ex, [cos])
+            sage: h()
+            sin(pi*cos(0))
+            sage: ex = atan2(0, 0, hold=True) + hypergeometric([1,2], [3,4], 0, hold=True)
+            sage: h = HoldRemover(ex, [atan2])
+            sage: h()
+            arctan2(0, 0) + 1
+            sage: h = HoldRemover(ex, [hypergeometric])
+            sage: h()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+        """
+        self.ex = ex
+        if exclude is None:
+            exclude = []
+        self._exclude = exclude
+
+    def composition(self, ex, operator):
+        if not operator:
+            return self
+        if operator in self._exclude:
+            return operator(*map(self, ex.operands()), hold=True)
+        else:
+            return operator(*map(self, ex.operands()))
+

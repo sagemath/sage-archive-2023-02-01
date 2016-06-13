@@ -1,5 +1,3 @@
-#clang C++
-#clib braiding
 r"""
 Cython wrapper for the libbraiding library.
 

@@ -1103,7 +1103,7 @@ class Braid(FinitelyPresentedGroupElement):
         
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
-            sage: b.supersummitset() # optional - libbraiding
+            sage: b.super_summit_set() # optional - libbraiding
             [s0^-1*s1^-1*s0^-2*s1^2*s0^2,
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^3*s1,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^3*s1^2,

@@ -181,6 +181,17 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: Q = A([22,1,1,0,0])
             sage: C.multiplicity(Q)
             3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = A.curve([y^2 - x^3, x^2 - z^2])
+            sage: Q = A([1,1,0])
+            sage: C.multiplicity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(1, 1, 0)) is not a point on (=Affine Curve over Rational
+            Field defined by -x^3 + y^2, x^2 - z^2)
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
@@ -189,7 +200,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         try:
             P = self(P)
         except TypeError:
-            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P is sent to the origin
         # and then compute the multiplicity of the local ring of the translated curve 
@@ -445,6 +456,17 @@ class AffinePlaneCurve(AffineCurve):
             sage: Q = A([-1,-2])
             sage: C.multiplicity(Q)
             6
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y^3 - x^3 + x^6])
+            sage: Q = A([1,1])
+            sage: C.multiplicity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
+            Rational Field defined by x^6 - x^3 + y^3)
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
@@ -453,7 +475,7 @@ class AffinePlaneCurve(AffineCurve):
         try:
             P = self(P)
         except TypeError:
-            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P becomes (0,0)
         AA = self.ambient_space()
@@ -494,6 +516,17 @@ class AffinePlaneCurve(AffineCurve):
             sage: Q = A([0,0])
             sage: C.tangents(Q)
             [x - y, x + y]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([y*x - x^4 + 2*x^2])
+            sage: Q = A([1,1])
+            sage: C.tangents(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(1, 1)) is not a point on (=Affine Plane Curve over
+            Rational Field defined by -x^4 + 2*x^2 + x*y)
         """
         r = self.multiplicity(P)
         f = self.defining_polynomials()[0]
@@ -537,10 +570,21 @@ class AffinePlaneCurve(AffineCurve):
             sage: Q = A([0,0])
             sage: C.is_ordinary_singularity(Q)
             True
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve([x^2*y - y^2*x + y^2 + x^3])
+            sage: Q = A([-1,-1])
+            sage: C.is_ordinary_singularity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(-1, -1)) is not a singular point of (=Affine Plane Curve
+            over Rational Field defined by x^3 + x^2*y - x*y^2 + y^2)
         """
         r = self.multiplicity(P)
         if r < 2:
-            raise TypeError("(=%s) must be a singular point of (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
         T = self.tangents(P)
 

@@ -174,6 +174,17 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: Q = P([3,0,0,1])
             sage: C.multiplicity(Q)
             8
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([y^2*z^5 - x^7])
+            sage: Q = P([-1,-1,1])
+            sage: C.multiplicity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(-1 : -1 : 1)) is not a point on (=Projective Plane Curve
+            over Rational Field defined by -x^7 + y^2*z^5)
         """
         if not self.base_ring() in Fields():
             raise TypeError("curve must be defined over a field")
@@ -182,7 +193,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         try:
             P = self(P)
         except TypeError:
-            raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Find an affine chart of the ambient space of self that contains P
         i = 0
@@ -544,12 +555,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 sage: Q = P([0,1,1])
                 sage: C.tangents(Q)
                 [-y + z, -3*x^2 + y^2 - 2*y*z + z^2]
+
+            ::
+
+                sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+                sage: C = P.curve([z^3*x + y^4 - x^2*z^2])
+                sage: Q = P([1,1,1])
+                sage: C.tangents(Q)
+                Traceback (most recent call last):
+                ...
+                TypeError: (=(1 : 1 : 1)) is not a point on (=Projective Plane Curve
+                over Rational Field defined by y^4 - x^2*z^2 + x*z^3)
             """
-            # Check whether P in in the ambient space of this curve
+            # Check whether P is a point on this curve
             try:
-                P = self.ambient_space()(P)
+                P = self(P)
             except TypeError:
-                raise TypeError("(=%s) must be a point on (=%s)"%(P,self))
+                raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
     
             # Find an affine chart of the ambient space of self that contains P
             i = 0
@@ -601,10 +623,21 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: Q = P([0,1,1])
             sage: C.is_ordinary_singularity(Q)
             True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([z^5 - y^5 + x^5 + x*y^2*z^2])
+            sage: Q = P([0,1,1])
+            sage: C.is_ordinary_singularity(Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: (=(0 : 1 : 1)) is not a singular point of (=Projective Plane
+            Curve over Rational Field defined by x^5 - y^5 + x*y^2*z^2 + z^5)
         """
         r = self.multiplicity(P)
         if r < 2:
-            raise TypeError("(=%s) must be a singular point of (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a singular point of (=%s)"%(P,self))
 
         T = self.tangents(P)
 

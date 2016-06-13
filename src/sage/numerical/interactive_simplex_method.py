@@ -2026,7 +2026,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
-    def add_constraint(self, coefficients, new_b, new_slack_variable):
+    def add_constraint(self, coefficients, new_b, new_slack_variable=None):
         r"""
         Return a new LP problem by adding a constraint to``self``.
 
@@ -2036,7 +2036,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
         - ``new_b`` -- a constant term of the new constraint
 
-        - ``new_slack_variable`` -- a string giving the new slack variable name
+        - ``new_slack_variable`` -- (default: depends on :func:`style`)
+        a vector of the slack variable or a string giving the name
 
         OUTPUT:
 
@@ -2048,7 +2049,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P1 = P.add_constraint(([2, 4]), 2000, 'c')
+            sage: P1 = P.add_constraint(([2, 4]), 2000)
             sage: P1.Abcx()
             (
             [1 1]
@@ -2056,7 +2057,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
             )
             sage: P1.slack_variables()
-            (x3, x4, c)
+            (x3, x4, x5)
             sage: P.Abcx()
             (
             [1 1]
@@ -2064,7 +2065,11 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             )
             sage: P.slack_variables()
             (x3, x4)
-            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, 'c')
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P2 = P.add_constraint(([2, 4]), 2000, new_slack_variable='c')
+            sage: P2.slack_variables()
+            (x3, x4, c)
+            sage: P3 = P.add_constraint(([2, 4, 6]), 2000)
             Traceback (most recent call last):
             ...
             ValueError: A and coefficients have incompatible dimensions
@@ -2819,7 +2824,8 @@ class LPAbstractDictionary(SageObject):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- a string of the name for the new slack variable
+        - ``slack_variable``-- -- (default: depends on :func:`style`)
+        a vector of the slack variable or a string giving the name
 
         OUTPUT:
 
@@ -2832,7 +2838,7 @@ class LPAbstractDictionary(SageObject):
             sage: c = (55/10, 21/10, 14/30)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary("x1", "x2", "x4")
-            sage: D1 = D.add_row([7, 11, 19], 42, 'c')
+            sage: D1 = D.add_row([7, 11, 19], 42, slack_variable='c')
             sage: D1.row_coefficients("c")
             (7, 11, 19)
             sage: set(D1.constant_terms()).symmetric_difference(
@@ -4061,7 +4067,7 @@ class LPDictionary(LPAbstractDictionary):
         return LatexExpr(result)
 
     def add_row(self, nonbasic_coefficients,
-                constant, slack_variable):
+                constant, slack_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -4072,7 +4078,8 @@ class LPDictionary(LPAbstractDictionary):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- a string of the name for the new slack variable
+        - ``slack_variable``-- (default: depends on :func:`style`)
+        a vector of the slack variable or a string giving the name
 
         OUTPUT:
 
@@ -4085,13 +4092,17 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (55/10, 21/10, 14/30)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary("x1", "x2", "x4")
-            sage: D1 = D.add_row([7, 11, 19], 42, 'c')
-            sage: D1.row_coefficients("c")
+            sage: D1 = D.add_row([7, 11, 19], 42)
+            sage: D1.row_coefficients("x7")
             (7, 11, 19)
             sage: set(D1.constant_terms()).symmetric_difference(
             ....: set(D.constant_terms()))
             {42}
             sage: set(D1.basic_variables()).symmetric_difference(
+            ....: set(D.basic_variables()))
+            {x7}
+            sage: D2 = D.add_row([17, 11, 119], 52, slack_variable="c")
+            sage: set(D2.basic_variables()).symmetric_difference(
             ....: set(D.basic_variables()))
             {c}
         """
@@ -4105,6 +4116,16 @@ class LPDictionary(LPAbstractDictionary):
 
         v = vector(self.base_ring(), n, nonbasic_coefficients)
         A = A.stack(v)
+
+        if slack_variable is None:
+            slack_variable = default_variable_name("primal slack")
+            if style() == "UAlberta":
+                index = n + m + 1
+            elif style() == 'Vanderbei':
+                index = m + 1
+            slack_variable = "{}{:d}".format(slack_variable, index)
+        if not isinstance(slack_variable, str):
+            slack_variable = str(slack_variable)
 
         b = vector(tuple(b) + (constant,))
         B = tuple(B) + (slack_variable,)
@@ -4923,7 +4944,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         return E
 
     def add_row(self, nonbasic_coefficients, new_b,
-                slack_variable):
+                slack_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -4933,7 +4954,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- a string of the name for the new slack variable
+        - ``slack_variable``-- (default: depends on :func:`style`)
+        a vector of the slack variable or a string giving the name
 
         OUTPUT:
 
@@ -4949,15 +4971,15 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (5/133, 1/10, 1/18, 47/3)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_revised_dictionary()
-            sage: D1 = D.add_row([7, 11, 13, 9], 42, 'c')
-            sage: D1.row_coefficients("c")
+            sage: D1 = D.add_row([7, 11, 13, 9], 42)
+            sage: D1.row_coefficients("x9")
             (7, 11, 13, 9)
             sage: set(D1.constant_terms()).symmetric_difference(
             ....: set(D.constant_terms()))
             {42}
             sage: set(D1.basic_variables()).symmetric_difference(
             ....: set(D.basic_variables()))
-            {c}
+            {x9}
             sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
             ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
             ....: [119, 7, 121, 5, 111])
@@ -4965,7 +4987,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
-            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, 'c')
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, slack_variable='c')
             sage: D2.row_coefficients("c")
             (5, 7, 11, 13, 9)
             sage: set(D2.constant_terms()).symmetric_difference(
@@ -5013,8 +5035,9 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 new_b -= d[d_index] * b[slack_index]
                 d_index += 1
             slack_index += 1
-        new_problem = problem.add_constraint(coefficients, new_b, slack_variable)
-        new_basic_var = [str(i) for i in self.basic_variables()] + [slack_variable]
+        new_problem = problem.add_constraint(coefficients, new_b, 
+                                new_slack_variable=slack_variable)
+        new_basic_var = [str(i) for i in self.basic_variables()] + [str(new_problem.slack_variables()[-1])]
         R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
         return new_problem.revised_dictionary(*R.gens())
 

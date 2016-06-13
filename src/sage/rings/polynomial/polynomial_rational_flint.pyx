@@ -1141,8 +1141,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2/3)
             Traceback (most recent call last):
             ...
-            ValueError: (t + 1)^(1/3) does not lie in Univariate
-            Polynomial Ring in t over Rational Field
+            ValueError: not a 3rd power
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
@@ -1170,8 +1169,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (R+2)^(2/5)
             Traceback (most recent call last):
             ...
-            ValueError: (R + 2)^(1/5) does not lie in Univariate
-            Polynomial Ring in R over Rational Field
+            ValueError: not a 5th power
 
             sage: P(1/3)^(1/2)
             Traceback (most recent call last):

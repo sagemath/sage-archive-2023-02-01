@@ -40,7 +40,9 @@ from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import degree_lowest_rational_function
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.affine.affine_space import AffineSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
@@ -127,6 +129,141 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         """
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
+
+    def projection(self):
+        r"""
+        Return a projection of this curve into projective space of dimension one less than the dimension of
+        the ambient space of this curve.
+
+        This only works for curves over characteristic zero fields. This curve must not already be a plane curve.
+
+        OUTPUT:
+
+        - a list consisting of two elements: a scheme morphism from this curve into a projective space of
+          dimension one less than that of the ambient space of this curve, and the projective curve that
+          is the closure of the image of that morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(CyclotomicField(3), 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C.projection()
+            [Scheme morphism:
+               From: Projective Curve over Cyclotomic Field of order 3 and degree 2
+            defined by -x^2 + y*w, -x^3 + z*w^2
+               To:   Projective Space of dimension 2 over Cyclotomic Field of order
+            3 and degree 2
+               Defn: Defined on coordinates by sending (x : y : z : w) to
+                     (x - 1/2*w : y - 1/2*w : z - 1/2*w),
+             Projective Plane Curve over Cyclotomic Field of order 3 and degree 2
+            defined by x0^6 - 3*x0^5*x1 + 3*x0^4*x1^2 - 3*x0^3*x1^3 + 2*x0^4*x1*x2 +
+            2*x0^3*x1^2*x2 - 2*x0^4*x2^2]
+
+        ::
+
+            sage: P.<x,y,z,w,a,b,c> = ProjectiveSpace(QQ, 6)
+            sage: C = Curve([y - x, z - a - b, w^2 - c^2, z - x - a, x^2 - w*z], P)
+            sage: C.projection()
+            [Scheme morphism:
+               From: Projective Curve over Rational Field defined by -x + y, z - a -
+            b, w^2 - c^2, -x + z - a, x^2 - z*w
+               To:   Projective Space of dimension 5 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w : a : b : c)
+            to
+                     (x - c : y - c : z - c : w - 2*c : a - c : b - c),
+             Projective Curve over Rational Field defined by x1 - x5, x0 - x5,
+            2*x2*x3 + x3^2 - 2*x2*x4 - 3*x3*x4 + 2*x4^2 - 3*x3*x5 + 2*x4*x5 + x5^2,
+            3*x2^2 - x3^2 - 2*x2*x4 + 2*x3*x4 - x4^2 - 6*x2*x5 + 2*x3*x5 + 2*x4*x5 +
+            x5^2, x3^3 - x3^2*x4 - 2*x3^2*x5 - 6*x2*x4*x5 - 3*x3*x4*x5 + 6*x4^2*x5 +
+            6*x2*x5^2 + 2*x3*x5^2 - 3*x5^3]
+        """
+        if self.ambient_space().dimension_relative() == 2:
+            raise TypeError("this curve is already a plane curve")
+        if self.base_ring().characteristic() > 0:
+            raise TypeError("the base ring (=%s) of this curve must be a characteristic 0 field"%self.base_ring())
+        # find a point not on the curve
+        # to do this, it suffices to find a point on which at least one nonzero element of the defining
+        # ideal of this curve does not vanish
+        PP = self.ambient_space()
+        n = PP.dimension_relative()
+        F = 0
+        # find a nonzero element
+        for i in range(len(self.defining_polynomials())):
+            if self.defining_polynomials()[i] != 0:
+                F = self.defining_polynomials()[i]
+        # find a point on which it doesn't vanish        
+        l = list(PP.gens())
+        for i in range(n+1):
+            l[i] = 1
+            while(F(l) == 0):
+                l[i] = l[i] + 1
+        Q = PP(l) # will be a point not on the curve
+        # use this point to project. Apply a change of coordinates to move this point to (0:...:0:1)
+        H = Hom(PP, PP)
+        # only need the first n coordinates of the change of coordinates map
+        coords = [PP.gens()[i] - Q[i]/Q[n]*PP.gens()[n] for i in range(n)]
+        # create the projection map onto the first n coordinates
+        PP2 = ProjectiveSpace(self.base_ring(), n - 1)
+        H = Hom(self, PP2)
+        psi = H(coords)
+        # compute image of psi via elimination
+        R = PolynomialRing(self.base_ring(), 2*n + 1, 'x')
+        K = Hom(PP.coordinate_ring(), R)
+        phi = K([R.gens()[i] for i in range(n + 1)])
+        l = [phi(coords[i]) - R.gens()[n + 1 + i] for i in range(len(coords))]
+        l.extend([phi(f) for f in self.defining_polynomials()])
+        I = R.ideal(l)
+        J = I.elimination_ideal([R.gens()[i] for i in range(n + 1)])
+        K = Hom(R, PP2.coordinate_ring())
+        l = [0]*(n + 1)
+        l.extend([PP2.coordinate_ring().gens()[i] for i in range(n)])
+        phi = K(l)
+        G = [phi(f) for f in J.gens()]
+        from constructor import Curve
+        C = Curve(G, PP2)
+        return [psi, C]
+
+    def plane_projection(self):
+        r"""
+        Return a projection of this curve into a projective plane.
+
+        OUTPUT:
+
+        - a list consisting of two elements: a scheme morphism from this curve into a projective plane,
+          and the projective curve that is the closure of the image of that morphism.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w,u,v> = ProjectiveSpace(QQ, 5)
+            sage: C = P.curve([x*u - z*v, w - y, w*y - x^2, y^3*u*2*z - w^4*w])
+            sage: C.plane_projection()
+            [Scheme morphism:
+               From: Projective Curve over Rational Field defined by x*u - z*v, -y +
+            w, -x^2 + y*w, -w^5 + 2*y^3*z*u
+               To:   Projective Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w : u : v) to
+                     (x - w + u - v : y - w + u - v : z - 2*w + 3*u - 2*v),
+             Projective Plane Curve over Rational Field defined by 7*x0^8 -
+            16*x0^7*x1 + 68*x0^6*x1^2 - 336*x0^5*x1^3 + 730*x0^4*x1^4 -
+            752*x0^3*x1^5 + 356*x0^2*x1^6 - 48*x0*x1^7 - 9*x1^8 - 4*x0^7*x2 -
+            44*x0^6*x1*x2 + 220*x0^5*x1^2*x2 - 300*x0^4*x1^3*x2 + 20*x0^3*x1^4*x2 +
+            284*x0^2*x1^5*x2 - 236*x0*x1^6*x2 + 60*x1^7*x2 + 32*x0^5*x1*x2^2 -
+            160*x0^4*x1^2*x2^2 + 320*x0^3*x1^3*x2^2 - 320*x0^2*x1^4*x2^2 +
+            160*x0*x1^5*x2^2 - 32*x1^6*x2^2]
+        """
+        PP = self.ambient_space()
+        C = self
+        H = Hom(PP, PP)
+        phi = H([PP.gens()[i] for i in range(PP.dimension_relative() + 1)])
+        for i in range(PP.dimension_relative() - 2):
+            L = C.projection()
+            C = L[1]
+            # compose the scheme morphisms that are created
+            K = Hom(phi.codomain().coordinate_ring(), PP.coordinate_ring())
+            psi = K(phi.defining_polynomials())
+            H = Hom(self, L[1].ambient_space())
+            phi = H([psi(L[0].defining_polynomials()[i]) for i in range(len(L[0].defining_polynomials()))])
+        return [phi, C]
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):

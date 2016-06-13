@@ -71,7 +71,7 @@ class Function_exp_integral_e(BuiltinFunction):
 
     .. math::
 
-        \operatorname{E_n}(z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
+        E_n (z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
 
     for complex numbers `n` and `z`, see [AS]_ 5.1.4.
 
@@ -258,7 +258,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     .. math::
 
-        \operatorname{E_1}(z) = \int_z^\infty \frac{e^{-t}}{t}\; dt
+        E_1 (z) = \int_z^\infty \frac{e^{-t}}{t} \; dt
 
     see [AS]_ 5.1.4.
 
@@ -668,7 +668,7 @@ class Function_sin_integral(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Si}(z) = \int_0^z \frac{\sin(t)}{t}\; dt,
+        \operatorname{Si}(z) = \int_0^z \frac{\sin(t)}{t} \; dt,
 
     see [AS]_ 5.2.1.
 
@@ -858,7 +858,7 @@ class Function_cos_integral(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Ci}(z) = \gamma + \log(z) + \int_0^z \frac{\cos(t)-1}{t}\; dt,
+        \operatorname{Ci}(z) = \gamma + \log(z) + \int_0^z \frac{\cos(t)-1}{t} \; dt,
 
     where `\gamma` is the Euler gamma constant (``euler_gamma`` in Sage),
     see [AS]_ 5.2.1.
@@ -993,7 +993,7 @@ class Function_sinh_integral(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Shi}(z) = \int_0^z \frac{\sinh(t)}{t}\; dt,
+        \operatorname{Shi}(z) = \int_0^z \frac{\sinh(t)}{t} \; dt,
 
     see [AS]_ 5.2.3.
 
@@ -1143,7 +1143,7 @@ class Function_cosh_integral(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Chi}(z) = \gamma + \log(z) + \int_0^z \frac{\cosh(t)-1}{t}\; dt,
+        \operatorname{Chi}(z) = \gamma + \log(z) + \int_0^z \frac{\cosh(t)-1}{t} \; dt,
 
     see [AS]_ 5.2.4.
 
@@ -1280,7 +1280,7 @@ class Function_exp_integral(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Ei}(x) = \int_{-\infty}^x \frac{e^t}{t}\; dt
+        \operatorname{Ei}(x) = \int_{-\infty}^x \frac{e^t}{t} \; dt
 
     for x > 0 and for complex arguments by analytic continuation,
     see [AS]_ 5.1.2.
@@ -1389,7 +1389,7 @@ def exponential_integral_1(x, n=0):
 
     .. math::
 
-                      E_1(x) = \int_{x}^{\infty} \frac{e^{-t}}{t} dt
+                      E_1(x) = \int_{x}^{\infty} \frac{e^{-t}}{t} \; dt
 
     INPUT:
 

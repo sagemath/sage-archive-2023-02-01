@@ -71,7 +71,7 @@ class Function_exp_integral_e(BuiltinFunction):
 
     .. math::
 
-        E_n (z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
+        E_n(z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
 
     for complex numbers `n` and `z`, see [AS]_ 5.1.4.
 
@@ -258,7 +258,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     .. math::
 
-        E_1 (z) = \int_z^\infty \frac{e^{-t}}{t} \; dt
+        E_1(z) = \int_z^\infty \frac{e^{-t}}{t} \; dt
 
     see [AS]_ 5.1.4.
 
@@ -482,7 +482,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
     .. math::
 
-        \operatorname{Li}(x) = \int_2^x \frac{dt}{ln(t)} =
+        \operatorname{Li}(x) = \int_2^x \frac{dt}{\ln(t)} =
         \operatorname{li}(x)-\operatorname{li}(2)
 
     for `x \ge 2`.
@@ -497,7 +497,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
     .. math::
 
-        \frac{1}{ln(t)}
+        \frac{1}{\ln(t)}
 
     See :class:`Function_log_integral` for details of `\operatorname{li}(x)`.
     Thus `\operatorname{Li}(x)` can also be represented by

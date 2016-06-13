@@ -2580,7 +2580,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Calculates the subgroup of `PGL2` that is the automorphism group of this map.
 
-        Dimension 1 only. The automorphism group is the set of `PGL(2)` elements that fix this map
+        The automorphism group is the set of `PGL(2)` elements that fix this map
         under conjugation.
 
         INPUT:
@@ -2668,7 +2668,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         iso_type = kwds.get('iso_type', False)
 
         if self.domain().dimension_relative() != 1:
-            raise NotImplementedError("must be dimension 1")
+            return self.conjugating_set(self)
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
@@ -4407,6 +4407,179 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 j += 1
             F.append(G)
         return(H(F))
+
+    def conjugating_set(self,other):
+        r"""
+            Returns the set of elements in PGL that conjugate the two maps given.
+
+            Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that conjugates one rational function to another. It does this by taking the fixed points of 'self' and mapping them to all unique permutations of the fixed points of 'other'. Implimented as part of GSOC 2016.
+
+            ALGORITHIM:
+
+            Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages invariant under conjugation find all conj that take one set to another.
+
+            INPUT: Two nonconstant rational functions of same degree
+
+            OUTPUT: Set of conjgating elements
+
+            AUTHORS:
+
+            - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\[FMV]_
+
+            - Modiifed by Rebecca Lauren Miller, as part pf GSOC 2016.
+
+            REFERENCES:
+
+            .. [FMV] Xander Faber, Michelle Manes, and Bianca Viray. Computing Conjugating Sets
+            and Automorphism Groups of Rational Functions. Journal of Algebra, 423 (2014), 1161-1190.
+
+            EXAMPLES::
+
+                sage: P.<x,y> = ProjectiveSpace(QQ,1)
+                sage: H = End(P)
+                sage: f = H([x**2 - 2*y**2, y**2])
+                sage: m = matrix(QQbar, 2, 2, [-1, 3, 2, 1])
+                sage: g = f.conjugate(m)
+                sage: conjugating_set(f,g)
+                [
+                [-1  3]
+                [ 2  1]
+                ]
+
+            ::
+
+                sage: P.<x,y> = ProjectiveSpace(QQ,1)
+                sage: H = End(P)
+                sage: f = H([x**2 + x*y,y**2])
+                sage: m=matrix(QQbar, 2, 2, [1, 1, 2, 1])
+                sage: g=f.conjugate(m)
+                sage: conjugating_set(f,g)
+                [
+                [1 1]
+                [2 1]
+                ]
+
+             ::
+
+                sage: K.<w> = QuadraticField(-1)
+                sage: P.<x,y> = ProjectiveSpace(K,1)
+                sage: H = End(P)
+                sage: f = H([x**2 + y**2, x*y])# has 1 fixed point
+                sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
+                sage: g = f.conjugate(m)
+                sage: conjugating_set(f,g) # long test
+                [
+                [1 1]  [-1 -1]
+                [2 1], [ 2  1]
+                ]
+
+            ::
+
+                sage: P.<x,y> = ProjectiveSpace(QQ,1)
+                sage: H = End(P)
+                sage: D8 = H([y**2, x**2])
+                sage: conjugating_set(D8, D8)
+                ValueError: not enough rational preimages
+
+            """
+    f=copy(self)
+    g=copy(other)
+    try:
+        f.normalize_coordinates()
+        g.normalize_coordinates()
+    except (ValueError):
+        pass# do nothing
+    if f.degree()!=g.degree():
+        return []
+    n=f.domain().dimension_relative()
+    set_verbose(None)
+    L=Set(f.periodic_points(1))
+    K=Set(g.periodic_points(1))
+    if len(L)!=len(K):
+        return []
+    d=len(L)
+    while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
+        Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
+        Tk=[Q for i in K for Q in g.rational_preimages(i)]
+        if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+            return []
+        L=L.union(Set(Tl))
+        K=K.union(Set(Tk))
+        if d==len(L):
+            raise ValueError("not enough rational preimages")
+        d=len(L)
+    Conj=[]
+    Z=n+2
+    J=list(L)
+    Tf=[J[i] for i in range(n+2)]
+    for i in Arrangements(K,(n+2)):
+        s=f.domain().point_transformation_matrix(i,Tf)
+        if self.conjugate(s)==other:
+            Conj.append(s) # return true for is conj. leave for conj sets
+    return Conj
+
+    def is_conjugate(self,other):
+        r"""
+            Returns whether or not two maps are conjugate.
+
+            ALGORITHIM:
+
+            Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages invariant under conjugation find all conj that take one set to another.
+
+            INPUT: Two nonconstant rational functions of same degree
+
+            OUTPUT: Bool
+
+            AUTHORS:
+
+            - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_
+
+            - Modiifed by Rebecca Lauren Miller
+
+            EXAMPLES::
+
+                sage: K.<w> = CyclotomicField(3)
+                sage: P.<x,y> = ProjectiveSpace(K,1)
+                sage: H = End(P)
+                sage: D8 = H([y**2, x**2])
+                sage: is_conjugate(D8,D8)
+                True
+        """
+    f=copy(self)
+    g=copy(other)
+    try:
+        f.normalize_coordinates()
+        g.normalize_coordinates()
+    except (ValueError):
+        pass
+    if f.degree()!=g.degree():
+        return False
+    n=f.domain().dimension_relative()
+    set_verbose(None)
+    L=Set(f.periodic_points(1))
+    K=Set(g.periodic_points(1))
+    if len(L)!=len(K):
+        return False
+    d=len(L)
+    while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
+        Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
+        Tk=[Q for i in K for Q in g.rational_preimages(i)]
+        if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+            return False
+        L=L.union(Set(Tl))
+        K=K.union(Set(Tk))
+        if d==len(L):
+            raise ValueError("not enough rational preimages")
+        d=len(L)
+    Conj=[]
+    Z=n+2
+    J=list(L)
+    Tf=[J[i] for i in range(n+2)]
+    for i in Arrangements(K,(n+2)):
+        s=f.domain().point_transformation_matrix(i,Tf)
+        if self.conjugate(s)==other:
+            return True
+    return False
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

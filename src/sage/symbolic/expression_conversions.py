@@ -1896,6 +1896,16 @@ class HoldRemover(ExpressionTreeWalker):
         self._exclude = exclude
 
     def composition(self, ex, operator):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import HoldRemover
+            sage: ex = sin(pi*cos(0, hold=True), hold=True); ex
+            sin(pi*cos(0))
+            sage: h = HoldRemover(ex)
+            sage: h()
+            0
+        """
         if not operator:
             return self
         if operator in self._exclude:

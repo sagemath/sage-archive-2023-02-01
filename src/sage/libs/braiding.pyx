@@ -69,8 +69,6 @@ def conjugatingbraid(braid1, braid2):
         [[0], [2]]
         
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = max(braid1.parent().strands(), braid2.parent().strands())
     l1 = braid1.Tietze()
     l2 = braid2.Tietze()
@@ -101,8 +99,6 @@ def leftnormalform(braid):
         [[0], [2, 1]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l1 = braid.Tietze()
     sig_on()
@@ -132,8 +128,6 @@ def rightnormalform(braid):
         [[2, 1], [0]]
     
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l1 = braid.Tietze()
     sig_on()
@@ -165,8 +159,6 @@ def greatestcommondivisor(braid1, braid2):
         [[-1], [2, 1]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = max(braid1.parent().strands(), braid2.parent().strands())
     l1 = braid1.Tietze()
     l2 = braid2.Tietze()
@@ -199,8 +191,6 @@ def leastcommonmultiple(braid1, braid2):
         [[1], [1], [1]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = max(braid1.parent().strands(), braid2.parent().strands())
     l1 = braid1.Tietze()
     l2 = braid2.Tietze()
@@ -230,8 +220,6 @@ def centralizer(braid):
         [[[-1], [2, 1], [1, 2]], [[0], [1], [1, 2], [2]]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     lnf = leftnormalform(braid)
     if len(lnf) == 1: # (lib)braiding crashes when the input is a power of Delta.
@@ -268,8 +256,6 @@ def supersummitset(braid):
         [[[0], [2]], [[0], [1]]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l = braid.Tietze()
     sig_on()
@@ -299,8 +285,6 @@ def ultrasummitset(braid):
         [[[[0], [2]]], [[[0], [1]]]]
     
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l = braid.Tietze()
     sig_on()
@@ -336,8 +320,6 @@ def thurston_type(braid):
         'pseudo-anosov'
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l = braid.Tietze()
     sig_on()
@@ -371,8 +353,6 @@ def rigidity(braid):
         3
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l = braid.Tietze()
     sig_on()
@@ -406,8 +386,6 @@ def sliding_circuits(braid):
         [[[0], [2, 1], [1], [1, 2]]]]
 
     """
-    if not is_package_installed('libbraiding'):
-        raise NotImplementedError("This functionality requires the libbraiding package")
     nstrands = braid.parent().strands()
     l = braid.Tietze()
     sig_on()

@@ -1774,12 +1774,12 @@ ext_modules = [
     Extension('*', ['sage/symbolic/*.pyx']),
 
     Extension('sage.rings.polynomial.skew_polynomial_element',
-              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx'],
-              depends = numpy_depends),
+              sources = ['sage/rings/polynomial/skew_polynomial_element.pyx']),
+#              depends = numpy_depends),
 
     Extension('sage.rings.polynomial.skew_polynomial_finite_field',
-              sources = ['sage/rings/polynomial/skew_polynomial_finite_field.pyx'],
-              depends = numpy_depends),
+              sources = ['sage/rings/polynomial/skew_polynomial_finite_field.pyx']),
+#              depends = numpy_depends),
 
     ################################
     ##

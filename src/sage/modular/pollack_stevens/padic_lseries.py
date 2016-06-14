@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 P-adic L-series attached to overconvergent eigensymbols
 """
@@ -256,7 +257,7 @@ class pAdicLseries(SageObject):
         """
         return "%s-adic L-series of %s" % (self.prime(), self.symb())
 
-    def series(self, n, prec):
+    def series(self, n, prec=5):
         r"""
         Returns the `n`-th approximation to the `p`-adic `L`-series
         associated to self, as a power series in `T` (corresponding to
@@ -283,8 +284,8 @@ class pAdicLseries(SageObject):
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names='T')
         T = R.gens()[0]
-        R.set_default_prec(prec)
-        return sum(self[i] * T ** i for i in range(n))
+        R.set_default_prec(n)
+        return sum(self[i] * T ** i for i in range(prec))
 
     def interpolation_factor(self, ap, chip=1, psi=None):
         r"""

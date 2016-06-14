@@ -1100,6 +1100,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sign = ZZ(0) if implementation == 'pollack-stevens' else ZZ(1)
         else:
             sign = ZZ(sign)
+        if implementation == 'eclib' and sign == -1: # trac 10256 is not solved yet
+            print("Warning: Negative modular symbols using eclib is not yet implemented in sage. Use sage instead.")
+            implementation = 'sage'
         if implementation == 'eclib':
             if normalize is None:
                 normalize = "L_ratio"
@@ -1115,7 +1118,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign = None, use_eclib = None, normalize = None, implementation = 'sage'):
+    def modular_symbol(self, sign = None, use_eclib = None, normalize = None, implementation = 'eclib'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1182,7 +1185,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: M=E.modular_symbol()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: M(1/7)
-            -1/2
+            -2
 
         ::
 
@@ -1231,7 +1234,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
             sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
             1/25
-            sage: E.modular_symbol(sign=-1, use_eclib=False, normalize='L_ratio')(1/3)
+            sage: E.modular_symbol(sign=-1, implementation = 'sage', normalize='L_ratio')(1/3)
             1/2
 
 
@@ -1242,20 +1245,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: symb
             Modular symbol of level 113 with values in Sym^0 Q^2
             sage: symb.values()
-            [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
-            0, 2, 0, 0]
+            [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
 
             sage: E = EllipticCurve([0,1])
             sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
             sage: symb.values()
-            [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
+            [-1/6, 1/3, 1/2, 1/6, -1/6, 1/3, -1/3, -1/2, -1/6, 1/6, 0, -1/6, -1/6]
         """
         sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
         if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
         elif implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
-        else: # implementation == 'pollack-stevens'
+        elif implementation == 'pollack-stevens':
             from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             M = ps_modsym_from_elliptic_curve(self, sign)
         return M
@@ -1324,7 +1326,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('79a1')
             sage: f = E.modular_symbol_numerical(-1)  # indirect doctest
-            sage: g = E.modular_symbol(-1)
+            sage: g = E.modular_symbol(-1, implementation="sage")
             sage: f(1), g(1)  # abs tol 1e-14
             (7.60908499689245e-16, 0)
             sage: f(oo), g(oo)

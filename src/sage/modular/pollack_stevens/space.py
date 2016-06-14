@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Pollack-Stevens Modular Symbols Spaces
 
@@ -847,7 +848,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
     if sign >= 0:
         plus_sym = E.modular_symbol(sign=1)
     if sign <= 0:
-        minus_sym = E.modular_symbol(sign=-1)
+        minus_sym = E.modular_symbol(implementation='sage', sign=-1)
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)

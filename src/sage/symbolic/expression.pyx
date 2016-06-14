@@ -137,6 +137,7 @@ from __future__ import print_function, absolute_import
 
 include "cysignals/signals.pxi"
 
+from inspect import ismethod
 import operator
 from . import ring
 import sage.rings.integer
@@ -11754,7 +11755,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
         ....:
-        ....:     class EvaluationMethods:
+        ....:     class EvaluationMethods(object):
         ....:         def argp1(fn, self, x):
         ....:             '''
         ....:             Some documentation about a bogus function.
@@ -11799,7 +11800,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
         ....:
-        ....:     class EvaluationMethods:
+        ....:     class EvaluationMethods(object):
         ....:         def argsum(fn, self, x, y):
         ....:             return x + y
         ....:
@@ -11820,13 +11821,12 @@ cdef get_dynamic_class_for_function(unsigned serial):
             from sage.symbolic.function_factory import eval_on_operands
             from sage.structure.misc import getattr_from_other_class
             for name in dir(eval_methods):
-                m = getattr(eval_methods(), name)
-                if callable(m):
+                if ismethod(getattr(eval_methods, name)):
                     new_m = eval_on_operands(getattr_from_other_class(
                         func_class, eval_methods, name))
                     setattr(eval_methods, name, new_m)
             cls = dynamic_class('Expression_with_dynamic_methods',
-                    (Expression,), eval_methods)
+                    (Expression,), eval_methods, prepend_cls_bases=False)
         else:
             cls = Expression
 

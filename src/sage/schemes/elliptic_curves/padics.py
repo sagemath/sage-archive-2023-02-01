@@ -75,14 +75,11 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
 
     TESTS::
 
-        sage: E=EllipticCurve('37a1')
-        sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
-        True
-    """
+     """
     if use_eclib is not None:
         from sage.misc.superseded import deprecation
         deprecation(812,"Use the option 'implementation' instead of 'use_eclib'")
-        if implementation == 'pollack-stevens':
+        if implementation == 'overconvergent':
             raise ValueError
         if use_eclib:
             implementation = 'eclib'
@@ -94,18 +91,18 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
     elif implementation == 'sage':
         if normalize is None:
             normalize = "L_ratio"
-    elif implementation == 'pollack-stevens':
+    elif implementation == 'overconvergent':
         if precision is None:
             raise ValueError("Must specify precision when using 'pollack-stevens'")
         if normalize is not None:
-            raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' modular symbols")
+            raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' overconvergent modular symbols")
     else:
-        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'pollack-stevens'")
+        raise ValueError("Implementation should be one of  'sage', 'eclib' or 'overconvergent'")
     if precision is not None and implementation != 'pollack-stevens':
-        raise ValueError("Must *not* specify precision unless using 'pollack-stevens'")
+        raise ValueError("Must *not* specify precision unless using 'overconvergent'")
     return (p, normalize, implementation, precision)
 
-@cached_method(key=_normalize_padic_lseries)    
+@cached_method(key=_normalize_padic_lseries)
 def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 'eclib', precision = None):
     r"""
     Return the `p`-adic `L`-series of self at
@@ -125,7 +122,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     -  ``use_eclib`` - deprecated, use ``implementation`` instead
 
-    - ``implementation`` - 'eclib' (default), 'sage', 'pollack-stevens';
+    - ``implementation`` - 'eclib' (default), 'sage', 'overconvergent';
        Whether to use John Cremona's eclib, the Sage implementation,
        or the Pollack-Stevens' implementation of overconvergent
        modular symbols.
@@ -187,9 +184,9 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
 
     Finally, we can use the overconvergent method of Pollack-Stevens. Note the difference in results, due to the different normalizations used.::
-    
+
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(5,implementation = 'pollack-stevens', precision = 5)
+        sage: L = e.padic_lseries(5,implementation = 'overconvergent', precision = 5)
         sage: L[0]
         5 + 4*5^2 + 4*5^3 + O(5^5)
         sage: L[1]
@@ -207,7 +204,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
             Lp = plseries.pAdicLseriesSupersingular(self, p,
                                   normalize = normalize, implementation = implementation)
     else:
-        phi = self.modular_symbol(None, normalize = normalize, implementation = 'pollack-stevens')
+        phi = self.modular_symbol(None, normalize = normalize, implementation = 'overconvergent')
         if phi.parent().level() % p == 0:
             Phi = phi.lift(p, precision, eigensymbol = True)
         else:

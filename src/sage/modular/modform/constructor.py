@@ -522,7 +522,7 @@ def parse_label(s):
         if G[2] != '[' or G[-1] != ']':
             raise ValueError("Invalid congruence subgroup label: %s" % G)
         gens = [int(g.strip()) for g in G[3:-1].split(',')]
-        return arithgroup.GammaH(N, gens)
+        return arithgroup.GammaH(N, gens), index
     else:
         raise ValueError("Invalid congruence subgroup label: %s" % G)
     return G, index

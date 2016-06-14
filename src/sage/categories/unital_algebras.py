@@ -169,7 +169,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             + 2*B[word: bab] + 2*B[word: baba] + 3*B[word: babb]
             + B[word: babbab] + 9*B[word: bb] + 3*B[word: bbab]
         """
-        __mul__ = Magmas.ElementMethods.__mul__.im_func
+        __mul__ = Magmas.ElementMethods.__mul__.__func__
 
 #        __imul__ = __mul__
 

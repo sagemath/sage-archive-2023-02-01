@@ -117,7 +117,7 @@ class Core(CombinatorialElement):
             False
         """
         if isinstance(other, Core):
-            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+            return self._list == other._list and self.parent().k == other.parent().k
         else:
             return False
 
@@ -149,9 +149,10 @@ class Core(CombinatorialElement):
         return self._hash
 
     def _latex_(self):
-        """
-        Outputs the LaTeX representation of this core as a partition. See the
-        ``_latex_()`` method of :class:`Partition`.
+        r"""
+        Output the LaTeX representation of this core as a partition.
+
+        See the ``_latex_`` method of :class:`Partition`.
 
         EXAMPLES::
 
@@ -421,7 +422,7 @@ class Core(CombinatorialElement):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k() != other.k():
                 raise ValueError("The two cores do not have the same k")
         else:
@@ -476,7 +477,7 @@ class Core(CombinatorialElement):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k()!=other.k():
                 raise ValueError("The two cores do not have the same k")
         else:

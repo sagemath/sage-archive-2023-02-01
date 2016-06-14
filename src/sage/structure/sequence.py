@@ -38,7 +38,7 @@ to be preserved::
     sage: w[0] = 'hi'
     Traceback (most recent call last):
     ...
-    TypeError: unable to convert hi to a rational
+    TypeError: unable to convert 'hi' to a rational
 
 However, if you do ``w = Sequence(v)`` and the resulting universe
 is ``Objects()``, the elements are not guaranteed to have any
@@ -76,7 +76,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ##########################################################################
-
+from __future__ import print_function
 
 from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
@@ -541,6 +541,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
     def append(self, x):
         """
         EXAMPLES::
+
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: v.append(34)
             Traceback (most recent call last):
@@ -671,7 +672,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
             sage: Sequence([1,2/3,-2/5])._repr_()
             '[1, 2/3, -2/5]'
-            sage: print Sequence([1,2/3,-2/5], cr=True)._repr_()
+            sage: print(Sequence([1,2/3,-2/5], cr=True)._repr_())
             [
             1,
             2/3,
@@ -705,7 +706,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             '[1, 2, 3]'
             sage: repr(s)
             '[1, 2, 3]'
-            sage: print s
+            sage: print(s)
             [1, 2, 3]
             sage: s = Sequence([1,2,3], cr=True)
             sage: str(s)

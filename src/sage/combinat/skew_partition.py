@@ -17,7 +17,7 @@ diagram of the skew partition [[5,4,3,1],[3,3,1]].
 
 ::
 
-    sage: print SkewPartition([[5,4,3,1],[3,3,1]]).diagram()
+    sage: print(SkewPartition([[5,4,3,1],[3,3,1]]).diagram())
        **
        *
      **
@@ -28,7 +28,7 @@ in graphic terms: for each pair of consecutive rows, there are at
 least two cells (one in each row) which have a common edge. This is
 the diagram of the connected skew partition ``[[5,4,3,1],[3,1]]``::
 
-    sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
+    sage: print(SkewPartition([[5,4,3,1],[3,1]]).diagram())
        **
      ***
     ***
@@ -44,7 +44,7 @@ diagram of the *conjugate skew partition*, here
 
     sage: SkewPartition([[5,4,3,1],[3,3,1]]).conjugate()
     [4, 3, 3, 2, 1] / [3, 2, 2]
-    sage: print SkewPartition([[5,4,3,1],[3,3,1]]).conjugate().diagram()
+    sage: print(SkewPartition([[5,4,3,1],[3,3,1]]).conjugate().diagram())
        *
       *
       *
@@ -145,6 +145,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -293,7 +294,7 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[3,2,1],[2,1]])._repr_quotient()
+            sage: print(SkewPartition([[3,2,1],[2,1]])._repr_quotient())
             [3, 2, 1] / [2, 1]
         """
         return "%s / %s"%(self[0], self[1])
@@ -304,7 +305,7 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[3,2,1],[2,1]])._repr_lists()
+            sage: print(SkewPartition([[3,2,1],[2,1]])._repr_lists())
             [[3, 2, 1], [2, 1]]
         """
         return repr([list(_) for _ in self])
@@ -336,7 +337,7 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[5,4,3],[3,1,1]])._latex_diagram()
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._latex_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{4-5}
             &&&\lr{\ast}&\lr{\ast}\\\cline{2-5}
@@ -363,7 +364,7 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[5,4,3],[3,1,1]])._latex_young_diagram()
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._latex_young_diagram())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{4-5}
             &&&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{2-5}
@@ -388,7 +389,7 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[5,4,3],[3,1,1]])._latex_marked()
+            sage: print(SkewPartition([[5,4,3],[3,1,1]])._latex_marked())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{5}c}\cline{1-5}
             \lr{X}&\lr{X}&\lr{X}&\lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-5}
@@ -434,18 +435,18 @@ class SkewPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print SkewPartition([[5,4,3,1],[3,3,1]]).ferrers_diagram()
+            sage: print(SkewPartition([[5,4,3,1],[3,3,1]]).ferrers_diagram())
                **
                *
              **
             *
-            sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
+            sage: print(SkewPartition([[5,4,3,1],[3,1]]).diagram())
                **
              ***
             ***
             *
             sage: SkewPartitions.global_options(diagram_str='#', convention="French")
-            sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
+            sage: print(SkewPartition([[5,4,3,1],[3,1]]).diagram())
             #
             ###
              ###
@@ -483,7 +484,7 @@ class SkewPartition(CombinatorialElement):
              **
             *
         """
-        print self.ferrers_diagram()
+        print(self.ferrers_diagram())
 
     def _ascii_art_(self):
         """
@@ -1214,22 +1215,6 @@ class SkewPartition(CombinatorialElement):
             m.append(row)
         return H(m)
 
-def from_row_and_column_length(rowL, colL):
-    """
-    This has been deprecated in :trac:`14101`. Use
-    :meth:`SkewPartitions().from_row_and_column_length()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.skew_partition.from_row_and_column_length([3,1,2,2],[2,3,1,1,1])
-        doctest:...: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
-        See http://trac.sagemath.org/14101 for details.
-        [5, 2, 2, 2] / [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.')
-    return SkewPartitions().from_row_and_column_length(rowL, colL)
-
 def row_lengths_aux(skp):
     """
     EXAMPLES::
@@ -1245,7 +1230,7 @@ def row_lengths_aux(skp):
     else:
         return [x[0] - x[1] for x in zip(skp[0], skp[1])]
 
-class SkewPartitions(Parent, UniqueRepresentation):
+class SkewPartitions(UniqueRepresentation, Parent):
     """
     Skew partitions.
 
@@ -1399,7 +1384,7 @@ class SkewPartitions(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: S = SkewPartitions()
-            sage: print S.from_row_and_column_length([3,1,2,2],[2,3,1,1,1]).diagram()
+            sage: print(S.from_row_and_column_length([3,1,2,2],[2,3,1,1,1]).diagram())
               ***
              *
             **

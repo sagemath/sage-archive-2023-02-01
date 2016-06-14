@@ -49,7 +49,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import division, print_function
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -180,7 +180,7 @@ class Function_exp_integral_e(BuiltinFunction):
         Check that Python ints work (:trac:`14766`)::
 
             sage: exp_integral_e(int(3), 0)
-            0.5
+            1/2
         """
         z_zero = False
         # special case: z == 0 and n > 1
@@ -550,7 +550,7 @@ class Function_log_integral_offset(BuiltinFunction):
         sage: log_integral_offset(2)
         0
         sage: for n in range(1,7):
-        ....:  print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n)))
+        ....:  print('%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n))))
         10        4         5.12043572466980
         100       25        29.0809778039621
         1000      168       176.564494210035
@@ -1310,7 +1310,7 @@ class Function_exp_integral(BuiltinFunction):
     The precision for the result is deduced from the precision of the
     input. Convert the input to a higher precision explicitly if a
     result with higher precision is desired::
-        
+
         sage: Ei(RealField(300)(1.1))
         2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
         
@@ -1438,7 +1438,7 @@ def exponential_integral_1(x, n=0):
         ....:         y = exponential_integral_1(S(a))
         ....:         e = float(abs(S(x) - y)/x.ulp())
         ....:         if e >= 1.0:
-        ....:             print "exponential_integral_1(%s) with precision %s has error of %s ulp"%(a, prec, e)
+        ....:             print("exponential_integral_1(%s) with precision %s has error of %s ulp"%(a, prec, e))
 
     The absolute error for a vector should be less than `c 2^{-p}`, where
     `p` is the precision in bits of `x` and `c = 2 max(1, exponential_integral_1(x))`::
@@ -1454,7 +1454,7 @@ def exponential_integral_1(x, n=0):
         ....:     for i in range(n):
         ....:         e = float(abs(S(x[i]) - y[i]) << prec)
         ....:         if e >= c:
-        ....:             print "exponential_integral_1(%s, %s)[%s] with precision %s has error of %s >= %s"%(a, n, i, prec, e, c)
+        ....:             print("exponential_integral_1(%s, %s)[%s] with precision %s has error of %s >= %s"%(a, n, i, prec, e, c))
 
     ALGORITHM: use the PARI C-library function ``eint1``.
 

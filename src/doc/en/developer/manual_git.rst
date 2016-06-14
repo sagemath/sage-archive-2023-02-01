@@ -12,11 +12,14 @@ If you want to contribute using git only, you are at the right place. This
 chapter will tell you how to do so, assuming some basic familiarity with git. In
 particular, you should have read :ref:`chapter-walkthrough` first.
 
+Randall Munroe has provided a `basic overview <http://xkcd.com/1597/>`_.
+
 We assume that you have a copy of the Sage git repository, for example
 by running::
 
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
 
 .. _section-git-trac:
@@ -44,7 +47,7 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
     [user@localhost sage]$ git <push|pull> trac [ARGS]
 
 .. note::
-   
+
     In the command above we set up the remote to only track the
     ``master`` branch on the trac server (the ``-t master``
     option). This avoids clutter by not automatically downloading all
@@ -327,4 +330,4 @@ screenshot.
 The middle file is the most recent common parent; on the right is
 Bob's version and on the left is Alice's conflicting version. Clicking
 on the arrow moves the marked change to the file in the adjacent
-pane. 
+pane.

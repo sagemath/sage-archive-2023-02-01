@@ -22,7 +22,6 @@ from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, 
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
-from sage.rings.arith import lcm
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
@@ -214,7 +213,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: int(A(-3))
             -3
             sage: int(A(-3/2))
-            -2
+            -1
             sage: int(-3 + i)
             Traceback (most recent call last):
             ...
@@ -235,7 +234,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: long(A(-3))
             -3L
             sage: long(A(-3/2))
-            -2L
+            -1L
             sage: long(-3 + i)
             Traceback (most recent call last):
             ...
@@ -486,7 +485,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/theta == theta.conjugate()/theta.reduced_norm()
             True
         """
-        return self.reduced_norm().__invert__() * self.conjugate()
+        return ~self.reduced_norm() * self.conjugate()
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -531,7 +530,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: theta._div_(theta) == 1
             True
         """
-        return self * right.__invert__()
+        return self * ~right
 
     def reduced_characteristic_polynomial(self, var='x'):
         """
@@ -617,8 +616,8 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         elif action == 'left':
             v = [(self*a).coefficient_tuple() for a in self._parent.basis()]
         else:
-            raise ValueError, "action must be either 'left' or 'right'"
-        return matrix(self.base_ring(), 4, v, check=False)
+            raise ValueError("action must be either 'left' or 'right'")
+        return matrix(self.base_ring(), 4, v)
 
     def coefficient_tuple(self):
         """
@@ -708,7 +707,7 @@ cdef class QuaternionAlgebraElement_generic(QuaternionAlgebraElement_abstract):
         elif i == 3:
             return self.w
         else:
-            raise IndexError, "quaternion element index out of range"
+            raise IndexError("quaternion element index out of range")
 
     def __reduce__(self):
         """
@@ -1054,7 +1053,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         elif i == 3:
             mpq_set_num(r.value, self.w)
         else:
-            raise IndexError, "quaternion element index out of range"
+            raise IndexError("quaternion element index out of range")
         mpq_set_den(r.value, self.d)
         mpq_canonicalize(r.value)
         return r
@@ -1717,7 +1716,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         elif i == 3:
             fmpz_poly_get_ZZX(item.__numerator, self.w)
         else:
-            raise IndexError, "quaternion element index out of range"
+            raise IndexError("quaternion element index out of range")
 
         mpz_to_ZZ(&item.__denominator, self.d)
 

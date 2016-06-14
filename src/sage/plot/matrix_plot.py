@@ -101,12 +101,15 @@ class MatrixPlot(GraphicPrimitive):
 
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
-            [('xmax', 3.5), ('xmin', -0.5), ('ymax', 2.5), ('ymin', -0.5)]
+            [('xmax', 3.5), ('xmin', -0.5), ('ymax', -0.5), ('ymin', 2.5)]
 
 
         """
         from sage.plot.plot import minmax_data
         limits= minmax_data(self.xrange, self.yrange, dict=True)
+        if self.options()['origin']!='lower':
+            # flip y-axis so that the picture looks correct.
+            limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
@@ -203,21 +206,15 @@ class MatrixPlot(GraphicPrimitive):
             for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options',
                         'colorbar','colorbar_options']:
                 del opts[opt]
-
             if origin=='lower':
-                subplot.spy(self.xy_data_array.tocsr(), **opts)
+                subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
             else:
-                data = self.xy_data_array.tocsr().copy()
-                data.indices = -data.indices + data.shape[1] - 1
-                subplot.spy(data, **opts)
+                subplot.spy(self.xy_data_array, **opts)
         else:
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            if origin == 'lower':
-                image=subplot.imshow(self.xy_data_array, **opts)
-            else:
-                image=subplot.imshow(self.xy_data_array[::-1], **opts)
+            image=subplot.imshow(self.xy_data_array, **opts)
 
             if options.get('colorbar', False):
                 colorbar_options = options['colorbar_options']
@@ -236,18 +233,24 @@ class MatrixPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
-@options(aspect_ratio=1, axes=False, cmap='gray', colorbar=False,
+@options(aspect_ratio=1, axes=False, cmap='Greys', colorbar=False,
          frame=True, marker='.', norm=None, origin='upper',
          subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
 
+    If the matrix is sparse, colors only indicate whether an element is
+    nonzero or zero, so the plot represents the sparsity pattern of the
+    matrix.
+
     If the matrix is dense, each matrix element is given a different
     color value depending on its relative size compared to the other
-    elements in the matrix.  If the matrix is sparse, colors only
-    indicate whether an element is nonzero or zero, so the plot
-    represents the sparsity pattern of the matrix.
+    elements in the matrix.
+
+    The default is for the lowest number to be black and the highest
+    number to be white in a greyscale pattern; see the information about
+    normalizing below. To reverse this, use ``cmap='Greys'``.
 
     The tick marks drawn on the frame axes denote the row numbers
     (vertical ticks) and the column numbers (horizontal ticks) of the
@@ -260,11 +263,14 @@ def matrix_plot(mat, **options):
     The following input must all be passed in as named parameters, if
     default not used:
 
-    - ``cmap`` - a colormap (default: 'gray'), the name of
-      a predefined colormap, a list of colors,
-      or an instance of a matplotlib Colormap.
-      Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
-      for available colormap names.
+    - ``cmap`` - a colormap (default: 'Greys'), the name of a predefined
+      colormap, a list of colors, or an instance of a matplotlib Colormap.
+
+      The list of predefined color maps can be visualized in `matplotlib's
+      documentation
+      <http://matplotlib.org/examples/color/colormaps_reference.html>`__. You
+      can also type ``import matplotlib.cm; matplotlib.cm.datad.keys()`` to list
+      their names.
 
     - ``colorbar`` -- boolean (default: False) Show a colorbar or not (dense matrices only).
 

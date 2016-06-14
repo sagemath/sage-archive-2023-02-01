@@ -20,11 +20,12 @@ crowding in that file.
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import absolute_import
 
 
 import sage.rings.all as rings
-import padic_lseries as plseries
-import sage.rings.arith as arith
+from . import padic_lseries as plseries
+import sage.arith.all as arith
 from sage.rings.all import (
     Qp, Zp,
     Integers,
@@ -46,6 +47,7 @@ def __check_padic_hypotheses(self, p):
     is an odd prime of good ordinary reduction.
 
     EXAMPLES::
+
         sage: E = EllipticCurve('11a1')
         sage: from sage.schemes.elliptic_curves.padics import __check_padic_hypotheses
         sage: __check_padic_hypotheses(E,5)
@@ -527,12 +529,11 @@ def _multiply_point(E, R, P, m):
 
 def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic p-adic height.
+    Compute the cyclotomic p-adic height.
 
     The equation of the curve must be minimal at `p`.
 
     INPUT:
-
 
     -  ``p`` - prime = 5 for which the curve has
        semi-stable reduction
@@ -642,6 +643,18 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         sage: hm = Em.padic_height(7)
         sage: h(P) == hm(Pm)
         True
+
+    TESTS:
+
+    Check that ticket :trac:`20798` is solved::
+
+        sage: E = EllipticCurve("91b")
+        sage: h = E.padic_height(7,10)
+        sage: P = E.gen(0)
+        sage: h(P)
+        2*7 + 7^2 + 5*7^3 + 6*7^4 + 2*7^5 + 3*7^6 + 7^7 + O(7^9)
+        sage: h(P+P)
+        7 + 5*7^2 + 6*7^3 + 5*7^4 + 4*7^5 + 6*7^6 + 5*7^7 + O(7^9)
     """
     if check_hypotheses:
         if not p.is_prime():
@@ -656,8 +669,8 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
         raise ValueError("prec (=%s) must be at least 1" % prec)
 
     if self.conductor() % p == 0:
-        Eq = self.tate_curve(p,prec=prec)
-        return Eq.height(prec=prec)
+        Eq = self.tate_curve(p)
+        return Eq.padic_height(prec=prec)
     elif self.ap(p) % p == 0:
         lp = self.padic_lseries(p)
         return lp.Dp_valued_height(prec=prec)
@@ -1419,7 +1432,7 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     """
     if self.conductor() % p == 0:
         if not self.conductor() % (p**2) == 0:
-            eq = self.tate_curve(p,prec=prec)
+            eq = self.tate_curve(p)
             return  eq.E2(prec=prec)
 
     frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))

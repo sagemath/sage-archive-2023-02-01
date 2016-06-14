@@ -22,12 +22,6 @@ applies to all of them. Python's licensing is GPL compatible.
 
 For more details see http://www.python.org/psf/license/
 
-== SPKG Maintainers ==
- * William Stein
- * Mike Hansen
- * Craig Citro
- * Volker Braun
-
 == Upstream Contact ==
 
 There are a large number of community resources. For more details see

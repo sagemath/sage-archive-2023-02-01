@@ -301,7 +301,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
     - same as for :class:`SchemeHomset_points`.
 
-    OUPUT:
+    OUTPUT:
 
     A scheme morphism of type
     :class:`SchemeHomset_points_toric_base`.
@@ -389,9 +389,9 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
             sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
             sage: point_set = P123.point_set()
-            sage: iter(point_set._finite_field_enumerator()).next()
+            sage: next(iter(point_set._finite_field_enumerator()))
             (0, 0, 1)
-            sage: iter(point_set).next()
+            sage: next(iter(point_set))
             [0 : 0 : 1]
         """
         from sage.schemes.toric.points import FiniteFieldPointEnumerator
@@ -440,7 +440,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
     - same as for :class:`~sage.schemes.generic.homset.SchemeHomset_points`.
 
-    OUPUT:
+    OUTPUT:
 
     A scheme morphism of type
     :class:`SchemeHomset_points_toric_field`.
@@ -473,7 +473,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 3 : 6]]
 
     As for a non-compact example, the blow-up of the plane is the line
-    bundle $O_{\mathbf{P}^1}(-1)$. Its point set is the cartesian
+    bundle $O_{\mathbf{P}^1}(-1)$. Its point set is the Cartesian
     product of the points on the base $\mathbf{P}^1$ with the points
     on the fiber::
 

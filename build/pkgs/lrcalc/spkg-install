@@ -17,6 +17,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19725)
+cp "$SAGE_ROOT"/config/config.* .
+
 ./configure --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error configuring lrcalc."
@@ -29,7 +32,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-$MAKE install-libLTLIBRARIES install-lrcalcincludeHEADERS
+$MAKE install
 if [ $? -ne 0 ]; then
    echo "Error installing lrcalc."
    exit 1

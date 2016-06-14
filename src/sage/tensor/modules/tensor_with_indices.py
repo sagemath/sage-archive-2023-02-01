@@ -385,7 +385,7 @@ class TensorWithIndices(SageObject):
             sage: ti != TensorWithIndices(t, 'ac_b')
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __mul__(self, other):
         r"""

@@ -7,6 +7,8 @@ Root system data for affine Cartan types
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -78,11 +80,11 @@ class AmbientSpace(CombinatorialFreeModule):
     Systematic checks on all affine types::
 
         sage: for ct in CartanType.samples(affine=True, crystallographic=True):
-        ...       if ct.classical().root_system().ambient_space() is not None:
-        ...           print ct
-        ...           L = ct.root_system().ambient_space()
-        ...           assert L
-        ...           TestSuite(L).run()
+        ....:     if ct.classical().root_system().ambient_space() is not None:
+        ....:         print(ct)
+        ....:         L = ct.root_system().ambient_space()
+        ....:         assert L
+        ....:         TestSuite(L).run()
         ['A', 1, 1]
         ['A', 5, 1]
         ['B', 1, 1]
@@ -378,7 +380,7 @@ class AmbientSpace(CombinatorialFreeModule):
         return self
 
     def _plot_projection(self, x):
-        """
+        r"""
         Implements the default projection to be used for plots
 
         For affine ambient spaces, the default implementation is to
@@ -387,7 +389,9 @@ class AmbientSpace(CombinatorialFreeModule):
         keeping an extra coordinate for the coefficient of
         `\delta^\vee` to keep the level information.
 
-        .. SEEALSO:: :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
+        .. SEEALSO::
+
+            :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
 
         EXAMPLES::
 

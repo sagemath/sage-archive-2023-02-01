@@ -28,6 +28,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 import operator
 from sage.misc.latex import latex
@@ -36,11 +37,11 @@ from sage.structure.parent import Parent
 from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
 from sage.categories.category import Category
+from sage.categories.cartesian_product import cartesian_product
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
@@ -84,9 +85,9 @@ class TestParent(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-        sage: from sage.combinat.crystals.tensor_product import TestParent
-        sage: TestParent()
-        A parent for tests
+            sage: from sage.combinat.crystals.tensor_product import TestParent
+            sage: TestParent()
+            A parent for tests
         """
         return "A parent for tests"
 
@@ -163,7 +164,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m != n
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __lt__(self, other):
         """
@@ -199,9 +200,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m <= n
             True
         """
-        if self == other:
-            return True
-        return self.__lt__(other)
+        return self == other or self.__lt__(other)
 
     def __gt__(self, other):
         """
@@ -237,9 +236,7 @@ class ImmutableListWithParent(CombinatorialElement):
             sage: m >= n
             False
         """
-        if self == other:
-            return True
-        return self.__gt__(other)
+        return self == other or self.__gt__(other)
 
     def sibling(self, l):
         """
@@ -440,10 +437,9 @@ class TensorProductOfCrystals(CrystalOfWords):
 
     .. MATH::
 
-        e_i(b \otimes b^{\prime}) = \begin{cases}
-        e_i(b) \otimes b^{\prime} & \text{if } \varepsilon_i(b) >
-        \varphi_i(b^{\prime}) \\
-        b \otimes e_i(b^{\prime}) & \text{otherwise.}
+        e_i(b \otimes b') = \begin{cases}
+        e_i(b) \otimes b' & \text{if } \varepsilon_i(b) >
+        \varphi_i(b') \\ b \otimes e_i(b') & \text{otherwise.}
         \end{cases}
 
     We also define:
@@ -451,11 +447,12 @@ class TensorProductOfCrystals(CrystalOfWords):
     .. MATH::
 
         \begin{aligned}
-        \varphi_i(b \otimes b^{\prime}) & = \max\left( \varphi_i(b),
-        \varphi_i(b) + \varphi_i(b^{\prime}) - \varepsilon_i(b) \right)
-        \\ \varepsilon_i(b \otimes b^{\prime}) & = \max\left(
-        \varepsilon_i(b^{\prime}), \varepsilon_i(b^{\prime}) +
-        \varepsilon_i(b) - \varphi_i(b^{\prime}) \right).
+        \varphi_i(b \otimes b') & = \max\left( \varphi_i(b),
+        \varphi_i(b') + \langle \alpha_i^{\vee}, \mathrm{wt}(b) \rangle
+        \right),
+        \\ \varepsilon_i(b \otimes b') & = \max\left( \varepsilon_i(b'),
+        \varepsilon_i(b) - \langle \alpha_i^{\vee}, \mathrm{wt}(b') \rangle
+        \right).
         \end{aligned}
 
     .. NOTE::
@@ -624,7 +621,7 @@ class TensorProductOfCrystals(CrystalOfWords):
          Crystal of generalized Young walls of type ['A', 15, 1],
          Crystal of generalized Young walls of type ['A', 15, 1]]
 
-        sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
         sage: C = crystals.GeneralizedYoungWalls(2,2*La[2])
         sage: D = crystals.GeneralizedYoungWalls(2,3*La[0]+La[2])
@@ -656,12 +653,16 @@ class TensorProductOfCrystals(CrystalOfWords):
 
             sage: C = crystals.Letters(['A',2])
             sage: T = crystals.TensorProduct(C, C)
-            sage: T2 = crystals.TensorProduct(C, C)
+            sage: T2 = crystals.TensorProduct(C, C, cartan_type=['A',2])
             sage: T is T2
             True
             sage: T.category()
             Category of tensor products of classical crystals
 
+            sage: T3 = crystals.TensorProduct(C, C, C)
+            sage: T3p = crystals.TensorProduct(T, C)
+            sage: T3 is T3p
+            True
             sage: B1 = crystals.TensorProduct(T, C)
             sage: B2 = crystals.TensorProduct(C, T)
             sage: B3 = crystals.TensorProduct(C, C, C)
@@ -734,6 +735,11 @@ class TensorProductOfCrystals(CrystalOfWords):
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
     Tensor product of crystals with a generating set.
+
+    .. TODO::
+
+        Deprecate this class in favor of using
+        :meth:`~sage.categories.crystals.Crystals.ParentMethods.subcrystal`.
     """
     def __init__(self, crystals, generators, cartan_type):
         """
@@ -770,6 +776,10 @@ class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
 class FullTensorProductOfCrystals(TensorProductOfCrystals):
     """
     Full tensor product of crystals.
+
+    .. TODO::
+
+        Merge this into :class:`TensorProductOfCrystals`.
     """
     def __init__(self, crystals, **options):
         """
@@ -795,7 +805,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
                 raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 self._cartan_type = crystals[0].cartan_type()
-        self.cartesian_product = CartesianProduct(*self.crystals)
+        self.cartesian_product = cartesian_product(self.crystals)
         self.module_generators = self
 
     def _repr_(self):
@@ -945,9 +955,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         if len(self) != len(other):
             return False
         for i in range(len(self)):
-            if (self[i] < other[i]) == True:
+            if (self[i] < other[i]):
                 return True
-            if (other[i] < self[i]) == True:
+            if (other[i] < self[i]):
                 return False
         return False
 
@@ -961,7 +971,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: D = crystals.Tableaux(['A',3], shape=[1])
             sage: E = crystals.Tableaux(['A',3], shape=[2,2,2])
             sage: T = crystals.TensorProduct(C,D,E)
-            sage: print T.module_generators[0]._repr_diagram()
+            sage: print(T.module_generators[0]._repr_diagram())
               1  1  1 (X)   1 (X)   1  1
               2                     2  2
                                     3  3
@@ -1058,7 +1068,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
             sage: T = crystals.TensorProduct(B,B)
             sage: b1 = B.highest_weight_vector().f_string([1,0])
@@ -1186,7 +1196,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(3,La[0])
             sage: T = crystals.TensorProduct(B,B,B)
             sage: b1 = B.highest_weight_vector().f_string([0,3])
@@ -1351,9 +1361,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         """
         unmatched_plus = []
         height = 0
-        if reverse == True:
+        if reverse:
             self = self.reversed()
-        if dual == False:
+        if not dual:
             for j in range(len(self)):
                 minus = self[j].phi(i)
                 plus = self[j].epsilon(i)
@@ -1407,7 +1417,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
 
         REFERENCES:
 
-        .. [SchillingTingley2011] A. Schilling, P. Tingley.
+        .. [SchillingTingley2011] \A. Schilling, P. Tingley.
            Demazure crystals, Kirillov-Reshetikhin crystals, and the energy
            function. Electronic Journal of Combinatorics. **19(2)**. 2012.
            :arXiv:`1104.2359`
@@ -1418,7 +1428,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:    print b, b.energy_function()
+            ....:    print("{} {}".format(b, b.energy_function()))
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1428,7 +1438,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:  # long time (5s on sage.math, 2011)
-            ....:     print b, b.energy_function()
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[], []] 4
             [[], [[1, 1]]] 1
             [[[1, 1]], []] 3
@@ -1484,7 +1494,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:     print b, b.affine_grading()
+            ....:     print("{} {}".format(b, b.affine_grading()))
             [[[1]], [[1]], [[1]]] 3
             [[[1]], [[2]], [[1]]] 1
             [[[2]], [[1]], [[1]]] 2
@@ -1494,7 +1504,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ....:     print b, b.affine_grading()
+            ....:     print("{} {}".format(b, b.affine_grading()))
             [[[1]], [[1]], [[1]]] 2
             [[[1]], [[2]], [[1]]] 1
             [[[1]], [[-1]], [[1]]] 0
@@ -1795,15 +1805,15 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def __init__(self, cartan_type, shapes):
         """
-        Construct the crystal of all tableaux of the given shapes
+        Construct the crystal of all tableaux of the given shapes.
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a Cartan type
-        - ``shapes``      - a list (or iterable) of shapes
-        - ``shape` `      - a shape
+        - ``cartan_type`` -- (data coercible into) a Cartan type
+        - ``shapes``      -- a list (or iterable) of shapes
+        - ``shape``       -- a shape
 
-        shapes themselves are lists (or iterable) of integers
+        Shapes themselves are lists (or iterable) of integers.
 
         EXAMPLES::
 
@@ -1981,7 +1991,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
             sage: C = crystals.Tableaux(['A', 4], shape=[4,2,1])
             sage: elt = C(rows=[[1,1,1,2], [2,3], [4]])
-            sage: print elt._repr_diagram()
+            sage: print(elt._repr_diagram())
               1  1  1  2
               2  3
               4

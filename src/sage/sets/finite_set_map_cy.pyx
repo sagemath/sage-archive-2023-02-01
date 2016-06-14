@@ -554,7 +554,7 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
         return "map: "+", ".join([("%s -> %s"%(i, self(i))) for i in self.domain()])
 
 
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(type cls, Parent parent, list lst):
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(t, parent, lst):
     """
     Creates a ``FiniteSetMap`` from a list
 
@@ -572,11 +572,12 @@ cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(type cls, Parent parent, list 
         True
     """
     cdef FiniteSetMap_MN res
+    cdef type cls = <type>t
     res = cls.__new__(cls)
     super(FiniteSetMap_MN, res).__init__(parent, lst)
     return res
 
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(type cls, Parent parent, dict d):
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(t, parent, d):
     """
     Creates a ``FiniteSetMap`` from a dictionary
 
@@ -594,6 +595,7 @@ cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(type cls, Parent parent, dict 
         True
     """
     cdef FiniteSetMap_Set res
+    cdef type cls = <type>t
     res = cls.__new__(cls)
     res.__init__(parent, d.__getitem__)
     return res
@@ -632,7 +634,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         Return the ``n``-th power of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to ``None`` (for compatibility only).
@@ -648,7 +650,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             [0, 1, 2]
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())
 
 
@@ -690,7 +692,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         Return the ``n``-th power of self.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to None (for compatibility only).
@@ -706,5 +708,5 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             True
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())

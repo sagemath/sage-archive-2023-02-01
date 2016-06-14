@@ -20,9 +20,9 @@ Finding a single triangulation and listing all connected
 triangulations is implemented natively in this package. However, for
 more advanced options [TOPCOM]_ needs to be installed. It is available
 as an optional package for Sage, and you can install it with the
-command::
+shell command ::
 
-    sage: install_package('topcom')     # not tested
+    sage -i topcom
 
 .. note::
 
@@ -116,17 +116,14 @@ removed before passing the data to TOPCOM which cannot handle it::
 
 REFERENCES:
 
-    .. [TOPCOM]
-       J. Rambau,
-       TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+.. [TOPCOM] J. Rambau,
+   TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
-    .. [GKZ]
-       Gel'fand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
-       "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994.
+.. [GKZ] Gelfand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
+   "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994
 
-    .. [PUNTOS]
-       Jesus A. De Loera
-       http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
+.. [PUNTOS] Jesus A. De Loera
+   http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
 AUTHORS:
 
@@ -166,6 +163,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
@@ -611,16 +609,16 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert proc.readline().strip() == ''
 
         if verbose:
-            print "#### TOPCOM input ####"
-            print "# " + executable
-            print "# " + input_string
+            print("#### TOPCOM input ####")
+            print("# " + executable)
+            print("# " + input_string)
             sys.stdout.flush()
 
         proc.send(input_string)
         proc.send('X\nX\n')
 
         if verbose:
-            print "#### TOPCOM output ####"
+            print("#### TOPCOM output ####")
             sys.stdout.flush()
 
         while True:
@@ -628,12 +626,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print '# Still runnnig '+str(executable)
+                    print('# Still runnnig ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
             if verbose:
-                print "# " + line
+                print("# " + line)
                 sys.stdout.flush()
 
             try:
@@ -643,7 +641,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 raise StopIteration
 
         if verbose:
-            print "#######################"
+            print("#######################")
             sys.stdout.flush()
 
 
@@ -1094,15 +1092,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         self._polyhedron = Polyhedron(vertices=pts);
         return self._polyhedron
 
-
+    @cached_method
     def restricted_automorphism_group(self):
         r"""
         Return the restricted automorphism group.
 
         First, let the linear automorphism group be the subgroup of
-        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
+        the affine group `AGL(d,\RR) = GL(d,\RR) \ltimes \RR^d`
         preserving the `d`-dimensional point configuration. The
-        Euclidean group acts in the usual way `\vec{x}\mapsto
+        affine group acts in the usual way `\vec{x}\mapsto
         A\vec{x}+b` on the ambient space.
 
         The restricted automorphism group is the subgroup of the
@@ -1142,9 +1140,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: DihedralGroup(1).is_isomorphic(_)
             True
         """
-        if '_restricted_automorphism_group' in self.__dict__:
-            return self._restricted_automorphism_group
-
         v_list = [ vector(p.projective()) for p in self ]
         Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
 
@@ -1161,10 +1156,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 v_j = v_list[j]
                 G.add_edge(i+1,j+1, v_i * Qinv * v_j)
 
-        group = G.automorphism_group(edge_labels=True)
-        self._restricted_automorphism_group = group
-        return group
-
+        return G.automorphism_group(edge_labels=True)
 
     def face_codimension(self, point):
         r"""
@@ -1984,7 +1976,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             new_facets = set()
             for facet in visible_facets:
                 simplex = frozenset(list(facet) + [point])
-                # print 'simplex', simplex
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
                     if facet in visible_facets: continue

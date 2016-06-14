@@ -97,7 +97,7 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm.check_backend_class(BackendIPython)
 
     def format(self, obj, include=None, exclude=None):
-        """
+        r"""
         Use the Sage rich output instead of IPython
 
         INPUT/OUTPUT:
@@ -124,9 +124,44 @@ class SageDisplayFormatter(DisplayFormatter):
             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
             sage: shell.run_cell('%display default')
             sage: shell.quit()
-        """
-        return self.dm.displayhook(obj)
 
+        TESTS::
+
+            sage: import os
+            sage: from sage.env import SAGE_EXTCODE
+            sage: example_png = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+            sage: backend = BackendIPython()
+            sage: shell = get_test_shell()
+            sage: backend.install(shell=shell)
+            sage: shell.run_cell('get_ipython().display_formatter')
+            <sage.repl.display.formatter.SageDisplayFormatter object at 0x...>
+            sage: shell.run_cell('from IPython.display import Image')
+            sage: shell.run_cell('ipython_image = Image("{0}")'.format(example_png))
+            sage: shell.run_cell('ipython_image')
+            <IPython.core.display.Image object>
+            sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
+            ({u'image/png': '\x89PNG...',
+              u'text/plain': u'<IPython.core.display.Image object>'},
+            {})
+        """
+        # First, use Sage rich output if there is any
+        PLAIN_TEXT = u'text/plain'
+        sage_format, sage_metadata = self.dm.displayhook(obj)
+        assert PLAIN_TEXT in sage_format, 'plain text is always present'
+        if sage_format.keys() != [PLAIN_TEXT]:
+            return sage_format, sage_metadata
+        # Second, try IPython widgets (obj._ipython_display_ and type registry)
+        if self.ipython_display_formatter(obj):
+            return {}, {}
+        # Finally, try IPython rich representation (obj._repr_foo_ methods)
+        if exclude is not None:
+            exclude = list(exclude) + [PLAIN_TEXT]
+        ipy_format, ipy_metadata = super(SageDisplayFormatter, self).format(
+            obj, include=include, exclude=exclude)
+        ipy_format.update(sage_format)
+        ipy_metadata.update(sage_metadata)
+        return ipy_format, ipy_metadata
 
 
 class SagePlainTextFormatter(PlainTextFormatter):
@@ -155,7 +190,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.display_formatter.formatters['text/plain']
-            <sage.repl.display.formatter.SagePlainTextFormatter object at 0x...>
+            <IPython.core.formatters.PlainTextFormatter object at 0x...>
             sage: shell.quit()
         """
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)

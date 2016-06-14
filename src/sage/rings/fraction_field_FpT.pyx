@@ -1,9 +1,10 @@
 "Univariate rational functions over prime fields"
+from __future__ import print_function
 
 import sys
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
@@ -341,18 +342,6 @@ cdef class FpTElement(RingElement):
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: K = Frac(GF(5)['t']); t = K.gen()
-            sage: t == 1
-            False
-            sage: t + 1 < t^2
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
@@ -387,6 +376,14 @@ cdef class FpTElement(RingElement):
             True
             sage: b < 1/a
             False
+
+        ::
+
+            sage: K = Frac(GF(5)['t']); t = K.gen()
+            sage: t == 1
+            False
+            sage: t + 1 < t^2
+            True
         """
         # They are normalized.
         cdef int j = sage_cmp_nmod_poly_t(self._numer, (<FpTElement>other)._numer)
@@ -565,9 +562,8 @@ cdef class FpTElement(RingElement):
             sage: R.<t> = FpT(GF(3)['t'])
             sage: a = R(0)
             sage: for _ in range(30):
-            ...       a = a.next()
-            ...       print a
-            ...
+            ....:     a = a.next()
+            ....:     print(a)
             1
             2
             1/t
@@ -759,9 +755,9 @@ cdef class FpTElement(RingElement):
         s = self._sqrt_or_None()
         if s is None:
             if extend:
-                raise NotImplementedError, "function fields not yet implemented"
+                raise NotImplementedError("function fields not yet implemented")
             else:
-                raise ValueError, "not a perfect square"
+                raise ValueError("not a perfect square")
         else:
             if all:
                 if not s:
@@ -855,7 +851,7 @@ cdef class FpT_iter:
     """
     def __init__(self, parent, degree=None, FpTElement start=None):
         """
-        INPUTS:
+        INPUT:
 
         - parent -- The FpT that we're iterating over.
 
@@ -868,8 +864,8 @@ cdef class FpT_iter:
             sage: K = GF(11)['t'].fraction_field()
             sage: I = K.iter(2) # indirect doctest
             sage: for a in I:
-            ...       if a.denom()[0] == 3 and a.numer()[1] == 2:
-            ...           print a; break
+            ....:     if a.denom()[0] == 3 and a.numer()[1] == 2:
+            ....:         print(a); break
             2*t/(t + 3)
         """
         #if degree is None:
@@ -915,8 +911,8 @@ cdef class FpT_iter:
             sage: K = GF(3)['t'].fraction_field()
             sage: I = FpT_iter(K, 3)
             sage: for a in I: # indirect doctest
-            ...       if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
-            ...            print a; break
+            ....:     if a.numer()[1] == 1 and a.denom()[1] == 2 and a.is_square():
+            ....:          print(a); break
             (t^2 + t + 1)/(t^2 + 2*t + 1)
         """
         return self
@@ -974,31 +970,28 @@ cdef class FpT_iter:
             sage: L[-1]
             (4*t^3 + 4*t^2 + 4*t + 4)/(t^3 + 4*t^2 + 4*t + 4)
         """
-        cdef FpTElement next
+        cdef FpTElement next_
         if self.cur is None:
             self.cur = self.parent(0)
         elif self.degree == -2:
-            self.cur = self.cur.next()
+            self.cur = next(self.cur)
         else:
-            next = self.cur._copy_c()
+            next_ = self.cur._copy_c()
             sig_on()
             while True:
-                nmod_poly_inc(next._numer, False)
-                if nmod_poly_degree(next._numer) > self.degree:
-                    nmod_poly_inc(next._denom, True)
-                    if nmod_poly_degree(next._denom) > self.degree:
+                nmod_poly_inc(next_._numer, False)
+                if nmod_poly_degree(next_._numer) > self.degree:
+                    nmod_poly_inc(next_._denom, True)
+                    if nmod_poly_degree(next_._denom) > self.degree:
                         sig_off()
                         raise StopIteration
-                    nmod_poly_zero(next._numer)
-                    nmod_poly_set_coeff_ui(next._numer, 0, 1)
-                nmod_poly_gcd(self.g, next._numer, next._denom)
+                    nmod_poly_zero(next_._numer)
+                    nmod_poly_set_coeff_ui(next_._numer, 0, 1)
+                nmod_poly_gcd(self.g, next_._numer, next_._denom)
                 if nmod_poly_is_one(self.g):
                     break
             sig_off()
-            self.cur = next
-#            self.cur = self.cur.next()
-#            if nmod_poly_degree(self.cur._numer) > self.degree:
-#                raise StopIteration
+            self.cur = next_
         return self.cur
 
 cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
@@ -1020,7 +1013,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1203,7 +1196,7 @@ cdef class FpT_Polyring_section(Section):
 
     def __init__(self, Polyring_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- A Polyring_FpT_coerce homomorphism
 
@@ -1285,7 +1278,7 @@ cdef class FpT_Polyring_section(Section):
         if nmod_poly_degree(x._denom) != 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
         ans = Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
@@ -1314,7 +1307,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1428,7 +1421,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True
@@ -1481,7 +1474,7 @@ cdef class FpT_Fp_section(Section):
 
     def __init__(self, Fp_FpT_coerce f):
         """
-        INPUTS:
+        INPUT:
 
         - f -- An Fp_FpT_coerce homomorphism
 
@@ -1581,9 +1574,9 @@ cdef class FpT_Fp_section(Section):
         if nmod_poly_degree(x._denom) != 0 or nmod_poly_degree(x._numer) > 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
             if nmod_poly_degree(x._numer) > 0:
-                raise ValueError, "not constant"
+                raise ValueError("not constant")
         ans = IntegerMod_int.__new__(IntegerMod_int)
         ans._parent = self.codomain()
         ans.__modulus = ans._parent._pyx_order
@@ -1611,7 +1604,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
 
     def __init__(self, R):
         """
-        INPUTS:
+        INPUT:
 
         - R -- An FpT
 
@@ -1731,7 +1724,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True

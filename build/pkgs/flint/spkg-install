@@ -28,12 +28,12 @@ cd src
 
 echo "Patching FLINT."
 for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
+   [ -f "$patch" ] || continue
+   patch -p1 <"$patch"
+   if [ $? -ne 0 ]; then
+       echo >&2 "Error applying '$patch'"
+       exit 1
+   fi
 done
 
 echo "Configuring FLINT."
@@ -50,7 +50,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Building FLINT shared library."
-$MAKE
+$MAKE verbose
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to build FLINT shared library."
     exit 1

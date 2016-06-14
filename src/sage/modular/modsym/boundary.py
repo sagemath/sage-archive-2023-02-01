@@ -112,7 +112,7 @@ import sage.modular.hecke.all as hecke
 from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
 import ambient
 import element
@@ -349,7 +349,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             sage: B2 == ModularSymbols(17, 2).boundary_space()
             False
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return cmp(type(self), type(other))
         else:
             return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )

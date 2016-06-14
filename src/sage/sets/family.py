@@ -15,22 +15,26 @@ AUTHORS:
 
 TESTS:
 
-Check for workaround :trac:`12482` (shall be run in a fresh session)::
+Check :trac:`12482` (shall be run in a fresh session)::
 
     sage: P = Partitions(3)
-    sage: Family(P, lambda x: x).category() # used to return ``enumerated sets``
-    Category of finite enumerated sets
     sage: Family(P, lambda x: x).category()
     Category of finite enumerated sets
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
 #                          Mike Hansen <mhansen@gmail.com>,
 #                          Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -40,6 +44,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_import import lazy_import
 from sage.rings.integer import Integer
 from sage.misc.misc import AttrCallObject
+lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 
 def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None):
     r"""
@@ -356,8 +361,6 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: list(f)
         ['cc', 'aa', 'bb']
 
-    TESTS:
-
     Only the hidden function is applied to the hidden keys::
 
         sage: f = lambda x : 2*x
@@ -382,7 +385,6 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
                 return TrivialFamily(indices)
             if isinstance(indices, (FiniteFamily, LazyFamily, TrivialFamily) ):
                 return indices
-            from sage.combinat.combinat import CombinatorialClass # workaround #12482
             if (indices in EnumeratedSets()
                 or isinstance(indices, CombinatorialClass)):
                 return EnumeratedFamily(indices)
@@ -715,7 +717,7 @@ class FiniteFamily(AbstractFamily):
             sage: f[3]
             'a'
         """
-        return self._dictionary.__getitem__(i)
+        return self._dictionary[i]
 
     # For the pickle and copy modules
     def __getstate__(self):
@@ -860,7 +862,7 @@ class LazyFamily(AbstractFamily):
             Failure ...
             The following tests failed: _test_an_element, _test_enumerated_set_contains, _test_some_elements
 
-        Check for bug #5538::
+        Check for :trac:`5538`::
 
             sage: l = [3,4,7]
             sage: f = LazyFamily(l, lambda i: 2*i);
@@ -868,8 +870,6 @@ class LazyFamily(AbstractFamily):
             sage: f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
         """
-        from sage.combinat.combinat import CombinatorialClass # workaround #12482
-
         if set in FiniteEnumeratedSets():
             category = FiniteEnumeratedSets()
         elif set in InfiniteEnumeratedSets():
@@ -937,7 +937,7 @@ class LazyFamily(AbstractFamily):
             return False
         if not self.set == other.set:
             return False
-        return self.__repr__() == other.__repr__()
+        return repr(self) == repr(other)
 
     def _repr_(self):
         """
@@ -1009,7 +1009,7 @@ class LazyFamily(AbstractFamily):
 
         Check that :trac:`15195` is fixed::
 
-            sage: C = CartesianProduct(PositiveIntegers(), [1,2,3])
+            sage: C = cartesian_product([PositiveIntegers(), [1,2,3]])
             sage: C.cardinality()
             +Infinity
             sage: F = Family(C, lambda x: x)
@@ -1126,10 +1126,10 @@ class TrivialFamily(AbstractFamily):
         """
         TESTS::
 
-        sage: f = Family((3,4,7))
-        sage: g = Family([3,4,7])
-        sage: f == g
-        True
+            sage: f = Family((3,4,7))
+            sage: g = Family([3,4,7])
+            sage: f == g
+            True
         """
         return (isinstance(other, self.__class__) and
                 self._enumeration == other._enumeration)

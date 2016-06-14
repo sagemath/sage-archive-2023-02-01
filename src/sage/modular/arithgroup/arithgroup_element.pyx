@@ -137,19 +137,19 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         yield self.__x[1,1]
 
     def __repr__(self):
-        """
-        Return the string representation of self.
+        r"""
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
             sage: Gamma1(5)([6,1,5,1]).__repr__()
             '[6 1]\n[5 1]'
         """
-        return "%s"%self.__x
+        return "%s" % self.__x
 
     def _latex_(self):
-        """
-        Return latex representation of self.
+        r"""
+        Return latex representation of ``self``.
 
         EXAMPLES::
 
@@ -158,23 +158,15 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return '%s' % self.__x._latex_()
         
-    def __richcmp__(left, right, int op):
-        r"""
-        Rich comparison.
-
-        EXAMPLE::
-
-            sage: SL2Z.0 > None
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element right_r) except -2:
         """
         Compare self to right, where right is guaranteed to have the same
         parent as self.
 
         EXAMPLES::
+
+            sage: SL2Z.0 > None
+            True
 
             sage: x = Gamma0(18)([19,1,18,1])
             sage: cmp(x, 3) is not 0
@@ -186,7 +178,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: x == 0
             False
 
-        This once caused a segfault (see trac #5443)::
+        This once caused a segfault (see :trac:`5443`)::
 
             sage: r,s,t,u,v = map(SL2Z, [[1, 1, 0, 1], [-1, 0, 0, -1], [1, -1, 0, 1], [1, -1, 2, -1], [-1, 1, -2, 1]])
             sage: v == s*u
@@ -434,3 +426,45 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         from all import SL2Z
         return SL2Z, (self.__x,)
+
+    def multiplicative_order(self):
+        r"""
+        Return the multiplicative order of this element.
+
+        EXAMPLES::
+
+            sage: SL2Z.one().multiplicative_order()
+            1
+            sage: SL2Z([-1,0,0,-1]).multiplicative_order()
+            2
+            sage: s,t = SL2Z.gens()
+            sage: ((t^3*s*t^2) * s * ~(t^3*s*t^2)).multiplicative_order()
+            4
+            sage: (t^3 * s * t * t^-3).multiplicative_order()
+            6
+            sage: (t^3 * s * t * s * t^-2).multiplicative_order()
+            3
+            sage: SL2Z([2,1,1,1]).multiplicative_order()
+            +Infinity
+            sage: SL2Z([-2,1,1,-1]).multiplicative_order()
+            +Infinity
+        """
+        m = self.matrix()
+
+        if m.is_one():
+            return ZZ(1)
+        elif (-m).is_one():
+            return ZZ(2)
+
+        t = m.trace()
+        if t <= -2 or t >= 2:
+            from sage.rings.infinity import infinity
+            return infinity
+        elif t == 0:
+            return ZZ(4)
+        elif t == 1:
+            return ZZ(6)
+        elif t == -1:
+            return ZZ(3)
+
+        raise RuntimeError

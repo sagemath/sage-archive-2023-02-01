@@ -113,6 +113,7 @@ See :trac:`13394` for a discussion of some of the design considerations.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 import weakref
 from weakref import KeyedRef
@@ -490,11 +491,6 @@ cdef class WeakValueDictionary(dict):
         ....:     assert D1 == D2
 
     """
-    cdef __weakref__
-    cdef callback
-    cdef int _guard_level
-    cdef list _pending_removals
-
     def __init__(self, data=()):
         """
         Create a :class:`WeakValueDictionary` with given initial data.
@@ -1047,7 +1043,7 @@ cdef class WeakValueDictionary(dict):
             sage: del D[2]
             sage: del L[5]
             sage: for v in sorted(D.itervalues()):
-            ....:     print v
+            ....:     print(v)
             <0>
             <1>
             <3>
@@ -1148,7 +1144,7 @@ cdef class WeakValueDictionary(dict):
             sage: del D[Keys(2)]
             sage: del L[5]
             sage: for k,v in sorted(D.iteritems()):
-            ....:     print k, v
+            ....:     print("{} {}".format(k, v))
             [0] <0>
             [1] <1>
             [3] <3>
@@ -1236,7 +1232,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k
@@ -1263,7 +1259,7 @@ cdef class WeakValueDictionary(dict):
             sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
             sage: k = K[10]
             sage: del K
-            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: i = D.iterkeys(); d = next(i); del d
             sage: len(D.keys())
             10
             sage: del k

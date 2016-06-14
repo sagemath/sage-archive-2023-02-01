@@ -15,12 +15,15 @@ Signed Compositions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from composition import Compositions_n, Composition
-import cartesian_product
+import itertools
+
+from .composition import Compositions_n, Composition
 from sage.rings.all import Integer
-from sage.rings.arith import binomial
-import __builtin__
+from sage.arith.all import binomial
+from six.moves import builtins
+
 
 class SignedCompositions(Compositions_n):
     """
@@ -87,11 +90,11 @@ class SignedCompositions(Compositions_n):
             sage: [-2, 1, -3] in SignedCompositions(6)
             True
         """
-        if isinstance(x, __builtin__.list):
-            for i in range(len(x)):
-                if (not isinstance(x[i], (int, Integer))) and x[i] not in ZZ:
+        if isinstance(x, builtins.list):
+            for z in x:
+                if (not isinstance(z, (int, Integer))) and z not in ZZ:
                     return False
-                if x[i] == 0:
+                if z == 0:
                     return False
         elif not isinstance(x, Composition):
             return False
@@ -130,8 +133,7 @@ class SignedCompositions(Compositions_n):
         """
         for comp in Compositions_n.__iter__(self):
             l = len(comp)
-            a = [[1,-1] for i in range(l)]
-            for sign in cartesian_product.CartesianProduct(*a):
+            for sign in itertools.product([1,-1], repeat=l):
                 yield [ sign[i]*comp[i] for i in range(l)]
 
 from sage.structure.sage_object import register_unpickle_override

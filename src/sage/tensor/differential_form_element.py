@@ -21,10 +21,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 from sage.symbolic.ring import SR
-from sage.rings.ring_element import RingElement
+from sage.structure.element import RingElement
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
@@ -44,7 +45,7 @@ def sort_subscript(subscript):
     INPUT:
 
     - ``subscript`` -- a subscript, i.e. a range of not necessarily
-        distinct integers
+      distinct integers
 
 
     OUTPUT:
@@ -158,7 +159,7 @@ class DifferentialFormFormatter:
         """
 
         str = "/\\".join( \
-            [('d%s' % self._space.coordinate(c).__repr__()) for c in comp])
+            [('d%r' % self._space.coordinate(c)) for c in comp])
 
         if fun == 1 and len(comp) > 0:
             # We have a non-trivial form whose component function is 1,
@@ -394,8 +395,7 @@ class DifferentialForm(AlgebraElement):
         self._components = {}
 
         if degree == 0 and fun is not None:
-            self.__setitem__([], fun)
-
+            self[[]] = fun
 
     def __getitem__(self, subscript):
         r"""
@@ -403,9 +403,8 @@ class DifferentialForm(AlgebraElement):
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer
-        or a list of integers.
-
+        - ``subscript`` -- subscript of the component.  Must be an integer
+          or a list of integers.
 
         EXAMPLES::
 
@@ -426,7 +425,6 @@ class DifferentialForm(AlgebraElement):
             sage: df[2]
             0
         """
-
         if isinstance(subscript, (Integer, int)):
             subscript = (subscript, )
         else:
@@ -447,14 +445,14 @@ class DifferentialForm(AlgebraElement):
         else:
             return 0
 
-
     def __setitem__(self, subscript, fun):
         r"""
         Modify a given component of the differential form.
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer or a list of integers.
+        - ``subscript`` -- subscript of the component.  Must be an integer
+          or a list of integers.
 
         EXAMPLES::
 
@@ -552,7 +550,7 @@ class DifferentialForm(AlgebraElement):
             sage: f.diff() == g
             True
         """
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             if self._degree != other._degree:
                 return False
             else:
@@ -598,10 +596,7 @@ class DifferentialForm(AlgebraElement):
             sage: f != g
             True
         """
-
-
-        return not self.__eq__(other)
-
+        return not self == other
 
     def _neg_(self):
         r"""
@@ -762,7 +757,7 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print self._components
+        print(self._components)
 
 
     def diff(self):
@@ -1011,7 +1006,7 @@ class DifferentialForm(AlgebraElement):
             sage: f = DifferentialForm(F, 1)
             sage: f[1] = exp(z); f
             e^z*dy
-            sage: print f
+            sage: print(f)
             e^z*dy
             sage: f._repr_()
             'e^z*dy'

@@ -19,12 +19,13 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     cdef list _setup_internal_representation(self, matrix, reduced_matrix, ring, keep_initial_representation)
     cdef __exchange_value(self, long x, long y)
 
-    cpdef representation(self, B=*, reduced=*, labels=*, order=*)
+    cpdef representation(self, B=*, reduced=*, labels=*, order=*, lift_map=*)
     cpdef _current_rows_cols(self, B=*)
     cpdef representation_vectors(self)
     cpdef LeanMatrix _basic_representation(self, B=*)
     cpdef LeanMatrix _reduced_representation(self, B=*)
-
+    
+    
     cpdef bint _is_field_isomorphism(self, LinearMatroid other, morphism)
     cpdef is_field_equivalent(self, other)
     cpdef is_field_isomorphism(self, other, morphism)
@@ -60,6 +61,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     cpdef linear_extensions(self, element=*, F=*, simple=*, fundamentals=*)
     cpdef linear_coextensions(self, element=*, F=*, cosimple=*, fundamentals=*)
 
+    cpdef _is_3connected_shifting(self, certificate=*)
+    cpdef _is_4connected_shifting(self, certificate=*)
+
     cpdef is_valid(self)
 
 cdef class BinaryMatroid(LinearMatroid):
@@ -75,7 +79,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, certificate=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -106,7 +110,7 @@ cdef class TernaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, certificate=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -134,7 +138,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
 
     cdef  __fundamental_cocircuit(self, bitset_t, long x)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, certificate=*)
 
     cpdef _minor(self, contractions, deletions)
 
@@ -154,7 +158,7 @@ cdef class RegularMatroid(LinearMatroid):
     cpdef base_ring(self)
     cpdef characteristic(self)
 
-    cpdef _is_isomorphic(self, other)
+    cpdef _is_isomorphic(self, other, certificate=*)
 
     cpdef _invariant(self)
     cpdef _fast_isom_test(self, other)

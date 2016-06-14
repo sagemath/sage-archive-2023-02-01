@@ -24,6 +24,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
@@ -75,9 +76,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
         sage: e = M.basis('e') ; f = N.basis('f')
         sage: H = Hom(M,N) ; H
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-2 free module N over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-2 free module N over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: phi = H([[2,-1,3], [1,0,-4]], name='phi', latex_name=r'\phi') ; phi
         Generic morphism:
           From: Rank-3 free module M over the Integer Ring
@@ -168,9 +169,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: Id = End(M).one() ; Id
         Identity endomorphism of Rank-3 free module M over the Integer Ring
         sage: Id.parent()
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-3 free module M over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-3 free module M over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: Id.parent() is End(M)
         True
 
@@ -457,7 +458,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __cmp__(self, other):
         r"""
@@ -485,7 +486,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             -1
 
         """
-        if self.__eq__(other):
+        if self == other:
             return 0
         else:
             return -1
@@ -531,7 +532,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the addition of ``self`` and ``other``
 
@@ -607,7 +608,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the subtraction of ``other`` from
           ``self``
@@ -689,7 +690,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``scalar`` -- element of the ring over which the parent of ``self``
           is a module.
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the multiphication of ``self`` by
           ``scalar``
@@ -826,12 +827,10 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: w.display()
             phi(v) = 3 f_0 + 13 f_1
 
-        Tests::
+        TESTS::
 
-            sage: for i in range(2):
-            ....:     print w[i] == sum( phi.matrix()[i,j]*v[j] for j in range(3) ),
-            ....:
-            True True
+            sage: all(w[i] == sum(phi.matrix()[i,j]*v[j] for j in range(3)) for i in range(2))
+            True
             sage: phi.matrix(e,f)
             [-1  2  0]
             [ 5  1  2]
@@ -852,10 +851,8 @@ class FiniteRankFreeModuleMorphism(Morphism):
             Element phi(v) of the Rank-2 free module N over the Integer Ring
             sage: w.display()
             phi(v) = -5 f_0 + 10 f_1
-            sage: for i in range(2):
-            ....:     print w[i] == sum( phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3) ),
-            ....:
-            True True
+            sage: all(w[i] == sum(phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3)) for i in range(2))
+            True
 
         Check of homomorphism properties::
 

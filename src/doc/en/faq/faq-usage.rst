@@ -19,12 +19,6 @@ You can try out Sage without downloading anything:
 * **Sage cell:** A "one-off" version of Sage, available for doing one
   computation at a time. http://sagecell.sagemath.org/
 
-* **Sagenb:** Some public Sage notebook servers allow you to create a free
-  account.
-
-  If you log in, you will be working on a free, browser-based Sage notebook 
-  server that will work identically to the one you get within Sage. 
-
 To download a **pre-built binary** Sage distribution, visit
 http://sagemath.org/download.html and click on the link for the binary for your
 operating system.
@@ -97,7 +91,7 @@ tcl/tk development library. On Ubuntu, this is the command ::
 
 or something along that line. Next, reinstall Sage's Python::
 
-    sage -f python
+    sage -f python2
 
 This will pick up the tcl/tk library automatically. After successfully
 reinstalling Sage's Python, from within the Sage command line interface,
@@ -349,7 +343,7 @@ ints. For example::
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
     sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
-    (array(0.07675295564533369), 0.94070490247380478)
+    Ttest_indResult(statistic=0.076752955645333687, pvalue=0.94070490247380478)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])
 
@@ -513,17 +507,6 @@ On Ubuntu, try disabling "Power Manager" via ::
 under the "Startup Programs" or using ``cpufreq-set`` via the command
 line.
 
-
-Sage fails with the error message "restore segment prot after reloc: Permission denied". What is wrong?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The problem is related to SELinux. See this page for some tips to fix
-this:
-http://www.ittvis.com/services/techtip.asp?ttid=3092.
-We are currently tracking this issue at
-`ticket #480 <http://www.sagetrac.org/sage_trac/ticket/480>`_.
-
-
 When I start Sage, SELinux complains that "/path/to/libpari-gmp.so.2" requires text-relocation. How can I fix it?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -545,11 +528,7 @@ by typing ``make build`` in a terminal.
 How do I run sage in daemon mode, i.e. as a service?
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-We currently do not have a ready-to-go solution. There are several
-possibilities. Use ``screen``, ``nohup`` or ``disown``. We are
-tracking the issue at
-`ticket #381 <http://www.sagetrac.org/sage_trac/ticket/381>`_
-so stay tuned.
+There are several possibilities. Use ``screen``, ``nohup`` or ``disown``.
 
 
 The show command for plotting 3-D objects does not work.

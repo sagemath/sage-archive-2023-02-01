@@ -16,7 +16,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class SymmetricGroup(UniqueRepresentation, Parent):
     r"""
-
     An example of finite Weyl group: the symmetric group, with
     elements in list notation.
 
@@ -45,42 +44,12 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S.simple_reflections()
         Finite family {0: (1, 0, 2, 3), 1: (0, 2, 1, 3), 2: (0, 1, 3, 2)}
 
-    TESTS::
-
-        sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_associativity() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_enumerated_set_contains() . . . pass
-        running ._test_enumerated_set_iter_cardinality() . . . pass
-        running ._test_enumerated_set_iter_list() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_has_descent() . . . pass
-        running ._test_inverse() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_one() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_prod() . . . pass
-        running ._test_reduced_word() . . . pass
-        running ._test_simple_projections() . . . pass
-        running ._test_some_elements() . . . pass
-
     Only the following basic operations are implemented:
-     - :meth:`.one`
-     - :meth:`.product`
-     - :meth:`.simple_reflection`
-     - :meth:`.Element.has_right_descent`.
+
+    - :meth:`.one`
+    - :meth:`.product`
+    - :meth:`.simple_reflection`
+    - :meth:`.Element.has_right_descent`.
 
     All the other usual Weyl group operations are inherited from the
     categories::
@@ -96,6 +65,10 @@ class SymmetricGroup(UniqueRepresentation, Parent):
     :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.apply_simple_reflection`
     instead of :meth:`.simple_reflection` and :meth:`.product`. See
     ``CoxeterGroups().example()``.
+
+    TESTS::
+
+        sage: TestSuite(S).run()
     """
 
     def __init__(self, n = 4):
@@ -168,6 +141,19 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert x in self
         assert y in self
         return self(tuple(x.value[i] for i in y.value))
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        EXAMPLES::
+
+            sage: W = FiniteWeylGroups().example()
+            sage: W.degrees()
+            (2, 3, 4)
+        """
+        from sage.rings.integer_ring import ZZ
+        return tuple(ZZ(i) for i in range(2, self.n + 1))
 
     class Element(ElementWrapper):
 

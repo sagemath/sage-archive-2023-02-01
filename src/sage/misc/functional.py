@@ -21,6 +21,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.misc.latex
 import sage.interfaces.expect
@@ -34,7 +35,7 @@ import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
 
-import __builtin__
+from six.moves import builtins
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -124,7 +125,8 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces with basis over quotient fields
+        Category of finite dimensional vector spaces with basis over
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()
@@ -230,7 +232,7 @@ def decomposition(x):
         [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1,
         Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
         sage: d[0].parent()
-        Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
+        Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2
     """
     return x.decomposition()
 
@@ -438,14 +440,14 @@ def symbolic_sum(expression, *args, **kwds):
         zeta(5)
 
     .. WARNING::
-    
+
         This function only works with symbolic expressions. To sum any
         other objects like list elements or function return values,
         please use python summation, see
         http://docs.python.org/library/functions.html#sum
 
         In particular, this does not work::
-        
+
             sage: n = var('n')
             sage: list=[1,2,3,4,5]
             sage: sum(list[n],n,0,3)
@@ -454,12 +456,12 @@ def symbolic_sum(expression, *args, **kwds):
             TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
-        
+
             sage: sum(list[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::
-        
+
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
@@ -1477,16 +1479,16 @@ def round(x, ndigits=0):
        This is currently slower than the builtin round function, since
        it does more work - i.e., allocating an RDF element and
        initializing it. To access the builtin version do
-       ``import __builtin__; __builtin__.round``.
+       ``from six.moves import builtins; builtins.round``.
     """
     try:
         if ndigits:
-            return RealDoubleElement(__builtin__.round(x, ndigits))
+            return RealDoubleElement(builtins.round(x, ndigits))
         else:
             try:
                 return x.round()
             except AttributeError:
-                return RealDoubleElement(__builtin__.round(x, 0))
+                return RealDoubleElement(builtins.round(x, 0))
     except ArithmeticError:
         if not isinstance(x, RealDoubleElement):
             return round(RDF(x), ndigits)
@@ -1574,7 +1576,7 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
-    from sage.rings.arith import factor
+    from sage.arith.all import factor
     from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)

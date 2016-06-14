@@ -10,7 +10,7 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.misc.cachefunc import cached_function, cached_method
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -120,7 +120,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         one that does distinguish different trees.
     """
     # Standard auto-parent trick
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -416,7 +416,7 @@ class RootedTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     the set of all rooted trees (of the given size ``size`` if
     specified)
@@ -794,8 +794,6 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         sage: xyy2._get_list() == yxy2._get_list()
         True
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """

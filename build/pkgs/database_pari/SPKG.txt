@@ -10,10 +10,6 @@ See http://pari.math.u-bordeaux.fr/packages.html
 
 GNU General Public License (GPL version 2 or any later version).
 
-== SPKG Maintainers ==
-
-* Jeroen Demeyer
-
 == Upstream Contact ==
 
 http://pari.math.u-bordeaux.fr/

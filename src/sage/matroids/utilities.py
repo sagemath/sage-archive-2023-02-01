@@ -23,13 +23,18 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.constructor import Matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
-from sage.graphs.all import BipartiteGraph
+from sage.graphs.all import BipartiteGraph, Graph
 from pprint import pformat
 from sage.structure.all import SageObject
-
+from sage.graphs.spanning_tree import kruskal
+from sage.graphs.graph import Graph
+from sage.matrix.constructor import matrix
+from operator import itemgetter
+from sage.rings.number_field.number_field import NumberField
 
 def setprint(X):
     """
@@ -83,7 +88,7 @@ def setprint(X):
         sage: setprint(G)
         Petersen graph: Graph on 10 vertices
     """
-    print setprint_s(X, toplevel=True)
+    print(setprint_s(X, toplevel=True))
 
 
 def setprint_s(X, toplevel=False):
@@ -354,3 +359,366 @@ def get_nonisomorphic_matroids(MSet):
         if not seen:
             OutSet.append(M)
     return OutSet
+
+def spanning_forest(M):
+    r"""
+    Return a list of edges of a spanning forest of the bipartite
+    graph defined by `M`
+
+    INPUT:
+
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+      rows and columns, if `M[i,j]` is non-zero, then there is an edge
+      between row `i` and column `j`.
+
+    OUTPUT:
+
+    A list of tuples `(r_i,c_i)` representing edges between row `r_i` and column `c_i`.
+
+    EXAMPLES::
+
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[1,1,1],[1,1,1],[1,1,1]])))
+        5
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[0,0,1],[0,1,0],[0,1,0]])))
+        3
+    """
+    # Given a matrix, produce a spanning tree
+    G = Graph()
+    m = M.ncols()
+    for (x,y) in M.dict():
+        G.add_edge(x+m,y)
+    T = []
+    # find spanning tree in each component
+    for component in G.connected_components():
+        spanning_tree = kruskal(G.subgraph(component))
+        for (x,y,z) in spanning_tree:
+            if x < m:
+                t = x
+                x = y
+                y = t
+            T.append((x-m,y))
+    return T
+
+def spanning_stars(M):
+    r"""
+    Returns the edges of a connected subgraph that is a union of 
+    all edges incident some subset of vertices.
+
+    INPUT:
+
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+      rows and columns, if `M[i,j]` is non-zero, then there is an edge
+      between row i and column 0.
+
+    OUTPUT:
+
+    A list of tuples `(row,column)` in a spanning forest of the bipartite graph defined by ``M``
+    
+    EXAMPLES::
+
+        sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
+        sage: Graph([(x+3, y) for x,y in edges]).is_connected()
+        True
+    """
+
+    G = Graph()
+    m = M.ncols()
+    for (x,y) in M.dict():
+        G.add_edge(x+m,y)
+
+    delta = (M.nrows()+m)**0.5
+    # remove low degree vertices
+    H = []
+    # candidate vertices
+    V_0 = set([])
+    d = 0
+    while G.order()>0:
+        (x,d) = min(G.degree_iterator(labels=True),key=itemgetter(1))
+        if d < delta:
+            V_0.add(x)
+            H.extend(G.edges_incident(x,False))
+            G.delete_vertex(x)
+        else:
+            break
+
+    # min degree is at least sqrt(n)
+    # greedily remove vertices
+    G2 = G.copy()
+    # set of picked vertices
+    V_1 = set([])
+    while G2.order()>0:
+        # choose vertex with maximum degree in G2
+        (x,d) = max(G2.degree_iterator(labels=True),key=itemgetter(1))
+        V_1.add(x)
+        G2.delete_vertices(G2.neighbors(x))
+        G2.delete_vertex(x)
+
+    # G2 is a graph of all edges incident to V_1
+    G2 = Graph()
+    for v in V_1:
+        for u in G.neighbors(v):
+            G2.add_edge(u,v)
+
+    V = V_0 | V_1
+    # compute a spanning tree
+    T = spanning_forest(M)
+    for (x,y) in T:
+        if not x in V and not y in V:
+            V.add(v)
+
+    for v in V:
+        if G.has_vertex(v): # some vertices are not in G
+            H.extend(G.edges_incident(v,False))
+
+    # T contain all edges in some spanning tree
+    T = []
+    for (x,y) in H:
+        if x < m:
+            t = x
+            x = y
+            y = t
+        T.append((x-m,y))
+    return T
+
+# Partial fields and lifting
+
+def lift_cross_ratios(A, lift_map = None):
+    r"""
+    Return a matrix which arises from the given matrix by lifting cross ratios.
+
+    INPUT:
+
+    - ``A`` -- a matrix over a ring ``source_ring``.
+    - ``lift_map`` -- a python dictionary, mapping each cross ratio of ``A`` to some element
+      of a target ring, and such that ``lift_map[source_ring(1)] = target_ring(1)``.
+
+    OUTPUT:
+
+    - ``Z`` -- a matrix over the ring ``target_ring``.
+
+    The intended use of this method is to create a (reduced) matrix representation of a
+    matroid ``M`` over a ring ``target_ring``, given a (reduced) matrix representation of
+    ``A`` of ``M`` over a ring ``source_ring`` and a map ``lift_map`` from ``source_ring``
+    to ``target_ring``.
+
+    This method will create a unique candidate representation ``Z``, but will not verify
+    if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
+    conditions of the lift theorem (see [PvZ]_) hold for the lift map in combination with
+    the matrix ``A``.
+
+    For a lift map `f` and a matrix `A` these conditions are as follows. First of all
+    `f: S \rightarrow T`, where `S` is a set of invertible elements of the source ring and
+    `T` is a set of invertible elements of the target ring. The matrix `A` has entries
+    from the source ring, and each cross ratio of `A` is contained in `S`. Moreover:
+
+    - `1 \in S`, `1 \in T`;
+    - for all `x \in S`: `f(x) = 1` if and only if `x = 1`;
+    - for all `x, y \in S`: if `x + y = 0` then `f(x) + f(y) = 0`;
+    - for all `x, y \in S`: if `x + y = 1` then `f(x) + f(y) = 1`;
+    - for all `x, y, z \in S`: if  `xy = z` then `f(x)f(y) = f(z)`.
+
+    Any ring homomorphism `h: P \rightarrow R` induces a lift map from the set of units `S` of
+    `P` to the set of units `T` of `R`. There exist lift maps which do not arise in
+    this manner. Several such maps can be created by the function
+    :meth:`lift_map() <sage.matroids.utilities.lift_map>`.
+
+    .. SEEALSO::
+
+        :meth:`lift_map() <sage.matroids.utilities.lift_map>`
+
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
+        sage: R = GF(7)
+        sage: to_sixth_root_of_unity = lift_map('sru')
+        sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
+        sage: A
+        [1 0 6 1 2]
+        [6 1 0 0 1]
+        [0 6 3 6 0]
+        sage: Z = lift_cross_ratios(A, to_sixth_root_of_unity)
+        sage: Z
+        [ 1  0  1  1  1]
+        [ 1  1  0  0  z]
+        [ 0  z - 1  1  -z + 1  0]
+        sage: M = LinearMatroid(reduced_matrix = A)
+        sage: sorted(M.cross_ratios())
+        [3, 5]
+        sage: N = LinearMatroid(reduced_matrix = Z)
+        sage: sorted(N.cross_ratios())
+        [-z + 1, z]
+        sage: M.is_isomorphism(N, {e:e for e in M.groundset()})
+        True
+
+    """
+    for s,t in lift_map.iteritems():
+        source_ring = s.parent()
+        target_ring = t.parent()
+        break
+    plus_one1 = source_ring(1)
+    minus_one1 = source_ring(-1)
+    plus_one2 = target_ring(1)
+    minus_one2 = target_ring(-1)
+
+    G = Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
+    # write the entries of (a scaled version of) A as products of cross ratios of A
+    T = set()
+    for C in G.connected_components():
+        T.update(G.subgraph(C).min_spanning_tree())
+    # - fix a tree of the support graph G to units (= empty dict, product of 0 terms)
+    F = {entry[2]: dict() for entry in T}
+    W = set(G.edges()) - set(T)
+    H = G.subgraph(edges = T)
+    while W:
+        # - find an edge in W to process, closing a circuit in H which is induced in G
+        edge = W.pop()
+        path = H.shortest_path(edge[0], edge[1])
+        retry = True
+        while retry:
+            retry = False
+            for edge2 in W:
+                if edge2[0] in path and edge2[1] in path:
+                    W.add(edge)
+                    edge = edge2
+                    W.remove(edge)
+                    path = H.shortest_path(edge[0], edge[1])
+                    retry = True
+                    break
+        entry = edge[2]
+        entries = []
+        for i in range(len(path) - 1):
+            v = path[i]
+            w = path[i+1]
+            if v[1] == 0:
+                entries.append((v[0],w[0]))
+            else:
+                entries.append((w[0],v[0]))
+        # - compute the cross ratio `cr` of this whirl
+        cr = source_ring(A[entry])
+        div = True
+        for entry2 in entries:
+            if div:
+                cr = cr/A[entry2]
+            else:
+                cr = cr* A[entry2]
+            div = not div
+
+        monomial = dict()
+        if len(path) % 4 == 0:
+            if not cr == plus_one1:
+                monomial[cr] = 1
+        else:
+            cr = -cr
+            if not cr ==plus_one1:
+                monomial[cr] = 1
+            if  minus_one1 in monomial:
+                monomial[minus_one1] = monomial[minus_one1] + 1
+            else:
+                monomial[minus_one1] = 1
+
+        if cr != plus_one1 and not cr in lift_map:
+            raise ValueError("Input matrix has a cross ratio "+str(cr)+", which is not in the lift_map")
+        # - write the entry as a product of cross ratios of A
+        div = True
+        for entry2 in entries:
+            if div:
+                for cr, degree in F[entry2].iteritems():
+                    if cr in monomial:
+                        monomial[cr] = monomial[cr]+ degree
+                    else:
+                        monomial[cr] = degree
+            else:
+                for cr, degree in F[entry2].iteritems():
+                    if cr in monomial:
+                        monomial[cr] = monomial[cr] - degree
+                    else:
+                        monomial[cr] = -degree
+            div = not div
+        F[entry] = monomial
+        # - current edge is done, can be used in next iteration
+        H.add_edge(edge)
+
+    # compute each entry of Z as the product of lifted cross ratios
+    Z = Matrix(target_ring, A.nrows(), A.ncols())
+    for entry, monomial in F.iteritems():
+        Z[entry] = plus_one2
+        for cr,degree in monomial.iteritems():
+            if cr == minus_one1:
+                Z[entry] = Z[entry] * (minus_one2**degree)
+            else:
+                Z[entry] = Z[entry] * (lift_map[cr]**degree)
+
+    return Z
+
+def lift_map(target):
+    """
+    Create a lift map, to be used for lifting the cross ratios of a matroid
+    representation.
+
+    .. SEEALSO::
+
+        :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
+    INPUT:
+
+    - ``target`` -- a string describing the target (partial) field.
+
+    OUTPUT:
+
+    - a dictionary
+
+    Depending on the value of ``target``, the following lift maps will be created:
+
+    - "reg": a lift map from `\GF3` to the regular partial field `(\ZZ, <-1>)`.
+
+    - "sru": a lift map from `\GF7` to the
+      sixth-root-of-unity partial field `(\QQ(z), <z>)`, where `z` is a sixth root
+      of unity. The map sends 3 to `z`.
+
+    - "dyadic": a lift map from `\GF{11}` to the dyadic partial field `(\QQ, <-1, 2>)`.
+
+    - "gm": a lift map from `\GF{19}` to the golden mean partial field
+      `(\QQ(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
+
+    The example below shows that the latter map satisfies three necessary conditions stated in
+    :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import lift_map
+        sage: lm = lift_map('gm')
+        sage: for x in lm:
+        ....:     if (x == 1) is not (lm[x] == 1):
+        ....:         print('not a proper lift map')
+        ....:     for y in lm:
+        ....:         if (x+y == 0) and not (lm[x]+lm[y] == 0):
+        ....:             print('not a proper lift map')
+        ....:         if (x+y == 1) and not (lm[x]+lm[y] == 1):
+        ....:             print('not a proper lift map')
+        ....:         for z in lm:
+        ....:             if (x*y==z) and not (lm[x]*lm[y]==lm[z]):
+        ....:                 print('not a proper lift map')
+
+    """
+    if target == "reg":
+        R = GF(3)
+        return {R(1): ZZ(1)}
+
+    if target == "sru":
+        R = GF(7)
+        z = ZZ['z'].gen()
+        S = NumberField(z*z-z+1, 'z')
+        return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**5}
+
+    if target == "dyadic":
+        R = GF(11)
+        return {R(1):QQ(1), R(-1):QQ(-1), R(2):QQ(2), R(6): QQ(1/2)}
+
+    if target == "gm":
+        R = GF(19)
+        t = QQ['t'].gen()
+        G = NumberField(t*t-t-1, 't')
+        return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t),
+            R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
+
+    raise NotImplementedError(target)

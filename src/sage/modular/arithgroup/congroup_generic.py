@@ -23,7 +23,7 @@ AUTHORS:
 ################################################################################
 
 from sage.rings.all import QQ, ZZ, Zmod
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.sets.set import Set
 from sage.groups.matrix_gps.all import MatrixGroup
 from sage.matrix.matrix_space import MatrixSpace
@@ -90,7 +90,7 @@ def CongruenceSubgroup_constructor(*args):
     if is_MatrixGroup(args[0]):
         G = args[0]
 
-    elif isinstance(args[0], type([])):
+    elif isinstance(args[0], list):
         G = MatrixGroup(args[0])
 
     elif args[0] in ZZ:

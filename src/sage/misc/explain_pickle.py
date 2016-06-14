@@ -177,7 +177,7 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     of ``explain_pickle`` to ``sage_eval`` should be totally equivalent to loading
     the ``pickle`` with ``cPickle``.
 
-    INPUTS:
+    INPUT:
 
      - ``pickle``   -- the pickle to explain, as a string (default: None)
      - ``file``     -- a filename of a pickle (default: None)

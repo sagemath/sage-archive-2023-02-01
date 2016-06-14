@@ -81,7 +81,7 @@ FriCAS would print out.
 
 ::
 
-    sage: print fricas.eval('factor(x^5 - y^5)')   # optional - fricas
+    sage: print(fricas.eval('factor(x^5 - y^5)'))   # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )    Type: Factored(Polynomial(Integer))
 
@@ -121,7 +121,9 @@ control-C.
          +-+
       29\|2  + 41
 
-TESTS: We check to make sure the subst method works with keyword
+TESTS:
+
+We check to make sure the subst method works with keyword
 arguments.
 
 ::
@@ -150,6 +152,8 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
+
 from axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
 
 
@@ -334,6 +338,9 @@ def fricas_console():
            Issue )quit to leave AXIOM and return to shell.
         -----------------------------------------------------------------------------
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%fricas magics instead.')
     os.system('fricas -nox')
 
 def __doctest_cleanup():

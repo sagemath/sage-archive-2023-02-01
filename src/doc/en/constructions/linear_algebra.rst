@@ -193,7 +193,7 @@ Sage has a full range of functions for computing eigenvalues and both
 left and right eigenvectors and eigenspaces.  If our matrix is :math:`A`,
 then the ``eigenmatrix_right`` (resp. ``eightmatrix_left``) command also
 gives matrices :math:`D` and :math:`P` such that :math:`AP=PD` (resp.
-:math:`PA=PD`.)
+:math:`PA=DP`.)
 
 ::
 
@@ -306,11 +306,11 @@ Finally, you can use Sage's GAP interface as well to compute
 
 ::
 
-    sage: print gap.eval("A := [[1,2,3],[4,5,6],[7,8,9]]")
+    sage: print(gap.eval("A := [[1,2,3],[4,5,6],[7,8,9]]"))
     [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ]
-    sage: print gap.eval("v := Eigenvectors( Rationals,A)")
+    sage: print(gap.eval("v := Eigenvectors( Rationals,A)"))
     [ [ 1, -2, 1 ] ]
-    sage: print gap.eval("lambda := Eigenvalues( Rationals,A)")
+    sage: print(gap.eval("lambda := Eigenvalues( Rationals,A)"))
     [ 0 ]
 
 .. _section-rref:
@@ -428,7 +428,7 @@ You can even nicely typeset the solution in LaTeX:
 
 ::
 
-    sage.: print latex(s)
+    sage.: print(latex(s))
     ...
 
 To have the above appear onscreen via xdvi, type ``view(s)``.

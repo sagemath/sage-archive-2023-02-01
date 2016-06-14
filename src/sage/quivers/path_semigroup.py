@@ -18,6 +18,7 @@ Path Semigroups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from sage.rings.integer import Integer
@@ -336,7 +337,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         elif not data:
             raise ValueError("No data given to define this path")
         elif data == 1:
-            start = end = self._quiver.vertex_iterator().next()
+            start = end = next(self._quiver.vertex_iterator())
             path = []
         elif isinstance(data, six.string_types): # one edge
             i = L.get(data, None)
@@ -362,7 +363,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             path = []
         else:  # a list of edges
             if any(len(x) != 3 for x in data):
-                x = (x for x in data if len(x) != 3).next()
+                x = next((x for x in data if len(x) != 3))
                 raise ValueError("each edge must be a triple, got {}".format(x))
             start = data[0][0]
             end = data[-1][1]
@@ -380,7 +381,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
                     raise ValueError("Start and endpoint of a path of length 0 must coincide")
             else:
                 if any(x is None for x in path):
-                    i = (i for i,x in enumerate(path) if x is None).next()
+                    i = next((i for i,x in enumerate(path) if x is None))
                     raise ValueError("{} is not an edge".format(data[i]))
                 for n in range(1,len(path)):
                     e0 = E[path[n-1]][1]
@@ -575,7 +576,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: counter = 0
             sage: for p in P:
             ....:     counter += 1
-            ....:     print p
+            ....:     print(p)
             ....:     if counter==20:
             ....:         break
             e_1
@@ -738,7 +739,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         return self._quiver.reverse().path_semigroup()
 
-    def algebra(self, k):
+    def algebra(self, k, order = "negdegrevlex"):
         """
         Return the path algebra of the underlying quiver.
 
@@ -746,15 +747,41 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         - ``k`` -- a commutative ring
 
+        - ``order`` -- optional string, one of "negdegrevlex" (default),
+          "degrevlex", "negdeglex" or "deglex", defining the monomial order to
+          be used.
+
+        NOTE:
+
+        Monomial orders that are not degree orders are not supported.
+
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
             sage: P = Q.path_semigroup()
             sage: P.algebra(GF(3))
             Path algebra of Multi-digraph on 3 vertices over Finite Field of size 3
+
+        Now some example with different monomial orderings::
+
+            sage: P1 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
+            sage: P2 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="degrevlex")
+            sage: P3 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="negdeglex")
+            sage: P4 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="deglex")
+            sage: P1.order_string()
+            'negdegrevlex'
+            sage: sage_eval('(x+2*z+1)^3', P1.gens_dict())
+            e_1 + z + 3*x + 2*z*z + x*z + z*x + 3*x*x + 3*z*z*z + 4*x*z*z + 4*z*x*z + 2*x*x*z + 4*z*z*x + 2*x*z*x + 2*z*x*x + x*x*x
+            sage: sage_eval('(x+2*z+1)^3', P2.gens_dict())
+            3*z*z*z + 4*x*z*z + 4*z*x*z + 2*x*x*z + 4*z*z*x + 2*x*z*x + 2*z*x*x + x*x*x + 2*z*z + x*z + z*x + 3*x*x + z + 3*x + e_1
+            sage: sage_eval('(x+2*z+1)^3', P3.gens_dict())
+            e_1 + z + 3*x + 2*z*z + z*x + x*z + 3*x*x + 3*z*z*z + 4*z*z*x + 4*z*x*z + 2*z*x*x + 4*x*z*z + 2*x*z*x + 2*x*x*z + x*x*x
+            sage: sage_eval('(x+2*z+1)^3', P4.gens_dict())
+            3*z*z*z + 4*z*z*x + 4*z*x*z + 2*z*x*x + 4*x*z*z + 2*x*z*x + 2*x*x*z + x*x*x + 2*z*z + z*x + x*z + 3*x*x + z + 3*x + e_1
+
         """
         from sage.quivers.algebra import PathAlgebra
-        return PathAlgebra(k, self)
+        return PathAlgebra(k, self, order)
 
     ###########################################################################
     #                                                                         #

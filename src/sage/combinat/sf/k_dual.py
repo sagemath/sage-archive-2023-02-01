@@ -95,7 +95,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             sage: Q = Sym.kBoundedQuotient(3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert t to a rational
+            TypeError: unable to convert 't' to a rational
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
             sage: Q = Sym.kBoundedQuotient(3)
             sage: km = Q.km()
@@ -650,6 +650,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             The set of `k`-bounded partitions of all non-negative integers.
 
             EXAMPLES::
+
                 sage: km = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).km()
                 sage: km.indices()
                 3-Bounded Partitions
@@ -1241,7 +1242,7 @@ class DualkSchurFunctions(KBoundedQuotientBasis):
 
     REFERENCES:
 
-    .. [LLMSSZ] T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
+    .. [LLMSSZ] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
         k-Schur functions and affine Schubert calculus.
     """
 
@@ -1363,7 +1364,7 @@ class AffineSchurFunctions(KBoundedQuotientBasis):
 
     REFERENCES:
 
-    .. [Lam2006] T. Lam, Schubert polynomials for the affine Grassmannian, J. Amer.
+    .. [Lam2006] \T. Lam, Schubert polynomials for the affine Grassmannian, J. Amer.
         Math. Soc., 21 (2008), 259-281.
     """
 

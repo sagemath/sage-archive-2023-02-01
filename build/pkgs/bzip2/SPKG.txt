@@ -12,10 +12,6 @@ decompression.
 
 BSD-style
 
-== SPKG Maintainers ==
-
-None
-
 == Upstream Contact ==
 
  * Website http://bzip.org/

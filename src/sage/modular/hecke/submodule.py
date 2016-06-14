@@ -19,7 +19,7 @@ Submodules of Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
 
@@ -166,6 +166,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         other, and -1 otherwise.
 
         EXAMPLES::
+
             sage: M = ModularSymbols(12,6)
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.cuspidal_submodule().free_module())
             sage: T = sage.modular.hecke.submodule.HeckeSubmodule(M, M.new_submodule().free_module())

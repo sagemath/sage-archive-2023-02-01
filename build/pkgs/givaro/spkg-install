@@ -34,6 +34,9 @@ export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
 cd src/
 
+# Use newer version of config.guess and config.sub (see Trac #19728)
+cp "$SAGE_ROOT"/config/config.* build-aux
+
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL/" --enable-shared
 
 if [ $? -ne 0 ]; then

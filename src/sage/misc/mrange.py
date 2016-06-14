@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import prod
 
@@ -242,7 +243,7 @@ class xmrange_iter:
         sage: z = xmrange_iter([range(3),range(2)], tuple);z
         xmrange_iter([[0, 1, 2], [0, 1]], <type 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -294,7 +295,7 @@ class xmrange_iter:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange_iter([X, Y], tuple):
-        ...    print (i, j)
+        ....:     print((i, j))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')
@@ -499,7 +500,7 @@ class xmrange:
         sage: z = xmrange([3,2], tuple);z
         xmrange([3, 2], <type 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -551,7 +552,7 @@ class xmrange:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange([len(X), len(Y)]):
-        ...    print (X[i], Y[j])
+        ....:     print((X[i], Y[j]))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')
@@ -598,7 +599,7 @@ def cartesian_product_iterator(X):
     -  ``X`` - list or tuple of lists
 
 
-    OUTPUT: iterator over the cartesian product of the elements of X
+    OUTPUT: iterator over the Cartesian product of the elements of X
 
     EXAMPLES::
 
@@ -608,3 +609,110 @@ def cartesian_product_iterator(X):
         [()]
     """
     return xmrange_iter(X, tuple)
+
+def cantor_product(*args, **kwds):
+    r"""
+    Return an iterator over the product of the inputs along the diagonals a la
+    :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
+
+    INPUT:
+
+    - a certain number of iterables
+
+    - ``repeat`` -- an optional integer. If it is provided, the input is
+      repeated ``repeat`` times.
+
+    EXAMPLES::
+
+        sage: from sage.misc.mrange import cantor_product
+        sage: list(cantor_product([0, 1], repeat=3))
+        [(0, 0, 0),
+         (1, 0, 0),
+         (0, 1, 0),
+         (0, 0, 1),
+         (1, 1, 0),
+         (1, 0, 1),
+         (0, 1, 1),
+         (1, 1, 1)]
+        sage: list(cantor_product([0, 1], [0, 1, 2, 3]))
+        [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2), (0, 3), (1, 3)]
+
+    Infinite iterators are valid input as well::
+    
+       sage: from itertools import islice
+       sage: list(islice(cantor_product(ZZ, QQ), 14))
+        [(0, 0),
+         (1, 0),
+         (0, 1),
+         (-1, 0),
+         (1, 1),
+         (0, -1),
+         (2, 0),
+         (-1, 1),
+         (1, -1),
+         (0, 1/2),
+         (-2, 0),
+         (2, 1),
+         (-1, -1),
+         (1, 1/2)]
+
+    TESTS::
+
+        sage: C = cantor_product([0, 1], [0, 1, 2, 3], [0, 1, 2])
+        sage: sum(1 for _ in C) == 2*4*3
+        True
+
+        sage: from itertools import count
+        sage: list(cantor_product([], count()))
+        []
+        sage: list(cantor_product(count(), [], count()))
+        []
+
+        sage: list(cantor_product(count(), repeat=0))
+        [()]
+
+        sage: next(cantor_product(count(), repeat=-1))
+        Traceback (most recent call last):
+        ...
+        ValueError: repeat argument cannot be negative
+        sage: next(cantor_product(count(), toto='hey'))
+        Traceback (most recent call last):
+        ...
+        TypeError: 'toto' is an invalid keyword argument for this function
+    """
+    from itertools import count
+    from sage.combinat.integer_lists import IntegerListsLex
+
+    m = len(args)                         # numer of factors
+    lengths = [None] * m                  # None or length of factors
+    data = [[] for _ in range(m)]         # the initial slice of each factor
+    iterators = [iter(a) for a in args]   # the iterators
+    repeat = int(kwds.pop('repeat', 1))
+    if repeat == 0:
+        yield ()
+        return
+    elif repeat < 0:
+        raise ValueError("repeat argument cannot be negative")
+    if kwds:
+        raise TypeError("'{}' is an invalid keyword argument for this function".format(next(kwds.iterkeys())))
+    mm = m * repeat
+
+    for n in count(0):
+        # try to add one more term to each bin
+        for i, a in enumerate(iterators):
+            if lengths[i] is None:
+                try:
+                    data[i].append(next(a))
+                except StopIteration:
+                    assert len(data[i]) == n
+                    if n == 0:
+                        return
+                    lengths[i] = n
+
+        # iterate through what we have
+        ceiling = [n if lengths[i] is None else lengths[i]-1 for i in range(m)] * repeat
+        for v in IntegerListsLex(n, length=mm, ceiling=ceiling):
+            yield tuple(data[i%m][v[i]] for i in range(mm))
+
+        if all(l is not None for l in lengths) and repeat*sum(l-1 for l in lengths) == n:
+            return

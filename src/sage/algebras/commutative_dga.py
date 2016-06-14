@@ -61,11 +61,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.functional import is_odd, is_even
 from sage.misc.misc_c import prod
 from sage.categories.algebras import Algebras
@@ -107,6 +109,8 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -250,7 +254,7 @@ class Differential(UniqueRepresentation, Morphism):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ)
             sage: B = A.cdg_algebra({x: x*y, y: x*y, z: z*t, t: t*z})
             sage: D = B.differential()
-            sage: print D._repr_defn()
+            sage: print(D._repr_defn())
             x --> x*y
             y --> x*y
             z --> z*t
@@ -2513,6 +2517,16 @@ class CohomologyClass(SageObject):
             [x - 2]
         """
         self._x = x
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.algebras.commutative_dga import CohomologyClass
+            sage: hash(CohomologyClass(sin)) == hash(sin)
+            True
+        """
+        return hash(self._x)
 
     def _repr_(self):
         """

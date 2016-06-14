@@ -4,6 +4,39 @@ from __future__ import print_function
 import os, sys, time, errno, platform, subprocess, glob
 from distutils.core import setup
 
+
+def excepthook(*exc):
+    """
+    When an error occurs, display an error message similar to the error
+    messages from ``sage-spkg``.
+
+    In particular, ``build/make/install`` will recognize "sage" as a failed
+    package, see :trac:`16774`.
+    """
+    stars = '*' * 72
+
+    print(stars, file=sys.stderr)
+    import traceback
+    traceback.print_exception(*exc, file=sys.stderr)
+    print(stars, file=sys.stderr)
+    print("Error building the Sage library", file=sys.stderr)
+    print(stars, file=sys.stderr)
+
+    try:
+        logfile = os.path.join(os.environ['SAGE_LOGS'],
+                "sagelib-%s.log" % os.environ['SAGE_VERSION'])
+    except:
+        pass
+    else:
+        print("Please email sage-devel (http://groups.google.com/group/sage-devel)", file=sys.stderr)
+        print("explaining the problem and including the relevant part of the log file", file=sys.stderr)
+        print("  " + logfile, file=sys.stderr)
+        print("Describe your computer, operating system, etc.", file=sys.stderr)
+        print(stars, file=sys.stderr)
+
+sys.excepthook = excepthook
+
+
 #########################################################
 ### List of Extensions
 ###
@@ -38,23 +71,16 @@ include_dirs = sage_include_directories(use_sources=True)
 extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
 DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
 
-# Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
-# as witnessed by a doctest in sage/libs/gap/element.pyx if the
-# compiler flag -Og is used. See also
+# Work around GCC-4.8 bug which miscompiles some sig_on() statements:
 # * http://trac.sagemath.org/sage_trac/ticket/14460
+# * http://trac.sagemath.org/sage_trac/ticket/20226
 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-dominator-opts')
+    extra_compile_args.append('-fno-tree-copyrename')
 
 #########################################################
 ### Testing related stuff
@@ -291,6 +317,7 @@ def execute_list_of_commands(command_list):
 ########################################################################
 
 from distutils.command.build_ext import build_ext
+from distutils.command.install import install
 from distutils.dep_util import newer_group
 from distutils import log
 
@@ -544,7 +571,6 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
-        'embedsignature: True',
         'debug: ' + str(debug),
         'profile: ' + str(profile),
     ""])
@@ -573,15 +599,22 @@ print("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################
-### Discovering Python Sources
+### Discovering Sources
 #########################################################
 
-print("Discovering Python source code....")
+print("Discovering Python/Cython source code....")
 t = time.time()
-from sage_setup.find import find_python_sources
+from sage_setup.find import find_python_sources, find_extra_files
 python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
-print("Discovered Python source, time: %.2f seconds." % (time.time() - t))
+python_data_files = find_extra_files(python_packages,
+    ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
+
+print('python_packages = {0}'.format(python_packages))
+print('python_modules = {0}'.format(python_modules))
+print('python_data_files = {0}'.format(python_data_files))
+
+print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################
@@ -594,31 +627,26 @@ from sage_setup.clean import clean_install_dir
 output_dirs = SITE_PACKAGES + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
 for output_dir in output_dirs:
     print('- cleaning {0}'.format(output_dir))
-    clean_install_dir(output_dir, python_packages, python_modules, ext_modules)
+    clean_install_dir(output_dir, python_packages, python_modules,
+            ext_modules, python_data_files)
 print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
+
 #########################################################
-### Extra files to install
+### Install also Jupyter kernel spec
 #########################################################
 
-python_package_data = {}
-for package in python_packages:
-    if package == 'sage.libs.ntl':
-        python_package_data[package] = ['*.pxd', '*.pxi', '*.h', 'ntlwrap.cpp']
-    else:
-        python_package_data[package] = ['*.pxd', '*.pxi','*.h']
+# We cannot just add the installation of the kernel spec to data_files
+# since the file is generated, not copied.
+class sage_install(install):
+    def run(self):
+        install.run(self)
+        self.install_kernel_spec()
 
-# List of files generated by cython that needs to be installed.
-# The list gives the location of the files to be installed relative to SAGE_LIB.
-cython_generated_files =[
-    os.path.join('sage', 'ext', 'interrupt', 'interrupt_api.h'),
-    os.path.join('sage', 'ext', 'interrupt', 'interrupt.h')
-]
+    def install_kernel_spec(self):
+        from sage.repl.ipython_kernel.install import SageKernelSpec
+        SageKernelSpec.update()
 
-python_data_files = [
-    (os.path.join(SAGE_LIB, os.path.dirname(file)),[os.path.join(SAGE_CYTHONIZED, file)])
-    for file in cython_generated_files
-]
 
 #########################################################
 ### Distutils
@@ -632,9 +660,7 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      package_data= python_package_data,
       data_files  = python_data_files,
       scripts = [],
-      cmdclass = { 'build_ext': sage_build_ext },
+      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
       ext_modules = ext_modules)
-

@@ -34,6 +34,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
 from sage.combinat.rigged_configurations.bij_type_C import KRTToRCBijectionTypeC
@@ -78,6 +79,15 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             <BLANKLINE>
             0[]0
             <BLANKLINE>
+
+        TESTS:
+
+        Check that :trac:`19384` is fixed::
+
+            sage: RC = RiggedConfigurations(['B',3,1], [[3,1],[3,1]])
+            sage: RC._test_bijection()
+            sage: RC = RiggedConfigurations(['B',3,1], [[1,1],[3,1],[1,1]])
+            sage: RC._test_bijection()
         """
         if verbose:
             from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element \
@@ -95,7 +105,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
                 if verbose:
-                    print "===================="
+                    print("====================")
                     if len(self.cur_path) == 0:
                         print(repr([])) # Special case for displaying when the rightmost factor is a spinor
                     else:
@@ -180,7 +190,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                         bij.ret_rig_con[i]._list[j] //= 2
                         bij.ret_rig_con[i].rigging[j] //= 2
                         bij.ret_rig_con[i].vacancy_numbers[j] //= 2
-                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con)
+                self.ret_rig_con = self.tp_krt.parent().rigged_configurations()(*bij.ret_rig_con, use_vacancy_numbers=True)
                 # Make it mutable so we don't have to keep making copies, at the
                 #   end of the bijection, we will make it immutable again
                 self.ret_rig_con._set_mutable()
@@ -266,7 +276,10 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             max_width = max_width // 2
 
             # Check to see if we need to make the new string quasi-singular
-            max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+            if tableau_height != n-1:
+                max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+            else:
+                max_width = -1
             self._update_vacancy_nums(n - 1)
             self._update_partition_values(n - 1)
 
@@ -394,7 +407,10 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         max_width = max_width // 2
 
         # We need to do the next partition in order to determine the step at n
-        max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+        if tableau_height != n-1:
+            max_width = self.ret_rig_con[n-2].insert_cell(max_width)
+        else:
+            max_width = -1
 
         self._update_vacancy_nums(n - 1)
         self._update_partition_values(n - 1)

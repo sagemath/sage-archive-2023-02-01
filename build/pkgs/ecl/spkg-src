@@ -6,27 +6,52 @@
 # and its subdirectories!
 #
 # HOW TO MAKE THE TARBALL:
-# 1) copy upstream ecl-$ECLVERSION.tgz to this directory
-# 2) ./spkg-src
-# 3) compress ecl-$ECLVERSION into a .tar.bz2 file
+# 1) sage --sh build/pkgs/ecl/spkg-src
+#
+# needs autotools and sage in your PATH.
 #
 # AUTHOR: Jeroen Demeyer (November 2011)
+#         Dima Pasechnik (July 2015)
 
-# Sanity check: must be run from current directory
-if ! [ -f spkg-src ]; then
-    echo >&2 "This script must be run from its own source directory!"
+if [ -z "$SAGE_ROOT" ] ; then
+    echo >&2 "Error - SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
 # Exit on failure
 set -e
 
-# Untar ECL tarball
-ECLVERSION=13.5.1
-tar xf ecl-"$ECLVERSION".tgz
-cd ecl-"$ECLVERSION"
+cd build/pkgs/ecl
+
+ECLVERSION=`cat package-version.txt |sed 's/[.]p.*//'`
+ECLTARBALL="$SAGE_DISTFILES/ecl-$ECLVERSION.tar.bz2"
+
+# Remove old cruft
+rm -rf ecl-*
+
+# Download and extract upstream tarball
+sage-download-file https://common-lisp.net/project/ecl/static/files/release/ecl-$ECLVERSION.tgz |tar xz
+cd ecl-$ECLVERSION
+
+# Some patches are applied here, if they need to be applied before
+# running autoconf.
+echo "applying patches in ecl-$ECLVERSION/src"
+# For some of the patches, Cygwin also has upstream fixes that are
+# closely related, keep track.  See Trac #11119, for example.
+for patch in ../patches/src/*.patch; do
+    patch -p1 <"$patch"
+done
 
 # Remove unneeded files to save space
-rm -rf msvc
+rm -r msvc src/gmp/ src/libffi
+
+# Run autotools
 cd src
-rm -rf gc-unstable gmp libffi
+libtoolize
+autoreconf -ivf
+
+cd ../..
+tar c ecl-$ECLVERSION | bzip2 -c >"$ECLTARBALL"
+sage-fix-pkg-checksums "$ECLTARBALL"
+rm -rf ecl-*

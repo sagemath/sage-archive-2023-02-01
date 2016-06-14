@@ -1,5 +1,5 @@
-$(INST)/$(ZLIB) $(INST)/$(PYTHON)
+zlib $(PYTHON)
 
 ----------
 All lines of this file are ignored except the first.
-It is copied by SAGE_ROOT/build/install into SAGE_ROOT/build/Makefile.
+It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

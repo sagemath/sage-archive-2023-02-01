@@ -5,6 +5,14 @@ Sage allows for computation with elements of quaternion algebras over
 a nearly arbitrary base field of characteristic not 2.  Sage also has
 very highly optimized implementation of arithmetic in rational
 quaternion algebras and quaternion algebras over number fields.
+
+TESTS:
+
+Check that :trac:`20829` is fixed::
+
+    sage: D.<i,j,k>=QuaternionAlgebra(QQ,-1,-3)
+    sage: hash(i)
+    184301497
 """
 
 #*****************************************************************************
@@ -185,6 +193,33 @@ cdef inline print_coeff(y, i, bint atomic):
         return '%s*%s'%(y, i)
 
 cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from itertools import product
+            sage: for K in [QQ, QuadraticField(2), AA, Frac(QQ['x'])]:
+            ....:     Q.<i,j,k> = QuaternionAlgebra(K,-5,-2)
+            ....:     assert hash(Q.one()) == hash(K.one())
+            ....:     assert hash(Q(2)) == hash(K(2))
+            ....:     elts = []
+            ....:     for (x,y,z,w) in product([K(0), K(1), K(2), K(-1)], repeat=4):
+            ....:         elts.append(x + y*i + z*j + w*k)
+            ....:     assert len(set(map(hash, elts))) == len(elts)
+        """
+        cdef long h
+        h = hash(self[0])
+        x = self[1]
+        if x:
+            h = ((h+14152L)*13023L) ^ hash(x)
+        x = self[2]
+        if x:
+            h = ((h+33325L)*31321L) ^ hash(x)
+        x = self[3]
+        if x:
+            h = ((h+34125L)*51125L) ^ hash(x)
+        return h
+
     cpdef bint is_constant(self):
         """
         Return True if this quaternion is constant, i.e., has no i, j, or k term.

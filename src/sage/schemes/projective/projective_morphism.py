@@ -4482,41 +4482,41 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 ValueError: not enough rational preimages
 
             """
-    f=copy(self)
-    g=copy(other)
-    try:
-        f.normalize_coordinates()
-        g.normalize_coordinates()
-    except (ValueError):
-        pass# do nothing
-    if f.degree()!=g.degree():
-        return []
-    n=f.domain().dimension_relative()
-    set_verbose(None)
-    L=Set(f.periodic_points(1))
-    K=Set(g.periodic_points(1))
-    if len(L)!=len(K):
-        return []
-    d=len(L)
-    while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
-        Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
-        Tk=[Q for i in K for Q in g.rational_preimages(i)]
-        if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+        f=copy(self)
+        g=copy(other)
+        try:
+            f.normalize_coordinates()
+            g.normalize_coordinates()
+        except (ValueError):
+            pass# do nothing
+        if f.degree()!=g.degree():
             return []
-        L=L.union(Set(Tl))
-        K=K.union(Set(Tk))
-        if d==len(L):
-            raise ValueError("not enough rational preimages")
+        n=f.domain().dimension_relative()
+        set_verbose(None)
+        L=Set(f.periodic_points(1))
+        K=Set(g.periodic_points(1))
+        if len(L)!=len(K):
+            return []
         d=len(L)
-    Conj=[]
-    Z=n+2
-    J=list(L)
-    Tf=[J[i] for i in range(n+2)]
-    for i in Arrangements(K,(n+2)):
-        s=f.domain().point_transformation_matrix(i,Tf)
-        if self.conjugate(s)==other:
-            Conj.append(s) # return true for is conj. leave for conj sets
-    return Conj
+        while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
+            Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
+            Tk=[Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+                return []
+            L=L.union(Set(Tl))
+            K=K.union(Set(Tk))
+            if d==len(L):
+                raise ValueError("not enough rational preimages")
+            d=len(L)
+        Conj=[]
+        Z=n+2
+        J=list(L)
+        Tf=[J[i] for i in range(n+2)]
+        for i in Arrangements(K,(n+2)):
+            s=f.domain().point_transformation_matrix(i,Tf)
+            if self.conjugate(s)==other:
+                Conj.append(s) # return true for is conj. leave for conj sets
+        return Conj
 
     def is_conjugate(self,other):
         r"""
@@ -4545,41 +4545,41 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 sage: is_conjugate(D8,D8)
                 True
         """
-    f=copy(self)
-    g=copy(other)
-    try:
-        f.normalize_coordinates()
-        g.normalize_coordinates()
-    except (ValueError):
-        pass
-    if f.degree()!=g.degree():
-        return False
-    n=f.domain().dimension_relative()
-    set_verbose(None)
-    L=Set(f.periodic_points(1))
-    K=Set(g.periodic_points(1))
-    if len(L)!=len(K):
-        return False
-    d=len(L)
-    while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
-        Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
-        Tk=[Q for i in K for Q in g.rational_preimages(i)]
-        if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+        f=copy(self)
+        g=copy(other)
+        try:
+            f.normalize_coordinates()
+            g.normalize_coordinates()
+        except (ValueError):
+            pass
+        if f.degree()!=g.degree():
             return False
-        L=L.union(Set(Tl))
-        K=K.union(Set(Tk))
-        if d==len(L):
-            raise ValueError("not enough rational preimages")
+        n=f.domain().dimension_relative()
+        set_verbose(None)
+        L=Set(f.periodic_points(1))
+        K=Set(g.periodic_points(1))
+        if len(L)!=len(K):
+            return False
         d=len(L)
-    Conj=[]
-    Z=n+2
-    J=list(L)
-    Tf=[J[i] for i in range(n+2)]
-    for i in Arrangements(K,(n+2)):
-        s=f.domain().point_transformation_matrix(i,Tf)
-        if self.conjugate(s)==other:
-            return True
-    return False
+        while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
+            Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
+            Tk=[Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
+                return False
+            L=L.union(Set(Tl))
+            K=K.union(Set(Tk))
+            if d==len(L):
+                raise ValueError("not enough rational preimages")
+            d=len(L)
+        Conj=[]
+        Z=n+2
+        J=list(L)
+        Tf=[J[i] for i in range(n+2)]
+        for i in Arrangements(K,(n+2)):
+            s=f.domain().point_transformation_matrix(i,Tf)
+            if self.conjugate(s)==other:
+                return True
+        return False
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

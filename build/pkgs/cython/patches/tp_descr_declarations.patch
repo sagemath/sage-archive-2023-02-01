@@ -1,0 +1,33 @@
+See https://github.com/cython/cython/pull/522
+
+commit 4a66d830b1c71f159ea4b6767e40ffab36f458ef
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Tue Jun 14 11:02:50 2016 +0200
+
+    Add tp_dict and tp_descr_* declarations
+
+diff --git a/Cython/Includes/cpython/object.pxd b/Cython/Includes/cpython/object.pxd
+index ebd1acd..1c27258 100644
+--- a/Cython/Includes/cpython/object.pxd
++++ b/Cython/Includes/cpython/object.pxd
+@@ -31,6 +31,9 @@ cdef extern from "Python.h":
+     ctypedef int (*visitproc)(PyObject*, void *)
+     ctypedef int (*traverseproc)(PyObject*, visitproc, void*)
+ 
++    ctypedef object (*descrgetfunc)(object, object, object)
++    ctypedef int (*descrsetfunc)(object, object, object) except -1
++
+     ctypedef struct PyTypeObject:
+         const char* tp_name
+         const char* tp_doc
+@@ -53,6 +56,10 @@ cdef extern from "Python.h":
+         richcmpfunc tp_richcompare
+ 
+         PyTypeObject* tp_base
++        PyObject* tp_dict
++
++        descrgetfunc tp_descr_get
++        descrsetfunc tp_descr_set
+ 
+     ctypedef struct PyObject:
+         Py_ssize_t ob_refcnt

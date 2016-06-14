@@ -147,20 +147,14 @@ cdef dict _coerce_op_symbols = dict(
 cdef MethodType
 from types import MethodType
 
-from sage.structure.sage_object cimport rich_to_bool
-from sage.structure.coerce cimport py_scalar_to_element
-from sage.structure.parent cimport Parent
-from sage.structure.misc import is_extension_type, getattr_from_other_class
+from .sage_object cimport rich_to_bool
+from .coerce cimport py_scalar_to_element
+from .parent cimport Parent
+from .misc import is_extension_type
+from .misc cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
-
-# Create a dummy attribute error, using some kind of lazy error message,
-# so that neither the error itself not the message need to be created
-# repeatedly, which would cost time.
-from sage.structure.misc cimport AttributeErrorMessage
-cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
-dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 def make_element(_class, _dict, parent):
@@ -322,7 +316,7 @@ cdef class Element(SageObject):
         """
         self._parent = parent
 
-    def __getattr__(self, str name):
+    def __getattr__(self, name):
         """
         Lookup a method or attribute from the category abstract classes.
 
@@ -388,30 +382,16 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
-
-        We test that "private" attributes are not requested from the element class
-        of the category (:trac:`10467`)::
-
-            sage: C = EuclideanDomains()
-            sage: P.<x> = QQ[]
-            sage: C.element_class.__foo = 'bar'
-            sage: x.parent() in C
-            True
-            sage: x.__foo
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
         """
-        if (name.startswith('__') and not name.endswith('_')):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        cdef Parent P = self._parent or self.parent()
-        if P is None or P._category is None:
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        return getattr_from_other_class(self, P._abstract_element_class, name)
+        cdef Parent P = self._parent
+        if P is None:
+            # This is highly unlikely but we deal with it anyway...
+            # Usually, this will just raise AttributeError in
+            # getattr_from_other_class().
+            cls = type
+        else:
+            cls = P._abstract_element_class
+        return getattr_from_other_class(self, cls, name)
 
     def __dir__(self):
         """
@@ -956,9 +936,9 @@ cdef class Element(SageObject):
     def _cache_key(self):
         """
         Provide a hashable key for an element if it is not hashable
-        
+
         EXAMPLES::
-        
+
             sage: a=sage.structure.element.Element(ZZ)
             sage: a._cache_key()
             (Integer Ring, 'Generic element of a structure')
@@ -1264,12 +1244,7 @@ cdef class ElementWithCachedMethod(Element):
             'lazy attribute of <5>'
             sage: e.my_lazy_attr is e.my_lazy_attr
             True
-
         """
-        if name.startswith('__') and not name.endswith('_'):
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
         try:
             return self.__cached_methods[name]
         except KeyError:

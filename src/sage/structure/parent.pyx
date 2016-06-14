@@ -108,27 +108,17 @@ from types import MethodType
 from .element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from sage.structure.debug_options import debug
-from sage.structure.sage_object cimport SageObject, rich_to_bool
-from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
-                                 is_extension_type)
+from .debug_options import debug
+from .sage_object cimport SageObject, rich_to_bool
+from .misc import dir_with_other_class, is_extension_type
+from .misc cimport getattr_from_other_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
-from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
 
 from sage.misc.lazy_import import LazyImport
 normalize_names = LazyImport("sage.structure.category_object", "normalize_names", deprecation=19675)
-
-
-# Create a dummy attribute error, using some kind of lazy error message,
-# so that neither the error itself not the message need to be created
-# repeatedly, which would cost time.
-
-from sage.structure.misc cimport AttributeErrorMessage
-cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
-dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 cdef _record_exception():
@@ -547,7 +537,7 @@ cdef class Parent(category_object.CategoryObject):
 
         Hence, we can now initialise the parent again in the original
         category, i.e., the category of rings. We find that not only
-        the category, but also theclass of the parent is brought back
+        the category, but also the class of the parent is brought back
         to what it was after the original category initialisation::
 
             sage: P._init_category_(Rings())
@@ -766,7 +756,7 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_hash = MonoDict(53)
             self._embedding = None
 
-    def __getattr__(self, str name):
+    def __getattr__(self, name):
         """
         Let cat be the category of ``self``. This method emulates
         ``self`` being an instance of both ``Parent`` and
@@ -827,32 +817,22 @@ cdef class Parent(category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'PrimeNumbers_with_category' object has no attribute 'sadfasdf'
-
-        TESTS:
-
-        We test that "private" attributes are not requested from the element class
-        of the category (:trac:`10467`)::
-
-            sage: P = Parent(QQ, category=CommutativeRings())
-            sage: P.category().parent_class.__foo = 'bar'
-            sage: P.__foo
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.structure.parent.Parent' object has no attribute '__foo'
-
         """
-        if (name.startswith('__') and not name.endswith('_')) or self._category is None:
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
+        if self._category is None:
+            # Usually, this will just raise AttributeError in
+            # getattr_from_other_class().
+            cls = type
+        else:
+            cls = self._category.parent_class
+
         try:
             return self.__cached_methods[name]
         except KeyError:
-            attr = getattr_from_other_class(self, self._category.parent_class, name)
+            attr = getattr_from_other_class(self, cls, name)
             self.__cached_methods[name] = attr
             return attr
         except TypeError:
-            attr = getattr_from_other_class(self, self._category.parent_class, name)
+            attr = getattr_from_other_class(self, cls, name)
             self.__cached_methods = {name:attr}
             return attr
 

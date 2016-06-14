@@ -441,8 +441,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         reference to the coercion maps in this case::
 
             sage: left_morphism_ref
-            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
-            (RingHomset_generic_with_category._abstract_element_class)>
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...>
 
         Moreover, the weakly referenced coercion map uses only a weak
         reference to the codomain::

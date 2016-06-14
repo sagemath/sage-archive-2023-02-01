@@ -811,7 +811,7 @@ class CFiniteSequence(FieldElement):
             True
         """
         from sage.symbolic.ring import SR
-        from sage.rings.arith import lcm, binomial
+        from sage.arith.all import lcm, binomial
         __, parts = (self.ogf()).partial_fraction_decomposition()
         cm = lcm([part.factor().unit().denominator() for part in parts])
         expr = SR(0)

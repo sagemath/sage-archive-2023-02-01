@@ -14,11 +14,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-# disable the dynamic kernel, except on Linux
-if [ "$UNAME" != "Linux" ]; then
-    SINGULAR_CONFIGURE="--without-dynamic-kernel $SINGULAR_CONFIGURE"
-fi
-
 if [ "$UNAME" = "Darwin" ]; then
     # Singular needs $LD set to "libtool", not "ld" on Darwin.
     # If we unset it, Singular will figure it out correctly.
@@ -32,13 +27,13 @@ fi
 
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-    WITH_DEBUG="--with-debug"
+    WITH_DEBUG="--enable-debug --disable-optimizationflags"
     ENABLE_DEBUGOUTPUT="--enable-debugoutput"
 
     CFLAGS="-O0 -g $CFLAGS"
     CXXFLAGS="-O0 -g $CXXFLAGS"
 else
-    WITH_DEBUG="--without-debug"
+    WITH_DEBUG="--disable-debug"
     ENABLE_DEBUGOUTPUT="--disable-debugoutput"
 
     # By default, parts of Singular are compiled with -O2 and parts
@@ -68,6 +63,9 @@ fi
 
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
+export LDFLAGS=" -L$SAGE_LOCAL/lib $LDFLAGS"
+
+
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
 export CXXFLAGS="$CXXFLAGS -fPIC"
@@ -94,13 +92,9 @@ choose_patches()
     cd "$PATCHES" || return $?
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure
         mv "$SRC/omalloc/configure" configure_omalloc
-        rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
-        mv conditional/singular_xalloc.patch . || return $?
-        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
@@ -145,20 +139,14 @@ config()
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
                 --libdir="$SAGE_LOCAL"/lib \
-                --with-apint=gmp \
                 --with-malloc=system \
-                --with-NTL \
+                --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
-                --without-MP \
-                --without-lex \
-                --without-Boost \
                 --enable-Singular \
                 --enable-factory \
-                --enable-libfac \
-                --enable-IntegerProgramming \
                 --disable-doc \
                 $SINGULAR_CONFIGURE \
-                --with-debug
+                $WITH_DEBUG
 
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to configure Singular."
@@ -170,70 +158,13 @@ config()
 build_singular()
 {
     # Singular doesn't have separate build and install steps. So we
-    # directly need to install. The "-nolns" means that we will really
-    # copy files, not symlink them (for some crazy reason, Singular's
-    # default is the create symlinks when installing).
-    $MAKE install-nolns
+    # directly need to install.
+    $MAKE install
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to build and install Singular"
         return 1
     fi
 
-}
-
-
-create_singular_script()
-{
-    cd "$SAGE_LOCAL/bin" || return $?
-
-    # The Singular build annoyingly puts an absolute symlink to the
-    # Singular executable in $SAGE_LOCAL/bin/.  So we delete it and
-    # replace it by a relative symlink.
-    rm -f Singular singular
-
-    singular_executable=`ls Singular-* | tail -1`
-    if [ -z "$singular_executable" ]; then
-        echo >&2 "The Singular executable was not installed in $SAGE_LOCAL/bin/ as it should have been."
-        return 1
-    fi
-
-    ln -s "$singular_executable" Singular || return $?
-
-    # Lower case version is convenient (this can fail on
-    # case-insensitive systems, we ignore the error).
-    ln -s "$singular_executable" singular 2>/dev/null
-
-    return 0
-}
-
-build_libsingular()
-{
-    # we really need DLIBSINGULAR, so we have to rebuild
-    OLD_CFLAGS=$CFLAGS
-    export CFLAGS="$CFLAGS -DLIBSINGULAR"
-    OLD_CXXFLAGS=$CXXFLAGS
-    export CXXFLAGS="$CXXFLAGS -DLIBSINGULAR"
-
-    if [ "$UNAME" = "Darwin" ]; then
-        # on darwin we need to adjust the install name of the library
-	export LIBSINGULAR_LDFLAGS="-install_name ${SAGE_LOCAL}/lib/libsingular.dylib"
-    fi
-
-    config || return $?
-
-    $MAKE clean
-    $MAKE install-libsingular
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Unable to build and install libsingular."
-        return 1
-    fi
-
-    # singular does not install this header
-    cp Singular/sing_dbm.h $SAGE_LOCAL/include/singular/
-
-    export CFLAGS="$OLD_CFLAGS"
-    export CXXFLAGS="$OLD_CXXFLAGS"
 }
 
 build_factory()
@@ -243,17 +174,19 @@ build_factory()
     $MAKE distclean
 
     ./configure --prefix="$SAGE_LOCAL" \
-                --includedir="$SAGE_LOCAL/include/factory" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
                 --libdir="$SAGE_LOCAL"/lib \
-                --enable-gmp \
                 --with-gmp="$SAGE_LOCAL" \
-                --enable-NTL \
-                --with-NTL="$SAGE_LOCAL" \
+                --with-ntl="$SAGE_LOCAL" \
                 --with-flint="$SAGE_LOCAL" \
                 --with-gmp="$SAGE_LOCAL" \
-                $ENABLE_DEBUGOUTPUT
+                $WITH_DEBUG
+
+
+#                --enable-streamio --without-Singular
+
+#                --enable-debugoutput
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the standalone factory."
@@ -279,35 +212,18 @@ build_factory()
     fi
 }
 
-build_libfac()
+
+create_singular_script()
 {
-    cd libfac || return $?
+    cd "$SAGE_LOCAL/bin" || return $?
 
-    $MAKE distclean
+    # Lower case version is convenient (this can fail on
+    # case-insensitive systems, we ignore the error).
+    ln -sf Singular singular 2>/dev/null
 
-    ./configure --prefix="$SAGE_LOCAL" \
-                --exec-prefix="$SAGE_LOCAL" \
-                --bindir="$SAGE_LOCAL"/bin \
-                --libdir="$SAGE_LOCAL"/lib \
-                $WITH_DEBUG
-
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring libfac."
-        return 1
-    fi
-
-    $MAKE all
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building libfac."
-        return 1
-    fi
-
-    $MAKE install
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing libfac."
-        return 1
-    fi
+    return 0
 }
+
 
 install_docs()
 {
@@ -316,9 +232,26 @@ install_docs()
 }
 
 
+fix_includes()
+{
+    # Fix all Singular includes to work from local/include
+    cd "$SAGE_LOCAL/include"
+
+    # First, generate a sed script to do these replacements
+    find singular -name '*.h' | while read include; do
+        # Replace #include <foo> by #include <singular/foo>
+        echo "s|# *include .${include#singular/}.|#include <$include>|"
+    done >"$SRC/fix_includes.sed"
+
+    # Now execute the script (we add .bak because BSD sed, used also
+    # on OS X, requires an argument for -i)
+    find singular -name '*.h' -exec sed -i.bak -f "$SRC/fix_includes.sed" {} \;
+}
+
+
 # Actually run all the functions defined above
 for i in choose_patches apply_patches remove_old_version config \
-  build_singular build_libsingular build_factory build_libfac \
+  build_singular build_factory fix_includes \
   create_singular_script install_docs ; do
     echo "### Singular spkg-install: $i ###"
     cd "$SRC" && $i

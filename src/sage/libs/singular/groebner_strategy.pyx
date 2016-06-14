@@ -23,7 +23,7 @@ cdef extern from *: # hack to get at cython macro
 
 from sage.libs.singular.decl cimport ideal, ring, poly, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing
-from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, idRankFreeModule
+from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, id_RankFreeModule
 from sage.libs.singular.decl cimport initEcartBBA, enterSBba, initBuchMoraCrit, initS, pNorm, id_Delete, kTest
 from sage.libs.singular.decl cimport omfree, redNF, p_Copy, redtailBba
 
@@ -117,7 +117,7 @@ cdef class GroebnerStrategy(SageObject):
         cdef ideal *i = sage_ideal_to_singular_ideal(L)
         self._strat = new_skStrategy()
 
-        self._strat.ak = idRankFreeModule(i, R._ring)
+        self._strat.ak = id_RankFreeModule(i, R._ring)
         #- creating temp data structures
         initBuchMoraCrit(self._strat)
         self._strat.initEcart = initEcartBBA
@@ -353,7 +353,7 @@ cdef class NCGroebnerStrategy(SageObject):
         cdef ideal *i = sage_ideal_to_singular_ideal(L)
         self._strat = new_skStrategy()
 
-        self._strat.ak = idRankFreeModule(i, R._ring)
+        self._strat.ak = id_RankFreeModule(i, R._ring)
         #- creating temp data structures
         initBuchMoraCrit(self._strat)
         self._strat.initEcart = initEcartBBA

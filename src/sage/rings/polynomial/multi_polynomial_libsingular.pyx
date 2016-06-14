@@ -170,19 +170,20 @@ include "cysignals/signals.pxi"
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
+from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
 
 # singular functions
 from sage.libs.singular.decl cimport (
-    errorreported, libfac_interruptflag,
+    errorreported,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
-    pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
+    p_IsHomogeneous, pHomogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
     idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
-    pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
+    pLength, kNF, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
     pDiff, singclap_resultant, p_Normalize,
     prCopyR, prCopyR_NoSort )
 
@@ -219,10 +220,12 @@ from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
-from sage.arith.all import gcd
+from sage.rings.arith import gcd
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
+from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
 from sage.structure.element cimport EuclideanDomainElement
@@ -806,7 +809,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent() is base_ring:
                 # shortcut for GF(p)
                 if isinstance(base_ring, FiniteField_prime_modn):
-                    _p = p_ISet(int(element) % _ring.ch, _ring)
+                    _p = p_ISet(int(element) % _ring.cf.ch, _ring)
                 else:
                     _n = sa2si(element,_ring)
                     _p = p_NSet(_n, _ring)
@@ -830,7 +833,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         elif isinstance(element, int) or isinstance(element, long):
             if isinstance(base_ring, FiniteField_prime_modn):
-                _p = p_ISet(element % _ring.ch, _ring)
+                _p = p_ISet(element % _ring.cf.ch, _ring)
             else:
                 _n = sa2si(base_ring(element), _ring)
                 _p = p_NSet(_n, _ring)
@@ -933,6 +936,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
                 d[str(self.base_ring().gen())]=self.base_ring().gen()
+            # a hack for singular gens beginning with '1*'
+            origd = d.copy()
+            for key in origd.keys():
+                if len(key)>2:
+                    if key[0]=='1' and key[1]=='*' and key[2]!='*':
+                        key2 = key[2:]
+                        d[key2] = d[key]
             try:
                 if '/' in element:
                     element = sage_eval(element,d)
@@ -1370,14 +1380,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.arith.all.ceil((2*precision - 2)/7.0)
+            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.arith.all.ceil((2*precision - 2)/7.0)
+            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
         elif base_ring.is_prime_field():
@@ -1615,8 +1625,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             9/4
 
             sage: P.monomial_quotient(x,y) # Note the wrong result
-            x*y^1048575*z^1048575 # 64-bit
-            x*y^65535*z^65535 # 32-bit
+            x*y^65535*z^65535
 
             sage: P.monomial_quotient(x,P(1))
             x
@@ -1645,8 +1654,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if r!=currRing: rChangeCurrRing(r)  # pDivide
         res = pDivide(f._poly, g._poly)
         if coeff:
-            if r.ringtype == 0 or r.cf.nDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r)):
-                n = r.cf.nDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r))
+            if r.cf.type == n_unknown or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
+                n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
                 p_SetCoeff0(res, n, r)
             else:
                 raise ArithmeticError("Cannot divide these coefficients.")
@@ -2287,10 +2296,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             9/4*x^2 - 1/4*y^2 - y - 1
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
-            sage: (x^2^30) * x^2^30
+            sage: (x^2^15) * x^2^15
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (...)
         """
         # all currently implemented rings are commutative
         cdef poly *_p
@@ -2401,10 +2410,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             TypeError: non-integral exponents not supported
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
-            sage: (x+y^2^30)^10
+            sage: (x+y^2^15)^10
             Traceback (most recent call last):
             ....
-            OverflowError: Exponent overflow (...).
+            OverflowError: exponent overflow (...)
         """
         if type(exp) is not Integer:
             try:
@@ -2551,7 +2560,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         argument ``std_grading=True``.
 
             sage: tord = TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
-            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order=tord)
             sage: (x^3*y+x*z^4).degree()
             9
             sage: (x^3*y+x*z^4).degree(std_grading=True)
@@ -2660,10 +2669,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         With a matrix term ordering, the grading changes.
         To evaluate the total degree using the standard grading,
-        use the optional argument``std_grading=True``.
+        use the optional argument``std_grading=True``::
 
             sage: tord=TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
-            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order=tord)
             sage: (x^2*y).total_degree()
             6
             sage: (x^2*y).total_degree(std_grading=True)
@@ -3124,7 +3133,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef ring *_ring = self._parent_ring
         if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(pIsHomogeneous(self._poly))
+        return bool(p_IsHomogeneous(self._poly,_ring))
 
     cpdef _homogenize(self, int var):
         """
@@ -3194,7 +3203,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = bool((not self._poly.next) and _ring.cf.nIsOne(_n))
+        ret = bool((not self._poly.next) and _ring.cf.cfIsOne(_n,_ring.cf))
 
         p_Delete(&_p, _ring)
         return ret
@@ -3284,17 +3293,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         We are catching overflows::
 
             sage: R.<x,y> = QQ[]
-            sage: n=1000; f = x^n
+            sage: n=100; f = x^n
             sage: try:
             ....:   f.subs(x = x^n)
             ....:   print("no overflow")
             ....: except OverflowError:
-            ....:   print("overflow")
-            overflow    # 32-bit
-            x^1000000   # 64-bit
-            no overflow # 64-bit
+            ....:   print "overflow"
+            x^10000
+            no overflow
 
-            sage: n=100000;
+            sage: n=1000;
             sage: try:
             ....:   f = x^n
             ....:   f.subs(x = x^n)
@@ -3370,7 +3378,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     if  degree > _ring.bitmask:
                         id_Delete(&to_id, _ring)
                         p_Delete(&_p, _ring)
-                        raise OverflowError("Exponent overflow (%d)."%(degree))
+                        raise OverflowError("exponent overflow (%d)"%(degree))
                     to_id.m[mi-1] = p_Copy(_f, _ring)
 
                 if _p == NULL:
@@ -3408,7 +3416,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     if degree > _ring.bitmask:
                         id_Delete(&to_id, _ring)
                         p_Delete(&_p, _ring)
-                        raise OverflowError("Exponent overflow (%d)."%(degree))
+                        raise OverflowError("exponent overflow (%d)"%(degree))
                     need_map = 1
 
                 if _p == NULL:
@@ -3605,7 +3613,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Univariate Polynomial Ring in x over Rational Field
         """
         cdef poly *p = self._poly
+        cdef poly *p2 = self._poly
         cdef ring *r = self._parent_ring
+        cdef long pTotDegMax
+
         k = self.base_ring()
 
         if not self.is_univariate():
@@ -3619,12 +3630,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 R = self.base_ring()[str(self.variables()[0])]
 
         zero = k(0)
-        coefficients = [zero] * (self.degree() + 1)
 
         if(r != currRing): rChangeCurrRing(r)
 
+        pTotDegMax = -1
+        while p2:
+            pTotDegMax = max(pTotDegMax, p_Totaldegree(p2, r))
+            p2 = pNext(p2)
+
+        coefficients = [zero] * (pTotDegMax + 1)
         while p:
-            coefficients[p_Totaldegree(p, r)] = si2sa(p_GetCoeff(p, r), r, k)
+            pTotDeg = p_Totaldegree(p, r)
+            if ( pTotDeg >= len(coefficients)  or  pTotDeg < 0 ):
+                raise IndexError("list index("+str(pTotDeg)+" out of range(0-"+str(len(coefficients))+")")
+            coefficients[pTotDeg] = si2sa(p_GetCoeff(p, r), r, k)
             p = pNext(p)
 
         return R(coefficients)
@@ -3941,8 +3960,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _self = <MPolynomial_libsingular>self
         _right = <MPolynomial_libsingular>right
 
-        if r.ringtype != 0:
-            if r.ringtype == 4:
+        if r.cf.type != n_unknown:
+            if r.cf.type == n_Z:
                 P = parent.change_ring(RationalField())
                 f = P(self)//P(right)
                 CM = list(f)
@@ -3958,13 +3977,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         quo = p_Add_q(quo, temp, r)
                     p = pNext(p)
                 return new_MP(parent, quo)
-            raise NotImplementedError("Division of multivariate polynomials over non fields by non-monomials not implemented.")
+            if r.cf.type == n_Znm or r.cf.type == n_Zn or r.cf.type == n_Z2m :
+                raise NotImplementedError("Division of multivariate polynomials over non fields by non-monomials not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(_self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
         if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
-        quo = singclap_pdivide( _self._poly, _right._poly )
+        quo = singclap_pdivide( _self._poly, _right._poly, r )
         if count >= 15:
             sig_off()
         f = new_MP(parent, quo)
@@ -4240,7 +4260,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         iv = NULL
         sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
-        I = singclap_factorize ( ptemp, &iv , 0)
+        I = singclap_factorize ( ptemp, &iv , 0, _ring)
         sig_off()
 
         ivv = iv.ivGetVec()
@@ -4300,10 +4320,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ValueError: polynomial is not in the ideal
             sage: foo = I.complete_primary_decomposition() # indirect doctest
             sage: foo[0][0]
-            Ideal (x2 - 1, x1 - 1) of Multivariate Polynomial Ring in x1, x2 over Rational Field
+            Ideal (x1 + 1, x2^2 - 3) of Multivariate Polynomial Ring in x1, x2 over Rational Field
 
         """
-        global errorreported, libfac_interruptflag
+        global errorreported
         if not self._parent._base.is_field():
             raise NotImplementedError("Lifting of multivariate polynomials over non-fields is not implemented.")
 
@@ -4337,10 +4357,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
         res = idLift(_I, fI, NULL, 0, 0, 0)
-        if errorreported != 0 or libfac_interruptflag != 0:
+        if errorreported != 0 :
             errorcode = errorreported
             errorreported = 0
-            libfac_interruptflag = 0
             if errorcode == 1:
                 raise ValueError("polynomial is not in the ideal")
             raise RuntimeError
@@ -4571,14 +4590,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             raise TypeError("algorithm %s not supported" % algorithm)
 
-        if _ring.ringtype != 0:
-            if _ring.ringtype == 4:
+        if _ring.cf.type != n_unknown:
+            if _ring.cf.type == n_Z:
                 P = self._parent.change_ring(RationalField())
                 res = P(self).gcd(P(right))
                 coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
                 return self._parent(coef*res)
 
-            raise NotImplementedError("GCD over rings not implemented.")
+            #TODO:
+            if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                raise NotImplementedError("GCD over rings not implemented.")
+            #raise NotImplementedError("GCD over rings not implemented.")
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError("GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
@@ -4596,7 +4618,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
-        _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring))
+        _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring), _ring )
         if count >= 20:
             sig_off()
 
@@ -4642,14 +4664,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef MPolynomial_libsingular _g
         if _ring!=currRing: rChangeCurrRing(_ring)
 
-        if _ring.ringtype != 0:
-            if _ring.ringtype == 4:
+        if _ring.cf.type != n_unknown:
+            if _ring.cf.type == n_Z:
                 P = self.parent().change_ring(RationalField())
                 py_gcd = P(self).gcd(P(g))
                 py_prod = P(self*g)
                 return self.parent(py_prod//py_gcd)
             else:
-                raise TypeError("LCM over non-integral domains not available.")
+                if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                    raise TypeError("LCM over non-integral domains not available.")
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)
@@ -4664,9 +4687,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
-        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring))
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring), _ring )
         prod = pp_Mult_qq(self._poly, _g._poly, _ring)
-        ret = singclap_pdivide(prod , gcd )
+        ret = singclap_pdivide(prod , gcd , _ring)
         p_Delete(&prod, _ring)
         p_Delete(&gcd, _ring)
         if count >= 20:
@@ -4687,13 +4710,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: h.is_squarefree()
             False
         """
-        cdef ring *_ring = self._parent_ring
-
-        if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
-            raise NotImplementedError("is_squarefree of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
-
-        if(_ring != currRing): rChangeCurrRing(_ring)
-        return bool(singclap_isSqrFree(self._poly))
+        raise NotImplementedError("is_squarefree of multivariate polynomials over rings is not implemented.")
 
     @coerce_binop
     def quo_rem(self, MPolynomial_libsingular right):
@@ -4750,7 +4767,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
         if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
-        quo = singclap_pdivide( self._poly, right._poly )
+        quo = singclap_pdivide( self._poly, right._poly, r )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
         if count >= 15:
             sig_off()
@@ -5191,7 +5208,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if count >= 20:
             sig_on()
         if _ring != currRing: rChangeCurrRing(_ring)   # singclap_resultant
-        rt =  singclap_resultant(p_Copy(self._poly, _ring), p_Copy(other._poly, _ring),p_Copy((<MPolynomial_libsingular>variable)._poly, _ring))
+        rt =  singclap_resultant(p_Copy(self._poly, _ring), p_Copy(other._poly, _ring), p_Copy((<MPolynomial_libsingular>variable)._poly , _ring ), _ring)
         if count >= 20:
             sig_off()
         return new_MP(self._parent, rt)

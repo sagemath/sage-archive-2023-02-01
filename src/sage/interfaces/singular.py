@@ -1033,7 +1033,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.new('10*a')
-            1.000e+01*a
+            (1.000e+01)*a
             sage: R.set_ring()
             sage: singular.new('10*a')
             3*a
@@ -1590,7 +1590,10 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # using Singular's term order
         from sage.rings.polynomial.term_order import termorder_from_singular
         from sage.all import PolynomialRing
-        if singular.eval('typeof(basering)')=='ring':
+        # Meanwhile Singulars quotient rings are also of 'ring' type, not 'qring' as it was in the past.
+        # To find out if a singular ring is a quotient ring or not checking for ring type does not help
+        # and instead of that we we check if the quotient ring is zero or not:
+        if (singular.eval('ideal(basering)==0')=='1'):
             return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         return P.quotient(singular('ringlist(basering)[4]')._sage_(P), names=singular.eval('varstr(basering)'))

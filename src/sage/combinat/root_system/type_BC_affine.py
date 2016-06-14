@@ -128,14 +128,14 @@ class CartanType(CartanType_standard_affine):
             sage: latex(CartanType(['BC',4,2]))
             BC_{4}^{(2)}
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options.notation = 'Kac'
             sage: latex(CartanType(['BC',4,2]))
             A_{8}^{(2)}
             sage: latex(CartanType(['A',8,2]))
             A_{8}^{(2)}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
-        if self.global_options('notation') == "Kac":
+        if self.options.notation == "Kac":
             return "A_{%s}^{(2)}"%(2*self.classical().rank())
         else:
             return "BC_{%s}^{(2)}"%self.n

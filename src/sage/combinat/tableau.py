@@ -44,7 +44,7 @@ Parent classes:
 * :class:`StandardTableaux_size`
 * :class:`StandardTableaux_shape`
 
-For display options, see :meth:`Tableaux.global_options`.
+For display options, see :meth:`Tableaux.options`.
 
 .. TODO:
 
@@ -71,7 +71,7 @@ from __future__ import print_function
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.structure.global_options import GlobalOptions
+from sage.structure.global_options import AddOptionsToClass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
@@ -91,98 +91,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-
-TableauOptions=GlobalOptions(name='tableaux',
-    doc=r"""
-    Sets the global options for elements of the tableau, skew_tableau,
-    and tableau tuple classes. The defaults are for tableau to be
-    displayed as a list, latexed as a Young diagram using the English
-    convention.
-    """,
-    end_doc=r"""
-
-    .. NOTE::
-
-        Changing the ``convention`` for tableaux also changes the
-        ``convention`` for partitions.
-
-    If no parameters are set, then the function returns a copy of the
-    options dictionary.
-
-    EXAMPLES::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T
-        [[1, 2, 3], [4, 5]]
-        sage: Tableaux.global_options(display="array")
-        sage: T
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(convention="french")
-        sage: T
-          4  5
-          1  2  3
-
-    Changing the ``convention`` for tableaux also changes the ``convention``
-    for partitions and vice versa::
-
-        sage: P = Partition([3,3,1])
-        sage: print(P.ferrers_diagram())
-        *
-        ***
-        ***
-        sage: Partitions.global_options(convention="english")
-        sage: print(P.ferrers_diagram())
-        ***
-        ***
-        *
-        sage: T
-          1  2  3
-          4  5
-
-    The ASCII art can also be changed::
-
-        sage: t = Tableau([[1,2,3],[4,5]])
-        sage: ascii_art(t)
-          1  2  3
-          4  5
-        sage: Tableaux.global_options(ascii_art="table")
-        sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
-        +---+---+---+
-        | 1 | 2 | 3 |
-        +---+---+---+
-        sage: Tableaux.global_options(ascii_art="compact")
-        sage: ascii_art(t)
-        |4|5|
-        |1|2|3|
-        sage: Tableaux.global_options.reset()
-    """,
-    display=dict(default="list",
-                 description='Controls the way in which tableaux are printed',
-                 values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
-                             compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    ascii_art=dict(default="repr",
-                 description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
-                             compact='minimal length ascii art'),
-                 case_sensitive=False),
-    latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
-               values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-               case_sensitive=False),
-    convention=dict(default="English",
-                    description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention'),
-                    case_sensitive=False),
-    notation = dict(alt_name="convention")
-)
 
 class Tableau(ClonableList):
     """
@@ -419,18 +327,18 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: Tableaux.global_options(display="list")
+            sage: Tableaux.options(display="list")
             sage: t
             [[1, 2, 3], [4, 5]]
-            sage: Tableaux.global_options(display="array")
+            sage: Tableaux.options(display="array")
             sage: t
               1  2  3
               4  5
-            sage: Tableaux.global_options(display="compact"); t
+            sage: Tableaux.options(display="compact"); t
             1,2,3/4,5
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
         """
-        return self.parent().global_options.dispatch(self,'_repr_','display')
+        return self.parent().options._dispatch(self,'_repr_','display')
 
     def _repr_list(self):
         """
@@ -459,11 +367,11 @@ class Tableau(ClonableList):
             sage: print(t._repr_diagram())
               1  2  3
               4  5
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: print(t._repr_diagram())
               4  5
               1  2  3
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
 
         TESTS:
 
@@ -484,7 +392,7 @@ class Tableau(ClonableList):
             for i,e in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(e))
 
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options('convention') == "French":
             str_tab = reversed(str_tab)
 
         return "\n".join(" "
@@ -515,12 +423,12 @@ class Tableau(ClonableList):
             [                              1 ]
             [              1  3    1  2    2 ]
             [   1  2  3,   2   ,   3   ,   3 ]
-            sage: Tableaux.global_options(ascii_art="compact")
+            sage: Tableaux.options(ascii_art="compact")
             sage: ascii_art(list(StandardTableaux(3)))
             [                        |1| ]
             [          |1|3|  |1|2|  |2| ]
             [ |1|2|3|, |2|  , |3|  , |3| ]
-            sage: Tableaux.global_options(convention="french", ascii_art="table")
+            sage: Tableaux.options(convention="french", ascii_art="table")
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -529,14 +437,14 @@ class Tableau(ClonableList):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.global_options(ascii_art="repr")
+            sage: Tableaux.options(ascii_art="repr")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
             [              2       3       2 ]
             [   1  2  3,   1  3,   1  2,   1 ]
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
         """
-        ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
+        ascii = self.parent().options._dispatch(self,'_ascii_art_','ascii_art')
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(ascii.splitlines())
 
@@ -574,7 +482,7 @@ class Tableau(ClonableList):
             +---+---+---+
             | 4 | 5 |
             +---+---+
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: print(t._ascii_art_table())
             +---+---+
             | 4 | 5 |
@@ -584,7 +492,7 @@ class Tableau(ClonableList):
             sage: t = Tableau([]); print(t._ascii_art_table())
             ++
             ++
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
             sage: print(t._ascii_art_table())
@@ -595,7 +503,7 @@ class Tableau(ClonableList):
             +----+----+----+
 
             sage: t = Tableau([[1,2,15,7],[12,5,6],[8,10],[9]])
-            sage: Tableaux.global_options(ascii_art='table')
+            sage: Tableaux.options(ascii_art='table')
             sage: ascii_art(t)
             +----+----+----+---+
             |  1 |  2 | 15 | 7 |
@@ -606,7 +514,7 @@ class Tableau(ClonableList):
             +----+----+
             |  9 |
             +----+
-            sage: Tableaux.global_options(convention='french')
+            sage: Tableaux.options(convention='french')
             sage: ascii_art(t)
             +----+
             |  9 |
@@ -617,7 +525,7 @@ class Tableau(ClonableList):
             +----+----+----+---+
             |  1 |  2 | 15 | 7 |
             +----+----+----+---+
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
 
         Unicode version::
 
@@ -632,7 +540,7 @@ class Tableau(ClonableList):
             ├────┼────┘
             │ 9  │
             └────┘
-            sage: Tableaux().global_options(convention='french')
+            sage: Tableaux().options(convention='french')
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
             sage: print(t._ascii_art_table(unicode=True))
             ┌────┐
@@ -644,7 +552,7 @@ class Tableau(ClonableList):
             ├────┼────┼────┬───┐
             │ 1  │ 2  │ 15 │ 7 │
             └────┴────┴────┴───┘
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
         """
         if unicode:
             import unicodedata
@@ -705,7 +613,7 @@ class Tableau(ClonableList):
             matr.append(l2)
             matr.append(l1)
 
-        if self.parent().global_options('convention') == "English":
+        if self.parent().options('convention') == "English":
             return "\n".join(matr)
         else:
             output = "\n".join(reversed(matr))
@@ -728,11 +636,11 @@ class Tableau(ClonableList):
             sage: print(t._ascii_art_compact())
             |1|2|3|
             |4|5|
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: print(t._ascii_art_compact())
             |4|5|
             |1|2|3|
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
             sage: print(t._ascii_art_compact())
@@ -746,7 +654,7 @@ class Tableau(ClonableList):
         if not self:
             return "."
 
-        if self.parent().global_options('convention') == "English":
+        if self.parent().options('convention') == "English":
             T = self
         else:
             T = reversed(self)
@@ -778,7 +686,7 @@ class Tableau(ClonableList):
             \lr{3}\\\cline{1-1}
             \end{array}$}
             }
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: latex(t)    # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-1}
@@ -787,9 +695,9 @@ class Tableau(ClonableList):
             \lr{1}&\lr{1}&\lr{2}\\\cline{1-3}
             \end{array}$}
             }
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
         """
-        return self.parent().global_options.dispatch(self,'_latex_', 'latex')
+        return self.parent().options._dispatch(self,'_latex_', 'latex')
 
     _latex_list=_repr_list
 
@@ -989,12 +897,12 @@ class Tableau(ClonableList):
               1  2  3
               3  4
               5
-            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.options(convention="french")
             sage: T.pp()
               5
               3  4
               1  2  3
-            sage: Tableaux.global_options.reset()
+            sage: Tableaux.options._reset()
         """
         print(self._repr_diagram())
 
@@ -4555,7 +4463,6 @@ class Tableaux(UniqueRepresentation, Parent):
             return Tableaux_size(n)
 
     Element = Tableau
-    global_options = TableauOptions
 
     def _element_constructor_(self, t):
         r"""
@@ -4627,6 +4534,99 @@ class Tableaux(UniqueRepresentation, Parent):
             return [len(_) for _ in x] in _Partitions
         else:
             return False
+
+AddOptionsToClass(Tableaux,
+    doc=r"""
+    Sets the global options for elements of the tableau, skew_tableau,
+    and tableau tuple classes. The defaults are for tableau to be
+    displayed as a list, latexed as a Young diagram using the English
+    convention.
+    """,
+    end_doc=r"""
+
+    .. NOTE::
+
+        Changing the ``convention`` for tableaux also changes the
+        ``convention`` for partitions.
+
+    If no parameters are set, then the function returns a copy of the
+    options dictionary.
+
+    EXAMPLES::
+
+        sage: T = Tableau([[1,2,3],[4,5]])
+        sage: T
+        [[1, 2, 3], [4, 5]]
+        sage: Tableaux.options(display="array")
+        sage: T
+          1  2  3
+          4  5
+        sage: Tableaux.options(convention="french")
+        sage: T
+          4  5
+          1  2  3
+
+    Changing the ``convention`` for tableaux also changes the ``convention``
+    for partitions and vice versa::
+
+        sage: P = Partition([3,3,1])
+        sage: print(P.ferrers_diagram())
+        *
+        ***
+        ***
+        sage: Partitions.options(convention="english")
+        sage: print(P.ferrers_diagram())
+        ***
+        ***
+        *
+        sage: T
+          1  2  3
+          4  5
+
+    The ASCII art can also be changed::
+
+        sage: t = Tableau([[1,2,3],[4,5]])
+        sage: ascii_art(t)
+          1  2  3
+          4  5
+        sage: Tableaux.options(ascii_art="table")
+        sage: ascii_art(t)
+        +---+---+
+        | 4 | 5 |
+        +---+---+---+
+        | 1 | 2 | 3 |
+        +---+---+---+
+        sage: Tableaux.options(ascii_art="compact")
+        sage: ascii_art(t)
+        |4|5|
+        |1|2|3|
+        sage: Tableaux.options._reset()
+    """,
+    display=dict(default="list",
+                 description='Controls the way in which tableaux are printed',
+                 values=dict(list='print tableaux as lists',
+                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                             compact='minimal length string representation'),
+                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                 case_sensitive=False),
+    ascii_art=dict(default="repr",
+                 description='Controls the ascii art output for tableaux',
+                 values=dict(repr='display using the diagram string representation',
+                             table='display as a table',
+                             compact='minimal length ascii art'),
+                 case_sensitive=False),
+    latex=dict(default="diagram",
+               description='Controls the way in which tableaux are latexed',
+               values=dict(list='as a list', diagram='as a Young diagram'),
+               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+               case_sensitive=False),
+    convention=dict(default="English",
+                    description='Sets the convention used for displaying tableaux and partitions',
+                    values=dict(English='use the English convention',French='use the French convention'),
+                    case_sensitive=False),
+    notation = dict(alt_name="convention")
+)
+
 
 #    def list(self):
 #        """

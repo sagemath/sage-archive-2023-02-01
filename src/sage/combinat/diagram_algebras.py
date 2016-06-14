@@ -30,7 +30,7 @@ from sage.combinat.free_module import (CombinatorialFreeModule,
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
-from sage.structure.global_options import GlobalOptions
+from sage.structure.global_options import AddOptionsToClass
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
@@ -40,38 +40,9 @@ from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 
-
-BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
-    doc=r"""
-    Set and display the global options for Brauer diagram (algebras). If no
-    parameters are set, then the function returns a copy of the options
-    dictionary.
-
-    The ``options`` to diagram algebras can be accessed as the method
-    :obj:`BrauerAlgebra.global_options` of :class:`BrauerAlgebra` and
-    related classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: R.<q> = QQ[]
-        sage: BA = BrauerAlgebra(2, q)
-        sage: E = BA([[1,2],[-1,-2]])
-        sage: E
-        B{{-2, -1}, {1, 2}}
-        sage: BrauerAlgebra.global_options(display="compact")
-        sage: E
-        B[12/12;]
-        sage: BrauerAlgebra.global_options.reset()
-    """,
-    display=dict(default="normal",
-                   description='Specifies how the Brauer diagrams should be printed',
-                   values=dict(normal="Using the normal representation",
-                               compact="Using the compact representation"),
-                   case_sensitive=False),
-)
 
 def partition_diagrams(k):
     r"""
@@ -465,7 +436,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: bd1 = bd([[1,2],[-1,-2]]); bd1
             {{-2, -1}, {1, 2}}
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_normal(self):
         """
@@ -835,7 +806,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     ::
 
         sage: bd = da.BrauerDiagrams(3)
-        sage: bd.global_options(display="compact")
+        sage: bd.options(display="compact")
         sage: bd.list()
         [[/;321],
          [/;312],
@@ -852,10 +823,9 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
          [23/13;1],
          [13/13;1],
          [12/13;1]]
-        sage: bd.global_options.reset()
+        sage: bd.options._reset()
     """
     Element = BrauerDiagram
-    global_options = BrauerDiagramOptions
 
     def __init__(self, order, category=None):
         r"""
@@ -1877,7 +1847,6 @@ class BrauerAlgebra(SubPartitionAlgebra):
         sage: S([2,1])*B([[1,-1],[2,-2]])
         B{{-2, 1}, {-1, 2}}
     """
-    global_options = BrauerDiagramOptions
 
     @staticmethod
     def __classcall_private__(cls, k, q, base_ring=None, prefix="B"):
@@ -2008,6 +1977,36 @@ class BrauerAlgebra(SubPartitionAlgebra):
             d[I([[i,-j],[j,-i]])] = one
             d[I([[i,j],[-i,-j]])] = -one
         return self._from_dict(d, remove_zeros=True)
+
+AddOptionsToClass(BrauerAlgebra,
+    doc=r"""
+    Set and display the global options for Brauer diagram (algebras). If no
+    parameters are set, then the function returns a copy of the options
+    dictionary.
+
+    The ``options`` to diagram algebras can be accessed as the method
+    :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
+    related classes.
+    """,
+    end_doc=r"""
+    EXAMPLES::
+
+        sage: R.<q> = QQ[]
+        sage: BA = BrauerAlgebra(2, q)
+        sage: E = BA([[1,2],[-1,-2]])
+        sage: E
+        B{{-2, -1}, {1, 2}}
+        sage: BrauerAlgebra.options(display="compact")
+        sage: E
+        B[12/12;]
+        sage: BrauerAlgebra.options._reset()
+    """,
+    display=dict(default="normal",
+                   description='Specifies how the Brauer diagrams should be printed',
+                   values=dict(normal="Using the normal representation",
+                               compact="Using the compact representation"),
+                   case_sensitive=False),
+)
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""

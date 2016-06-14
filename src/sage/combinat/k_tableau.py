@@ -46,6 +46,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -55,7 +56,7 @@ from sage.misc.misc import uniq
 from sage.functions.generalized import sgn
 from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.composition import Composition
 import cartesian_product
 import copy
@@ -2682,20 +2683,20 @@ class StrongTableau(ClonableList):
             sage: T = StrongTableau([[-1,-2,3],[-3]],2)
             sage: T
             [[-1, -2, 3], [-3]]
-            sage: Tableaux.global_options(display="diagram")
+            sage: Tableaux.options(display="diagram")
             sage: T
              -1 -2  3
              -3
-            sage: Tableaux.global_options(convention="French")
+            sage: Tableaux.options(convention="French")
             sage: T
              -3
              -1 -2  3
-            sage: Tableaux.global_options(display="compact")
+            sage: Tableaux.options(display="compact")
             sage: T
             -1,-2,3/-3
-            sage: Tableaux.global_options(display="list",convention="English")
+            sage: Tableaux.options(display="list",convention="English")
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def cell_of_marked_head(self, v):
         r"""
@@ -3290,7 +3291,7 @@ class StrongTableau(ClonableList):
               3
               3
               3
-            sage: Tableaux.global_options(convention="French")
+            sage: Tableaux.options(convention="French")
             sage: T.pp()
               3
               3
@@ -3300,7 +3301,7 @@ class StrongTableau(ClonableList):
              -1 -2
               .  .
               .  . -1 -2
-            sage: Tableaux.global_options(convention="English")
+            sage: Tableaux.options(convention="English")
         """
         print(self._repr_diagram())
 
@@ -3608,7 +3609,7 @@ class StrongTableau(ClonableList):
         EXAMPLES::
 
             sage: T = StrongTableau( [[None, -1, -2, 3], [2, -3]], 2, weight=[2,1] )
-            sage: Tableaux.global_options(convention = "English")
+            sage: Tableaux.options(convention = "English")
             sage: latex(T)
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
@@ -3616,7 +3617,7 @@ class StrongTableau(ClonableList):
             \lr{1}&\lr{2^\ast}\\\cline{1-2}
             \end{array}$}
             }
-            sage: Tableaux.global_options(convention = "French")
+            sage: Tableaux.options(convention = "French")
             sage: latex(T)
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{1-2}
@@ -3993,7 +3994,8 @@ class StrongTableaux(UniqueRepresentation, Parent):
         s +="%sand of weight %s"%(" ",self._weight)
         return s
 
-    global_options = TableauOptions
+    options = Tableaux.options
+    global_options = deprecated_function_alias(18555, options)
 
     def an_element(self):
         r"""

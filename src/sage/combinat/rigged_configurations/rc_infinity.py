@@ -23,6 +23,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
@@ -30,7 +31,7 @@ from sage.categories.homset import Hom
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
-from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
@@ -53,14 +54,14 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
     For simplicity, we display all of the rigged configurations
     horizontally::
 
-        sage: RiggedConfigurations.global_options(display='horizontal')
+        sage: RiggedConfigurations.options(display='horizontal')
 
     We begin with a simply-laced finite type::
 
         sage: RC = crystals.infinity.RiggedConfigurations(['A', 3]); RC
         The infinity crystal of rigged configurations of type ['A', 3]
 
-        sage: RC.global_options(display='horizontal')
+        sage: RC.options(display='horizontal')
 
         sage: mg = RC.highest_weight_vector(); mg
         (/)  (/)  (/)
@@ -108,7 +109,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
     We reset the global options::
 
-        sage: RiggedConfigurations.global_options.reset()
+        sage: RiggedConfigurations.options._reset()
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type):
@@ -147,7 +148,8 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         self._cartan_matrix = self._cartan_type.cartan_matrix()
         self.module_generators = (self.element_class(self, rigging_list=[[]]*cartan_type.rank()),)
 
-    global_options = RiggedConfigurationOptions
+    options = RiggedConfigurations.options
+    global_options = deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """

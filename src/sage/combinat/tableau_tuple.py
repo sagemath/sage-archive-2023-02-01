@@ -222,6 +222,7 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
 from sage.misc.sage_unittest import TestSuite
+from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
@@ -428,7 +429,7 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[],[],[],[]])
             ([], [], [], [])
         """
-        return self.parent().global_options.dispatch(self,'_repr_','display')
+        return self.parent().options.dispatch(self,'_repr_','display')
 
     def _repr_list(self):
         """
@@ -466,14 +467,14 @@ class TableauTuple(CombinatorialElement):
             sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
               2  3     -     4     -
                              5
-            sage: TableauTuples.global_options(convention='French')
+            sage: TableauTuples.options(convention='French')
             sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
                              5      
               2  3     1     4     -
             sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
                              5
               2  3     -     4     -
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
 
         TESTS:
 
@@ -486,7 +487,7 @@ class TableauTuple(CombinatorialElement):
              12345
         """
         str_tt = [T._repr_diagram().split('\n') for T in self]
-        if TableauTuples.global_options('convention') == "French":
+        if TableauTuples.options('convention') == "French":
             for T_str in str_tt:
                 T_str.reverse()
         widths = [len(T_str[0]) for T_str in str_tt]
@@ -497,7 +498,7 @@ class TableauTuple(CombinatorialElement):
                            for j,T_str in enumerate(str_tt))
                 for i in range(num_cols)]
 
-        if TableauTuples.global_options('convention') == "English":
+        if TableauTuples.options('convention') == "English":
             return '\n'.join(diag)
         else:
             return '\n'.join(diag[::-1])
@@ -530,7 +531,7 @@ class TableauTuple(CombinatorialElement):
             \lr{6}&\lr{7}\\\cline{1-2}
             \end{array}$}
             } \Bigg)
-            sage: TableauTuples.global_options(convention="french")
+            sage: TableauTuples.options(convention="french")
             sage: latex(t)    # indirect doctest
             \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
@@ -541,9 +542,9 @@ class TableauTuple(CombinatorialElement):
             \lr{4}&\lr{5}\\\cline{1-2}
             \end{array}$}
             } \Bigg)
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
         """
-        return self.parent().global_options.dispatch(self,'_latex_','latex')
+        return self.parent().options.dispatch(self,'_latex_','latex')
 
     _latex_list = _repr_list
 
@@ -713,13 +714,13 @@ class TableauTuple(CombinatorialElement):
               4  5        4  5  8    14
               6
               9
-            sage: TableauTuples.global_options(convention="french")
+            sage: TableauTuples.options(convention="french")
             sage: t.pp()
               9
               6
               4  5        4  5  8    14
               1  2  3     1  2  3    11 12 13
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
         """
         print(self._repr_diagram())
 
@@ -1643,7 +1644,8 @@ class TableauTuples(UniqueRepresentation, Parent):
     """
     Element = TableauTuple
     level_one_parent_class = Tableaux_all  # used in element_constructor
-    global_options=Tableaux.global_options
+    options=Tableaux.options
+    global_options=deprecated_function_alias(18555, Tableaux.options)
 
     @staticmethod
     def __classcall_private__(cls, level=None, size=None):

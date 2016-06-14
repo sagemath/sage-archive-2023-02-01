@@ -26,8 +26,9 @@ from sage.rings.all import QQ, ZZ
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.partition import Partition, _Partitions
+from sage.misc.superseded import deprecated_function_alias
 import permutation
 import functools
 
@@ -267,7 +268,8 @@ class RibbonTableaux(UniqueRepresentation, Parent):
         return self.element_class(self, SkewTableaux().from_expr(l))
 
     Element = RibbonTableau
-    global_options = TableauOptions
+    options = Tableaux.options
+    global_options = deprecated_function_alias(18555, options)
 
 class RibbonTableaux_shape_weight_length(RibbonTableaux):
     """

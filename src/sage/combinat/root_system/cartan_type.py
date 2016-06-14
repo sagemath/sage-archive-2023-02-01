@@ -359,9 +359,9 @@ automatically translated into the previous ones::
     0   1   2   3   4
     F4~*
 
-Additionally one can set the notation global option to use Kac's notation::
+Additionally one can set the notation option to use Kac's notation::
 
-    sage: CartanType.global_options['notation'] = 'Kac'
+    sage: CartanType.options['notation'] = 'Kac'
     sage: CartanType(["A", 9, 2])
     ['A', 9, 2]
     sage: CartanType(["A", 9, 2]).dynkin_diagram()
@@ -388,7 +388,7 @@ Additionally one can set the notation global option to use Kac's notation::
     O---O---O=<=O---O
     0   1   2   3   4
     E6^2
-    sage: CartanType.global_options['notation'] = 'BC'
+    sage: CartanType.options['notation'] = 'BC'
 
 .. TODO:: Should those indexes come before the introduction?
 
@@ -448,10 +448,11 @@ from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.global_options import GlobalOptions
+from sage.structure.global_options import AddOptionsToClass
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
 from six.moves.builtins import sorted
@@ -469,88 +470,6 @@ from six.moves.builtins import sorted
 #
 # Implementation: CartanType is the unique instance of this class
 # CartanTypeFactory. Is there a better/more standard way to do it?
-
-CartanTypeOptions=GlobalOptions(name='cartan_type',  doc=r"""
-    Sets and displays the global options for Cartan types. If no parameters
-    are set, then the function returns a copy of the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`CartanType.global_options` of
-    :class:`CartanType <CartanTypeFactory>`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: ct = CartanType(['D',5,2]); ct
-        ['C', 4, 1]^*
-        sage: ct.dynkin_diagram()
-        O=<=O---O---O=>=O
-        0   1   2   3   4
-        C4~*
-        sage: latex(ct)
-        C_{4}^{(1)\vee}
-        sage: CartanType.global_options(dual_str='#', dual_latex='\\ast',)
-        sage: ct
-        ['C', 4, 1]^#
-        sage: ct.dynkin_diagram()
-        O=<=O---O---O=>=O
-        0   1   2   3   4
-        C4~#
-        sage: latex(ct)
-        C_{4}^{(1)\ast}
-        sage: CartanType.global_options(notation='kac', mark_special_node='both')
-        sage: ct
-        ['D', 5, 2]
-        sage: ct.dynkin_diagram()
-        @=<=O---O---O=>=O
-        0   1   2   3   4
-        D5^2
-        sage: latex(ct)
-        D_{5}^{(2)}
-
-    For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
-    automatically overriden::
-
-        sage: dct = CartanType(['A',8,2]).dual(); dct
-        ['A', 8, 2]^+
-        sage: latex(dct)
-        A_{8}^{(2)\dagger}
-        sage: dct.dynkin_diagram()
-        @=>=O---O---O=>=O
-        0   1   2   3   4
-        A8^2+
-        sage: CartanType.global_options.reset()
-    """,
-    notation=dict(default="Stembridge",
-                  description='Specifies which notation Cartan types should use when printed',
-                  values=dict(Stembridge="use Stembridge's notation",
-                              Kac="use Kac's notation"),
-                  case_sensitive=False,
-                  alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
-    dual_str=dict(default="*",
-                  description='The string used for dual Cartan types when printing',
-                  checker=lambda char: isinstance(char,str)),
-    dual_latex=dict(default="\\vee",
-                    description='The latex used for dual CartanTypes when latexing',
-                    checker=lambda char: isinstance(char,str)),
-    mark_special_node=dict(default="none",
-                           description="Make the special nodes",
-                           values=dict(none="no markup", latex="only in latex",
-                                       printing="only in printing", both="both in latex and printing"),
-                           case_sensitive=False),
-    special_node_str=dict(default="@",
-                          description="The string used to indicate which node is special when printing",
-                          checker=lambda char: isinstance(char,str)),
-    marked_node_str=dict(default="X",
-                         description="The string used to indicate a marked node when printing",
-                         checker=lambda char: isinstance(char, str)),
-    latex_relabel=dict(default=True,
-                       description="Indicate in the latex output if a Cartan type has been relabelled",
-                       checker=lambda x: isinstance(x,bool)),
-    latex_marked=dict(default=True,
-                      description="Indicate in the latex output if a Cartan type has been marked",
-                      checker=lambda x: isinstance(x,bool))
-)
 
 class CartanTypeFactory(SageObject):
     def __call__(self, *args):
@@ -742,8 +661,6 @@ class CartanTypeFactory(SageObject):
         from . import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
-    global_options = CartanTypeOptions
-
     def _repr_(self):
         """
         EXAMPLES::
@@ -889,6 +806,89 @@ class CartanTypeFactory(SageObject):
             'green'
         """
         return cls._colors.get(i, 'black')
+
+AddOptionsToClass(CartanTypeFactory,
+    doc=r"""
+    Sets and displays the options for Cartan types. If no parameters
+    are set, then the function returns a copy of the options dictionary.
+
+    The ``options`` to partitions can be accessed as the method
+    :obj:`CartanType.options` of
+    :class:`CartanType <CartanTypeFactory>`.
+    """,
+    end_doc=r"""
+    EXAMPLES::
+
+        sage: ct = CartanType(['D',5,2]); ct
+        ['C', 4, 1]^*
+        sage: ct.dynkin_diagram()
+        O=<=O---O---O=>=O
+        0   1   2   3   4
+        C4~*
+        sage: latex(ct)
+        C_{4}^{(1)\vee}
+        sage: CartanType.options(dual_str='#', dual_latex='\\ast',)
+        sage: ct
+        ['C', 4, 1]^#
+        sage: ct.dynkin_diagram()
+        O=<=O---O---O=>=O
+        0   1   2   3   4
+        C4~#
+        sage: latex(ct)
+        C_{4}^{(1)\ast}
+        sage: CartanType.options(notation='kac', mark_special_node='both')
+        sage: ct
+        ['D', 5, 2]
+        sage: ct.dynkin_diagram()
+        @=<=O---O---O=>=O
+        0   1   2   3   4
+        D5^2
+        sage: latex(ct)
+        D_{5}^{(2)}
+
+    For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
+    automatically overriden::
+
+        sage: dct = CartanType(['A',8,2]).dual(); dct
+        ['A', 8, 2]^+
+        sage: latex(dct)
+        A_{8}^{(2)\dagger}
+        sage: dct.dynkin_diagram()
+        @=>=O---O---O=>=O
+        0   1   2   3   4
+        A8^2+
+        sage: CartanType.options._reset()
+    """,
+    notation=dict(default="Stembridge",
+                  description='Specifies which notation Cartan types should use when printed',
+                  values=dict(Stembridge="use Stembridge's notation",
+                              Kac="use Kac's notation"),
+                  case_sensitive=False,
+                  alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
+    dual_str=dict(default="*",
+                  description='The string used for dual Cartan types when printing',
+                  checker=lambda char: isinstance(char,str)),
+    dual_latex=dict(default="\\vee",
+                    description='The latex used for dual CartanTypes when latexing',
+                    checker=lambda char: isinstance(char,str)),
+    mark_special_node=dict(default="none",
+                           description="Make the special nodes",
+                           values=dict(none="no markup", latex="only in latex",
+                                       printing="only in printing", both="both in latex and printing"),
+                           case_sensitive=False),
+    special_node_str=dict(default="@",
+                          description="The string used to indicate which node is special when printing",
+                          checker=lambda char: isinstance(char,str)),
+    marked_node_str=dict(default="X",
+                         description="The string used to indicate a marked node when printing",
+                         checker=lambda char: isinstance(char, str)),
+    latex_relabel=dict(default=True,
+                       description="Indicate in the latex output if a Cartan type has been relabelled",
+                       checker=lambda x: isinstance(x,bool)),
+    latex_marked=dict(default=True,
+                      description="Indicate in the latex output if a Cartan type has been marked",
+                      checker=lambda x: isinstance(x,bool))
+)
 
 CartanType = CartanTypeFactory()
 
@@ -1443,7 +1443,8 @@ class CartanType_abstract(object):
         from sage.combinat.root_system.type_folded import CartanTypeFolded
         return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
 
-    global_options = CartanTypeOptions
+    options = CartanTypeFactory.options
+    global_options = deprecated_function_alias(18555, options)
 
 class CartanType_crystallographic(CartanType_abstract):
     """
@@ -1712,8 +1713,6 @@ class CartanType_crystallographic(CartanType_abstract):
             raise ValueError("the Dynkin diagram must be bipartite")
         return G.bipartite_sets()
 
-
-
 class CartanType_simply_laced(CartanType_crystallographic):
     """
     An abstract class for simply laced Cartan types.
@@ -1803,14 +1802,14 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         EXAMPLES::
 
             sage: ct = CartanType(['A',4,1])
-            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType.options(mark_special_node='both')
             sage: ct._ascii_art_node(0)
             '@'
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
         if (label == self.special_node()
-                and self.global_options('mark_special_node') in ['printing', 'both']):
-            return self.global_options('special_node_str')
+                and self.options('mark_special_node') in ['printing', 'both']):
+            return self.options('special_node_str')
         return super(CartanType_affine, self)._ascii_art_node(label)
 
     def _latex_draw_node(self, x, y, label, position="below=4pt"):
@@ -1823,12 +1822,12 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         EXAMPLES::
 
-            sage: CartanType.global_options(mark_special_node='both')
+            sage: CartanType.options(mark_special_node='both')
             sage: CartanType(['A',3,1])._latex_draw_node(0, 0, 0)
             '\\draw[fill=black] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};\n'
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
-        if label == self.special_node() and self.global_options('mark_special_node') in ['latex', 'both']:
+        if label == self.special_node() and self.options('mark_special_node') in ['latex', 'both']:
             fill = 'black'
         else:
             fill = 'white'
@@ -2643,7 +2642,7 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         letter = self.letter
         n = self.n
         aff = self.affine
-        if self.global_options('notation') == "Kac":
+        if self.options('notation') == "Kac":
             if letter == 'BC':
                 letter = 'A'
                 n *= 2

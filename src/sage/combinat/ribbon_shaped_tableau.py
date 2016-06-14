@@ -17,12 +17,13 @@ Ribbon Shaped Tableaux
 #*****************************************************************************
 
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+from sage.misc.superseded import deprecated_function_alias
 
 class RibbonShapedTableau(SkewTableau):
     r"""
@@ -204,7 +205,8 @@ class RibbonShapedTableaux(SkewTableaux):
         return "Ribbon shaped tableaux"
 
     Element = RibbonShapedTableau
-    global_options = TableauOptions
+    options = Tableaux.options
+    global_options = deprecated_function_alias(18555, options)
 
     def from_shape_and_word(self, shape, word):
         """
@@ -298,7 +300,8 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
                 yield self.element_class(self, r)
 
     Element = RibbonShapedTableau
-    global_options = TableauOptions
+    options = Tableaux.options
+    global_options = deprecated_function_alias(18555, options)
 
     def from_shape_and_word(self, shape, word):
         """

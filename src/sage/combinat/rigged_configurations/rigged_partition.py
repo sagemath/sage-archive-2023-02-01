@@ -124,19 +124,19 @@ class RiggedPartition(CombinatorialObject):
              0[ ][ ]0
             -1[ ]-1
             <BLANKLINE>
-            sage: Partitions.global_options(convention="french")
+            sage: Partitions.options(convention="french")
             sage: elt
             -1[ ]-1
              0[ ][ ]0
             <BLANKLINE>
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
         # If it is empty, return saying so
         if len(self._list) == 0:
             return("(/)\n")
 
         from sage.combinat.partition import Partitions
-        if Partitions.global_options("convention") == "French":
+        if Partitions.options("convention") == "French":
             itr = reversed(list(enumerate(self._list)))
         else:
             itr = enumerate(self._list)
@@ -170,7 +170,7 @@ class RiggedPartition(CombinatorialObject):
         Check that this prints using the French convention::
 
             sage: RC = RiggedConfigurations(['D',5,1], [[2,1], [1,2]])
-            sage: RiggedConfigurations.global_options(convention='French')
+            sage: RiggedConfigurations.options(convention='French')
             sage: latex(RC(partition_list=[[3],[3,1],[1,1],[1],[1]])[1])
             {
             \begin{array}[t]{r|c|c|c|l}
@@ -179,7 +179,7 @@ class RiggedPartition(CombinatorialObject):
              \cline{2-4}
             \end{array}
             }
-            sage: RiggedConfigurations.global_options.reset()
+            sage: RiggedConfigurations.options._reset()
         """
         num_rows = len(self._list)
         if num_rows == 0:
@@ -474,19 +474,19 @@ class RiggedPartitionTypeB(RiggedPartition):
             -2[][]-2
             -2[]-2
             <BLANKLINE>
-            sage: RiggedConfigurations.global_options(half_width_boxes_type_B=False)
+            sage: RiggedConfigurations.options(half_width_boxes_type_B=False)
             sage: elt
             -2[ ][ ]-2
             -2[ ]-2
             <BLANKLINE>
-            sage: RiggedConfigurations.global_options.reset()
+            sage: RiggedConfigurations.options.reset()
         """
         # If it is empty, return saying so
         if len(self._list) == 0:
             return("(/)\n")
 
         from sage.combinat.partition import Partitions
-        if Partitions.global_options("convention") == "french":
+        if Partitions.options("convention") == "french":
             itr = reversed(list(enumerate(self._list)))
         else:
             itr = enumerate(self._list)
@@ -526,7 +526,7 @@ class RiggedPartitionTypeB(RiggedPartition):
              \cline{2-3} 
             \end{array}
             }
-            sage: RiggedConfigurations.global_options(half_width_boxes_type_B=False)
+            sage: RiggedConfigurations.options(half_width_boxes_type_B=False)
             sage: latex(RP)
             {
             \begin{array}[t]{r|c|c|l}
@@ -534,7 +534,7 @@ class RiggedPartitionTypeB(RiggedPartition):
              \cline{2-3} 
             \end{array}
             }
-            sage: RiggedConfigurations.global_options.reset()
+            sage: RiggedConfigurations.options.reset()
         """
         num_rows = len(self._list)
         if num_rows == 0:

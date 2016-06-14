@@ -195,7 +195,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     filename = args.pkg[0]
-    dirname = args.dir[0]
+    dirname = args.dir and args.dir[0]
 
     for cls in ARCHIVE_TYPES:
         if cls.can_read(filename):

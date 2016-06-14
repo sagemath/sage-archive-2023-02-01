@@ -90,7 +90,7 @@ Sage también puede calcular autovalores ("eigenvalues") y autovectores
 (La sintaxis de la salida de ``eigenvectors_left`` es una lista de
 tuplas: (autovalor, autovector, multiplicidad).)  Los autovalores
 y autovectores sobre ``QQ`` o ``RR`` también se pueden calcular
-usando Maxima (:ref:`section-maxima`).
+usando Maxima.
 
 Como ya indicamos en :ref:`section-rings`, el anillo sobre el que se 
 define una matriz afecta algunas de sus propiedades. En las líneas que 

@@ -1643,12 +1643,13 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
+            \operatorname{B}(p,q) = \int_0^1 t^{p-1}(1-t)^{q-1} dt
 
         for complex or symbolic input `p` and `q`.
-        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
+        Note that the order of inputs does not matter:
+        `\operatorname{B}(p,q)=\operatorname{B}(q,p)`.
 
-        GiNaC is used to compute `B(p,q)`.  However, complex inputs
+        GiNaC is used to compute `\operatorname{B}(p,q)`.  However, complex inputs
         are not yet handled in general.  When GiNaC raises an error on
         such inputs, we raise a NotImplementedError.
 
@@ -1658,20 +1659,20 @@ class Function_beta(GinacFunction):
 
         .. math::
 
-            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
+            \operatorname{B}(p,q) = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
 
         or
 
         .. math::
 
-            B(p,q) = (-1)^q B(1-p-q, q).
+            \operatorname{B}(p,q) = (-1)^q \operatorname{B}(1-p-q, q).
 
 
         For numerical inputs, GiNaC uses the formula
 
         .. math::
 
-            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
+            \operatorname{B}(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
 
 
         INPUT:

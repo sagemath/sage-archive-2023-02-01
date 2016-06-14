@@ -89,6 +89,13 @@ packages of Sage::
 
     [user@localhost sage]$ make
 
+.. note::
+
+    If you are compiling for an operating system that allows changing directories
+    without using exact capitalization, then beware of this convenience. Ignoring
+    exact capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+    errors for dependencies requiring exact capitalization in path names.
+
 For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
 actually takes place.

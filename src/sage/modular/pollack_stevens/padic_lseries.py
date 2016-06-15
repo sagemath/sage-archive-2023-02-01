@@ -40,7 +40,7 @@ class pAdicLseries(SageObject):
         sage: E = EllipticCurve('37a')
         sage: p = 5
         sage: prec = 4
-        sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+        sage: phi = E.overconvergent_modular_symbol()
         sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
         sage: L = pAdicLseries(Phi) # long time
         sage: L[1] # long time

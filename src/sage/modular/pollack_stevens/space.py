@@ -816,6 +816,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
       the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
       symbol. The default of 0 returns the sum of the plus and minus symbols.
 
+
     OUTPUT:
 
     The overconvergent modular symbol associated to ``E``
@@ -823,7 +824,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
     EXAMPLES::
 
         sage: E = EllipticCurve('113a1')
-        sage: symb = E.modular_symbol(implementation = 'pollack-stevens') # indirect doctest
+        sage: symb = E.overconvergent_modular_symbol() # indirect doctest
         sage: symb
         Modular symbol of level 113 with values in Sym^0 Q^2
         sage: symb.values()
@@ -831,7 +832,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
         0, 2, 0, 0]
 
         sage: E = EllipticCurve([0,1])
-        sage: symb = E.modular_symbol(implementation = 'pollack-stevens')
+        sage: symb = E.overconvergent_modular_symbol()
         sage: symb.values()
         [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
     """
@@ -845,10 +846,13 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
     V = PSModularSymbols(Gamma0(N), 0)
     D = V.coefficient_module()
     manin = V.source()
+    # currently this uses eclib and the normalization given by 'L_ratio' in modular_symbol
     if sign >= 0:
         plus_sym = E.modular_symbol(sign=1)
+        # the following renormalises these symbols so that the p-adic L-function is correct.
+        plus_sym._scaling /= E.real_components()
     if sign <= 0:
-        minus_sym = E.modular_symbol(implementation='sage', sign=-1)
+        minus_sym = E.modular_symbol(sign=-1)
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)

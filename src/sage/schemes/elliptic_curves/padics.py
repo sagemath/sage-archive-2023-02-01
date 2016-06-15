@@ -93,13 +93,13 @@ def _normalize_padic_lseries(self, p, normalize, use_eclib, implementation, prec
             normalize = "L_ratio"
     elif implementation == 'overconvergent':
         if precision is None:
-            raise ValueError("Must specify precision when using 'pollack-stevens'")
+            raise ValueError("Must specify precision when using 'overconvergent'")
         if normalize is not None:
             raise ValueError("The 'normalize' parameter is not used for Pollack-Stevens' overconvergent modular symbols")
     else:
         raise ValueError("Implementation should be one of  'sage', 'eclib' or 'overconvergent'")
-    if precision is not None and implementation != 'pollack-stevens':
-        raise ValueError("Must *not* specify precision unless using 'overconvergent'")
+    #if precision is not None and implementation != 'overconvergent':
+    #    raise ValueError("Must *not* specify precision unless using 'overconvergent'")
     return (p, normalize, implementation, precision)
 
 @cached_method(key=_normalize_padic_lseries)
@@ -204,7 +204,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
             Lp = plseries.pAdicLseriesSupersingular(self, p,
                                   normalize = normalize, implementation = implementation)
     else:
-        phi = self.modular_symbol(None, normalize = normalize, implementation = 'overconvergent')
+        phi = self.overconvergent_modular_symbol(sign=0)
         if phi.parent().level() % p == 0:
             Phi = phi.lift(p, precision, eigensymbol = True)
         else:

@@ -1405,14 +1405,6 @@ cdef class ModuleElement(Element):
         """
         return coercion_model.bin_op(self, n, mul)
 
-    cdef RingElement coerce_to_base_ring(self, x):
-        if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
-            return x
-        try:
-            return self._parent._base._coerce_c(x)
-        except AttributeError:
-            return self._parent._base(x)
-
     ##################################################
     # Other properties
     ##################################################

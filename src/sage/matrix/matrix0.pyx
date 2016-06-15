@@ -3904,7 +3904,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=False, positive=positive)
 
     def is_skew_symmetrizable(self, return_diag=False, positive=True):
@@ -3955,7 +3955,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=True, positive=positive)
 
     def is_dense(self):

@@ -282,7 +282,7 @@ AUTHORS:
 - Ralf Stephan (2015-)
 
 The original module wrapped some of the orthogonal/special functions
-in the Maxima package "orthopoly" and was was written by Barton
+in the Maxima package "orthopoly" and was written by Barton
 Willis of the University of Nebraska at Kearney.
 
 """

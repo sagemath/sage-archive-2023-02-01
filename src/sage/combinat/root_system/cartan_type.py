@@ -442,7 +442,7 @@ this data.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
@@ -454,7 +454,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from __builtin__ import sorted
+from six.moves.builtins import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
@@ -634,7 +634,7 @@ class CartanTypeFactory(SageObject):
 
         if isinstance(t, str):
             if "x" in t:
-                import type_reducible
+                from . import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
             elif t[-1] == "*":
                 return CartanType(t[:-1]).dual()
@@ -650,35 +650,35 @@ class CartanTypeFactory(SageObject):
             if len(t) == 2:
                 if letter == "A":
                     if n >= 0:
-                        import type_A
+                        from . import type_A
                         return type_A.CartanType(n)
                 if letter == "B":
                     if n >= 1:
-                        import type_B
+                        from . import type_B
                         return type_B.CartanType(n)
                 if letter == "C":
                     if n >= 1:
-                        import type_C
+                        from . import type_C
                         return type_C.CartanType(n)
                 if letter == "D":
-                    import type_D
+                    from . import type_D
                     if n >= 2:
                         return type_D.CartanType(n)
                 if letter == "E":
                     if n >= 6 and n <= 8:
-                        import type_E
+                        from . import type_E
                         return type_E.CartanType(n)
                 if letter == "F":
                     if n == 4:
-                        import type_F
+                        from . import type_F
                         return type_F.CartanType()
                 if letter == "G":
                     if n == 2:
-                        import type_G
+                        from . import type_G
                         return type_G.CartanType()
                 if letter == "H":
                     if n in [3, 4]:
-                        import type_H
+                        from . import type_H
                         return type_H.CartanType(n)
                 if letter == "I":
                     if n == 1:
@@ -690,42 +690,42 @@ class CartanTypeFactory(SageObject):
                     if n == 6:
                         return CartanType(["G", 2])
                     if n >= 1:
-                        import type_I
+                        from . import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
-                            import type_A_affine
+                            from . import type_A_affine
                             return type_A_affine.CartanType(n)
                     if letter == "B":
                         if n >= 1:
-                            import type_B_affine
+                            from . import type_B_affine
                             return type_B_affine.CartanType(n)
                     if letter == "C":
                         if n >= 1:
-                            import type_C_affine
+                            from . import type_C_affine
                             return type_C_affine.CartanType(n)
                     if letter == "D":
-                        import type_D_affine
+                        from . import type_D_affine
                         if n >= 3:
                             return type_D_affine.CartanType(n)
                     if letter == "E":
                         if n >= 6 and n <= 8:
-                            import type_E_affine
+                            from . import type_E_affine
                             return type_E_affine.CartanType(n)
                     if letter == "F":
                         if n == 4:
-                            import type_F_affine
+                            from . import type_F_affine
                             return type_F_affine.CartanType()
                     if letter == "G":
                         if n == 2:
-                            import type_G_affine
+                            from . import type_G_affine
                             return type_G_affine.CartanType()
                 if t[2] in [2,3]:
                     if letter == "BC" and t[2] == 2:
                         if n >= 1:
-                            import type_BC_affine
+                            from . import type_BC_affine
                             return type_BC_affine.CartanType(n)
                     if letter == "A" and t[2] == 2:
                         if n%2 == 0: # Kac' A_2n^(2)
@@ -739,7 +739,7 @@ class CartanTypeFactory(SageObject):
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
             raise ValueError("%s is not a valid Cartan type"%t)
-        import type_reducible
+        from . import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
     global_options = CartanTypeOptions
@@ -1128,7 +1128,7 @@ class CartanType_abstract(object):
             sage: CartanType(['F',4]).dual()
             ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
         """
-        import type_dual
+        from . import type_dual
         return type_dual.CartanType(self)
 
     def relabel(self, relabelling):
@@ -1153,7 +1153,7 @@ class CartanType_abstract(object):
            4   3   2   1
            F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
         """
-        import type_relabel
+        from . import type_relabel
         return type_relabel.CartanType(self, relabelling)
 
     def subtype(self, index_set):
@@ -1192,7 +1192,7 @@ class CartanType_abstract(object):
         """
         if not marked_nodes:
             return self
-        import type_marked
+        from . import type_marked
         return type_marked.CartanType(self, marked_nodes)
 
     def is_reducible(self):
@@ -2403,7 +2403,7 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             True
 
         """
-        from cartan_type import CartanType
+        from .cartan_type import CartanType
         return (CartanType, (self.letter, self.n))
 
     def __cmp__(self, other):

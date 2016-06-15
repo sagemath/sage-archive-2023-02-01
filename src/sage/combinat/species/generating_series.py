@@ -92,7 +92,7 @@ def OrdinaryGeneratingSeriesRing(R):
     """
     Return the ring of ordinary generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -167,7 +167,7 @@ def ExponentialGeneratingSeriesRing(R):
     """
     Return the ring of exponential generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -337,7 +337,7 @@ def CycleIndexSeriesRing(R):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::

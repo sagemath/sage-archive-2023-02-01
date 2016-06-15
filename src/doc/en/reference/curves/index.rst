@@ -4,10 +4,10 @@ Plane curves
 .. toctree::
    :maxdepth: 2
 
-   sage/schemes/plane_curves/constructor
-   sage/schemes/plane_curves/affine_curve
-   sage/schemes/plane_curves/projective_curve
-   sage/schemes/plane_curves/curve
+   sage/schemes/curves/constructor
+   sage/schemes/curves/affine_curve
+   sage/schemes/curves/projective_curve
+   sage/schemes/curves/curve
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field

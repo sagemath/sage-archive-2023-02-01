@@ -411,34 +411,9 @@ cdef class SageObject:
         else:
             assert False, "_cache_key() must not be called for hashable elements"
 
-    #############################################################################
+    ##########################################################################
     # DATABASE Related code
-    #############################################################################
-
-    def version(self):
-        r"""
-        The version of Sage.
-
-        Call this to save the version of Sage in this object.
-        If you then save and load this object it will know in what
-        version of Sage it was created.
-
-        This only works on Python classes that derive from SageObject.
-
-        TESTS::
-
-            sage: v = DiGraph().version()
-            doctest:... DeprecationWarning: version() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'version() is deprecated.')
-        try:
-            return self.__version
-        except AttributeError:
-            import sage.version
-            self.__version = sage.version.version
-            return self.__version
+    ##########################################################################
 
     def save(self, filename=None, compress=True):
         """

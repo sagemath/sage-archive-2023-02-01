@@ -125,6 +125,8 @@ remove_old_version()
     rm -f "$SAGE_LOCAL/include/factoryconf.h"
     rm -rf "$SAGE_LOCAL/include/factory"
     rm -rf "$SAGE_LOCAL/include/singular"
+    rm -rf "$SAGE_LOCAL"/include/omalloc*
+    rm -f "$SAGE_LOCAL"/lib/*omalloc*
 }
 
 config()

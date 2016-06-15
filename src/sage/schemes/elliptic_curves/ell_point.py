@@ -133,7 +133,7 @@ import sage.groups.generic as generic
 from sage.libs.pari.pari_instance import pari, prec_words_to_bits
 from sage.structure.sequence import Sequence
 
-from sage.schemes.plane_curves.projective_curve import Hasse_bounds
+from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
                                                       SchemeMorphism_point_abelian_variety_field)
 from sage.schemes.generic.morphism import is_SchemeMorphism
@@ -3544,7 +3544,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             return Integer(1)
         E = self.curve()
         K = E.base_ring()
-        from sage.schemes.plane_curves.projective_curve import Hasse_bounds
+        from sage.schemes.curves.projective_curve import Hasse_bounds
         bounds = Hasse_bounds(K.order())
 
         try:

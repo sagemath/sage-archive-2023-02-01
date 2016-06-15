@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Pollack-Stevens Modular Symbols Spaces
+Pollack-Stevens' Overconvergent Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
 Stevens' conventions.
@@ -23,7 +23,7 @@ and the ones in :mod:`sage.modular.modsym`:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
@@ -266,7 +266,7 @@ class PSModularSymbolSpace(Module):
 
     def _repr_(self):
         r"""
-        Returns print representation.
+        Return print representation.
 
         EXAMPLES::
 
@@ -368,7 +368,7 @@ class PSModularSymbolSpace(Module):
 
     def ncoset_reps(self):
         r"""
-        Returns the number of coset representatives defining the domain of the
+        Return the number of coset representatives defining the domain of the
         modular symbols in this space.
 
         OUTPUT:
@@ -387,7 +387,7 @@ class PSModularSymbolSpace(Module):
 
     def level(self):
         r"""
-        Returns the level `N`, where this space is of level `\Gamma_0(N)`.
+        Return the level `N`, where this space is of level `\Gamma_0(N)`.
 
         EXAMPLES::
 
@@ -427,7 +427,7 @@ class PSModularSymbolSpace(Module):
 
     def precision_cap(self):
         r"""
-        Returns the number of moments of each element of this space.
+        Return the number of moments of each element of this space.
 
         EXAMPLES::
 
@@ -446,7 +446,7 @@ class PSModularSymbolSpace(Module):
 
     def weight(self):
         r"""
-        Returns the weight of this space.
+        Return the weight of this space.
 
         .. WARNING::
 
@@ -465,7 +465,7 @@ class PSModularSymbolSpace(Module):
 
     def prime(self):
         r"""
-        Returns the prime of this space.
+        Return the prime of this space.
 
         EXAMPLES::
 
@@ -478,7 +478,7 @@ class PSModularSymbolSpace(Module):
 
     def _p_stabilize_parent_space(self, p, new_base_ring):
         r"""
-        Returns the space of Pollack-Stevens modular symbols of level
+        Return the space of Pollack-Stevens modular symbols of level
         ``p * N``, with changed base ring.  This is used internally when
         constructing the p-stabilization of a modular symbol.
 
@@ -585,7 +585,7 @@ class PSModularSymbolSpace(Module):
 
     def change_ring(self, new_base_ring):
         r"""
-        Changes the base ring of this space to ``new_base_ring``.
+        Change the base ring of this space to ``new_base_ring``.
 
         INPUT:
 
@@ -612,7 +612,7 @@ class PSModularSymbolSpace(Module):
 #       SATISFY THE MANIN RELATIONS
 
         r"""
-        Returns the cusps associated to an element of a congruence subgroup.
+        Return the cusps associated to an element of a congruence subgroup.
 
         OUTPUT:
 
@@ -640,7 +640,7 @@ class PSModularSymbolSpace(Module):
 
     def random_element(self, M=None):
         r"""
-        Returns a random OMS in this space with M moments
+        Return a random overcovergent modular symbol in this space with M moments
 
         INPUT:
 
@@ -756,7 +756,7 @@ class PSModularSymbolSpace(Module):
 
 def cusps_from_mat(g):
     r"""
-    Returns the cusps associated to an element of a congruence subgroup.
+    Return the cusps associated to an element of a congruence subgroup.
 
     INPUT:
 
@@ -805,7 +805,7 @@ def cusps_from_mat(g):
 
 def ps_modsym_from_elliptic_curve(E, sign = 0):
     r"""
-    Returns the Pollack-Stevens modular symbol associated to
+    Return the overconvergent modular symbol associated to
     an elliptic curve defined over the rationals.
 
     INPUT:
@@ -813,12 +813,12 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
     - ``E`` -- an elliptic curve defined over the rationals
 
     - ``sign`` -- the sign (default: 0). If nonzero, returns either
-    the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
-    symbol. The default of 0 returns the sum of the plus and minus symbols.
+      the plus (if ``sign`` == 1) or the minus (if ``sign`` == -1) modular
+      symbol. The default of 0 returns the sum of the plus and minus symbols.
 
     OUTPUT:
 
-    The Pollack-Stevens modular symbol associated to ``E``
+    The overconvergent modular symbol associated to ``E``
 
     EXAMPLES::
 
@@ -862,8 +862,7 @@ def ps_modsym_from_elliptic_curve(E, sign = 0):
 
 def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     r"""
-    Returns some choice -- only well defined up a nonzero scalar (!) -- of a
-    Pollack-Stevens modular symbol that corresponds to ``A``.
+    Returns some choice -- only well defined up a nonzero scalar (!) -- of an overconvergent modular symbol that corresponds to ``A``.
 
     INPUT:
 
@@ -872,7 +871,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
 
     OUTPUT:
 
-    A choice of corresponding Pollack-Stevens modular symbols; when dim(A)>1,
+    A choice of corresponding overconvergent modular symbols; when dim(A)>1,
     we make an arbitrary choice of defining polynomial for the codomain field.
 
     EXAMPLES:

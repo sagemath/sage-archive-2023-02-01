@@ -1,5 +1,5 @@
 """
-Spaces of Distributions
+Spaces of Distributions for overconvergent modular symbols
 
 """
 #*****************************************************************************
@@ -10,7 +10,7 @@ Spaces of Distributions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.modules.module import Module
 from sage.structure.parent import Parent
 from sage.rings.padics.factory import ZpCA, QpCR
@@ -53,7 +53,7 @@ class Distributions_factory(UniqueFactory):
         sage: v.act_right([2,1,0,1])
         (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + 4*11 + O(11))
 
-    Note that we would expect something more p-adic, but fine...
+    Note that we would expect something more p-adic, but fine...::
 
         sage: D = Distributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])

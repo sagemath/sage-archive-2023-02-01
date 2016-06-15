@@ -1,5 +1,5 @@
 r"""
-Manin Relations
+Manin Relations for overconvergent modular symbols
 
 Code to create the Manin Relations class, which solves the "Manin relations".
 That is, a description of `Div^0(P^1(\QQ))` as a `\ZZ[\Gamma_0(N)]`-module in
@@ -10,9 +10,9 @@ relevant Manin relations off of that picture. The algorithm follows [PS2011].
 REFERENCES:
 
 .. [PS2011] R. Pollack, and G. Stevens.
-*Overconvergent modular symbols and p-adic L-functions.*
-Annales scientifiques de l'Ecole normale superieure.
-Vol. 44. No. 1. Elsevier, 2011.
+   *Overconvergent modular symbols and p-adic L-functions.*
+   Annales scientifiques de l'Ecole normale superieure.
+   Vol. 44. No. 1. Elsevier, 2011.
 
 AUTHORS:
 
@@ -28,7 +28,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
@@ -49,7 +49,7 @@ def M2Z(x):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.fund_domain import M2Z
-        sage: print M2Z([1,2,3,4])
+        sage: M2Z([1,2,3,4])
         [1 2]
         [3 4]
     """
@@ -75,21 +75,21 @@ class PSModularSymbolsDomain(SageObject):
 
     INPUT:
 
-        - ``N`` -- a positive integer, the level of the congruence subgroup
+    - ``N`` -- a positive integer, the level of the congruence subgroup
           `\Gamma_0(N)`
 
-        - ``reps`` -- a list of `2 \times 2` matrices, the coset representatives of
+    - ``reps`` -- a list of `2 \times 2` matrices, the coset representatives of
           `Div^0(P^1(\QQ))`
 
-        - ``indices`` -- a list of integers; indices of elements in ``reps``
+    - ``indices`` -- a list of integers; indices of elements in ``reps``
           which are generators
 
-        - ``rels`` -- a list of list of triples ``(d, A, i)``, one for each
+    - ``rels`` -- a list of list of triples ``(d, A, i)``, one for each
           coset representative of ``reps`` which describes how to express the
           elements of ``reps`` in terms of generators specified by ``indices``.
           See :meth:`relations` for a detailed explanations of these triples.
 
-        - ``equiv_ind`` -- a dictionary which maps normalized coordinates on
+     - ``equiv_ind`` -- a dictionary which maps normalized coordinates on
           `P^1(\ZZ/N\ZZ)` to an integer such that a matrix whose bottom row is
           equivalent to `[a:b]` in `P^1(\ZZ/N\ZZ)` is in the coset of
           ``reps[equiv_ind[(a,b)]]``
@@ -161,7 +161,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def __len__(self):
         r"""
-        Returns the number of coset representatives.
+        Return the number of coset representatives.
 
         EXAMPLES::
 
@@ -173,7 +173,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def __getitem__(self, i):
         r"""
-        Returns the ``i``-th coset representative.
+        Return the ``i``-th coset representative.
 
         EXAMPLES::
 
@@ -187,14 +187,14 @@ class PSModularSymbolsDomain(SageObject):
 
     def __iter__(self):
         r"""
-        Returns an iterator over all coset representatives.
+        Return an iterator over all coset representatives.
 
         EXAMPLES::
 
             sage: A = ManinRelations(11)
             sage: for rep in A:
             ....:     if rep[1,0] == 1:
-            ....:         print rep
+            ....:         print(rep)
             [ 0 -1]
             [ 1  3]
             [ 0 -1]
@@ -206,7 +206,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def gens(self):
         r"""
-        Returns the list of coset representatives chosen as generators.
+        Return the list of coset representatives chosen as generators.
 
         EXAMPLES::
 
@@ -221,7 +221,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def gen(self, n=0):
         r"""
-        Returns the ``n``-th generator.
+        Return the ``n``-th generator.
 
         INPUT:
 
@@ -238,7 +238,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def ngens(self):
         r"""
-        Returns the number of generators.
+        Return the number of generators.
 
         OUTPUT:
 
@@ -255,7 +255,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def level(self):
         r"""
-        Returns the level `N` of `\Gamma_0(N)` that we work with.
+        Return the level `N` of `\Gamma_0(N)` that we work with.
 
         OUTPUT:
 
@@ -272,7 +272,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def indices(self, n=None):
         r"""
-        Returns the ``n``-th index of the coset representatives which were
+        Return the ``n``-th index of the coset representatives which were
         chosen as our generators.
 
         In particular, the divisors associated to these coset representatives
@@ -313,7 +313,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def reps(self, n=None):
         r"""
-        Returns the ``n``-th coset representative associated with our
+        Return the ``n``-th coset representative associated with our
         fundamental domain.
 
         INPUT:
@@ -354,7 +354,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def relations(self, A=None):
         r"""
-        Expresses the divisor attached to the coset representative of ``A`` in
+        Express the divisor attached to the coset representative of ``A`` in
         terms of our chosen generators.
 
         INPUT:
@@ -467,7 +467,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def equivalent_index(self, A):
         r"""
-        Returns the index of the coset representative equivalent to ``A``.
+        Return the index of the coset representative equivalent to ``A``.
 
         Here by equivalent we mean the unique coset representative whose bottom
         row is equivalent to the bottom row of ``A`` in `P^1(\ZZ/N\ZZ)`.
@@ -500,7 +500,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def equivalent_rep(self, A):
         r"""
-        Returns a coset representative that is equivalent to ``A`` modulo
+        Return a coset representative that is equivalent to ``A`` modulo
         `\Gamma_0(N)`.
 
         INPUT:
@@ -522,7 +522,7 @@ class PSModularSymbolsDomain(SageObject):
 
     def P1(self):
         r"""
-        Returns the Sage representation of `P^1(\ZZ/N\ZZ)`.
+        Return the Sage representation of `P^1(\ZZ/N\ZZ)`.
 
         EXAMPLES::
 
@@ -882,7 +882,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
     def indices_with_two_torsion(self):
         r"""
-        The indices of coset representatives whose associated unimodular path
+        Return the indices of coset representatives whose associated unimodular path
         contains a point fixed by a `\Gamma_0(N)` element of order 2 (where the
         order is computed in `PSL_2(\ZZ)`).
 
@@ -974,7 +974,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         INPUT:
 
-            - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
+        - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
 
         EXAMPLES::
 
@@ -1098,7 +1098,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
     def form_list_of_cusps(self):
         r"""
-        Returns the intersection of a fundamental domain for `\Gamma_0(N)` with
+        Return the intersection of a fundamental domain for `\Gamma_0(N)` with
         the real axis.
 
         The construction of this fundamental domain follows the arguments of
@@ -1260,7 +1260,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
     def is_unimodular_path(self, r1, r2):
         r"""
-        Determines whether two (non-infinite) cusps are connected by a
+        Determine whether two (non-infinite) cusps are connected by a
         unimodular path.
 
         INPUT:
@@ -1292,7 +1292,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
     def unimod_to_matrices(self, r1, r2):
         r"""
-        Returns the two matrices whose associated unimodular paths connect
+        Return the two matrices whose associated unimodular paths connect
         ``r1`` and ``r2`` and ``r2`` and ``r1``, respectively.
 
         INPUT:
@@ -1325,7 +1325,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
     def fd_boundary(self, C):
         r"""
-        Finds matrices whose associated unimodular paths give the
+        Find matrices whose associated unimodular paths give the
         boundary of a fundamental domain.
 
         Here the fundamental domain is for `\Gamma_0(N)`.  (In the
@@ -1415,13 +1415,13 @@ class ManinRelations(PSModularSymbolsDomain):
         through the `l+1` matrices defining `T_l`.  One
         then takes `\gamma_a D_m` and writes it as a sum of unimodular
         divisors.  For each such unimodular divisor, say `[M]` where `M` is a
-        `SL_2` matrix, we then write `M=\gamma*h` where `\gamma` is in
+        `SL_2` matrix, we then write `M=\gamma h` where `\gamma` is in
         `\Gamma_0(N)` and `h` is one of our chosen coset representatives.  Then
         `\phi([M]) = \phi([h]) | `\gamma^{-1}`.  Thus, one has
 
         .. MATH::
 
-            (\phi | \gamma_a)(D_m) = \sum_h \sum_j \phi([h]) | \gamma_{hj}^(-1) * \gamma_a
+            (\phi | \gamma_a)(D_m) = \sum_h \sum_j \phi([h]) | \gamma_{hj}^{-1} \cdot \gamma_a
 
         as `h` runs over all coset representatives and `j` simply runs over
         however many times `M_h` appears in the above computation.
@@ -1500,7 +1500,7 @@ class ManinRelations(PSModularSymbolsDomain):
     @cached_method
     def prep_hecke_on_gen_list(self, l, gen, modulus=None):
         r"""
-        Returns the precomputation to compute `T_l` in a way that
+        Return the precomputation to compute `T_l` in a way that
         speeds up the hecke calculation.
 
         Namely, returns a list of the form [h,A].
@@ -1532,7 +1532,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
 def basic_hecke_matrix(a, l):
     r"""
-    Returns the `2 \times 2` matrix with entries ``[1, a, 0, l]`` if ``a<l``
+    Return the `2 \times 2` matrix with entries ``[1, a, 0, l]`` if ``a<l``
     and ``[l, 0, 0, 1]`` if ``a>=l``.
 
     INPUT:

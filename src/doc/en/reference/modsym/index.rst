@@ -31,6 +31,13 @@ Modular Symbols
    sage/modular/modsym/hecke_operator
    sage/modular/modsym/relation_matrix_pyx
 
+
+Overconvergent modular symbols
+----------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
    sage/modular/pollack_stevens/space
    sage/modular/pollack_stevens/distributions
    sage/modular/pollack_stevens/fund_domain

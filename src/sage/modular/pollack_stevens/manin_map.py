@@ -38,7 +38,7 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.rings.continued_fraction import convergents
 from sage.misc.misc import verbose
 from sigma0 import Sigma0
@@ -248,7 +248,7 @@ class ManinMap(object):
 
     def _compute_image_from_gens(self, B):
         r"""
-        Compute image of ``B`` under ``self``.
+        Compute the image of ``B`` under ``self``.
 
         INPUT:
 
@@ -279,7 +279,7 @@ class ManinMap(object):
     def __getitem__(self, B):
         r"""
 
-        Compute image of ``B`` under ``self``.
+        Compute the image of ``B`` under ``self``.
 
         INPUT:
 
@@ -722,7 +722,7 @@ class ManinMap(object):
 
     def specialize(self, *args):
         r"""
-        Specializes all the values of the Manin map to a new coefficient
+        Specialize all the values of the Manin map to a new coefficient
         module. Assumes that the codomain has a ``specialize`` method, and
         passes all its arguments to that method.
 

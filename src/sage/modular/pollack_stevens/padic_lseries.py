@@ -10,7 +10,7 @@ P-adic L-series attached to overconvergent eigensymbols
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -121,7 +121,7 @@ class pAdicLseries(SageObject):
 
     def __getitem__(self, n):
         r"""
-        Returns the `n`-th coefficient of the `p`-adic `L`-series
+        Return the `n`-th coefficient of the `p`-adic `L`-series
 
         EXAMPLES::
 
@@ -191,7 +191,7 @@ class pAdicLseries(SageObject):
 
     def symb(self):
         r"""
-        Returns the overconvergent modular symbol
+        Return the overconvergent modular symbol
 
         EXAMPLES::
 
@@ -208,7 +208,7 @@ class pAdicLseries(SageObject):
 
     def prime(self):
         r"""
-        Returns the prime associatd to the OMS
+        Return the prime associatd to the overconvergent modular symbol
 
         EXAMPLES::
 
@@ -225,7 +225,7 @@ class pAdicLseries(SageObject):
 
     def quadratic_twist(self):
         r"""
-        Returns the discriminant of the quadratic twist
+        Return the discriminant of the quadratic twist
 
         EXAMPLES::
 
@@ -242,7 +242,7 @@ class pAdicLseries(SageObject):
 
     def _repr_(self):
         r"""
-        Returns the print representation
+        Return the print representation
 
         EXAMPLES::
 
@@ -259,7 +259,7 @@ class pAdicLseries(SageObject):
 
     def series(self, n, prec=5):
         r"""
-        Returns the `n`-th approximation to the `p`-adic `L`-series
+        Return the `n`-th approximation to the `p`-adic `L`-series
         associated to self, as a power series in `T` (corresponding to
         `\gamma-1` with `\gamma= 1 + p` as a generator of `1+p\ZZ_p`).
 
@@ -289,7 +289,7 @@ class pAdicLseries(SageObject):
 
     def interpolation_factor(self, ap, chip=1, psi=None):
         r"""
-        Returns the interpolation factor associated to self
+        Return the interpolation factor associated to self
 
         EXAMPLES::
 
@@ -329,7 +329,7 @@ class pAdicLseries(SageObject):
 
     def eval_twisted_symbol_on_Da(self, a):  # rename! should this be in modsym?
         """
-        Returns `\Phi_{\chi}(\{a/p}-{\infty})` where `Phi` is the OMS and
+        Return `\Phi_{\chi}(\{a/p\}-\{\infty\})` where `Phi` is the overconvergent modular symbol and
         `\chi` is a the quadratic character corresponding to self
 
         INPUT:
@@ -382,7 +382,7 @@ class pAdicLseries(SageObject):
 
     def _basic_integral(self, a, j):
         r"""
-        Returns `\int_{a+pZ_p} (z-{a})^j d\Phi(0-infty)`
+        Return `\int_{a+pZ_p} (z-{a})^j d\Phi(0-infty)`
         -- see formula [Pollack-Stevens, sec 9.2]
 
         INPUT:
@@ -420,7 +420,7 @@ class pAdicLseries(SageObject):
 
 def log_gamma_binomial(p, gamma, z, n, M):
     r"""
-    Returns the list of coefficients in the power series
+    Return the list of coefficients in the power series
     expansion (up to precision `M`) of `{\log_p(z)/\log_p(\gamma) \choose n}`
 
     INPUT:

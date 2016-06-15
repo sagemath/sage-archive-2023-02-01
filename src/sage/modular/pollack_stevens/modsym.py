@@ -5,9 +5,8 @@
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
+from __future__ import print_function
 import operator
-
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -28,7 +27,7 @@ minusproj = [1, 0, 0, -1]
 
 def _iterate_Up(Phi, p, M, ap, eisenloss, q, aq, check):
     r"""
-    Returns Hecke-eigensymbol OMS lifting self -- self must be a
+    Return an overconvergent Hecke-eigensymbol lifting self -- self must be a
     `p`-ordinary eigensymbol
 
     INPUT:
@@ -93,7 +92,7 @@ def _iterate_Up(Phi, p, M, ap, eisenloss, q, aq, check):
 class PSModSymAction(Action):
     def __init__(self, actor, MSspace):
         r"""
-        Creates the action
+        Create the action
 
         EXAMPLES::
 
@@ -126,7 +125,7 @@ class PSModSymAction(Action):
 class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent, construct=False):
         r"""
-        Initializes a modular symbol
+        Initialize a modular symbol
 
         EXAMPLES::
 
@@ -142,7 +141,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _repr_(self):
         r"""
-        Returns the print representation of the symbol.
+        Return the print representation of the symbol.
 
         EXAMPLES::
 
@@ -155,7 +154,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def dict(self):
         r"""
-        Returns dictionary on the modular symbol self, where keys are generators and values are the corresponding values of self on generators
+        Return dictionary on the modular symbol self, where keys are generators and values are the corresponding values of self on generators
 
         EXAMPLES::
 
@@ -171,7 +170,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def weight(self):
         r"""
-        Returns the weight of this Pollack-Stevens modular symbol.
+        Return the weight of this Pollack-Stevens modular symbol.
 
         This is `k-2`, where `k` is the usual notion of weight for modular
         forms!
@@ -187,7 +186,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         r"""
-        Returns the values of the symbol self on our chosen generators (generators are listed in self.dict().keys())
+        Return the values of the symbol self on our chosen generators (generators are listed in self.dict().keys())
 
         EXAMPLES::
 
@@ -224,7 +223,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def __cmp__(self, other):
         """
-        Checks if self == other. Here self and other have the same parent.
+        Check if self == other. Here self and other have the same parent.
 
         EXAMPLES::
 
@@ -247,7 +246,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _add_(self, right):
         """
-        Returns self + right
+        Return self + right
 
         EXAMPLES::
 
@@ -264,7 +263,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _lmul_(self, right):
         """
-        Returns self * right
+        Return self * right
 
         EXAMPLES::
 
@@ -281,7 +280,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _rmul_(self, right):
         """
-        Returns self * right
+        Return self * right
 
         EXAMPLES::
 
@@ -298,7 +297,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _sub_(self, right):
         """
-        Returns self - right
+        Return self - right
 
         EXAMPLES::
 
@@ -315,7 +314,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _get_prime(self, p=None, alpha=None, allow_none=False):
         """
-        Combines a prime specified by the user with the prime from the parent.
+        Combine a prime specified by the user with the prime from the parent.
 
         INPUT:
 
@@ -373,7 +372,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def plus_part(self):
         r"""
-        Returns the plus part of self -- i.e. self + self | [1,0,0,-1].
+        Return the plus part of self -- i.e. self + self | [1,0,0,-1].
 
         Note that we haven't divided by 2.  Is this a problem?
 
@@ -395,7 +394,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def minus_part(self):
         r"""
-        Returns the minus part of self -- i.e. self - self | [1,0,0,-1]
+        Return the minus part of self -- i.e. self - self | [1,0,0,-1]
 
         Note that we haven't divided by 2.  Is this a problem?
 
@@ -417,7 +416,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def hecke(self, ell, algorithm="prep"):
         r"""
-        Returns self | `T_{\ell}` by making use of the precomputations in
+        Return self | `T_{\ell}` by making use of the precomputations in
         self.prep_hecke()
 
         INPUT:
@@ -466,7 +465,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def valuation(self, p=None):
         r"""
-        Returns the valuation of ``self`` at `p`.
+        Return the valuation of ``self`` at `p`.
 
         Here the valuation is the minimum of the valuations of the
         values of ``self``.
@@ -513,7 +512,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def diagonal_valuation(self, p):
         """
-        Retuns the minimum of the diagonal valuation on the values of self
+        Return the minimum of the diagonal valuation on the values of self
 
         INPUT:
 
@@ -539,7 +538,7 @@ class PSModularSymbolElement(ModuleElement):
     @cached_method
     def is_Tq_eigensymbol(self, q, p=None, M=None):
         r"""
-        Determines if self is an eigenvector for `T_q` modulo `p^M`
+        Determine if self is an eigenvector for `T_q` modulo `p^M`
 
         INPUT:
 
@@ -656,7 +655,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def is_ordinary(self, p=None, P=None):
         r"""
-        Returns true if the p-th eigenvalue is a p-adic unit.
+        Return true if the `p`-th eigenvalue is a `p`-adic unit.
 
         INPUT:
 
@@ -760,17 +759,17 @@ class PSModularSymbolElement(ModuleElement):
 
         id = MR.gens()[0]
         if f[id] * MR.gammas[id] - f[id] != -t:
-            print t
-            print f[id] * MR.gammas[id] - f[id]
+            print(t)
+            print(f[id] * MR.gammas[id] - f[id])
             raise ValueError("Does not add up correctly around loop")
 
-        print "This modular symbol satisfies the manin relations"
+        print("This modular symbol satisfies the manin relations")
 
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         r"""
-        Finds `alpha`, a `U_p` eigenvalue, which is found as a root of
+        Find `alpha`, a `U_p` eigenvalue, which is found as a root of
         the polynomial `x^2 - ap * x + p^(k+1)*chi(p)`.
 
         INPUT:
@@ -880,8 +879,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
-
-        Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
+        Return the `p`-stablization of self to level `N p` on which `U_p` acts by `alpha`.
 
         Note that since `alpha` is `p`-adic, the resulting symbol
         is just an approximation to the true `p`-stabilization
@@ -906,9 +904,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         The eigenvalue `alpha` depends on the parameter `ordinary`.
 
         If ordinary == True: the unique modular symbol of level
-        `N*p` with the same Hecke eigenvalues as self away from
+        `N p` with the same Hecke eigenvalues as self away from
         `p` and unit eigenvalue at `p`; else  the unique modular
-        symbol of level `N*p` with the same Hecke eigenvalues as
+        symbol of level `N p` with the same Hecke eigenvalues as
         self away from `p` and non-unit eigenvalue at `p`.
 
         EXAMPLES::
@@ -1038,7 +1036,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def lift(self, p=None, M=None, alpha=None, new_base_ring=None,
              algorithm = None, eigensymbol=False, check=True):
         r"""
-        Returns a (`p`-adic) overconvergent modular symbol with
+        Return a (`p`-adic) overconvergent modular symbol with
         `M` moments which lifts self up to an Eisenstein error
 
         Here the Eisenstein error is a symbol whose system of Hecke
@@ -1179,7 +1177,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def _lift_to_OMS(self, p, M, new_base_ring, algorithm = 'greenberg'):
         r"""
-        Returns a (`p`-adic) overconvergent modular symbol with
+        Return a (`p`-adic) overconvergent modular symbol with
         `M` moments which lifts self up to an Eisenstein error
 
         Here the Eisenstein error is a symbol whose system of Hecke
@@ -1307,7 +1305,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def _find_extraprec(self, p, M, alpha, check):
         r"""
-        Finds the extra precision needed to account for:
+        Find the extra precision needed to account for:
 
         1) The denominators in the Hecke eigenvalue
         2) the denominators appearing when solving the difference equation,
@@ -1346,7 +1344,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                              ordinary=True, algorithm='greenberg', eigensymbol=False,
                              check=True):
         """
-        `p`-stabilizes and lifts self
+        `p`-stabilize and lift self
 
         INPUT:
 
@@ -1413,7 +1411,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     def reduce_precision(self, M):
         r"""
-        Only holds on to `M` moments of each value of self
+        Only hold on to `M` moments of each value of self
 
         EXAMPLES::
 
@@ -1428,7 +1426,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     def precision_relative(self):
         r"""
-        Returns the number of moments of each value of self
+        Return the number of moments of each value of self
 
         EXAMPLES::
 
@@ -1443,7 +1441,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     def specialize(self, new_base_ring=None):
         r"""
-        Returns the underlying classical symbol of weight `k` -- i.e.,
+        Return the underlying classical symbol of weight `k` -- i.e.,
         applies the canonical map `D_k --> Sym^k` to all values of
         self.
 
@@ -1475,7 +1473,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     def padic_lseries(self,*args, **kwds):
         """
-        Return the p-adic L-series of this modular symbol.
+        Return the `p`-adic L-series of this modular symbol.
 
         EXAMPLE::
 

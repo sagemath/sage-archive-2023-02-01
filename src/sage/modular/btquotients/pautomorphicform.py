@@ -11,6 +11,7 @@ Spaces of p-adic automorphic forms
 Compute with harmonic cocycles and p-adic automorphic forms, including
 overconvergent p-adic automorphic forms.
 """
+from __future__ import print_function
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.matrix.matrix_space import MatrixSpace
@@ -204,7 +205,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _sub_(self, g):
         r"""
-        Computes the difference of two cocycles.
+        Compute the difference of two cocycles.
 
         INPUT:
 
@@ -229,7 +230,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _rmul_(self, a):
         r"""
-        Multiplies a cocycle by a scalar.
+        Multiply a cocycle by a scalar.
 
         INPUT:
 
@@ -276,13 +277,13 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _repr_(self):
         r"""
-        Returns a string describing the cocycle.
+        Return a string describing the cocycle.
 
         EXAMPLES::
 
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: print H.basis()[0] # indirect doctest
+            sage: H.basis()[0] # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
         return 'Harmonic cocycle with values in %s' % (self.parent()._U)
@@ -302,7 +303,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def print_values(self):
         r"""
-        Prints the values of the cocycle on all of the edges.
+        Print the values of the cocycle on all of the edges.
 
         EXAMPLES::
 
@@ -324,12 +325,12 @@ class HarmonicCocycleElement(HeckeModuleElement):
         """
         tmp = ''
         for e in range(self._nE):
-            tmp += '%s\t|%s\n' % (str(e), str(self._F[e]))
-        print tmp[:-1]
+            tmp += str(e) + '\t|'+ str(self._F[e]) + '\n'
+        print (tmp[:-1])
 
     def valuation(self):
         r"""
-        Returns the valuation of the cocycle, defined as the
+        Return the valuation of the cocycle, defined as the
         minimum of the values it takes on a set of representatives.
 
         OUTPUT:
@@ -402,7 +403,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def evaluate(self, e1):
         r"""
-        Evaluates a harmonic cocycle on an edge of the Bruhat-Tits tree.
+        Evaluate a harmonic cocycle on an edge of the Bruhat-Tits tree.
 
         INPUT:
 
@@ -439,7 +440,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def riemann_sum(self, f, center=1, level=0, E=None):
         r"""
-        Evaluates the integral of the function ``f`` with respect
+        Evaluate the integral of the function ``f`` with respect
         to the measure determined by ``self`` over `\mathbf{P}_1(\Qp)`.
 
         INPUT:
@@ -491,7 +492,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def modular_form(self, z=None, level=0):
         r"""
-        Integrates Teitelbaum's `p`-adic Poisson kernel against
+        Integrate Teitelbaum's `p`-adic Poisson kernel against
         the measure corresponding to ``self`` to evaluate the associated
         modular form at `z`.
 
@@ -537,7 +538,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
     # In HarmonicCocycle
     def derivative(self, z=None, level=0, order=1):
         r"""
-        Integrates Teitelbaum's `p`-adic Poisson kernel against
+        Integrate Teitelbaum's `p`-adic Poisson kernel against
         the measure corresponding to ``self`` to evaluate the rigid
         analytic Shimura-Maass derivatives of the associated modular
         form at `z`.
@@ -610,7 +611,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
 class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
     r"""
-    Ensures unique representation
+    Ensure unique representation
 
     EXAMPLES::
 
@@ -625,7 +626,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
     @staticmethod
     def __classcall__(cls, X, k, prec=None, basis_matrix=None, base_field=None):
         r"""
-        Represents a space of Gamma invariant harmonic
+        Represent a space of Gamma invariant harmonic
         cocycles valued in a cofficient module.
 
         INPUT:
@@ -736,7 +737,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def base_extend(self, base_ring):
         r"""
-        Extends the base ring of the coefficient module.
+        Extend the base ring of the coefficient module.
 
         INPUT:
 
@@ -764,7 +765,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def change_ring(self, new_base_ring):
         r"""
-        Changes the base ring of the coefficient module.
+        Change the base ring of the coefficient module.
 
         INPUT:
 
@@ -797,7 +798,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def rank(self):
         r"""
-        Returns the rank (dimension) of ``self``.
+        Return the rank (dimension) of ``self``.
 
         OUTPUT:
 
@@ -878,7 +879,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: print H
+            sage: H
             Space of harmonic cocycles of weight 2 on Quotient of the Bruhat
             Tits tree of GL_2(QQ_5) with discriminant 23 and level 1
         """
@@ -902,7 +903,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def _an_element_(self):
         r"""
-        Returns an element of the ambient space
+        Return an element of the ambient space
 
         OUTPUT:
 
@@ -945,7 +946,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def __cmp__(self, other):
         r"""
-        Tests whether two HarmonicCocycle spaces are equal.
+        Test whether two HarmonicCocycle spaces are equal.
 
         INPUT:
 
@@ -1022,7 +1023,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def free_module(self):
         r"""
-        Returns the underlying free module
+        Return the underlying free module
 
         OUTPUT:
 
@@ -1093,7 +1094,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def basis_matrix(self):
         r"""
-        Returns a basis of ``self`` in matrix form.
+        Return a basis of ``self`` in matrix form.
 
         If the coefficient module `M` is of finite rank then the space
         of Gamma invariant `M` valued harmonic cocycles can be
@@ -1179,7 +1180,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def __apply_atkin_lehner(self, q, f):
         r"""
-        Applies an Atkin-Lehner involution to a harmonic cocycle
+        Apply an Atkin-Lehner involution to a harmonic cocycle
 
         INPUT:
 
@@ -1235,7 +1236,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(5,17)
             sage: H = HarmonicCocycles(X,2,prec=50)
             sage: A = H.hecke_operator(7).matrix() # indirect doctest
-            sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()]
+            sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [-8, -12, 12, 20, 8, 1]
         """
         HeckeData, alpha = self._X._get_hecke_data(l)
@@ -1303,7 +1304,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(3,11)
             sage: H = HarmonicCocycles(X,4,prec=60)
             sage: A = H.hecke_operator(7).matrix() # long time, indirect doctest
-            sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()] # long time
+            sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()] # long time
             [6496256, 1497856, -109040, -33600, -904, 32, 1]
         """
         return self.__compute_operator_matrix(lambda f: self.__apply_hecke_operator(l, f))
@@ -1328,7 +1329,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(3,17)
             sage: H = HarmonicCocycles(X,2,prec=10)
             sage: A = H.hecke_operator(11).matrix() # indirect doctest
-            sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()]
+            sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [-12, -1, 4, 1]
         """
         R = self._R
@@ -1443,7 +1444,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #             sage: H = HarmonicCocycles(X,2,prec=10)
 #             sage: N = H.free_module().span([H.an_element().element()])
 #             sage: H1=H.submodule(N)
-#             sage: print H1
+#             sage: H1
 #             Subspace of Space of harmonic cocycles of weight 2 on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 17 and level 1 of dimension 1
 #         """
 #         return "Subspace of %s of dimension %s"%(self.ambient(),self.dimension())
@@ -1469,7 +1470,7 @@ class pAutomorphicFormElement(ModuleElement):
         sage: h = H.an_element()
         sage: HH = pAutomorphicForms(X,2,10)
         sage: a = HH(h)
-        sage: print a
+        sage: a
         p-adic automorphic form of cohomological weight 0
 
     REFERENCES:
@@ -1575,7 +1576,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def __nonzero__(self):
         """
-        Tells whether the form is zero or not.
+        Tell whether the form is zero or not.
 
         OUTPUT:
 
@@ -1597,7 +1598,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def __getitem__(self, e1):
         r"""
-        Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
+        Evaluate a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
         INPUT:
 
@@ -1620,7 +1621,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def evaluate(self, e1):
         r"""
-        Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
+        Evaluate a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
         INPUT:
 
@@ -1650,7 +1651,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def _rmul_(self, a):
         r"""
-        Multiplies the automorphic form by a scalar.
+        Multiply the automorphic form by a scalar.
 
         EXAMPLES::
 
@@ -1684,7 +1685,7 @@ class pAutomorphicFormElement(ModuleElement):
             sage: X = BTQuotient(17,3)
             sage: A = pAutomorphicForms(X,2,prec=10)
             sage: a = A.an_element()
-            sage: print a # indirect doctest
+            sage: a # indirect doctest
             p-adic automorphic form of cohomological weight 0
         """
         return 'p-adic automorphic form of cohomological weight %s' % self.parent()._U.weight()
@@ -1715,7 +1716,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def _improve(self, hc):
         r"""
-        Repeatedly applies the `U_p` operator to a p-adic
+        Repeatedly apply the `U_p` operator to a p-adic
         automorphic form. This is used to compute moments of a measure
         associated to a rigid modular form in the following way: lift
         a rigid modular form to an ``overconvergent'' `p`-adic
@@ -1843,7 +1844,7 @@ class pAutomorphicFormElement(ModuleElement):
             # R1.set_default_prec(self.parent()._U.weight() + 1)
             for e in E:
                 ii += 1
-                #print ii,"/",len(E)
+                #print(ii,"/",len(E))
                 exp = ((R1([e[1, 1], e[1, 0]])) ** (self.parent()._U.weight()) * e.determinant() ** (-(self.parent()._U.weight()) / 2)) * f(R1([e[0, 1], e[0, 0]]) / R1([e[1, 1], e[1, 0]]))
                 #exp = R2([tmp[jj] for jj in range(self.parent()._k-1)])
                 new = eval_dist_at_powseries(self.evaluate(e), exp.truncate(self.parent()._U.weight() + 1))
@@ -1853,7 +1854,7 @@ class pAutomorphicFormElement(ModuleElement):
             n = self.parent()._U.weight()
             for e in E:
                 ii += 1
-                #print ii,"/",len(E)
+                #print(ii,"/",len(E))
                 a, b, c, d = e.list()
                 delta = e.determinant()
                 verbose('%s' % (R2([e[0, 1], e[0, 0]])
@@ -1864,13 +1865,13 @@ class pAutomorphicFormElement(ModuleElement):
 
                 value += new
         else:
-            print 'The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should never be used.'
+            print('The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should never be used.')
             return False
         return value
 
     def modular_form(self, z=None, level=0, method='moments'):
         r"""
-        Returns the modular form corresponding to ``self``.
+        Return the modular form corresponding to ``self``.
 
         INPUT:
 
@@ -1928,7 +1929,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def derivative(self, z=None, level=0, method='moments', order=1):
         r"""
-        Returns the derivative of the modular form corresponding to
+        Return the derivative of the modular form corresponding to
         ``self``.
 
         INPUT:
@@ -2139,7 +2140,7 @@ class pAutomorphicFormElement(ModuleElement):
                     value_exp *= K.teichmuller(((b - d * t1) / (b - d * t2))) ** Integer(c_e.moment(0).rational_reconstruction())
 
         else:
-            print 'The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should not be used in practice.'
+            print('The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should not be used in practice.')
             return False
         if mult:
             return K.teichmuller(value_exp) * value.exp()
@@ -2267,7 +2268,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def zero_element(self):
         r"""
-        Returns the zero element of ``self``.
+        Return the zero element of ``self``.
 
         EXAMPLES::
 
@@ -2280,7 +2281,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def __cmp__(self, other):
         r"""
-        Tests whether two pAutomorphicForm spaces are equal.
+        Test whether two pAutomorphicForm spaces are equal.
 
         INPUT:
 
@@ -2311,13 +2312,13 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def _repr_(self):
         r"""
-        Returns the representation of self as a string.
+        Return the representation of self as a string.
 
         EXAMPLES::
 
             sage: X = BTQuotient(3,7)
             sage: A = pAutomorphicForms(X,2,prec = 10)
-            sage: print A # indirect doctest
+            sage: A # indirect doctest
             Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 7 and level 1 with values in Sym^0 Q_3^2
         """
         s = 'Space of automorphic forms on '
@@ -2361,7 +2362,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def _element_constructor_(self, x):
         r"""
-        Constructs a p-automorphic form.
+        Construct a p-automorphic form.
 
         INPUT:
 
@@ -2407,7 +2408,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def _an_element_(self):
         r"""
-        Returns an element of the module.
+        Return an element of the module.
 
         OUTPUT:
 
@@ -2441,7 +2442,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def lift(self, f):
         r"""
-        Lifts the harmonic cocycle ``f`` to a p-automorphic form.
+        Lift the harmonic cocycle ``f`` to a p-automorphic form.
 
         If one is using overconvergent coefficients, then this will
         compute all of the moments of the measure associated to ``f``.
@@ -2482,7 +2483,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def _make_invariant(self, F):
         r"""
-        Naively lifts a ``classical`` automorphic form to an
+        Naively lift a ``classical`` automorphic form to an
         overconvergent form.
 
         INPUT:

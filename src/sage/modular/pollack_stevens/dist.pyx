@@ -18,7 +18,7 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -64,7 +64,7 @@ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 def get_dist_classes(p, prec_cap, base, symk, implementation):
     r"""
-    Determines the element and action classes to be used for given inputs.
+    Determine the element and action classes to be used for given inputs.
 
     INPUT:
 
@@ -123,7 +123,7 @@ cdef class Dist(ModuleElement):
     """
     def moment(self, n):
         r"""
-        Returns the `n`-th moment.
+        Return the `n`-th moment.
 
         INPUT:
 
@@ -147,7 +147,7 @@ cdef class Dist(ModuleElement):
 
     def moments(self):
         r"""
-        Returns the vector of moments.
+        Return the vector of moments.
 
         OUTPUT:
 
@@ -212,7 +212,7 @@ cdef class Dist(ModuleElement):
 
     def scale(self, left):
         r"""
-        Scales the moments of the distribution by `left`
+        Scale the moments of the distribution by `left`
 
         INPUT:
 
@@ -247,7 +247,7 @@ cdef class Dist(ModuleElement):
 
     def is_zero(self, p=None, M=None):
         r"""
-        Returns True if the `i`th moment is zero for all `i` (case M is None)
+        Return True if the `i`th moment is zero for all `i` (case M is None)
         or zero modulo p^(M-i) for all `i` (M is not None).
 
         Note that some moments are not known to precision M, in which
@@ -319,7 +319,7 @@ cdef class Dist(ModuleElement):
 
     def find_scalar(self, _other, p, M=None, check=True):
         r"""
-        Returns an ``alpha`` with ``other = self * alpha``, or raises
+        Return an ``alpha`` with ``other = self * alpha``, or raises
         a ValueError.
 
         It will also raise a ValueError if this distribution is zero.
@@ -443,7 +443,7 @@ cdef class Dist(ModuleElement):
 
     def find_scalar_from_zeroth_moment(self, _other, p, M=None, check=True):
         r"""
-        Returns an ``alpha`` with ``other = self * alpha`` using only
+        Return an ``alpha`` with ``other = self * alpha`` using only
         the zeroth moment, or raises a ValueError.
 
         It will also raise a ValueError if the zeroth moment of the
@@ -580,7 +580,7 @@ cdef class Dist(ModuleElement):
 
     def diagonal_valuation(self, p=None):
         """
-        Returns the largest `m` so that this distribution lies in `Fil^m`.
+        Return the largest `m` so that this distribution lies in `Fil^m`.
 
         INPUT:
 
@@ -607,7 +607,7 @@ cdef class Dist(ModuleElement):
 
     def valuation(self, p=None):
         """
-        Returns the minimum valuation of any moment.
+        Return the minimum valuation of any moment.
 
         INPUT:
 
@@ -643,7 +643,7 @@ cdef class Dist(ModuleElement):
 
     def specialize(self, new_base_ring=None):
         """
-        Returns the image of this overconvergent distribution under
+        Return the image of this overconvergent distribution under
         the canonical projection from distributions of weight k to
         Sym^k.
 
@@ -677,7 +677,7 @@ cdef class Dist(ModuleElement):
 
     def lift(self, p=None, M=None, new_base_ring=None):
         r"""
-        Lifts a distribution or element of Sym^k to an overconvergent distribution.
+        Lift a distribution or element of Sym^k to an overconvergent distribution.
 
         INPUT:
 
@@ -908,13 +908,13 @@ cdef class Dist_vector(Dist):
 
     cdef long _relprec(self):
         """
-        Returns the number of moments.
+        Return the number of moments.
         """
         return len(self._moments)
 
     cdef _unscaled_moment(self, long n):
         r"""
-        Returns the `n`-th moment, unscaled by the overall power of p
+        Return the `n`-th moment, unscaled by the overall power of p
         stored in self.ordp.
         """
         return self._moments[n]
@@ -1011,7 +1011,7 @@ cdef class Dist_vector(Dist):
 
     def precision_relative(self):
         r"""
-        The relative precision of this distribution.
+        Return the relative precision of this distribution.
 
         The precision is just the number of moments stored, which is
         also k+1 in the case of Sym^k(R).  For overconvergent
@@ -1039,7 +1039,7 @@ cdef class Dist_vector(Dist):
 
     def precision_absolute(self):
         r"""
-        Returns the absolute precision of this distribution.
+        Return the absolute precision of this distribution.
 
         The absolute precision is the sum of the relative precision
         (number of moments) and the valuation.
@@ -1141,7 +1141,7 @@ cdef class Dist_vector(Dist):
 
     def solve_difference_equation(self):
         r"""
-        Solves the difference equation. self = v | Delta, where Delta = [1, 1; 0, 1] - 1.
+        Solve the difference equation. self = v | Delta, where Delta = [1, 1; 0, 1] - 1.
 
         See Theorem 4.5 and Lemma 4.4 of [PS].
 
@@ -1655,7 +1655,7 @@ cdef class WeightKAction(Action):
 
     def clear_cache(self):
         r"""
-        Clears the cached matrices which define the action of Up
+        Clear the cached matrices which define the action of Up
         (these depend on the desired precision) and the
         dictionary that stores the maximum precisions computed so far.
 
@@ -1729,7 +1729,7 @@ cdef class WeightKAction(Action):
 
     cpdef _compute_acting_matrix(self, g, M):
         r"""
-        Computes the matrix defining the action of ``g`` at precision ``M``.
+        Compute the matrix defining the action of ``g`` at precision ``M``.
 
         INPUT:
 
@@ -1758,7 +1758,7 @@ cdef class WeightKAction(Action):
 cdef class WeightKAction_vector(WeightKAction):
     cpdef _compute_acting_matrix(self, g, M):
         r"""
-        Computes the matrix defining the action of ``g`` at precision ``M``.
+        Compute the matrix defining the action of ``g`` at precision ``M``.
 
         INPUT:
 

@@ -34,11 +34,12 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import six
 import sage.rings.number_field.all
-import polynomial_element
+from . import polynomial_element
 import sage.rings.rational_field
 import sage.rings.complex_field
 

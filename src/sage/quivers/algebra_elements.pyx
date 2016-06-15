@@ -15,8 +15,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import division
+from __future__ import division, print_function
 
 include "algebra_elements.pxi"
 from sage.misc.cachefunc import cached_method
@@ -250,7 +249,8 @@ cdef class PathAlgebraElement(RingElement):
                     L.append(([vertices.index(H.start)], <object>(T.coef)))
                 T = T.nxt
             if len(L) != H.poly.nterms:
-                print "Term count of polynomial is wrong, got",len(L), "expected", H.poly.nterms
+                print("Term count of polynomial is wrong, got", len(L),
+                      "expected", H.poly.nterms)
             L_total.extend(L)
             H = H.nxt
         return L_total

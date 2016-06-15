@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
@@ -135,13 +136,14 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Return a projection of this curve into projective space of dimension one less than the dimension of
         the ambient space of this curve.
 
-        This only works for curves over characteristic zero fields. This curve must not already be a plane curve.
+        This curve must not already be a plane curve. Over finite fields, if this curve contains all points
+        in its ambient space, then an error will be returned.
 
         OUTPUT:
 
         - a list consisting of two elements: a scheme morphism from this curve into a projective space of
           dimension one less than that of the ambient space of this curve, and the projective curve that
-          is the closure of the image of that morphism.
+          is the image of that morphism.
 
         EXAMPLES::
 
@@ -176,28 +178,65 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             3*x2^2 - x3^2 - 2*x2*x4 + 2*x3*x4 - x4^2 - 6*x2*x5 + 2*x3*x5 + 2*x4*x5 +
             x5^2, x3^3 - x3^2*x4 - 2*x3^2*x5 - 6*x2*x4*x5 - 3*x3*x4*x5 + 6*x4^2*x5 +
             6*x2*x5^2 + 2*x3*x5^2 - 3*x5^3]
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(2), 3)
+            sage: C = P.curve([(x - y)*(x - z)*(x - w)*(y - z)*(y - w), x*y*z*w*(x+y+z+w)])
+            sage: C.projection()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: curve contains all points of the ambient space
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([x^3 - y*z*u, w^2 - u^2 + 2*x*z, 3*x*w - y^2])
+            sage: C.projection()
+            [Scheme morphism:
+               From: Projective Curve over Finite Field of size 7 defined by x^3 -
+            y*z*u, 2*x*z + w^2 - u^2, -y^2 + 3*x*w
+               To:   Projective Space of dimension 3 over Finite Field of size 7
+               Defn: Defined on coordinates by sending (x : y : z : w : u) to
+                     (x : y : z : w),
+             Projective Curve over Finite Field of size 7 defined by x1^2 - 3*x0*x3,
+            x0^5*x1 + x0*x1*x2^3*x3 - 3*x1*x2^2*x3^3, x0^6 + x0^2*x2^3*x3 -
+            3*x0*x2^2*x3^3]
         """
-        if self.ambient_space().dimension_relative() == 2:
-            raise TypeError("this curve is already a plane curve")
-        if self.base_ring().characteristic() > 0:
-            raise TypeError("the base ring (=%s) of this curve must be a characteristic 0 field"%self.base_ring())
-        # find a point not on the curve
-        # to do this, it suffices to find a point on which at least one nonzero element of the defining
-        # ideal of this curve does not vanish
         PP = self.ambient_space()
         n = PP.dimension_relative()
-        F = 0
-        # find a nonzero element
-        for i in range(len(self.defining_polynomials())):
-            if self.defining_polynomials()[i] != 0:
-                F = self.defining_polynomials()[i]
-        # find a point on which it doesn't vanish        
-        l = list(PP.gens())
-        for i in range(n+1):
-            l[i] = 1
-            while(F(l) == 0):
-                l[i] = l[i] + 1
-        Q = PP(l) # will be a point not on the curve
+        if n == 2:
+            raise TypeError("this curve is already a plane curve")
+        if self.base_ring() not in Fields():
+            raise TypeError("this curve must be defined over a field")
+        # find a point not on the curve
+        if self.base_ring().characteristic() == 0:
+            # when working over a characteristic 0 field, it suffices to find a point
+            # on which at least one nonzero element of the defining ideal of this curve does not vanish
+            F = 0
+            # find a nonzero element
+            for i in range(len(self.defining_polynomials())):
+                if self.defining_polynomials()[i] != 0:
+                    F = self.defining_polynomials()[i]
+            # find a point on which it doesn't vanish
+            l = list(PP.gens())
+            for i in range(n+1):
+                l[i] = 1
+                while(F(l) == 0):
+                    l[i] = l[i] + 1
+            Q = PP(l) # will be a point not on the curve
+        else:
+            # if the base ring is a finite field, iterate over all points in the ambient space and check which
+            # are on this curve
+            Q = None
+            for P in PP.rational_points():
+                try:
+                    self(P)
+                except TypeError:
+                    Q = P
+                    break
+            if Q is None:
+                raise NotImplementedError("curve contains all points of the ambient space")
         # use this point to project. Apply a change of coordinates to move this point to (0:...:0:1)
         H = Hom(PP, PP)
         # only need the first n coordinates of the change of coordinates map
@@ -230,7 +269,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         OUTPUT:
 
         - a list consisting of two elements: a scheme morphism from this curve into a projective plane,
-          and the projective curve that is the closure of the image of that morphism.
+          and the projective curve that is the image of that morphism.
 
         EXAMPLES::
 
@@ -250,6 +289,21 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             284*x0^2*x1^5*x2 - 236*x0*x1^6*x2 + 60*x1^7*x2 + 32*x0^5*x1*x2^2 -
             160*x0^4*x1^2*x2^2 + 320*x0^3*x1^3*x2^2 - 320*x0^2*x1^4*x2^2 +
             160*x0*x1^5*x2^2 - 32*x1^6*x2^2]
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
+            sage: C = P.curve([x^2 - 6*y^2, w*z*u - y^3 + 4*y^2*z, u^2 - x^2])
+            sage: C.plane_projection()
+            [Scheme morphism:
+               From: Projective Curve over Finite Field of size 7 defined by x^2 +
+            y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
+               To:   Projective Space of dimension 2 over Finite Field of size 7
+               Defn: Defined on coordinates by sending (x : y : z : w : u) to
+                     (x - w : y : z),
+             Projective Plane Curve over Finite Field of size 7 defined by x1^10 -
+            2*x1^9*x2 + 2*x0^2*x1^6*x2^2 + 3*x1^8*x2^2 - 2*x0^2*x1^5*x2^3 -
+            2*x1^7*x2^3 + x0^4*x1^2*x2^4 - x0^2*x1^4*x2^4 + x1^6*x2^4]
         """
         PP = self.ambient_space()
         C = self

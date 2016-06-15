@@ -34,6 +34,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 
@@ -47,6 +48,7 @@ from sage.schemes.affine.affine_space import is_AffineSpace
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
+from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from curve import Curve_generic
@@ -141,6 +143,162 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         """
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
+
+    def projection(self, indices):
+        r"""
+        Return the projection of this curve onto the coordinates specified by ``indices``.
+
+        Coordinates are specified by 1 corresponding to the first coordinate, and the dimension
+        of the affine ambient space of this curve corresponding to the last.
+
+        INPUT:
+
+        - ``indices`` -- a list or tuple of distinct integers specifying the indices of the coordinates to use
+          in the projection. This list cannot have length greater than the dimension of the ambient space of
+          this curve, or less than 2.
+
+        OUTPUT:
+
+        - a list consisting of two elements: a scheme morphism from this curve to affine space of dimension
+          equal to the number of coordinates specified in ``indices``, and a curve that is the image of that
+          morphism. If the image of the projection does not define a curve, an error is returned.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y^7 - x^2 + x^3 - 2*z, z^2 - x^7 - y^2], A)
+            sage: C.projection([1,2])
+            [Scheme morphism:
+               From: Affine Curve over Rational Field defined by y^7 + x^3 - x^2 -
+            2*z, -x^7 - y^2 + z^2
+               To:   Affine Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x, y, z) to
+                     (x, y),
+             Affine Plane Curve over Rational Field defined by x1^14 + 2*x0^3*x1^7 -
+            2*x0^2*x1^7 - 4*x0^7 + x0^6 - 2*x0^5 + x0^4 - 4*x1^2]
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: C = Curve([x - 2, y - 3, z - 1], A)
+            sage: C.projection([1,2,3])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: projection into the coordinates specified by (=[0,
+            1, 2]) does not define a curve
+
+        ::
+
+            sage: A.<x,y,z,w,u> = AffineSpace(GF(11), 5)
+            sage: C = Curve([x^3 - 5*y*z + u^2, x - y^2 + 3*z^2, w^2 + 2*u^3*y, y - u^2 + z*x], A)
+            sage: C.projection([2,4,5])
+            [Scheme morphism:
+               From: Affine Curve over Finite Field of size 11 defined by x^3 -
+            5*y*z + u^2, -y^2 + 3*z^2 + x, 2*y*u^3 + w^2, x*z - u^2 + y
+               To:   Affine Space of dimension 3 over Finite Field of size 11
+               Defn: Defined on coordinates by sending (x, y, z, w, u) to
+                     (y, w, u),
+             Affine Curve over Finite Field of size 11 defined by x0*x2^3 - 5*x1^2,
+            x0^11 + 3*x1^2*x2^9 - 2*x0^8*x2^2 - 3*x0^9 + 5*x0^6*x1^2*x2 +
+            5*x0^7*x2^2 - 3*x1^2*x2^7 - 2*x0^4*x1^4 - 3*x0^5*x1^2*x2 + 5*x0^6*x2^2 -
+            2*x1^4*x2^4 + 4*x0^7 - 4*x0^4*x1^2*x2 - 4*x0^5*x2^2 + 5*x0*x1^4*x2^2 +
+            x1^2*x2^5 - 3*x0^2*x1^4 + x0^3*x1^2*x2 - 5*x0^4*x2^2 + 5*x1^4*x2^2 +
+            5*x0^5 - 2*x0*x1^4 + x0^2*x1^2*x2 - 5*x1^2*x2^3 + x1^4, x2^12 - 2*x0^10
+            - x2^10 + 4*x0^7*x2^2 + 3*x1^2*x2^7 - 5*x0^8 + x0^5*x1^2*x2 + x0^6*x2^2
+            + 4*x2^8 + 4*x0^3*x1^4 - 5*x0^4*x1^2*x2 + x0^5*x2^2 - 2*x1^2*x2^5 +
+            3*x0^6 - 3*x0^3*x1^2*x2 - 3*x0^4*x2^2 + x1^4*x2^2 + 2*x2^6 - 5*x0*x1^4 -
+            2*x0^2*x1^2*x2 - x0^3*x2^2 + 4*x1^2*x2^3 + x0^4 + 4*x1^4 - 2*x0*x1^2*x2]
+        """
+        AA = self.ambient_space()
+        n = AA.dimension_relative()
+        if n == 2:
+            raise TypeError("this curve is already a plane curve")
+        if self.base_ring() not in Fields():
+            raise TypeError("this curve must be defined over a field")
+        if len(indices) < 2 or len(indices) > AA.dimension_relative() or len(set(indices)) < len(indices):
+            raise ValueError("(=%s) must be a list or tuple of distinct indices of coordinates to project into"%indices)
+        indices = [int(i) - 1 for i in indices]
+        indices.sort()
+        if indices[0] < 0 or indices[len(indices) - 1] > n - 1:
+            raise ValueError("index values must be between 1 and the dimension of the ambient space of this curve")
+        # construct the projection map
+        AA2 = AffineSpace(self.base_ring(), len(indices))
+        H = Hom(self, AA2)
+        psi = H([AA.gens()[i] for i in indices])
+        # compute the image via elimination
+        R = PolynomialRing(self.base_ring(), len(indices) + n, 'x')
+        K = Hom(AA.coordinate_ring(), R)
+        phi = K([R.gens()[i] for i in range(n)])
+        l = [R.gens()[indices[i]] - R.gens()[n + i] for i in range(len(indices))]
+        l.extend([phi(f) for f in self.defining_polynomials()])
+        I = R.ideal(l)
+        J = I.elimination_ideal([R.gens()[i] for i in range(n)])
+        K = Hom(R, AA2.coordinate_ring())
+        l = [0]*(n)
+        l.extend([AA2.coordinate_ring().gens()[i] for i in range(len(indices))])
+        phi = K(l)
+        G = [phi(f) for f in J.gens()]
+        from constructor import Curve
+        try:
+            C = Curve(G, AA2)
+        except (TypeError, ValueError):
+            raise NotImplementedError("projection into the coordinates specified by (=%s) does not define a curve"%indices)
+        return [psi, C]
+
+    def plane_projection(self):
+        r"""
+        Return a projection of this curve into an affine plane so that the image of the projection is
+        a plane curve.
+
+        OUTPUT:
+
+        - a list consisting of two elements: a scheme morphism from this curve into an affine plane, and the plane
+          curve that defines the image of that morphism.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: C = Curve([x^2 - y*z*w, z^3 - w, w + x*y - 3*z^3], A)
+            sage: C.plane_projection()
+            [Scheme morphism:
+               From: Affine Curve over Rational Field defined by -y*z*w + x^2, z^3 -
+            w, -3*z^3 + x*y + w
+               To:   Affine Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x, y, z, w) to
+                     (x, y),
+             Affine Plane Curve over Rational Field defined by x0^2*x1^7 - 16*x0^4]
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 + 2)
+            sage: A.<x,y,z> = AffineSpace(K, 3)
+            sage: C = A.curve([x - b, y - 2])
+            sage: C.plane_projection()
+            [Scheme morphism:
+               From: Affine Curve over Number Field in b with defining polynomial
+            a^2 + 2 defined by x + (-b), y - 2
+               To:   Affine Space of dimension 2 over Number Field in b with
+            defining polynomial a^2 + 2
+               Defn: Defined on coordinates by sending (x, y, z) to
+                     (x, z),
+             Affine Plane Curve over Number Field in b with defining polynomial a^2
+            + 2 defined by x0 + (-b)]
+        """
+        n = self.ambient_space().dimension_relative()
+        L = None
+        # finds a projection that will have a plane curve as its image
+        for i in range(1,n):
+            for j in range(i + 1, n + 1):
+                try:
+                    L = self.projection([i,j])
+                except NotImplementedError:
+                    pass
+                if (not L is None):
+                    break
+            if (not L is None):
+                break
+        return L
 
 class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):

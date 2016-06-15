@@ -37,7 +37,11 @@ implemented here.
 
    .. math::
 
-       {\frac{1}{r^2}}{\frac{\partial}{\partial r}}   \left(r^2 {\frac{\partial f}{\partial r}}\right) +   {\frac{1}{r^2}\sin\theta}{\frac{\partial}{\partial \theta}}   \left(\sin\theta {\frac{\partial f}{\partial \theta}}\right) +   {\frac{1}{r^2\sin^2\theta}}{\frac{\partial^2 f}{\partial \varphi^2}} = 0.
+       {\frac{1}{r^2}}{\frac{\partial}{\partial r}}
+       \left(r^2 {\frac{\partial f}{\partial r}}\right) +
+       {\frac{1}{r^2}\sin\theta}{\frac{\partial}{\partial \theta}}
+       \left(\sin\theta {\frac{\partial f}{\partial \theta}}\right) +
+       {\frac{1}{r^2\sin^2\theta}}{\frac{\partial^2 f}{\partial \varphi^2}} = 0.
 
 
    Note that the spherical coordinates `\theta` and
@@ -70,7 +74,8 @@ implemented here.
 
    .. math::
 
-         U_{\ell,m}(r,\theta , \varphi ) = r^{-1-\ell} Y_\ell^m( \theta , \varphi )
+         U_{\ell,m}(r,\theta , \varphi ) =
+         r^{-1-\ell} Y_\ell^m( \theta , \varphi )
 
 
    where the functions `Y` are the spherical harmonic
@@ -79,7 +84,9 @@ implemented here.
 
    .. math::
 
-         Y_\ell^m( \theta , \varphi )     = \sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}       \cdot e^{i m \varphi } \cdot P_\ell^m ( \cos{\theta} ) .
+         Y_\ell^m( \theta , \varphi ) =
+         \sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}
+         \cdot e^{i m \varphi } \cdot P_\ell^m ( \cos{\theta} ) .
 
 
 
@@ -88,7 +95,10 @@ implemented here.
 
    .. math::
 
-     \int_{\theta=0}^\pi\int_{\varphi=0}^{2\pi} Y_\ell^mY_{\ell'}^{m'*}\,d\Omega =\delta_{\ell\ell'}\delta_{mm'}\quad\quad d\Omega =\sin\theta\,d\varphi\,d\theta .
+     \int_{\theta=0}^\pi\int_{\varphi=0}^{2\pi}
+     Y_\ell^mY_{\ell'}^{m'*}\,d\Omega =
+     \delta_{\ell\ell'}\delta_{mm'}\quad\quad d\Omega =
+     \sin\theta\,d\varphi\,d\theta .
 
 
 
@@ -113,7 +123,8 @@ implemented here.
 
    .. math::
 
-         y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x)     = (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
+         y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x) =
+         (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
 
 
 
@@ -135,7 +146,13 @@ implemented here.
 
       .. math::
 
-         \begin{array}{c} \displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2}}\, dx,\\ \displaystyle\int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,\\ \displaystyle\int_0^\phi \frac{\sqrt{1-mt^2}}{\sqrt(1 - t^2)}\, dx,\\ \displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2\sqrt{1 - n\sin(x)^2}}}\, dx, \end{array}
+         \begin{array}{c}
+         \displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2}}\, dx,\\
+         \displaystyle\int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,\\
+         \displaystyle\int_0^\phi \frac{\sqrt{1-mt^2}}{\sqrt(1 - t^2)}\, dx,\\
+         \displaystyle\int_0^\phi
+         \frac{1}{\sqrt{1 - m\sin(x)^2\sqrt{1 - n\sin(x)^2}}}\, dx,
+         \end{array}
 
       and the complete ones are obtained by taking `\phi =\pi/2`.
 
@@ -347,7 +364,8 @@ class MaximaFunction(BuiltinFunction):
         # to RDF (or CDF). Therefore, before converting, we check that
         # we can actually coerce RDF into our parent.
         if parent is not float and parent is not complex:
-            if not isinstance(parent, Parent) or not parent.has_coerce_map_from(RDF):
+            if (not isinstance(parent, Parent)
+                or not parent.has_coerce_map_from(RDF)):
                 raise NotImplementedError("Maxima function %s not implemented for %r"%(self.name(), parent))
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
@@ -740,9 +758,11 @@ class EllipticE(BuiltinFunction):
 
     .. SEEALSO::
 
-        - Taking `\varphi = \pi/2` gives :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
+        - Taking `\varphi = \pi/2` gives
+          :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
 
-        - Taking `\varphi = \operatorname{arc\,sin}(\operatorname{sn}(u,m))` gives :func:`elliptic_eu()<sage.functions.special.EllipticEU>`.
+        - Taking `\varphi = \operatorname{arc\,sin}(\operatorname{sn}(u,m))`
+          gives :func:`elliptic_eu()<sage.functions.special.EllipticEU>`.
 
     REFERENCES:
 
@@ -1045,7 +1065,8 @@ class EllipticF(BuiltinFunction):
 
         F(\varphi\,|\,m)=\int_0^\varphi \frac{dx}{\sqrt{1 - m\sin(x)^2}},
 
-    Taking `\varphi = \pi/2` gives :func:`elliptic_kc()<sage.functions.special.EllipticKC>`.
+    Taking `\varphi = \pi/2` gives
+    :func:`elliptic_kc()<sage.functions.special.EllipticKC>`.
 
     EXAMPLES::
 

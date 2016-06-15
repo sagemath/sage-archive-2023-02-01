@@ -178,6 +178,11 @@ cpdef getattr_from_other_class(self, cls, name):
         sage: class A(object):
         ....:      def inc(self):
         ....:          return self + 1
+        ....:
+        ....:      @staticmethod
+        ....:      def greeting():
+        ....:          print("Hello World!")
+        ....:
         ....:      @lazy_attribute
         ....:      def lazy_attribute(self):
         ....:          return repr(self)
@@ -185,6 +190,11 @@ cpdef getattr_from_other_class(self, cls, name):
         <bound method A.inc of 1>
         sage: getattr_from_other_class(1, A, "inc")()
         2
+
+    Static methods work::
+
+        sage: getattr_from_other_class(1, A, "greeting")()
+        Hello World!
 
     Caveat: lazy attributes work with extension types only
     if they allow attribute assignment or have a public attribute

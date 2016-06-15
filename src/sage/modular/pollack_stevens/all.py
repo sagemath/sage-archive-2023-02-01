@@ -1,3 +1,3 @@
-from space import PSModularSymbols as PollackStevensModularSymbols
+from space import PollackStevensModularSymbols
 from distributions import Symk
-from distributions import Distributions as OverconvergentDistributions
+from distributions import OverconvergentDistributions

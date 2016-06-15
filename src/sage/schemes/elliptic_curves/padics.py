@@ -210,6 +210,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         else:
             Phi = phi.p_stabilize_and_lift(p, precision, eigensymbol = True)
         Lp = Phi.padic_lseries()
+        Lp._cinf = self.real_components()
     return Lp
 
 

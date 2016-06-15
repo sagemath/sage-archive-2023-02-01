@@ -4,7 +4,7 @@ space dual to locally analytic functions on a disc.
 
 EXAMPLES::
 
-    sage: D = Distributions(5, 7, 15)
+    sage: D = OverconvergentDistributions(5, 7, 15)
     sage: v = D([7,14,21,28,35]); v
     (7 + O(7^5), 2*7 + O(7^4), 3*7 + O(7^3), 4*7 + O(7^2), O(7))
 
@@ -85,7 +85,7 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
     EXAMPLES::
 
-        sage: D = Distributions(2, 3, 5); D # indirect doctest
+        sage: D = OverconvergentDistributions(2, 3, 5); D # indirect doctest
         Space of 3-adic distributions with k=2 action and precision cap 5
     """
     if implementation is not None:
@@ -136,7 +136,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(4, 7, 10)
+            sage: D = OverconvergentDistributions(4, 7, 10)
             sage: v = D([7,14,21,28,35]);
             sage: v.moment(3)
             4*7 + O(7^2)
@@ -155,7 +155,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(4, 5, 10, base = Qp(5));
+            sage: D = OverconvergentDistributions(4, 5, 10, base = Qp(5));
             sage: v = D([1,7,4,2,-1])
             sage: v = 1/5^3 * v
             sage: v
@@ -176,7 +176,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15); D
+            sage: D = OverconvergentDistributions(5, 7, 15); D
             Space of 7-adic distributions with k=5 action and precision cap 15
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
@@ -202,7 +202,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([7,14,21,28,35]); v
             (7 + O(7^5), 2*7 + O(7^4), 3*7 + O(7^3), 4*7 + O(7^2), O(7))
             sage: v._ord_p()
@@ -224,7 +224,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: v.scale(2)
@@ -266,7 +266,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: v.is_zero()
@@ -342,7 +342,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5])
             sage: w = D([3,6,9,12,15])
             sage: v.find_scalar(w,p=7)
@@ -467,7 +467,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5])
             sage: w = D([3,6,9,12,15])
             sage: v.find_scalar_from_zeroth_moment(w,p=7)
@@ -516,7 +516,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: 3*v; 7*v
@@ -537,7 +537,7 @@ cdef class Dist(ModuleElement):
 
         Equality of two distributions::
 
-            sage: D = Distributions(0, 5, 10)
+            sage: D = OverconvergentDistributions(0, 5, 10)
             sage: D([1, 2]) == D([1])
             True
             sage: D([1]) == D([1, 2])
@@ -593,7 +593,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(8, 7, 15)
+            sage: D = OverconvergentDistributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
             (O(7^4), O(7^3), O(7^2), O(7))
@@ -626,7 +626,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(8, 7, 15)
+            sage: D = OverconvergentDistributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
             (O(7^4), O(7^3), O(7^2), O(7))
@@ -658,7 +658,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(4, 13)
+            sage: D = OverconvergentDistributions(4, 13)
             sage: d = D([0,2,4,6,8,10,12])
             sage: d.specialize()
             (O(13^7), 2 + O(13^6), 4 + O(13^5), 6 + O(13^4), 8 + O(13^3))
@@ -761,7 +761,7 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(4, 7, 10)
+            sage: D = OverconvergentDistributions(4, 7, 10)
             sage: v = D([98,49,21,28,35])
             sage: M = matrix([[1,0], [7,1]])
             sage: v.act_right(M)
@@ -781,7 +781,7 @@ cdef class Dist_vector(Dist):
     - ``moments`` -- the list of moments.  If ``check == False`` it
       must be a vector in the appropriate approximation module.
 
-    - ``parent`` -- a :class:`distributions.Distributions_class` or
+    - ``parent`` -- a :class:`distributions.OverconvergentDistributions_class` or
       :class:`distributions.Symk_class` instance
 
     - ``ordp`` -- an integer.  This MUST be zero in the case of Symk
@@ -791,7 +791,7 @@ cdef class Dist_vector(Dist):
 
     EXAMPLES::
 
-        sage: D = Distributions(3,5,6) # indirect doctest
+        sage: D = OverconvergentDistributions(3,5,6) # indirect doctest
         sage: v = D([1,1,1])
     """
     def __init__(self, moments, parent, ordp=0, check=True):
@@ -865,7 +865,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: repr(v)
@@ -955,7 +955,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); w = D([3,6,9,12,15])
             sage: v+w
             (4 + O(7^5), 1 + 7 + O(7^4), 5 + 7 + O(7^3), 2 + 2*7 + O(7^2), 6 + O(7))
@@ -969,7 +969,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); w = D([1,1,1,8,8])
             sage: v-w
             (O(7^5), 1 + O(7^4), 2 + O(7^3), 3 + 6*7 + O(7^2), 4 + O(7))
@@ -983,7 +983,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(5, 7, 15)
+            sage: D = OverconvergentDistributions(5, 7, 15)
             sage: v = D([1,2,3,4,5]); v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: 3*v; 7*v
@@ -1024,7 +1024,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 11, 15)
+            sage: D = OverconvergentDistributions(2, 11, 15)
             sage: v = D([1,1,10,9,6,15])
             sage: v.precision_relative()
             6
@@ -1046,7 +1046,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(3, 7, base = Qp(7))
+            sage: D = OverconvergentDistributions(3, 7, base = Qp(7))
             sage: v = D([3,1,10,0])
             sage: v.precision_absolute()
             4
@@ -1077,7 +1077,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(3,7,10)
+            sage: D = OverconvergentDistributions(3,7,10)
             sage: v = D([1,2,3,4,5]) ; v
             (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
             sage: w = v.reduce_precision(3) ; w
@@ -1125,7 +1125,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(3,7,10)
+            sage: D = OverconvergentDistributions(3,7,10)
             sage: v = D([3,4,5])
             sage: v
             (3 + O(7^3), 4 + O(7^2), 5 + O(7))
@@ -1152,7 +1152,7 @@ cdef class Dist_vector(Dist):
 
         EXAMPLES::
 
-            sage: D = Distributions(5,7,15)
+            sage: D = OverconvergentDistributions(5,7,15)
             sage: v = D(([0,2,3,4,5]))
             sage: g = D._act.actor()(Matrix(ZZ,2,2,[1,1,0,1]))
             sage: w = v.solve_difference_equation()
@@ -1222,14 +1222,14 @@ cdef class Dist_vector(Dist):
 #     - ``moments`` -- the list of moments.  If ``check == False`` it
 #       must be a vector in the appropriate approximation module.
 
-#     - ``parent`` -- a :class:`distributions.Distributions_class` or
+#     - ``parent`` -- a :class:`distributions.OverconvergentDistributions_class` or
 #       :class:`distributions.Symk_class` instance
 
 #     - ``check`` -- (default: True) boolean, whether to validate input
 
 #     EXAMPLES::
 
-#         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #     """
 #     def __init__(self, moments, parent, ordp=0, check=True):
 #         """
@@ -1237,7 +1237,7 @@ cdef class Dist_vector(Dist):
 
 #         TESTS::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         # if not hasattr(parent,'Element'):
 #         #     parent, moments = moments, parent
@@ -1283,7 +1283,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         cdef Dist_long ans = PY_NEW(Dist_long)
 #         ans._parent = self._parent
@@ -1300,7 +1300,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         valstr = ""
 #         if self.ordp == 1:
@@ -1322,7 +1322,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         cdef int i
 #         for i in range(self.relprec):
@@ -1342,7 +1342,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         cdef int i
 #         for i in range(1, self.relprec):  # Don't normalize the zeroth moment
@@ -1371,7 +1371,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         if isinstance(_n, slice):
 #             a, b, c = _n.indices(self.relprec)
@@ -1433,7 +1433,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         return self._addsub(<Dist_long?> right, False)
 
@@ -1443,7 +1443,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         return self._addsub(<Dist_long?> right, True)
 
@@ -1453,7 +1453,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         cdef Dist_long ans = self._new_c()
 #         ans.relprec = self.relprec
@@ -1536,7 +1536,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         return Integer(self.relprec + self.ordp)
 
@@ -1555,7 +1555,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         if M > self.relprec:
 #             raise ValueError("not enough moments")
@@ -1579,7 +1579,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         raise NotImplementedError
 
@@ -1589,7 +1589,7 @@ cdef class Dist_vector(Dist):
 
 #         EXAMPLE::
 
-#             sage: D = Distributions(0, 5, 10)
+#             sage: D = OverconvergentDistributions(0, 5, 10)
 #             sage: D([1,2,3,4]).__reduce__()
 #             (<type 'sage.modular.pollack_stevens.dist.Dist_long'>, ([1, 2, 3, 4], Space of 5-adic distributions with k=0 action and precision cap 10, 0, False))
 #         """
@@ -1607,7 +1607,7 @@ cdef class WeightKAction(Action):
     - ``character`` -- data specifying a Dirichlet character to apply to the
       top right corner, and a power of the determinant by which to scale.  See
       the documentation of
-      :class:`sage.modular.pollack_stevens.distributions.Distributions_factory`
+      :class:`sage.modular.pollack_stevens.distributions.OverconvergentDistributions_factory`
       for more details.
     - ``adjuster`` -- a callable object that turns matrices into 4-tuples.
     - ``on_left`` -- whether this action should be on the left.
@@ -1616,7 +1616,7 @@ cdef class WeightKAction(Action):
 
     EXAMPLES::
 
-        sage: D = Distributions(4,5,10,base = Qp(5,20)); D
+        sage: D = OverconvergentDistributions(4,5,10,base = Qp(5,20)); D
         Space of 5-adic distributions with k=4 action and precision cap 10
         sage: D._act
         Right action by Monoid Sigma0(5) with coefficients in 5-adic Field with capped relative precision 20 on Space of 5-adic distributions with k=4 action and precision cap 10
@@ -1627,7 +1627,7 @@ cdef class WeightKAction(Action):
 
         TESTS::
 
-            sage: D = Distributions(4,5,10,base = Qp(5,20)); D # indirect doctest
+            sage: D = OverconvergentDistributions(4,5,10,base = Qp(5,20)); D # indirect doctest
             Space of 5-adic distributions with k=4 action and precision cap 10
             sage: D = Symk(10) # indirect doctest
         """
@@ -1661,7 +1661,7 @@ cdef class WeightKAction(Action):
 
         EXAMPLES::
 
-            sage: D = Distributions(4,5,4)
+            sage: D = OverconvergentDistributions(4,5,4)
             sage: D([1,2,5,3]) * D._act.actor()(Matrix(ZZ,2,2,[1,1,0,1]))
             (1 + O(5^4), 3 + O(5^3), 2*5 + O(5^2), 4*5 + O(5))
             sage: D._act.clear_cache()
@@ -1894,7 +1894,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #     EXAMPLES::
 
-#         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #     """
 #     def __cinit__(self, unsigned long M):
 #         r"""
@@ -1902,7 +1902,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #         TESTS::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         self._inited = False
 #         self.M = M
@@ -1926,7 +1926,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         cdef Py_ssize_t r, c, Mnew, Morig = self.M
 #         cdef SimpleMat ans
@@ -1957,7 +1957,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #         TESTS::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         sage_free(self._mat)
 
@@ -1983,7 +1983,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         _a, _b, _c, _d = self._adjuster(g)
 #         #if self._character is not None: raise NotImplementedError
@@ -2038,7 +2038,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
 #         EXAMPLES::
 
-#             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+#             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
 #         """
 #         if self.is_left():
 #             _v, g = g, _v

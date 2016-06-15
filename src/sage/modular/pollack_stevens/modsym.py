@@ -53,7 +53,7 @@ def _iterate_Up(Phi, p, M, ap, eisenloss, q, aq, check):
         sage: E = EllipticCurve('57a')
         sage: p = 5
         sage: prec = 4
-        sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+        sage: phi = E.overconvergent_modular_symbol()
         sage: phi_stabilized = phi.p_stabilize(p,M = prec)
         sage: Phi = phi_stabilized.lift(p,prec) # indirect doctest
 
@@ -97,7 +97,7 @@ class PSModSymAction(Action):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: g = phi._map._codomain._act._Sigma0(matrix(ZZ,2,2,[1,2,3,4]))
             sage: phi * g # indirect doctest
             Modular symbol of level 11 with values in Sym^0 Q^2
@@ -112,7 +112,7 @@ class PSModSymAction(Action):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: g = phi._map._codomain._act._Sigma0(matrix(ZZ,2,2,[2,1,5,-1]))
             sage: phi * g # indirect doctest
             Modular symbol of level 11 with values in Sym^0 Q^2
@@ -130,7 +130,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
 
         """
         ModuleElement.__init__(self, parent)
@@ -146,7 +146,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi._repr_()
             'Modular symbol of level 11 with values in Sym^0 Q^2'
         """
@@ -159,7 +159,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Set([o.moment(0) for o in phi.dict().values()]) == Set([-1/5, 3/2, -1/2])
             True
         """
@@ -177,7 +177,7 @@ class PSModularSymbolElement(ModuleElement):
 
         EXAMPLES::
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.weight()
             0
 
@@ -191,7 +191,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
              sage: E = EllipticCurve('11a')
-             sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+             sage: phi = E.overconvergent_modular_symbol()
              sage: phi.values()
              [-1/5, 3/2, -1/2]
              sage: phi.dict().keys()
@@ -211,7 +211,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi._normalize()
             Modular symbol of level 11 with values in Sym^0 Q^2
             sage: phi._normalize().values()
@@ -228,7 +228,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi == phi
             True
             sage: phi == 2*phi
@@ -251,7 +251,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi + phi
@@ -268,7 +268,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens');
+            sage: phi = E.overconvergent_modular_symbol();
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: 2*phi
@@ -285,7 +285,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi*2
@@ -302,7 +302,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi - phi
@@ -335,8 +335,8 @@ class PSModularSymbolElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(5), coefficients=D)
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 5, 10);  M = PollackStevensModular(Gamma0(5), coefficients=D)
             sage: f = M(1); f._get_prime()
             5
             sage: f._get_prime(5)
@@ -347,7 +347,7 @@ class PSModularSymbolElement(ModuleElement):
             ValueError: inconsistent prime
             sage: f._get_prime(alpha=Qp(5)(1))
             5
-            sage: D = Symk(0);  M = PSModularSymbols(Gamma0(2), coefficients=D)
+            sage: D = Symk(0);  M = PollackStevensModular(Gamma0(2), coefficients=D)
             sage: f = M(1); f._get_prime(allow_none=True) is None
             True
             sage: f._get_prime(alpha=Qp(7)(1))
@@ -383,7 +383,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: (phi.plus_part()+phi.minus_part()) == 2 * phi
@@ -405,7 +405,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: (phi.plus_part()+phi.minus_part()) == phi * 2
@@ -445,7 +445,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi.hecke(2) == phi * E.ap(2)
@@ -481,7 +481,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
            sage: E = EllipticCurve('11a')
-           sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+           sage: phi = E.overconvergent_modular_symbol()
            sage: phi.values()
            [-1/5, 3/2, -1/2]
            sage: phi.valuation(2)
@@ -521,7 +521,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi.diagonal_valuation(2)
@@ -555,7 +555,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
@@ -601,7 +601,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
@@ -670,7 +670,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a1')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.is_ordinary(2)
             False
             sage: E.ap(2)
@@ -726,7 +726,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi._consistency_check()
             This modular symbol satisfies the manin relations
         """
@@ -812,7 +812,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: p = 5
             sage: M = 10
             sage: k = 0
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi._find_alpha(p,k,M)
             (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + 2*5^13 + O(5^14), 5-adic Field with capped relative precision 14, 13, 1, 2, -2)
         """
@@ -914,7 +914,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: E = EllipticCurve('11a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phis = phi.p_stabilize(p,M = prec)
             sage: phis
             Modular symbol of level 55 with values in Sym^0 Q_5^2
@@ -1071,7 +1071,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: f = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: f = E.overconvergent_modular_symbol()
             sage: g = f.lift(11,4,algorithm='stevens',eigensymbol=True)
             sage: g.is_Tq_eigensymbol(2)
             True
@@ -1090,7 +1090,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec, algorithm = 'stevens', eigensymbol = True)
             sage: Phi.Tq_eigenvalue(5,M = 4)
             3 + 2*5 + 4*5^2 + 2*5^3 + O(5^4)
@@ -1100,7 +1100,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 6
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
             sage: L = pAdicLseries(Phi)
             sage: L.symb() is Phi
@@ -1109,7 +1109,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
        Examples using Greenberg's algorithm::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.lift(11,8,algorithm='greenberg',eigensymbol=True)
             sage: Phi2 = phi.lift(11,8,algorithm='stevens',eigensymbol=True)
             sage: Phi == Phi2
@@ -1202,7 +1202,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: f = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: f = E.overconvergent_modular_symbol()
             sage: f._lift_to_OMS(11,4,Qp(11,4))
             Modular symbol of level 11 with values in Space of 11-adic distributions with k=0 action and precision cap 4
 
@@ -1282,7 +1282,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: f = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: f = E.overconvergent_modular_symbol()
             sage: f._find_aq(5,10,True)
             (2, -2, 1)
         """
@@ -1317,7 +1317,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: p = 5
             sage: M = 10
             sage: k = 0
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: alpha = phi.Tq_eigenvalue(p)
             sage: phi._find_extraprec(p,M,alpha,True)
             (13, 1, 2, -2)
@@ -1373,7 +1373,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: f = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: f = E.overconvergent_modular_symbol()
             sage: g = f.p_stabilize_and_lift(3,10)
             sage: g.Tq_eigenvalue(5)
             1 + O(3^10)
@@ -1415,8 +1415,8 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 5, 10)
-            sage: M = PSModularSymbols(Gamma0(5), coefficients=D)
+            sage: D = OverconvergentDistributions(0, 5, 10)
+            sage: M = PollackStevensModular(Gamma0(5), coefficients=D)
             sage: f = M(1)
             sage: f.reduce_precision(1)
             Modular symbol of level 5 with values in Space of 5-adic distributions with k=0 action and precision cap 10
@@ -1430,8 +1430,8 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 5, 10)
-            sage: M = PSModularSymbols(Gamma0(5), coefficients=D)
+            sage: D = OverconvergentDistributions(0, 5, 10)
+            sage: M = PollackStevensModular(Gamma0(5), coefficients=D)
             sage: f = M(1)
             sage: f.precision_relative()
             1
@@ -1447,7 +1447,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(5), coefficients=D); M
+            sage: D = OverconvergentDistributions(0, 5, 10);  M = PollackStevensModular(Gamma0(5), coefficients=D); M
             Space of overconvergent modular symbols for Congruence Subgroup Gamma0(5) with sign 0
             and values in Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f = M(1)
@@ -1478,7 +1478,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         EXAMPLE::
 
             sage: E = EllipticCurve('37a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: L = phi.lift(37, M=6, eigensymbol=True).padic_lseries(); L
             37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 7
             sage: L[0]

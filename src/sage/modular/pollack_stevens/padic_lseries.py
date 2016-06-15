@@ -40,40 +40,29 @@ class pAdicLseries(SageObject):
         sage: E = EllipticCurve('37a')
         sage: p = 5
         sage: prec = 4
-        sage: phi = E.overconvergent_modular_symbol()
-        sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
-        sage: L = pAdicLseries(Phi) # long time
+        sage: L = E.padic_lseries(p, implementation="overconvergent", precision=prec) # long time
         sage: L[1] # long time
-        2 + 3*5 + O(5^3)
-        sage: L[0] # long time
-        O(5^4)
-
-    Using the existing algorithm in Sage, it seems we are off by a
-    factor of 2::
-
-        sage: L = E.padic_lseries(5)
-        sage: L.series(4)[1]
         1 + 4*5 + 2*5^2 + O(5^3)
+        sage: L.series(prec,3) # long time
+        O(5^4) + (1 + 4*5 + 2*5^2 + O(5^3))*T + (3 + O(5^2))*T^2
 
-    But here, we are correct without the factor of 2::
+    ::
 
+        sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
         sage: E = EllipticCurve('57a')
         sage: p = 5
         sage: prec = 4
-        sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+        sage: phi = E.overconvergent_modular_symbol()
         sage: Phi = phi.p_stabilize_and_lift(5, prec) # long time
         sage: L = pAdicLseries(Phi) # long time
-        sage: L[1]
-        3*5 + 5^2 + O(5^3)
-
-        sage: L1 = E.padic_lseries(5)
-        sage: L1.series(4)[1]
+        sage: L[1] # long time
         3*5 + 5^2 + O(5^3)
 
     An example of a `p`-adic `L`-series associated to a modular
-    abelian surface. It takes too long so we disable it.::
+    abelian surface. This is not tested as it takes too long.::
 
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+        sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
         sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
         sage: p = 19
         sage: prec = 4
@@ -89,16 +78,18 @@ class pAdicLseries(SageObject):
         sage: L1[1]*L2[1] # not tested - too long
         13 + 9*19 + 18*19^2 + O(19^3)
     """
+
     def __init__(self, symb, gamma=None, quadratic_twist=1, precision=None):
         r"""
 
         EXAMPLE::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('37a')
             sage: p = 37
             sage: prec = 3
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
-            sage: Phi = phi.lift(p,prec,eigensymbol=True)
+            sage: phi = E.overconvergent_modular_symbol()
+            sage: Phi = phi.lift(p, prec,eigensymbol=True)
             sage: L = pAdicLseries(Phi)
             sage: L[1]
             4 + 37 + O(37^2)
@@ -118,6 +109,7 @@ class pAdicLseries(SageObject):
         self._gamma = gamma
         self._quadratic_twist = quadratic_twist
         self._precision = precision
+        self._cinf = ZZ(1) # is set when called for an elliptic curve
 
     def __getitem__(self, n):
         r"""
@@ -125,19 +117,16 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L[1] # long time
             3*5 + 5^2 + O(5^3)
-
-            sage: L1 = E.padic_lseries(5) # not tested - long time
-            sage: L1.series(4)[1] # not tested - long time
-            3*5 + 5^2 + O(5^3)
-        """
+         """
         if n in self._coefficients:
             return self._coefficients[n]
         else:
@@ -168,6 +157,7 @@ class pAdicLseries(SageObject):
                            * self._basic_integral(a, j) for a in range(1, p))
                 dn = dn + cjn * temp
             self._coefficients[n] = dn + O(p ** precision)
+            self._coefficients[n] /= self._cinf
             return self._coefficients[n]
 
     def __cmp__(self, other):
@@ -176,8 +166,9 @@ class pAdicLseries(SageObject):
 
         EXAMPLE::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('11a')
-            sage: S = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: S = E.overconvergent_modular_symbol()
             sage: SS = S.lift(11, M=10)
             sage: L = pAdicLseries(SS)
             sage: L == loads(dumps(L)) # indirect doctest
@@ -195,10 +186,11 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 3
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.symb() is Phi # long time
@@ -208,14 +200,15 @@ class pAdicLseries(SageObject):
 
     def prime(self):
         r"""
-        Return the prime associatd to the overconvergent modular symbol
+        Return the prime `p` as in `p`-adic `L`-series.
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 3
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.prime() # long time
@@ -229,10 +222,11 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 3
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.quadratic_twist() # long time
@@ -246,14 +240,15 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('37a')
             sage: p = 5
             sage: prec = 3
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L._repr_() # long time
-            '5-adic L-series of Modular symbol of level 185 with values in Space of 5-adic distributions with k=0 action and precision cap 9'
+            '5-adic L-series of Modular symbol of level 185 with values in Space of 5-adic distributions with k=0 action and precision cap 6'
         """
         return "%s-adic L-series of %s" % (self.prime(), self.symb())
 
@@ -263,21 +258,28 @@ class pAdicLseries(SageObject):
         associated to self, as a power series in `T` (corresponding to
         `\gamma-1` with `\gamma= 1 + p` as a generator of `1+p\ZZ_p`).
 
+        INPUT:
+
+        - ``n`` --
+
+        - ``prec`` -- (default 5) is the precision of the power series
+
         EXAMPLES::
 
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
-            sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
-            sage: L = pAdicLseries(Phi) # long time
+            sage: L = E.padic_lseries(p,implementation="overconvergent",precision=prec) # long time
             sage: L.series(3,4) # long time
-            O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2
+            O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2 + O(5)*T^3
 
-            sage: L1 = E.padic_lseries(5) # not tested - long time
-            sage: L1.series(4) # not tested - long time
-            O(5^6) + (3*5 + 5^2 + O(5^3))*T + (5 + 4*5^2 + O(5^3))*T^2 + (4*5^2 + O(5^3))*T^3 + (2*5 + 4*5^2 + O(5^3))*T^4 + O(T^5)
-
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
+            sage: E = EllipticCurve("15a3")
+            sage: phi = E.overconvergent_modular_symbol()
+            sage: Phi = phi.lift(3,10,eigensymbol=True)
+            sage: L = pAdicLseries(Phi)
+            sage: L.series(10,3)
+            1 + 2*3 + 2*3^3 + 2*3^5 + 2*3^7 + 2*3^9 + O(3^10) + (1 + 2*3 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + O(3^7))*T + (3 + 3^2 + 2*3^3 + 3^5 + O(3^6))*T^2
         """
         p = self.prime()
         M = self.symb().precision_relative()
@@ -289,14 +291,27 @@ class pAdicLseries(SageObject):
 
     def interpolation_factor(self, ap, chip=1, psi=None):
         r"""
-        Return the interpolation factor associated to self
+        Return the interpolation factor associated to self.
+        This is the `p`-adic multiplier that which appears in
+        the interpolation formula of the `p`-adic `L`-function.
+
+        INPUT:
+
+        - ``ap`` --
+
+        - ``chip`` --
+
+        - ``psi`` --
+
+        OUTPUT: a `p`-adic number
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: ap = phi.Tq_eigenvalue(p) # long time
@@ -305,8 +320,8 @@ class pAdicLseries(SageObject):
 
             Comparing against a different implementation:
 
-            sage: L = E.padic_lseries(5) # long time
-            sage: (1-1/L.alpha(prec=4))^2 # long time
+            sage: L = E.padic_lseries(5)
+            sage: (1-1/L.alpha(prec=4))^2
             4 + 2*5 + 4*5^3 + O(5^4)
 
         """
@@ -345,22 +360,20 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
-            sage: ap = phi.Tq_eigenvalue(p,prec)
-            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec) # long time
-            sage: L = pAdicLseries(Phi) # long time
+            sage: L = E.padic_lseries(p, implementation="overconvergent", precision=prec) #long time
             sage: L.eval_twisted_symbol_on_Da(1) # long time
-            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))
+            5^-1 * (O(5^5), 5 + 3*5^2 + 5^3 + O(5^4), 4*5 + 4*5^2 + O(5^3), 4*5 + O(5^2))
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('40a4')
             sage: p = 7
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: ap = phi.Tq_eigenvalue(p,prec)
             sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.eval_twisted_symbol_on_Da(1) # long time
-            (4 + 6*7 + 3*7^2 + O(7^4), 2 + 7 + O(7^3), 4 + 6*7 + O(7^2), 6 + O(7))
+            (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
         """
         symb = self.symb()
         p = symb.parent().prime()
@@ -392,17 +405,17 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('57a')
             sage: p = 5
             sage: prec = 4
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p,prec) # long time
             sage: L = pAdicLseries(Phi) # long time
             sage: L.eval_twisted_symbol_on_Da(1) # long time
-            5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2))
+            5^-1 * (O(5^5), 5 + 3*5^2 + 5^3 + O(5^4), 4*5 + 4*5^2 + O(5^3), 4*5 + O(5^2))
             sage: L._basic_integral(1,2) # long time
-            2*5^3 + O(5^4)
-
+            2*5^2 + 5^3 + O(5^4)
         """
         symb = self.symb()
         M = symb.precision_relative()
@@ -414,8 +427,11 @@ class pAdicLseries(SageObject):
         ap = ap * kronecker(D, p)
         K = pAdicField(p, M)
         symb_twisted = self.eval_twisted_symbol_on_Da(a)
-        return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a))) ** (j - r)) *
-                   (p ** r) * symb_twisted.moment(r) for r in range(j + 1)) / ap
+        return ( sum(binomial(j, r)
+                 * ((a - ZZ(K.teichmuller(a))) ** (j - r))
+                 * (p ** r)
+                 * symb_twisted.moment(r) for r in range(j + 1))
+                 / ap  )
 
 
 def log_gamma_binomial(p, gamma, z, n, M):

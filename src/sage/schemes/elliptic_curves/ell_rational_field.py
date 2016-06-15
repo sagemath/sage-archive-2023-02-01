@@ -1286,9 +1286,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return lambda a: self._modsym(a, prec).imag() / P
 
 
-    def overconvergent_modular_symbol(self, sign):
+    def overconvergent_modular_symbol(self, sign=0, use_eclib=True):
         """
+        Create the overconvergent modular symbol attached to the
+        elliptic curve
+
+        INPUT:
+
+        - ``sign`` -- +1 or -1 or 0 (default), in which case this it
+          is the sum of the two
+
+        - ``use_eclib`` -- Whether the underlying computation by
+          eclib (default) or sage's classical modular symbols
+
         EXAMPLES::
+
             sage: E = EllipticCurve('113a1')
             sage: symb = E.overconvergent_modular_symbol()
             sage: symb
@@ -1301,7 +1313,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: symb.values()
             [-1/6, 1/3, 1/2, 1/6, -1/6, 1/3, -1/3, -1/2, -1/6, 1/6, 0, -1/6, -1/6]
         """
-        return ps_modsym_from_elliptic_curve(self, sign)
+        return ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
 
     _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries

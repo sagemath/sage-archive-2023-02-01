@@ -27,7 +27,7 @@ import sage.rings.ring as ring
 from sigma0 import _default_adjuster
 
 
-class Distributions_factory(UniqueFactory):
+class OverconvergentDistributions_factory(UniqueFactory):
     """
     Create a space of distributions.
 
@@ -46,7 +46,7 @@ class Distributions_factory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: D = Distributions(3, 11, 20)
+        sage: D = OverconvergentDistributions(3, 11, 20)
         sage: D
         Space of 11-adic distributions with k=3 action and precision cap 20
         sage: v = D([1,0,0,0,0])
@@ -55,7 +55,7 @@ class Distributions_factory(UniqueFactory):
 
     Note that we would expect something more p-adic, but fine...::
 
-        sage: D = Distributions(3, 11, 20, dettwist=1)
+        sage: D = OverconvergentDistributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
         (5 + 11 + O(11^5), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
@@ -66,10 +66,10 @@ class Distributions_factory(UniqueFactory):
         """
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: Distributions(20, 3, 10)              # indirect doctest
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+            sage: OverconvergentDistributions(20, 3, 10)              # indirect doctest
             Space of 3-adic distributions with k=20 action and precision cap 10
-            sage: TestSuite(Distributions).run()
+            sage: TestSuite(OverconvergentDistributions).run()
         """
         k = ZZ(k)
 
@@ -108,11 +108,11 @@ class Distributions_factory(UniqueFactory):
         """
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: Distributions(0, 7, 5)              # indirect doctest
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: OverconvergentDistributions(0, 7, 5)              # indirect doctest
             Space of 7-adic distributions with k=0 action and precision cap 5
         """
-        return Distributions_class(*key)
+        return OverconvergentDistributions_class(*key)
 
 
 class Symk_factory(UniqueFactory):
@@ -190,19 +190,19 @@ class Symk_factory(UniqueFactory):
         """
         return Symk_class(*key)
 
-Distributions = Distributions_factory('Distributions')
+OverconvergentDistributions = OverconvergentDistributions_factory('OverconvergentDistributions')
 Symk = Symk_factory('Symk')
 
 
-class Distributions_abstract(Module):
+class OverconvergentDistributions_abstract(Module):
     """
     Parent object for distributions. Not to be used directly, see derived
-    classes :class:`Symk_class` and :class:`Distributions_class`.
+    classes :class:`Symk_class` and :class:`OverconvergentDistributions_class`.
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.distributions import Distributions
-        sage: Distributions(2, 17, 100)
+        sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+        sage: OverconvergentDistributions(2, 17, 100)
         Space of 17-adic distributions with k=2 action and precision cap 100
     """
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None,
@@ -224,15 +224,15 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: D = Distributions(2, 3, 5); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+            sage: D = OverconvergentDistributions(2, 3, 5); D
             Space of 3-adic distributions with k=2 action and precision cap 5
             sage: type(D)
-            <class 'sage.modular.pollack_stevens.distributions.Distributions_class_with_category'>
+            <class 'sage.modular.pollack_stevens.distributions.OverconvergentDistributions_class_with_category'>
 
         p must be a prime, but p=6 below, which is not prime::
 
-            sage: Distributions(k=0, p=6, prec_cap=10)
+            sage: OverconvergentDistributions(k=0, p=6, prec_cap=10)
             Traceback (most recent call last):
             ...
             ValueError: p must be prime
@@ -295,7 +295,7 @@ class Distributions_abstract(Module):
             sage: v == w
             True
         """
-        return (isinstance(other, Distributions_abstract)
+        return (isinstance(other, OverconvergentDistributions_abstract)
                 and other._k == self._k
                 and self._character == other._character
                 and self.base_ring().has_coerce_map_from(other.base_ring())
@@ -331,8 +331,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7); D
             Space of 7-adic distributions with k=0 action and precision cap 20
             sage: D.prime()
             7
@@ -364,12 +364,12 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7); D
             Space of 7-adic distributions with k=0 action and precision cap 20
             sage: D.weight()
             0
-            sage: Distributions(389, 7).weight()
+            sage: OverconvergentDistributions(389, 7).weight()
             389
         """
         return self._k
@@ -380,8 +380,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 10); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 10); D
             Space of 7-adic distributions with k=0 action and precision cap 10
             sage: D.precision_cap()
             10
@@ -405,7 +405,7 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
             sage: D = Symk(0, Qp(7)); D
             Sym^0 Q_7^2
             sage: D.lift(M=20)
@@ -438,7 +438,7 @@ class Distributions_abstract(Module):
             p = pp
         elif p != pp:
             raise ValueError("Inconsistent primes")
-        return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
+        return OverconvergentDistributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
 
     @cached_method
     def approx_module(self, M=None):
@@ -452,8 +452,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: D = Distributions(0, 5, 10)
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+            sage: D = OverconvergentDistributions(0, 5, 10)
             sage: D.approx_module()
             Ambient free module of rank 10 over the principal ideal domain 5-adic Ring with capped absolute precision 10
             sage: D.approx_module(1)
@@ -494,8 +494,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: D = Distributions(0, 5, 10)
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+            sage: D = OverconvergentDistributions(0, 5, 10)
             sage: D.random_element()
             (..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
             sage: D.random_element(0)
@@ -523,8 +523,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 10)
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 10)
             sage: D.clear_cache()
         """
         self.approx_module.clear_cache()
@@ -537,8 +537,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 4); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.basis()
             [(1 + O(7^4), O(7^3), O(7^2), O(7)),
@@ -559,8 +559,8 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: D = Distributions(0, 7, 4); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+            sage: D = OverconvergentDistributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.an_element() # indirect doctest
             (2 + O(7^2), 1 + O(7))
@@ -571,7 +571,7 @@ class Distributions_abstract(Module):
             return self([1])
 
 
-class Symk_class(Distributions_abstract):
+class Symk_class(OverconvergentDistributions_abstract):
 
     def __init__(self, k, base, character, adjuster, act_on_left, dettwist,
                  act_padic, implementation):
@@ -586,7 +586,7 @@ class Symk_class(Distributions_abstract):
             p = base.prime()
         else:
             p = ZZ(0)
-        Distributions_abstract.__init__(self, k, p, k + 1, base, character,
+        OverconvergentDistributions_abstract.__init__(self, k, p, k + 1, base, character,
                                         adjuster, act_on_left, dettwist,
                                         act_padic, implementation)
 
@@ -642,8 +642,8 @@ class Symk_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(4, 17, 10); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(4, 17, 10); D
             Space of 17-adic distributions with k=4 action and precision cap 10
             sage: D.is_symk()
             False
@@ -664,8 +664,8 @@ class Symk_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 4); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.base_ring()
             7-adic Ring with capped absolute precision 4
@@ -690,12 +690,12 @@ class Symk_class(Distributions_abstract):
         return self.change_ring(new_base_ring)
 
 
-class Distributions_class(Distributions_abstract):
+class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
     r"""
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.distributions import Distributions
-        sage: D = Distributions(0, 5, 10)
+        sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
+        sage: D = OverconvergentDistributions(0, 5, 10)
         sage: TestSuite(D).run()
     """
 
@@ -703,21 +703,21 @@ class Distributions_class(Distributions_abstract):
         """
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: Distributions(0, 5, 10)._repr_()
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: OverconvergentDistributions(0, 5, 10)._repr_()
             'Space of 5-adic distributions with k=0 action and precision cap 10'
-            sage: Distributions(0, 5, 10)
+            sage: OverconvergentDistributions(0, 5, 10)
             Space of 5-adic distributions with k=0 action and precision cap 10
 
         Examples with twists::
 
-            sage: Distributions(0,3,4)
+            sage: OverconvergentDistributions(0,3,4)
             Space of 3-adic distributions with k=0 action and precision cap 4
-            sage: Distributions(0,3,4,dettwist=-1)
+            sage: OverconvergentDistributions(0,3,4,dettwist=-1)
             Space of 3-adic distributions with k=0 action and precision cap 4 twistted by det^-1
-            sage: Distributions(0,3,4,character=DirichletGroup(3).0)
+            sage: OverconvergentDistributions(0,3,4,character=DirichletGroup(3).0)
             Space of 3-adic distributions with k=0 action and precision cap 4 twistted by (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1)
-            sage: Distributions(0,3,4,character=DirichletGroup(3).0,dettwist=-1)
+            sage: OverconvergentDistributions(0,3,4,character=DirichletGroup(3).0,dettwist=-1)
             Space of 3-adic distributions with k=0 action and precision cap 4 twistted by det^-1 * (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1)
         """
         s = "Space of %s-adic distributions with k=%s action and precision cap %s" % (self._p, self._k, self._prec_cap)
@@ -736,8 +736,8 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(4, 17, 10); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(4, 17, 10); D
             Space of 17-adic distributions with k=4 action and precision cap 10
             sage: D.is_symk()
             False
@@ -758,8 +758,8 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 4); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.base_ring()
             7-adic Ring with capped absolute precision 4
@@ -768,7 +768,7 @@ class Distributions_class(Distributions_abstract):
             sage: D2.base_ring()
             7-adic Field with capped relative precision 20
         """
-        return Distributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
+        return OverconvergentDistributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
 
     def specialize(self, new_base_ring=None):
         """
@@ -778,8 +778,8 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 4); D
+            sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+            sage: D = OverconvergentDistributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.is_symk()
             False

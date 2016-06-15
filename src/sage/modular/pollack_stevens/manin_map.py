@@ -15,7 +15,7 @@ EXAMPLES::
     [-1/5, 3/2, -1/2]
 
     sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z
-    sage: D = Distributions(0, 11, 10)
+    sage: D = OverconvergentDistributions(0, 11, 10)
     sage: MR = ManinRelations(11)
     sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
     sage: f = ManinMap(D, MR, data)
@@ -179,7 +179,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data); f # indirect doctest
@@ -261,7 +261,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: MR = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, MR, data)
@@ -303,7 +303,7 @@ class ManinMap(object):
             ]
 
             sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
-            sage: D = Distributions(2, 37, 40)
+            sage: D = OverconvergentDistributions(2, 37, 40)
             sage: f = ManinMap(D, MR, data)
             sage: f.__getitem__(MR.gens()[1])
             1 + O(37)
@@ -368,7 +368,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10); D
+            sage: D = OverconvergentDistributions(0, 11, 10); D
             Space of 11-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -405,7 +405,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10); D
+            sage: D = OverconvergentDistributions(0, 11, 10); D
             Space of 11-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -444,7 +444,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
@@ -472,7 +472,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
@@ -499,7 +499,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: MR = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, MR, data)
@@ -529,7 +529,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10); D
+            sage: D = OverconvergentDistributions(0, 11, 10); D
             Space of 11-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -678,7 +678,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
@@ -704,7 +704,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)
@@ -729,7 +729,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = Distributions(0, 11, 10)
+            sage: D = OverconvergentDistributions(0, 11, 10)
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data)

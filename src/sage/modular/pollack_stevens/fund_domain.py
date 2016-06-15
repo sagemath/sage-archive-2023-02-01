@@ -69,7 +69,7 @@ t01 = (0, 1)
 t11 = (1, 1)
 
 
-class PSModularSymbolsDomain(SageObject):
+class PollackStevensModularDomain(SageObject):
     r"""
     The domain of a modular symbol.
 
@@ -96,19 +96,19 @@ class PSModularSymbolsDomain(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
-        sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
+        sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain, M2Z
+        sage: PollackStevensModularDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
         Modular Symbol domain of level 2
 
     TESTS:
 
     The level ``N`` must be an integer::
 
-        sage: PSModularSymbolsDomain(1/2, None, None, None, None)
+        sage: PollackStevensModularDomain(1/2, None, None, None, None)
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
-        sage: PSModularSymbolsDomain(Gamma0(11), None, None, None, None)
+        sage: PollackStevensModularDomain(Gamma0(11), None, None, None, None)
         Traceback (most recent call last):
         ...
         TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer
@@ -118,12 +118,12 @@ class PSModularSymbolsDomain(SageObject):
         r"""
         INPUT:
 
-            See :class:`PSModularSymbolsDomain`.
+            See :class:`PollackStevensModularDomain`.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain
-            sage: isinstance(ManinRelations(11), PSModularSymbolsDomain) # indirect doctest
+            sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain
+            sage: isinstance(ManinRelations(11), PollackStevensModularDomain) # indirect doctest
             True
 
         """
@@ -152,8 +152,8 @@ class PSModularSymbolsDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
-            sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
+            sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain, M2Z
+            sage: PollackStevensModularDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
             'Modular Symbol domain of level 2'
 
         """
@@ -534,7 +534,7 @@ class PSModularSymbolsDomain(SageObject):
         return self._P
 
 
-class ManinRelations(PSModularSymbolsDomain):
+class ManinRelations(PollackStevensModularDomain):
     r"""
     This class gives a description of `Div^0(P^1(\QQ))` as a
     `\ZZ[\Gamma_0(N)]`-module.
@@ -840,7 +840,7 @@ class ManinRelations(PSModularSymbolsDomain):
             equiv_ind[ky] = i
 
         self.gammas = gammas
-        PSModularSymbolsDomain.__init__(self, N, coset_reps, gens_index,
+        PollackStevensModularDomain.__init__(self, N, coset_reps, gens_index,
                                         rels, equiv_ind)
 
         ## A list of indices of the (geometric) coset representatives whose

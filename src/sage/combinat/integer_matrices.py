@@ -14,11 +14,12 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists import IntegerListsLex
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 
@@ -283,7 +284,7 @@ class IntegerMatrices(UniqueRepresentation, Parent):
             [0 2]  [1 1]  [0 2]  [2 0]  [1 1]  [0 2]
             [0 2], [0 2], [1 1], [0 2], [1 1], [2 0]
             ]
-            sage: for m in IM: print IM.to_composition(m)
+            sage: for m in IM: print(IM.to_composition(m))
             [2, 1, 2, 2]
             [1, 2, 1, 1, 2]
             [1, 2, 2, 1, 1]
@@ -313,7 +314,7 @@ def integer_matrices_generator(row_sums, column_sums):
         sage: from sage.combinat.integer_matrices import integer_matrices_generator
         sage: iter = integer_matrices_generator([3,2,2], [2,5]); iter
         <generator object integer_matrices_generator at ...>
-        sage: for m in iter: print m
+        sage: for m in iter: print(m)
         [[2, 1], [0, 2], [0, 2]]
         [[1, 2], [1, 1], [0, 2]]
         [[1, 2], [0, 2], [1, 1]]
@@ -331,7 +332,7 @@ def integer_matrices_generator(row_sums, column_sums):
     elif len(row_sums) == 1:
         yield [column_sums]
     else:
-        for comp in IntegerListsLex(row_sums[0], len(column_sums), ceiling=column_sums):
+        for comp in IntegerListsLex(n=row_sums[0], length=len(column_sums), ceiling=column_sums):
             t = [column_sums[i]-ci for (i, ci) in enumerate(comp)]
             for mat in integer_matrices_generator(row_sums[1:], t):
                 yield [list(comp)] + mat

@@ -37,14 +37,14 @@ the option ``truncate=False``.
 
 ::
 
-    sage: print ring('1').nextabove()
+    sage: print(ring('1').nextabove())
     1.2
 
 ::
 
-    sage: print ring('1').nextabove().str(truncate=False)
+    sage: print(ring('1').nextabove().str(truncate=False))
     1.2
-    sage: print ring('1').nextbelow().str(truncate=False)
+    sage: print(ring('1').nextbelow().str(truncate=False))
     0.88
 
 Let's change our precision.
@@ -52,9 +52,9 @@ Let's change our precision.
 ::
 
     sage: ring=RealField(20)
-    sage: print ring('1').nextabove().str(truncate=False)
+    sage: print(ring('1').nextabove().str(truncate=False))
     1.0000019
-    sage: print ring('1').nextbelow().str(truncate=False)
+    sage: print(ring('1').nextbelow().str(truncate=False))
     0.99999905
 
 You can also specify the rounding mode.
@@ -272,7 +272,7 @@ print out the interval.
 
 ::
 
-    sage: print (1/a).str(style='brackets')
+    sage: print((1/a).str(style='brackets'))
     [8.9843 .. 9.0157]
 
 Included Software
@@ -299,6 +299,7 @@ numbers.
 
     sage: f(x)=x^2*(sqrt(x^4+16)-x^2)
     sage: plot(f,(x,0,2e4))
+    Graphics object consisting of 1 graphics primitive
 
 We can instead make a function that specifically evaluates all
 intermediate steps to 100 bits of precision using the ``fast_callable``
@@ -309,4 +310,5 @@ system.
     sage: R=RealField(100) # 100 bits
     sage: g=fast_callable(f, vars=[x], domain=R)
     sage: plot(g,(x,0,2e4))
+    Graphics object consisting of 1 graphics primitive
 

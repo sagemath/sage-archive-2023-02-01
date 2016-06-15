@@ -138,6 +138,8 @@ This decomposition turns out to be very easy to implement :-)
 Functions
 ---------
 """
+from __future__ import print_function
+
 
 def is_line_graph(g, certificate = False):
     r"""
@@ -190,7 +192,7 @@ def is_line_graph(g, certificate = False):
         True
 
     The Petersen Graph not being claw-free, it is not a line
-    graph:
+    graph::
 
         sage: graphs.PetersenGraph().is_line_graph()
         False
@@ -568,7 +570,7 @@ def root_graph(g, verbose = False):
             v_cliques[v].append(tuple(S))
 
         if verbose:
-            print "Added clique", S
+            print("Added clique", S)
 
     # Deal with even triangles
     for u,v,w in even_triangles:
@@ -590,7 +592,8 @@ def root_graph(g, verbose = False):
                 v_cliques[y].append((x,y))
 
                 if verbose:
-                    print "Adding pair",(x,y),"appearing in the even triangle", (u,v,w)
+                    print("Adding pair", (x, y),
+                          "appearing in the even triangle", (u, v, w))
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
@@ -620,9 +623,9 @@ def root_graph(g, verbose = False):
         vertex_to_map[v] = relabel[L[0]], relabel[L[1]]
 
     if verbose:
-        print "Final associations :"
-        for v,L in v_cliques.iteritems():
-            print v,L
+        print("Final associations :")
+        for v, L in v_cliques.iteritems():
+            print(v, L)
 
     # We now build R
     R.add_edges(vertex_to_map.values())

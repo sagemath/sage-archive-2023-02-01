@@ -1,13 +1,11 @@
 r"""
 Base class for multivariate polynomial rings
 """
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
-
-
-from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
+from sage.structure.parent cimport Parent
 from term_order import TermOrder
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polydict import PolyDict
@@ -21,10 +19,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 from sage.misc.misc_c import prod
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 
 def is_MPolynomialRing(x):
-    return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
+    return isinstance(x, MPolynomialRing_generic)
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
@@ -48,7 +46,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         TESTS:
 
-        Check that containment works correctly (ticket #10355)::
+        Check that containment works correctly (:trac:`10355`)::
 
             sage: A1.<a> = PolynomialRing(QQ)
             sage: A2.<a,b> = PolynomialRing(QQ)
@@ -58,12 +56,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             True
         """
         if base_ring not in _CommutativeRings:
-            raise TypeError, "The base ring %s is not a commutative ring"%base_ring
+            raise TypeError("The base ring %s is not a commutative ring" % base_ring)
 
         n = int(n)
         if n < 0:
-            raise ValueError, "Multivariate Polynomial Rings must " + \
-                  "have more than 0 variables."
+            raise ValueError("Multivariate Polynomial Rings must " + \
+                  "have more than 0 variables.")
         order = TermOrder(order,n)
         self.__ngens = n
         self.__term_order = order
@@ -190,7 +188,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             #if p in self or type(p) == str and set(p).issubset(set([str(g) for g in self.gens()])):
 
         except ValueError:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
+            raise TypeError("Cannot complete %s with respect to %s" % (self, p))
 
     def remove_var(self, *var, order=None):
         """
@@ -335,9 +333,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return D
 
     def __richcmp__(left, right, int op):
-        return (<ParentWithGens>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):
             return cmp(type(left),type(right))
         else:
@@ -369,7 +367,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
-            sage: print P.repr_long()
+            sage: print(P.repr_long())
             Polynomial Ring
              Base Ring : Rational Field
                   Size : 3 Variables
@@ -492,7 +490,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def gen(self, n=0):
         if n < 0 or n >= self.__ngens:
-            raise ValueError, "Generator not defined."
+            raise ValueError("Generator not defined.")
         return self._gens[int(n)]
 
     #def gens(self):
@@ -610,7 +608,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             3
 
         """
-        from sage.rings.arith import binomial
         C = [1]  #d = 0
         for dbar in xrange(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
@@ -643,8 +640,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
         """
-        from sage.combinat import choose_nk
-        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        from sage.combinat import combination
+        comb = combination.from_rank(i, n+d-1, n-1)
         if comb == []:
             return (d,)
         monomial = [ comb[0] ]
@@ -675,7 +672,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
-        from sage.rings.arith import binomial
         #Select random degree
         d = ZZ.random_element(0,degree+1)
         total = binomial(n+d-1, d)
@@ -737,9 +733,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         INPUT:
 
         - ``degree`` -- maximal degree (likely to be reached) (default: 2)
-        - ``terms`` -- number of terms requested (default: 5)
+
+        - ``terms`` -- number of terms requested (default: 5). If more
+          terms are requested than exist, then this parameter is
+          silently reduced to the maximum number of available terms.
+
         - ``choose_degree`` -- choose degrees of monomials randomly first
           rather than monomials uniformly random.
+
         - ``**kwargs`` -- passed to the random element generator of the base
           ring
 
@@ -750,42 +751,63 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             -6/5*x^2 + 2/3*z^2 - 1
 
             sage: P.random_element(2, 5, choose_degree=True)
-            -1/4*x*y - 1/5*x*z - 1/14*y*z - z^2
+            -1/4*x*y - x - 1/14*z - 1
 
         Stacked rings::
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
             sage: S.random_element(degree=2, terms=1)
-            -3*x*y + 5/2*y^2 - 1/2*x - 1/4*y + 4
+            -1/2*x^2 - 1/4*x*y - 3*y^2 + 4*y
             sage: S.random_element(degree=2, terms=1)
-            (-1/2*x^2 - x*y - 2/7*y^2 + 3/2*x - y)*t*u
+            (-x^2 - 2*y^2 - 1/3*x + 2*y + 9)*u^2
 
         Default values apply if no degree and/or number of terms is
         provided::
 
             sage: random_matrix(QQ['x,y,z'], 2, 2)
-            [        2*y^2 - 2/27*y*z - z^2 + 2*z        1/2*x*y - 1/2*y^2 + 2*x - 2*y]
-            [-1/27*x^2 + 2/5*y^2 - 1/10*z^2 - 2*z              -13*y^2 + 2/3*z^2 + 2*y]
+            [357*x^2 + 1/4*y^2 + 2*y*z + 2*z^2 + 28*x      2*x*y + 3/2*y^2 + 2*y*z - 2*z^2 - z]
+            [                       x*y - y*z + 2*z^2         -x^2 - 4/3*x*z + 2*z^2 - x + 4*y]
 
             sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=2)
-            [-1/4*x    1/2]
-            [ 1/3*x    x*y]
+            [ 1/2*y -1/4*x]
+            [   1/2  1/3*x]
 
             sage: P.random_element(0, 1)
-            -1
+            1
 
             sage: P.random_element(2, 0)
             0
 
             sage: R.<x> = PolynomialRing(Integers(3), 1)
             sage: R.random_element()
-            x + 1
+            -x^2 + x
+
+        To produce a dense polynomial, pick ``terms=Infinity``::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=Infinity)
+            -55*x^2 - 51*x*y + 5*y^2 + 55*x*z - 59*y*z + 20*z^2 + 19*x - 55*y - 28*z + 17
+            sage: P.random_element(degree=3, terms=Infinity)
+            -54*x^3 + 15*x^2*y - x*y^2 - 15*y^3 + 61*x^2*z - 12*x*y*z + 20*y^2*z - 61*x*z^2 - 5*y*z^2 + 62*z^3 + 15*x^2 - 47*x*y + 31*y^2 - 14*x*z + 29*y*z + 13*z^2 + 61*x - 40*y - 49*z + 30
+            sage: P.random_element(degree=3, terms=Infinity, choose_degree=True)
+            57*x^3 - 58*x^2*y + 21*x*y^2 + 36*y^3 + 7*x^2*z - 57*x*y*z + 8*y^2*z - 11*x*z^2 + 7*y*z^2 + 6*z^3 - 38*x^2 - 18*x*y - 52*y^2 + 27*x*z + 4*y*z - 51*z^2 - 63*x + 7*y + 48*z + 14
+
+        The number of terms is silently reduced to the maximum
+        available if more terms are requested::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=1000)
+            5*x^2 - 10*x*y + 10*y^2 - 44*x*z + 31*y*z + 19*z^2 - 42*x - 50*y - 49*z - 60
+
         """
         k = self.base_ring()
         n = self.ngens()
 
         counts, total = self._precomp_counts(n, degree)
+
+        if terms > total:
+            terms = total
 
         if terms is None:
             if total >= 5:
@@ -794,17 +816,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 terms = total
 
         if terms < 0:
-            raise TypeError, "Cannot compute polynomial with a negative number of terms."
+            raise TypeError("Cannot compute polynomial with a negative number of terms.")
         elif terms == 0:
             return self._zero_element
         if degree == 0:
-            if terms != 1:
-                raise TypeError, "Cannot compute polynomial with more terms than exist."
             return k.random_element(**kwargs)
 
 
         from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         #total is 0. Just return
         if total == 0:
@@ -842,13 +861,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 for mi in xrange(terms):
                     d = ZZ.random_element(0,len(M)) #choose degree at random
                     m = ZZ.random_element(0,len(M[d])) # choose monomial at random
-                    Mbar.append( M[degree].pop(m) ) # remove and insert
-                    if len(M[degree]) == 0:
-                        M.pop(degree) # bookkeeping
+                    Mbar.append( M[d].pop(m) ) # remove and insert
+                    if len(M[d]) == 0:
+                        M.pop(d) # bookkeeping
                 M = map(tuple, Mbar)
-
-        else:
-            raise TypeError, "Cannot compute polynomial with more terms than exist."
 
         C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
 
@@ -884,6 +900,24 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
+
+    def monomial(self,*exponents):
+        """
+        Return the monomial with given exponents.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3)
+            sage: R.monomial(1,1,1)
+            x*y*z
+            sage: e=(1,2,3)
+            sage: R.monomial(*e)
+            x*y^2*z^3
+            sage: m = R.monomial(1,2,3)
+            sage: R.monomial(*m.degrees()) == m
+            True
+        """
+        return self({exponents:self.base_ring().one()})
 
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""
@@ -995,13 +1029,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
                  Springer, 2005.
 
-        .. [Can] J. Canny. Generalised characteristic polynomials.
+        .. [Can] \J. Canny. Generalised characteristic polynomials.
                  J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
-        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
                  Cambridge university press, 1916.
 
         AUTHORS:
@@ -1188,6 +1222,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         poly_denom = denom_matrix.characteristic_polynomial('T')
         poly_quo = poly_num.quo_rem(poly_denom)[0]
         return U(poly_quo(0))
+
+    def weyl_algebra(self):
+        """
+        Return the Weyl algebra generated from ``self``.
+
+        EXAMPLES::
+
+            sage: R = QQ['x,y,z']
+            sage: W = R.weyl_algebra(); W
+            Differential Weyl algebra of polynomials in x, y, z over Rational Field
+            sage: W.polynomial_ring() == R
+            True
+        """
+        from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
+        return DifferentialWeylAlgebra(self)
 
 ####################
 # Leave *all* old versions!

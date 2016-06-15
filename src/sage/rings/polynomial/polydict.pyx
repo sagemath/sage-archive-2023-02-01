@@ -28,22 +28,18 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein (wstein@ucsd.edu)
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include 'sage/ext/cdefs.pxi'
+include "cysignals/memory.pxi"
+from libc.string cimport memcpy
 from cpython.dict cimport *
 
 import copy
@@ -52,7 +48,6 @@ from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 
-import sage.rings.ring_element as ring_element
 
 cdef class PolyDict:
     def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
@@ -135,7 +130,7 @@ cdef class PolyDict:
 
         for m in left:
             try:
-                n = right.next()
+                n = next(right)
             except StopIteration:
                 return 1 # left has terms, right doesn't
             ret =  fn(m,n)
@@ -147,7 +142,7 @@ cdef class PolyDict:
             #try next pair
 
         try:
-            n = right.next()
+            n = next(right)
         except StopIteration:
             return 0 # both have no terms
 
@@ -179,7 +174,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
-            {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
         return self.__repn.copy()
 
@@ -256,7 +251,7 @@ cdef class PolyDict:
         _max = []
         for v in self.__repn.keys():
             _max.append(v[i])
-        return max(_max)
+        return max(_max or [-1])
 
     def valuation(PolyDict self, PolyDict x = None):
         L = x.__repn.keys()
@@ -422,11 +417,11 @@ cdef class PolyDict:
 
         TESTS:
 
-        We check that the issue on Trac 9478 is resolved::
+        We check that the issue on :trac:`9478` is resolved::
 
             sage: R2.<a> = QQ[]
             sage: R3.<xi, x> = R2[]
-            sage: print latex(xi*x)
+            sage: print(latex(xi*x))
             \xi x
         """
         n = len(vars)
@@ -912,8 +907,8 @@ cdef class ETuple:
         Quickly creates a new initialized ETuple with the
         same length as self.
         """
-        cdef ETuple x
-        x = <ETuple>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef ETuple x = <ETuple>t.__new__(t)
         x._length = self._length
         return x
 
@@ -936,29 +931,29 @@ cdef class ETuple:
             return
         cdef size_t ind
         cdef int v
-        if PY_TYPE_CHECK(data,ETuple):
+        if isinstance(data, ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
-            self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
+            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
             memcpy(self._data,(<ETuple>data)._data,sizeof(int)*self._nonzero*2)
-        elif PY_TYPE_CHECK(data,dict) and PY_TYPE_CHECK(length,int):
+        elif isinstance(data, dict) and isinstance(length, int):
             self._length = length
             self._nonzero = len(data)
-            self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
+            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
             nz_elts = sorted(data.iteritems())
             ind = 0
             for index,exp in nz_elts:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif PY_TYPE_CHECK(data,list) or PY_TYPE_CHECK(data,tuple):
+        elif isinstance(data, list) or isinstance(data, tuple):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
                 if v != 0:
                     self._nonzero += 1
             ind = 0
-            self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
+            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
             for i from 0 <= i < self._length:
                 v = data[i]
                 if v != 0:
@@ -973,7 +968,7 @@ cdef class ETuple:
 
     def __dealloc__(self):
         if self._data != <int*>0:
-            sage_free(self._data)
+            sig_free(self._data)
 
     # methods to simulate tuple
 
@@ -990,10 +985,10 @@ cdef class ETuple:
             (1, 1, 0, 0, 2, 0)
         """
         cdef size_t index = 0
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         result._length = self._length+other._length
         result._nonzero = self._nonzero+other._nonzero
-        result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
+        result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         for index from 0 <= index < self._nonzero:
             result._data[2*index] = self._data[2*index]
             result._data[2*index+1] = self._data[2*index+1]
@@ -1013,7 +1008,7 @@ cdef class ETuple:
             (1, 2, 3, 1, 2, 3)
         """
         cdef int _factor = factor
-        cdef ETuple result = <ETuple>PY_NEW(ETuple)
+        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
         if factor <= 0:
             result._length = 0
             result._nonzero = 0
@@ -1022,7 +1017,7 @@ cdef class ETuple:
         cdef size_t f
         result._length = self._length*factor
         result._nonzero = self._nonzero*factor
-        result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
+        result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         for index from 0 <= index < self._nonzero:
             for f from 0 <= f < factor:
                 result._data[2*(f*self._nonzero+index)] = self._data[2*index]+f*self._length
@@ -1212,7 +1207,7 @@ cdef class ETuple:
         return ETupleIter(d,self._length)
 
     def __str__(ETuple self):
-        return self.__repr__()
+        return repr(self)
 
     def __repr__(ETuple self):
         res = [0,]*self._length
@@ -1250,7 +1245,7 @@ cdef class ETuple:
             sage: e.eadd(f)
             (1, 1, 3)
 
-        Verify that trac 6428 has been addressed::
+        Verify that :trac:`6428` has been addressed::
 
             sage: R.<y,z> = Frac(QQ['x'])[]
             sage: type(y)
@@ -1274,7 +1269,7 @@ cdef class ETuple:
             alloc_len = self._length
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = 0  # we don't know the correct length quite yet
-        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
             s = exp1 + exp2
             # Check for overflow and underflow
@@ -1315,7 +1310,7 @@ cdef class ETuple:
 
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = self._nonzero
-        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
 
         for index from 0 <= index < self._nonzero:
             if self._data[2*index] == pos:
@@ -1378,7 +1373,7 @@ cdef class ETuple:
             alloc_len = self._length
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = 0  # we don't know the correct length quite yet
-        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
             # Check for overflow and underflow
             d = exp1 - exp2
@@ -1405,10 +1400,10 @@ cdef class ETuple:
         cdef ETuple result = <ETuple>self._new()
         if factor == 0:
             result._nonzero = 0  # all zero, no non-zero entries!
-            result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
+            result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         else:
             result._nonzero = self._nonzero
-            result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
+            result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
             for ind from 0 <= ind < self._nonzero:
                 result._data[2*ind] = self._data[2*ind]
                 result._data[2*ind+1] = self._data[2*ind+1]*factor
@@ -1449,7 +1444,7 @@ cdef class ETuple:
             alloc_len = self._length
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = 0  # we don't know the correct length quite yet
-        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
             if exp1 >= exp2 and exp1 != 0:
                 result._data[2*result._nonzero] = index
@@ -1490,7 +1485,7 @@ cdef class ETuple:
             alloc_len = self._length
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = 0  # we don't know the correct length quite yet
-        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
         while dual_etuple_iter(self,other,&ind1,&ind2,&index,&exp1,&exp2):
             if exp1 <= exp2 and exp1 != 0:
                 result._data[2*result._nonzero] = index
@@ -1533,7 +1528,7 @@ cdef class ETuple:
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,0,1])
             sage: e.common_nonzero_positions(f)
-            set([0, 2])
+            {0, 2}
             sage: e.common_nonzero_positions(f,sort=True)
             [0, 2]
         """
@@ -1580,7 +1575,7 @@ cdef class ETuple:
         cdef size_t ind
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = self._nonzero
-        result._data = <int*>sage_malloc(sizeof(int)*result._nonzero*2)
+        result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         for ind from 0 <= ind < self._nonzero:
             result._data[2*(result._nonzero-ind-1)] = self._length-self._data[2*ind]-1
             result._data[2*(result._nonzero-ind-1)+1] = self._data[2*ind+1]

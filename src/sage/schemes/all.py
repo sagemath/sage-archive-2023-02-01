@@ -24,7 +24,7 @@ from jacobians.all import *
 
 from hyperelliptic_curves.all import *
 
-from plane_curves.all import *
+from curves.all import *
 
 from plane_conics.all import *
 
@@ -40,5 +40,5 @@ from affine.all import *
 
 from projective.all import *
 
-
+from product_projective.all import *
 

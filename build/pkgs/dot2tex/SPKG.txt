@@ -13,9 +13,6 @@ or http://dot2tex.googlecode.com/
 == License ==
  * MIT
 
-== SPKG Maintainers ==
- * Nicolas M. Thiery
-
 == Upstream Contact ==
  * Kjell Magne Fauske, km@fauskes.net
 
@@ -25,6 +22,12 @@ graphviz (www.graphviz.org) should be installed and in the path (for
 example via the graphviz spkg).
 
 preview, a LaTeX package for extracting parts of a document.
+
+== Patches ==
+
+ * remove_test_semicolon.patch:
+   Remove the failing semicolon test for the open dot2tex
+   issue #5 - https://github.com/kjellmf/dot2tex/issues/5
 
 == Special Update/Build Instructions ==
 

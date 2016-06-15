@@ -42,22 +42,23 @@ AUTHORS:
   Default to cyclotomic base ring.
 """
 
-###########################################################################
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner  <wdjoyner@gmail.com>
-#  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner<wdjoyner@gmail.com>
+#       Copyright (C) 2012 Volker Braun<vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+from __future__ import print_function
 
 import operator
 
-from sage.rings.integer import Integer
-from sage.rings.infinity import infinity
-from sage.rings.arith import *
-from sage.misc.misc import prod
-from sage.misc.functional import exp
+from sage.arith.all import LCM
+from sage.misc.all import prod
 from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 from functools import reduce
@@ -91,8 +92,8 @@ def add_strings(x, z=0):
     if len(x) == 0:
         return z
     if not isinstance(x, list):
-        m = x.__iter__()
-        y = m.next()
+        m = iter(x)
+        y = next(m)
         return reduce(operator.add, m, y)
     else:
         return reduce(operator.add, x[1:], x[0])
@@ -162,7 +163,7 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
             from sage.symbolic.constants import pi
             I = F.gen()
             PI = F(pi)
-            ans = prod([exp(2*PI*I*expsX[i]*expsg[i]/order[i]) for i in range(len(expsX))])
+            ans = prod([(2*PI*I*expsX[i]*expsg[i]/order[i]).exp() for i in range(len(expsX))])
             return ans
         ans = F(1)  ## assumes F is the cyclotomic field
         zeta = F.gen()
@@ -233,9 +234,5 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         if display:
             s = str(g)+" = "+add_strings(["("+str(words[LL2[i]-1])+")^"+str(LL1[i])+"*" for i in range(nn)])
             m = len(s)
-            print "      ",s[:m-1],"\n"
+            print("      ", s[:m-1], "\n")
         return [[words[LL2[i]-1],LL1[i]] for i in range(nn)]
-
-
-
-

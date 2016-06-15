@@ -104,19 +104,22 @@ those integers `n`, where `1 \leq n \leq 20`, such that
 `\gcd(n,20) = 1`.  The latter task can be easily accomplished with a
 little bit of Sage programming::
 
+    sage: L = []
     sage: for n in range(1, 21):
-    ...       if gcd(n, 20) == 1:
-    ...           print n,
-    ...
-    1 3 7 9 11 13 17 19
+    ....:     if gcd(n, 20) == 1:
+    ....:         L.append(n)
+    sage: L
+    [1, 3, 7, 9, 11, 13, 17, 19]
 
 The above programming statements can be saved to a text file called,
 say, ``/home/mvngu/totient.sage``, organizing it as follows to enhance
 readability. ::
 
+    L = []
     for n in xrange(1, 21):
         if gcd(n, 20) == 1:
-            print n,
+            L.append(n)
+    L
 
 We refer to ``totient.sage`` as a Sage script, just as one would refer
 to a file containing Python code as a Python script.  We use 4 space
@@ -128,7 +131,7 @@ programming statements into Sage and, upon loading the content of the
 file, have Sage execute those statements::
 
     load("/home/mvngu/totient.sage")
-    1 3 7 9 11 13 17 19
+    [1, 3, 7, 9, 11, 13, 17, 19]
 
 From the latter list, there are 8 integers in the closed interval
 `[1, 20]` that are coprime to 20.  Without explicitly generating the
@@ -316,7 +319,7 @@ required value of `e` as follows::
     4951760152529835076874141700
     sage: e = ZZ.random_element(phi)
     sage: while gcd(e, phi) != 1:
-    ...       e = ZZ.random_element(phi)
+    ....:     e = ZZ.random_element(phi)
     ...
     sage: e  # random
     1850567623300615966303954877
@@ -475,17 +478,17 @@ Acknowledgements
 Bibliography
 ============
 
-.. [CormenEtAl2001] T. H. Cormen, C. E. Leiserson, R. L. Rivest, and
+.. [CormenEtAl2001] \T. H. Cormen, C. E. Leiserson, R. L. Rivest, and
    C. Stein. *Introduction to Algorithms*. The MIT Press, USA, 2nd
    edition, 2001.
 
-.. [MenezesEtAl1996] A. J. Menezes, P. C. van Oorschot, and
+.. [MenezesEtAl1996] \A. J. Menezes, P. C. van Oorschot, and
    S. A. Vanstone. *Handbook of Applied Cryptography*. CRC Press, Boca
    Raton, FL, USA, 1996.
 
-.. [Stinson2006] D. R. Stinson. *Cryptography: Theory and Practice*.
+.. [Stinson2006] \D. R. Stinson. *Cryptography: Theory and Practice*.
    Chapman & Hall/CRC, Boca Raton, USA, 3rd edition, 2006.
 
-.. [TrappeWashington2006] W. Trappe and L. C. Washington. *Introduction
+.. [TrappeWashington2006] \W. Trappe and L. C. Washington. *Introduction
    to Cryptography with Coding Theory*. Pearson Prentice Hall, Upper
    Saddle River, New Jersey, USA, 2nd edition, 2006.

@@ -17,8 +17,8 @@ familiar and most standard ones, and all of the others are defined
 in terms of one of these. The bases are described in the
 documentation for the function
 :func:`steenrod_algebra_basis`; also see the papers by
-Monks [M] and Wood [W] for more information about them. For
-commutator bases, see the preprint by Palmieri and Zhang [PZ].
+Monks [M1998]_ and Wood [W1998]_ for more information about them. For
+commutator bases, see the preprint by Palmieri and Zhang [PZ2008]_.
 
 - 'milnor': Milnor basis.
 
@@ -107,15 +107,15 @@ method for :class:`SteenrodAlgebra_generic
 
 REFERENCES:
 
-- [M] K. G. Monks, "Change of basis, monomial relations, and
-  `P^s_t` bases for the Steenrod algebra," J. Pure Appl.
-  Algebra 125 (1998), no. 1-3, 235-260.
+.. [M1998] \K. G. Monks, "Change of basis, monomial relations, and
+   `P^s_t` bases for the Steenrod algebra," J. Pure Appl.
+   Algebra 125 (1998), no. 1-3, 235-260.
 
-- [PZ] J. H. Palmieri and J. J. Zhang, "Commutators in the Steenrod
-  algebra," preprint (2008)
+.. [PZ2008] \J. H. Palmieri and J. J. Zhang, "Commutators in the Steenrod
+   algebra," preprint (2008)
 
-- [W] R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
-  Math. Soc. 30 (1998), no. 5, 449-517.
+.. [W1998] \R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
+   Math. Soc. 30 (1998), no. 5, 449-517.
 """
 
 #*****************************************************************************
@@ -905,7 +905,7 @@ def atomic_basis(n, basis, **kwds):
         elif basis.find('revz') >= 0:
             return (s+t,s)
 
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
     from sage.rings.infinity import Infinity
     profile = kwds.get("profile", None)
     trunc = kwds.get("truncation_type", None)
@@ -920,8 +920,7 @@ def atomic_basis(n, basis, **kwds):
         degrees = degrees_etc.keys()
         for sigma in restricted_partitions(n, degrees, no_repeats=True):
             big_list = [degrees_etc[part] for part in sigma]
-            big_list.sort(cmp = lambda x, y: cmp(sorting_pair(x[0], x[1], basis),
-                                                 sorting_pair(y[0], y[1], basis)))
+            big_list.sort(key=lambda x: sorting_pair(x[0], x[1], basis))
             # reverse = True)
             # arnon: sort like wall, then reverse end result
             if basis.find('arnon') >= 0:
@@ -1045,7 +1044,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
             return ((),)
         else:
             return (((), ()),)
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
     from sage.rings.all import Integer
     from sage.rings.infinity import Infinity
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
@@ -1063,8 +1062,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
                         mono.append(((s, t+1), pow))
             P_result.append(mono)
         for p_mono in P_result:
-            p_mono.sort(cmp = lambda x, y: cmp(sorting_pair(x[0][0], x[0][1], basis),
-                                               sorting_pair(y[0][0], y[0][1], basis)))
+            p_mono.sort(key=lambda x: sorting_pair(x[0][0], x[0][1], basis))
             deg = n - 2*dim*(p-1)
             q_degrees = [1+2*(p-1)*d for d in
                          xi_degrees((deg - 1)//(2*(p-1)), p)] + [1]
@@ -1155,10 +1153,10 @@ def steenrod_basis_error_check(dim, p, **kwds):
         milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,generic=generic))
         for B in bases:
             if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,generic=generic)):
-                print "problem with milnor/" + B + " in dimension ", i
+                print("problem with milnor/{} in dimension {}".format(B, i))
             mat = convert_to_milnor_matrix.f(i,B,p,generic=generic)
             if mat.nrows() != 0 and not mat.is_invertible():
-                print "%s invertibility problem in dim %s at p=%s" % (B, i, p)
+                print("%s invertibility problem in dim %s at p=%s" % (B, i, p))
 
     misc.verbose("done checking, no profiles")
 
@@ -1175,6 +1173,6 @@ def steenrod_basis_error_check(dim, p, **kwds):
             milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,profile=pro,generic=generic))
             for B in bases:
                 if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,profile=pro,generic=generic)):
-                    print "problem with milnor/%s in dimension %s with profile %s"%(B, i, pro)
+                    print("problem with milnor/%s in dimension %s with profile %s" % (B, i, pro))
 
     misc.verbose("done checking with profiles")

@@ -41,21 +41,27 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+from __future__ import print_function
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
-include "sage/ext/random.pxi"
+include "cysignals/signals.pxi"
+include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.libs.gmp.randomize cimport *
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
 
 from sage.structure.sequence import Sequence
@@ -66,30 +72,25 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
 
-from sage.misc.misc import verbose, get_verbose, prod
+from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
-include "sage/libs/pari/decl.pxi"
-include "sage/libs/pari/pari_err.pxi"
-
-cdef extern from "convert.h":
-    void t_FRAC_to_QQ ( mpq_t value, GEN g )
-
+from sage.libs.pari.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
@@ -135,14 +136,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, k
 
         sig_on()
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        self._entries = <mpq_t *> sig_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         if self._entries == NULL:
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
-        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
+        self._matrix =  <mpq_t **> sig_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
-            sage_free(self._entries)
+            sig_free(self._entries)
             self._entries = NULL
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
@@ -163,8 +164,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])
-        sage_free(self._entries)
-        sage_free(self._matrix)
+        sig_free(self._entries)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
 
@@ -212,7 +213,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Rational x
-        x = PY_NEW(Rational)
+        x = Rational.__new__(Rational)
         mpq_set(x.value, self._matrix[i][j])
         return x
 
@@ -257,13 +258,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         cdef Py_ssize_t i, j, len_so_far, m, n
         cdef char *a
-        cdef char *s, *t, *tmp
+        cdef char *s
+        cdef char *t
+        cdef char *tmp
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -275,9 +278,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> sage_malloc(n * sizeof(char))
+                        tmp = <char*> sig_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        sage_free(s)
+                        sig_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -290,7 +293,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t = t + 1
             sig_off()
             data = str(s)[:-1]
-            sage_free(s)
+            sig_free(s)
         return data
 
     cdef _unpickle_version0(self, data):
@@ -304,8 +307,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if mpq_set_str(self._entries[i], s, 32):
                 raise RuntimeError("invalid pickle data")
 
-    def __richcmp__(Matrix self, right, int op):
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -314,7 +315,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * cdef _add_
     # x * cdef _mul_
     # x * cdef _vector_times_matrix_
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -409,8 +410,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
-        cdef mpq_t *a, *b
+    cpdef int _cmp_(self, Element right) except -2:
+        cdef mpq_t *a
+        cdef mpq_t *b
         cdef Py_ssize_t i, j
         cdef int k
         for i from 0 <= i < self._nrows:
@@ -587,7 +589,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return M
 
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __invert__(self):
     # def _list(self):
     # def _dict(self):
@@ -604,7 +606,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * denom(self):
     # x * mpz_denom(self, mpz_t d):
     # x * _clear_denom(self):
-    # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
     def __invert__(self):
@@ -641,6 +642,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
               - "iml" -- use an iml-based algorithm
 
+              - "flint" -- use FLINT
 
         OUTPUT: the inverse of self
 
@@ -735,6 +737,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == "iml":
             AZ, denom = self._clear_denom()
             B, d = AZ._invert_iml(check_invertible=check_invertible)
+            return (denom/d)*B
+        elif algorithm == "flint":
+            AZ, denom = self._clear_denom()
+            B, d = AZ._invert_flint()
             return (denom/d)*B
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -860,25 +866,29 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j
         cdef Matrix_integer_dense A
         cdef mpq_t *self_row
-        cdef mpz_t *A_row
+        cdef mpz_t tmp
+        cdef fmpz_t aij
+        fmpz_init(aij)
+        mpz_init(tmp)
         D = <Integer>PY_NEW(Integer)
         self.mpz_denom(D.value)
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
-        A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
+        A =  Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, None, None, None)
         sig_on()
         for i from 0 <= i < self._nrows:
-            A_row = A._matrix[i]
             self_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                mpz_init(A_row[0])
-                mpz_divexact(A_row[0], D.value, mpq_denref(self_row[0]))
-                mpz_mul(A_row[0], A_row[0], mpq_numref(self_row[0]))
-                A_row += 1
+                fmpz_init(fmpz_mat_entry(A._matrix,i,j))
+                mpz_divexact(tmp, D.value, mpq_denref(self_row[0]))
+                mpz_mul(tmp, tmp, mpq_numref(self_row[0]))
+                fmpz_set_mpz(fmpz_mat_entry(A._matrix,i,j),tmp)
                 self_row += 1
         sig_off()
-        A._initialized = 1
         self.cache('clear_denom', (A,D))
+        fmpz_clear(aij)
+        mpz_clear(tmp)
+
         return A, D
 
     def charpoly(self, var='x', algorithm='linbox'):
@@ -1064,15 +1074,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_integer_dense A, B, AB
         cdef Matrix_rational_dense res
         cdef Integer D
-        cdef mpz_t* AB_row,
         cdef mpq_t* res_row
         sig_on()
         A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
-        if algorithm == 'default':
+        if algorithm == 'default' or algorithm == 'multimodular':
             AB = A*B
-        elif algorithm == 'multimodular':
-            AB = A._multiply_multi_modular(B)
         else:
             sig_off()
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -1086,13 +1093,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             res = Matrix_rational_dense.__new__(Matrix_rational_dense, self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
-            AB_row = AB._matrix[i]
             res_row = res._matrix[i]
             for j from 0 <= j < res._ncols:
-                mpz_set(mpq_numref(res_row[0]), AB_row[0])
+                fmpz_get_mpz(mpq_numref(res_row[0]), fmpz_mat_entry(AB._matrix,i,j))
                 mpz_set(mpq_denref(res_row[0]), D.value)
                 mpq_canonicalize(res_row[0])
-                AB_row = AB_row + 1
                 res_row = res_row + 1
         sig_off()
         return res
@@ -1200,7 +1205,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_add(s, s, self._matrix[row][c])
             mpq_mul(pr, pr, s)
         cdef Rational _pr
-        _pr = PY_NEW(Rational)
+        _pr = Rational.__new__(Rational)
         mpq_set(_pr.value, pr)
         mpq_clear(s)
         mpq_clear(pr)
@@ -1269,7 +1274,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0 0 1]
        """
         tm = verbose("computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        # _rational_kernel_iml() gets the zero-row case wrong, fix it there
+        # _rational_kernel_flint() gets the zero-row case wrong, fix it there
         if self.nrows()==0:
             import constructor
             K = constructor.identity_matrix(QQ, self.ncols())
@@ -1359,34 +1364,34 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def echelonize(self, algorithm='default',
                    height_guess=None, proof=None, **kwds):
         """
+        Transform the matrix ``self`` into reduced row echelon form
+        in place.
+
         INPUT:
 
+        -  ``algorithm``:
 
-        -  ``algorithm``
+          - ``'default'`` (default): use heuristic choice
 
-          - 'default' (default): use heuristic choice
+          - ``'padic'``: an algorithm based on the IML p-adic solver.
 
-          - 'padic': an algorithm based on the IML p-adic solver.
-
-          - 'multimodular': uses a multimodular algorithm the uses
+          - ``'multimodular'``: uses a multimodular algorithm the uses
             linbox modulo many primes.
 
-          -  'classical': just clear each column using Gauss elimination
+          - ``'classical'``: just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see
            proof.linear_algebra or sage.structure.proof). Passed to the
            multimodular algorithm. Note that the Sage global default is
-           proof=True.
-
+           ``proof=True``.
 
         OUTPUT:
 
-
-        -  ``matrix`` - the reduced row echelon for of self.
-
+        Nothing. The matrix ``self`` is transformed into reduced row
+        echelon form in place.
 
         EXAMPLES::
 
@@ -1409,6 +1414,32 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [      0       1       0  -5/157]
             [      0       0       1 238/157]
             [      0       0       0       0]
+
+        TESTS:
+
+        Echelonizing a matrix in place throws away the cache of
+        the old matrix (:trac:`14506`)::
+
+            sage: a = Matrix(QQ, [[1,2],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -2
+            (
+            [1 2]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="padic")
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
+            sage: a = Matrix(QQ, [[1,3],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -5
+            (
+            [1 3]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="multimodular")
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
         """
 
         x = self.fetch('in_echelon_form')
@@ -1454,7 +1485,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
            - 'classical': just clear each column using Gauss elimination
 
-        -  ``height_guess, **kwds`` - all passed to the
+        -  ``height_guess``, ``**kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
 
         -  ``proof`` - bool or None (default: None, see
@@ -1485,7 +1516,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The result is an immutable matrix, so if you want to
         modify the result then you need to make a copy.  This
-        checks that Trac #10543 is fixed. ::
+        checks that :trac:`10543` is fixed. ::
 
             sage: A = matrix(QQ, 2, range(6))
             sage: E = A.echelon_form()
@@ -1533,7 +1564,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_rational_dense E
         cdef Integer d
         cdef mpq_t* E_row
-        cdef mpz_t* X_row
 
         t = verbose('Computing echelon form of %s x %s matrix over QQ using p-adic nullspace algorithm.'%(
             self.nrows(), self.ncols()))
@@ -1554,9 +1584,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         # Fill in the non-pivot part of the matrix
         for i from 0 <= i < X.nrows():
             E_row = E._matrix[i]
-            X_row = X._matrix[i]
             for j from 0 <= j < X.ncols():
-                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                fmpz_get_mpz(mpq_numref(E_row[nonpivots[j]]), fmpz_mat_entry(X._matrix,i,j))
                 mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
                 mpq_canonicalize(E_row[nonpivots[j]])
 
@@ -1577,6 +1606,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
                     (self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
+        self._clear_cache()
         t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
         t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
@@ -1595,9 +1625,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         # Fill in the non-pivot part of self.
         for i from 0 <= i < X.nrows():
             E_row = self._matrix[i]
-            X_row = X._matrix[i]
             for j from 0 <= j < X.ncols():
-                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                fmpz_get_mpz(mpq_numref(E_row[nonpivots[j]]), fmpz_mat_entry(X._matrix,i,j))
                 mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
                 mpq_canonicalize(E_row[nonpivots[j]])
 
@@ -1615,8 +1644,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
+        self._clear_cache()
         cdef Py_ssize_t i, j
-        cdef mpq_t *row0, *row1
+        cdef mpq_t *row0
+        cdef mpq_t *row1
         for i from 0 <= i < self._nrows:
             row0 = self._matrix[i]
             row1 = E._matrix[i]
@@ -1626,8 +1657,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def _echelon_form_multimodular(self, height_guess=None, proof=None):
         """
-        Returns reduced row-echelon form using a multi-modular algorithm.
-        Does not change self.
+        Return reduced row-echelon form using a multi-modular algorithm.
+        This does not change ``self``.
 
         REFERENCE:
 
@@ -1994,7 +2025,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##         cdef Py_ssize_t k
 
 ##         if not self.is_square():
-##             raise ArithmeticError, "self must be a square matrix"
+##             raise ArithmeticError("self must be a square matrix")
 
 ##         if self.nrows() == 0:
 ##             return decomp_seq([])
@@ -2074,7 +2105,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##                         W.rank(), m*g.degree()), level=2, caller_name='simple decomp')
 ##                     j += 1
 ##                     if j > 3*m:
-##                         raise RuntimeError, "likely bug in decomposition"
+##                         raise RuntimeError("likely bug in decomposition")
 ##                 # end if
 ##             #end while
 ##         #end for
@@ -2088,91 +2119,20 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j, nr, nc
         cdef mpz_t* Z_row
         cdef mpq_t* Q_row
-
+        cdef mpz_t tmp
+        mpz_init(tmp)
         ZA = _lift_crt(res, mm)
         nr = ZA._nrows
         nc = ZA._ncols
         QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
         m = mm.prod()
         for i from 0 <= i < nr:
-            Z_row = ZA._matrix[i]
+            #Z_row = ZA._matrix[i]
             Q_row = QA._matrix[i]
             for j from 0 <= j < nc:
-                mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
-        return QA
-
-    def _lift_crt_rr_with_lcm(self, res, mm):
-        """
-        Optimizations: When doing the rational_recon lift of a (mod m)
-        first see if |a| < sqrt(m/2) in which case it lifts to an integer
-        (often a=0 or 1).
-
-        If that fails, keep track of the lcm d of denominators found so
-        far, and check to see if z = a\*d lifts to an integer with |z| <=
-        sqrt(m/2). If so, no need to do rational recon. This should be the
-        case for most a after a while, and should saves substantial time!
-        """
-        cdef Integer m
-        cdef Matrix_integer_dense ZA
-        cdef Matrix_rational_dense QA
-        cdef Py_ssize_t i, j, nr, nc
-        cdef mpz_t* Z_row
-        cdef mpq_t* Q_row
-        cdef mpz_t lcm_denom, sqrt_m, neg_sqrt_m, z
-
-        mpz_init(z)
-        mpz_init(sqrt_m)
-        mpz_init(neg_sqrt_m)
-        mpz_init_set_ui(lcm_denom, 1)
-
-        m = mm.prod()
-        mpz_fdiv_q_2exp(sqrt_m, m.value, 1)
-        mpz_sqrt(sqrt_m, sqrt_m)
-        mpz_sub(neg_sqrt_m, m.value, sqrt_m)
-
-        t = verbose("Starting crt", level=2)
-        ZA = _lift_crt(res, mm)
-        t = verbose("crt finished", t, level=2)
-        nr = ZA._nrows
-        nc = ZA._ncols
-        QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
-
-        cdef bint is_integral, lcm_trick
-        is_integral = 0
-        lcm_trick = 0
-
-        t = verbose("Starting rational reconstruction", level=2)
-        for i from 0 <= i < nr:
-            Z_row = ZA._matrix[i]
-            Q_row = QA._matrix[i]
-            for j from 0 <= j < nc:
-                if mpz_cmp(Z_row[j], sqrt_m) < 0:
-                    mpz_set(mpq_numref(Q_row[j]), Z_row[j])
-                    is_integral += 1
-                elif mpz_cmp(Z_row[j], neg_sqrt_m) > 0:
-                    mpz_sub(mpq_numref(Q_row[j]), Z_row[j], m.value)
-                    is_integral += 1
-                else:
-                    mpz_mul(z, Z_row[j], lcm_denom)
-                    mpz_fdiv_r(z, z, m.value)
-                    if mpz_cmp(z, sqrt_m) < 0:
-                        mpz_set(mpq_numref(Q_row[j]), z)
-                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
-                        mpq_canonicalize(Q_row[j])
-                        lcm_trick += 1
-                    elif mpz_cmp(z, neg_sqrt_m) > 0:
-                        mpz_sub(mpq_numref(Q_row[j]), z, m.value)
-                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
-                        mpq_canonicalize(Q_row[j])
-                        lcm_trick += 1
-                    else:
-                        mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
-                        mpz_lcm(lcm_denom, lcm_denom, mpq_denref(Q_row[j]))
-        mpz_clear(z)
-        mpz_clear(sqrt_m)
-        mpz_clear(neg_sqrt_m)
-        mpz_clear(lcm_denom)
-        t = verbose("rr finished. integral entries: %s, lcm trick: %s, other: %s"%(is_integral, lcm_trick, nr*nc - is_integral - lcm_trick), t, level=2)
+                fmpz_get_mpz(tmp,fmpz_mat_entry(ZA._matrix,i,j))
+                mpq_rational_reconstruction(Q_row[j], tmp, m.value)
+        mpz_clear(tmp)
         return QA
 
     def randomize(self, density=1, num_bound=2, den_bound=2, \
@@ -2348,17 +2308,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
         ``.T`` is a convenient shortcut for the transpose::
 
-            sage: print A.T
+            sage: print(A.T)
             [0 3]
             [1 4]
             [2 5]
@@ -2460,7 +2420,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t n
         cdef Rational _s
         _s = Rational(s)
-        cdef mpq_t *row_i, *row_j
+        cdef mpq_t *row_i
+        cdef mpq_t *row_j
         row_i = self._matrix[i]
         row_j = self._matrix[j]
         for n from 0 <= n < self._ncols:
@@ -2553,11 +2514,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
-        cdef Rational e = Rational()
-        t_FRAC_to_QQ(e.value, d)
+        cdef Rational e = <Rational>Rational.__new__(Rational)
+        INTFRAC_to_mpq(e.value, d)
         pari.clear_stack()
         return e
 
@@ -2570,7 +2531,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -2599,7 +2560,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         pari.clear_stack()
@@ -2617,13 +2578,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
             Traceback (most recent call last):
             ...
-            PariError: impossible inverse in ginv: 0
+            PariError: impossible inverse in ginv: [1, 2; 2, 4]
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
         cdef GEN M, d
 
-        pari_catch_sig_on()
+        sig_on()
         M = pari_GEN(self)
         d = ginv(M)
 
@@ -2670,7 +2631,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._ncols)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
@@ -2704,16 +2665,40 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._nrows)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
         return v
 
+    ################################################
+    # LLL
+    ################################################
+
+    def LLL(self, *args, **kwargs):
+        """
+        Return an LLL reduced or approximated LLL reduced lattice for
+        ``self`` interpreted as a lattice.
+
+        For details on input parameters, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
+
+        EXAMPLE::
+
+            sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
+            sage: A.LLL()
+            [ 1/28 -1/40 -1/18]
+            [ 1/28 -1/40  1/18]
+            [    0 -3/40     0]
+        """
+        A, d = self._clear_denom()
+        return A.LLL(*args, **kwargs) / d
+
 
 cdef new_matrix_from_pari_GEN(parent, GEN d):
     """
-    Given a PARI GEN with t_FRAC entries, create a Matrix_rational_dense from it.
+    Given a PARI GEN with ``t_INT`` or ``t_FRAC entries, create a
+    :class:`Matrix_rational_dense` from it.
 
     EXAMPLES::
 
@@ -2726,7 +2711,7 @@ cdef new_matrix_from_pari_GEN(parent, GEN d):
         Matrix_rational_dense, parent, None, None, None)
     for i in range(B._nrows):
         for j in range(B._ncols):
-            t_FRAC_to_QQ(B._matrix[i][j], gcoeff(d, i+1, j+1))
+            INTFRAC_to_mpq(B._matrix[i][j], gcoeff(d, i+1, j+1))
     return B
 
 cdef inline GEN pari_GEN(Matrix_rational_dense B):

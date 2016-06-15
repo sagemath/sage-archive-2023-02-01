@@ -9,6 +9,7 @@ Echelon matrices over finite fields.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.matrix0 cimport Matrix
 
@@ -38,9 +39,9 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
         sage: from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
         sage: it = reduced_echelon_matrix_iterator(GF(2),2,3)
         sage: for m in it:
-        ....:     print m
-        ....:     print m.pivots()
-        ....:     print "*******"
+        ....:     print(m)
+        ....:     print(m.pivots())
+        ....:     print("*******")
         [1 0 0]
         [0 1 0]
         (0, 1)
@@ -84,7 +85,7 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
     Testing options::
 
         sage: it = reduced_echelon_matrix_iterator(GF(4,'z'), 2, 4, copy=False)
-        sage: it.next() is it.next()
+        sage: next(it) is next(it)
         True
         sage: for a in it: pass
 

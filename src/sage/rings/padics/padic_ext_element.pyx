@@ -1,16 +1,19 @@
 """
 p-Adic Extension Element
 
-A common superclass for all elements of extension rings and field of Zp and Qp.
+A common superclass for all elements of extension rings and field of `\ZZ_p` and
+`\QQ_p`.
 
 AUTHORS:
 
-- David Roe
+- David Roe (2007): initial version
+
+- Julian Rueth (2012-10-18): added residue
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
-#                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2007-2010 David Roe <roed.math@gmail.com>
+#                     2012 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -59,7 +62,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZX_abs(poly, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZX should have been overridden"
+            raise RuntimeError("_set_from_ZZX should have been overridden")
 
     cdef int _set_from_ZZX_rel(self, ZZX_c poly, long relprec) except -1:
         """
@@ -95,7 +98,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZX(poly)
         else:
-            raise RuntimeError, "_set_from_ZZX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZX_both should have been overridden")
 
     cdef int _set_from_ZZ_pX(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx) except -1:
         """
@@ -110,7 +113,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pX_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pX should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pX should have been overridden")
 
     cdef int _set_from_ZZ_pX_rel(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx, long relprec) except -1:
         """
@@ -145,7 +148,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pX(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pX_both should have been overridden")
 
     cdef int _set_from_ZZ_pE(self, ZZ_pE_c* poly, ntl_ZZ_pEContext_class ctx) except -1:
         """
@@ -158,7 +161,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pE_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pE should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pE should have been overridden")
 
     cdef int _set_from_ZZ_pE_rel(self, ZZ_pE_c* poly, ntl_ZZ_pEContext_class ctx, long relprec) except -1:
         """
@@ -194,7 +197,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pE(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pE_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pE_both should have been overridden")
 
     cdef int _set_from_ZZ_pEX(self, ZZ_pEX_c* poly, ntl_ZZ_pEContext_class ctx) except -1:
         """
@@ -209,7 +212,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         elif self.parent().is_capped_absolute():
             self._set_from_ZZ_pEX_abs(poly, ctx, (<PowComputer_class>self.parent().prime_pow).prec_cap)
         else:
-            raise RuntimeError, "_set_from_ZZ_pEX should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pEX should have been overridden")
 
     cdef int _set_from_ZZ_pEX_rel(self, ZZ_pEX_c* poly, ntl_ZZ_pEContext_class ctx, long relprec) except -1:
         """
@@ -245,7 +248,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if self.parent().is_fixed_mod():
             self._set_from_ZZ_pEX(poly, ctx)
         else:
-            raise RuntimeError, "_set_from_ZZ_pEX_both should have been overridden"
+            raise RuntimeError("_set_from_ZZ_pEX_both should have been overridden")
 
     cdef long _check_ZZ_pContext(self, ntl_ZZ_pContext_class ctx) except -1:
         raise NotImplementedError
@@ -296,7 +299,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         Note that zeros are truncated from the returned list, so you
         must use the valuation() function to completely recover self.
 
-        INPUTS::
+        INPUT:
 
             - pos -- bint.  If True, all integers will be in the range [0,p-1],
               otherwise they will be in the range [(1-p)/2, p/2].
@@ -396,3 +399,94 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         """
         return False
+
+    def residue(self, absprec=1):
+        r"""
+        Reduces this element modulo `\pi^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` - a non-negative integer (default: ``1``)
+
+        OUTPUT:
+
+        This element reduced modulo `\pi^\mathrm{absprec}`.
+
+        If ``absprec`` is zero, then as an element of `\ZZ/(1)`.
+
+        If ``absprec`` is one, then as an element of the residue field.
+
+        .. NOTE::
+
+            Only implemented for ``absprec`` less than or equal to one.
+
+        AUTHORS:
+
+        - Julian Rueth (2012-10-18): intial version
+
+        EXAMPLES:
+
+        Unramified case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a + 1).residue(1)
+            a0 + 1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
+
+        Eisenstein case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 3)
+            sage: (a + 1).residue(1)
+            1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+
+        TESTS:
+
+            sage: K = Qp(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a/3).residue(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+            sage: R = ZpFM(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: W.one().residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce modulo a negative power of the uniformizer.
+            sage: a.residue(16)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: insufficient precision to reduce modulo p^16.
+
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+
+        if absprec == 0:
+            from sage.rings.finite_rings.integer_mod import Mod
+            return Mod(0,1)
+        elif absprec == 1:
+            return self.parent().residue_field()(self[0])
+        else:
+            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

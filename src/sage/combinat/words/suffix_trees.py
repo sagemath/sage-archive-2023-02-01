@@ -462,6 +462,7 @@ class SuffixTrie(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("cacao")).plot()
+            Graphics object consisting of 38 graphics primitives
 
         TESTS::
 
@@ -629,7 +630,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1),letter)
-        while end_state == False:
+        while not end_state:
             # adjoin a new state rr and create a transition from r to rr
             rr = len(self._transition_function)
             self._transition_function[rr] = {}
@@ -818,7 +819,7 @@ class ImplicitSuffixTree(SageObject):
 
         INPUT:
 
-        -  ``word_labels`` - boolean (defaut: ``False``) if ``False``, labels
+        -  ``word_labels`` - boolean (default: ``False``) if ``False``, labels
            the edges by pairs `(i, j)`; if ``True``, labels the edges by
            ``word[i:j]``.
 
@@ -851,20 +852,22 @@ class ImplicitSuffixTree(SageObject):
 
         INPUT:
 
-        -  ``word_labels`` - boolean (defaut: ``False``) if ``False``, labels
+        -  ``word_labels`` - boolean (default: ``False``) if ``False``, labels
            the edges by pairs `(i, j)`; if ``True``, labels the edges by
            ``word[i:j]``.
-        -  ``layout`` - (defaut: ``'tree'``)
-        -  ``tree_root`` - (defaut: 0)
-        -  ``tree_orientation`` - (defaut: ``'up'``)
-        -  ``vertex_colors`` - (defaut: ``None``)
-        -  ``edge_labels`` - (defaut: ``True``)
+        -  ``layout`` - (default: ``'tree'``)
+        -  ``tree_root`` - (default: 0)
+        -  ``tree_orientation`` - (default: ``'up'``)
+        -  ``vertex_colors`` - (default: ``None``)
+        -  ``edge_labels`` - (default: ``True``)
 
         EXAMPLES::
 
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=True)
+            Graphics object consisting of 23 graphics primitives
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=False)
+            Graphics object consisting of 23 graphics primitives
 
         TESTS::
 
@@ -1093,7 +1096,7 @@ class ImplicitSuffixTree(SageObject):
         (s,(k,i)) = self._active_state
         old_r = 0
         (end_state, r) = self._test_and_split(s,(k,i-1), end_of_string)
-        while end_state == False:
+        while not end_state:
             (s, k) = self._canonize(self._suffix_link[s], (k,i-1))
             (end_state, r) = self._test_and_split(s, (k,i-1), end_of_string)
         # remove the end of string symbol from the word

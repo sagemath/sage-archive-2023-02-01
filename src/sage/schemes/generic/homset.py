@@ -35,17 +35,17 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 
-from sage.rings.all import ( gcd, ZZ, QQ )
+from sage.rings.all import ZZ, QQ, CommutativeRing
+from sage.arith.all import gcd
 
 from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.constructor import is_FiniteField
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -94,22 +94,16 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: Hom is A3.Hom(A2)
         True
 
-    Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal. Affine spaces are not
-    unique, and hence, when pickling and unpickling the homset together with
-    domain and codomain, we obtain non-unique behaviour::
+    The Hom-sets are identical if the domains and codomains are
+    identical::
 
         sage: loads(Hom.dumps()) is Hom
-        False
-        sage: loads(Hom.dumps()) == Hom
         True
         sage: A3_iso = AffineSpace(QQ,3)
-        sage: [ A3_iso is A3, A3_iso == A3 ]
-        [False, True]
+        sage: A3_iso is A3
+        True
         sage: Hom_iso = A3_iso.Hom(A2)
         sage: Hom_iso is Hom
-        False
-        sage: Hom_iso == Hom
         True
 
     TESTS::
@@ -154,18 +148,19 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: key
             (..., ..., Category of schemes over Integer Ring, False)
             sage: extra
-            {'Y': Affine Space of dimension 2 over Rational Field,
-             'X': Affine Space of dimension 3 over Rational Field,
-             'base_ring': Integer Ring, 'check': False}
+            {'X': Affine Space of dimension 3 over Rational Field,
+             'Y': Affine Space of dimension 2 over Rational Field,
+             'base_ring': Integer Ring,
+             'check': False}
         """
-        if is_CommutativeRing(X):
+        if isinstance(X, CommutativeRing):
             X = AffineScheme(X)
-        if is_CommutativeRing(Y):
+        if isinstance(Y, CommutativeRing):
             Y = AffineScheme(Y)
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
-        elif is_CommutativeRing(base):
+        elif isinstance(base, CommutativeRing):
             base_spec = AffineScheme(base)
             base_ring = base
         else:
@@ -247,7 +242,7 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of hom sets in Category of schemes
+        Category of endsets of schemes over Rational Field
     """
     Element = SchemeMorphism
 
@@ -294,7 +289,7 @@ class SchemeHomset_generic(HomsetWithBase):
         EXAMPLES::
 
             sage: A = AffineSpace(4, QQ)
-            sage: print A.structure_morphism()._repr_()
+            sage: print(A.structure_morphism()._repr_())
             Scheme morphism:
               From: Affine Space of dimension 4 over Rational Field
               To:   Spectrum of Rational Field

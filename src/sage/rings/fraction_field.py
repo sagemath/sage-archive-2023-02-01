@@ -70,10 +70,11 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import ring
-import field
-import fraction_field_element
+import six
+from . import ring
+from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
@@ -142,7 +143,7 @@ def is_FractionField(x):
     """
     return isinstance(x, FractionField_generic)
 
-class FractionField_generic(field.Field):
+class FractionField_generic(ring.Field):
     """
     The fraction field of an integral domain.
     """
@@ -243,7 +244,7 @@ class FractionField_generic(field.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S)
             sage: F(1/a)
@@ -343,7 +344,7 @@ class FractionField_generic(field.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S) # indirect doctest
             sage: F(1/a)
@@ -530,6 +531,24 @@ class FractionField_generic(field.Field):
             sage: S(pari(x + y + 1/z))
             (x*z + y*z + 1)/z
 
+        Test conversions where `y` is a string but `x` not::
+
+            sage: K = ZZ['x,y'].fraction_field()
+            sage: K._element_constructor_(2, 'x+y')
+            2/(x + y)
+            sage: K._element_constructor_(1, 'z')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to evaluate 'z' in Fraction Field of Multivariate Polynomial Ring in x, y over Integer Ring
+
+        Check that :trac:`17971` is fixed::
+
+            sage: A.<a,c> = Frac(PolynomialRing(QQ,'a,c'))
+            sage: B.<d,e> = PolynomialRing(A,'d,e')
+            sage: R.<x> = PolynomialRing(B,'x')
+            sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
+            a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
+
         """
         Element = self._element_class
         if isinstance(x, Element) and y == 1:
@@ -537,18 +556,28 @@ class FractionField_generic(field.Field):
                 return x
             else:
                 return Element(self, x.numerator(), x.denominator())
-        elif isinstance(x, basestring):
+
+        recurse = False
+        if isinstance(x, six.string_types):
+            from sage.misc.sage_eval import sage_eval
             try:
-                from sage.misc.sage_eval import sage_eval
                 x = sage_eval(x, self.gens_dict_recursive())
-                y = sage_eval(str(y), self.gens_dict_recursive())
-                return self._element_constructor_(x, y)
             except NameError:
-                raise TypeError("unable to convert string")
+                raise TypeError("unable to evaluate {!r} in {}".format(x, self))
+            recurse = True
+        if isinstance(y, six.string_types):
+            from sage.misc.sage_eval import sage_eval
+            try:
+                y = sage_eval(y, self.gens_dict_recursive())
+            except NameError:
+                raise TypeError("unable to evaluate {!r} in {}".format(y, self))
+            recurse = True
 
         try:
             return Element(self, x, y, coerce=coerce)
         except (TypeError, ValueError):
+            if recurse:
+                return self._element_constructor(x, y)
             if y == 1:
                 from sage.symbolic.expression import Expression
                 if isinstance(x, Expression):
@@ -565,7 +594,7 @@ class FractionField_generic(field.Field):
                         # Below, v is the variable with highest priority,
                         # and the x[i] are rational functions in the
                         # remaining variables.
-                        v = self(x.variable())
+                        v = Element(self, x.variable(), 1)
                         return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
             raise
 
@@ -631,7 +660,7 @@ class FractionField_generic(field.Field):
             z3
         """
         x = self._R.gen(i)
-        one = self._R.one_element()
+        one = self._R.one()
         r = self._element_class(self, x, one, coerce=False, reduce=False)
         return r
 

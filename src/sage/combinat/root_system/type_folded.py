@@ -1,5 +1,5 @@
 r"""
-Folded Cartan Types
+Root system data for folded Cartan types
 
 AUTHORS:
 
@@ -19,7 +19,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 
-class CartanTypeFolded(SageObject, UniqueRepresentation):
+class CartanTypeFolded(UniqueRepresentation, SageObject):
     r"""
     A Cartan type realized from a (Dynkin) diagram folding.
 
@@ -150,7 +150,7 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
 
     - :wikipedia:`Dynkin_diagram#Folding`
 
-    .. [OSShimo03] M. Okado, A. Schilling, M. Shimozono.
+    .. [OSShimo03] \M. Okado, A. Schilling, M. Shimozono.
        "Virtual crystals and fermionic formulas for type `D_{n+1}^{(2)}`,
        `A_{2n}^{(2)}`, and `C_n^{(1)}`". Representation Theory. **7** (2003).
        101-163. :doi:`10.1.1.192.2095`, :arxiv:`0810.5067`.
@@ -193,6 +193,8 @@ class CartanTypeFolded(SageObject, UniqueRepresentation):
 
             sage: fct = CartanType(['C',4,1]).as_folding()
             sage: TestSuite(fct).run()
+            sage: hash(fct)  # random
+            42
         """
         self._cartan_type = cartan_type
         self._folding = folding_of

@@ -1,5 +1,56 @@
 """
 Assumptions
+
+The ``GenericDeclaration`` class provides assumptions about a symbol or
+function in verbal form. Such assumptions can be made using the :func:`assume`
+function in this module, which also can take any relation of symbolic
+expressions as argument. Use :func:`forget` to clear all assumptions.
+Creating a variable with a specific domain is equivalent with making an
+assumption about it.
+
+There is only rudimentary support for consistency and satisfiability checking
+in Sage. Assumptions are used both in Maxima and Pynac to support or refine
+some computations. In the following we show how to make and query assumptions.
+Please see the respective modules for more practical examples.
+
+EXAMPLES:
+
+The default domain of a symbolic variable is the complex plane::
+
+    sage: var('x')
+    x
+    sage: x.is_real()
+    False
+    sage: assume(x,'real')
+    sage: x.is_real()
+    True
+    sage: forget()
+    sage: x.is_real()
+    False
+
+Here is the list of acceptable features::
+
+    sage: maxima('features')
+    [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+
+Set positive domain using a relation::
+
+    sage: assume(x>0)
+    sage: x.is_positive()
+    True
+    sage: x.is_real()
+    True
+    sage: assumptions()
+    [x > 0]
+
+Assumptions are added and in some cases checked for consistency::
+
+    sage: assume(x>0)
+    sage: assume(x<0)
+    Traceback (most recent call last):
+    ...
+    ValueError: Assumption is inconsistent
+    sage: forget()
 """
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
@@ -11,8 +62,8 @@ class GenericDeclaration(SageObject):
     """
     This class represents generic assumptions, such as a variable being
     an integer or a function being increasing. It passes such
-    information to maxima's declare (wrapped in a context so it is able
-    to forget).
+    information to Maxima's declare (wrapped in a context so it is able
+    to forget) and to Pynac.
 
     INPUT:
 
@@ -28,8 +79,6 @@ class GenericDeclaration(SageObject):
         sage: decl = GenericDeclaration(x, 'integer')
         sage: decl.assume()
         sage: sin(x*pi)
-        sin(pi*x)
-        sage: sin(x*pi).simplify()
         0
         sage: decl.forget()
         sage: sin(x*pi)
@@ -64,8 +113,6 @@ class GenericDeclaration(SageObject):
             sage: decl = GenericDeclaration(x, 'integer')
             sage: decl.assume()
             sage: sin(x*pi)
-            sin(pi*x)
-            sage: sin(x*pi).simplify()
             0
             sage: decl.forget()
             sage: sin(x*pi)
@@ -155,9 +202,6 @@ class GenericDeclaration(SageObject):
             self._context = maxima.newcontext('context' + maxima._next_var_name())
             try:
                 maxima.eval("declare(%s, %s)" % (self._var._maxima_init_(), self._assumption))
-#            except TypeError, mess:
-#                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
-#                    raise ValueError, "Assumption is inconsistent"
             except RuntimeError as mess:
                 if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
                     raise ValueError("Assumption is inconsistent")
@@ -167,6 +211,7 @@ class GenericDeclaration(SageObject):
 
         if not self in _assumptions:
             maxima.activate(self._context)
+            self._var.decl_assume(self._assumption)
             _assumptions.append(self)
 
     def forget(self):
@@ -186,6 +231,7 @@ class GenericDeclaration(SageObject):
             sage: cos(x*pi).simplify()
             cos(pi*x)
         """
+        self._var.decl_forget(self._assumption)
         from sage.calculus.calculus import maxima
         if self._context is not None:
             try:
@@ -375,8 +421,6 @@ def assume(*args):
     Simplifying certain well-known identities works as well::
 
         sage: sin(n*pi)
-        sin(pi*n)
-        sage: sin(n*pi).simplify()
         0
         sage: forget()
         sage: sin(n*pi).simplify()
@@ -442,6 +486,26 @@ def assume(*args):
         sin(pi*n)
         sage: sin(m*pi).simplify()
         sin(pi*m)
+
+    Check that positive integers can be created (:trac:`20132`)
+
+        sage: forget()
+        sage: x = SR.var('x', domain='positive')
+        sage: assume(x, 'integer')
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: x = SR.var('x', domain='integer')
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: assume(x, "integer")
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
@@ -469,6 +533,7 @@ def forget(*args):
 
     We define and forget multiple assumptions::
 
+        sage: forget()
         sage: var('x,y,z')
         (x, y, z)
         sage: assume(x>0, y>0, z == 1, y>0)
@@ -605,7 +670,6 @@ def _forget_all():
         sage: sin(m*pi).simplify()
         sin(pi*m)
     """
-    from sage.calculus.calculus import maxima
     global _assumptions
     if len(_assumptions) == 0:
         return

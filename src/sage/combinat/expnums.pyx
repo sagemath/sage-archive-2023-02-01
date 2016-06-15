@@ -6,10 +6,8 @@ AUTHORS:
 - Nick Alexander
 """
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 from sage.rings.integer cimport Integer
 
@@ -83,9 +81,10 @@ def expnums(int n, int aa):
     r.append(z)
 
     cdef mpz_t *bell
-    bell = <mpz_t *>sage_malloc(sizeof(mpz_t) * (n+1))
+    bell = <mpz_t *>sig_malloc(sizeof(mpz_t) * (n+1))
     if bell == NULL:
-        raise MemoryError, "out of memory allocating temporary storage in expnums"
+        raise MemoryError("out of memory allocating temporary "
+                          "storage in expnums")
     cdef mpz_t a
     mpz_init_set_si(a, aa)
     mpz_init_set_si(bell[1], aa)
@@ -103,7 +102,7 @@ def expnums(int n, int aa):
 
     for i from 1 <= i <= n:
         mpz_clear(bell[i])
-    sage_free(bell)
+    sig_free(bell)
 
     return r
 

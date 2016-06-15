@@ -57,17 +57,22 @@ AUTHORS:
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 from sage.modular.dirichlet import DirichletGroup, trivial_character
-from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
+from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
+from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.padics.precision_error import PrecisionError
 import weakref
 
@@ -199,17 +204,19 @@ class WeightSpace_class(ParentWithBase):
             return ArbitraryWeight(self, arg1, arg2)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this weight space.
 
         EXAMPLES::
 
             sage: W = pAdicWeightSpace(17)
-            sage: W.zero_element()
+            sage: W.zero()
             0
         """
         return self(0)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def prime(self):
         r"""
@@ -440,7 +447,7 @@ class WeightCharacter(Element):
             sage: pAdicWeightSpace(11)(3).one_over_Lvalue()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
             sage: pAdicWeightSpace(11)(0).one_over_Lvalue()
             0
             sage: type(_)
@@ -562,6 +569,20 @@ class AlgebraicWeight(WeightCharacter):
             Dirichlet character modulo 29 of conductor 29 mapping 2 |--> 28 + 28*29 + 28*29^2 + ... + O(29^20)
         """
         return self._chi
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: w = pAdicWeightSpace(23)(12, DirichletGroup(23, QQ).0)
+            sage: hash(w)
+            2363715643371367891  # 64-bit
+            -1456525869          # 32-bit
+        """
+        if self._chi.is_trivial():
+            return hash(self._k)
+        else:
+            return hash( (self._k,self._chi.modulus(),self._chi) )
 
     def _repr_(self):
         r"""

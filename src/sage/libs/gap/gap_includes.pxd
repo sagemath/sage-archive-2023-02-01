@@ -9,9 +9,6 @@
 ###############################################################################
 
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-
 cdef extern from "gap/system.h":
     ctypedef char libGAP_Char
     ctypedef int libGAP_Int
@@ -134,7 +131,7 @@ cdef extern from "gap/objects.h":
     cdef int libGAP_LAST_TESTING_TNUM
 
 cdef extern from "gap/read.h":
-    void* libGAP_ReadEvalCommand(libGAP_Obj context)
+    void* libGAP_ReadEvalCommand(libGAP_Obj context, libGAP_UInt *dualSemicolon)
     void* libGAP_ReadEvalFile()
     void* libGAP_ReadEvalResult
     bint libGAP_READ_ERROR()
@@ -292,6 +289,9 @@ cdef extern from "gap/plist.h":
 
 cdef extern from "gap/lists.h":
     void libGAP_UNB_LIST(libGAP_Obj list, int pos)
+    bint libGAP_IS_LIST(libGAP_Obj lst)
+    int libGAP_LEN_LIST(libGAP_Obj lst)
+    libGAP_Obj libGAP_ELM_LIST(libGAP_Obj lst, int pos)
 
 cdef extern from "gap/listfunc.h":
     void libGAP_AddList(libGAP_Obj list, libGAP_Obj obj)

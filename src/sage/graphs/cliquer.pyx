@@ -35,8 +35,15 @@ Methods
 #*****************************************************************************
 
 
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
+
+
+cdef extern from "sage/graphs/cliquer/cl.c":
+     cdef int sage_clique_max(graph_t *g, int ** list)
+     cdef int sage_all_clique_max(graph_t *g, int ** list)
+     cdef int sage_clique_number(graph_t *g)
+
 
 def max_clique(graph):
     """
@@ -81,7 +88,7 @@ def max_clique(graph):
     for i in range(size):
         b.append(list[i])
 
-    sage_free(list)
+    sig_free(list)
     graph_free(g)
     return list_composition(b,d_inv)
 
@@ -159,7 +166,7 @@ def all_max_clique(graph):
             b.append(list_composition(c,d_inv))
             c=[]
 
-    sage_free(list)
+    sig_free(list)
     graph_free(g)
 
     return sorted(b)

@@ -7,10 +7,13 @@ Quotient fields
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.abstract_method import abstract_method
 from sage.categories.fields import Fields
+
+from sage.structure.element import coerce_binop
 
 class QuotientFields(Category_singleton):
     """
@@ -50,26 +53,27 @@ class QuotientFields(Category_singleton):
         def denominator(self):
             pass
 
-        def gcd(self,other):
+        @coerce_binop
+        def gcd(self, other):
             """
             Greatest common divisor
 
-            NOTE:
+            .. NOTE::
 
-            In a field, the greatest common divisor is not very
-            informative, as it is only determined up to a unit. But in
-            the fraction field of an integral domain that provides
-            both gcd and lcm, it is possible to be a bit more specific
-            and define the gcd uniquely up to a unit of the base ring
-            (rather than in the fraction field).
+                In a field, the greatest common divisor is not very informative,
+                as it is only determined up to a unit. But in the fraction field
+                of an integral domain that provides both gcd and lcm, it is
+                possible to be a bit more specific and define the gcd uniquely
+                up to a unit of the base ring (rather than in the fraction
+                field).
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See :trac:`10771`
 
             EXAMPLES::
 
-                sage: R.<x>=QQ[]
+                sage: R.<x> = QQ['x']
                 sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
                 sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
                 sage: factor(p)
@@ -90,28 +94,25 @@ class QuotientFields(Category_singleton):
             The following tests that the fraction field returns a correct gcd
             even if the base ring does not provide lcm and gcd::
 
-                sage: R = ZZ.extension(x^2+5,names='q'); R
-                Order in Number Field in q with defining polynomial x^2 + 5
-                sage: R.1
-                q
-                sage: gcd(R.1,R.1)
+                sage: R = ZZ.extension(x^2+1, names='i')
+                sage: i = R.1
+                sage: gcd(5, 3 + 4*i)
+                -i - 2
+                sage: P.<t> = R[]
+                sage: gcd(t, i)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find gcd
-                sage: (R.1/1).parent()
-                Number Field in q with defining polynomial x^2 + 5
-                sage: gcd(R.1/1,R.1)
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                sage: q = t/(t+1); q.parent()
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
+                sage: gcd(q, q)
                 1
-                sage: gcd(R.1/1,0)
+                sage: q.gcd(0)
                 1
-                sage: gcd(R.zero(),0)
+                sage: (q*0).gcd(0)
                 0
-
             """
-            try:
-                other = self.parent()(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
+            P = self.parent()
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -123,34 +124,58 @@ class QuotientFields(Category_singleton):
                 selfD = selfD // selfGCD
                 otherN = otherN // otherGCD
                 otherD = otherD // otherGCD
-                return selfN.gcd(otherN)/selfD.lcm(otherD)
+                tmp = P(selfN.gcd(otherN))/P(selfD.lcm(otherD))
+                return tmp
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                if self==0 and other==0:
-                    return self.parent().zero()
-                return self.parent().one()
+                zero = P.zero()
+                if self == zero and other == zero:
+                    return zero
+                return P.one()
 
-        def lcm(self,other):
+        @coerce_binop
+        def lcm(self, other):
             """
             Least common multiple
 
-            NOTE:
+            In a field, the least common multiple is not very informative, as it
+            is only determined up to a unit. But in the fraction field of an
+            integral domain that provides both gcd and lcm, it is reasonable to
+            be a bit more specific and to define the least common multiple so
+            that it restricts to the usual least common multiple in the base
+            ring and is unique up to a unit of the base ring (rather than up to
+            a unit of the fraction field).
 
-            In a field, the least common multiple is not very
-            informative, as it is only determined up to a unit. But in
-            the fraction field of an integral domain that provides
-            both gcd and lcm, it is reasonable to be a bit more
-            specific and to define the least common multiple so that
-            it restricts to the usual least common multiple in the
-            base ring and is unique up to a unit of the base ring
-            (rather than up to a unit of the fraction field).
+            The least common multiple is easily described in terms of the
+            prime decomposition. A rational number can be written as a product
+            of primes with integer (positive or negative) powers in a unique
+            way. The least common multiple of two rational numbers `x` and `y`
+            can then be defined by specifying that the exponent of every prime
+            `p` in `lcm(x,y)` is the supremum of the exponents of `p` in `x`,
+            and the exponent of `p` in `y` (where the primes that does not
+            appear in the decomposition of `x` or `y` are considered to have
+            exponent zero).
+
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See :trac:`10771`
 
             EXAMPLES::
 
-                sage: R.<x>=QQ[]
+                sage: lcm(2/3, 1/5)
+                2
+
+            Indeed `2/3 = 2^1 3^{-1} 5^0` and `1/5 = 2^0 3^0
+            5^{-1}`, so `lcm(2/3,1/5)= 2^1 3^0 5^0 = 2`.
+
+                sage: lcm(1/3, 1/5)
+                1
+                sage: lcm(1/3, 1/6)
+                1/3
+
+            Some more involved examples::
+
+                sage: R.<x> = QQ[]
                 sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
                 sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
                 sage: factor(p)
@@ -169,28 +194,31 @@ class QuotientFields(Category_singleton):
             The following tests that the fraction field returns a correct lcm
             even if the base ring does not provide lcm and gcd::
 
-                sage: R = ZZ.extension(x^2+5,names='q'); R
-                Order in Number Field in q with defining polynomial x^2 + 5
-                sage: R.1
-                q
-                sage: lcm(R.1,R.1)
+                sage: R = ZZ.extension(x^2+1, names='i')
+                sage: i = R.1
+                sage: P.<t> = R[]
+                sage: lcm(t, i)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find lcm
-                sage: (R.1/1).parent()
-                Number Field in q with defining polynomial x^2 + 5
-                sage: lcm(R.1/1,R.1)
+                NotImplementedError: Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 does not provide a gcd implementation for univariate polynomials
+                sage: q = t/(t+1); q.parent()
+                Fraction Field of Univariate Polynomial Ring in t over Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
+                sage: lcm(q, q)
                 1
-                sage: lcm(R.1/1,0)
+                sage: q.lcm(0)
                 0
-                sage: lcm(R.zero(),0)
+                sage: (q*0).lcm(0)
                 0
 
+            Check that it is possible to take lcm of a rational and an integer
+            (:trac:`17852`)::
+
+                sage: (1/2).lcm(2)
+                2
+                sage: type((1/2).lcm(2))
+                <type 'sage.rings.rational.Rational'>
             """
-            try:
-                other = self.parent()(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
+            P = self.parent()
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -202,11 +230,99 @@ class QuotientFields(Category_singleton):
                 selfD = selfD // selfGCD
                 otherN = otherN // otherGCD
                 otherD = otherD // otherGCD
-                return selfN.lcm(otherN)/selfD.gcd(otherD)
+                return P(selfN.lcm(otherN))/P(selfD.gcd(otherD))
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                if self==0 or other==0:
-                    return self.parent().zero()
-                return self.parent().one()
+                zero = P.zero()
+                if self == zero or other == zero:
+                    return zero
+                return P.one()
+
+        @coerce_binop
+        def xgcd(self, other):
+            """
+            Return a triple ``(g,s,t)`` of elements of that field such that
+            ``g`` is the greatest common divisor of ``self`` and ``other`` and
+            ``g = s*self + t*other``.
+
+            .. NOTE::
+
+                In a field, the greatest common divisor is not very informative,
+                as it is only determined up to a unit. But in the fraction field
+                of an integral domain that provides both xgcd and lcm, it is
+                possible to be a bit more specific and define the gcd uniquely
+                up to a unit of the base ring (rather than in the fraction
+                field).
+
+            EXAMPLES::
+
+                sage: QQ(3).xgcd(QQ(2))
+                (1, 1, -1)
+                sage: QQ(3).xgcd(QQ(1/2))
+                (1/2, 0, 1)
+                sage: QQ(1/3).xgcd(QQ(2))
+                (1/3, 1, 0)
+                sage: QQ(3/2).xgcd(QQ(5/2))
+                (1/2, 2, -1)
+
+                sage: R.<x> = QQ['x']
+                sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
+                sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
+                sage: factor(p)
+                (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(q)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                sage: g,s,t = xgcd(p,q)
+                sage: g
+                (x + 1)/(x^7 + x^5 - x^2 - 1)
+                sage: g == s*p + t*q
+                True
+
+            An example without a well defined gcd or xgcd on its base ring::
+
+                sage: K = QuadraticField(5)
+                sage: O = K.maximal_order()
+                sage: R = PolynomialRing(O, 'x')
+                sage: F = R.fraction_field()
+                sage: x = F.gen(0)
+                sage: x.gcd(x+1)
+                1
+                sage: x.xgcd(x+1)
+                (1, 1/x, 0)
+                sage: zero = F.zero()
+                sage: zero.gcd(x)
+                1
+                sage: zero.xgcd(x)
+                (1, 0, 1/x)
+                sage: zero.xgcd(zero)
+                (0, 0, 0)
+            """
+            P = self.parent()
+            try:
+                selfN = self.numerator()
+                selfD = self.denominator()
+                selfGCD = selfN.gcd(selfD)
+
+                otherN = other.numerator()
+                otherD = other.denominator()
+                otherGCD = otherN.gcd(otherD)
+
+                selfN = selfN // selfGCD
+                selfD = selfD // selfGCD
+                otherN = otherN // otherGCD
+                otherD = otherD // otherGCD
+
+                lcmD = selfD.lcm(otherD)
+                g,s,t = selfN.xgcd(otherN)
+                return (P(g)/P(lcmD), P(s*selfD)/P(lcmD),P(t*otherD)/P(lcmD))
+            except (AttributeError, NotImplementedError, TypeError, ValueError):
+                zero = self.parent().zero()
+                one  = self.parent().one()
+                if self != zero:
+                    return (one, ~self, zero)
+                elif other != zero:
+                    return (one, zero, ~other)
+                else:
+                    return (zero, zero, zero)
 
         def factor(self, *args, **kwds):
             """
@@ -228,7 +344,7 @@ class QuotientFields(Category_singleton):
                 sage: f.factor()
                 (x - 3)^-1 * x * (x^2 + 1)
 
-            Here is an example to show that ticket #7868 has been resolved::
+            Here is an example to show that :trac:`7868` has been resolved::
 
                 sage: R.<x,y> = GF(2)[]
                 sage: f = x*y/(x+y)
@@ -277,7 +393,7 @@ class QuotientFields(Category_singleton):
                 sage: q = 2*t / (t + 3)^2
                 sage: q.partial_fraction_decomposition()
                 (0, [2/(t + 3), -6/(t^2 + 6*t + 9)])
-                sage: for p in q.partial_fraction_decomposition()[1]: print p.factor()
+                sage: for p in q.partial_fraction_decomposition()[1]: print(p.factor())
                 (2) * (t + 3)^-1
                 (-6) * (t + 3)^-2
                 sage: q.partial_fraction_decomposition(decompose_powers=False)
@@ -348,7 +464,7 @@ class QuotientFields(Category_singleton):
                 sage: whole + sum(parts) == q
                 True
 
-            And also over finite fields (see trac #6052, #9945)::
+            And also over finite fields (see :trac:`6052`, :trac:`9945`)::
 
                 sage: R.<x> = GF(2)[]
                 sage: q = (x+1)/(x^3+x+1)
@@ -558,7 +674,7 @@ class QuotientFields(Category_singleton):
             den = self.denominator()
 
             if (num.is_zero()):
-                return R.zero_element()
+                return R.zero()
 
             if R.is_exact():
                 try:
@@ -572,7 +688,7 @@ class QuotientFields(Category_singleton):
                     if not tden.is_one() and tden.is_unit():
                         try:
                             tnum = tnum * tden.inverse_of_unit()
-                            tden = R.ring().one_element()
+                            tden = R.ring().one()
                         except AttributeError:
                             pass
                         except NotImplementedError:

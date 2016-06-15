@@ -25,8 +25,7 @@ It prints in a nice factored form::
     sage: F
     -1 * 3^2 * 5
 
-There is an underlying list representation, \emph{which ignores the
-unit part}::
+There is an underlying list representation, which ignores the unit part::
 
     sage: list(F)
     [(3, 2), (5, 1)]
@@ -173,16 +172,17 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.element import Element
 from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
 from sage.misc.all import prod
@@ -341,7 +341,7 @@ class Factorization(SageObject):
             ...
             IndexError: list index out of range
         """
-        return self.__x.__getitem__(i)
+        return self.__x[i]
 
     def __setitem__(self, i, v):
         """
@@ -724,7 +724,7 @@ class Factorization(SageObject):
 
             sage: x = polygen(RDF, 'x')
             sage: F = factor(-2*x^2 - 1); F
-            (-2.0) * (x^2 + 0.5)
+            (-2.0) * (x^2 + 0.5000000000000001)
 
         Note that the unit part of the factorization is `-2.0`::
 
@@ -822,16 +822,18 @@ class Factorization(SageObject):
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
-        if hasattr(x, 'parent'):
+
+        if isinstance(x, Element):
             one = x.parent()(1)
         else:
             one = 1
+
         for i in range(len(self)):
             t = repr(self.__x[i][0])
             n = self.__x[i][1]
-            if (n != 1 or len(self) > 1 or self.__unit != one) and not atomic \
-               and ('+' in t or '-' in t or ' ' in t):
-                t = '(%s)'%t
+            if not atomic and (n != 1 or len(self) > 1 or self.__unit != one):
+                if '+' in t or '-' in t or ' ' in t:
+                    t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
             s += t
@@ -1140,7 +1142,7 @@ class Factorization(SageObject):
         return Factorization([(p,-e) for p,e in reversed(self)],
             cr=self._cr(), unit=self.unit()**(-1))
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of two factorizations, which is obtained by
         multiplying the first by the inverse of the second.
@@ -1163,6 +1165,8 @@ class Factorization(SageObject):
         if not isinstance(other, Factorization):
             return self / Factorization([(other, 1)])
         return self * other**-1
+
+    __div__ = __truediv__
 
     def value(self):
         """

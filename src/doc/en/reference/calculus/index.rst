@@ -5,15 +5,19 @@ Symbolic Calculus
    :maxdepth: 2
 
    sage/symbolic/expression
+   sage/symbolic/callable
    sage/symbolic/assumptions
    sage/symbolic/relation
-   sage/symbolic/function_factory
    sage/calculus/calculus
    sage/symbolic/units
    sage/symbolic/ring
-   sage/calculus/functional
+   sage/symbolic/subring
    sage/symbolic/function
+   sage/symbolic/function_factory
+   sage/calculus/functional
+   sage/symbolic/series
    sage/symbolic/integration/integral
+   sage/symbolic/integration/external
    sage/calculus/test_sympy
    sage/calculus/tests
    sage/symbolic/expression_conversions
@@ -28,5 +32,17 @@ Symbolic Calculus
    sage/calculus/riemann
    sage/gsl/interpolation
    sage/calculus/interpolators
+   sage/calculus/functions
+   sage/calculus/var
+
+   sage/symbolic/getitem
+   sage/symbolic/maxima_wrapper
+   sage/symbolic/operators
+   sage/symbolic/substitution_map
+
+   sage/symbolic/benchmark
+   sage/symbolic/random_tests
+
+   sage/symbolic/pynac
 
 .. include:: ../footer.txt

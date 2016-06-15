@@ -1,5 +1,6 @@
 from libc.stdint cimport uint32_t, uint64_t
-include "sage/misc/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
+
 
 cdef class IndependentSets:
     cdef binary_matrix_t g

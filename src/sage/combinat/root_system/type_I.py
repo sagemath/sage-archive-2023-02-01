@@ -22,7 +22,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             sage: ct.rank()
             2
             sage: ct.index_set()
-            [1, 2]
+            (1, 2)
 
             sage: ct.is_irreducible()
             True
@@ -47,6 +47,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         Type `I_p` is of rank 2
 
         EXAMPLES::
+
             sage: CartanType(['I', 5]).rank()
             2
         """
@@ -57,10 +58,11 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         Type `I_p` is of rank 2
 
         EXAMPLES::
+
             sage: CartanType(['I', 5]).index_set()
-            [1, 2]
+            (1, 2)
         """
-        return [1, 2]
+        return (1, 2)
 
     def coxeter_diagram(self):
         """
@@ -92,3 +94,4 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             12
         """
         return self.n
+

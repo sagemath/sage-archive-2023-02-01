@@ -13,11 +13,11 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_ZZ import unpickle_class_args
 from ntl_GF2EContext import ntl_GF2EContext
 from ntl_GF2EContext cimport ntl_GF2EContext_class
@@ -32,7 +32,7 @@ from ntl_GF2E cimport ntl_GF2E
 #
 ##############################################################################
 
-cdef class ntl_GF2EX:
+cdef class ntl_GF2EX(object):
     r"""
     Minimal wrapper of NTL's GF2EX class.
     """
@@ -46,7 +46,7 @@ cdef class ntl_GF2EX:
             [[1] [0 1]]
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a GF2E."
+            raise ValueError("You must specify a modulus when creating a GF2E.")
 
         s = str(x)
         sig_on()
@@ -60,7 +60,7 @@ cdef class ntl_GF2EX:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_GF2E          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_GF2E) without      ##
+        ## could do r = ntl_GF2E.__new__(ntl_GF2E) without
         ## first restoring a GF2EContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -69,26 +69,24 @@ cdef class ntl_GF2EX:
         ################################################
         if modulus is None:
             return
-        if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):
+        if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            GF2EX_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            GF2EX_construct(&self.x)
 
     cdef ntl_GF2E _new_element(self):
         cdef ntl_GF2E r
         self.c.restore_c()
-        r = PY_NEW(ntl_GF2E)
+        r = ntl_GF2E.__new__(ntl_GF2E)
         r.c = self.c
         return r
 
     cdef ntl_GF2EX _new(self):
         cdef ntl_GF2EX r
         self.c.restore_c()
-        r = PY_NEW(ntl_GF2EX)
+        r = ntl_GF2EX.__new__(ntl_GF2EX)
         r.c = self.c
         return r
 
@@ -98,7 +96,6 @@ cdef class ntl_GF2EX:
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        GF2EX_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -110,11 +107,12 @@ cdef class ntl_GF2EX:
         """
         return unpickle_class_args, (ntl_GF2EX, (self.c, self.__repr__()))
 
-    def __cmp__(self, other):
+    def __richcmp__(ntl_GF2EX self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0 1] [1 0 0 1] [1]]')
             sage: g = ntl.GF2EX(ctx, '[[1 0 1] [1 1] [1] [0 0 1]]')
@@ -122,11 +120,21 @@ cdef class ntl_GF2EX:
             True
             sage: f == g
             False
+            sage: f == "??"
+            False
         """
-        ## TODO: this is shady. fix that.
-        if (type(self) != type(other)):
-            return cmp(type(self), type(other))
-        return cmp(self.__repr__(), other.__repr__())
+        self.c.restore_c()
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2^e)[X] are not ordered")
+
+        cdef ntl_GF2EX b
+        try:
+            b = <ntl_GF2EX?>other
+        except TypeError:
+            return NotImplemented
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __repr__(self):
         """

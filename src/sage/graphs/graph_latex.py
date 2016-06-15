@@ -44,7 +44,7 @@ To use LaTeX in Sage you of course need a working TeX installation and it will w
 - TeX: http://ctan.org/
 - dvipng: http://sourceforge.net/projects/dvipng/
 - convert: http://www.imagemagick.org (the ImageMagick suite)
-- tkz-graph: http://altermundus.com/pages/graph.html
+- tkz-graph: http://altermundus.com/pages/tkz/
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a graph, then ``g.set_latex_options()`` can be used to efficiently set or modify various options.  Setting individual options, or querying options, can be accomplished by first using a command like ``opts = g.latex_options()`` to obtain a :class:`sage.graphs.graph_latex.GraphLatex` object which has several methods to set and retrieve options.
 
@@ -209,7 +209,7 @@ This example illustrates using the optional dot2tex module::
     sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: latex(g) # optional - dot2tex
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -219,8 +219,8 @@ Among other things, this supports the flexible ``edge_options`` option
 here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
-    sage: latex(g) # optional - dot2tex
+    sage: g.set_latex_options(format="dot2tex", edge_options=lambda u_v_label: {"color": "red"} if u_v_label[0] == 0 else {})
+    sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -276,7 +276,7 @@ choices. ::
     ...   )
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: print latex(G)
+    sage: print(latex(G))
     \begin{tikzpicture}
     %
     \useasboundingbox (0,0) rectangle (4.0in,4.0in);
@@ -366,6 +366,7 @@ GraphLatex class and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_function
@@ -395,10 +396,10 @@ def check_tkz_graph():
 Visit '...'.
 """)
     latex.check_file("tkz-graph.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
     latex.check_file("tkz-berge.sty", """This package is required to render graphs in LaTeX.
-Visit 'http://altermundus.com/pages/graph.html'.
+Visit 'http://altermundus.com/pages/tkz/'.
 """)
 
 def have_tkz_graph():
@@ -523,6 +524,7 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
+            'rankdir': 'down'
             }
 
     def __init__(self, graph, **options):
@@ -580,7 +582,7 @@ class GraphLatex(SageObject):
             sage: opts = g.latex_options()
             sage: opts.set_option('tkz_style', 'Classic')
             sage: opts.set_option('vertex_size', 3.6)
-            sage: print opts._repr_()
+            sage: print(opts._repr_())
             LaTeX options for Petersen graph: {'tkz_style': 'Classic', 'vertex_size': 3.60000000000000}
         """
         return "LaTeX options for %s: %s"%(self._graph, self._options)
@@ -595,7 +597,7 @@ class GraphLatex(SageObject):
         :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options` method
         is the easiest way to set options, and allows several to be set at once.
 
-        INPUTS:
+        INPUT:
 
         - ``option_name`` - a string for a latex option contained in the list
           ``sage.graphs.graph_latex.GraphLatex.__graphlatex_options``. A
@@ -853,7 +855,7 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
-        OUTPUTS:
+        OUTPUT:
 
         There are none.  Success happens silently.
 
@@ -1197,7 +1199,7 @@ class GraphLatex(SageObject):
         r"""
         Set several LaTeX options for a graph all at once.
 
-        INPUTS:
+        INPUT:
 
          - kwds - any number of option/value pairs to se many graph latex
            options at once (a variable number, in any order). Existing
@@ -1278,7 +1280,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(2)
             sage: opts = g.latex_options()
-            sage: print opts.latex()
+            sage: print(opts.latex())
             \begin{tikzpicture}
             %
             \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
@@ -1314,7 +1316,7 @@ class GraphLatex(SageObject):
             sage: g = digraphs.ButterflyGraph(1)
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
-            sage: print g.latex_options().dot2tex_picture()  # optional - dot2tex graphviz
+            sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
               \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
@@ -1333,7 +1335,7 @@ class GraphLatex(SageObject):
             sage: G = DiGraph() 
             sage: G.add_edge(3333, 88, 'my_label') 
             sage: G.set_latex_options(edge_labels=True) 
-            sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz 
             \begin{tikzpicture}[>=latex,line join=bevel,] 
             %% 
             \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
@@ -1397,7 +1399,7 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Art')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             %
             \GraphInit[vstyle=Art]
@@ -1422,7 +1424,7 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Custom')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             %
             \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
@@ -1463,7 +1465,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.PathGraph(3)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -1475,7 +1477,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(1)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}

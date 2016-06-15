@@ -6,28 +6,15 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-CUR=`pwd`
-
-cd src/
+cd src
 
 ###############################################################################
 # Apply patches (if any):
 ###############################################################################
 
-# Before applying patches, we manually move two wrongly named files,
-# rather than doing this with diff/patch which lacks the ability of properly
-# detecting filename changes. See Trac #13137.
-# This fix can (and will have to) be removed once integrated upstream.
-echo "Renaming *,asm files to *.asm..."
-mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm &&
-mv mpn/x86/p6/submul_1,asm mpn/x86/p6/submul_1.asm
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: moving *,asm files failed."
-    exit 1
-fi
-
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue # ignore non-readable / non-existent files
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error: '$patch' failed to apply."
@@ -41,8 +28,31 @@ done
 ###############################################################################
 
 ###############################################################################
+# Find out the machine type
+###############################################################################
+
+MACHINE_TYPE_MPIR=$(bash ./config.guess)
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to determine the machine type (mpir-extended)"
+    exit 1
+fi
+
+#  This is the vanilla config.guess (renamed to configfsf.guess in
+#  MPIR) file instead of MPIR's version. It is used when
+#  SAGE_FAT_BINARY is set.
+MACHINE_TYPE_DEFAULT=$(bash ./configfsf.guess)
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to determine the machine type (default)"
+    exit 1
+fi
+
+echo "Machine type (default): $MACHINE_TYPE_DEFAULT"
+echo "Machine type (mpir): $MACHINE_TYPE_MPIR"
+
+###############################################################################
 # Set up environment variables:
 ###############################################################################
+
 
 # The Yasm build uses PYTHON from the environment to find the Python interpreter,
 # so unset it in case it apparently contains nothing useful (like it did in Sage
@@ -146,8 +156,8 @@ case "$UNAME" in
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
                 echo "Building a 64-bit version of MPIR."
                 case "`uname -m`" in
-                    ppc64) ABI=mode64;;
-                    *)     ABI=64
+                    ppc*) ABI=mode64;;
+                    *)    ABI=64;;
                 esac
             elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.
@@ -162,14 +172,22 @@ case "$UNAME" in
         fi
         ;; # Linux
     CYGWIN)
-        # For the moment, Cygwin is only 32-bits
-        # and configure gets lost if the hardware is 64 bits
-        ABI=32
+        if uname -a | grep x86_64 ; then
+            ABI=64
+        else
+            ABI=32
+        fi
         ;;
     *) # e.g. AIX or HP-UX
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
             "by this MPIR spkg, i.e., by Sage's part of it."
 esac
+
+# MPIR 2.7.2 does not know about ppc64le and confuses it with plain
+# ppc64. We need to disable specific powerpc64 assembly.
+if [ "`uname -m`" = ppc64le ]; then
+    export MPN_PATH=generic
+fi
 
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.
 # See #12765, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
@@ -193,7 +211,8 @@ export ABI CFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe(r).
 # Now configure MPIR, eventually modifying CFLAGS [further]:
 ###############################################################################
 
-MPIR_CONFIGURE="--enable-gmpcompat --enable-shared $MPIR_CONFIGURE"
+MPIR_CONFIGURE="--enable-shared $MPIR_CONFIGURE"
+MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 
 # If we're bootstrapping GCC from the GCC spkg, don't build the C++
 # interface (cf. #12782), static libraries and disable fat binary.
@@ -220,9 +239,8 @@ fi
 
 # If SAGE_FAT_BINARY is enabled, then add --enable-fat to configure
 # options on Linux x86 systems.  On other systems, fat binaries are not
-# supported.  Then we specify a build architecture which doesn't
-# have a CPU name in it.  This means which use the vanilla config.guess
-# (renamed to configfsf.guess in MPIR) file instead of MPIR's version.
+# supported.  There, we specify a build architecture which doesn't
+# have a CPU name in it.
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     case "$UNAME-`uname -m`" in
         Linux-i[3456]86)
@@ -235,18 +253,17 @@ if [ "$SAGE_FAT_BINARY" = "yes" ]; then
             ;;
         *) # Anything else
             echo "** Building a generic binary (not assuming any specific CPU) **"
-            MPIR_CONFIGURE="--build=`./configfsf.guess` $MPIR_CONFIGURE"
+            MPIR_CONFIGURE="--build=$MACHINE_TYPE_DEFAULT $MPIR_CONFIGURE"
             ;;
     esac
 fi
 
 
 # Pre-configure MPIR to get the settings it would use if CFLAGS were empty:
-echo "Checking what CFLAGS MPIR would use if they were empty..."
-(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $MPIR_CONFIGURE) &>configure-empty.log
+echo "------------------------------------------------------------------------"
+echo "Configuring MPIR with empty CFLAGS to determine the defaults:"
+(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $MPIR_CONFIGURE)
 if [ $? -ne 0 ]; then
-    # Output the log of the failed configure run
-    cat configure-empty.log
     echo >&2 "Error configuring MPIR (with CFLAGS unset)."
     echo >&2 "Consult `pwd`/config.log for for details."
     exit 1
@@ -261,6 +278,7 @@ if [ -z "$mpir_cc" ]; then
     echo >&2 "Please report this to <sage-devel@googlegroups.com>"
     exit 1
 fi
+echo "------------------------------------------------------------------------"
 echo "Settings chosen by MPIR when configuring with CFLAGS unset:"
 echo "  CC:      $mpir_cc"
 echo "  CFLAGS:  $mpir_cflags"
@@ -298,6 +316,7 @@ echo "(These settings may still get overridden by 'configure' or Makefiles.)"
 # We also add '--libdir="$SAGE_LOCAL/lib"' below, since newer autotools may
 # otherwise put the libraries into .../lib64 on 64-bit systems (cf. #12131).
 
+echo "------------------------------------------------------------------------"
 echo "Configuring MPIR with the following options:"
 echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $MPIR_CONFIGURE"
 echo "You can set MPIR_CONFIGURE to pass additional parameters."
@@ -340,31 +359,20 @@ if false; then
 else
     echo "Not removing old GMP/MPIR shared libraries, as other libraries"
     echo "and executables might still refer to them:"
-    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*.so.*
+    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
     echo "(Libraries with the same version number will get updated though.)"
 fi
+
+# Mark GMP as not installed (since we will overwrite it)
+rm -f "$SAGE_SPKG_INST"/gmp-*
 
 ###############################################################################
 # Now install MPIR:
 ###############################################################################
 
 echo "Now installing MPIR..."
-# The potential race condition in `make install` was fixed in MPIR 2.1.4.
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPIR."
-    if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
-        exit 1
-    fi
+    exit 1
 fi
-
-echo
-echo "Remember to rebuild the Sage library ('./sage -b') such that it"
-echo "will use the new MPIR."
-echo "You may also have to (or want to) rebuild other Sage packages"
-echo "that use MPIR.  Provided that this MPIR spkg is in 'spkg/standard/',"
-echo "you can rebuild all packages depending on MPIR by typing:"
-echo "    cd $SAGE_ROOT"
-echo "    env SAGE_UPGRADING=yes make"
-echo "but note that this will usually take quite a lot of time."
-echo

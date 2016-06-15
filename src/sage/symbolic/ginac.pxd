@@ -1,22 +1,39 @@
-###############################################################################
-#   SAGE: Open Source Mathematical Software
+# distutils: language = c++
+# distutils: libraries = pynac gmp
+# distutils: extra_compile_args = -std=c++11
+"""
+Declarations for pynac, a Python frontend for ginac
+
+Check that we can externally cimport this (:trac:`18825`)::
+
+    sage: cython(  # long time
+    ....: '''
+    ....: #clang c++
+    ....: #clib pynac
+    ....: #cargs --std=c++11
+    ....: cimport sage.symbolic.ginac
+    ....: ''')
+"""
+
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 # NOTE: Because of the except+'s below, i.e., C++ exception handling,
 # we do *not* have to use sig_on() and sig_off(). We do use it a little
 # in the actual pyx code to catch control-c for long running functions.
 
-# distutils: language = c++
-# distutils: libraries = pynac gmp
-
 from cpython cimport PyObject
+from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
-cdef extern from "ginac_wrap.h":
+cdef extern from "sage/symbolic/ginac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
@@ -26,7 +43,7 @@ cdef extern from "ginac_wrap.h":
     ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
-        unsigned int gethash()
+        long gethash()
         int compare(GBasic other)
 
     ctypedef struct GConstant "constant":
@@ -69,7 +86,7 @@ cdef extern from "ginac_wrap.h":
         GExList append_sym "append" (GSymbol e)
 
     ctypedef struct GEx "ex":
-        unsigned int gethash()        except +
+        long gethash()                except +
         int compare(GEx other)        except +
         GEx expand(unsigned int opt)  except +
         GEx collect(GEx s, bint dist) except +
@@ -127,12 +144,14 @@ cdef extern from "ginac_wrap.h":
 
     # Pattern matching wildcards
     GEx g_wild "wild"(unsigned int label) except +
+    bint haswild(GEx x) except +
 
     # Series back to poly
     GEx series_to_poly(GEx e) except +
     bint is_a_series "is_a<pseries>" (GEx e)
     # you must ensure that is_a_series(e) is true before calling this:
     bint g_is_a_terminating_series(GEx e) except +
+    GEx g_series_var(GEx e) except +
 
     # Relations
     ctypedef enum operators "relational::operators":
@@ -145,7 +164,7 @@ cdef extern from "ginac_wrap.h":
 
     bint is_negative(GEx x)                  except +
     bint is_a_relational "is_a<relational>" (GEx e)
-    bint relational_to_bool(GEx e)
+    unsigned decide_relational(GEx e) except +
     operators relational_operator(GEx e)
     operators switch_operator(operators op)
     GEx relational(GEx lhs, GEx rhs, operators o)
@@ -161,6 +180,13 @@ cdef extern from "ginac_wrap.h":
     unsigned domain_real "GiNaC::domain::real"
     unsigned domain_positive "GiNaC::domain::positive"
     unsigned domain_infinity "GiNaC::domain::infinity"
+    unsigned domain_integer "GiNaC::domain::integer"
+
+    # relational outcomes
+    unsigned relational_true "GiNaC::relational::result::True"
+    unsigned relational_false "GiNaC::relational::result::False"
+    unsigned relational_undecidable "GiNaC::relational::result::undecidable"
+    unsigned relational_notimplemented "GiNaC::relational::result::notimplemented"
 
     # info flags
     unsigned info_real          "GiNaC::info_flags::real"
@@ -175,6 +201,12 @@ cdef extern from "ginac_wrap.h":
     unsigned info_even          "GiNaC::info_flags::even"
     unsigned info_odd           "GiNaC::info_flags::odd"
     unsigned info_rational_function "GiNaC::info_flags::rational_function"
+
+    # assumptions
+    void pynac_assume_rel "GiNaC::assume" (GEx rel)
+    void pynac_assume_gdecl "GiNaC::assume" (GEx x, char*)
+    void pynac_forget_rel "GiNaC::forget" (GEx rel)
+    void pynac_forget_gdecl "GiNaC::forget" (GEx x, char*)
 
     # Constants
     GEx g_Pi "Pi"
@@ -336,10 +368,11 @@ cdef extern from "ginac_wrap.h":
     GEx g_H "GiNaC::H" (GEx m, GEx x)                   except + # harmonic polylogarithm
     GEx g_zeta "GiNaC::zeta" (GEx m)                    except + # Riemann's zeta function as well as multiple zeta value
     GEx g_zeta2 "GiNaC::zeta" (GEx m, GEx s)            except + # alternating Euler sum
+    GEx g_stieltjes "GiNaC::stieltjes" (GEx m)          except + # Stieltjes constants
     GEx g_zetaderiv "GiNaC::zetaderiv" (GEx n, GEx x)   except + # derivatives of Riemann's zeta function
     GEx g_tgamma "GiNaC::tgamma" (GEx x)                except + # gamma function
     GEx g_lgamma "GiNaC::lgamma" (GEx x)                except + # logarithm of gamma function
-    GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma*tgamma(y)/tgamma(x+y))
+    GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     GEx g_psi "GiNaC::psi" (GEx x)                      except + # psi (digamma) function
     GEx g_psi2 "GiNaC::psi" (GEx n, GEx x)              except + # derivatives of psi function (polygamma functions)
     GEx g_factorial "GiNaC::factorial" (GEx n)          except + # factorial function n!
@@ -405,6 +438,9 @@ cdef extern from "ginac_wrap.h":
     unsigned find_function "GiNaC::function::find_function" (char* name,
             unsigned nargs) except +ValueError
 
+    bint has_symbol "GiNaC::has_symbol" (GEx ex)
+    bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)
+
     GFunctionOptVector g_registered_functions \
             "GiNaC::function::registered_functions" ()
 
@@ -439,10 +475,11 @@ cdef extern from "ginac_wrap.h":
     unsigned H_serial "GiNaC::H_SERIAL::serial" # harmonic polylogarithm
     unsigned zeta1_serial "GiNaC::zeta1_SERIAL::serial" # Riemann's zeta function as well as multiple zeta value
     unsigned zeta2_serial "GiNaC::zeta2_SERIAL::serial" # alternating Euler sum
+    unsigned stieltjes1_serial "GiNaC::stieltjes1_SERIAL::serial" # Stieltjes constants
     unsigned zetaderiv_serial "GiNaC::zetaderiv_SERIAL::serial" # derivatives of Riemann's zeta function
     unsigned tgamma_serial "GiNaC::tgamma_SERIAL::serial" # gamma function
     unsigned lgamma_serial "GiNaC::lgamma_SERIAL::serial" # logarithm of gamma function
-    unsigned beta_serial "GiNaC::beta_SERIAL::serial" # beta function (tgamma*tgamma(y)/tgamma(x+y))
+    unsigned beta_serial "GiNaC::beta_SERIAL::serial" # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     unsigned psi_serial "GiNaC::psi_SERIAL::serial" # psi (digamma) function
     #unsigned psi2_serial "GiNaC::psi_SERIAL::serial" # derivatives of psi function (polygamma functions)
     unsigned factorial_serial "GiNaC::factorial_SERIAL::serial" # factorial function n!
@@ -471,9 +508,16 @@ cdef extern from "ginac_wrap.h":
         bint (*py_is_even)(object a)  except +
         bint (*py_is_cinteger)(object a)  except +
         bint (*py_is_prime)(object n)  except +
+        bint (*py_is_exact)(object x)  except +
 
         object (*py_integer_from_long)(long int x) except +
         object (*py_integer_from_python_obj)(object x) except +
+        object (*py_integer_from_mpz)(mpz_t) except +
+        object (*py_rational_from_mpq)(mpq_t) except +
+        bint py_is_Integer(object x) except +
+        bint py_is_Rational(object x) except +
+        mpz_ptr py_mpz_from_integer(object x) except +
+        mpq_ptr py_mpq_from_rational(object x) except +
 
         object (*py_float)(object a, PyObject* parent) except +
         object (*py_RDF_from_double)(double x)
@@ -486,6 +530,7 @@ cdef extern from "ginac_wrap.h":
         object (*py_bernoulli)(object x) except +
         object (*py_sin)(object x) except +
         object (*py_cos)(object x) except +
+        object (*py_stieltjes)(object x) except +
         object (*py_zeta)(object x) except +
         object (*py_exp)(object x) except +
         object (*py_log)(object x) except +
@@ -558,8 +603,4 @@ cdef extern from "pynac/order.h":
     bint print_order_compare "GiNaC::print_order().compare" \
             (GEx left, GEx right) except +
     bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
-            (GEx left, GEx right) except +
-    bint print_order "GiNaC::print_order()" \
-            (GEx left, GEx right) except +
-    bint print_order_mul "GiNaC::print_order_mul()" \
             (GEx left, GEx right) except +

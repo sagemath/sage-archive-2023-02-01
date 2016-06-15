@@ -30,6 +30,8 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word_options import word_options
 from itertools import islice, izip, groupby
@@ -43,13 +45,13 @@ class Word_class(SageObject):
         TESTS::
 
             sage: Word(iter([1,2,3]), length="unknown").parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
             sage: Word(range(12)).parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
             sage: Word(range(4), alphabet=range(6)).parent()
-            Words over {0, 1, 2, 3, 4, 5}
+            Finite words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
-            Words over {'a', 'b', 'c'}
+            Finite words over {'a', 'b', 'c'}
         """
         return self._parent
 
@@ -105,12 +107,12 @@ class Word_class(SageObject):
 
         With the print statement::
 
-            sage: print w
+            sage: print(w)
             0123401234012340123401234012340123401234...
 
-        Truncation is done for possibily infinite words::
+        Truncation is done for possibly infinite words::
 
-            sage: print w
+            sage: print(w)
             0123401234012340123401234012340123401234...
         """
         global word_options
@@ -123,7 +125,7 @@ class Word_class(SageObject):
             suffix = ""
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, letters)
+            letters = [str(_) for _ in letters]
             if all(len(a)==1 for a in letters):
                 return ''.join(letters) + suffix
             elif suffix == "...":
@@ -132,9 +134,9 @@ class Word_class(SageObject):
                 return ls.join(letters)
         elif word_options['display'] == 'list':
             if suffix == "...":
-                return "[%s, %s]" % (str(list(letters))[1:-1], suffix)
+                return "[%s, %s]" % (str(letters)[1:-1], suffix)
             else:
-                return str(list(letters))
+                return str(letters)
 
     __str__ = string_rep
 
@@ -221,7 +223,7 @@ class Word_class(SageObject):
             sage: len(Word(iter('a'*200), length='finite'))
             200
 
-        We make sure #8574 is fixed::
+        We make sure :trac:`8574` is fixed::
 
             sage: s = WordMorphism('0->000,1->%s'%('1'*100))
             sage: len(s('1'))
@@ -236,7 +238,7 @@ class Word_class(SageObject):
             sage: len(Word(iter('a'*200)))
             Traceback (most recent call last):
             ...
-            TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
+            TypeError: Python len method can not return a non integer value (=None): use length method instead.
 
         For words of unknown length::
 
@@ -294,10 +296,10 @@ class Word_class(SageObject):
         cmp_fcn = self._parent.cmp_letters
         while True:
             try:
-                cs = self_it.next()
+                cs = next(self_it)
             except StopIteration:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If both self_it and other_it are exhausted then
                     # self == other. Return 0.
@@ -308,7 +310,7 @@ class Word_class(SageObject):
                     return -1
             else:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If self_it is not exhausted but other_it is, then
                     # other is a proper prefix of self: return 1.
@@ -381,10 +383,10 @@ class Word_class(SageObject):
         self_it, other_it = iter(self), iter(other)
         while True:
             try:
-                cs = self_it.next()
+                cs = next(self_it)
             except StopIteration:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If both self_it and other_it are exhausted then
                     # self == other. Return 0.
@@ -395,7 +397,7 @@ class Word_class(SageObject):
                     return False
             else:
                 try:
-                    co = other_it.next()
+                    co = next(other_it)
                 except StopIteration:
                     # If self_it is not exhausted but other_it is, then
                     # other is a proper prefix of self: return 1.
@@ -431,8 +433,7 @@ class Word_class(SageObject):
             sage: u != w
             True
         """
-        #print '__ne__', self, other, type(self), type(other)
-        return not self.__eq__(other)
+        return not self == other
 
     def _longest_common_prefix_iterator(self, other):
         r"""
@@ -474,17 +475,13 @@ class Word_class(SageObject):
 
         -  ``other`` - word
 
-        -  ``length`` - str or +Infinity (optional, default: ``'unknown'``)
+        -  ``length`` - string (optional, default: ``'unknown'``)
            the length type of the resulting word if known. It may be one of
            the following:
 
            - ``'unknown'``
            - ``'finite'``
-           - ``'infinite'`` or ``Infinity``
-
-        OUTPUT:
-
-        word
+           - ``'infinite'``
 
         EXAMPLES::
 
@@ -541,13 +538,30 @@ class Word_class(SageObject):
             word: abbabaabba
             sage: u.longest_common_prefix(u)
             word: abbabaabba
+
+        Check length::
+
+            sage: w1 = Word(iter('ab'*200))
+            sage: w2 = Word(iter('bcd'*200))
+            sage: w1.longest_common_prefix(w2, length=19)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid argument length (=19)
         """
-        from sage.combinat.words.word import FiniteWord_class
-        if (isinstance(self, FiniteWord_class) or
-            isinstance(other, FiniteWord_class)):
-            length = "finite"
         it = self._longest_common_prefix_iterator(other)
-        return self._parent(it, length=length)
+
+        if length == "finite" or \
+           (length == "unknown" and (self.is_finite() or other.is_finite())):
+            parent = self._parent.factors()
+        elif length == "infinite":
+            parent = self._parent.shift()
+        elif length == "unknown":
+            from sage.combinat.words.words import FiniteOrInfiniteWords
+            parent = FiniteOrInfiniteWords(self._parent.alphabet())
+        else:
+            raise ValueError("invalid argument length (={})".format(length))
+
+        return parent(it)
 
     def _longest_periodic_prefix_iterator(self, period=1):
         r"""
@@ -614,9 +628,12 @@ class Word_class(SageObject):
             sage: Word(lambda n:0).longest_periodic_prefix()
             word: 0000000000000000000000000000000000000000...
         """
-        from sage.combinat.words.word import FiniteWord_class
-        length = 'finite' if isinstance(self, FiniteWord_class) else 'unknown'
-        return self._parent(self._longest_periodic_prefix_iterator(period), length=length)
+        if self.is_finite():
+            parent = self._parent.factors()
+        else:
+            from sage.combinat.words.words import FiniteOrInfiniteWords
+            parent = FiniteOrInfiniteWords(self._parent.alphabet())
+        return parent(self._longest_periodic_prefix_iterator(period))
 
     def is_empty(self):
         r"""
@@ -635,7 +652,7 @@ class Word_class(SageObject):
             False
         """
         try:
-            iter(self).next()
+            next(iter(self))
             return False
         except StopIteration:
             return True
@@ -658,7 +675,7 @@ class Word_class(SageObject):
             sage: from itertools import count
             sage: w = Word(count())
             sage: ir = w._to_integer_iterator()
-            sage: [ir.next() for _ in range(10)]
+            sage: [next(ir) for _ in range(10)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: w = Word(iter("abbacabba"))
             sage: ir = w._to_integer_iterator()
@@ -677,9 +694,9 @@ class Word_class(SageObject):
             sage: list(w._to_integer_iterator(True))
             [1, 2, 2, 3, 3, 3]
         """
-        from sage.combinat.words.words import Words_over_Alphabet
+        from sage.combinat.words.words import FiniteWords, InfiniteWords
         if use_parent_alphabet and\
-           isinstance(self.parent(), Words_over_Alphabet):
+            isinstance(self.parent(), (FiniteWords,InfiniteWords)):
             A = self.parent().alphabet()
             for letter in self:
                 yield A.rank(letter)
@@ -928,7 +945,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -938,7 +955,7 @@ class Word_class(SageObject):
         -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        par = self.parent()
+        par = self.parent().factors()
         w = self[:0]
         for letter in self:
             length_before = w.length()
@@ -1011,7 +1028,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1024,7 +1041,7 @@ class Word_class(SageObject):
             continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
             207-215.
         """
-        parent = self.parent()
+        parent = self.parent().factors()
         ipcw = self[:0]
         lengths = []
         for i, letter in enumerate(self):
@@ -1142,20 +1159,19 @@ class Word_class(SageObject):
             continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
             207-215.
         """
-        from sage.combinat.words.word import FiniteWord_class, InfiniteWord_class
-        if isinstance(self, FiniteWord_class):
-            length = "finite"
-        elif isinstance(self, InfiniteWord_class):
-            length = None
-        else:
-            length = "unknown"
         if algorithm == 'definition':
             it = self._iterated_right_palindromic_closure_iterator(f=f)
         elif algorithm == 'recursive':
             it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
         else:
             raise ValueError("algorithm (=%s) must be either 'definition' or 'recursive'")
-        return self._parent(it, length=length)
+
+        if self.is_finite():
+            return self._parent(it)
+        else:
+            from sage.combinat.words.words import Words
+            parent = Words(self._parent.alphabet())
+            return parent(it)
 
     def prefixes_iterator(self, max_length=None):
         r"""
@@ -1350,11 +1366,10 @@ class Word_class(SageObject):
         elif mod in ZZ:
             alphabet = Integers(mod)
 
-        from sage.combinat.words.word import FiniteWord_class, InfiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             length = "finite"
-        elif isinstance(self, InfiniteWord_class):
-            length = None
+        elif self.length() == Infinity:
+            length = "infinite"
         else:
             length = "unknown"
         from sage.combinat.words.word import Word
@@ -1412,17 +1427,17 @@ class Word_class(SageObject):
         if mod in (None, 0):
             i = iter(self)
             j = iter(self)
-            j.next()
+            next(j)
             while True:
-                yield j.next() - i.next()
+                yield next(j) - next(i)
 
         elif mod in ZZ:
             Zn = Integers(mod)
             i = iter(self)
             j = iter(self)
-            j.next()
+            next(j)
             while True:
-                yield Zn(j.next() - i.next())
+                yield Zn(next(j) - next(i))
 
         else:
             raise TypeError('mod(=%s) must be None or an integer'%mod)
@@ -1480,11 +1495,10 @@ class Word_class(SageObject):
         elif mod in ZZ:
             alphabet = Integers(mod)
 
-        from sage.combinat.words.word import FiniteWord_class, InfiniteWord_class
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             length = "finite"
-        elif isinstance(self, InfiniteWord_class):
-            length = None
+        elif self.length() == Infinity:
+            length = "infinite"
         else:
             length = "unknown"
         from sage.combinat.words.word import Word
@@ -1563,7 +1577,6 @@ class Word_class(SageObject):
         """
         from functools import partial
         from sage.combinat.words.word_generators import words
-        from sage.combinat.words.word import FiniteWord_class, InfiniteWord_class, Word
 
         # The alphabet
         if mod is None and base >= 2:
@@ -1578,13 +1591,14 @@ class Word_class(SageObject):
         it = (f(a) for a in self)
 
         # The length
-        if isinstance(self, FiniteWord_class):
+        if self.is_finite():
             length = "finite"
-        elif isinstance(self, InfiniteWord_class):
+        elif self.length() == Infinity:
             length = None
         else:
             length = "unknown"
 
+        from sage.combinat.words.word import Word
         return Word(it, alphabet=alphabet, length=length, datatype='iter')
 
     def factor_occurrences_iterator(self, fact):
@@ -1605,11 +1619,11 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.factor_occurrences_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             0
-            sage: it.next()
+            sage: next(it)
             12
-            sage: it.next()
+            sage: next(it)
             24
         """
         if fact.is_empty():
@@ -1646,23 +1660,23 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
-            sage: it.next()
+            sage: next(it)
             word: 0110100110010110
-            sage: it.next()
+            sage: next(it)
             word: 01101001
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
         """
         it = self.factor_occurrences_iterator(fact)
-        i = it.next()
+        i = next(it)
         while True:
-            j = it.next()
+            j = next(it)
             yield self[i:j]
             i = j
 
@@ -1688,17 +1702,17 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.complete_return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
-            sage: it.next()
+            sage: next(it)
             word: 011010011001011001101
-            sage: it.next()
+            sage: next(it)
             word: 0110100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
 
         REFERENCES:
@@ -1708,9 +1722,9 @@ class Word_class(SageObject):
         """
         it = self.factor_occurrences_iterator(fact)
         L = fact.length()
-        i = it.next()
+        i = next(it)
         while True:
-            j = it.next()
+            j = next(it)
             yield self[i:j+L]
             i = j
 

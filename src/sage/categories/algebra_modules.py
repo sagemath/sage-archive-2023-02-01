@@ -72,7 +72,7 @@ class AlgebraModules(Category_module):
         """
         EXAMPLES::
 
-            sage: AlgebraModules(QQ[x]).algebra()
+            sage: AlgebraModules(QQ['x']).algebra()
             Univariate Polynomial Ring in x over Rational Field
         """
         return self.base_ring()
@@ -81,7 +81,7 @@ class AlgebraModules(Category_module):
         """
         EXAMPLES::
 
-            sage: AlgebraModules(QQ[x]).super_categories()
+            sage: AlgebraModules(QQ['x']).super_categories()
             [Category of modules over Univariate Polynomial Ring in x over Rational Field]
         """
         R = self.algebra()

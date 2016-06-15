@@ -10,6 +10,7 @@ AUTHORS:
   lines, and tableaux of skew partition, composition, and
   skew/composition/partition/tableaux tuple shape.
 """
+from __future__ import print_function
 
 from string import Template
 from sage.combinat.tableau import Tableaux
@@ -39,21 +40,21 @@ def tex_from_array(array, with_lines=True):
     EXAMPLES::
 
         sage: from sage.combinat.output import tex_from_array
-        sage: print tex_from_array([[1,2,3],[4,5]])
+        sage: print(tex_from_array([[1,2,3],[4,5]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
         \lr{1}&\lr{2}&\lr{3}\\\cline{1-3}
         \lr{4}&\lr{5}\\\cline{1-2}
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5]], with_lines=False)
+        sage: print(tex_from_array([[1,2,3],[4,5]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\\
         \lr{1}&\lr{2}&\lr{3}\\
         \lr{4}&\lr{5}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5,6,7],[8]])
+        sage: print(tex_from_array([[1,2,3],[4,5,6,7],[8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-3}
         \lr{1}&\lr{2}&\lr{3}\\\cline{1-4}
@@ -61,7 +62,7 @@ def tex_from_array(array, with_lines=True):
         \lr{8}\\\cline{1-1}
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5,6,7],[8]], with_lines=False)
+        sage: print(tex_from_array([[1,2,3],[4,5,6,7],[8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\\
         \lr{1}&\lr{2}&\lr{3}\\
@@ -69,7 +70,7 @@ def tex_from_array(array, with_lines=True):
         \lr{8}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[8]])
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{3-3}
         &&\lr{3}\\\cline{2-4}
@@ -77,7 +78,7 @@ def tex_from_array(array, with_lines=True):
         \lr{8}\\\cline{1-1}
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[None,8]])
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[None,8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{3-3}
         &&\lr{3}\\\cline{2-4}
@@ -85,7 +86,7 @@ def tex_from_array(array, with_lines=True):
         &\lr{8}\\\cline{2-2}
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[8]], with_lines=False)
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\\
         &&\lr{3}\\
@@ -93,7 +94,7 @@ def tex_from_array(array, with_lines=True):
         \lr{8}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[None,8]], with_lines=False)
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[None,8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\\
         &&\lr{3}\\
@@ -102,21 +103,21 @@ def tex_from_array(array, with_lines=True):
         \end{array}$}
         }
         sage: Tableaux.global_options(convention="french")
-        sage: print tex_from_array([[1,2,3],[4,5]])
+        sage: print(tex_from_array([[1,2,3],[4,5]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-2}
         \lr{4}&\lr{5}\\\cline{1-3}
         \lr{1}&\lr{2}&\lr{3}\\\cline{1-3}
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5]], with_lines=False)
+        sage: print(tex_from_array([[1,2,3],[4,5]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\\
         \lr{4}&\lr{5}\\
         \lr{1}&\lr{2}&\lr{3}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5,6,7],[8]])
+        sage: print(tex_from_array([[1,2,3],[4,5,6,7],[8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{1-1}
         \lr{8}\\\cline{1-4}
@@ -124,7 +125,7 @@ def tex_from_array(array, with_lines=True):
         \lr{1}&\lr{2}&\lr{3}\\\cline{1-3}
         \end{array}$}
         }
-        sage: print tex_from_array([[1,2,3],[4,5,6,7],[8]], with_lines=False)
+        sage: print(tex_from_array([[1,2,3],[4,5,6,7],[8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\\
         \lr{8}\\
@@ -132,7 +133,7 @@ def tex_from_array(array, with_lines=True):
         \lr{1}&\lr{2}&\lr{3}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[8]])
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{1-1}
         \lr{8}\\\cline{1-4}
@@ -140,7 +141,7 @@ def tex_from_array(array, with_lines=True):
         &&\lr{3}\\\cline{3-3}
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[None,8]])
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[None,8]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{2-2}
         &\lr{8}\\\cline{2-4}
@@ -148,7 +149,7 @@ def tex_from_array(array, with_lines=True):
         &&\lr{3}\\\cline{3-3}
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[8]], with_lines=False)
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\\
         \lr{8}\\
@@ -156,7 +157,7 @@ def tex_from_array(array, with_lines=True):
         &&\lr{3}\\
         \end{array}$}
         }
-        sage: print tex_from_array([[None,None,3],[None,5,6,7],[None,8]], with_lines=False)
+        sage: print(tex_from_array([[None,None,3],[None,5,6,7],[None,8]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\\
         &\lr{8}\\
@@ -189,7 +190,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
     EXAMPLES::
 
         sage: from sage.combinat.output import tex_from_array_tuple
-        sage: print tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]])
+        sage: print(tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
         \lr{1}&\lr{2}&\lr{3}\\\cline{1-3}
@@ -200,7 +201,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         \lr{9}\\\cline{1-1}
         \end{array}$}
         }
-        sage: print tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]], with_lines=False)
+        sage: print(tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\\
         \lr{1}&\lr{2}&\lr{3}\\
@@ -212,7 +213,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         \end{array}$}
         }
         sage: Tableaux.global_options(convention="french")
-        sage: print tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]])
+        sage: print(tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]]))
         {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-2}
         \lr{4}&\lr{5}\\\cline{1-3}
@@ -223,7 +224,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         &\lr{6}&\lr{7}\\\cline{2-3}
         \end{array}$}
         }
-        sage: print tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]], with_lines=False)
+        sage: print(tex_from_array_tuple([[[1,2,3],[4,5]],[],[[None,6,7],[None,8],[9]]], with_lines=False))
         {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
         \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\\
         \lr{4}&\lr{5}\\
@@ -252,7 +253,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
     principe, be anything but probably should be strings or integers of similar
     width. A row consisting completely of ``None``'s is allowed.
 
-    INPUTS:
+    INPUT:
 
     - ``array`` -- The array
 
@@ -265,7 +266,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
     EXAMPLES::
 
         sage: array=[[None, 2,3,4],[None,None],[5,6,7,8]]
-        sage: print sage.combinat.output.tex_from_skew_array(array)
+        sage: print(sage.combinat.output.tex_from_skew_array(array))
         \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\\
         &\lr{2}&\lr{3}&\lr{4}\\
         &\\

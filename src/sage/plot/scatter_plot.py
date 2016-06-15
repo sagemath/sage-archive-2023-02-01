@@ -121,10 +121,12 @@ class ScatterPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: scatter_plot([[n,n] for n in range(5)])
+            Graphics object consisting of 1 graphics primitive
         """
         from matplotlib.pyplot import scatter
         options = self.options()
@@ -162,10 +164,12 @@ def scatter_plot(datalist, **options):
     EXAMPLES::
 
         sage: scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
+        Graphics object consisting of 1 graphics primitive
 
     Extra options will get passed on to :meth:`~Graphics.show`, as long as they are valid::
 
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green', ymax=100)
+        Graphics object consisting of 1 graphics primitive
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green').show(ymax=100) # These are equivalent
     """
     import numpy

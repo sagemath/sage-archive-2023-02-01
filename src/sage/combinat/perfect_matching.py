@@ -44,19 +44,20 @@ REFERENCES:
     .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
        orthogonal Weingarten functions, :arxiv:`0903.5143`.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division, print_function
 
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -107,7 +108,7 @@ class PerfectMatching(ElementWrapper):
     __lt__ = ElementWrapper._lt_by_value
     #During the creation of the instance of the class, the function
     #__classcall_private__ will be called instead of __init__ directly.
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, p):
@@ -174,7 +175,7 @@ class PerfectMatching(ElementWrapper):
         if (isinstance(p, list) or isinstance(p, tuple)) and (
                 all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
             objects = Set(flatten(p))
-            data = (map(tuple, p))
+            data = [tuple(_) for _ in p]
             #check if the data are correct
             if not all([len(t) == 2 for t in data]):
                 raise ValueError("%s is not a valid perfect matching:\n"
@@ -185,7 +186,7 @@ class PerfectMatching(ElementWrapper):
         # Second case: p is a permutation or a list of integers, we have to
         # check if it is a fix-point-free involution.
         elif ((isinstance(p, list) and
-               all(map(lambda x: (isinstance(x, Integer) or isinstance(x, int)), p)))
+               all(((isinstance(x, Integer) or isinstance(x, int)) for x in p)))
               or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)
@@ -222,7 +223,7 @@ class PerfectMatching(ElementWrapper):
             sage: list(PerfectMatching([3,8,1,7,6,5,4,2]))
             [(1, 3), (2, 8), (4, 7), (5, 6)]
         """
-        return self.value.__iter__()
+        return iter(self.value)
 
     def _repr_(self):
         r"""
@@ -241,11 +242,21 @@ class PerfectMatching(ElementWrapper):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = PerfectMatching([(1,3),(2,5),(4,6)])
-            sage: latex(P) #indirect doctest # optional - requires dot2tex
-            \begin{tikzpture}
+            sage: latex(P)  # optional - dot2tex; random
+            \begin{tikzpicture}
+            ...
+            \end{tikzpicture}
+
+        TESTS:
+
+        Above we added ``random`` since warnings might be displayed
+        once. The second time, there should be no warnings::
+
+            sage: print(P._latex_())  # optional - dot2tex
+            \begin{tikzpicture}
             ...
             \end{tikzpicture}
         """
@@ -293,7 +304,7 @@ class PerfectMatching(ElementWrapper):
                 return False
         except AttributeError:
             return False
-        return Set(map(Set, self.value)) == Set(map(Set, other.value))
+        return Set([Set(_) for _ in self.value]) == Set([Set(_) for _ in other.value])
 
     def size(self):
         r"""
@@ -343,7 +354,7 @@ class PerfectMatching(ElementWrapper):
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
         """
-        return self.parent()(map(lambda t: tuple(map(p, t)), self.value))
+        return self.parent()([tuple(map(p, t)) for t in self.value])
 
     def loops_iterator(self, other=None):
         r"""
@@ -365,9 +376,9 @@ class PerfectMatching(ElementWrapper):
             sage: o = PerfectMatching([(1, 7), (2, 4), (3, 8), (5, 6)])
             sage: p = PerfectMatching([(1, 6), (2, 7), (3, 4), (5, 8)])
             sage: it = o.loops_iterator(p)
-            sage: it.next()
+            sage: next(it)
             [1, 7, 2, 4, 3, 8, 5, 6]
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -498,9 +509,9 @@ class PerfectMatching(ElementWrapper):
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
             [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: it = n.crossings_iterator();
-            sage: it.next()
+            sage: next(it)
             ((1, 3), (2, 8))
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -597,7 +608,7 @@ class PerfectMatching(ElementWrapper):
         """
         it = self.crossings_iterator()
         try:
-            it.next()
+            next(it)
         except StopIteration:
             return True
         else:
@@ -621,11 +632,11 @@ class PerfectMatching(ElementWrapper):
 
             sage: n = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
             sage: it = n.nestings_iterator();
-            sage: it.next()
+            sage: next(it)
             ((1, 6), (3, 5))
-            sage: it.next()
+            sage: next(it)
             ((2, 7), (3, 5))
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -726,7 +737,7 @@ class PerfectMatching(ElementWrapper):
         """
         it = self.nestings_iterator()
         try:
-            it.next()
+            next(it)
         except StopIteration:
             return True
         else:
@@ -797,6 +808,36 @@ class PerfectMatching(ElementWrapper):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self.value)
+
+    def to_non_crossing_set_partition(self):
+        r"""
+        Returns the noncrossing set partition (on half as many elements) 
+        corresponding to the perfect matching if the perfect matching is 
+        noncrossing, and otherwise gives an error.
+
+        OUTPUT:
+
+            The realization of ``self`` as a noncrossing set partition.
+
+        EXAMPLES::
+
+            sage: PerfectMatching([[1,3], [4,2]]).to_non_crossing_set_partition()
+            Traceback (most recent call last):
+            ...
+            ValueError: matching must be non-crossing
+            sage: PerfectMatching([[1,4], [3,2]]).to_non_crossing_set_partition()
+            {{1, 2}}
+            sage: PerfectMatching([]).to_non_crossing_set_partition()
+            {}
+        """
+        from sage.combinat.set_partition import SetPartition        
+        if not self.is_non_crossing():
+            raise ValueError("matching must be non-crossing")
+        else:
+            perm = self.to_permutation()
+            perm2 = Permutation([perm[2 * i] // 2
+                                 for i in range(len(perm) // 2)])
+        return SetPartition(perm2.cycle_tuples())
 
 
 class PerfectMatchings(UniqueRepresentation, Parent):

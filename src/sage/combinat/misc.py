@@ -15,7 +15,9 @@ Miscellaneous
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.misc.misc import prod
+from __future__ import print_function
+
+from sage.misc.all import prod
 
 class DoublyLinkedList():
     """
@@ -237,7 +239,7 @@ class IterableFunctionCall:
 
     This does not work::
 
-        sage: for z in f: print z
+        sage: for z in f: print(z)
         Traceback (most recent call last):
         ...
         TypeError: 'function' object is not iterable
@@ -247,7 +249,7 @@ class IterableFunctionCall:
 
         sage: from sage.combinat.misc import IterableFunctionCall
         sage: g = IterableFunctionCall(f)
-        sage: for z in g: print z
+        sage: for z in g: print(z)
         a
         b
 
@@ -257,7 +259,7 @@ class IterableFunctionCall:
 
         sage: def f(n, m): yield 'a' * n; yield 'b' * m; yield 'foo'
         sage: g = IterableFunctionCall(f, 2, 3)
-        sage: for z in g: print z
+        sage: for z in g: print(z)
         aa
         bbb
         foo
@@ -293,10 +295,6 @@ class IterableFunctionCall:
             'Iterable function call <built-in function iter> with args=([1, 2, 3],) and kwargs={}'
         """
         return "Iterable function call %s with args=%s and kwargs=%s"%(self.f, self.args, self.kwargs)
-
-
-
-
 
 def check_integer_list_constraints(l, **kwargs):
     """
@@ -344,7 +342,6 @@ def check_integer_list_constraints(l, **kwargs):
         else:
             return []
 
-
     min_part = kwargs.get('min_part', None)
     max_part = kwargs.get('max_part', None)
 
@@ -359,7 +356,7 @@ def check_integer_list_constraints(l, **kwargs):
     inner = kwargs.get('inner', None)
     outer = kwargs.get('outer', None)
 
-    #Preprocess the constraints
+    # Preprocess the constraints
     if outer is not None:
         max_length = len(outer)
         for i in range(max_length):

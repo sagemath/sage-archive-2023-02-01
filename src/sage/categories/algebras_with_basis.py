@@ -46,7 +46,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.base_ring()
         Rational Field
         sage: A.basis().keys()
-        Finite Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
 
         sage: (a,b,c) = A.algebra_generators()
         sage: a^3, b^2
@@ -64,6 +64,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -116,8 +117,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         from sage.categories.examples.algebras_with_basis import Example
         return Example(self.base_ring(), alphabet)
 
+    Filtered = LazyImport('sage.categories.filtered_algebras_with_basis', 'FilteredAlgebrasWithBasis')
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_algebras_with_basis', 'FiniteDimensionalAlgebrasWithBasis')
     Graded = LazyImport('sage.categories.graded_algebras_with_basis', 'GradedAlgebrasWithBasis')
+    Super = LazyImport('sage.categories.super_algebras_with_basis', 'SuperAlgebrasWithBasis')
 
     class ParentMethods:
 
@@ -193,11 +196,33 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def hochschild_complex(self, M):
+            """
+            Return the Hochschild complex of ``self`` with coefficients
+            in ``M``.
+
+            .. SEEALSO::
+
+                :class:`~sage.homology.hochschild_complex.HochschildComplex`
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: A = algebras.DifferentialWeyl(R)
+                sage: H = A.hochschild_complex(A)
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: T = SGA.trivial_representation()
+                sage: H = SGA.hochschild_complex(T)
+            """
+            from sage.homology.hochschild_complex import HochschildComplex
+            return HochschildComplex(self, M)
+
     class ElementMethods:
 
         def __invert__(self):
             """
-            Returns the inverse of self if self is a multiple of one,
+            Return the inverse of ``self`` if ``self`` is a multiple of one,
             and one is in the basis of this algebra. Otherwise throws
             an error.
 
@@ -205,6 +230,14 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             may be invertible elements in the algebra that can't be
             inversed this way. It is correct though for graded
             connected algebras with basis.
+
+            .. WARNING::
+
+                This might produce a result which does not belong to
+                the parent of ``self``, yet believes to do so. For
+                instance, inverting 2 times the unity will produce 1/2
+                times the unity, even if 1/2 is not in the base ring.
+                Handle with care.
 
             EXAMPLES::
 
@@ -221,17 +254,18 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ValueError: cannot invert self (= B[word: a])
             """
             # FIXME: make this generic
-            mcs = self._monomial_coefficients
+            mcs = self.monomial_coefficients(copy=False)
             one = self.parent().one_basis()
             if len(mcs) == 1 and one in mcs:
-                return self.parent()( ~mcs[ one ] )
+                return self.parent().term(one, ~mcs[one])
             else:
                 raise ValueError("cannot invert self (= %s)"%self)
 
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian products of algebras with basis
+        The category of algebras with basis, constructed as Cartesian
+        products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
         See comment in :class:`Algebras.CartesianProducts
@@ -240,7 +274,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):
             """
-            A cartesian product of algebras with basis is endowed with
+            A Cartesian product of algebras with basis is endowed with
             a natural algebra with basis structure.
 
             EXAMPLES::
@@ -248,7 +282,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of algebras with basis over Rational Field, Category of Cartesian products of algebras over Rational Field, Category of Cartesian products of modules with basis over Rational Field]
+                [Category of algebras with basis over Rational Field,
+                 Category of Cartesian products of algebras over Rational Field,
+                 Category of Cartesian products of vector spaces with basis over Rational Field]
             """
             return [self.base_category()]
 
@@ -256,9 +292,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_from_cartesian_product_of_one_basis(self):
                 """
-                Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
+                Returns the one of this Cartesian product of algebras, as per ``Monoids.ParentMethods.one``
 
-                It is constructed as the cartesian product of the ones of the
+                It is constructed as the Cartesian product of the ones of the
                 summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
 
                 This implementation does not require multiplication by
@@ -320,7 +356,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).TensorProducts().super_categories()
                 [Category of algebras with basis over Rational Field,
                  Category of tensor products of algebras over Rational Field,
-                 Category of tensor products of modules with basis over Rational Field]
+                 Category of tensor products of vector spaces with basis over Rational Field]
             """
             return [self.base_category()]
 

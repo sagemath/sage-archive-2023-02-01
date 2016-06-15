@@ -61,12 +61,11 @@ algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.algebras.algebra import Algebra
-#from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
+from sage.structure.element import Element
 
 # TODO: migrate this completely to the combinatorial free module + categories framework
 
@@ -81,7 +80,8 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 #         be called directly, but only through the parent combinatorial
 #         algebra's __call__ method.
 
-#         TESTS:
+#         TESTS::
+#
 #             sage: s = SFASchur(QQ)
 #             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
 #             2*s[2, 1]
@@ -133,7 +133,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 
             sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: a = 2 + s([3,2,1])
-            sage: print a.__repr__()
+            sage: print(a.__repr__())
             2*s[] + s[3, 2, 1]
         """
         v = sorted(self._monomial_coefficients.items())
@@ -218,7 +218,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         R = self.base_ring()
         eclass = self._element_class
         #Coerce elements of the base ring
-        if not hasattr(x, 'parent'):
+        if not isinstance(x, Element):
             x = R(x)
         if x.parent() == R:
             if x == R(0):

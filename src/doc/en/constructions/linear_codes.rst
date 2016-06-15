@@ -22,12 +22,12 @@ Sage can compute Hamming codes
 
 ::
 
-    sage: C = codes.HammingCode(3,GF(3))
+    sage: C = codes.HammingCode(GF(3), 3)
     sage: C
-    Linear code of length 13, dimension 10 over Finite Field of size 3
+    [13, 10] Hamming Code over Finite Field of size 3
     sage: C.minimum_distance()
     3
-    sage: C.gen_mat()
+    sage: C.generator_matrix()
     [1 0 0 0 0 0 0 0 0 0 1 2 0]
     [0 1 0 0 0 0 0 0 0 0 0 1 2]
     [0 0 1 0 0 0 0 0 0 0 1 0 2]
@@ -51,7 +51,7 @@ the four Golay codes
     Linear code of length 12, dimension 6 over Finite Field of size 3
     sage: C.minimum_distance()
     6
-    sage: C.gen_mat()
+    sage: C.generator_matrix()
     [1 0 0 0 0 0 2 0 1 2 1 2]
     [0 1 0 0 0 0 1 2 2 2 1 0]
     [0 0 1 0 0 0 1 1 1 0 1 1]
@@ -74,23 +74,23 @@ a check matrix, and the dual code:
 
 ::
 
-    sage: C = codes.HammingCode(3,GF(2))
+    sage: C = codes.HammingCode(GF(2), 3)
     sage: Cperp = C.dual_code()
     sage: C; Cperp
-    Linear code of length 7, dimension 4 over Finite Field of size 2
+    [7, 4] Hamming Code over Finite Field of size 2
     Linear code of length 7, dimension 3 over Finite Field of size 2
-    sage: C.gen_mat()
+    sage: C.generator_matrix()
       [1 0 0 0 0 1 1]
       [0 1 0 0 1 0 1]
       [0 0 1 0 1 1 0]
       [0 0 0 1 1 1 1]
-    sage: C.check_mat()
+    sage: C.parity_check_matrix()
       [1 0 1 0 1 0 1]
       [0 1 1 0 0 1 1]
       [0 0 0 1 1 1 1]
     sage: C.dual_code()
     Linear code of length 7, dimension 3 over Finite Field of size 2
-    sage: C = codes.HammingCode(3,GF(4,'a'))
+    sage: C = codes.HammingCode(GF(4,'a'), 3)
     sage: C.dual_code()
     Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
 
@@ -102,27 +102,23 @@ implemented.
 
 ::
 
-    sage: C = codes.HammingCode(3,GF(2))
+    sage: C = codes.HammingCode(GF(2), 3)
     sage: MS = MatrixSpace(GF(2),1,7)
     sage: F = GF(2); a = F.gen()
-    sage: v1 = [a,a,F(0),a,a,F(0),a]
-    sage: C.decode(v1)
-     (1, 1, 0, 1, 0, 0, 1)
-    sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
-    sage: C.decode(v2)
-     (1, 1, 0, 1, 0, 0, 1)
-    sage: v3 = vector([a,a,F(0),a,a,F(0),a])
-    sage: c = C.decode(v3); c
-     (1, 1, 0, 1, 0, 0, 1)
+    sage: v = vector([a,a,F(0),a,a,F(0),a])
+    sage: c = C.decode_to_code(v, "Syndrome"); c
+    (1, 1, 0, 1, 0, 0, 1)
+    sage: c in C
+    True
 
 To plot the (histogram of) the weight distribution of a code, one
 can use the matplotlib package included with Sage:
 
 ::
 
-    sage: C = codes.HammingCode(4,GF(2))
+    sage: C = codes.HammingCode(GF(2), 4)
     sage: C
-     Linear code of length 15, dimension 11 over Finite Field of size 2
+    [15, 11] Hamming Code over Finite Field of size 2
     sage: w = C.weight_distribution(); w
      [1, 0, 0, 35, 105, 168, 280, 435, 435, 280, 168, 105, 35, 0, 0, 1]
     sage: J = range(len(w))
@@ -307,3 +303,4 @@ The idea is that a cryptosystem is a map
 plaintext (or message) space, and ciphertext space, respectively.
 :math:`E` is presumed to be injective, so ``e.key()`` returns the
 pre-image key.
+

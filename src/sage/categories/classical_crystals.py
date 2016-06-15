@@ -38,6 +38,7 @@ class ClassicalCrystals(Category_singleton):
         sage: B = ClassicalCrystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -84,6 +85,23 @@ class ClassicalCrystals(Category_singleton):
             Highest weight crystal of type A_3 of highest weight omega_1
         """
         return Crystals().example(n)
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of classical crystals defines no
+        additional structure: it only states that its objects are
+        `U_q(\mathfrak{g})`-crystals, where `\mathfrak{g}` is of
+        finite type.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: ClassicalCrystals().additional_structure()
+        """
+        return None
 
 
     class ParentMethods:
@@ -164,7 +182,7 @@ class ClassicalCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [D1974] M. Demazure, Desingularisation des varietes de Schubert,
+            .. [D1974] \M. Demazure, Desingularisation des varietes de Schubert,
                Ann. E. N. S., Vol. 6, (1974), p. 163-172
 
             .. [M2009] Sarah Mason, An Explicit Construction of Type A Demazure Atoms,
@@ -265,6 +283,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(T).run(verbose = True)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()
@@ -290,6 +309,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(U).run(verbose = True)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()
@@ -340,6 +360,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(fb4(1,0,1,0)).run(verbose = True)  # long time (8s on sage.math, 2011)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()

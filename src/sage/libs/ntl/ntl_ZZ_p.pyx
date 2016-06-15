@@ -12,14 +12,14 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -28,9 +28,13 @@ from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
+
+from sage.misc.randstate cimport randstate, current_randstate
+
 
 ZZ_sage = IntegerRing()
 
@@ -38,9 +42,10 @@ def ntl_ZZ_p_random_element(v):
     """
     Return a random number modulo p.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
-        8
+        9
     """
     current_randstate().set_seed_ntl(False)
 
@@ -59,7 +64,7 @@ def ntl_ZZ_p_random_element(v):
 # ZZ_p_c: integers modulo p
 #
 ##############################################################################
-cdef class ntl_ZZ_p:
+cdef class ntl_ZZ_p(object):
     r"""
     The \class{ZZ_p} class is used to represent integers modulo $p$.
     The modulus $p$ may be any positive integer, not necessarily prime.
@@ -93,7 +98,7 @@ cdef class ntl_ZZ_p:
         AUTHOR: Joel B. Mohler (2007-06-14)
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a ZZ_p."
+            raise ValueError("You must specify a modulus when creating a ZZ_p.")
 
         #self.c.restore_c()  ## The context was restored in __new__
 
@@ -101,12 +106,12 @@ cdef class ntl_ZZ_p:
         cdef long failed
         if v is not None:
             sig_on()
-            if PY_TYPE_CHECK(v, ntl_ZZ_p):
+            if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
-            elif PyInt_Check(v):
+            elif isinstance(v, int):
                 self.x = int_to_ZZ_p(v)
-            elif PyLong_Check(v):
-                ZZ_set_pylong(temp, v)
+            elif isinstance(v, long):
+                PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
@@ -127,7 +132,7 @@ cdef class ntl_ZZ_p:
         ## the error checking in __init__ will prevent##
         ## you from constructing an ntl_ZZ_p          ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_ZZ_p) without      ##
+        ## could do r = ntl_ZZ_p.__new__(ntl_ZZ_p) without
         ## first restoring a ZZ_pContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -135,24 +140,18 @@ cdef class ntl_ZZ_p:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            ZZ_p_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_ZZ_pContext_class ):
+        if isinstance(modulus, ntl_ZZ_pContext_class):
             self.c = <ntl_ZZ_pContext_class>modulus
             self.c.restore_c()
-            ZZ_p_construct(&self.x)
-        elif modulus is not None:
+        else:
             self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(modulus)
             self.c.restore_c()
-            ZZ_p_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_p_destruct(&self.x)
 
     cdef ntl_ZZ_p _new(self):
         cdef ntl_ZZ_p r
         self.c.restore_c()
-        r = PY_NEW(ntl_ZZ_p)
+        r = ntl_ZZ_p.__new__(ntl_ZZ_p)
         r.c = self.c
         return r
 
@@ -192,32 +191,34 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         return ZZ_p_to_PyString(&self.x)
 
-    def __richcmp__(ntl_ZZ_p self, ntl_ZZ_p other, op):
+    def __richcmp__(ntl_ZZ_p self, other, int op):
         r"""
-        EXAMPLES:
+        Compare self to other.
+
+        EXAMPLES::
+
             sage: c = ntl.ZZ_pContext(11)
             sage: ntl.ZZ_p(12r, c) == ntl.ZZ_p(1, c)
             True
             sage: ntl.ZZ_p(35r, c) == ntl.ZZ_p(1, c)
             False
+            sage: "2" == ntl.ZZ_p(35r, c)
+            True
+            sage: ntl.ZZ_p(35r, c) == 2
+            True
         """
         self.c.restore_c()
-        if op != 2 and op != 3:
-            raise TypeError, "Integers mod p are not ordered."
 
-        cdef int t
-#        cdef ntl_ZZ_p y
-#        if not isinstance(other, ntl_ZZ_p):
-#            other = ntl_ZZ_p(other)
-#        y = other
-        sig_on()
-        t = ZZ_p_equal(self.x, other.x)
-        sig_off()
-        # t == 1 if self == other
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("integers mod p are not ordered")
+
+        cdef ntl_ZZ_p b
+        try:
+            b = <ntl_ZZ_p?>other
+        except TypeError:
+            b = ntl_ZZ_p(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __invert__(ntl_ZZ_p self):
         r"""
@@ -242,10 +243,10 @@ cdef class ntl_ZZ_p:
         """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = self._new()
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         self.c.restore_c()
         ZZ_p_mul(r.x, self.x, y.x)
@@ -260,10 +261,10 @@ cdef class ntl_ZZ_p:
             sage: y-x
             3
         """
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_p r = self._new()
         self.c.restore_c()
         ZZ_p_sub(r.x, self.x, (<ntl_ZZ_p>other).x)
@@ -278,10 +279,10 @@ cdef class ntl_ZZ_p:
         """
         cdef ntl_ZZ_p y
         cdef ntl_ZZ_p r = ntl_ZZ_p(modulus=self.c)
-        if not PY_TYPE_CHECK(other, ntl_ZZ_p):
+        if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         y = other
         sig_on()
         self.c.restore_c()
@@ -348,9 +349,9 @@ cdef class ntl_ZZ_p:
             sage: c = ntl.ZZ_pContext(20)
             sage: x = ntl.ZZ_p(42,modulus=c)
             sage: i = x._get_as_int_doctest()
-            sage: print i
+            sage: i
             2
-            sage: print type(i)
+            sage: type(i)
             <type 'int'>
         """
         self.c.restore_c()
@@ -414,6 +415,34 @@ cdef class ntl_ZZ_p:
         ZZ_p_modulus( &r.x, &self.x )
         return r
 
+    def lift_centered(self):
+        """
+        Compute a representative of ``self`` in `(-n/2 , n/2]` as an
+        ``ntl.ZZ`` object.
+
+        OUTPUT:
+
+        - A ``ntl.ZZ`` object `r` such that  `-n/2 < r \\leq n/2` and `Mod(r, n) == self`.
+
+        EXAMPLES::
+
+            sage: x = ntl.ZZ_p(8, 18)
+            sage: x.lift_centered()
+            8
+            sage: type(x.lift_centered())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+            sage: x = ntl.ZZ_p(12, 18)
+            sage: x.lift_centered()
+            -6
+            sage: type(x.lift_centered())
+            <type 'sage.libs.ntl.ntl_ZZ.ntl_ZZ'>
+        """
+        cdef ntl_ZZ r = self.lift()
+        cdef ntl_ZZ m = self.modulus()
+        if r*2 > m:
+            r -= m
+        return r
+
     def _integer_(self, ZZ=None):
         """
         Return a lift of self as a Sage integer.
@@ -450,5 +479,3 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         rep = ZZ_p_rep(self.x)
         return IntegerModRing(self.modulus()._integer_())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
-
-    # todo: add wrapper for int_to_ZZ_p in wrap.cc?

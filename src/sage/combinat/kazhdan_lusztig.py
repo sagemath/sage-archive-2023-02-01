@@ -15,6 +15,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.functions.other import floor
@@ -43,14 +44,14 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
     REFERENCES:
 
-    .. [KL79] D. Kazhdan and G. Lusztig. *Representations of Coxeter
+    .. [KL79] \D. Kazhdan and G. Lusztig. *Representations of Coxeter
        groups and Hecke algebras*. Invent. Math. **53** (1979).
        no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
 
-    .. [Dy93] M. J. Dyer. *Hecke algebras and shellings of Bruhat
+    .. [Dy93] \M. J. Dyer. *Hecke algebras and shellings of Bruhat
        intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
 
-    .. [BB05] A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+    .. [BB05] \A. Bjorner, F. Brenti. *Combinatorics of Coxeter
        groups*. New York: Springer, 2005.
 
     EXAMPLES::
@@ -66,7 +67,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
         sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
-        1 + q
+        q + 1
     """
     def __init__(self, W, q, trace=False):
         """
@@ -126,12 +127,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         if (s*x).length() < x.length():
             ret = self.R(s*x,s*y)
             if self._trace:
-                print "  R(%s,%s)=%s"%(x, y, ret)
+                print("  R(%s,%s)=%s" % (x, y, ret))
             return ret
         else:
             ret = (self._q-1)*self.R(s*x,y)+self._q*self.R(s*x,s*y)
             if self._trace:
-                print "  R(%s,%s)=%s"%(x, y, ret)
+                print("  R(%s,%s)=%s" % (x, y, ret))
             return ret
 
     @cached_method
@@ -167,12 +168,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         if (x * s).length() < x.length():
             ret = self.R_tilde(x * s, y * s)
             if self._trace:
-                print " R_tilde(%s,%s)=%s" % (x, y, ret)
+                print(" R_tilde(%s,%s)=%s" % (x, y, ret))
             return ret
         else:
             ret = self.R_tilde(x * s, y * s) + self._q * self.R_tilde(x, y * s)
             if self._trace:
-                print " R_tilde(%s,%s)=%s" % (x, y, ret)
+                print(" R_tilde(%s,%s)=%s" % (x, y, ret))
             return ret
 
     @cached_method
@@ -218,6 +219,5 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
         tr = floor((y.length()-x.length()+1)/2)
         ret = p.truncate(tr)
         if self._trace:
-            print "    P({},{})={}".format(x, y, ret)
+            print("    P({},{})={}".format(x, y, ret))
         return ret
-

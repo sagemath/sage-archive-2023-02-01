@@ -17,13 +17,16 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
+from sage.misc.prandom import randint
+from sage.misc.decorators import rename_keyword
 
-def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
+@rename_keyword(deprecation=19559 , method='algorithm')
+def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
     r"""
     Returns a random graph on `n` nodes. Each edge is inserted independently
     with probability `p`.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of nodes of the graph
 
@@ -33,26 +36,26 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
       time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
-      for generating large sparse graphs. It is faster than other methods for
+      for generating large sparse graphs. It is faster than other algorithms for
       *LARGE* instances (try it to know whether it is useful for you).
 
-    - ``method`` -- By default (```method='Sage'``), this function uses the
-      method implemented in ```sage.graphs.graph_generators_pyx.pyx``. When
-      ``method='networkx'``, this function calls the NetworkX function
+    - ``algorithm`` -- By default (```algorithm='Sage'``), this function uses the
+      algorithm implemented in ```sage.graphs.graph_generators_pyx.pyx``. When
+      ``algorithm='networkx'``, this function calls the NetworkX function
       ``fast_gnp_random_graph``, unless ``fast=False``, then
-      ``gnp_random_graph``. Try them to know which method is the best for
+      ``gnp_random_graph``. Try them to know which algorithm is the best for
       you. The ``fast`` parameter is not taken into account by the 'Sage'
-      method so far.
+      algorithm so far.
 
     REFERENCES:
 
-    .. [ErdRen1959] P. Erdos and A. Renyi. On Random Graphs, Publ.
+    .. [ErdRen1959] \P. Erdos and A. Renyi. On Random Graphs, Publ.
        Math. 6, 290 (1959).
 
-    .. [Gilbert1959] E. N. Gilbert. Random Graphs, Ann. Math. Stat.,
+    .. [Gilbert1959] \E. N. Gilbert. Random Graphs, Ann. Math. Stat.,
        30, 1141 (1959).
 
-    .. [BatBra2005] V. Batagelj and U. Brandes. Efficient generation of
+    .. [BatBra2005] \V. Batagelj and U. Brandes. Efficient generation of
        large random networks. Phys. Rev. E, 71, 036113, 2005.
 
     PLOTTING: When plotting, this graph will use the default spring-layout
@@ -89,14 +92,14 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     TESTS::
 
-        sage: graphs.RandomGNP(50,.2,method=50)
+        sage: graphs.RandomGNP(50,.2,algorithm=50)
         Traceback (most recent call last):
         ...
-        ValueError: 'method' must be equal to 'networkx' or to 'Sage'.
+        ValueError: 'algorithm' must be equal to 'networkx' or to 'Sage'.
         sage: set_random_seed(0)
-        sage: graphs.RandomGNP(50,.2, method="Sage").size()
+        sage: graphs.RandomGNP(50,.2, algorithm="Sage").size()
         243
-        sage: graphs.RandomGNP(50,.2, method="networkx").size()
+        sage: graphs.RandomGNP(50,.2, algorithm="networkx").size()
         258
     """
     if n < 0:
@@ -110,19 +113,19 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
         from sage.graphs.generators.basic import CompleteGraph
         return CompleteGraph(n)
 
-    if method == 'networkx':
+    if algorithm == 'networkx':
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed=seed)
         else:
             G = networkx.gnp_random_graph(n, p, seed=seed)
         return Graph(G)
-    elif method in ['Sage', 'sage']:
+    elif algorithm in ['Sage', 'sage']:
         # We use the Sage generator
         from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
         return sageGNP(n, p)
     else:
-        raise ValueError("'method' must be equal to 'networkx' or to 'Sage'.")
+        raise ValueError("'algorithm' must be equal to 'networkx' or to 'Sage'.")
 
 def RandomBarabasiAlbert(n, m, seed=None):
     u"""
@@ -178,7 +181,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
-def RandomBipartite(n1,n2, p):
+def RandomBipartite(n1, n2, p):
     r"""
     Returns a bipartite graph with `n1+n2` vertices
     such that any edge from `[n1]` to `[n2]` exists
@@ -186,7 +189,7 @@ def RandomBipartite(n1,n2, p):
 
     INPUT:
 
-        - ``n1,n2`` : Cardinalities of the two sets
+        - ``n1, n2`` : Cardinalities of the two sets
         - ``p``   : Probability for an edge to exist
 
 
@@ -277,8 +280,7 @@ def RandomBoundedToleranceGraph(n):
 
     W = n ** 2 * 2 ** n
 
-    tolrep = map(lambda l_r: (l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])),
-                 [sorted((randint(0, W), randint(0, W))) for i in range(n)])
+    tolrep = [(l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])) for l_r in [sorted((randint(0, W), randint(0, W))) for i in range(n)]]
 
     return ToleranceGraph(tolrep)
 
@@ -440,20 +442,6 @@ def RandomHolmeKim(n, m, p, seed=None):
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
-def RandomInterval(n):
-    """
-    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
-
-    TEST::
-
-        sage: g = graphs.RandomInterval(8)
-        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
-        See http://trac.sagemath.org/13283 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
-    return RandomIntervalGraph(n)
-
 def RandomIntervalGraph(n):
     """
     Returns a random interval graph.
@@ -552,7 +540,7 @@ def RandomTree(n):
 
     ALGORITHM:
 
-    The algoritm works by generating an `(n-2)`-long
+    The algorithm works by generating an `(n-2)`-long
     random sequence of numbers chosen independently and uniformly
     from `\{0,1,\ldots,n-1\}` and then applies an inverse
     Prufer transformation.
@@ -763,7 +751,7 @@ def RandomToleranceGraph(n):
         sage: g.clique_number() == g.chromatic_number()
         True
 
-    TEST:
+    TEST::
 
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):
@@ -782,3 +770,347 @@ def RandomToleranceGraph(n):
 
     return ToleranceGraph(tolrep)
 
+
+# uniform random triangulation using Schaeffer-Poulalhon algorithm
+
+
+def _auxiliary_random_word(n):
+    r"""
+    Return a random word used to generate random triangulations.
+
+    INPUT:
+
+    n -- an integer
+
+    OUTPUT:
+
+    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any proper
+    prefix `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0`
+    are respectively the number of 1s and 0s in `u`). Those words are the
+    expected input of :func:`_contour_and_graph_from_word`.
+
+    ALGORITHM:
+
+    A random word with these numbers of `0` and `1` is chosen. This
+    word is then rotated in order to give an admissible code for a
+    tree (as explained in Proposition 4.2, [PS2006]_). There are
+    exactly two such rotations, one of which is chosen at random.
+
+    Let us consider a word `w` satisfying the expected conditions. By
+    drawing a step (1,3) for each 1 and a step (1,-1) for each 0 in
+    `w`, one gets a path starting at height 0, ending at height -2 and
+    staying above (or on) the horizontal line of height -1 except at the
+    end point. By cutting the word at the first position of height -1,
+    let us write `w=uv`. One can then see that `v` can only touch the line
+    of height -1 at its initial point and just before its end point
+    (these two points may be the same).
+
+    Now consider a word `w'` obtained from `w` by any
+    rotation. Because `vu` is another word satisfying the expected
+    conditions, one can assume that `w'` is obtained from `w` by
+    starting at some point in `u`. The algorithm must then recognize
+    the end of `u` and the end of `v` inside `w'`. The end of `v` is
+    the unique point of minimal height `h`. The end of `u` is the first
+    point reaching the height `h+1`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import _auxiliary_random_word
+        sage: _auxiliary_random_word(4)  # random
+        [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+
+        sage: def check(w):
+        ....:     steps = {1: 3, 0: -1}
+        ....:     return all(sum(steps[u] for u in w[:i]) >= -1 for i in range(len(w)))
+
+        sage: for n in range(1, 10):
+        ....:     w = _auxiliary_random_word(n)
+        ....:     assert len(w) == 4 * n - 2
+        ....:     assert w.count(0) == 3 * n - 1
+        ....:     assert check(w)
+    """
+    from sage.misc.prandom import shuffle
+    w = [0] * (3 * n - 1) + [1] * (n - 1)
+    shuffle(w)
+
+    # Finding the two admissible shifts.
+    # The 'if height' is true at least once.
+    # If it is true just once, then the word is admissible
+    # and cuts = [0, first position of -1] (ok)
+    # Otherwise, cuts will always contain
+    # [first position of hmin, first position of hmin - 1] (ok)
+    cuts = [0, 0]
+    height = 0
+    height_min = 0
+    for i in range(4 * n - 3):
+        if w[i] == 1:
+            height += 3
+        else:
+            height -= 1
+            if height < height_min:
+                height_min = height
+                cuts = cuts[1], i + 1
+
+    # random choice of one of the two possible cuts
+    idx = cuts[randint(0, 1)]
+    return w[idx:] + w[:idx]
+
+
+def _contour_and_graph_from_word(w):
+    r"""
+    Return the contour word and the graph of inner vertices of the tree
+    associated with the word `w`.
+
+    INPUT:
+
+    - `w` -- a word in `0` and `1` as given by :func:`_auxiliary_random_word`
+
+    This word must satisfy the conditions described in Proposition 4.2 of
+    [PS2006]_ (see :func:`_auxiliary_random_word`).
+
+    OUTPUT:
+
+    a pair ``(seq, G)`` where:
+
+    - ``seq`` is a sequence of pairs (label, integer) representing the
+      contour walk along the tree associated with `w`
+
+    - ``G`` is the tree obtained by restriction to the set of inner vertices
+
+    The underlying bijection from words to trees is given by lemma 4.1
+    in [PS2006]_. It maps the admissible words to planar trees where
+    every inner vertex has two leaves.
+
+    In the word `w`, the letter `1` means going away from the root ("up") from
+    an inner vertex to another inner vertex. The letter `0` denotes all other
+    steps of the discovery, i.e. either discovering a leaf vertex or going
+    toward the root ("down"). Thus, the length of `w` is twice the number of
+    edges between inner vertices, plus the number of leaves.
+
+    Inner vertices are tagged with 'in' and leaves are tagged with
+    'lf'. Inner vertices are moreover labelled by integers, and leaves
+    by the label of the neighbor inner vertex.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import _contour_and_graph_from_word
+        sage: seq, G = _contour_and_graph_from_word([1,0,0,0,0,0])
+        sage: seq
+        [('in', 0),
+         ('in', 1),
+         ('lf', 1),
+         ('in', 1),
+         ('lf', 1),
+         ('in', 1),
+         ('in', 0),
+         ('lf', 0),
+         ('in', 0),
+         ('lf', 0)]
+        sage: G
+        Graph on 2 vertices
+
+        sage: from sage.graphs.generators.random import _auxiliary_random_word
+        sage: seq, G = _contour_and_graph_from_word(_auxiliary_random_word(20))
+        sage: G.is_tree()
+        True
+
+        sage: longw = [1,1,0,1,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0]
+        sage: seq, G = _contour_and_graph_from_word(longw)
+        sage: G.get_embedding()
+        {0: [1], 1: [0, 2], 2: [1, 3, 4], 3: [2], 4: [2, 5, 6], 5: [4], 6: [4]}
+    """
+    index       = 0          # numbering of inner vertices
+    word        = [('in', 0)]  # initial vertex is inner
+    leaf_stack  = [0, 0]     # stack of leaves still to be created
+    inner_stack = [0]        # stack of active inner nodes
+    edges = []
+    embedding = {0: []}  # records the planar embedding of the tree
+    for x in w:
+        if x == 1:  # going up to a new inner vertex
+            index += 1
+            embedding[index] = inner_stack[-1:]
+            embedding[inner_stack[-1]].append(index)
+            leaf_stack.extend([index, index])
+            inner_stack.append(index)
+            edges.append(inner_stack[-2:])
+            word.append(('in', index))
+        else:
+            if leaf_stack and inner_stack[-1] == leaf_stack[-1]:  # up and down to a new leaf
+                leaf_stack.pop()
+                word.extend([('lf', inner_stack[-1]), ('in', inner_stack[-1])])
+            else:  # going down to a known inner vertex
+                inner_stack.pop()
+                word.append(('in', inner_stack[-1]))
+    G = Graph(edges, format='list_of_edges')
+    G.set_embedding(embedding)
+    return word[:-1], G
+
+
+def RandomTriangulation(n, set_position=False):
+    r"""
+    Return a random triangulation on `n` vertices.
+
+    A triangulation is a planar graph all of whose faces are
+    triangles (3-cycles).
+
+    INPUT:
+
+    - `n` -- an integer
+
+    - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
+      will compute coordinates for a planar drawing of the graph.
+
+    OUTPUT:
+
+    A random triangulation chosen uniformly among the *rooted* triangulations on
+    `n` vertices. This is a planar graph and comes with a combinatorial
+    embedding.
+
+    Because some triangulations have nontrivial automorphism
+    groups, this may not be equal to the uniform distribution among unrooted
+    triangulations.
+
+    ALGORITHM:
+
+    The algorithm is taken from [PS2006]_, section 2.1.
+
+    Starting from a planar tree (represented by its contour as a
+    sequence of vertices), one first performs local closures, until no
+    one is possible. A local closure amounts to replace in the cyclic
+    contour word a sequence ``in1,in2,in3,lf,in3`` by
+    ``in1,in3``. After all local closures are done, one has reached
+    the partial closure, as in [PS2006]_, figure 5 (a).
+
+    Then one has to perform complete closure by adding two more
+    vertices, in order to reach the situation of [PS2006]_, figure 5
+    (b). For this, it is necessary to find inside the final contour
+    one of the two subsequences ``lf,in,lf``.
+
+    At every step of the algorithm, newly created edges are recorded
+    in a graph, which will be returned at the end.
+
+    The combinatorial embedding is also computed and recorded in the
+    output graph.
+
+    .. SEEALSO::
+
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`,
+        :func:`~sage.homology.examples.RandomTwoSphere`.
+
+    EXAMPLES::
+
+        sage: G = graphs.RandomTriangulation(6, True); G
+        Graph on 6 vertices
+        sage: G.is_planar()
+        True
+        sage: G.girth()
+        3
+        sage: G.plot(vertex_size=0, vertex_labels=False)
+        Graphics object consisting of 13 graphics primitives
+
+    TESTS::
+
+        sage: G.get_embedding() is not None
+        True
+        sage: for i in range(10):
+        ....:     g = graphs.RandomTriangulation(30)
+        ....:     assert g.is_planar()
+        sage: for i in range(10):
+        ....:     g = graphs.RandomTriangulation(10)
+        ....:     assert g.is_planar(on_embedding=g.get_embedding())
+
+    REFERENCES:
+
+    .. [PS2006] Dominique Poulalhon and Gilles Schaeffer,
+       *Optimal coding and sampling of triangulations*,
+       Algorithmica 46 (2006), no. 3-4, 505-527,
+       http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
+
+    """
+    if n < 3:
+        raise ValueError('only defined for n >= 3')
+    w = _auxiliary_random_word(n - 2)
+    word, graph = _contour_and_graph_from_word(w)
+    edges = []
+
+    embedding = graph.get_embedding()
+
+    # 'partial closures' described in 2.1 of [PS2006]_.
+    pattern = ['in', 'in', 'in', 'lf', 'in']
+
+    def rotate_word_to_next_occurrence(word):
+        """
+        Rotate ``word`` so that the given pattern occurs at the beginning.
+
+        If the given pattern is not found, return the empty list.
+        """
+        N = len(word)
+        for i in range(N):
+            if all(word[(i + j) % N][0] == pattern[j] for j in range(5)):
+                return word[i:] + word[:i]
+        return []
+
+    # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
+    while True:
+        word2 = rotate_word_to_next_occurrence(word)
+        if len(word2) >= 5:
+            word = [word2[0]] + word2[4:]
+            in1, in2, in3 = [u[1] for u in word2[:3]]
+            edges.append([in1, in3])  # edge 'in1,in3'
+            idx = embedding[in1].index(in2)
+            embedding[in1].insert(idx, in3)
+            idx = embedding[in3].index(in2)
+            embedding[in3].insert(idx + 1, in1)
+        else:
+            break
+
+    graph.add_edges(edges)
+    # This is the end of partial closure.
+
+    # There remains to add two new vertices 'a' and 'b'.
+    graph.add_edge(('a', 'b'))
+
+    # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
+    # Switching a/b happens when one meets the sequence 'lf','in','lf'.
+    a_or_b = 'a'
+    embedding['a'] = []
+    embedding['b'] = []
+    last_lf_occurrence = -42
+    change = {}
+    for x in word:
+        last_lf_occurrence -= 1
+        if x[0] == 'lf':
+            if last_lf_occurrence == -2:
+                change[a_or_b] = x[1]
+                a_or_b = 'b' if a_or_b == 'a' else 'a'
+            graph.add_edge((a_or_b, x[1]))
+            embedding[a_or_b].insert(0, x[1])
+            last_lf_occurrence = 0
+
+    # conjugates the embeddings of a and b
+    # in a way that helps to complete the embedding
+    for a_or_b in ['a', 'b']:
+        emba = embedding[a_or_b]
+        idx = emba.index(change[a_or_b])
+        embedding[a_or_b] = emba[idx:] + emba[:idx]
+    embedding['a'].append('b')
+    embedding['b'].append('a')
+
+    # completes the embedding by inserting missing half-edges
+    for a_or_b in ['a', 'b']:
+        emb = embedding[a_or_b]
+        for i, v in enumerate(emb[:-1]):
+            if i == 0:
+                embedding[v].insert(embedding[v].index(emb[1]) + 1, a_or_b)
+            else:
+                embedding[v].insert(embedding[v].index(emb[i - 1]), a_or_b)
+
+    assert graph.num_edges() == 3 * (n - 2)
+    assert graph.num_verts() == n
+
+    graph.set_embedding(embedding)
+
+    if set_position:
+        graph.layout(layout="planar", save_pos=True)
+
+    return graph

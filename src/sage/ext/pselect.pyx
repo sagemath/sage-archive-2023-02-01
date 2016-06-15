@@ -60,9 +60,9 @@ Now using the ``multiprocessing`` module::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cdefs.pxi"
-include "signals.pxi"
 cimport libc.errno
+from posix.signal cimport *
+from posix.select cimport *
 
 
 cpdef int get_fileno(f) except -1:

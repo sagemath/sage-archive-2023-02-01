@@ -13,10 +13,6 @@ useful to many other projects.
 
 Modified BSD; see e.g. its egg-info file for other options
 
-== SPKG Maintainers ==
-
-Mike Hansen <mhansen@gmail.com>
-
 == Upstream Contact ==
 
 Author: Georg Brandl <georg at python org>
@@ -24,66 +20,19 @@ Home Page: http://sphinx.pocoo.org,
   see also http://pypi.python.org/pypi/Sphinx
 
 == Dependencies ==
- * Jinja2 >= 2.2
- * Pygments >= 0.8
- * docutils >= 0.5
+ * six >= 1.4
+ * Jinja2 >= 2.3
+ * Pygments >= 2.0
+ * docutils >= 0.11
+ * snowballstemmer >= 1.1
+ * babel >= 1.3
  * setuptools / distribute
  * Python
  * GNU patch (shipped with Sage)
 
 == Special Update/Build Instructions ==
 
- * Make sure to update the Sphinx version number in the file
-   patches/sphinx-build.
-
- * Here is a description of patches on top of Sphinx 1.1.2:
-
-   - patches/autodoc.patch: This patches
-     src/sphinx/ext/autodoc.py. This adds an option to Sphinx to
-     provide a function to get the argspecs of built-in functions.
-
-   - patches/environment.patch: This patches the file
-     src/sphinx/environment.py.  Patching it should prevent Sphinx
-     from rebuilding documentation that is already built.
-
-   - patches/highlighting.patch: This patches the file
-     src/sphinx/highlighting.py. The patch should allow Sphinx to
-     recognize the Sage prompt "sage:" the same way it recognizes the
-     ">>>" from Python.
-
-   - patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
-     by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
-     images in the HTML documentation.  This change is done because
-     some LaTeX installations have only utf8, not utf8x (utf8x adds
-     support for much more Unicode characters, but these are not
-     needed to typeset the mathematics in the Sage documentation).
-
-   - patches/Makefile.patch: This patches the file
-     src/sphinx/texinputs/Makefile to increase the save size stack to
-     50,000 and increase the pool size stack to 4,000,000. These
-     increased stack sizes should be sufficient for LaTeX to handle
-     the huge index of the Sage reference manual when building the PDF
-     version of that manual.
-
-   - patches/nested.patch (submitted upstream: pull request #250, issue #777):
-     This changes the sphinx's customized Verbatim environment to use
-     \trivlist instead of \list. This fixes the pdf docbuild for
-     deeply nested classes/methods revealed in #9107.
-
  * The script create_grammar_pickle.py creates the file
    Grammar2.7.pickle in site-packages/Sphinx-.../sphinx/pycode/.  This
    helps to avoid race conditions when building the documentation in
    parallel.
-
- * To do: autogenerate the file sage_autodoc.py from
-   src/sphinx/ext/autodoc.py.  sage_autodoc.py is currently in
-   SAGE_ROOT/devel/sage/doc/common and is tracked in the Sage library
-   repository, and as a result, it is now somewhat out-of-synch with
-   autodoc.py.  Instead we could do the following: in spkg-install,
-
-     cp sphinx/ext/autodoc.py sphinx/ext/sage_autodoc.py
-
-   Then patch sage_autodoc.py in place.  This would require modifying
-   devel/sage/doc/common/conf.py: 'extensions' would use
-   'sphinx.ext.sage_autodoc' instead of 'sage_autodoc'.
-

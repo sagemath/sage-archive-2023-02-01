@@ -23,7 +23,7 @@ file gives the function signatures.
 - :meth:`cvaluation` -- return the maximum power of the uniformizer
   dividing this element.
 - :meth:`cisunit` -- returns whether this element has valuation zero
-- :meth:`cshift` -- mulitplies by a power of the uniformizer
+- :meth:`cshift` -- multiplies by a power of the uniformizer
 - :meth:`cshift_notrunc` -- multiplies by a power of the uniformizer,
   assuming no truncation
 - :meth:`csub` -- subtraction
@@ -51,10 +51,7 @@ file gives the function signatures.
 - :meth:`cconv_mpq_t_out` -- conversion into an mpq_t
 - _list_zero -- the entry that should be used for zero in clist
 
-The gluing file should ctypedef celement as appropriate, and should
-include cdefs.pxi, either in the pxd file or above the linkage file.
-
-Each linkage file should include interrupt.pxi and stdsage.pxi
+The gluing file should ctypedef celement as appropriate.
 
 .. NOTE::
 
@@ -248,7 +245,7 @@ cdef inline bint cisunit(celement a, PowComputer_class prime_pow) except -1:
 
 cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_class prime_pow, bint reduce_afterward) except -1:
     """
-    Mulitplies by a power of the uniformizer.
+    Multiplies by a power of the uniformizer.
 
     INPUT:
 
@@ -265,7 +262,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
 
 cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_class prime_pow) except -1:
     """
-    Mulitplies by a power of the uniformizer, assuming that the
+    Multiplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
 
     INPUT:
@@ -367,7 +364,7 @@ cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 1.
 
@@ -382,7 +379,7 @@ cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint ciszero(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
 

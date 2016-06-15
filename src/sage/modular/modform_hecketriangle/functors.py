@@ -42,7 +42,7 @@ def _get_base_ring(ring, var_name="d"):
 
     If ``ring`` is of the form ``PolynomialRing(R,'d')``:
     Return ``R``.
-    
+
     Otherwise return ``ring``.
 
     The base ring is used in the construction of the correponding
@@ -92,6 +92,35 @@ def _get_base_ring(ring, var_name="d"):
     return base_ring
 
 
+def _common_subgroup(group1, group2):
+    r"""
+    Return a common (Hecke triangle) subgroup of both given groups
+    ``group1`` and ``group2`` if it exists. Otherwise return ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.functors import _common_subgroup
+        sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+        sage: _common_subgroup(HeckeTriangleGroup(n=3), HeckeTriangleGroup(n=infinity))
+        Hecke triangle group for n = +Infinity
+        sage: _common_subgroup(HeckeTriangleGroup(n=infinity), HeckeTriangleGroup(n=3))
+        Hecke triangle group for n = +Infinity
+        sage: _common_subgroup(HeckeTriangleGroup(n=4), HeckeTriangleGroup(n=infinity)) is None
+        True
+        sage: _common_subgroup(HeckeTriangleGroup(n=4), HeckeTriangleGroup(n=4))
+        Hecke triangle group for n = 4
+    """
+
+    if group1 == group2:
+        return group1
+    elif (group1.n() == 3) and (group2.n() == infinity):
+        return group2
+    elif (group1.n() == infinity) and (group2.n() == 3):
+        return group1
+    else:
+        return None
+
+
 def ConstantFormsSpaceFunctor(group):
     r"""
     Construction functor for the space of constant forms.
@@ -139,7 +168,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
                                        over some base ring.
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms sub space.
 
         EXAMPLES::
@@ -206,8 +235,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         else:
             return ambient_space
 
-    def __str__(self):
-        r"""  
+    def _repr_(self):
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -298,13 +327,12 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             False
         """
 
-        if    ( type(self)                  == type(other)\
-            and self._ambient_space_functor == other._ambient_space_functor\
-            and self._generators            == other._generators ):
+        if (type(self) is type(other) and
+            self._ambient_space_functor == other._ambient_space_functor and
+            self._generators == other._generators):
                 return True
         else:
             return False
-    
 
 
 class FormsSpaceFunctor(ConstructionFunctor):
@@ -335,16 +363,16 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         INPUT:
 
-        - ``analytic_type``  -- An element of ``AnalyticType()``. 
-    
+        - ``analytic_type``  -- An element of ``AnalyticType()``.
+
         - ``group``          -- The index of a Hecke Triangle group.
-        
+
         - ``k``              -- A rational number, the weight of the space.
-        
+
         - ``ep``             -- `1` or `-1`, the multiplier of the space.
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms space/ring.
 
         EXAMPLES::
@@ -364,7 +392,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms space with base ring ``_get_base_ring(S)``.
-        
+
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
         EXAMPLES::
@@ -389,8 +417,8 @@ class FormsSpaceFunctor(ConstructionFunctor):
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
-    def __str__(self):
-        r"""  
+    def _repr_(self):
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -419,7 +447,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         is the logical ``and`` of the two corresponding ``red_hom``
         parameters (where a forms space is assumed to have it
         set to ``True``).
-    
+
         Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
         corresponding ``FormsRingFunctor``. Otherwise the corresponding
         (extended) ``FormsSpaceFunctor`` is returned.
@@ -454,24 +482,26 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        
+
         if isinstance(other, FormsSubSpaceFunctor):
             other = other._ambient_space_functor
 
         if isinstance(other, FormsSpaceFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             analytic_type = self._analytic_type + other._analytic_type
             if (self._k == other._k) and (self._ep == other._ep):
-                return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
+                return FormsSpaceFunctor(analytic_type, group, self._k, self._ep)
             else:
-                return FormsRingFunctor(analytic_type, self._group, True)
+                return FormsRingFunctor(analytic_type, group, True)
         elif isinstance(other, FormsRingFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
 
     def __eq__(self, other):
         r"""
@@ -486,15 +516,16 @@ class FormsSpaceFunctor(ConstructionFunctor):
             False
         """
 
-        if    ( type(self)          == type(other)\
-            and self._group         == other._group\
-            and self._analytic_type == other._analytic_type\
-            and self._k             == other._k\
-            and self._ep            == other._ep ):
+        if (type(self) is type(other) and
+            self._group == other._group and
+            self._analytic_type == other._analytic_type and
+            self._k == other._k and
+            self._ep == other._ep):
                 return True
         else:
             return False
-    
+
+
 class FormsRingFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms rings.
@@ -521,10 +552,8 @@ class FormsRingFunctor(ConstructionFunctor):
         See :meth:`__call__` for a description of the functor.
 
         INPUT:
-        
-                                                                                
-                                                                            
-        - ``analytic_type``  -- An element of ``AnalyticType()``. 
+
+        - ``analytic_type``  -- An element of ``AnalyticType()``.
 
         - ``group``          -- The index of a Hecke Triangle group.
 
@@ -532,7 +561,7 @@ class FormsRingFunctor(ConstructionFunctor):
                                 (also see ``FormsRing_abstract``).
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms ring.
 
         EXAMPLES::
@@ -554,7 +583,7 @@ class FormsRingFunctor(ConstructionFunctor):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms ring with base ring ``_get_base_ring(S)``.
-        
+
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
         EXAMPLES::
@@ -579,8 +608,8 @@ class FormsRingFunctor(ConstructionFunctor):
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
-    def __str__(self):
-        r"""  
+    def _repr_(self):
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -612,7 +641,7 @@ class FormsRingFunctor(ConstructionFunctor):
         is the logical ``and`` of the two corresponding ``red_hom``
         parameters (where a forms space is assumed to have it
         set to ``True``).
-    
+
         Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
         corresponding ``FormsRingFunctor``. Otherwise the corresponding
         (extended) ``FormsSpaceFunctor`` is returned.
@@ -649,17 +678,19 @@ class FormsRingFunctor(ConstructionFunctor):
             other = other._ambient_space_functor
 
         if isinstance(other, FormsSpaceFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = self._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
         elif isinstance(other, FormsRingFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = self._red_hom & other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
 
     def __eq__(self, other):
         r"""
@@ -674,10 +705,10 @@ class FormsRingFunctor(ConstructionFunctor):
             False
         """
 
-        if    ( type(self)          == type(other)\
-            and self._group         == other._group\
-            and self._analytic_type == other._analytic_type\
-            and self._red_hom       == other._red_hom ):
+        if (type(self) is type(other) and
+            self._group == other._group and
+            self._analytic_type == other._analytic_type and
+            self._red_hom == other._red_hom):
                 return True
         else:
             return False
@@ -731,7 +762,7 @@ class BaseFacade(Parent, UniqueRepresentation):
         self.register_embedding(self.Hom(self._ring,Sets())(lambda x: x))
 
     def __repr__(self):
-        r"""  
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::

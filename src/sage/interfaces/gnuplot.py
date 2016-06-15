@@ -17,7 +17,8 @@ Interface to the Gnuplot interpreter
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, time
+import os
+import time
 from sage.structure.sage_object import SageObject
 
 class Gnuplot(SageObject):
@@ -186,8 +187,11 @@ class Gnuplot(SageObject):
 # An instance
 gnuplot = Gnuplot()
 
-import os
+
 def gnuplot_console():
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gnuplot magics instead.')
     os.system('sage-native-execute gnuplot')
 
 

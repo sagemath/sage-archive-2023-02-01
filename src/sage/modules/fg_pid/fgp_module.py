@@ -198,27 +198,25 @@ AUTHOR:
     - William Stein, 2009
 """
 
-####################################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-####################################################################################
+#*****************************************************************************
+from __future__ import print_function
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
+from sage.structure.all import parent
 from sage.structure.sequence import Sequence
 from fgp_element  import DEBUG, FGP_Element
 from fgp_morphism import FGP_Morphism, FGP_Homset
-from sage.rings.all import Integer, ZZ, lcm
+from sage.rings.all import Integer, ZZ
+from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 
@@ -439,7 +437,7 @@ class FGP_Module_class(Module):
         I = str(self.invariants()).replace(',)',')')
         return "Finitely generated module V/W over %s with invariants %s"%(self.base_ring(), I)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
         Return the quotient self/other, where other must be a
         submodule of self.
@@ -520,7 +518,7 @@ class FGP_Module_class(Module):
             sage: Q1 != Q2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # __le__ is a synonym for `is_submodule`: see below
 
@@ -540,7 +538,7 @@ class FGP_Module_class(Module):
             sage: A < A
             False
         """
-        return self.__le__(other) and not self.__eq__(other)
+        return self <= other and not self == other
 
     def __gt__(self, other):
         """
@@ -558,7 +556,7 @@ class FGP_Module_class(Module):
             sage: A > A
             False
         """
-        return self.__ge__(other) and not self.__eq__(other)
+        return self >= other and not self == other
 
     def __ge__(self, other):
         """
@@ -656,7 +654,7 @@ class FGP_Module_class(Module):
             sage: Q.0 - Q.1 in Q
             True
         """
-        if hasattr(x, 'parent') and x.parent() == self:
+        if parent(x) is self:
             return True
         try:
             self(x)
@@ -1236,7 +1234,7 @@ class FGP_Module_class(Module):
             the same as the Smith form generators, since this may not be true
             for a general derived class.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a list of the images of ``self.gens()`` in some
           R-module
@@ -1395,7 +1393,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of the Smith-form generators
         of self in some fixed fg R-module.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module
@@ -1442,12 +1440,24 @@ class FGP_Module_class(Module):
             sage: type(Hom(M,Q))
             <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
             sage: H.category()
-            Category of hom sets in Category of modules over Integer Ring
+            Category of homsets of modules over Integer Ring
             sage: H.homset_category()
             Category of modules over Integer Ring
 
+        The category is correctly adjusted when constructing Hom sets
+        with more general codomains (see :trac:`16402`)::
+
+            sage: V = ZZ^2
+            sage: W = V.quotient(V.span([[1, 1]]))
+            sage: H = W.Hom(QQ); H
+            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0) to Rational Field in Category of commutative additive groups
+            sage: type(H)
+            <class 'sage.categories.homset.Homset_with_category'>
+
         """
-        return FGP_Homset(self, N)
+        if isinstance(N, FGP_Module_class):
+            return FGP_Homset(self, N)
+        return super(FGP_Module_class, self)._Hom_(N, category=category)
 
     def random_element(self, *args, **kwds):
         """
@@ -1508,7 +1518,7 @@ class FGP_Module_class(Module):
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (2, 12)
             sage: z = list(V/W)
-            sage: print z
+            sage: z
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11)]
             sage: len(z)
             24

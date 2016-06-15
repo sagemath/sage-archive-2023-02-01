@@ -35,14 +35,14 @@ Here is `\ZZ_6` with value `-1` assigned to the generator::
     sage: (g*g).value()
     1
     sage: for i in range(7):
-    ...       print i, g^i, (g^i).value()
-    0 1 1
-    1 g -1
-    2 g^2 1
-    3 g^3 -1
-    4 g^4 1
-    5 g^5 -1
-    6 1 1
+    ....:     print((i, g^i, (g^i).value()))
+    (0, 1, 1)
+    (1, g, -1)
+    (2, g^2, 1)
+    (3, g^3, -1)
+    (4, g^4, 1)
+    (5, g^5, -1)
+    (6, 1, 1)
 
 The elements come with a coercion embedding into the
 :meth:`~AbelianGroupWithValues_class.values_group`, so you can use the
@@ -69,9 +69,9 @@ group elements instead of the values::
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
+from __future__ import print_function
 
-
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
 from sage.groups.abelian_gps.abelian_group import AbelianGroup_class, _normalize
@@ -110,14 +110,14 @@ def AbelianGroupWithValues(values, n, gens_orders=None, names='f', check=False, 
         sage: G = AbelianGroupWithValues([-1], [6])
         sage: g = G.gen(0)
         sage: for i in range(7):
-        ...       print i, g^i, (g^i).value()
-        0 1 1
-        1 f -1
-        2 f^2 1
-        3 f^3 -1
-        4 f^4 1
-        5 f^5 -1
-        6 1 1
+        ....:     print((i, g^i, (g^i).value()))
+        (0, 1, 1)
+        (1, f, -1)
+        (2, f^2, 1)
+        (3, f^3, -1)
+        (4, f^4, 1)
+        (5, f^5, -1)
+        (6, 1, 1)
         sage: G.values_group()
         Integer Ring
 

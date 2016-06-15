@@ -161,8 +161,8 @@ class AbstractMethod(object):
         assert isinstance(optional, bool)
         self._f = f
         self._optional = optional
-        self.__doc__ = f.func_doc
-        self.__name__ = f.func_name
+        self.__doc__ = f.__doc__
+        self.__name__ = f.__name__
         try:
             self.__module__ = f.__module__
         except AttributeError:
@@ -192,7 +192,7 @@ class AbstractMethod(object):
             sage: src[0]
             'def banner():\n'
             sage: lines
-            78
+            83
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self._f)
@@ -259,7 +259,8 @@ def abstract_methods_of_class(cls):
         ...       def required2(): pass
         ...
         sage: sage.misc.abstract_method.abstract_methods_of_class(AbstractClass)
-        {'required': ['required1', 'required2'], 'optional': ['optional1', 'optional2']}
+        {'optional': ['optional1', 'optional2'],
+         'required': ['required1', 'required2']}
 
     """
     result = { "required"  : [],

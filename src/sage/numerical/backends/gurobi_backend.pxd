@@ -6,15 +6,7 @@
 ##############################################################################
 
 from generic_backend cimport GenericBackend
-include 'sage/ext/stdsage.pxi'
 
-
-#cdef extern from *:
-#    ctypedef double* const_double_ptr "const double*"
-#    ctypedef char * const_char_ptr "const char*"
-
-#cdef extern from "float.h":
-#    cdef double DBL_MAX
 
 cdef extern from "gurobi_c.h":
      ctypedef struct GRBmodel:
@@ -37,7 +29,7 @@ cdef extern from "gurobi_c.h":
      int GRBaddrangeconstr(GRBmodel *model, int numnz, int *cind, double *cval, double lower, double upper, char *constrnames)
 
 
-     void GRBfreemodel(GRBmodel *model)
+     int GRBfreemodel(GRBmodel *model)
      void GRBfreeenv(GRBenv *env)
      int GRBupdatemodel(GRBmodel *model)
      int GRBoptimize(GRBmodel *model)
@@ -104,7 +96,7 @@ cdef class GurobiBackend(GenericBackend):
     cdef GRBenv * env
     cdef GRBenv * env_master
     cdef GRBmodel * model
-    cpdef GurobiBackend copy(self)
+    cpdef __copy__(self)
 
     cdef int num_vars
 

@@ -65,18 +65,14 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-from cpython.bool cimport *
+from sage.misc.cachefunc import cached_method
 
-from types import GeneratorType
-
-from sage.misc.lazy_attribute import lazy_class_attribute
-from sage.misc.superseded import deprecation
-from sage.structure.parent_gens cimport ParentWithGens
+from sage.structure.element cimport coercion_model
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
-from sage.misc.prandom import randint, randrange
+from sage.misc.prandom import randint
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.integral_domains import IntegralDomains
@@ -104,6 +100,7 @@ cdef class Ring(ParentWithGens):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -121,6 +118,7 @@ cdef class Ring(ParentWithGens):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
+        running ._test_gcd_vs_xgcd() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -136,11 +134,14 @@ cdef class Ring(ParentWithGens):
     Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
-        Join of Category of euclidean domains and Category of commutative algebras over quotient fields
+        Join of Category of euclidean domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: QQ['x','y'].category()
-        Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+        Join of Category of unique factorization domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over algebras over quotient fields
+        Category of algebras over (algebras over
+         (quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 
@@ -191,12 +192,12 @@ cdef class Ring(ParentWithGens):
             ...
             NotImplementedError: object does not support iteration
         """
-        raise NotImplementedError, "object does not support iteration"
+        raise NotImplementedError("object does not support iteration")
 
     def __len__(self):
         r"""
         Return the cardinality of this ring if it is finite, else raise
-        a ``TypeError``.
+        a ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -205,23 +206,25 @@ cdef class Ring(ParentWithGens):
             sage: len(RR)
             Traceback (most recent call last):
             ...
-            TypeError: len() of unsized object
+            NotImplementedError: len() of an infinite set
         """
         if self.is_finite():
             return self.cardinality()
-        raise TypeError, 'len() of unsized object'
+        raise NotImplementedError('len() of an infinite set')
 
     def __xor__(self, n):
         r"""
-        Trap the operation ``^``. It's next to impossible to test this since
-        ``^`` is intercepted first by the preparser.
+        Trap the operation ``^``.
 
         EXAMPLES::
 
-            sage: RR^3 # not tested
+            sage: eval('RR^3')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: use ** for exponentiation, not '^', which means xor in Python, and has the wrong precedence
         """
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
+        raise RuntimeError("use ** for exponentiation, not '^', which means xor "
+              "in Python, and has the wrong precedence")
 
     def base_extend(self, R):
         """
@@ -236,7 +239,7 @@ cdef class Ring(ParentWithGens):
         """
         if R.has_coerce_map_from(self):
             return R
-        raise TypeError, 'no base extension defined'
+        raise TypeError('no base extension defined')
 
     def category(self):
         """
@@ -265,9 +268,10 @@ cdef class Ring(ParentWithGens):
             sage: I.base_ring() is I
             True
             sage: I.category()
-            Join of Category of finite commutative rings and
-             Category of subquotients of monoids and
-             Category of quotients of semigroups
+            Join of Category of finite commutative rings
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
+                and Category of finite enumerated sets
         """
         # Defining a category method is deprecated for parents.
         # For rings, however, it is strictly needed that self.category()
@@ -359,6 +363,7 @@ cdef class Ring(ParentWithGens):
             coerce = True
 
         from sage.rings.ideal import Ideal_generic
+        from sage.structure.parent import is_Parent
         gens = args
         while isinstance(gens, (list, tuple)) and len(gens) == 1:
             first = gens[0]
@@ -377,16 +382,15 @@ cdef class Ring(ParentWithGens):
                 break
             elif isinstance(first, (list, tuple)):
                 gens = first
-            elif self.has_coerce_map_from(first):
+            elif is_Parent(first) and self.has_coerce_map_from(first):
                 gens = first.gens() # we have a ring as argument
             else:
                 break
 
         if len(gens) == 0:
-            gens = [self.zero_element()]
+            gens = [self.zero()]
 
         if coerce:
-            #print [type(g) for g in gens]
             gens = [self(g) for g in gens]
         if isinstance(self, PrincipalIdealDomain):
             # Use GCD algorithm to obtain a principal ideal
@@ -450,7 +454,7 @@ cdef class Ring(ParentWithGens):
             elif side=='right':
                 return self.ideal(x,side='twosided')
             else: # duck typing failed
-                raise TypeError, "Don't know how to transform %s into an ideal of %s"%(x,self)
+                raise TypeError("Don't know how to transform %s into an ideal of %s" % (x, self))
         else: # the sides are switched because this is a Cython / extension class
             if x.is_commutative():
                 return x.ideal(self)
@@ -468,7 +472,7 @@ cdef class Ring(ParentWithGens):
             elif side=='left':
                 return x.ideal(self,side='twosided')
             else:
-                raise TypeError, "Don't know how to transform %s into an ideal of %s"%(self,x)
+                raise TypeError("Don't know how to transform %s into an ideal of %s" % (self, x))
 
     def _ideal_class_(self, n=0):
         r"""
@@ -562,9 +566,20 @@ cdef class Ring(ParentWithGens):
 
             sage: ZZ.zero_ideal() is ZZ.zero_ideal()
             True
+
+        TESTS:
+
+        Make sure that :trac:`13644` is fixed::
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2-3)
+            sage: L.ideal(a)
+            Principal ideal (1 + O(a^40)) of Eisenstein Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*a^2 + (O(3^21))*a + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + 2*3^20 + O(3^21))
+
         """
         if self._zero_ideal is None:
-            I = Ring.ideal(self, [self.zero_element()], coerce=False)
+            I = Ring.ideal(self, [self.zero()], coerce=False)
             self._zero_ideal = I
             return I
         return self._zero_ideal
@@ -619,7 +634,7 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names=names)
 
-    def __div__(self, I):
+    def __truediv__(self, I):
         """
         Dividing one ring by another is not supported because there is no good
         way to specify generator names.
@@ -631,8 +646,7 @@ cdef class Ring(ParentWithGens):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
         """
-        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
-        #return self.quotient(I, names=None)
+        raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
     def quotient_ring(self, I, names=None):
         """
@@ -670,22 +684,22 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names)
 
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero element of this ring (cached).
 
         EXAMPLES::
 
-            sage: ZZ.zero_element()
+            sage: ZZ.zero()
             0
-            sage: QQ.zero_element()
+            sage: QQ.zero()
             0
-            sage: QQ['x'].zero_element()
+            sage: QQ['x'].zero()
             0
 
         The result is cached::
 
-            sage: ZZ.zero_element() is ZZ.zero_element()
+            sage: ZZ.zero() is ZZ.zero()
             True
         """
         if self._zero_element is None:
@@ -694,24 +708,22 @@ cdef class Ring(ParentWithGens):
             return x
         return self._zero_element
 
-    zero = zero_element # transitional
-
-    def one_element(self):
+    def one(self):
         """
         Return the one element of this ring (cached), if it exists.
 
         EXAMPLES::
 
-            sage: ZZ.one_element()
+            sage: ZZ.one()
             1
-            sage: QQ.one_element()
+            sage: QQ.one()
             1
-            sage: QQ['x'].one_element()
+            sage: QQ['x'].one()
             1
 
         The result is cached::
 
-            sage: ZZ.one_element() is ZZ.one_element()
+            sage: ZZ.one() is ZZ.one()
             True
         """
         if self._one_element is None:
@@ -719,8 +731,6 @@ cdef class Ring(ParentWithGens):
             self._one_element = x
             return x
         return self._one_element
-
-    one = one_element # Transitional
 
     def is_commutative(self):
         """
@@ -784,7 +794,7 @@ cdef class Ring(ParentWithGens):
             return False
 
         if proof:
-            raise NotImplementedError, "No way to prove that %s is an integral domain!"%self
+            raise NotImplementedError("No way to prove that %s is an integral domain!" % self)
         else:
             return False
 
@@ -824,7 +834,26 @@ cdef class Ring(ParentWithGens):
             True
             sage: ZZ.is_subring(GF(19))
             False
+
+        TESTS:
+
+        Every ring is a subring of itself, :trac:`17287`::
+
+            sage: QQbar.is_subring(QQbar)
+            True
+            sage: RR.is_subring(RR)
+            True
+            sage: CC.is_subring(CC)
+            True
+            sage: K.<a> = NumberField(x^3-x+1/10)
+            sage: K.is_subring(K)
+            True
+            sage: R.<x> = RR[]
+            sage: R.is_subring(R)
+            True
         """
+        if self is other:
+            return True
         try:
             return self.Hom(other).natural_map().is_injective()
         except TypeError:
@@ -1007,14 +1036,15 @@ cdef class Ring(ParentWithGens):
 
     def zeta(self, n=2, all=False):
         """
-        Return an ``n``-th root of unity in ``self`` if there is one,
-        or raise an ``ArithmeticError`` otherwise.
+        Return a primitive ``n``-th root of unity in ``self`` if there
+        is one, or raise a ``ValueError`` otherwise.
 
         INPUT:
 
         - ``n`` -- positive integer
-        - ``all`` -- bool, default: False.  If True, return a list of all n-th
-          roots of 1.
+
+        - ``all`` -- bool (default: False) - whether to return
+          a list of all primitive `n`-th roots of unity.
 
         OUTPUT:
 
@@ -1026,11 +1056,11 @@ cdef class Ring(ParentWithGens):
             -1
             sage: QQ.zeta(1)
             1
-            sage: CyclotomicField(6).zeta()
+            sage: CyclotomicField(6).zeta(6)
             zeta6
-            sage: CyclotomicField(3).zeta()
+            sage: CyclotomicField(3).zeta(3)
             zeta3
-            sage: CyclotomicField(3).zeta().multiplicative_order()
+            sage: CyclotomicField(3).zeta(3).multiplicative_order()
             3
             sage: a = GF(7).zeta(); a
             3
@@ -1050,6 +1080,18 @@ cdef class Ring(ParentWithGens):
             ValueError: no n-th root of unity in rational field
             sage: Zp(7, prec=8).zeta()
             3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + 6*7^6 + 2*7^7 + O(7^8)
+
+        TESTS::
+
+            sage: from sage.rings.ring import Ring
+            sage: Ring.zeta(QQ, 1)
+            1
+            sage: Ring.zeta(QQ, 2)
+            -1
+            sage: Ring.zeta(QQ, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no 3rd root of unity in Rational Field
         """
         if n == 2:
             if all:
@@ -1068,7 +1110,8 @@ cdef class Ring(ParentWithGens):
             for P, e in f.factor():
                 if P.degree() == 1:
                     return -P[0]
-            raise ArithmeticError, "no %s-th root of unity in self"%n
+            from sage.rings.all import ZZ
+            raise ValueError("no %s root of unity in %r" % (ZZ(n).ordinal_str(), self))
 
     def zeta_order(self):
         """
@@ -1164,6 +1207,60 @@ cdef class Ring(ParentWithGens):
             self.__ideal_monoid = M
             return M
 
+    @cached_method
+    def epsilon(self):
+        """
+        Return the precision error of elements in this ring.
+
+        EXAMPLES::
+
+            sage: RDF.epsilon()
+            2.220446049250313e-16
+            sage: ComplexField(53).epsilon()
+            2.22044604925031e-16
+            sage: RealField(10).epsilon()
+            0.0020
+
+        For exact rings, zero is returned::
+
+            sage: ZZ.epsilon()
+            0
+
+        This also works over derived rings::
+
+            sage: RR['x'].epsilon()
+            2.22044604925031e-16
+            sage: QQ['x'].epsilon()
+            0
+
+        For the symbolic ring, there is no reasonable answer::
+
+            sage: SR.epsilon()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        one = self.one()
+        try:
+            return one.ulp()
+        except AttributeError:
+            pass
+
+        try:
+            eps = one.real().ulp()
+        except AttributeError:
+            pass
+        else:
+            return self(eps)
+
+        B = self._base
+        if B is not None and B is not self:
+            eps = self.base_ring().epsilon()
+            return self(eps)
+        if self.is_exact():
+            return self.zero()
+        raise NotImplementedError
+
 cdef class CommutativeRing(Ring):
     """
     Generic commutative ring.
@@ -1179,9 +1276,9 @@ cdef class CommutativeRing(Ring):
         """
         try:
             if not base_ring.is_commutative():
-                raise TypeError, "base ring %s is no commutative ring"%base_ring
+                raise TypeError("base ring %s is no commutative ring" % base_ring)
         except AttributeError:
-            raise TypeError, "base ring %s is no commutative ring"%base_ring
+            raise TypeError("base ring %s is no commutative ring" % base_ring)
         # This is a low-level class. For performance, we trust that
         # the category is fine, if it is provided. If it isn't, we use
         # the category of commutative rings.
@@ -1209,7 +1306,7 @@ cdef class CommutativeRing(Ring):
             pass
 
         if not self.is_integral_domain():
-            raise TypeError, "self must be an integral domain."
+            raise TypeError("self must be an integral domain.")
 
         if self.__fraction_field is not None:
             return self.__fraction_field
@@ -1242,7 +1339,10 @@ cdef class CommutativeRing(Ring):
             ...
             TypeError: self must be an integral domain.
         """
-        return self.fraction_field()
+        try:
+            return self.fraction_field()
+        except (NotImplementedError,TypeError):
+            return coercion_model.division_parent(self)
 
     def __pow__(self, n, _):
         """
@@ -1317,7 +1417,7 @@ cdef class CommutativeRing(Ring):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
@@ -1385,7 +1485,7 @@ cdef class CommutativeRing(Ring):
             try:
                 poly = poly.polynomial(self)
             except (AttributeError, TypeError):
-                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(poly)
+                raise TypeError("polynomial (=%s) must be a polynomial." % repr(poly))
         if not names is None:
             name = names
         if isinstance(name, tuple):
@@ -1393,7 +1493,7 @@ cdef class CommutativeRing(Ring):
         if name is None:
             name = str(poly.parent().gen(0))
         if embedding is not None:
-            raise NotImplementedError, "ring extension with prescripted embedding is not implemented"
+            raise NotImplementedError("ring extension with prescripted embedding is not implemented")
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)
@@ -1506,9 +1606,11 @@ cdef class IntegralDomain(CommutativeRing):
 
         EXAMPLES::
 
-            sage: ZZ.is_integral_domain(); QQ.is_integral_domain(); ZZ[x].is_integral_domain()
+            sage: ZZ.is_integral_domain()
             True
+            sage: QQ.is_integral_domain()
             True
+            sage: ZZ['x'].is_integral_domain()
             True
             sage: R = ZZ.quotient(ZZ.ideal(10)); R.is_integral_domain()
             False
@@ -1574,7 +1676,7 @@ cdef class IntegralDomain(CommutativeRing):
         if self.is_finite():
             return True
         if proof:
-            raise NotImplementedError, "unable to determine whether or not is a field."
+            raise NotImplementedError("unable to determine whether or not is a field.")
         else:
             return False
 
@@ -1700,7 +1802,7 @@ cdef class DedekindDomain(IntegralDomain):
             sage: K = NumberField(x^2 + 1, 's')
             sage: OK = K.ring_of_integers()
             sage: OK.integral_closure()
-            Maximal Order in Number Field in s with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in s with defining polynomial x^2 + 1
             sage: OK.integral_closure() == OK
             True
 
@@ -1805,7 +1907,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = NumberField(x^2 - 2, 'a')
             sage: f = (x - a)*(x + a); g = (x - a)*(x^2 - 2)
-            sage: print f; print g
+            sage: print(f); print(g)
             x^2 - 2
             x^3 - a*x^2 - 2*x + 2*a
             sage: f in R
@@ -2095,7 +2197,7 @@ cdef class Field(PrincipalIdealDomain):
             import sage.rings.rational_field
             return sage.rings.rational_field.RationalField()
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return GF(self.characteristic())
 
     def algebraic_closure(self):
@@ -2115,7 +2217,116 @@ cdef class Field(PrincipalIdealDomain):
             ...
             NotImplementedError: Algebraic closures of general fields not implemented.
         """
-        raise NotImplementedError, "Algebraic closures of general fields not implemented."
+        raise NotImplementedError("Algebraic closures of general fields not implemented.")
+
+    def _gcd_univariate_polynomial(self, a, b):
+        """
+        Return the gcd of ``a`` and ``b`` as a monic polynomial.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._gcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z = R.zero()
+            ....:     assert(g(2*x, 2*x^2) == x and
+            ....:            g(z, 2*x) == x and
+            ....:            g(2*x, z) == x and
+            ....:            g(z, z) == z)
+
+            sage: R.<x> = RR[]
+            sage: (x^3).gcd(x^5+1)
+            1.00000000000000
+            sage: (x^3).gcd(x^5+x^2)
+            x^2
+            sage: f = (x+3)^2 * (x-1)
+            sage: g = (x+3)^5
+            sage: f.gcd(g)
+            x^2 + 6.00000000000000*x + 9.00000000000000
+
+        The following example illustrates the fact that for inexact
+        base rings, the returned gcd is often 1 due to rounding::
+
+            sage: f = (x+RR.pi())^2 * (x-1)
+            sage: g = (x+RR.pi())^5
+            sage: f.gcd(g)
+            1.00000000000000
+
+        """
+        while b:
+            q, r = a.quo_rem(b)
+            a, b = b, r
+        if a:
+            a = a.monic()
+        return a
+
+    def _xgcd_univariate_polynomial(self, a, b):
+        """
+        Return an extended gcd of ``a`` and ``b``.
+
+        INPUT:
+
+        - ``a``, ``b`` -- two univariate polynomials
+
+        OUTPUT:
+
+        A tuple ``(d, u, v)`` of polynomials such that ``d`` is the
+        greatest common divisor (monic or zero) of ``a`` and ``b``,
+        and ``u``, ``v`` satisfy ``d = u*a + v*b``.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        ALGORITHM:
+
+        This uses the extended Euclidean algorithm; see for example
+        [Cohen1996]_, Algorithm 3.2.2.
+
+        REFERENCES:
+
+        .. [Cohen1996] \H. Cohen, A Course in Computational Algebraic
+           Number Theory.  Graduate Texts in Mathematics 138.
+           Springer-Verlag, 1996.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._xgcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z, h = R(0), R(1/2)
+            ....:     assert(g(2*x, 2*x^2) == (x, h, z) and
+            ....:            g(z, 2*x) == (x, z, h) and
+            ....:            g(2*x, z) == (x, h, z) and
+            ....:            g(z, z) == (z, z, z))
+
+        """
+        R = a.parent()
+        zero = R.zero()
+        if not b:
+            if not a:
+                return (zero, zero, zero)
+            c = ~a.leading_coefficient()
+            return (c*a, R(c), zero)
+        elif not a:
+            c = ~b.leading_coefficient()
+            return (c*b, zero, R(c))
+        (u, d, v1, v3) = (R.one(), a, zero, b)
+        while v3:
+            q, r = d.quo_rem(v3)
+            (u, d, v1, v3) = (v1, v3, u - v1*q, r)
+        v = (d - a*u) // b
+        if d:
+            c = ~d.leading_coefficient()
+            d, u, v = c*d, c*u, c*v
+        return d, u, v
+
 
 cdef class Algebra(Ring):
     """
@@ -2238,9 +2449,9 @@ cdef class CommutativeAlgebra(CommutativeRing):
         # TODO: use the idiom base_ring in CommutativeRings()
         try:
             if not base_ring.is_commutative():
-                raise TypeError, "base ring must be a commutative ring"
+                raise TypeError("base ring must be a commutative ring")
         except (AttributeError, NotImplementedError):
-            raise TypeError, "base ring must be a commutative ring"
+            raise TypeError("base ring must be a commutative ring")
         # This is a low-level class. For performance, we trust that
         # the category is fine, if it is provided. If it isn't, we use
         # the category of commutative algebras.

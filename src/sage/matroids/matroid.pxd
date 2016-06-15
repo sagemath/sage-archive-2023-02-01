@@ -69,7 +69,7 @@ cdef class Matroid(SageObject):
     cpdef is_basis(self, X)
     cpdef is_circuit(self, X)
     cpdef is_closed(self, X)
-    cpdef is_subset_k_closed(self, X, k)
+    cpdef is_subset_k_closed(self, X, int k)
 
     cpdef coloops(self)
     cpdef is_coindependent(self, X)
@@ -89,6 +89,7 @@ cdef class Matroid(SageObject):
     cpdef circuit_closures(self)
     cpdef nonspanning_circuit_closures(self)
     cpdef bases(self)
+    cpdef independent_sets(self)
     cpdef independent_r_sets(self, long r)
     cpdef nonbases(self)
     cpdef dependent_r_sets(self, long r)
@@ -98,10 +99,14 @@ cdef class Matroid(SageObject):
     cpdef coflats(self, r)
     cpdef hyperplanes(self)
     cpdef f_vector(self)
+    cpdef broken_circuits(self, ordering=*)
+    cpdef no_broken_circuits_sets(self, ordering=*)
 
     # isomorphism
-    cpdef is_isomorphic(self, other)
-    cpdef _is_isomorphic(self, other)
+    cpdef is_isomorphic(self, other, certificate=*)
+    cpdef _is_isomorphic(self, other, certificate=*)
+    cpdef isomorphism(self, other)
+    cpdef _isomorphism(self, other)
     cpdef equals(self, other)
     cpdef is_isomorphism(self, other, morphism)
     cpdef _is_isomorphism(self, other, morphism)
@@ -130,18 +135,51 @@ cdef class Matroid(SageObject):
     cpdef is_simple(self)
     cpdef is_cosimple(self)
     cpdef components(self)
-    cpdef is_connected(self)
-    cpdef is_3connected(self)
+    cpdef is_connected(self, certificate=*)
+    cpdef connectivity(self, S, T=*)
+    cpdef _connectivity(self, S, T)
+    cpdef is_kconnected(self, k, certificate=*)
+    cpdef link(self, S, T)
+    cpdef _link(self, S, T)
+    cpdef _is_3connected_shifting(self, certificate=*)
+    cpdef _is_4connected_shifting(self, certificate=*)
+    cpdef _shifting_all(self, X, P_rows, P_cols, Q_rows, Q_cols, m)
+    cpdef _shifting(self, X, X_1, Y_2, X_2, Y_1, m)
+    cpdef is_3connected(self, certificate=*, algorithm=*, separation=*)
+    cpdef is_4connected(self, certificate=*, algorithm=*)
+    cpdef _is_3connected_CE(self, certificate=*)
+    cpdef _is_3connected_BC(self, certificate=*)
+    cpdef _is_3connected_BC_recursion(self, basis, fund_cocircuits)
+
+    # representability
+    cpdef _local_binary_matroid(self, basis=*)
+    cpdef binary_matroid(self, randomized_tests=*, verify=*)
+    cpdef is_binary(self, randomized_tests=*)
+    cpdef _local_ternary_matroid(self, basis=*)
+    cpdef ternary_matroid(self, randomized_tests=*, verify=*)
+    cpdef is_ternary(self, randomized_tests=*)
 
     # matroid k-closed
-    cpdef is_k_closed(self, k)
+    cpdef is_k_closed(self, int k)
+
+    # matroid chordality
+    cpdef _is_circuit_chordal(self, frozenset C)
+    cpdef is_circuit_chordal(self, C)
+    cpdef is_chordal(self, k1=*, k2=*)
+    cpdef chordality(self)
 
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)
     cpdef max_weight_coindependent(self, X=*, weights=*)
+    cpdef is_max_weight_independent_generic(self, X=*, weights=*)
+    cpdef is_max_weight_coindependent_generic(self, X=*, weights=*)
     cpdef intersection(self, other, weights=*)
     cpdef _intersection(self, other, weights)
     cpdef _intersection_augmentation(self, other, weights, Y)
+    cpdef intersection_unweighted(self, other)
+    cpdef _intersection_unweighted(self, other)
+    cpdef _intersection_augmentation_unweighted(self, other, Y)
+    cpdef partition(self)
 
     # invariants
     cpdef _internal(self, B)

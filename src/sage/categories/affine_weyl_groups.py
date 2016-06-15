@@ -51,6 +51,24 @@ class AffineWeylGroups(Category_singleton):
         """
         return [WeylGroups().Infinite()]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of affine Weyl groups defines no
+        additional structure: affine Weyl groups are a special class
+        of Weyl groups.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: AffineWeylGroups().additional_structure()
+        """
+        return None
+
     class ParentMethods:
 
         @cached_method

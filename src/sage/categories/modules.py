@@ -14,11 +14,13 @@ Modules
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.category import HomCategory
+from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
-from tensor import TensorProductsCategory
+import sage.categories.coercion_methods
+from sage.categories.tensor import TensorProductsCategory, tensor
 from dual import DualObjectsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
@@ -75,7 +77,7 @@ class Modules(Category_module):
         sage: Modules == RingModules
         True
 
-        sage: Modules(ZZ[x]).is_abelian()   # see #6081
+        sage: Modules(ZZ['x']).is_abelian()   # see #6081
         True
 
     TESTS::
@@ -169,29 +171,32 @@ class Modules(Category_module):
         R = self.base_ring()
         return [Bimodules(R,R)]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of modules defines no additional structure:
+        a bimodule morphism between two modules is a module morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: Modules(ZZ).additional_structure()
+        """
+        return None
+
     class SubcategoryMethods:
 
         @cached_method
         def base_ring(self):
-            """
+            r"""
             Return the base ring (category) for ``self``.
 
-            This implements a ``base_ring`` method for join categories
-            which are subcategories of some ``Modules(K)``.
-
-            .. TODO:: handle base being a category
-
-            .. NOTE::
-
-                - This uses the fact that join categories are
-                  flattened; thus some direct subcategory of
-                  ``self`` should be a category over a base ring.
-                - Generalize this to any :class:`Category_over_base_ring`.
-                - Should this code be in :class:`JoinCategory`?
-                - This assumes that a subcategory of a
-                  :class`~.category_types.Category_over_base_ring` is a
-                  :class:`~.category.JoinCategory` or a
-                  :class`~.category_types.Category_over_base_ring`.
+            This implements a ``base_ring`` method for all
+            subcategories of ``Modules(K)``.
 
             EXAMPLES::
 
@@ -201,12 +206,31 @@ class Modules(Category_module):
                 Rational Field
                 sage: C.base_ring.__module__
                 'sage.categories.modules'
+
+                sage: C = Modules(Rings()) & Semigroups(); C
+                Join of Category of semigroups and Category of modules over rings
+                sage: C.base_ring()
+                Category of rings
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+
+                sage: C = DescentAlgebra(QQ,3).B().category()
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+                sage: C.base_ring()
+                Rational Field
+
+                sage: C = QuasiSymmetricFunctions(QQ).F().category()
+                sage: C.base_ring.__module__
+                'sage.categories.modules'
+                sage: C.base_ring()
+                Rational Field
             """
-            assert isinstance(self, JoinCategory)
-            for x in self.super_categories():
-                if isinstance(x, Category_over_base_ring):
-                    return x.base_ring()
-            assert False, "some subcategory of {} should be a category over base ring".format(self)
+            for C in self.super_categories():
+                # Is there a better way to ask if C is a subcategory of Modules?
+                if hasattr(C, "base_ring"):
+                    return C.base_ring()
+            assert False, "some super category of {} should be a category over base ring".format(self)
 
         def TensorProducts(self):
             r"""
@@ -221,7 +245,7 @@ class Modules(Category_module):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts()
-                Category of tensor products of modules with basis over Rational Field
+                Category of tensor products of vector spaces with basis over Rational Field
             """
             return TensorProductsCategory.category_of(self)
 
@@ -326,11 +350,48 @@ class Modules(Category_module):
             return self._with_axiom("FiniteDimensional")
 
         @cached_method
+        def Filtered(self, base_ring=None):
+            r"""
+            Return the subcategory of the filtered objects of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Filtered()
+                Category of filtered modules over Integer Ring
+
+                sage: Coalgebras(QQ).Filtered()
+                Join of Category of filtered modules over Rational Field
+                 and Category of coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Filtered()
+                Category of filtered algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Graded.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.filtered_modules import FilteredModulesCategory
+            return FilteredModulesCategory.category_of(self)
+
+        @cached_method
         def Graded(self, base_ring=None):
             r"""
             Return the subcategory of the graded objects of ``self``.
 
-            INPUT::
+            INPUT:
 
             - ``base_ring`` -- this is ignored
 
@@ -362,6 +423,42 @@ class Modules(Category_module):
             return GradedModulesCategory.category_of(self)
 
         @cached_method
+        def Super(self, base_ring=None):
+            r"""
+            Return the super-analogue category of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Super()
+                Category of super modules over Integer Ring
+
+                sage: Coalgebras(QQ).Super()
+                Category of super coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Super()
+                Category of super algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Super.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.super_modules import SuperModulesCategory
+            return SuperModulesCategory.category_of(self)
+
+        @cached_method
         def WithBasis(self):
             r"""
             Return the full subcategory of the objects of ``self`` with
@@ -388,8 +485,8 @@ class Modules(Category_module):
 
         def extra_super_categories(self):
             """
-            Implements the fact that a finite dimensional module
-            over a finite ring is finite.
+            Implement the fact that a finite dimensional module over a finite
+            ring is finite.
 
             EXAMPLES::
 
@@ -407,46 +504,35 @@ class Modules(Category_module):
             else:
                 return []
 
+    Filtered = LazyImport('sage.categories.filtered_modules', 'FilteredModules')
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
+    Super = LazyImport('sage.categories.super_modules', 'SuperModules')
     WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
-        pass
+        @cached_method
+        def tensor_square(self):
+            """
+            Returns the tensor square of ``self``
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example()
+                sage: A.tensor_square()
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6
+                 as a permutation group over Rational Field # An example
+                 of Hopf algebra with basis: the group algebra of the Dihedral
+                 group of order 6 as a permutation group over Rational Field
+            """
+            return tensor([self, self])
 
     class ElementMethods:
 
-        def __mul__(left, right):
-            """
-            TESTS::
+        __mul__ = sage.categories.coercion_methods.Modules__mul__
+        __rmul__ = sage.categories.coercion_methods.Modules__rmul__
 
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: x * int(2)
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-        def __rmul__(right, left):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: int(2) * x
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-
-    class HomCategory(HomCategory):
+    class Homsets(HomsetsCategory):
         r"""
         The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules.
         """
@@ -455,10 +541,25 @@ class Modules(Category_module):
             """
             EXAMPLES::
 
-                sage: Modules(ZZ).hom_category().extra_super_categories()
+                sage: Modules(ZZ).Homsets().extra_super_categories()
                 [Category of modules over Integer Ring]
             """
-            return [Modules(self.base_category.base_ring())]
+            return [Modules(self.base_category().base_ring())]
+
+        def base_ring(self):
+            """
+            EXAMPLES::
+
+                sage: Modules(ZZ).Homsets().base_ring()
+                Integer Ring
+
+            .. TODO::
+
+                Generalize this so that any homset category of a full
+                subcategory of modules over a base ring is a category over
+                this base ring.
+            """
+            return self.base_category().base_ring()
 
         class ParentMethods:
 
@@ -518,19 +619,83 @@ class Modules(Category_module):
                 from sage.misc.constant_function import ConstantFunction
                 return self(ConstantFunction(self.codomain().zero()))
 
-    class EndCategory(HomCategory):
-        """
-        The category of endomorphism sets `End(X)` for `X` module (this is
-        not used yet)
-        """
+        class Endset(CategoryWithAxiom_over_base_ring):
+            """
+            The category of endomorphism sets `End(X)` for `X`
+            a module (this is not used yet)
+            """
+            def extra_super_categories(self):
+                """
+                Implement the fact that the endomorphism set of a module is an algebra.
 
+                .. SEEALSO:: :meth:`CategoryWithAxiom.extra_super_categories`
+
+                EXAMPLES::
+
+                    sage: Modules(ZZ).Endsets().extra_super_categories()
+                    [Category of magmatic algebras over Integer Ring]
+
+                    sage: End(ZZ^3) in Algebras(ZZ)
+                    True
+                """
+                from magmatic_algebras import MagmaticAlgebras
+                return [MagmaticAlgebras(self.base_category().base_ring())]
+
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of modules constructed as Cartesian products of modules
+
+        This construction gives the direct product of modules. The
+        implementation is based on the following resources:
+
+        - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
+        - http://en.wikipedia.org/wiki/Direct_product
+        """
+        def extra_super_categories(self):
+            """
+            A Cartesian product of modules is endowed with a natural
+            module structure.
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).CartesianProducts().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: Modules(ZZ).CartesianProducts().super_categories()
+                [Category of Cartesian products of commutative additive groups,
+                 Category of modules over Integer Ring]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            def base_ring(self):
+                """
+                Return the base ring of this Cartesian product.
+
+                EXAMPLES::
+
+                    sage: E = CombinatorialFreeModule(ZZ, [1,2,3])
+                    sage: F = CombinatorialFreeModule(ZZ, [2,3,4])
+                    sage: C = cartesian_product([E, F]); C
+                    Free module generated by {1, 2, 3} over Integer Ring (+)
+                    Free module generated by {2, 3, 4} over Integer Ring
+                    sage: C.base_ring()
+                    Integer Ring
+                """
+                return self._sets[0].base_ring()
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of modules constructed by tensor product of modules.
+        """
+        @cached_method
         def extra_super_categories(self):
             """
             EXAMPLES::
 
-                sage: Hom(ZZ^3, ZZ^3).category().extra_super_categories() # todo: not implemented
-                [Category of algebras over Integer Ring]
+                sage: Modules(ZZ).TensorProducts().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: Modules(ZZ).TensorProducts().super_categories()
+                [Category of modules over Integer Ring]
             """
-            from algebras import Algebras
-            return [Algebras(self.base_category.base_ring())]
+            return [self.base_category()]
 

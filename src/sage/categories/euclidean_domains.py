@@ -22,6 +22,7 @@ from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
+from sage.structure.sequence import Sequence
 
 class EuclideanDomains(Category_singleton):
     """
@@ -63,6 +64,68 @@ class EuclideanDomains(Category_singleton):
             """
             return True
 
+        def gcd_free_basis(self, elts):
+            r"""
+            Compute a set of coprime elements that can be used to express the
+            elements of ``elts``.
+
+            INPUT:
+
+            - ``elts`` - A sequence of elements of ``self``.
+
+            OUTPUT:
+
+            A GCD-free basis (also called a coprime base) of ``elts``; that is,
+            a set of pairwise relatively prime elements of ``self`` such that
+            any element of ``elts`` can be written as a product of elements of
+            the set.
+
+            ALGORITHM:
+
+            Naive implementation of the algorithm described in Section 4.8 of
+            Bach & Shallit [BachShallit1996]_.
+
+            .. [BachShallit1996] Eric Bach, Jeffrey Shallit.
+                *Algorithmic Number Theory, Vol. 1: Efficient Algorithms*.
+                MIT Press, 1996. ISBN 978-0262024051.
+
+            EXAMPLES::
+
+                sage: ZZ.gcd_free_basis([1])
+                []
+                sage: ZZ.gcd_free_basis([4, 30, 14, 49])
+                [2, 15, 7]
+
+                sage: Pol.<x> = QQ[]
+                sage: Pol.gcd_free_basis([
+                ....:     (x+1)^3*(x+2)^3*(x+3), (x+1)*(x+2)*(x+3),
+                ....:     (x+1)*(x+2)*(x+4)])
+                [x + 3, x + 4, x^2 + 3*x + 2]
+            """
+            def refine(a, b):
+                g = a.gcd(b)
+                if g.is_unit():
+                    return (a, set(), b)
+                l1, s1, r1 = refine(a//g, g)
+                l2, s2, r2 = refine(r1, b//g)
+                s1.update(s2)
+                s1.add(l2)
+                return (l1, s1, r2)
+            elts = Sequence(elts, universe=self)
+            res = set()
+            if len(elts) == 1:
+                res.update(elts)
+            else:
+                r = elts[-1]
+                for t in self.gcd_free_basis(elts[:-1]):
+                    l, s, r = refine(t, r)
+                    res.update(s)
+                    res.add(l)
+                res.add(r)
+            units = [x for x in res if x.is_unit()]
+            res.difference_update(units)
+            return Sequence(res, universe=self, check=False)
+
         def _test_euclidean_degree(self, **options):
             r"""
             Test that the assumptions on a euclidean degree are met.
@@ -87,8 +150,8 @@ class EuclideanDomains(Category_singleton):
                 tester.assertGreaterEqual(a.euclidean_degree(), min_degree)
                 tester.assertEqual(a.euclidean_degree() == min_degree, a.is_unit())
 
-            from sage.combinat.cartesian_product import CartesianProduct
-            for a,b in tester.some_elements(CartesianProduct(S,S)):
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
                 p = a * b
                 # For rings which are not exact, we might get something that
                 #   acts like a zero divisor.
@@ -114,9 +177,8 @@ class EuclideanDomains(Category_singleton):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-
-            from sage.combinat.cartesian_product import CartesianProduct
-            for a,b in tester.some_elements(CartesianProduct(S,S)):
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
                 if b.is_zero():
                     tester.assertRaises(ZeroDivisionError, lambda: a.quo_rem(b))
                 else:

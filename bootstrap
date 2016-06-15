@@ -14,7 +14,7 @@
 # If optional argument -d is given and bootstrapping failed, instead
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
-# donwload.
+# download.
 ########################################################################
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
@@ -27,7 +27,7 @@ CONFVERSION=`cat $PKG/package-version.txt`
 
 bootstrap () {
     aclocal -I m4 && \
-    automake --add-missing --copy build/Makefile-auto && \
+    automake --add-missing --copy build/make/Makefile-auto && \
     autoconf
 
     st=$?
@@ -56,15 +56,10 @@ bootstrap () {
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
     source src/bin/sage-env
-
-    mkdir upstream 2>/dev/null
-    if [ ! -f $CONFBALL ]; then
-        sage-download-file $SAGE_UPSTREAM/configure/configure-$CONFVERSION.tar.gz >$CONFBALL
-        if [ $? -ne 0 ]; then
-            rm -f "$CONFBALL"
-            echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
-            exit 1
-        fi
+    sage-download-file configure-$CONFVERSION.tar.gz
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
+        exit 1
     fi
 
     # The "m" option to tar ensures that timestamps are set to the
@@ -77,10 +72,18 @@ bootstrap-download () {
 save () {
     set -e
 
+    # Check that config.guess is sufficiently recent
+    if ! grep '^timestamp=.*201[5-9]' config/config.guess >/dev/null; then
+        echo >&2 "Error: config.guess is outdated:"
+        grep >&2 '^timestamp=' config/config.guess
+        echo >&2 "You should update the 'gnuconfig' or 'automake' package and try again"
+        exit 63
+    fi
+
     # Create configure tarball
     echo "Creating $CONFBALL..."
     mkdir -p upstream
-    tar zcf "$CONFBALL" configure config/* build/Makefile-auto.in
+    tar zcf "$CONFBALL" configure config/* build/make/Makefile-auto.in
     
     # Update version number
     echo "$CONFVERSION" >$PKG/package-version.txt

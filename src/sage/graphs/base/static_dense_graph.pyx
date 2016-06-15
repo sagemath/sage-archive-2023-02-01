@@ -16,6 +16,9 @@ It is all based on the binary matrix data structure described in
 structure. The only difference is that it differentiates the rows (the vertices)
 instead of storing the whole data in a long bitset, and we can use that.
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Index
 -----
 
@@ -40,8 +43,9 @@ Index
 Functions
 ---------
 """
+include "sage/data_structures/binary_matrix.pxi"
 
-cdef dict dense_graph_init(binary_matrix_t m, g, translation = False):
+cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     r"""
     Initializes the binary matrix from a Sage (di)graph.
 
@@ -59,8 +63,7 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation = False):
     cdef int is_undirected = isinstance(g, Graph)
     cdef int n = g.order()
 
-    binary_matrix_init(m,n,n)
-    binary_matrix_fill(m,0)
+    binary_matrix_init(m, n, n)
 
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
     if g.vertices() == range(n):
@@ -68,16 +71,16 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation = False):
             d_translation = {i:i for i in range(n)}
 
         for i,j in g.edge_iterator(labels = False):
-            binary_matrix_set1(m,i,j)
+            binary_matrix_set1(m, i, j)
             if is_undirected:
-                binary_matrix_set1(m,j,i)
+                binary_matrix_set1(m, j, i)
     else:
         d_translation = {v:i for i,v in enumerate(g.vertices())}
 
         for u,v in g.edge_iterator(labels = False):
-            binary_matrix_set1(m,d_translation[u],d_translation[v])
+            binary_matrix_set1(m, d_translation[u], d_translation[v])
             if is_undirected:
-                binary_matrix_set1(m,d_translation[v],d_translation[u])
+                binary_matrix_set1(m, d_translation[v], d_translation[u])
 
     if translation:
         return d_translation
@@ -171,6 +174,7 @@ def is_strongly_regular(g, parameters = False):
     """
     g._scream_if_not_simple()
     cdef binary_matrix_t m
+    cdef bitset_t b_tmp
     cdef int n = g.order()
     cdef int inter
     cdef int i,j,l, k
@@ -186,7 +190,9 @@ def is_strongly_regular(g, parameters = False):
     if not all(d == k for d in degree):
         return False
 
-    # m i now our copy of the graph
+    bitset_init(b_tmp, n)
+
+    # m is now our copy of the graph
     dense_graph_init(m, g)
 
     cdef int llambda = -1
@@ -197,9 +203,8 @@ def is_strongly_regular(g, parameters = False):
 
             # The intersection of the common neighbors of i and j is a AND of
             # their respective rows. A popcount then returns its cardinality.
-            inter = 0
-            for l in range(m.width):
-                inter += __builtin_popcountl(m.rows[i][l] & m.rows[j][l])
+            bitset_and(b_tmp, m.rows[i], m.rows[j])
+            inter = bitset_len(b_tmp)
 
             # Check that this cardinality is correct according to the values of lambda and mu
             if binary_matrix_get(m,i,j):
@@ -207,17 +212,69 @@ def is_strongly_regular(g, parameters = False):
                     llambda = inter
                 elif llambda != inter:
                     binary_matrix_free(m)
+                    bitset_free(b_tmp)
                     return False
             else:
                 if mu == -1:
                     mu = inter
                 elif mu != inter:
                     binary_matrix_free(m)
+                    bitset_free(b_tmp)
                     return False
 
     binary_matrix_free(m)
+    bitset_free(b_tmp)
 
     if parameters:
         return (n,k,llambda,mu)
     else:
         return True
+
+def triangles_count(G):
+    r"""
+    Return the number of triangles containing `v`, for every `v`.
+
+    INPUT:
+
+    - ``G``-- a simple graph
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.static_dense_graph import triangles_count
+        sage: triangles_count(graphs.PetersenGraph())
+        {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+        sage: sum(triangles_count(graphs.CompleteGraph(15)).values()) == 3*binomial(15,3)
+        True
+    """
+    from sage.rings.integer import Integer
+    G._scream_if_not_simple()
+    cdef int n = G.order()
+
+    cdef uint64_t * count = <uint64_t *> check_calloc(n, sizeof(uint64_t))
+
+    cdef binary_matrix_t g
+    dense_graph_init(g, G)
+
+    cdef bitset_t b_tmp
+    bitset_init(b_tmp, n)
+
+    cdef int i,j
+    cdef uint64_t tmp_count = 0
+
+    for i in range(n):
+        for j in range(i+1,n):
+            if not bitset_in(g.rows[i],j):
+                continue
+            bitset_and(b_tmp, g.rows[i], g.rows[j])
+            tmp_count = bitset_len(b_tmp)
+            count[i] += tmp_count
+            count[j] += tmp_count
+
+    ans = {v:Integer(count[i]/2)
+           for i,v in enumerate(G.vertices())}
+
+    bitset_free(b_tmp)
+    binary_matrix_free(g)
+    sig_free(count)
+
+    return ans

@@ -23,6 +23,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from copy import copy
 from itertools import product
@@ -129,8 +130,7 @@ def bdd_height_iq(K, height_bound):
         sage: from sage.rings.number_field.bdd_height import bdd_height_iq
         sage: K.<a> = NumberField(x^2 + 191)
         sage: for t in bdd_height_iq(K,8):
-        ....:     print exp(2*t.global_height())
-        ....:
+        ....:     print(exp(2*t.global_height()))
         1.00000000000000
         1.00000000000000
         1.00000000000000
@@ -246,7 +246,7 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
         sage: from sage.rings.number_field.bdd_height import bdd_norm_pr_ideal_gens
         sage: K.<g> = QuadraticField(123)
         sage: bdd_norm_pr_ideal_gens(K, range(5))
-        {0: [], 1: [1], 2: [-g - 11], 3: [], 4: [2]}
+        {0: [0], 1: [1], 2: [-g - 11], 3: [], 4: [2]}
 
     ::
 
@@ -263,7 +263,10 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
     gens = dict()
     if len(negative_norm_units) == 0:
         for n in norm_list:
-            gens[n] = K.elements_of_norm(n) + K.elements_of_norm(-n)
+            if not n:
+                gens[n] = [K.zero()]
+            else:
+                gens[n] = K.elements_of_norm(n) + K.elements_of_norm(-n)
     else:
         for n in norm_list:
             gens[n] = K.elements_of_norm(n)
@@ -510,7 +513,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
                 new_unit *= fund_units[i]**c[i]
             lll_fund_units.append(new_unit)
         fund_units = lll_fund_units
-        fund_unit_logs = map(log_map, fund_units)
+        fund_unit_logs = [log_map(_) for _ in fund_units]
         unit_prec_test = fund_unit_logs
         try:
             [l.change_ring(QQ) for l in unit_prec_test]

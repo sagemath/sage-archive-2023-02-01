@@ -230,7 +230,7 @@ class Divisor_generic(FormalSum):
             sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]); D
             3*(x, y) - (x - 2, y - 2)
             sage: D.scheme()
-            Affine Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
+            Affine Plane Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
         """
         return self.parent().scheme()
 
@@ -442,26 +442,3 @@ class Divisor_curve(Divisor_generic):
         except AttributeError:
                 raise NotImplementedError
 
-    def coef(self,P):
-        r"""
-        Synonym for :meth:`coefficient`
-
-        .. WARNING::
-
-            This method is deprecated. It will be removed in a future
-            release of Sage. Please use the ``coefficient(P)`` method
-            instead.
-
-        EXAMPLES::
-
-            sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
-            sage: C = Curve(y^2 - x^9 - x)
-            sage: pts = C.rational_points(); pts
-            [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
-            sage: D = C.divisor(pts[0])
-            sage: D.coefficient(pts[0])
-            1
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(9337, "This method is deprecated. It will be removed in a future release of Sage. Please use the coefficient() method instead.")
-        return self.coefficient(P)

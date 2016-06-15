@@ -92,8 +92,8 @@ To expand in variables, one can specify a finite size alphabet `x_1, x_2,
     sage: y.expand(4)
     x0*x1^2*x2 + x0*x1^2*x3 + x0*x2^2*x3 + x1*x2^2*x3
 
-The usual methods on free modules are available such as coefficients, degrees,
-and the support::
+The usual methods on free modules are available such as coefficients,
+degrees, and the support::
 
     sage: z=3*M[1,2]+M[3]^2; z
     3*M[1, 2] + 2*M[3, 3] + M[6]
@@ -104,14 +104,14 @@ and the support::
     sage: z.degree()
     6
 
-    sage: z.coefficients()
-    [3, 2, 1]
+    sage: sorted(z.coefficients())
+    [1, 2, 3]
 
-    sage: z.monomials()
+    sage: sorted(z.monomials(), key=lambda x: x.support())
     [M[1, 2], M[3, 3], M[6]]
 
     sage: z.monomial_coefficients()
-    {[3, 3]: 2, [1, 2]: 3, [6]: 1}
+    {[1, 2]: 3, [3, 3]: 2, [6]: 1}
 
 As with the symmetric functions package, the quasisymmetric function ``1``
 has several instantiations. However, the most obvious way to write ``1``

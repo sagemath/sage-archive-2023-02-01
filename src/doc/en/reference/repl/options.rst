@@ -109,20 +109,13 @@ Command-line options for Sage
 .. rubric:: Building and testing the Sage library
 
 - ``--root`` -- print the Sage root directory
-- ``--branch`` -- print the current Sage branch
-- ``--clone [new branch]`` -- clone a new branch of the Sage library from the
-  current branch
-- ``-b [branch]`` -- build Sage library -- do this if you have modified
-  any source code files in :file:`$SAGE_ROOT/devel/sage/`.  If
-  ``branch`` is given, switch to the branch in
-  :file:`$SAGE_ROOT/devel/sage-branch` and build it.
-- ``-ba [branch]`` -- same as ``-b``, but rebuild *all* Cython
+- ``-b`` -- build Sage library -- do this if you have modified
+  any source code files in :file:`$SAGE_ROOT/src/sage/`.
+- ``-ba`` -- same as ``-b``, but rebuild *all* Cython
   code.  This could take a while, so you will be asked if you want
   to proceed.
-- ``-ba-force [branch]`` -- same as ``-ba``, but don't query before
-  rebuilding
-- ``--br [branch]`` -- switch to, build, and run Sage with the given
-  branch
+- ``-ba-force`` -- same as ``-ba``, but don't query before rebuilding
+- ``--br`` -- build and run Sage
 - ``-t [options] <files|dir>`` -- test examples in .py, .pyx, .sage
   or .tex files.  Options:
 
@@ -212,11 +205,7 @@ Command-line options for Sage
   directory ``dir``
 - ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
-- ``--bdist VER`` -- build a binary distribution of Sage, with
-  version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
-- ``--crap sage-ver.tar`` -- detect suspicious garbage in the Sage
-  source tarball
 
 .. rubric:: Valgrind memory debugging
 

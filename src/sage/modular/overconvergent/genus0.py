@@ -125,7 +125,7 @@ We compute the eigenfunctions of a 4x4 truncation:
 
     sage: efuncs = M.eigenfunctions(4)
     sage: for i in [1..3]:
-    ...       print efuncs[i].q_expansion(prec=4).change_ring(Qp(3,prec=20))
+    ....:     print(efuncs[i].q_expansion(prec=4).change_ring(Qp(3,prec=20)))
     (1 + O(3^20))*q + (2*3 + 3^15 + 3^16 + 3^17 + 2*3^19 + 2*3^20 + O(3^21))*q^2 + (2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 3^17 + 2*3^18 + 2*3^19 + 3^21 + 3^22 + O(3^23))*q^3 + O(q^4)
     (1 + O(3^20))*q + (3 + 2*3^2 + 3^3 + 3^4 + 3^12 + 3^13 + 2*3^14 + 3^15 + 2*3^17 + 3^18 + 3^19 + 3^20 + O(3^21))*q^2 + (3^7 + 3^13 + 2*3^14 + 2*3^15 + 3^16 + 3^17 + 2*3^18 + 3^20 + 2*3^21 + 2*3^22 + 2*3^23 + 2*3^25 + O(3^27))*q^3 + O(q^4)
     (1 + O(3^20))*q + (2*3 + 3^3 + 2*3^4 + 3^6 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 2*3^13 + 3^16 + 3^18 + 3^19 + 3^20 + O(3^21))*q^2 + (3^9 + 2*3^12 + 3^15 + 3^17 + 3^18 + 3^19 + 3^20 + 2*3^22 + 2*3^23 + 2*3^27 + 2*3^28 + O(3^29))*q^3 + O(q^4)
@@ -172,17 +172,18 @@ classical) does not apply.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
 from sage.misc.cachefunc    import cached_method
+from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
-from sage.modules.module    import Module_old
+from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
@@ -259,7 +260,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
 # Main class definition #
 #########################
 
-class OverconvergentModularFormsSpace(Module_old):
+class OverconvergentModularFormsSpace(Module):
     r"""
     A space of overconvergent modular forms of level `\Gamma_0(p)`,
     where `p` is a prime such that `X_0(p)` has genus 0.
@@ -310,7 +311,7 @@ class OverconvergentModularFormsSpace(Module_old):
         if not self._wtchar.is_even():
             raise ValueError("Weight-character must be even")
 
-        Module_old.__init__(self, base_ring)
+        Module.__init__(self, base_ring)
 
         self._prec = prec
 
@@ -426,7 +427,7 @@ class OverconvergentModularFormsSpace(Module_old):
         else:
             raise TypeError("Base extension of self (over '%s') to ring '%s' not defined." % (self.base_ring(), ring))
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         r"""
         Return an element of this space (used by the coercion machinery).
 
@@ -470,7 +471,6 @@ class OverconvergentModularFormsSpace(Module_old):
             (3, 3, [-1])
         """
         return self._wtchar
-
 
     def normalising_factor(self):
         r"""
@@ -574,7 +574,6 @@ class OverconvergentModularFormsSpace(Module_old):
         """
         return self._p
 
-
     def radius(self):
         r"""
         The radius of overconvergence of this space.
@@ -595,9 +594,9 @@ class OverconvergentModularFormsSpace(Module_old):
 
             sage: o = OverconvergentModularForms(3, 12, 1/2)
             sage: t = o.gens()
-            sage: t.next()
+            sage: next(t)
             3-adic overconvergent modular form of weight-character 12 with q-expansion 1 - 32760/61203943*q - 67125240/61203943*q^2 - ...
-            sage: t.next()
+            sage: next(t)
             3-adic overconvergent modular form of weight-character 12 with q-expansion 27*q + 19829193012/61203943*q^2 + 146902585770/61203943*q^3 + ...
         """
         i = 0
@@ -621,11 +620,9 @@ class OverconvergentModularFormsSpace(Module_old):
 
     #####################################
     # Element construction and coercion #
-    #   (unfortunately not using        #
-    #    the new coercion model)        #
     #####################################
 
-    def __call__(self, input):
+    def _element_constructor_(self, input):
         r"""
         Create an element of this space. Allowable inputs are:
 
@@ -725,17 +722,19 @@ class OverconvergentModularFormsSpace(Module_old):
             raise TypeError("Don't know how to create an overconvergent modular form from %s" % input)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this space.
 
         EXAMPLE::
 
             sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
-            sage: K.zero_element()
+            sage: K.zero()
             0
         """
         return self(0)
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def _coerce_from_ocmf(self, f):
         r"""
@@ -743,6 +742,7 @@ class OverconvergentModularFormsSpace(Module_old):
         obviously nonsense.
 
         EXAMPLES::
+
             sage: M = OverconvergentModularForms(3, 0, 1/2)
             sage: MM = M.base_extend(Qp(3))
             sage: R.<q> = Qp(3)[[]]; f = MM(q + O(q^2)); f
@@ -757,7 +757,7 @@ class OverconvergentModularFormsSpace(Module_old):
             raise TypeError("Cannot create an element of '%s' from element of incompatible space '%s'" % (self, input.parent()))
         return self(self._qsr(f.q_expansion()))
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, other):
         r"""
         Canonical coercion of x into self. Here the possibilities for x are
         more restricted.
@@ -775,11 +775,11 @@ class OverconvergentModularFormsSpace(Module_old):
             sage: M.coerce(1)
             3-adic overconvergent modular form of weight-character 0 with q-expansion 1 + O(q^20)
         """
-        if isinstance(x, OverconvergentModularFormElement) and self.base_ring().has_coerce_map_from(x.base_ring()):
-            return self._coerce_from_ocmf(x)
+        if (isinstance(other, OverconvergentModularFormsSpace) and
+            self.base_ring().has_coerce_map_from(other.base_ring())):
+            return True
         else:
-            return self.base_ring().coerce(x) * self.gen(0)
-
+            return self.base_ring().has_coerce_map_from(other)
 
     def coordinate_vector(self, x):
         r"""
@@ -999,7 +999,7 @@ class OverconvergentModularFormsSpace(Module_old):
         elif is_pAdicField(self.base_ring()):
             slopelist=self.cps_u(n).truncate().newton_slopes()
         else:
-            print "slopes are only defined for base field QQ or a p-adic field"
+            print("slopes are only defined for base field QQ or a p-adic field")
         return [-i for i in slopelist]
 
     def eigenfunctions(self, n, F = None, exact_arith=True):
@@ -1050,7 +1050,6 @@ class OverconvergentModularFormsSpace(Module_old):
         for (r, d) in eigenvalues:
             v = r.valuation()
             if d != 1:
-                #print "Warning: Root occurs with multiplicity"
                 continue
 
             mr = (m._pari_() - r._pari_())
@@ -1191,13 +1190,11 @@ class OverconvergentModularFormsSpace(Module_old):
                 fi = fi*self._uniformiser
             SmiH = f_ring(coeffs)
             assert SmiH.degree() == self.prime() + 1
-            # print "Smithline's H_p is: ",SmiH, " = ",SmiH.factor()
             xyring = PolynomialRing(self.base_ring(), ["x","y"], 2)
             x,y = xyring.gens()
             cc = self.prime() ** (-12/(self.prime() - 1))
             bigI = x*SmiH(y*cc)- y*cc*SmiH(x)
             smallI = xyring(bigI / (x - cc*y))
-            # print "Smithline's I_p is: ", smallI
             r = matrix(ZZ, self.prime(), self.prime())
             for i in xrange(self.prime()):
                 for j in xrange(self.prime()):
@@ -1602,6 +1599,7 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: o=OverconvergentModularForms(3, 0, 1/2)
             sage: f=o.eigenfunctions(4)[1]
             sage: f.valuation_plot()
+            Graphics object consisting of 1 graphics primitive
         """
         if rmax is None: rmax = ZZ(self.prime())/ZZ(1 + self.prime())
         return plot(self.r_ord, (0, rmax) )

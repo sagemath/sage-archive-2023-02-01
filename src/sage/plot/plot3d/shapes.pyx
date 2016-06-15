@@ -18,8 +18,26 @@ EXAMPLES::
     sage: S.show()
     sage: S.scale(1,1,2).show()
 
+.. PLOT::
+
+    from sage.plot.plot3d.shapes import *
+    S = Sphere(.5, color='yellow')
+    S += Cone(.5, .5, color='red').translate(0,0,.3)
+    S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+    S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+    S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+    sphinx_plot(S)
+
+::
+
     sage: from sage.plot.plot3d.shapes import *
     sage: Torus(.7, .2, color=(0,.3,0)).show()
+
+.. PLOT::
+
+    from sage.plot.plot3d.shapes import *
+    sphinx_plot(Torus(.7, .2, color=(0,.3,0)))
+
 """
 
 
@@ -49,12 +67,10 @@ cdef extern from "math.h":
     double atan(double)
     double M_PI
 
+
 from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
-
-from sage.misc.all import srange
 from sage.plot.misc import rename_keyword
-
 from base import Graphics3dGroup, Graphics3d
 
 # Helper function to check that Box input is right
@@ -107,18 +123,41 @@ class Box(IndexFaceSet):
     
         sage: show(Box([1,1,1]), color='black')
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        sphinx_plot(Box([1,1,1], color='black'))
+
     A red rectangular box::
 
         sage: show(Box([2,3,4], color="red"))
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        sphinx_plot(Box([2,3,4], color="red"))
 
     A stack of boxes::
     
         sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        P = sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in range(0,4)])
+        sphinx_plot(P)
+
     A sinusoidal stack of multicolored boxes::
     
         sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
         sage: show(B, figsize=6)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Box
+        B = sum([Box([2,4,1/4], color=(i/4.0,i/5.0,1)).translate((sin(i),0,5-i)) for i in range(0,21)])
+        sphinx_plot(B)
+
     """
     def __init__(self, *size, **kwds):
         """
@@ -126,6 +165,7 @@ class Box(IndexFaceSet):
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: Box(10, 1, 1) + Box(1, 10, 1) + Box(1, 1, 10)
+            Graphics3d Object
         """
         if isinstance(size[0], (tuple, list)):
             size = validate_frame_size(size[0])
@@ -164,10 +204,10 @@ def ColorCube(size, colors, opacity=1, **kwds):
 
     INPUT:
 
-    - size -- 3-tuple of sizes (same as for box and frame)
-    - colors -- a list of either 3 or 6 colors
-    - opacity -- (default: 1) opacity of cube sides
-    - **kwds -- passed to the face constructor
+    - ``size`` -- 3-tuple of sizes (same as for box and frame)
+    - ``colors`` -- a list of either 3 or 6 colors
+    - ``opacity`` -- (default: 1) opacity of cube sides
+    - ``**kwds`` -- passed to the face constructor
 
     OUTPUT:
 
@@ -180,13 +220,29 @@ def ColorCube(size, colors, opacity=1, **kwds):
         sage: from sage.plot.plot3d.shapes import ColorCube
         sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sage: c.show()
+
+    .. PLOT::
+    
+        from sage.plot.plot3d.shapes import ColorCube
+        c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
+        sphinx_plot(c)
+    
+    ::
+    
         sage: list(c.texture_set())[0].opacity
-        0.500000000000000
+        0.5
 
     If you omit the last 3 colors then the first three are repeated (with
     repeated colors on opposing faces)::
 
         sage: c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import ColorCube
+        c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+        sphinx_plot(c)
+
     """
     if not isinstance(size, (tuple, list)):
         size = (size, size, size)
@@ -210,11 +266,11 @@ cdef class Cone(ParametricSurface):
 
     INPUT:
 
-    - ``radius`` - positive real number
+    - ``radius`` -- positive real number
 
-    - ``height`` - positive real number
+    - ``height`` -- positive real number
 
-    - ``closed`` - whether or not to include the base (default True)
+    - ``closed`` -- whether or not to include the base (default ``True``)
 
     - ``**kwds`` -- passed to the ParametricSurface constructor
 
@@ -224,19 +280,45 @@ cdef class Cone(ParametricSurface):
         sage: c = Cone(3/2, 1, color='red') + Cone(1, 2, color='yellow').translate(3, 0, 0)
         sage: c.show(aspect_ratio=1)
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cone
+        c = Cone(3/2, 1, color='red') + Cone(1, 2, color='yellow').translate(3, 0, 0)
+        sphinx_plot(c)
+
     We may omit the base::
 
         sage: Cone(1, 1, closed=False)
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cone
+        sphinx_plot(Cone(1, 1, closed=False))
 
     A spiky plot of the sine function::
 
         sage: sum(Cone(.1, sin(n), color='yellow').translate(n, sin(n), 0) for n in [0..10, step=.1])
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cone
+        sphinx_plot(sum(Cone(.1, sin(n/10.0), color='yellow').translate(n/10.0, sin(n/10.0), 0) for n in range(0,100)))
 
     A Christmas tree::
 
         sage: T = sum(Cone(exp(-n/5), 4/3*exp(-n/5), color=(0, .5, 0)).translate(0, 0, -3*exp(-n/5)) for n in [1..7])
         sage: T += Cone(1/8, 1, color='brown').translate(0, 0, -3)
         sage: T.show(aspect_ratio=1, frame=False)
+        
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cone
+        T = sum(Cone(exp(-n/5.0), 4/3*exp(-n/5.0), color=(0, .5, 0)).translate(0, 0, -3*exp(-n/5.0)) for n in range(8))
+        T += Cone(1/8, 1, color='brown').translate(0, 0, -3)
+        sphinx_plot(T)
+    
     """
     def __init__(self, radius, height, closed=True, **kwds):
         """
@@ -300,11 +382,11 @@ cdef class Cylinder(ParametricSurface):
 
     INPUT:
 
-    - ``radius`` - positive real number
+    - ``radius`` -- positive real number
 
-    - ``height`` - positive real number
+    - ``height`` -- positive real number
 
-    - ``closed`` - whether or not to include the ends (default True)
+    - ``closed`` -- whether or not to include the ends (default ``True``)
 
     - ``**kwds`` -- passed to the ParametricSurface constructor
 
@@ -314,9 +396,21 @@ cdef class Cylinder(ParametricSurface):
         sage: c = Cylinder(3/2, 1, color='red') + Cylinder(1, 2, color='yellow').translate(3, 0, 0)
         sage: c.show(aspect_ratio=1)
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cylinder
+        c = Cylinder(3/2, 1, color='red') + Cylinder(1, 2, color='yellow').translate(3, 0, 0)
+        sphinx_plot(c)
+
     We may omit the base::
 
         sage: Cylinder(1, 1, closed=False)
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cylinder
+        sphinx_plot(Cylinder(1, 1, closed=False))
 
     Some gears::
 
@@ -325,6 +419,16 @@ cdef class Cylinder(ParametricSurface):
         sage: G += G.translate(2.3, 0, -.5)
         sage: G += G.translate(3.5, 2, -1)
         sage: G.show(aspect_ratio=1, frame=False)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Cylinder
+        G = Cylinder(1, .5) + Cylinder(.25, 3).translate(0, 0, -3)
+        G += sum(Cylinder(.2, 1).translate(cos(2*pi*n/9.0), sin(2*pi*n/9.0), 0) for n in range(10))
+        G += G.translate(2.3, 0, -.5)
+        G += G.translate(3.5, 2, -1)
+        sphinx_plot(G)
+
     """
     def __init__(self, radius, height, closed=True, **kwds):
         """
@@ -332,6 +436,7 @@ cdef class Cylinder(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Cylinder
             sage: Cylinder(1, 1, color='red')
+            Graphics3d Object
         """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
@@ -361,7 +466,7 @@ cdef class Cylinder(ParametricSurface):
                                                         self.height)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -399,7 +504,7 @@ cdef class Cylinder(ParametricSurface):
             return cyl
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Cylinder
@@ -515,14 +620,37 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
-        sage: S = Sphere(.2, color='red').translate(P) + \
-                  Sphere(.2, color='blue').translate(Q) + \
-                  LineSegment(P, Q, .05, color='black')
+        sage: S = Sphere(.2, color='red').translate(P)
+        sage: S += Sphere(.2, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .05, color='black')
         sage: S.show()
-        sage: S = Sphere(.1, color='red').translate(P) + \
-                  Sphere(.1, color='blue').translate(Q) + \
-                  LineSegment(P, Q, .15, color='black')
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import LineSegment, Sphere
+        P = (0,0,0.1)
+        Q = (0.5,0.6,0.7)
+        S = Sphere(.2, color='red').translate(P)
+        S += Sphere(.2, color='blue').translate(Q)
+        S += LineSegment(P, Q, .05, color='black')
+        sphinx_plot(S)
+
+    ::
+
+        sage: S = Sphere(.1, color='red').translate(P)
+        sage: S += Sphere(.1, color='blue').translate(Q)
+        sage: S += LineSegment(P, Q, .15, color='black')
         sage: S.show()
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import LineSegment, Sphere
+        P = (0,0,0.1)
+        Q = (0.5,0.6,0.7)
+        S = Sphere(.1, color='red').translate(P)
+        S += Sphere(.1, color='blue').translate(Q)
+        S += LineSegment(P, Q, .15, color='black')
+        sphinx_plot(S)
 
     AUTHOR:
 
@@ -565,27 +693,62 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
     The default arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), 1)
+        Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(arrow3d((0,0,0), (1,1,1), 1))
 
     A fat arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), radius=0.1)
+        Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(arrow3d((0,0,0), (1,1,1), radius=0.1))
 
     A green arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), color='green')
+        Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(arrow3d((0,0,0), (1,1,1), color='green'))
 
     A fat arrow head::
 
         sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
+        Graphics3d Object
 
-    Many arrow arranged in a circle (flying spears?)::
+    .. PLOT::
+
+        sphinx_plot(arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1]))
+
+    Many arrows arranged in a circle (flying spears?)::
 
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+        Graphics3d Object
+
+    .. PLOT::
+
+        t=0
+        G=Graphics()
+        while (t<=2*pi):
+            G += arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1))
+            t +=0.3
+        sphinx_plot(G)
 
     Change the width of the arrow. (Note: for an arrow that scales with zoom, please consider
-    the 'line3d' function with the option 'arrow_head=True')::
+    the ``line3d`` function with the option ``arrow_head=True``)::
 
         sage: arrow3d((0,0,0), (1,1,1), width=1)
+        Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(arrow3d((0,0,0), (1,1,1), width=1))
 
     TESTS:
 
@@ -609,13 +772,6 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: a = arrow3d((0,0,0), (0,0,-1))
         sage: a.all[0].get_transformation().transform_point((0,0,1))
         (0.0, 0.0, -1.0)
-
-    The thickness option is now deprecated.  It has been replaced by the width option. ::
-
-        sage: arrow3d((0,0,0), (1,1,1), thickness=1)
-        doctest:...: DeprecationWarning: use the option 'width' instead of 'thickness'
-        See http://trac.sagemath.org/7154 for details.
-        <BLANKLINE>
     """
     if radius is None:
         radius = width/50.0
@@ -652,16 +808,35 @@ cdef class Sphere(ParametricSurface):
 
         sage: from sage.plot.plot3d.shapes import Sphere
         sage: Sphere(3)
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Sphere
+        sphinx_plot(Sphere(3))
 
     Plot with aspect_ratio=1 to see it unsquashed::
 
         sage: S = Sphere(3, color='blue') + Sphere(2, color='red').translate(0,3,0)
         sage: S.show(aspect_ratio=1)
 
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Sphere
+        S = Sphere(3, color='blue') + Sphere(2, color='red').translate(0,3,0)
+        sphinx_plot(S)
+
     Scale to get an ellipsoid::
 
         sage: S = Sphere(1).scale(1,2,1/2)
         sage: S.show(aspect_ratio=1)
+        
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Sphere
+        S = Sphere(1).scale(1,2,1/2)
+        sphinx_plot(S)
+
     """
     def __init__(self, radius, **kwds):
         """
@@ -669,6 +844,7 @@ cdef class Sphere(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(3)
+            Graphics3d Object
         """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
@@ -697,7 +873,7 @@ cdef class Sphere(ParametricSurface):
         return "<Sphere radius='%s'/>"%(self.radius)
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         Tachyon can natively handle spheres. Ellipsoids rendering is done
         as a parametric surface.
 
@@ -730,7 +906,7 @@ cdef class Sphere(ParametricSurface):
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
     def jmol_repr(self, render_params):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Sphere
@@ -743,7 +919,7 @@ cdef class Sphere(ParametricSurface):
             sage: S.translate(10, 100, 1000).jmol_repr(S.default_render_params())
             [['isosurface sphere_1  center {10.0 100.0 1000.0} sphere 2.0\ncolor isosurface  [102,102,255]']]
 
-        It can't natively handle ellipsoids::
+        It cannot natively handle ellipsoids::
 
             sage: Sphere(1).scale(2, 3, 4).jmol_repr(S.testing_render_params())
             [['pmesh obj_2 "obj_2.pmesh"\ncolor pmesh  [102,102,255]']]
@@ -816,17 +992,43 @@ cdef class Torus(ParametricSurface):
 
         sage: from sage.plot.plot3d.shapes import Torus
         sage: Torus(1, .2).show(aspect_ratio=1)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Torus
+        sphinx_plot(Torus(1, .2))
+
+    ::
+
         sage: Torus(1, .7, color='red').show(aspect_ratio=1)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Torus
+        sphinx_plot(Torus(1, .7, color='red'))
 
     A rubberband ball::
 
         sage: show(sum([Torus(1, .03, color=(1, t/30.0, 0)).rotate((1,1,1),t) for t in range(30)]))
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Torus
+        sphinx_plot(sum([Torus(1, .03, color=(1, t/30.0, 0)).rotate((1,1,1),t) for t in range(30)]))
 
     Mmm... doughnuts::
 
         sage: D = Torus(1, .4, color=(.5, .3, .2)) + Torus(1, .3, color='yellow').translate(0, 0, .15)
         sage: G = sum(D.translate(RDF.random_element(-.2, .2), RDF.random_element(-.2, .2), .8*t) for t in range(10))
         sage: G.show(aspect_ratio=1, frame=False)
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Torus
+        D = Torus(1, .4, color=(.5, .3, .2)) + Torus(1, .3, color='yellow').translate(0, 0, .15)
+        G = sum(D.translate(RDF.random_element(-.2, .2), RDF.random_element(-.2, .2), .8*t) for t in range(10))
+        sphinx_plot(G)
+
     """
     def __init__(self, R=1, r=.3, **kwds):
         """
@@ -873,8 +1075,25 @@ class Text(PrimitiveObject):
 
         sage: from sage.plot.plot3d.shapes import Text
         sage: Text("Just a lonely label.")
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Text
+        sphinx_plot(Text("Just a lonely label. "))
+
+    ::
+
         sage: pts = [(RealField(10)^3).random_element() for k in range(20)]
         sage: sum(Text(str(P)).translate(P) for P in pts)
+        Graphics3d Object
+
+    .. PLOT::
+
+        from sage.plot.plot3d.shapes import Text
+        pts = [(RealField(10)**3).random_element() for k in range(20)]
+        sphinx_plot(sum(Text(str(P)).translate(P) for P in pts))
+
     """
     def __init__(self, string, **kwds):
         """
@@ -898,7 +1117,7 @@ class Text(PrimitiveObject):
 
     def obj_repr(self, render_params):
         """
-        The obj file format doesn't support text strings::
+        The obj file format does not support text strings::
 
             sage: from sage.plot.plot3d.shapes import Text
             sage: Text("Hi").obj_repr(None)
@@ -920,7 +1139,7 @@ class Text(PrimitiveObject):
 ##         transform = render_params.transform
 ##         if not (transform is None or transform.is_uniform()):
 ##             return ParametricSurface.tachyon_repr(self, render_params)
-
+##
 ##         if transform is None:
 ##             cen = (0,0,0)
 ##             rad = self.radius

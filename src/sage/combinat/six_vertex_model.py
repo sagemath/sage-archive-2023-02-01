@@ -1,6 +1,7 @@
 r"""
 Six Vertex Model
 """
+from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -36,7 +37,7 @@ class SixVertexConfiguration(ClonableArray):
                 |    |    |
             --> # <- # <- # <--
                 |    ^    ^
-                V    |    |  
+                V    |    |
             --> # -> # <- # <--
                 |    |    ^
                 V    V    |
@@ -124,7 +125,7 @@ class SixVertexConfiguration(ClonableArray):
             if x == 3:
                 return 1
             return 0
-        return matrix([map(matrix_sign, row) for row in self])
+        return matrix([[matrix_sign(_) for _ in row] for row in self])
 
     def plot(self, color='sign'):
         """
@@ -146,7 +147,7 @@ class SixVertexConfiguration(ClonableArray):
         EXAMPLES::
 
             sage: M = SixVertexModel(2, boundary_conditions='ice')
-            sage: print M[0].plot().description()
+            sage: print(M[0].plot().description())
             Arrow from (-1.0,0.0) to (0.0,0.0)
             Arrow from (-1.0,1.0) to (0.0,1.0)
             Arrow from (0.0,0.0) to (0.0,-1.0)
@@ -289,7 +290,7 @@ class SixVertexConfiguration(ClonableArray):
             raise ValueError("there must be 6 energy constants")
         return sum(epsilon[entry] for row in self for entry in row)
 
-class SixVertexModel(Parent, UniqueRepresentation):
+class SixVertexModel(UniqueRepresentation, Parent):
     """
     The six vertex model.
 
@@ -600,7 +601,7 @@ class SixVertexModel(Parent, UniqueRepresentation):
                         row.append(-1)
                     # Check the right bdry condition since we are at the rightmost entry
                     elif next_left[row[-1]] is not self._bdry_cond[1][i]:
-                        bdry.append(map(lambda x: next_top[x], row))
+                        bdry.append([next_top[x] for x in row])
                         cur.append([-1])
                         left.append([lbd[i+1]])
                         break
@@ -663,10 +664,10 @@ class SquareIceModel(SixVertexModel):
 
     The square ice model is a 6 vertex model on an `n \times n` grid with
     the boundary conditions that the top and bottom boundaries are pointing
-    outward and the left and right boundaries are pointing inward. These 
+    outward and the left and right boundaries are pointing inward. These
     boundary conditions are also called domain wall boundary conditions.
 
-    Configurations of the 6 vertex model with domain wall boundary conditions 
+    Configurations of the 6 vertex model with domain wall boundary conditions
     are in bijection with alternating sign matrices.
     """
     def __init__(self, n):
@@ -772,7 +773,8 @@ class SquareIceModel(SixVertexModel):
                 [ 0  1 -1  1]
                 [ 0  0  1  0]
             """
-            from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
-            ASM = AlternatingSignMatrices(self.parent()._nrows)
-            return ASM(self.to_signed_matrix())
+            from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix #AlternatingSignMatrices
+            #ASM = AlternatingSignMatrices(self.parent()._nrows)
+            #return ASM(self.to_signed_matrix())
+            return AlternatingSignMatrix(self.to_signed_matrix())
 

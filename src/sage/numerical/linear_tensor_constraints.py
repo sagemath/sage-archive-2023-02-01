@@ -19,7 +19,6 @@ become symbolic inequalities::
     [0 0 0] <= [0   x_0 + x_1 0  ]
     [0 0 0]    [x_0 0         x_1]
 """
-
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
@@ -28,6 +27,8 @@ become symbolic inequalities::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -123,7 +124,7 @@ class LinearTensorConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 
@@ -255,10 +256,11 @@ class LinearTensorConstraint(Element):
             [0 0] <= [x_0   2*x_0]
             [0 0]    [3*x_0 4*x_0]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
+
         def matrix_art(m):
             lines = str(m).splitlines()
-            return AsciiArt(lines, baseline=len(lines)/2)
+            return AsciiArt(lines, baseline=len(lines) // 2)
         comparator = AsciiArt([' == ' if self.is_equation() else ' <= '])
         return matrix_art(self.lhs()) + comparator + matrix_art(self.rhs())
 

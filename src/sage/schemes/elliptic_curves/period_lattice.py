@@ -79,7 +79,7 @@ We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
 
 REFERENCES:
 
-.. [CT] J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
+.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
    elliptic curves over $\CC$ and complex elliptic logarithms.
    Journal of Number Theory Volume 133, Issue 8, August 2013, pages
    2813-2841.
@@ -112,6 +112,7 @@ from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 
+
 class PeriodLattice(FreeModule_generic_pid):
     """
     The class for the period lattice of an algebraic variety.
@@ -136,7 +137,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``E`` -- an elliptic curve
 
-        - ``embedding`` (defult: ``None``) -- an embedding of the base
+        - ``embedding`` (default: ``None``) -- an embedding of the base
           field `K` of ``E`` into a real or complex field.  If
           ``None``:
 
@@ -1038,19 +1039,27 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.ei()
             [-1.107159871688768?, 0.2695944364054446?, 0.8375654352833230?]
 
+        In the following example, we should have one purely real 2-division point coordinate,
+        and two conjugate purely imaginary coordinates.
+
         ::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(K.embeddings(RealField())[0])
-            sage: L.ei()
-            [0.?e-17 - 1.122462048309373?*I, 0.?e-17 + 1.122462048309373?*I, -1]
+            sage: x1,x2,x3 = L.ei()
+            sage: abs(x1.real())+abs(x2.real())<1e-14
+            True
+            sage: x1.imag(),x2.imag(),x3
+            (-1.122462048309373?, 1.122462048309373?, -1)
 
-        sage: L = E.period_lattice(K.embeddings(ComplexField())[0])
-        sage: L.ei()
-        [-1.000000000000000? + 0.?e-1...*I,
-        -0.9720806486198328? - 0.561231024154687?*I,
-        0.9720806486198328? + 0.561231024154687?*I]
+        ::
+
+            sage: L = E.period_lattice(K.embeddings(ComplexField())[0])
+            sage: L.ei()
+            [-1.000000000000000? + 0.?e-1...*I,
+            -0.9720806486198328? - 0.561231024154687?*I,
+            0.9720806486198328? + 0.561231024154687?*I]
         """
         return self._ei
 
@@ -1548,7 +1557,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see #10026 and #11767)::
+        TESTS:
+
+        (see :trac:`10026` and :trac:`11767`)::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1699,7 +1710,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P.parent()
             Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
 
-        Very small `z` are handled properly (see #8820)::
+        Very small `z` are handled properly (see :trac:`8820`)::
 
             sage: K.<a> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,a,0])

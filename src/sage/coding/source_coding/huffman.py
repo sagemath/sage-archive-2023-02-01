@@ -28,7 +28,9 @@ Classes and functions
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
+from __future__ import print_function
 
+import six
 from sage.structure.sage_object import SageObject
 
 ###########################################################################
@@ -58,8 +60,7 @@ def frequency_table(string):
         sage: str = "Stop counting my characters!"
         sage: T = sorted(frequency_table(str).items())
         sage: for symbol, code in T:
-        ...       print symbol, code
-        ...
+        ....:     print("{} {}".format(symbol, code))
           3
         ! 1
         S 1
@@ -131,7 +132,7 @@ class Huffman(SageObject):
         sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
         sage: h1 = Huffman("There once was a french fry")
         sage: for letter, code in h1.encoding_table().iteritems():
-        ...       print "'"+ letter + "' : " + code
+        ....:     print("'{}' : {}".format(letter, code))
         'a' : 0111
         ' ' : 00
         'c' : 1010
@@ -150,7 +151,19 @@ class Huffman(SageObject):
     following table of frequency::
 
         sage: ft = frequency_table("There once was a french fry"); ft
-        {'a': 2, ' ': 5, 'c': 2, 'e': 4, 'f': 2, 'h': 2, 'o': 1, 'n': 2, 's': 1, 'r': 3, 'T': 1, 'w': 1, 'y': 1}
+        {' ': 5,
+         'T': 1,
+         'a': 2,
+         'c': 2,
+         'e': 4,
+         'f': 2,
+         'h': 2,
+         'n': 2,
+         'o': 1,
+         'r': 3,
+         's': 1,
+         'w': 1,
+         'y': 1}
         sage: h2 = Huffman(ft)
 
     Once ``h1`` has been trained, and hence possesses an encoding table,
@@ -184,18 +197,16 @@ class Huffman(SageObject):
         sage: L = ["deaf", "bead", "fab", "bee"]
         sage: E = []
         sage: for e in L:
-        ...       E.append(H.encode(e))
-        ...       print E[-1]
-        ...
+        ....:     E.append(H.encode(e))
+        ....:     print(E[-1])
         111110101100
         10111010111
         11000101
         10111011101
         sage: D = []
         sage: for e in E:
-        ...       D.append(H.decode(e))
-        ...       print D[-1]
-        ...
+        ....:     D.append(H.decode(e))
+        ....:     print(D[-1])
         deaf
         bead
         fab
@@ -233,7 +244,7 @@ class Huffman(SageObject):
         # index of each alphabetic symbol
         self._index = None
 
-        if isinstance(source,basestring):
+        if isinstance(source, six.string_types):
             self._build_code(frequency_table(source))
         elif isinstance(source, dict):
             self._build_code(source)
@@ -343,7 +354,7 @@ class Huffman(SageObject):
             'Sage is my most favorite general purpose computer algebra system'
         """
         if self._character_to_code:
-            return "".join(map(lambda x: self._character_to_code[x], string))
+            return "".join((self._character_to_code[x] for x in string))
 
     def decode(self, string):
         r"""
@@ -417,8 +428,7 @@ class Huffman(SageObject):
             sage: h = Huffman(str)
             sage: T = sorted(h.encoding_table().items())
             sage: for symbol, code in T:
-            ...       print symbol, code
-            ...
+            ....:     print("{} {}".format(symbol, code))
               101
             S 00000
             a 1101

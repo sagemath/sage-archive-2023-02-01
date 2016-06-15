@@ -1,9 +1,9 @@
 r"""
-Fast Expression Evaluation.
+Fast Expression Evaluation
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,
-monte-carlo simulations, etc., one wishes to pass around and evaluate
+Monte-Carlo simulations, etc., one wishes to pass around and evaluate
 a single algebraic expression many, many times at various floating
 point values.  Other applications may need to evaluate an expression
 many times in interval arithmetic, or in a finite field.  Doing this
@@ -11,7 +11,7 @@ via recursive calls over a python representation of the object (even
 if Maxima or other outside packages are not involved) is extremely
 inefficient.
 
-This module provides a function, \function{fast_callable}, to
+This module provides a function, :func:`fast_callable`, to
 transform such expressions into a form where they can be evaluated
 quickly::
 
@@ -22,9 +22,9 @@ quickly::
     sage: ff(RIF(3.5))
     36.39921677231038?
 
-By default, \function{fast_callable} only removes some interpretive
+By default, :func:`fast_callable` only removes some interpretive
 overhead from the evaluation, but all of the individual arithmetic
-operations are done using standard \sage arithmetic.  This is still a
+operations are done using standard Sage arithmetic.  This is still a
 huge win over sage.calculus, which evidently has a lot of overhead.
 Compare the cost of evaluating Wilkinson's polynomial (in unexpanded
 form) at x=30::
@@ -38,7 +38,7 @@ form) at x=30::
     625 loops, best of 3: 9.72 us per loop
 
 You can specify a particular domain for the evaluation using
-\code{domain=}::
+``domain=``::
 
     sage: fc_wilk_zz = fast_callable(wilk, vars=[x], domain=ZZ)
 
@@ -94,7 +94,7 @@ And support for ``CDF``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
-Currently, \function{fast_callable} can accept two kinds of objects:
+Currently, :func:`fast_callable` can accept two kinds of objects:
 polynomials (univariate and multivariate) and symbolic expressions
 (elements of the Symbolic Ring).  (This list is likely to grow
 significantly in the near future.)  For polynomials, you can omit the
@@ -113,7 +113,7 @@ ordering (you can include extra variable names here, too). ::
     sage: fp = fast_callable(p, vars=('x','w','z','y'))
 
 For symbolic expressions, you need to specify the variable names, so
-that \function{fast_callable} knows what order to use. ::
+that :func:`fast_callable` knows what order to use. ::
 
     sage: var('y,z,x')
     (y, z, x)
@@ -128,28 +128,28 @@ You can also specify extra variable names::
     sage: ff(1,2,3,4)
     341
 
-This should be enough for normal use of \function{fast_callable}; let's
+This should be enough for normal use of :func:`fast_callable`; let's
 discuss some more advanced topics.
 
 Sometimes it may be useful to create a fast version of an expression
 without going through symbolic expressions or polynomials; perhaps
-because you want to describe to \function{fast_callable} an expression
+because you want to describe to :func:`fast_callable` an expression
 with common subexpressions.
 
-Internally, \function{fast_callable} works in two stages: it constructs
+Internally, :func:`fast_callable` works in two stages: it constructs
 an expression tree from its argument, and then it builds a
 fast evaluator from that expression tree.  You can bypass the first phase
 by building your own expression tree and passing that directly to
-\function{fast_callable}, using an \class{ExpressionTreeBuilder}. ::
+:func:`fast_callable`, using an :class:`ExpressionTreeBuilder`. ::
 
     sage: from sage.ext.fast_callable import ExpressionTreeBuilder
     sage: etb = ExpressionTreeBuilder(vars=('x','y','z'))
 
-An \class{ExpressionTreeBuilder} has three interesting methods:
-\method{constant}, \method{var}, and \method{call}.
-All of these methods return \class{ExpressionTree} objects.
+An :class:`ExpressionTreeBuilder` has three interesting methods:
+:meth:`constant`, :meth:`var`, and :meth:`call`.
+All of these methods return :class:`ExpressionTree` objects.
 
-The \method{var} method takes a string, and returns an expression tree
+The :meth:`var` method takes a string, and returns an expression tree
 for the corresponding variable. ::
 
     sage: x = etb.var('x')
@@ -161,12 +161,12 @@ build expression trees representing arithmetic expressions. ::
 
     sage: v1 = (x+y)*(y+z) + (y//z)
 
-The \method{constant} method takes a \sage value, and returns an
+The :meth:`constant` method takes a Sage value, and returns an
 expression tree representing that value. ::
 
     sage: v2 = etb.constant(3.14159) * x + etb.constant(1729) * y
 
-The \method{call} method takes a \sage/Python function and zero or more
+The :meth:`call` method takes a sage/Python function and zero or more
 expression trees, and returns an expression tree representing
 the function call. ::
 
@@ -174,9 +174,9 @@ the function call. ::
     sage: v3
     sin(add(add(mul(add(v_0, v_1), add(v_1, v_1)), floordiv(v_1, v_1)), add(mul(3.14159000000000, v_0), mul(1729, v_1))))
 
-Many \sage/Python built-in functions are specially handled; for instance,
-when evaluating an expression involving \function{sin} over \code{RDF},
-the C math library function \function{sin} is called.  Arbitrary functions
+Many sage/Python built-in functions are specially handled; for instance,
+when evaluating an expression involving :func:`sin` over ``RDF``,
+the C math library function :func:`sin` is called.  Arbitrary functions
 are allowed, but will be much slower since they will call back to
 Python code on every call; for example, the following will work. ::
 
@@ -186,10 +186,10 @@ Python code on every call; for example, the following will work. ::
     sage: fast_callable(e)(1, 2, 3)
     3.60555127546399
 
-To provide \function{fast_callable} for your own class (so that
-\code{fast_callable(x)} works when \variable{x} is an instance of your
-class), implement a method \code{_fast_callable_(self, etb)} for your class.
-This method takes an \class{ExpressionTreeBuilder}, and returns an
+To provide :func:`fast_callable` for your own class (so that
+``fast_callable(x)`` works when ``x`` is an instance of your
+class), implement a method ``_fast_callable_(self, etb)`` for your class.
+This method takes an :class:`ExpressionTreeBuilder`, and returns an
 expression tree built up using the methods described above.
 
 EXAMPLES::
@@ -198,15 +198,17 @@ EXAMPLES::
     x
     sage: f = fast_callable(sqrt(x^7+1), vars=[x], domain=float)
 
+::
+
     sage: f(1)
     1.4142135623730951
     sage: f.op_list()
     [('load_arg', 0), ('ipow', 7), ('load_const', 1.0), 'add', 'sqrt', 'return']
 
-    To interpret that last line, we load argument 0 ('x' in this case) onto
-    the stack, push the constant 7.0 onto the stack, call the pow function
-    (which takes 2 arguments from the stack), push the constant 1.0, add the
-    top two arguments of the stack, and then call sqrt.
+To interpret that last line, we load argument 0 ('x' in this case) onto
+the stack, push the constant 7.0 onto the stack, call the pow function
+(which takes 2 arguments from the stack), push the constant 1.0, add the
+top two arguments of the stack, and then call sqrt.
 
 Here we take sin of the first argument and add it to f::
 
@@ -220,8 +222,58 @@ Here we take sin of the first argument and add it to f::
 
 
 AUTHOR:
-    -- Carl Witty (2009-02): initial version (heavily inspired by
-       Robert Bradshaw's fast_eval.pyx)
+
+- Carl Witty (2009-02): initial version (heavily inspired by
+  Robert Bradshaw's fast_eval.pyx)
+
+.. TODO::
+
+    The following bits of text were written for the module docstring.
+    They are not true yet, but I hope they will be true someday, at
+    which point I will move them into the main text.
+
+    The final interesting method of :class:`ExpressionTreeBuilder` is
+    :meth:`choice`.  This produces conditional expressions, like the C
+    ``COND ? T : F`` expression or the Python ``T if COND else F``.
+    This lets you define piecewise functions using :func:`fast_callable`. ::
+
+        sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)
+
+    The arguments are ``(COND, T, F)`` (the same order as in C), so the
+    above means that if ``v3`` evaluates to a nonnegative number,
+    then ``v4`` will evaluate to the result of ``v1``;
+    otherwise, ``v4`` will evaluate to the result of ``v2``.
+
+    Let's see an example where we see that :func:`fast_callable` does not
+    evaluate common subexpressions more than once.  We'll make a
+    :func:`fast_callable` expression that gives the result
+    of 16 iterations of the Mandelbrot function. ::
+
+        sage: etb = ExpressionTreeBuilder('c')
+        sage: z = etb.constant(0)
+        sage: c = etb.var('c')
+        sage: for i in range(16):
+        ....:     z = z*z + c
+        sage: mand = fast_callable(z, domain=CDF)
+
+    Now ``ff`` does 32 complex arithmetic operations on each call
+    (16 additions and 16 multiplications).  However, if ``z*z`` produced
+    code that evaluated ``z`` twice, then this would do many
+    thousands of arithmetic operations instead.
+
+    Note that the handling for common subexpressions only checks whether
+    expression trees are the same Python object; for instance, the following
+    code will evaluate ``x+1`` twice::
+
+        sage: etb = ExpressionTreeBuilder('x')
+        sage: x = etb.var('x')
+        sage: (x+1)*(x+1)
+        mul(add(v_0, 1), add(v_0, 1))
+
+    but this code will only evaluate ``x+1`` once::
+
+        sage: v = x+1; v*v
+        mul(add(v_0, 1), add(v_0, 1))
 """
 
 
@@ -241,53 +293,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# The following bits of text were written for the module docstring.
-# They are not true yet, but I hope they will be true someday, at
-# which point I will move them into the docstring.
-#------------------------------ WRONG (for now) docs follow
-# The final interesting method of \class{ExpressionTreeBuilder} is
-# \method{choice}.  This produces conditional expressions, like the C
-# \code{COND ? T : F} expression or the Python {T if COND else F}.
-# This lets you define piecewise functions using \function{fast_callable}.
-
-# sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)
-
-# The arguments are \code{(COND, T, F)} (the same order as in C), so the
-# above means that if \variable{v3} evaluates to a nonnegative number,
-# then \variable{v4} will evaluate to the result of \variable{v1};
-# otherwise, \variable{v4} will evaluate to the result of \variable{v2}.
-
-# Let's see an example where we see that \function{fast_callable} does not
-# evaluate common subexpressions more than once.  We'll make a
-# \function{fast_callable} expression that gives the result
-# of 16 iterations of the Mandelbrot function.
-
-# sage: etb = ExpressionTreeBuilder('c')
-# sage: z = etb.constant(0)
-# sage: c = etb.var('c')
-# sage: for i in range(16):
-# ...       z = z*z + c
-# sage: mand = fast_callable(z, domain=CDF) # not tested
-
-# Now \variable{ff} does 32 complex arithmetic operations on each call
-# (16 additions and 16 multiplications).  However, if \code{z*z} produced
-# code that evaluated \variable{z} twice, then this would do many
-# thousands of arithmetic operations instead.
-
-# Note that the handling for common subexpressions only checks whether
-# expression trees are the same Python object; for instance, the following
-# code will evaluate \code{x+1} twice:
-
-# sage: etb = ExpressionTreeBuilder('x')
-# sage: x = etb.var('x')
-# sage: (x+1)*(x+1)
-# *(+(v_0, 1), +(v_0, 1))
-
-# but this code will only evaluate \code{x+1} once:
-
-# sage: v = x+1; v*v
-# *(+(v_0, 1), +(v_0, 1))
-#------------------------------ done with WRONG (for now) docs
 
 
 import operator
@@ -295,12 +300,10 @@ from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
-from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
 
-include "stdsage.pxi"
 
 def fast_callable(x, domain=None, vars=None,
                   _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,
@@ -340,19 +343,19 @@ def fast_callable(x, domain=None, vars=None,
     (Actually it's the same interpreter; only the return type varies.)
     Note that the float interpreter is not actually more accurate than
     the RDF interpreter; elements of RDF just don't display all
-    their digits. We have special fast interpreter for domain=CDF.
+    their digits. We have special fast interpreter for domain=CDF::
 
         sage: f_float = fast_callable(expr, vars=[x], domain=float)
         sage: f_float(2)
         12.909297426825681
         sage: f_rdf = fast_callable(expr, vars=[x], domain=RDF)
         sage: f_rdf(2)
-        12.9092974268
+        12.909297426825681
         sage: f_cdf = fast_callable(expr, vars=[x], domain=CDF)
         sage: f_cdf(2)
-        12.9092974268
+        12.909297426825681
         sage: f_cdf(2+I)
-        10.4031192506 + 11.510943741*I
+        10.40311925062204 + 11.510943740958707*I
         sage: f = fast_callable(expr, vars=('z','x','y'))
         sage: f(1, 2, 3)
         sin(2) + 12
@@ -361,21 +364,23 @@ def fast_callable(x, domain=None, vars=None,
         -x^6 - 12*x^5 + 1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.0105263157895), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
+        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
         sage: fp(3.14159)
-        -4594.16182364
+        -4594.161823640176
         sage: K.<x,y,z> = QQ[]
         sage: p = K.random_element(degree=3, terms=5); p
         -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
-        sage: fp(e, pi, sqrt(2))
-        -98.0015640336
+        sage: fp(e, pi, sqrt(2))   # abs tol 3e-14
+        -98.00156403362932
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
         -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
         sage: n(symbolic_result)
         -98.0015640336293
+
+    ::
 
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=('x','y'), domain=float)
@@ -388,7 +393,7 @@ def fast_callable(x, domain=None, vars=None,
         0.5514266812416906
          
     Check that fast_callable also works for symbolic functions with evaluation
-    functions:
+    functions::
 
         sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
         sage: x,y = var('x,y')
@@ -397,7 +402,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc(3, 4)
         f(3, 4)
 
-    And also when there are complex values involved:
+    And also when there are complex values involved::
 
         sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
@@ -441,7 +446,7 @@ def fast_callable(x, domain=None, vars=None,
                         from sage.misc.superseded import deprecation
                         deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
                     else:
-                        raise ValueError, "List of variables must be specified for symbolic expressions"
+                        raise ValueError("List of variables must be specified for symbolic expressions")
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
@@ -621,7 +626,7 @@ cdef class ExpressionTreeBuilder:
             'x'
         """
         # There should be a better way to do this.  (Maybe there is.)
-        if not PY_TYPE_CHECK(v, str):
+        if not isinstance(v, str):
             v = str(v)
             if '*' in v:
                 v = v[v.index('*')+1:]
@@ -673,7 +678,7 @@ cdef class ExpressionTreeBuilder:
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError, "Variable '%s' not found" % var_name
+            raise ValueError("Variable '%s' not found" % var_name)
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -695,7 +700,7 @@ cdef class ExpressionTreeBuilder:
         """
         if 0 <= n < len(self._vars):
             return ExpressionVariable(self, n)
-        raise ValueError, "Variable number %d out of range" % n
+        raise ValueError("Variable number %d out of range" % n)
 
     def call(self, fn, *args):
         r"""
@@ -884,6 +889,28 @@ cdef class Expression:
             mul(1, v_0)
         """
         return _expression_binop_helper(s, o, op_mul)
+
+    def __truediv__(s, o):
+        r"""
+        Compute a quotient of two Expressions.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x/x
+            div(v_0, v_0)
+            sage: x/1
+            div(v_0, 1)
+            sage: 1/x
+            div(1, v_0)
+            sage: x.__truediv__(1)
+            div(v_0, 1)
+            sage: x.__rtruediv__(1)
+            div(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_div)
 
     def __div__(s, o):
         r"""
@@ -1354,7 +1381,8 @@ cdef class ExpressionChoice(Expression):
 
     (It's possible to create choice nodes, but they don't work yet.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: etb.choice(etb.call(operator.eq, x, 0), 0, 1/x)
@@ -1461,7 +1489,8 @@ cpdef _expression_binop_helper(s, o, op):
    Makes an Expression for (s op o).  Either s or o (or both) must already
    be an expression.
 
-   EXAMPLES:
+   EXAMPLES::
+
        sage: from sage.ext.fast_callable import _expression_binop_helper, ExpressionTreeBuilder
        sage: var('x,y')
        (x, y)
@@ -1469,13 +1498,15 @@ cpdef _expression_binop_helper(s, o, op):
        sage: x = etb(x)
 
    Now x is an Expression, but y is not.  Still, all the following
-   cases work.
+   cases work::
+
        sage: _expression_binop_helper(x, x, operator.add)
        add(v_0, v_0)
        sage: _expression_binop_helper(x, y, operator.add)
        add(v_0, v_1)
        sage: _expression_binop_helper(y, x, operator.add)
        add(v_1, v_0)
+
    """
    # The Cython way of handling operator overloading on cdef classes
    # (which is inherited from Python) is quite annoying.  Inside the
@@ -1510,7 +1541,8 @@ class IntegerPowerFunction(object):
     power n.  That is, IntegerPowerFunction(2) is the squaring function;
     IntegerPowerFunction(-1) is the reciprocal function.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import IntegerPowerFunction
         sage: square = IntegerPowerFunction(2)
         sage: square
@@ -1597,7 +1629,8 @@ cpdef dict get_builtin_functions():
     We delay building builtin_functions to break a circular import
     between sage.calculus and this file.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
         sage: sorted(list(builtins.values()))
@@ -1650,7 +1683,8 @@ cpdef generate_code(Expression expr, InstructionStream stream):
     by walking the Expression and sending the corresponding stack
     instructions to an InstructionStream.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder, generate_code, InstructionStream
         sage: etb = ExpressionTreeBuilder('x')
         sage: x = etb.var('x')
@@ -1665,12 +1699,13 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: v(7)
         8*pi + 56
 
-    TESTS:
+    TESTS::
+
         sage: def my_sin(x): return sin(x)
         sage: def my_norm(x, y): return x*x + y*y
         sage: def my_sqrt(x):
-        ...       if x < 0: raise ValueError, "sqrt of negative number"
-        ...       return sqrt(x, extend=False)
+        ....:     if x < 0: raise ValueError("sqrt of negative number")
+        ....:     return sqrt(x, extend=False)
         sage: fc = fast_callable(expr, domain=RealField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842
@@ -1678,14 +1713,14 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         8.2831853071795864769252867665590057684
         sage: fc = fast_callable(expr, domain=RDF)
         sage: fc(0)
-        3.14159265359
+        3.141592653589793
         sage: fc(1)
-        8.28318530718
+        8.283185307179586
         sage: fc.op_list()
         [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x), domain=RDF)
         sage: fc(1)
-        1.84147098481
+        1.8414709848078965
         sage: fc.op_list()
         [('load_arg', 0), 'sin', ('load_arg', 0), 'sqrt', 'add', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x))
@@ -1695,7 +1730,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', <function sqrt at ...>, 1), 'add', 'return']
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
         sage: fc(3)
-        0.14112000806
+        0.1411200080598672
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RealField(100))
         sage: fc(3)
         0.14112000805986722210074480281
@@ -1703,7 +1738,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         [('load_arg', 0), ('py_call', <function my_sin at 0x...>, 1), 'return']
         sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RDF)
         sage: fc(3)
-        1.73205080757
+        1.7320508075688772
         sage: parent(fc(3))
         Real Double Field
         sage: fc(-3)
@@ -1754,7 +1789,9 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc(3)
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(3)) to an integer
+        TypeError: unable to convert sin(3) to an integer
+
+    ::
 
         sage: fc = fast_callable(etb(x)^100)
         sage: fc(pi)
@@ -1769,7 +1806,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', 100), 'return']
         sage: fc(1.1)
-        13780.6123398
+        13780.61233982...
         sage: fc = fast_callable(etb(x)^100, domain=RR)
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', 100), 'return']
@@ -1779,7 +1816,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', -100), 'return']
         sage: fc(1.1)
-        7.25657159015e-05
+        7.25657159014...e-05
         sage: fc = fast_callable(etb(x)^(-100), domain=RR)
         sage: fc(1.1)
         0.0000725657159014814
@@ -1788,10 +1825,10 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb(x)^expo, domain=RDF)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
-        sage: fc(base)
-        1.00000095367
+        sage: fc(base)        # rel tol 1e-15
+        1.0000009536747712
         sage: RDF(base)^expo
-        1.00000095367
+        1.0000009536747712
         sage: fc = fast_callable(etb(x)^expo, domain=RR)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
@@ -1800,7 +1837,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: base^expo
         1.00000095367477
 
-    Make sure we don't overflow the stack with highly nested expressions (#11766):
+    Make sure we don't overflow the stack with highly nested expressions (#11766)::
 
         sage: R.<x> = CC[]
         sage: f = R(range(100000))
@@ -1847,7 +1884,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             if stream.has_instr('py_call'):
                 stream.instr('py_call', fn, len(ecall._arguments))
             else:
-                raise ValueError, "Unhandled function %s in generate_code" % fn
+                raise ValueError("Unhandled function %s in generate_code" % fn)
         elif isinstance(expr, ExpressionIPow):
             base = expr.base()
             exponent = expr.exponent()
@@ -1866,7 +1903,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             else:
                 stream.instr('py_call', IntegerPowerFunction(exponent), 1)
         else:
-            raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
+            raise ValueError("Unhandled expression kind %s in generate_code" % type(expr))
 
 cdef class InterpreterMetadata  # forward declaration
 
@@ -1905,12 +1942,15 @@ cdef class InstructionStream:
         r"""
         Initialize an InstructionStream.
 
-        INPUTS:
-            metadata - The metadata_by_opname from a wrapper module
-            n_args - The number of arguments accessible by the generated code
-                     (this is just passed to the wrapper class)
-            domain - The domain of interpretation (this is just passed to the
-                     wrapper class)
+        INPUT:
+
+        - metadata - The metadata_by_opname from a wrapper module
+
+        - n_args - The number of arguments accessible by the generated code
+          (this is just passed to the wrapper class)
+
+        - domain - The domain of interpretation (this is just passed to the
+          wrapper class)
 
         EXAMPLES::
 
@@ -1918,7 +1958,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
             <type 'sage.ext.fast_callable.InterpreterMetadata'>
@@ -1957,7 +2002,8 @@ cdef class InstructionStream:
             [('load_const', 5), ('load_const', 7), ('load_const', 5)]
 
         Note that constants are shared: even though we load 5 twice, it
-        only appears once in the constant table.
+        only appears once in the constant table. ::
+
             sage: instr_stream.get_current()['constants']
             [5, 7]
         """
@@ -2133,7 +2179,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: instr_stream.instr('load_arg', 0)
             sage: instr_stream.instr('py_call', math.sin, 1)
             sage: instr_stream.instr('abs')
@@ -2141,7 +2192,12 @@ cdef class InstructionStream:
             sage: instr_stream.current_op_list()
             [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [0, 0, 3, 0, 1, 12, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 3, 0, 1, 12, 2],
+             'constants': [],
+             'domain': None,
+             'py_constants': [<built-in function sin>],
+             'stack': 1}
         """
         d = {'args': self._n_args,
              'constants': self._constants,
@@ -2202,17 +2258,18 @@ class CompilerInstrSpec(object):
     The parameter list is a list of strings.  Each string is one of
     the following:
 
-        - 'args' - The instruction argument refers to an input argument
-                   of the wrapper class; it is just appended to the code.
-        - 'constants', 'py_constants' - The instruction argument is a value;
-                   the value is added to the corresponding list (if it's
-                   not already there) and the index is appended to the
-                   code.
-        - 'n_inputs', 'n_outputs' - The instruction actually takes a variable
-                   number of inputs or outputs (the n_inputs and n_outputs
-                   attributes of this instruction are ignored).
-                   The instruction argument specifies the number of inputs
-                   or outputs (respectively); it is just appended to the code.
+    - 'args' - The instruction argument refers to an input argument of the
+      wrapper class; it is just appended to the code.
+
+    - 'constants', 'py_constants' - The instruction argument is a value; the
+      value is added to the corresponding list (if it's not already there) and
+      the index is appended to the code.
+
+    - 'n_inputs', 'n_outputs' - The instruction actually takes a variable
+      number of inputs or outputs (the n_inputs and n_outputs attributes of
+      this instruction are ignored). The instruction argument specifies the
+      number of inputs or outputs (respectively); it is just appended to the
+      code.
     """
 
     def __init__(self, n_inputs, n_outputs, parameters):
@@ -2262,7 +2319,8 @@ def op_list(args, metadata):
     have a wrapper object, call op_list on it; if you have an
     InstructionStream object, call current_op_list on it.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.interpreters.wrapper_rdf import metadata
         sage: from sage.ext.fast_callable import InstructionStream, op_list
         sage: instr_stream = InstructionStream(metadata, 1)
@@ -2317,7 +2375,12 @@ cdef class Wrapper:
             sage: instr_stream.instr('return')
             sage: v = Wrapper_py(instr_stream.get_current())
             sage: v.get_orig_args()
-            {'domain': None, 'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2], 'py_constants': [], 'args': 1, 'stack': 3, 'constants': [pi, 1]}
+            {'args': 1,
+             'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2],
+             'constants': [pi, 1],
+             'domain': None,
+             'py_constants': [],
+             'stack': 3}
             sage: v.op_list()
             [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         """
@@ -2339,7 +2402,12 @@ cdef class Wrapper:
         EXAMPLES::
 
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
-            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 8, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 16, 0, 0, 8, 2],
+             'constants': [],
+             'domain': Real Double Field,
+             'py_constants': [],
+             'stack': 2}
         """
         return self._orig_args
 

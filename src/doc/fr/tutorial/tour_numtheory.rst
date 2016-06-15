@@ -83,10 +83,10 @@ Voici une petite expérience concernant la conjecture de Syracuse :
 
     sage: n = 2005
     sage: for i in range(1000):
-    ...       n = 3*odd_part(n) + 1
-    ...       if odd_part(n)==1:
-    ...           print i
-    ...           break
+    ....:     n = 3*odd_part(n) + 1
+    ....:     if odd_part(n)==1:
+    ....:         print(i)
+    ....:         break
     38
 
 Et finalement un exemple d'utilisation du théorème chinois :

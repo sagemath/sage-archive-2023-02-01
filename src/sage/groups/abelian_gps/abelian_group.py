@@ -49,12 +49,12 @@ invariant factors of the group. You should now use
    sage: J.elementary_divisors()    # these are the "invariant factors"
    (2, 2, 12, 0)
    sage: for i in range(J.ngens()):
-   ...       print i, J.gen(i), J.gen(i).order()     # or use this form
-   0 f0 2
-   1 f1 +Infinity
-   2 f2 3
-   3 f3 2
-   4 f4 4
+   ....:     print((i, J.gen(i), J.gen(i).order()))     # or use this form
+   (0, f0, 2)
+   (1, f1, +Infinity)
+   (2, f2, 3)
+   (3, f3, 2)
+   (4, f4, 4)
 
 Background on invariant factors and the Smith normal form
 (according to section 4.1 of [C1]): An abelian group is a
@@ -191,27 +191,30 @@ AUTHORS:
   immutables. Rename invariants to gens_orders.
 """
 
-##########################################################################
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner  <wdjoyner@gmail.com>
-#  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL):
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##########################################################################
+#*****************************************************************************
+from __future__ import print_function
 
-
+import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.infinity import infinity
-from sage.rings.arith import divisors, gcd
+from sage.arith.all import divisors, gcd, lcm
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
-from sage.rings.arith import lcm
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
 
@@ -321,9 +324,8 @@ def word_problem(words, g, verbose = False):
     nn = gap.eval("n:=Int(Length(L3)/2)")
     LL = eval(gap.eval("L4:=List([l..n],i->L3[2*i])"))
     if verbose:
-        #print gap.eval("x"), l3, nn, LL
         v = '*'.join(['(%s)^%s'%(words[l3[2*i]-1], LL[i]) for i in range(len(LL))])
-        print '%s = %s'%(g, v)
+        print('%s = %s' % (g, v))
     return [[words[l3[2*i]-1],LL[i]] for i in range(len(LL))]
 
 
@@ -363,11 +365,11 @@ def _normalize(n, gens_orders=None, names="f"):
         sage: _normalize('1', '[2]', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=[) to an integer
+        TypeError: unable to convert '[' to an integer
         sage: _normalize(3, 'str', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=s) to an integer
+        TypeError: unable to convert 's' to an integer
    """
     if gens_orders is None:
         if isinstance(n, (list, tuple)):
@@ -536,12 +538,12 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: A.category()
             Category of commutative groups
         """
-        assert isinstance(names, (basestring, tuple))
+        assert isinstance(names, (six.string_types, tuple))
         assert isinstance(generator_orders, tuple)
         assert all(isinstance(order,Integer) for order in generator_orders)
         self._gens_orders = generator_orders
-        n = ZZ(len(generator_orders))
-        names = self.normalize_names(n, names)
+        n = len(generator_orders)
+        names = normalize_names(n, names)
         self._assign_names(names)
         cat = Groups().Commutative()
         if all(order > 0 for order in generator_orders):
@@ -631,7 +633,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G >= H
             False
         """
-        return right.__le__(left)
+        return right <= left
 
     def __lt__(left, right):
         """
@@ -736,8 +738,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             raise ValueError('the group must be finite')
         if base_ring is None:
             from sage.rings.number_field.number_field import CyclotomicField
-            from sage.rings.arith import LCM
-            base_ring = CyclotomicField(LCM(self.gens_orders()))
+            base_ring = CyclotomicField(lcm(self.gens_orders()))
         return DualAbelianGroup_class(self, names=names, base_ring=base_ring)
 
     @cached_method
@@ -997,12 +998,12 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: J.gens_orders()   # use this instead
             (2, 0, 3, 2, 4)
             sage: for i in range(J.ngens()):
-            ...       print i, J.gen(i), J.gen(i).order()     # or use this
-            0 f0 2
-            1 f1 +Infinity
-            2 f2 3
-            3 f3 2
-            4 f4 4
+            ....:     print((i, J.gen(i), J.gen(i).order()))     # or this
+            (0, f0, 2)
+            (1, f1, +Infinity)
+            (2, f2, 3)
+            (3, f3, 2)
+            (4, f4, 4)
 
         Use :meth:`elementary_divisors` if you are looking for an
         invariant of the group.
@@ -1233,7 +1234,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if not(self.is_finite()):
            raise NotImplementedError("Group must be finite")
-        return tuple(self.__iter__())
+        return tuple(iter(self))
 
     def __iter__(self):
         """
@@ -1305,8 +1306,16 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: AbelianGroup([]).subgroups()
             [Trivial Abelian group]
+
+        Check that :trac:`14196` is fixed::
+
+            sage: B = AbelianGroup([1,2])
+            sage: B.subgroups()
+            [Multiplicative Abelian subgroup isomorphic to C2 generated by {f1},
+             Trivial Abelian subgroup]
         """
-        if not self.is_finite(): raise ValueError("Group must be finite")
+        if not self.is_finite():
+            raise ValueError("Group must be finite")
         from sage.misc.misc import verbose
 
         if self.is_trivial():
@@ -1323,16 +1332,19 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
         subgps = []
         for G in Wsubs:
+            ngens = len(G.gens())
             verbose("G = subgp generated by %s" % list(G.gens()))
-            verbose("invariants are:", [t.order() for t in G.gens()])
+            verbose("invariants are: %s" % [t.order() for t in G.gens()])
             for H in divisors(x):
                 # H = the subgroup of *index* H.
-                its = [xrange(0, H, H/gcd(H, G.gen(i).order())) for i in xrange(len(G.gens()))]
+                its = [xrange(0, H, H/gcd(H, G.gen(i).order())) for i in xrange(ngens)]
                 for f in cartesian_product_iterator(its):
                     verbose("using hom from G to C_%s sending gens to %s" % (H,f))
                     new_sub = []
-                    for a in xrange(len(G.gens())):
-                        new_sub.append(G.gen(a).list() + [f[a]])
+                    for a in xrange(ngens):
+                        val = G.gen(a).list() + [f[a]]
+                        if any(l != 0 for l in val):
+                            new_sub.append(val)
                     if H != x:
                         new_sub.append([0]*A.ngens() + [H])
                     subgps.append(self.subgroup_reduced(new_sub))
@@ -1375,7 +1387,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             elt_lattice = X.submodule_with_basis(elts)
         except ValueError as e:
             # can't happen?
-            print "Vectors not LI: ", elts
+            print("Vectors not LI: {}".format(elts))
             raise e
         rel_lattice = X.span([X.gen(i) * self.gens_orders()[i] for i in xrange(d)])
         isect = elt_lattice.intersection(rel_lattice)
@@ -1504,7 +1516,6 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             gap.eval(s1)
             for i in range(len(Ggens)):
                 cmd = '%s := gens[%s]'%(Ggens[i], i+1)
-                #print i,"  \n",cmd
                 gap.eval(cmd)
         s2 = "gensH:=%s"%list(Hgensf) #### remove from this the ones <--> 0 invar
         gap.eval(s2)
@@ -1515,7 +1526,6 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         # works if G is the subgroup declared as a AbelianPcpGroup
         self._abinvs = eval(gap.eval("AbelianInvariants(H)"))
         invs = self._abinvs
-        #print s3, invs
         if Hgens0 != []:
             for x in Hgens0:
                invs.append(0)

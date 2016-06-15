@@ -13,19 +13,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
 
@@ -33,17 +28,8 @@ import operator
 
 import homset
 
-include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
-def make_morphism(_class, parent, _dict, _slots):
-    # from element.pyx
-    cdef Morphism mor = _class.__new__(_class)
-    mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
-    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -144,7 +130,7 @@ cdef class Morphism(Map):
               Defn: t |--> t + 1
             sage: f._repr_short()
             't |--> t + 1'
-            sage: print f._repr_short()
+            sage: print(f._repr_short())
             t |--> t + 1
 
             sage: R.<u,v> = ZZ[]
@@ -153,7 +139,7 @@ cdef class Morphism(Map):
             Ring endomorphism of Multivariate Polynomial Ring in u, v over Integer Ring
               Defn: u |--> v
                     v |--> u + v
-            sage: print f._repr_short()
+            sage: print(f._repr_short())
             u |--> v, v |--> u + v
 
         AUTHOR:
@@ -175,13 +161,16 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Join of Category of hom sets in Category of modules over (euclidean domains and infinite enumerated sets) and Category of hom sets in Category of rings
+            Category of endsets of unital magmas and right modules over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+             and left modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
             sage: phi = L._internal_coerce_map_from(K)
             sage: phi.category()
-            Category of hom sets in Category of rings
+            Category of homsets of unital magmas and additive unital additive magmas
         """
         # Should it be Category of elements of ...?
         return self.parent().category()
@@ -245,9 +234,6 @@ cdef class Morphism(Map):
             return True
         except (AttributeError, NotImplementedError):
             return NotImplementedError
-
-    def __invert__(self):  # notation in python is (~f) for the inverse of f.
-        raise NotImplementedError
 
     def pushforward(self, I):
         raise NotImplementedError
@@ -349,10 +335,7 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())
@@ -365,7 +348,7 @@ cdef class Morphism(Map):
                 c = cmp(left(x), right(x))
                 if c: return c
         except (AttributeError, NotImplementedError):
-            raise NotImplementedError
+            raise NotImplementedError("comparison not implemented for %r"%type(left))
 
 
 cdef class FormalCoercionMorphism(Morphism):
@@ -482,8 +465,8 @@ cdef class SetMorphism(Morphism):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x,*args,**kwds):
-            ....:  print 'foo called with',args,kwds
-            ....:  return x
+            ....:     print('foo called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: f = SetMorphism(Hom(R,R,Rings()), foo)
             sage: f(2,'hello world',test=1)     # indirect doctest
             foo called with ('hello world',) {'test': 1}
@@ -507,7 +490,11 @@ cdef class SetMorphism(Morphism):
 
             sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
             sage: f._extra_slots_test({"bla":1})
-            {'_codomain': Integer Ring, '_domain': Integer Ring, '_function': <built-in function __abs__>, 'bla': 1, '_repr_type_str': None}
+            {'_codomain': Integer Ring,
+             '_domain': Integer Ring,
+             '_function': <built-in function __abs__>,
+             '_repr_type_str': None,
+             'bla': 1}
         """
         _slots['_function'] = self._function
         return Map._extra_slots(self, _slots)
@@ -561,7 +548,7 @@ cdef class SetMorphism(Morphism):
             False
 
         """
-        return PY_TYPE_CHECK(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
+        return isinstance(other, SetMorphism) and self.parent() == other.parent() and self._function == (<SetMorphism>other)._function
 
     def __richcmp__(self, right, int op):
         """

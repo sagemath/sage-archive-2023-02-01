@@ -21,7 +21,7 @@ AUTHORS:
 
 import complex_number
 import complex_double
-import field
+import ring
 import integer
 import real_mpfr
 import weakref
@@ -116,7 +116,7 @@ def ComplexField(prec=53, names=None):
     return C
 
 
-class ComplexField_class(field.Field):
+class ComplexField_class(ring.Field):
     """
     An approximation to the field of complex numbers using floating
     point numbers with any specified precision. Answers derived from
@@ -198,12 +198,12 @@ class ComplexField_class(field.Field):
 
             sage: C = ComplexField(200)
             sage: C.category()
-            Category of fields
+            Join of Category of fields and Category of complete metric spaces
             sage: TestSuite(C).run()
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Metric().Complete())
 #        self._populate_coercion_lists_()
         self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
 
@@ -344,7 +344,7 @@ class ComplexField_class(field.Field):
             Complex Field with 53 bits of precision
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # we leave this here to handle the imaginary parameter
         if im is not None:
             x = x, im
@@ -413,14 +413,31 @@ class ComplexField_class(field.Field):
             True
             sage: ComplexField(200).has_coerce_map_from(CDF)
             False
+            sage: ComplexField(53).has_coerce_map_from(complex)
+            True
+            sage: ComplexField(200).has_coerce_map_from(complex)
+            False
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
             return complex_number.RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
-        if is_ComplexField(S) and S._prec >= self._prec:
-            return self._generic_convert_map(S)
+        if is_ComplexField(S):
+            if self._prec <= S._prec:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S is complex:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
         late_import()
-        if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
+        if S is CDF:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S in [AA, QQbar, CLF, RLF]:
             return self._generic_convert_map(S)
         return self._coerce_map_via([CLF], S)
 
@@ -727,3 +744,4 @@ class ComplexField_class(field.Field):
 
         from sage.structure.factorization import Factorization
         return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
+

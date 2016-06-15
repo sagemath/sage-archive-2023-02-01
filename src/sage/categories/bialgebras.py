@@ -11,6 +11,8 @@ Bialgebras
 
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.all import Algebras, Coalgebras
+from sage.categories.super_modules import SuperModulesCategory
+from sage.misc.lazy_import import LazyImport
 
 class Bialgebras(Category_over_base_ring):
     """
@@ -38,8 +40,26 @@ class Bialgebras(Category_over_base_ring):
         R = self.base_ring()
         return [Algebras(R), Coalgebras(R)]
 
-    class ParentMethods:
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of bialgebras defines no additional
+        structure: a morphism of coalgebras and of algebras between
+        two bialgebras is a bialgebra morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: This category should be a :class:`CategoryWithAxiom`.
+
+        EXAMPLES::
+
+            sage: Bialgebras(QQ).additional_structure()
+        """
+        return None
+
+    class Super(SuperModulesCategory):
         pass
 
-    class ElementMethods:
-        pass
+    WithBasis = LazyImport('sage.categories.bialgebras_with_basis', 'BialgebrasWithBasis')
+

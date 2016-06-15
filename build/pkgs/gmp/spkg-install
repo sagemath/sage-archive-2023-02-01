@@ -6,8 +6,6 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-CUR=`pwd`
-
 cd src/
 
 ###############################################################################
@@ -16,9 +14,10 @@ cd src/
 
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch" || continue
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
@@ -317,31 +316,20 @@ if false; then
 else
     echo "Not removing old GMP/MPIR shared libraries, as other libraries"
     echo "and executables might still refer to them:"
-    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*.so.*
+    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
     echo "(Libraries with the same version number will get updated though.)"
 fi
+
+# Mark MPIR as not installed (since we will overwrite it)
+rm -f "$SAGE_SPKG_INST"/mpir-*
 
 ###############################################################################
 # Now install GMP:
 ###############################################################################
 
 echo "Now installing GMP..."
-# The potential race condition in `make install` was fixed in GMP 2.1.4.
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP."
-    if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
-        exit 1
-    fi
+    exit 1
 fi
-
-echo
-echo "Remember to rebuild the Sage library ('./sage -b') such that it"
-echo "will use the new GMP."
-echo "You may also have to (or want to) rebuild other Sage packages"
-echo "that use GMP.  Provided that this GMP spkg is in 'spkg/standard/',"
-echo "you can rebuild all packages depending on GMP by typing:"
-echo "    cd $SAGE_ROOT"
-echo "    env SAGE_UPGRADING=yes make"
-echo "but note that this will usually take quite a lot of time."
-echo

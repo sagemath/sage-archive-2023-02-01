@@ -61,7 +61,7 @@ use the print command: use ``str(x)``.
 
 ::
 
-    sage: print F
+    sage: print(F)
                                4      3    2  2    3      4
                    - (y - x) (y  + x y  + x  y  + x  y + x )
 
@@ -81,7 +81,7 @@ maxima and returns the result as a *string* not a maxima object.
 
 ::
 
-    sage: print maxima.eval('factor(x^5 - y^5)')
+    sage: print(maxima.eval('factor(x^5 - y^5)'))
     -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
 
 We can create the polynomial `f` as a Maxima polynomial,
@@ -271,7 +271,7 @@ We illustrate Laplace transforms::
     sage: _ = maxima.eval("f(t) := t^5*exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
     360*(2*s-2)/(s^2-2*s+2)^4-480*(2*s-2)^3/(s^2-2*s+2)^5+120*(2*s-2)^5/(s^2-2*s+2)^6
-    sage: print maxima("laplace(f(t),t,s)")
+    sage: print(maxima("laplace(f(t),t,s)"))
                                              3                 5
                360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
               --------------- - --------------- + ---------------
@@ -286,12 +286,12 @@ We illustrate Laplace transforms::
 ::
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
+    -%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d
 representation::
 
-    sage: print maxima("laplace(diff(x(t),t,2),t,s)")
+    sage: print(maxima("laplace(diff(x(t),t,2),t,s)"))
                          !
                 d        !         2
               - -- (x(t))!      + s  laplace(x(t), t, s) - x(0) s
@@ -341,7 +341,7 @@ You can formally evaluate sums (note the ``nusum``
 command)::
 
     sage: S = maxima('nusum(exp(1+2*i/n),i,1,n)')
-    sage: print S
+    sage: print(S)
                             2/n + 3                   2/n + 1
                           %e                        %e
                    ----------------------- - -----------------------
@@ -413,7 +413,9 @@ a robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = maxima(t)
 
-TESTS: This working tests that a subtle bug has been fixed::
+TESTS:
+
+This working tests that a subtle bug has been fixed::
 
     sage: f = maxima.function('x','gamma(x)')
     sage: g = f(1/7)
@@ -438,6 +440,13 @@ A long complicated input expression::
 
     sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
     '1/n9^9+1/n8^8+1/n7^7+1/n6^6+1/n5^5+1/n4^4+1/n3^3+1/n2^2+1/n1+1'
+
+Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
+
+    sage: maxima.eval("1 == 1;")
+    Traceback (most recent call last):
+    ...
+    TypeError: ...incorrect syntax: = is not a prefix operator...
 """
 
 #*****************************************************************************
@@ -454,8 +463,10 @@ A long complicated input expression::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import os, re
+import os
+import re
 import pexpect
 #cygwin = os.uname()[0][:6]=="CYGWIN"
 
@@ -466,7 +477,7 @@ from sage.env import DOT_SAGE, SAGE_LOCAL
 ##import sage.rings.all
 
 from expect import (Expect, ExpectElement, FunctionElement,
-                    ExpectFunction, gc_disabled, AsciiArtString)
+                    ExpectFunction, gc_disabled)
 
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
@@ -486,7 +497,7 @@ class Maxima(MaximaAbstract, Expect):
         False
     """
     def __init__(self, script_subdirectory=None, logfile=None, server=None,
-                 init_code = None):
+                 init_code=None):
         """
         Create an instance of the Maxima interpreter.
 
@@ -503,7 +514,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima == loads(dumps(m))
             True
 
-        We make sure labels are turned off (see trac 6816)::
+        We make sure labels are turned off (see :trac:`6816`)::
 
             sage: 'nolabels : true' in maxima._Expect__init_code
             True
@@ -545,7 +556,6 @@ class Maxima(MaximaAbstract, Expect):
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
-                        maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -565,7 +575,25 @@ class Maxima(MaximaAbstract, Expect):
         self._error_re = re.compile('(Principal Value|debugmode|incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
+    def set_seed(self, seed=None):
+        """
+        http://maxima.sourceforge.net/docs/manual/maxima_10.html
+        make_random_state (n) returns a new random state object created from an
+        integer seed value equal to n modulo 2^32. n may be negative.
 
+        EXAMPLES::
+
+            sage: m = Maxima()
+            sage: m.set_seed(1)
+            1
+            sage: [m.random(100) for i in range(5)]
+            [45, 39, 24, 68, 63]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.set_random_state(self.make_random_state(seed))
+        self._seed = seed
+        return seed
 
     def _start(self):
         """
@@ -580,7 +608,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6722`)::
+        Test that we can use more than 256MB RAM (see :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds
@@ -596,6 +624,9 @@ class Maxima(MaximaAbstract, Expect):
         # to 256MB with ECL).
         self._sendline(":lisp (ext:set-limit 'ext:heap-size 0)")
         self._eval_line('0;')
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def __reduce__(self):
         """
@@ -699,11 +730,10 @@ class Maxima(MaximaAbstract, Expect):
                 self._expect_expr()
                 raise ValueError(msg)
         except KeyboardInterrupt as msg:
-            #print self._expect.before
             i = 0
             while True:
                 try:
-                    print "Control-C pressed.  Interrupting Maxima. Please wait a few seconds..."
+                    print("Control-C pressed.  Interrupting Maxima. Please wait a few seconds...")
                     self._sendstr('quit;\n'+chr(3))
                     self._sendstr('quit;\n'+chr(3))
                     self.interrupt()
@@ -883,7 +913,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima._crash_msg()
             Maxima crashed -- automatically restarting.
         """
-        print "Maxima crashed -- automatically restarting."
+        print("Maxima crashed -- automatically restarting.")
 
     def _error_check(self, cmd, out):
         """
@@ -1150,7 +1180,7 @@ class MaximaElement(MaximaAbstractElement, ExpectElement):
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
-            print s
+            print(s)
         else:
             return s
 

@@ -1,5 +1,5 @@
 r"""
-Ideals of commutative rings.
+Ideals of commutative rings
 
 Sage provides functionality for computing with ideals. One can create
 an ideal in any commutative or non-commutative ring `R` by giving a
@@ -31,7 +31,6 @@ from types import GeneratorType
 
 import sage.misc.latex as latex
 import sage.rings.ring
-import commutative_ring
 from sage.structure.element import MonoidElement
 from sage.interfaces.singular import singular as singular_default
 import sage.rings.infinity
@@ -63,7 +62,7 @@ def Ideal(*args, **kwds):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: R.<x> = ZZ[]
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: I
         Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
@@ -136,7 +135,7 @@ def Ideal(*args, **kwds):
 
     TESTS::
 
-        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: R.<x> = ZZ[]
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: I == loads(dumps(I))
         True
@@ -189,7 +188,7 @@ def Ideal(*args, **kwds):
         R = first
         gens = args[1:]
 
-    if not commutative_ring.is_CommutativeRing(R):
+    if not isinstance(R, sage.rings.ring.CommutativeRing):
         raise TypeError("R must be a commutative ring")
 
     return R.ideal(*gens, **kwds)
@@ -249,9 +248,8 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R, x = PolynomialRing(ZZ, 'x').objgen()
-            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
-            sage: I
+            sage: R.<x> = ZZ[]
+            sage: R.ideal([4 + 3*x + x^2, 1 + x^2])
             Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
         """
         self.__ring = ring
@@ -261,7 +259,7 @@ class Ideal_generic(MonoidElement):
             gens = [ring(x) for x in gens]
 
         gens = tuple(gens)
-        if len(gens)==0: gens=(ring.zero_element(),)
+        if len(gens)==0: gens=(ring.zero(),)
         self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 
@@ -513,7 +511,7 @@ class Ideal_generic(MonoidElement):
         return phi(self)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -761,7 +759,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.primary_decomposition()
             Traceback (most recent call last):
@@ -801,7 +799,7 @@ class Ideal_generic(MonoidElement):
         Note that this method is not implemented for all rings where it
         could be::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(7)
             sage: I.is_prime()        # when implemented, should be True
             Traceback (most recent call last):
@@ -834,7 +832,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.associated_primes()
             Traceback (most recent call last):
@@ -849,7 +847,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.minimal_associated_primes()
             Traceback (most recent call last):
@@ -895,7 +893,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(2,x)
             sage: I.is_principal()
             Traceback (most recent call last):
@@ -942,17 +940,15 @@ class Ideal_generic(MonoidElement):
             sage: I = CC['x'].ideal(0)
             sage: I.is_trivial()
             True
+
+        This test addresses ticket :trac:`20514`::
+        
+            sage: R = QQ['x', 'y']
+            sage: I = R.ideal(R.gens())
+            sage: I.is_trivial()
+            False
         """
-        if self.is_zero():
-            return True
-        # If self is principal, can give a complete answer
-        if self.is_principal():
-            return self.gens()[0].is_unit()
-        # If self is not principal, can only give an affirmative answer
-        for g in self.gens():
-            if g.is_unit():
-                return True
-        raise NotImplementedError
+        return self.is_zero() or self == self.ring().unit_ideal()
 
     def category(self):
         """
@@ -1230,6 +1226,22 @@ class Ideal_principal(Ideal_generic):
             return x.is_zero()
         return self.gen().divides(x)
 
+    def __hash__(self):
+        r"""
+        Very stupid constant hash function!
+
+        TESTS::
+
+            sage: P.<x, y> = PolynomialRing(ZZ)
+            sage: I = P.ideal(x^2)
+            sage: J = [x, y^2 + x*y]*P
+            sage: hash(I)
+            0
+            sage: hash(J)
+            0
+        """
+        return 0
+
     def __cmp__(self, other):
         """
         Compare the two ideals.
@@ -1317,10 +1329,10 @@ class Ideal_pid(Ideal_principal):
 
         EXAMPLES::
 
-        sage: I = 8*ZZ
-        sage: I2 = 3*ZZ
-        sage: I + I2
-        Principal ideal (1) of Integer Ring
+            sage: I = 8*ZZ
+            sage: I2 = 3*ZZ
+            sage: I + I2
+            Principal ideal (1) of Integer Ring
         """
         if not isinstance(other, Ideal_generic):
             other = self.ring().ideal(other)
@@ -1428,10 +1440,19 @@ class Ideal_pid(Ideal_principal):
             Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
             sage: P.is_prime()
             True
+
+        In fields, only the zero ideal is prime::
+
+            sage: RR.ideal(0).is_prime()
+            True
+            sage: RR.ideal(7).is_prime()
+            False
         """
         if self.is_zero(): # PIDs are integral domains by definition
             return True
         g = self.gen()
+        if g.is_one():     # The ideal (1) is never prime
+            return False
         if hasattr(g, 'is_irreducible'):
             return g.is_irreducible()
 

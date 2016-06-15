@@ -85,7 +85,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.arith import binomial, gcd, divisors
+from sage.arith.all import binomial, gcd, divisors
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor, hermite_constant
@@ -95,7 +95,8 @@ from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_total
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, QQ
 
-import math, bisect, sys
+import math
+import sys
 
 
 def integral_elements_in_box(K, C):
@@ -197,7 +198,7 @@ def integral_elements_in_box(K, C):
     S = []
 
     try:
-        pts = P.points_pc()
+        pts = P.points()
     except ValueError:
         return []
 
@@ -371,13 +372,6 @@ class tr_data_rel:
         OUTPUT:
 
         the successor polynomial as a coefficient list.
-
-        EXAMPLES:
-
-        As this function is heavily used internally by the various enumeration
-        routines, there is no separate test::
-
-            sage: pass # not tested
         """
 
         import numpy
@@ -735,22 +729,21 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     n = F.degree()*m
 
     # Initialize
-    S = []
-    Srel = []
+    S = {}        # dictionary of the form {(d, fabs): f, ...}
     dB_odlyzko = odlyzko_bound_totallyreal(n)
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
 
     # Trivial case
     if m == 1:
-        g = pari(F.defining_polynomial()).reverse().Vec()
+        g = pari(F.defining_polynomial()).polrecip().Vec()
         if return_seqs:
             return [[0,0,0,0], [1, [-1, 1], g]]
         elif return_pari_objects:
             return [[1, g, pari('xF-1')]]
         else:
             Px = PolynomialRing(QQ, 'xF')
-            return [[ZZ(1), map(QQ, g), Px.gen()-1]]
+            return [[ZZ(1), [QQ(_) for _ in g], Px.gen()-1]]
 
     if verbose:
         saveout = sys.stdout
@@ -786,7 +779,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         nf = nf.polresultant(nfF, parit)
         d = nf.poldisc()
         #counts[0] += 1
-        if d > 0 and nf.polsturm_full() == n:
+        if d > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1
@@ -803,20 +796,13 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                         ng = pari([nf,zk]).polredabs()
 
                         # Check if K is contained in the list.
-                        found = False
-                        ind = bisect.bisect_left(S, [d,ng])
-                        while ind < len(S) and S[ind][0] == d:
-                            if S[ind][1] == ng:
-                                if verbose:
-                                    print "but is not new"
-                                found = True
-                                break
-                            ind += 1
-                        if not found:
+                        if (d, ng) in S:
+                            if verbose:
+                                print "but is not new"
+                        else:
                             if verbose:
                                 print "and is new!"
-                            S.insert(ind, [d,ng])
-                            Srel.insert(ind, Fx(f_out))
+                            S[(d, ng)] = Fx(f_out)
                     else:
                         if verbose:
                             print "has discriminant", abs(d), "> B"
@@ -847,9 +833,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,1,1]))
+                S[(d, ng)] = Fx([-1,1,1])
         elif F.degree() == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
@@ -859,9 +843,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                 d = K.absolute_discriminant()
                 if abs(d) <= B:
                     ng = Kabs_pari.polredabs()
-                    ind = bisect.bisect_left(S, [d,ng])
-                    S.insert(ind, [d,ng])
-                    Srel.insert(ind, f)
+                    S[(d, ng)] = f
     elif m == 3:
         if Fx([-1,6,-5,1]).is_irreducible():
             K = F.extension(Fx([-1,6,-5,1]), 'tK')
@@ -870,12 +852,14 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,6,-5,1]))
+                S[(d, ng)] = Fx([-1,6,-5,1])
+
+    # Convert S to a sorted list of triples [d, fabs, f], taking care
+    # to use cmp() and not the comparison operators on PARI polynomials.
+    S = [[s[0], s[1], t] for s, t in S.items()]
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
 
     # Now check for isomorphic fields
-    S = [[S[i][0],S[i][1],Srel[i]] for i in range(len(S))]
     weed_fields(S)
 
     # Output.
@@ -894,15 +878,15 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coeffs()]
+        return [[ZZ(x) for x in counts],
+                [[s[0], [QQ(x) for x in s[1].polrecip().Vec()], s[2].coefficients(sparse=False)]
                  for s in S]
                ]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[s[0], Px(map(QQ, s[1].list())), s[2]] for s in S]
+        return [[s[0], Px([QQ(_) for _ in s[1].list()]), s[2]] for s in S]
 
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                                      return_pari_objects=True):
@@ -991,7 +975,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
     S += enumerate_totallyreal_fields_prim(n, B, verbose=verbose)
-    S.sort()
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
     weed_fields(S)
 
     # Output.
@@ -1015,12 +999,12 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+        return [[ZZ(_) for _ in counts],
+                [[ZZ(s[0]), [QQ(_) for _ in s[1].polrecip().Vec()]] for s in S]]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+        return [[ZZ(s[0]), Px([QQ(_) for _ in s[1].list()])]
                 for s in S]
 

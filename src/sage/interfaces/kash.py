@@ -443,7 +443,7 @@ class Kash(Expect):
     """
     def __init__(self,
                  max_workspace_size=None,
-                 maxread=100000,
+                 maxread=None,
                  script_subdirectory=None,
                  restart_on_ctrlc = True,
                  logfile=None,
@@ -462,12 +462,11 @@ class Kash(Expect):
 
         cmd = "kash3 -b -c -d  "
         if max_workspace_size is not None:
-            cmd += " -a %s"%int(max_workspace)
+            cmd += " -a %s" % int(max_workspace_size)
         Expect.__init__(self,
                         name = 'kash',
                         prompt = 'kash% ',
                         command = cmd,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -696,9 +695,13 @@ kash = Kash()
 def reduce_load_Kash():
     return kash
 
-import os
+
 def kash_console():
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%kash magics instead.')
     os.system("kash3 ")
+
 
 def kash_version():
     return kash.eval('VERSION')

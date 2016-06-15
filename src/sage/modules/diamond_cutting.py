@@ -14,6 +14,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.matrix.constructor import matrix, identity_matrix
@@ -215,7 +216,7 @@ def diamond_cut(V, GM, C, verbose=False):
             for hv in [hv, -hv]:
                 cut_count += 1
                 if verbose:
-                    print "\n%d) Cut using normal vector %s" % (cut_count, hv)
+                    print("\n%d) Cut using normal vector %s" % (cut_count, hv))
                 hv = [QQ(round(elmt, 6)) for elmt in hv]
                 inequalities.append(plane_inequality(hv))
                 #cut = Polyhedron(ieqs=[plane_inequality(hv)])
@@ -259,7 +260,7 @@ def calculate_voronoi_cell(basis, radius=None, verbose=False):
     artificial_length = None
     if dim[0] < dim[1]:
         # introduce "artificial" basis points (representing infinity)
-        artificial_length = ceil(max(abs(v) for v in basis)) * 2
+        artificial_length = max(abs(v) for v in basis).ceil() * 2
         additional_vectors = identity_matrix(dim[1]) * artificial_length
         basis = basis.stack(additional_vectors)
         # LLL-reduce to get quadratic matrix

@@ -13,6 +13,8 @@
 # AUTHOR: Jeroen Demeyer (2011-12-08): Trac ticket #12016
 #
 
+from __future__ import print_function
+
 import os
 import multiprocessing
 import re
@@ -177,4 +179,4 @@ def num_threads():
 
     return (num_threads, num_threads_parallel, num_cores)
 
-print "%i %i %i"%num_threads()
+print(*num_threads())

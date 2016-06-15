@@ -67,7 +67,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``solver`` - a SAT-solver instance
 
-        - ``ring`` - a :class:`sage.rins.polynomial.pbori.BooleanPolynomialRing`
+        - ``ring`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomialRing`
 
         - ``max_vars_sparse`` - maximum number of variables for direct conversion
 
@@ -92,7 +92,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_sparse(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -109,7 +109,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_dense(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 5
             1 -4 0
             2 -4 0
@@ -154,7 +154,7 @@ class CNFEncoder(ANF2CNFConverter):
         INPUT:
 
         - ``m`` - something the new variables maps to, usually a monomial
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -236,7 +236,7 @@ class CNFEncoder(ANF2CNFConverter):
             res = self.one_set
             for i in reversed(indices):
                 res = ite(i, res, self.empty_set)
-            return iter(res).next()
+            return next(iter(res))
 
         while not rest.empty():
             l = choose(rest)
@@ -272,7 +272,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_sparse(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -317,7 +317,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_dense(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 5
             1 -4 0
             2 -4 0
@@ -506,7 +506,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -521,7 +521,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + c)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 7
             1 -4 0
             2 -4 0
@@ -561,7 +561,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e([a*b + a + 1, a*b+ a + c])
             [None, a, b, c, a*b]
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 9
             1 0
             -2 0

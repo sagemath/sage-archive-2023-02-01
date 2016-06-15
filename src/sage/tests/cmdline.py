@@ -35,7 +35,8 @@ test.spyx
 -q
 --R
 --root
---scons
+--rst2txt
+--rst2sws
 --sh
 --singular
 --sqlite3
@@ -129,16 +130,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
@@ -197,15 +198,31 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-    Test ``sage --info [packages]``, unless this is a binary (bdist)
-    distribution which doesn't ship spkgs::
+    Test ``sage --info [packages]`` and the equivalent
+    ``sage -p --info --info [packages]`` (the doubling of ``--info``
+    is intentional, that option should be idempotent)::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlalchemy"])
-        sage: print out
-        Found local metadata for sqlalchemy-...
-        = SQLAlchemy =
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
+        sage: print(out)
+        Found local metadata for sqlite-...
+        = SQLite =
         ...
-        SQLAlchemy is the Python SQL toolkit...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
+        sage: print(out)
+        Found local metadata for sqlite-...
+        = SQLite =
+        ...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
         sage: err
         ''
         sage: ret
@@ -216,17 +233,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'python_test_file.py'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("print 3^33\n")
+        sage: F.write("print(3^33)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
@@ -239,17 +256,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("k.<a> = GF(5^3); print a^124\n")
+        sage: F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
@@ -261,17 +278,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("cdef long i, s = 0\nfor i in range(1000): s += i\nprint s")
+        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
@@ -281,9 +298,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(2)\n            4\n        '''\n    return a + 2\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
-        sage: script_py = script[:-5] + '.py'
+        sage: script_py = script + '.py'
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
@@ -293,7 +310,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.path.isfile(script_py)
         True
 
-    Now test my_script.sage and the preparsed version my_script.py::
+    Now test my_script.sage and the preparsed version my_script.sage.py::
 
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
@@ -305,6 +322,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
         sage: out.find("All tests passed!") >= 0
         True
+
+    Test that the coding line and doctest are preserved::
+
+        sage: Fpy = open(script_py, "r")
+        sage: Fpy.readline()
+        '# -*- coding: utf-8 -*-\n'
+        sage: Fpy.readline()
+        "'''This is a test file.\n"
+        sage: Fpy.readline()
+        "And I am its doctest'''\n"
 
     Now for a file which should fail tests::
 
@@ -328,7 +355,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.close()
         sage: (out, err, ret) = test_executable([
         ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
-        sage: print out
+        sage: print(out)
         Debugging requires single-threaded operation, setting number of threads to 1.
         Running doctests with ID...
         Doctesting 1 file.
@@ -377,12 +404,12 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.mkdir(d)
         sage: os.chmod(d, 0o777)
         sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
         sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
@@ -397,36 +424,39 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.write(test)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
-        sage: print err
-        <BLANKLINE>
-        sage: output=out.replace('sage:', 'SAGE:')  # so we don't doctest the output
-        sage: print output[output.find('     SAGE: 1+1'):output.find('reset()')+7]
-             SAGE: 1+1              # incorrect output
-        -    3
-        +    2
-             SAGE: m=matrix(ZZ,3)   # output when none is expected
-        +    SAGE: (2/3)*m          # no output when it is expected
-             [0 0 0]
-             [0 0 0]
-        -    [1 0 0]
-        -    SAGE: (2/3)*m          # no output when it is expected
-        +    [0 0 0]
-             SAGE: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected
-        -    [4, 4, 3, 3, 2, 1, 1]
-             SAGE: mu.pp()          # uneven indentation
-        -    ****
-        -    ****
-        +       ****   ***   *
-        +       ****   ***   *
-        +              **
-        +              *
-             SAGE: PartitionTuples.global_options(convention="French")
-             SAGE: mu.pp()         # fix doctest with uneven indentation
-        +    *
-        +    **
-        +    ****   ***   *
-        +    ****   ***   *
-             SAGE: PartitionTuples.global_options.reset()
+        sage: with open(test_file, 'r') as f:
+        ....:     fixed_test = f.read()
+        sage: import difflib
+        sage: list(difflib.unified_diff(test.splitlines(), fixed_test.splitlines()))[2:-1]
+        ['@@ -4,18 +4,23 @@\n',
+         ' EXAMPLES::',
+         ' ',
+         '     sage: 1+1              # incorrect output',
+         '-    3',
+         '+    2',
+         '     sage: m=matrix(ZZ,3)   # output when none is expected',
+         '+    sage: (2/3)*m          # no output when it is expected',
+         '     [0 0 0]',
+         '     [0 0 0]',
+         '-    [1 0 0]',
+         '-    sage: (2/3)*m          # no output when it is expected',
+         '+    [0 0 0]',
+         '     sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected',
+         '-    [4, 4, 3, 3, 2, 1, 1]',
+         '     sage: mu.pp()          # uneven indentation',
+         '-    ****',
+         '-    ****',
+         '+       ****   ***   *',
+         '+       ****   ***   *',
+         '+              **',
+         '+              *',
+         '     sage: PartitionTuples.global_options(convention="French")',
+         '     sage: mu.pp()         # fix doctest with uneven indentation',
+         '+    *',
+         '+    **',
+         '+    ****   ***   *',
+         '+    ****   ***   *',
+         '     sage: PartitionTuples.global_options.reset()']
 
     Test external programs being called by Sage::
 
@@ -450,7 +480,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--python"], "print 3^33\n")
+        sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -459,22 +489,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--cython"])
-        sage: print err
+        sage: print(err)
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
         ...
 
-        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"])
-        sage: ret, err
-        (0, '')
-        sage: print out    # random output
-        usage: sage-dev [-h] subcommand ...
-        <BLANKLINE>
-        The developer interface for sage.
-        ...
-        sage: ('usage: sage-dev' in out) or ('Developer interface disabled' in out)
-        True
-
+        sage: def has_tty():
+        ....:     try:
+        ....:         os.open(os.ctermid(), os.O_RDONLY)
+        ....:         return True
+        ....:     except OSError:
+        ....:         return False 
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -572,14 +597,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--scons", "--version"])
-        sage: out.find("SCons") >= 0
-        True
-        sage: err
-        ''
-        sage: ret
-        0
-
         sage: (out, err, ret) = test_executable(["sage", "--sqlite3", "--version"])
         sage: out.startswith("3.")
         True
@@ -623,6 +640,98 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret > 0
         True
 
+    Test ``sage --rst2txt file.rst`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
+        sage: print(out)
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+        sage: err
+        ''
+        sage: ret
+        0
+
+    Test ``sage --rst2txt file.rst file.txt`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.txt')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: test_executable(["sage", "--rst2txt", input, output])
+        ('', '', 0)
+        sage: print(open(output, 'r').read())
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+
+    Test ``sage --rst2sws file.rst file.sws`` on a ReST file::
+
+        sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.sws')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: test_executable(["sage", "--rst2sws", input, output])
+        ('', '', 0)
+        sage: import tarfile
+        sage: f = tarfile.open(output, 'r')
+        sage: print(f.extractfile('sage_worksheet/worksheet.html').read())
+        <h1 class="title">Thetitle</h1>
+        <BLANKLINE>
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read())
+        Thetitle
+        system:sage
+        <BLANKLINE>
+        <BLANKLINE>
+        <h1 class="title">Thetitle</h1>
+        <BLANKLINE>
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
     """
     pexpect_env = dict(os.environ)
     try:

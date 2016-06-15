@@ -41,7 +41,7 @@ TESTS::
 import sage.rings.fraction_field
 import sage.rings.number_field as number_field
 
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.all import singular
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField
@@ -52,8 +52,8 @@ from sage.rings.function_field.function_field import is_RationalFunctionField
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
 
-import sage.rings.arith
-import sage.rings.finite_rings.constructor
+import sage.arith.all
+import sage.rings.finite_rings.finite_field_constructor
 
 
 class PolynomialRing_singular_repr:
@@ -64,7 +64,7 @@ class PolynomialRing_singular_repr:
     polynomial rings which support conversion from and to Singular
     rings.
     """
-    def _singular_(self, singular=singular_default):
+    def _singular_(self, singular=singular):
         r"""
         Returns a singular ring for this polynomial ring.
         Currently `\QQ`, `{\rm GF}(p), {\rm GF}(p^n)`, `\CC`, `\RR`, `\ZZ` and
@@ -203,7 +203,7 @@ class PolynomialRing_singular_repr:
             R._check_valid()
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
-            if sage.rings.finite_rings.constructor.is_FiniteField(self.base_ring()) or\
+            if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(self.base_ring()) or\
                     (number_field.number_field_base.is_NumberField(self.base_ring()) and self.base_ring().is_absolute()):
                 R.set_ring() #sorry for that, but needed for minpoly
                 if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
@@ -214,7 +214,7 @@ class PolynomialRing_singular_repr:
         except (AttributeError, ValueError):
             return self._singular_init_(singular)
 
-    def _singular_init_(self, singular=singular_default):
+    def _singular_init_(self, singular=singular):
         """
         Return a newly created Singular ring matching this ring.
 
@@ -245,14 +245,14 @@ class PolynomialRing_singular_repr:
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order, check=False)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order, check=False)
 
         elif is_RealDoubleField(base_ring):
@@ -268,7 +268,7 @@ class PolynomialRing_singular_repr:
         elif base_ring.is_prime_field():
             self.__singular = singular.ring(self.characteristic(), _vars, order=order, check=False)
 
-        elif sage.rings.finite_rings.constructor.is_FiniteField(base_ring):
+        elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
             # not the prime field!
             gen = str(base_ring.gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
@@ -355,7 +355,7 @@ def can_convert_to_singular(R):
         return False;
 
     base_ring = R.base_ring()
-    return ( sage.rings.finite_rings.constructor.is_FiniteField(base_ring)
+    return ( sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
              or is_RationalField(base_ring)
              or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
              or is_RealField(base_ring)
@@ -380,13 +380,13 @@ class Polynomial_singular_repr:
     Due to the incompatibility of Python extension classes and multiple inheritance,
     this just defers to module-level functions.
     """
-    def _singular_(self, singular=singular_default, have_ring=False):
+    def _singular_(self, singular=singular, have_ring=False):
         return _singular_func(self, singular, have_ring)
 
-    def _singular_init_func(self, singular=singular_default, have_ring=False):
+    def _singular_init_func(self, singular=singular, have_ring=False):
         return _singular_init_func(self, singular, have_ring)
 
-def _singular_func(self, singular=singular_default, have_ring=False):
+def _singular_func(self, singular=singular, have_ring=False):
     """
     Return Singular polynomial matching this polynomial.
 
@@ -433,7 +433,7 @@ def _singular_func(self, singular=singular_default, have_ring=False):
 #    return self._singular_init_(singular,have_ring=have_ring)
     return _singular_init_func(self, singular,have_ring=have_ring)
 
-def _singular_init_func(self, singular=singular_default, have_ring=False):
+def _singular_init_func(self, singular=singular, have_ring=False):
     """
     Return corresponding Singular polynomial but enforce that a new
     instance is created in the Singular interpreter.

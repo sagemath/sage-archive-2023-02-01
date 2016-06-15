@@ -9,32 +9,43 @@ Finite Permutation Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.magmas import Magmas
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.permutation_groups import PermutationGroups
 
 class FinitePermutationGroups(CategoryWithAxiom):
     r"""
     The category of finite permutation groups, i.e. groups concretely
     represented as groups of permutations acting on a finite set.
 
+    It is currently assumed that any finite permutation group comes
+    endowed with a distinguished finite set of generators (method
+    ``group_generators``); this is the case for all the existing
+    implementations in Sage.
+
     EXAMPLES::
 
-        sage: FinitePermutationGroups()
+        sage: C = PermutationGroups().Finite(); C
         Category of finite permutation groups
-        sage: FinitePermutationGroups().super_categories()
-        [Category of permutation groups, Category of finite groups]
+        sage: C.super_categories()
+        [Category of permutation groups,
+         Category of finite groups,
+         Category of finite finitely generated semigroups]
 
-        sage: FinitePermutationGroups().example()
+        sage: C.example()
         Dihedral group of order 6 as a permutation group
 
     TESTS::
 
-        sage: C = FinitePermutationGroups()
+        sage: C is FinitePermutationGroups()
+        True
         sage: TestSuite(C).run()
 
         sage: G = FinitePermutationGroups().example()
         sage: TestSuite(G).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -71,6 +82,17 @@ class FinitePermutationGroups(CategoryWithAxiom):
         """
         from sage.groups.perm_gps.permgroup_named import DihedralGroup
         return DihedralGroup(3)
+
+    def extra_super_categories(self):
+        """
+        Any permutation group is assumed to be endowed with a finite set of generators.
+
+        TESTS:
+
+            sage: PermutationGroups().Finite().extra_super_categories()
+            [Category of finitely generated magmas]
+        """
+        return [Magmas().FinitelyGenerated()]
 
     class ParentMethods:
         # TODO
@@ -164,7 +186,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
 
             REFERENCES:
 
-             .. [Ker1991] A. Kerber. Algebraic combinatorics via finite group actions, 2.2 p. 70.
+             .. [Ker1991] \A. Kerber. Algebraic combinatorics via finite group actions, 2.2 p. 70.
                BI-Wissenschaftsverlag, Mannheim, 1991.
 
             AUTHORS:

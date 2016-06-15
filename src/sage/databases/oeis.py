@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The On-Line Encyclopedia of Integer Sequences (OEIS)
 
@@ -10,7 +11,11 @@ order to:
 
 AUTHORS:
 
-    - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+- Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+
+- Vincent Delecroix (2014): modifies continued fractions because of :trac:`14567`
+
+- Moritz Firsching (2016): modifies handling of dead sequence, see :trac:`17330`
 
 EXAMPLES::
 
@@ -23,10 +28,12 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
     sage: search = oeis([3, 7, 15, 1], max_results=4) ; search  # optional -- internet
     0: A001203: Continued fraction expansion of Pi.
-    1: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
-    2: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
-    3: A082495: (2^n-1) mod n.
+    1: A082495: a(n) = (2^n - 1) mod n.
+    2: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
+    3: A246674: Run Length Transform of A000225.
 
+    sage: [u.id() for u in search]                      # optional -- internet
+    ['A001203', 'A082495', 'A165416', 'A246674']
     sage: c = search[0] ; c                             # optional -- internet
     A001203: Continued fraction expansion of Pi.
 
@@ -38,7 +45,7 @@ What about a sequence starting with `3, 7, 15, 1` ?
     sage: c.examples()                                  # optional -- internet
     0: Pi = 3.1415926535897932384...
     1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
+    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
 
     sage: c.comments()                                  # optional -- internet
     0: The first 5,821,569,425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
@@ -47,8 +54,8 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
 ::
 
-    sage: x = c.natural_object() ; x.parent()           # optional -- internet
-    Field of all continued fractions
+    sage: x = c.natural_object() ; type(x)              # optional -- internet
+    <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
     sage: x.convergents()[:7]                           # optional -- internet
     [3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215, 208341/66317]
@@ -84,7 +91,7 @@ related ?
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.
-    3: A006057: Number of labeled topologies with n points.
+    3: A006057: Number of topologies on n labeled points satisfying axioms T_0-T_4.
     4: A079263: Number of constrained mixed models with n factors.
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
 
@@ -95,21 +102,21 @@ primes ?
 ::
 
     sage: x = var('x') ; f(x) = e^(e^x - 1)
-    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coeffs()] ; L
+    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coefficients()] ; L
     [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975, 678570, 4213597,
     27644437, 190899322, 1382958545, 10480142147, 82864869804, 682076806159,
     5832742205057, 51724158235372]
 
     sage: oeis(L)                                       # optional -- internet
-    0: A000110: Bell or exponential numbers: ways of placing n labeled balls into n indistinguishable boxes.
+    0: A000110: Bell or exponential numbers: number of ways to partition a set of n labeled elements.
 
     sage: b = _[0]                                      # optional -- internet
 
     sage: b.formulas()[0]                               # optional -- internet
-    'E.g.f.: exp( exp(x) - 1).'
+    'E.g.f.: exp(exp(x) - 1).'
 
-    sage: b.comments()[89]                              # optional -- internet
-    'Number n is prime if mod(a(n)-2,n) = 0. [From _Dmitry Kruchinin_, Feb 14 2012]'
+    sage: [i for i in b.comments() if 'prime' in i][-1]     # optional -- internet
+    'Number n is prime if mod(a(n)-2,n) = 0. -_Dmitry Kruchinin_, Feb 14 2012'
 
     sage: [n for n in range(2, 20) if (b(n)-2) % n == 0]    # optional -- internet
     [2, 3, 5, 7, 11, 13, 17, 19]
@@ -140,26 +147,23 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 
 from sage.structure.sage_object import SageObject
-from sage.structure.sequence import Sequence
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.contfrac import ContinuedFractionField
-from sage.rings.real_lazy import RealLazyField
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.misc.unknown import Unknown
 from sage.misc.misc import embedded
-from sage.misc.html import html
+from sage.misc.html import HtmlFragment
 from collections import defaultdict
 from urllib import urlopen, urlencode
 import re
 
 oeis_url = 'http://oeis.org/'
+
 
 def _fetch(url):
     r"""
@@ -180,13 +184,14 @@ def _fetch(url):
         '</html>'
     """
     try:
-        _ = verbose("Fetching URL %s ..." %url, caller_name='OEIS')
+        verbose("Fetching URL %s ..." % url, caller_name='OEIS')
         f = urlopen(url)
         result = f.read()
         f.close()
         return result
     except IOError as msg:
         raise IOError("%s\nError fetching %s." % (msg, url))
+
 
 def _urls(html_string):
     r"""
@@ -213,6 +218,7 @@ def _urls(html_string):
     """
     urls = []
     from HTMLParser import HTMLParser
+
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             if tag == 'a':
@@ -222,7 +228,9 @@ def _urls(html_string):
     MyHTMLParser().feed(html_string)
     return urls
 
+
 to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
+
 
 class OEIS:
     r"""
@@ -278,7 +286,7 @@ class OEIS:
 
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+        1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
         2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
         sage: fibo = search[0]                         # optional -- internet
@@ -308,7 +316,7 @@ class OEIS:
         sage: sfibo.first_terms(absolute_value=True)[2:20] == fibo.first_terms()[:18]   # optional -- internet
         True
 
-        sage: fibo.formulas()[3]                        # optional -- internet
+        sage: fibo.formulas()[4]                        # optional -- internet
         'F(n) = F(n-1) + F(n-2) = -(-1)^n F(-n).'
 
         sage: fibo.comments()[1]                        # optional -- internet
@@ -333,7 +341,7 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
             2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = oeis('A000045')                # optional -- internet
@@ -344,7 +352,7 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
             2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = _[0]                           # optional -- internet
@@ -362,7 +370,7 @@ class OEIS:
             TypeError: __call__() takes at least 2 arguments (1 given)
         """
         if isinstance(query, str):
-            if re.match('^A[0-9]{6}$',query):
+            if re.match('^A[0-9]{6}$', query):
                 return self.find_by_id(query)
             else:
                 return self.find_by_description(query, max_results, first_result)
@@ -406,7 +414,7 @@ class OEIS:
         if not isinstance(ident, str):
             ident = str(ident)
             ident = 'A000000'[:-len(ident)] + ident
-        options = {'q':ident, 'n':'1', 'fmt':'text'}
+        options = {'q': ident, 'n': '1', 'fmt': 'text'}
         url = oeis_url + "search?" + urlencode(options)
         sequence = _fetch(url).split('\n\n')[2]
         return OEISSequence(sequence)
@@ -457,13 +465,13 @@ class OEIS:
             2: A131957: Busy Beaver sigma variation: maximum number of 1's ...
             3: A052200: Number of n-state, 2-symbol, d+ in {LEFT, RIGHT}, ...
         """
-        options = {'q':description,
-                   'n':str(max_results),
-                   'fmt':'text',
-                   'start':str(first_result)}
+        options = {'q': description,
+                   'n': str(max_results),
+                   'fmt': 'text',
+                   'start': str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
-        return FancyTuple(map(OEISSequence, sequence_list))
+        return FancyTuple([OEISSequence(_) for _ in sequence_list])
 
     def find_by_subsequence(self, subsequence, max_results=3, first_result=0):
         r"""
@@ -491,7 +499,7 @@ class OEIS:
             sage: oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A177194: Fibonacci numbers whose decimal expression does not contain any digit 0.
-            2: A020695: Pisot sequence E(2,3).
+            2: A212804: Expansion of (1-x)/(1-x-x^2).
 
             sage: fibo = _[0] ; fibo                    # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
@@ -597,6 +605,7 @@ class OEIS:
         """
         return OEISSequence(self._imaginary_entry(keywords))
 
+
 class OEISSequence(SageObject):
     r"""
     The class of OEIS sequences.
@@ -639,6 +648,12 @@ class OEISSequence(SageObject):
 
             sage: sfibo = oeis('A039834')               # optional -- internet
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17)                              # optional -- internet
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            A000017: Erroneous version of A032522.
+
             sage: s = oeis._imaginary_sequence()
         """
         self._raw = entry
@@ -646,6 +661,11 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
+        if 'dead' in self.keywords(): 
+            ("This sequence is dead: \""+self.name()+"\"")
+            from warnings import warn
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+
 
     def id(self, format='A'):
         r"""
@@ -698,7 +718,7 @@ class OEISSequence(SageObject):
             sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: print f.raw_entry()                   # optional -- internet
+            sage: print(f.raw_entry())                  # optional -- internet
             %I A000045 M0692 N0256
             %S A000045 0,1,1,2,3,5,8,13,21,34,55,89,144,...
             %T A000045 10946,17711,28657,46368,...
@@ -812,7 +832,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.author()                            # optional -- internet
-            '_N. J. A. Sloane_.'
+            '_N. J. A. Sloane_, Apr 30 1991'
 
         TESTS::
 
@@ -832,11 +852,11 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            sage: f = oeis(53) ; f                      # optional -- internet
+            A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'easy', 'nice', 'changed')
+            ('nonn', 'fini', 'full')
 
         TESTS::
 
@@ -861,8 +881,7 @@ class OEISSequence(SageObject):
               RealLazyField()).
 
         - If the sequence ``self`` corresponds to the convergents of a
-              continued fraction, returns the associated continued
-              fraction (as an element of ContinuedFractionField()).
+              continued fraction, returns the associated continued fraction.
 
         .. WARNING::
 
@@ -880,10 +899,14 @@ class OEISSequence(SageObject):
             sage: g = oeis("A002852") ; g               # optional -- internet
             A002852: Continued fraction for Euler's constant (or Euler-Mascheroni constant) gamma.
 
-            sage: x = g.natural_object() ; x.parent()   # optional -- internet
-            Field of all continued fractions
+            sage: x = g.natural_object() ; type(x)      # optional -- internet
+            <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
-            sage: x[:20] == continued_fraction(euler_gamma, nterms=20)  # optional -- internet
+            sage: RDF(x) == RDF(euler_gamma)            # optional -- internet
+            True
+
+            sage: cfg = continued_fraction(euler_gamma)
+            sage: x[:90] == cfg[:90]                    # optional -- internet
             True
 
         ::
@@ -913,41 +936,47 @@ class OEISSequence(SageObject):
             sage: fib = oeis('A000045') ; fib           # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: x = fib.natural_object() ; x.parent()         # optional -- internet
-            Category of sequences in Non negative integer semiring
+            sage: x = fib.natural_object() ; x.universe()         # optional -- internet
+            Non negative integer semiring
 
         ::
 
             sage: sfib = oeis('A039834') ; sfib         # optional -- internet
-            A039834: a(n+2)=-a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
+            A039834: a(n+2) = -a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
-            sage: x = sfib.natural_object() ; x.parent()    # optional -- internet
-            Category of sequences in Integer Ring
+            sage: x = sfib.natural_object() ; x.universe()    # optional -- internet
+            Integer Ring
 
         TESTS::
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
-            sage: s.natural_object().parent()
-            Field of all continued fractions
+            sage: type(s.natural_object())
+            <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
             sage: s = oeis._imaginary_sequence('nonn')
-            sage: s.natural_object().parent()
-            Category of sequences in Non negative integer semiring
+            sage: s.natural_object().universe()
+            Non negative integer semiring
 
             sage: s = oeis._imaginary_sequence()
-            sage: s.natural_object().parent()
-            Category of sequences in Integer Ring
+            sage: s.natural_object().universe()
+            Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
-            return ContinuedFractionField()(self.first_terms())
+            from sage.rings.continued_fraction import continued_fraction
+            return continued_fraction(self.first_terms())
         elif 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))
+            from sage.rings.real_lazy import RealLazyField
             return RealLazyField()('0' + ''.join(map(str, terms[:offset])) + '.' + ''.join(map(str, terms[offset:])))
         elif 'nonn' in self.keywords():
+            from sage.structure.sequence import Sequence
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return Sequence(self.first_terms(), NN)
         else:
-            return Sequence(self.first_terms(),IntegerRing())
+            from sage.structure.sequence import Sequence
+            from sage.rings.integer_ring import ZZ
+            return Sequence(self.first_terms(), ZZ)
 
     def is_finite(self):
         r"""
@@ -969,7 +998,7 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: s = oeis('A114288') ; s               # optional -- internet
-            A114288: Lexicographically minimal solution of any 9 X 9 sudoku, read by rows.
+            A114288: Lexicographically earliest solution of any 9 X 9 sudoku, read by rows.
 
             sage: s.is_finite()                         # optional -- internet
             True
@@ -1015,7 +1044,7 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: s = oeis('A114288') ; s               # optional -- internet
-            A114288: Lexicographically minimal solution of any 9 X 9 sudoku, read by rows.
+            A114288: Lexicographically earliest solution of any 9 X 9 sudoku, read by rows.
 
             sage: s.is_full()                           # optional -- internet
             True
@@ -1069,6 +1098,14 @@ class OEISSequence(SageObject):
             sage: f.first_terms()[:10]                  # optional -- internet
             (0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
 
+        Handle dead sequences: see  :trac:`17330` ::
+
+            sage: oeis(17).first_terms(12)              # optional -- internet  
+            oeis(17).first_terms(12)
+            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)            
+
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
@@ -1093,10 +1130,10 @@ class OEISSequence(SageObject):
             sage: s(42)
             1
         """
-        if absolute_value or ('nonn' in self.keywords()):
-            fields = ['S','T','U']
+        if absolute_value or ('nonn' in self.keywords()) or ('dead' in self.keywords()):
+            fields = ['S', 'T', 'U']
         elif ('sign' in self.keywords()):
-            fields = ['V','W','X']
+            fields = ['V', 'W', 'X']
         else:
             raise TypeError("You found a sign inconsistency, please contact OEIS")
         return to_tuple(" ".join(flatten([self._fields[a] for a in fields])))[:number]
@@ -1237,7 +1274,7 @@ class OEISSequence(SageObject):
             A085823: Numbers in which all substrings are primes.
 
             sage: for i in p:                           # optional -- internet
-            ....:     print i
+            ....:     print(i)
             2
             3
             5
@@ -1254,13 +1291,13 @@ class OEISSequence(SageObject):
             A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
 
             sage: i = w.__iter__()                      # optional -- internet
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             5
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             13
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             563
-            sage: i.next()                              # optional -- internet
+            sage: next(i)                               # optional -- internet
             Traceback (most recent call last):
             ...
             LookupError: Future values not provided by OEIS.
@@ -1271,7 +1308,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: for i in f:                           # optional -- internet
-            ....:     print i
+            ....:     print(i)
             Traceback (most recent call last):
             ...
             LookupError: Future values not provided by OEIS.
@@ -1287,7 +1324,7 @@ class OEISSequence(SageObject):
 
             sage: for i in s:
             ....:     if i == -1:
-            ....:         print i
+            ....:         print(i)
             ....:         break
             -1
 
@@ -1299,9 +1336,8 @@ class OEISSequence(SageObject):
         if not self.is_full():
             raise LookupError("Future values not provided by OEIS.")
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
-
         Returns ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.  Two integer sequences are considered equal if they have the
         same OEIS ID.
@@ -1330,7 +1366,6 @@ class OEISSequence(SageObject):
 
     def __ne__(self, other):
         r"""
-
         Returns ``True`` if ``self`` has a different OEIS ID than ``other`` and
         ``False`` otherwise.
 
@@ -1353,7 +1388,7 @@ class OEISSequence(SageObject):
             sage: s != oeis._imaginary_sequence()
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def references(self):
         r"""
@@ -1371,7 +1406,8 @@ class OEISSequence(SageObject):
             sage: w.references()                        # optional -- internet
             0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
             1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: Edgar Costa, Robert Gerbicz, and David Harvey, <a href="http://arxiv.org/abs/1209.3436">A search for Wilson primes</a>, 2012
+            2: R. Crandall and C. Pomerance, Prime Numbers: A Computational Perspective, Springer, NY, 2001; see p. 29.
+            3: G. H. Hardy and E. M. Wright, An Introduction to the Theory of Numbers, 5th ed., Oxford Univ. Press, 1979, th. 80.
             ...
 
             sage: _[0]                                  # optional -- internet
@@ -1428,10 +1464,12 @@ class OEISSequence(SageObject):
             sage: s.links(format='url')[3]
             'http://oeis.org/A000024'
 
-            sage: s.links(format="html")
-            <html><font color='black'>0: Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>
+            sage: HTML = s.links(format="html");  HTML
+            0: Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>
             1: See. also <a href="http://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>
             ...
+            sage: type(HTML)
+            <class 'sage.misc.html.HtmlFragment'>
         """
         url_absolute = lambda s: re.sub('\"\/', '\"' + oeis_url, s)
         if browse is None:
@@ -1443,7 +1481,7 @@ class OEISSequence(SageObject):
             elif format == 'raw':
                 return FancyTuple(self._fields['H'])
             elif format == 'html':
-                html(FancyTuple(map(url_absolute, self._fields['H'])))
+                return HtmlFragment(FancyTuple([url_absolute(_) for _ in self._fields['H']]))
             elif format == 'url':
                 url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)
@@ -1457,7 +1495,7 @@ class OEISSequence(SageObject):
                     webbrowser.open(url_list[url_number])
             elif browse == 'all':
                 for url in url_list:
-                     webbrowser.open(url)
+                    webbrowser.open(url)
 
     def formulas(self):
         r"""
@@ -1472,7 +1510,7 @@ class OEISSequence(SageObject):
             sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.formulas()[1]                       # optional -- internet
+            sage: f.formulas()[2]                       # optional -- internet
             'F(n) = ((1+sqrt(5))^n-(1-sqrt(5))^n)/(2^n*sqrt(5)).'
 
         TESTS::
@@ -1522,7 +1560,7 @@ class OEISSequence(SageObject):
         """
         ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
         if fetch:
-            return FancyTuple(map(oeis.find_by_id, ref_list))
+            return FancyTuple([oeis.find_by_id(_) for _ in ref_list])
         else:
             return tuple(ref_list)
 
@@ -1538,10 +1576,10 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: sfibo = oeis('A039834') ; sfibo       # optional -- internet
-            A039834: a(n+2)=-a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
+            A039834: a(n+2) = -a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
             sage: sfibo.extensions_or_errors()[0]       # optional -- internet
-            'Signs corrected by Len Smiley (smiley(AT)math.uaa.alaska.edu) and _N. J. A. Sloane_.'
+            'Signs corrected by _Len Smiley_ and _N. J. A. Sloane_.'
 
         TESTS::
 
@@ -1568,7 +1606,7 @@ class OEISSequence(SageObject):
             sage: c.examples()                          # optional -- internet
             0: Pi = 3.1415926535897932384...
             1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
+            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
 
         TESTS::
 
@@ -1592,9 +1630,9 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.comments()[:3]                      # optional -- internet
-            ("Also called Lam{\\'e}'s sequence.",
-             "F(n+2) = number of binary sequences of length n that have no consecutive 0's.",
-             'F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.')
+            0: Also sometimes called Lamé's sequence.
+            1: F(n+2) = number of binary sequences of length n that have no consecutive 0's.
+            2: F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.
 
         TESTS::
 
@@ -1635,10 +1673,10 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet, webbrowser
+            sage: f = oeis(45) ; f                      # optional -- internet webbrowser
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.browse()                            # optional -- internet, webbrowser
+            sage: f.browse()                            # optional -- internet webbrowser
 
         TESTS::
 
@@ -1660,16 +1698,16 @@ class OEISSequence(SageObject):
             A012345
             <BLANKLINE>
             NAME
-            sinh(arcsin(x)*arcsin(x))=2/2!*x^2+8/4!*x^4+248/6!*x^6+11328/8!*x^8...
+            Coefficients in the expansion sinh(arcsin(x)*arcsin(x)) = 2*x^2/2!+8*x^4/4!+248*x^6/6!+11328*x^8/8!+...
             <BLANKLINE>
             FIRST TERMS
-            (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, ...
+            (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, 831657655349760, 280473756197529600, 115967597965430077440, 57712257892456911912960, 34039765801079493369569280)
             <BLANKLINE>
-            KEYWORDS
-            ('nonn',)
-            <BLANKLINE>
+            FORMULAS
+            ...
             OFFSETS
             (0, 1)
+            <BLANKLINE>
             URL
             http://oeis.org/A012345
             <BLANKLINE>
@@ -1699,14 +1737,14 @@ class OEISSequence(SageObject):
                   'programs', 'keywords', 'offsets', 'url', 'old_IDs',
                   'author', 'extensions_or_errors']:
             if embedded() and s == 'links':
-                print re.sub('_',' ',s).upper()
+                print(re.sub('_', ' ', s).upper())
                 getattr(self, s)()
-                print '\n'
+                print('\n')
             else:
                 result = getattr(self, s)()
                 if result != '' and result != ('',) and result != ():
-                    print re.sub('_',' ',s).upper()
-                    print str(result) +  '\n'
+                    print(re.sub('_', ' ', s).upper())
+                    print(str(result) + '\n')
 
     def programs(self, language='other'):
         r"""
@@ -1729,7 +1767,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } [From Harry J. Smith, Apr 15 2009]'
+            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 
@@ -1758,6 +1796,7 @@ class OEISSequence(SageObject):
         else:
             return FancyTuple(self._fields['o'])
 
+
 class FancyTuple(tuple):
     r"""
     This class inherits from ``tuple``, it allows to nicely print tuples whose
@@ -1782,6 +1821,7 @@ class FancyTuple(tuple):
         index of the value in ``self``.
 
         EXAMPLES::
+
             sage: from sage.databases.oeis import FancyTuple
             sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4]) ; t
             0: zero
@@ -1790,9 +1830,30 @@ class FancyTuple(tuple):
             3: three
             4: 4
         """
-        length = len(str(len(self)-1))
-        return '\n'.join(map(lambda i: ('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]),
-                             range(len(self))))
+        length = len(str(len(self) - 1))
+        return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
+
+    def __getslice__(self, i, j):
+        r"""
+        The slice of a FancyTuple remains a FancyTuple.
+        
+        EXAMPLES::
+
+            sage: from sage.databases.oeis import FancyTuple
+            sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4])
+            sage: t[-2:]
+            0: three
+            1: 4
+        
+        TESTS::
+
+            sage: t = ('é', 'è', 'à', 'ç')
+            sage: t
+            ('\xc3\xa9', '\xc3\xa8', '\xc3\xa0', '\xc3\xa7')
+            sage: FancyTuple(t)[2:4]
+            0: à
+            1: ç
+        """
+        return FancyTuple(tuple(self).__getslice__(i, j))
 
 oeis = OEIS()
-

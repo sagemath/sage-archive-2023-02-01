@@ -23,8 +23,10 @@ Cryptography
    sage/crypto/util
    sage/crypto/boolean_function
 
+   sage/crypto/mq/mpolynomialsystemgenerator
    sage/crypto/mq/sr
    sage/crypto/mq/sbox
+   sage/crypto/mq/rijndael_gf
 
    sage/crypto/lattice
    sage/crypto/lwe

@@ -20,15 +20,15 @@ Finding a single triangulation and listing all connected
 triangulations is implemented natively in this package. However, for
 more advanced options [TOPCOM]_ needs to be installed. It is available
 as an optional package for Sage, and you can install it with the
-command::
+shell command ::
 
-    sage: install_package('TOPCOM')     # not tested
+    sage -i topcom
 
 .. note::
 
     TOPCOM and the internal algorithms tend to enumerate
     triangulations in a different order. This is why we always
-    explicitly specify the engine as ``engine='TOPCOM'`` or
+    explicitly specify the engine as ``engine='topcom'`` or
     ``engine='internal'`` in the doctests. In your own applications,
     you do not need to specify the engine. By default, TOPCOM is used
     if it is available and the internal algorithms are used otherwise.
@@ -59,6 +59,7 @@ A 2-dimensional point configuration::
     sage: list(t)
     [(1, 3, 4), (2, 3, 4)]
     sage: t.plot(axes=False)
+    Graphics object consisting of 12 graphics primitives
     sage: list( p.triangulations() )
     [(<1,3,4>, <2,3,4>),
      (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
@@ -79,17 +80,21 @@ A 3-dimensional point configuration::
     sage: points = PointConfiguration(p)
     sage: triang = points.triangulate()
     sage: triang.plot(axes=False)
+    Graphics3d Object
 
-The standard example of a non-regular triangulation::
+The standard example of a non-regular triangulation (requires TOPCOM)::
 
+    sage: PointConfiguration.set_engine('topcom')   # optional - topcom
     sage: p = PointConfiguration([[-1,-5/9],[0,10/9],[1,-5/9],[-2,-10/9],[0,20/9],[2,-10/9]])
-    sage: regular = p.restrict_to_regular_triangulations(True).triangulations_list()      # optional - TOPCOM
-    sage: nonregular = p.restrict_to_regular_triangulations(False).triangulations_list()  # optional - TOPCOM
-    sage: len(regular)     # optional - TOPCOM
+    sage: regular = p.restrict_to_regular_triangulations(True).triangulations_list()      # optional - topcom
+    sage: nonregular = p.restrict_to_regular_triangulations(False).triangulations_list()  # optional - topcom
+    sage: len(regular)     # optional - topcom
     16
-    sage: len(nonregular)  # optional - TOPCOM
+    sage: len(nonregular)  # optional - topcom
     2
-    sage: nonregular[0].plot(aspect_ratio=1, axes=False)   # optional - TOPCOM
+    sage: nonregular[0].plot(aspect_ratio=1, axes=False)   # optional - topcom
+    Graphics object consisting of 25 graphics primitives
+    sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
 
 Note that the points need not be in general position. That is, the
 points may lie in a hyperplane and the linear dependencies will be
@@ -111,17 +116,14 @@ removed before passing the data to TOPCOM which cannot handle it::
 
 REFERENCES:
 
-    .. [TOPCOM]
-       J. Rambau,
-       TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+.. [TOPCOM] J. Rambau,
+   TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
-    .. [GKZ]
-       Gel'fand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
-       "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994.
+.. [GKZ] Gelfand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
+   "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994
 
-    .. [PUNTOS]
-       Jesus A. De Loera
-       http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
+.. [PUNTOS] Jesus A. De Loera
+   http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
 AUTHORS:
 
@@ -145,7 +147,7 @@ AUTHORS:
 
 ########################################################################
 # Note: The doctests that make use of TOPCOM are
-#       marked # optional - TOPCOM
+#       marked # optional - topcom
 #       If you have it installed, run doctests as
 #
 #   sage -tp 4 --long --optional=sage,topcom sage/geometry/triangulation/
@@ -161,6 +163,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
@@ -260,15 +263,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         EXAMPLES::
 
-            sage: PointConfiguration._have_TOPCOM()    # optional - TOPCOM
+            sage: PointConfiguration._have_TOPCOM()    # optional - topcom
             True
         """
         if PointConfiguration._have_TOPCOM_cached is not None:
             return PointConfiguration._have_TOPCOM_cached
 
         try:
-            out = PointConfiguration._TOPCOM_exec('points2placingtriang',
-                                                  '[[0,1],[1,1]]', verbose=False).next()
+            out = next(PointConfiguration._TOPCOM_exec('points2placingtriang',
+                                                  '[[0,1],[1,1]]', verbose=False))
             PointConfiguration._have_TOPCOM_cached = True
             assert out=='{{0,1}}',\
                 'TOPCOM ran but did not produce the correct output!'
@@ -355,7 +358,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         INPUT:
 
         - ``engine`` -- either 'auto' (default), 'internal', or
-          'TOPCOM'. The latter two instruct this package to always use
+          'topcom'. The latter two instruct this package to always use
           its own triangulation algorithms or TOPCOM's algorithms,
           respectively. By default ('auto'), TOPCOM is used if it is
           available and internal routines otherwise.
@@ -366,17 +369,18 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: p.triangulate()
             (<1,3,4>, <2,3,4>)
-            sage: p.set_engine('TOPCOM')   # optional - TOPCOM
-            sage: p.triangulate()          # optional - TOPCOM
+            sage: p.set_engine('topcom')   # optional - topcom
+            sage: p.triangulate()          # optional - topcom
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
-            sage: p.set_engine('internal') # optional - TOPCOM
+            sage: p.set_engine('internal') # optional - topcom
         """
-        if engine not in ['auto', 'TOPCOM', 'internal']:
+        engine = engine.lower()
+        if engine not in ['auto', 'topcom', 'internal']:
             raise ValueError('Unknown value for "engine": '+str(engine))
 
         have_TOPCOM = PointConfiguration._have_TOPCOM()
         PointConfiguration._use_TOPCOM = \
-            (engine=='TOPCOM') or (engine=='auto' and have_TOPCOM)
+            (engine == 'topcom') or (engine == 'auto' and have_TOPCOM)
 
 
     def star_center(self):
@@ -588,7 +592,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[1,1,1], [-1,1,1], [1,-1,1], [-1,-1,1], [1,1,-1]])
             sage: out = p._TOPCOM_exec('points2placingtriang', '[[0,0,0,1],[-2,0,0,1],[0,-2,0,1],[-2,-2,0,1],[0,0,-2,1]]', verbose=True)
-            sage: list(out)       # optional - TOPCOM
+            sage: list(out)       # optional - topcom
             #### TOPCOM input ####
             # points2placingtriang
             # [[0,0,0,1],[-2,0,0,1],[0,-2,0,1],[-2,-2,0,1],[0,0,-2,1]]
@@ -605,16 +609,16 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert proc.readline().strip() == ''
 
         if verbose:
-            print "#### TOPCOM input ####"
-            print "# " + executable
-            print "# " + input_string
+            print("#### TOPCOM input ####")
+            print("# " + executable)
+            print("# " + input_string)
             sys.stdout.flush()
 
         proc.send(input_string)
         proc.send('X\nX\n')
 
         if verbose:
-            print "#### TOPCOM output ####"
+            print("#### TOPCOM output ####")
             sys.stdout.flush()
 
         while True:
@@ -622,12 +626,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print '# Still runnnig '+str(executable)
+                    print('# Still runnnig ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
             if verbose:
-                print "# " + line
+                print("# " + line)
                 sys.stdout.flush()
 
             try:
@@ -637,7 +641,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 raise StopIteration
 
         if verbose:
-            print "#######################"
+            print("#######################")
             sys.stdout.flush()
 
 
@@ -650,7 +654,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[1,1,1], [-1,1,1], [1,-1,1], [-1,-1,1], [1,1,-1]])
             sage: out = p._TOPCOM_communicate('points2placingtriang', verbose=True)
-            sage: list(out)       # optional - TOPCOM
+            sage: list(out)       # optional - topcom
             #### TOPCOM input ####
             # points2placingtriang
             # [[0,0,0,1],[-2,0,0,1],[0,-2,0,1],[-2,-2,0,1],[0,0,-2,1]]
@@ -682,12 +686,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: iter = p._TOPCOM_triangulations(verbose=True)
-            sage: iter.next()     # optional - TOPCOM
+            sage: next(iter)     # optional - topcom
             #### TOPCOM input ####
             # points2triangs
             # [[0,0,1],[0,1,1],[1,0,1],[1,1,1],[-1,-1,1]]
             #### TOPCOM output ####
-            # T[1]:=[5,3:{{0,1,2},{1,2,3},{0,2,4},{0,1,4}}];
+            # T[0]:=[0->5,3:{{0,1,2},{1,2,3},{0,2,4},{0,1,4}}];
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
         """
         command = 'points2'
@@ -728,12 +732,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
-            sage: p.set_engine('TOPCOM')                 # optional - TOPCOM
-            sage: p._TOPCOM_triangulate(verbose=False)   # optional - TOPCOM
+            sage: p.set_engine('topcom')                 # optional - topcom
+            sage: p._TOPCOM_triangulate(verbose=False)   # optional - topcom
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
-            sage: list( p.triangulate() )                # optional - TOPCOM
+            sage: list( p.triangulate() )                # optional - topcom
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
-            sage: p.set_engine('internal')               # optional - TOPCOM
+            sage: p.set_engine('internal')               # optional - topcom
         """
         assert self._regular!=False, \
             'When asked for a single triangulation TOPCOM ' + \
@@ -745,7 +749,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             command += "placingtriang"
 
-        return self._TOPCOM_communicate(command, verbose).next()
+        return next(self._TOPCOM_communicate(command, verbose))
 
 
     def restrict_to_regular_triangulations(self, regular=True):
@@ -777,11 +781,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             be connected, not necessarily fine, not necessarily regular.
             sage: len(p.triangulations_list())
             4
-            sage: p_regular = p.restrict_to_regular_triangulations() # optional - TOPCOM
-            sage: len(p_regular.triangulations_list())               # optional - TOPCOM
+            sage: PointConfiguration.set_engine('topcom')            # optional - topcom
+            sage: p_regular = p.restrict_to_regular_triangulations() # optional - topcom
+            sage: len(p_regular.triangulations_list())               # optional - topcom
             4
-            sage: p == p_regular.restrict_to_regular_triangulations(regular=None) # optional - TOPCOM
+            sage: p == p_regular.restrict_to_regular_triangulations(regular=None) # optional - topcom
             True
+            sage: PointConfiguration.set_engine('internal')
         """
         return PointConfiguration(self,
                                   connected=self._connected,
@@ -820,11 +826,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             be connected, not necessarily fine, not necessarily regular.
             sage: len(p.triangulations_list())
             4
-            sage: p_all = p.restrict_to_connected_triangulations(connected=False)  # optional - TOPCOM
-            sage: len(p_all.triangulations_list())                                 # optional - TOPCOM
+            sage: PointConfiguration.set_engine('topcom')                          # optional - topcom
+            sage: p_all = p.restrict_to_connected_triangulations(connected=False)  # optional - topcom
+            sage: len(p_all.triangulations_list())                                 # optional - topcom
             4
-            sage: p == p_all.restrict_to_connected_triangulations(connected=True)  # optional - TOPCOM
+            sage: p == p_all.restrict_to_connected_triangulations(connected=True)  # optional - topcom
             True
+            sage: PointConfiguration.set_engine('internal')
         """
         return PointConfiguration(self,
                                   connected=connected,
@@ -927,13 +935,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: iter = p.triangulations()
-            sage: iter.next()
+            sage: next(iter)
             (<1,3,4>, <2,3,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<1,2,3>, <1,2,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
             sage: p.triangulations_list()
             [(<1,3,4>, <2,3,4>),
@@ -949,27 +957,27 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
          compute the triangulations. Using TOPCOM, we obtain the same
          triangulations but in a different order::
 
-            sage: p.set_engine('TOPCOM')                       # optional - TOPCOM
-            sage: iter = p.triangulations()                    # optional - TOPCOM
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: p.set_engine('topcom')                       # optional - topcom
+            sage: iter = p.triangulations()                    # optional - topcom
+            sage: next(iter)                                   # optional - topcom
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - topcom
             (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - topcom
             (<1,2,3>, <1,2,4>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - topcom
             (<1,3,4>, <2,3,4>)
-            sage: p.triangulations_list()                      # optional - TOPCOM
+            sage: p.triangulations_list()                      # optional - topcom
             [(<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>),
              (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
              (<1,2,3>, <1,2,4>),
              (<1,3,4>, <2,3,4>)]
-            sage: p_fine = p.restrict_to_fine_triangulations() # optional - TOPCOM
-            sage: p_fine.set_engine('TOPCOM')                  # optional - TOPCOM
-            sage: p_fine.triangulations_list()                 # optional - TOPCOM
+            sage: p_fine = p.restrict_to_fine_triangulations() # optional - topcom
+            sage: p_fine.set_engine('topcom')                  # optional - topcom
+            sage: p_fine.triangulations_list()                 # optional - topcom
             [(<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>),
              (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)]
-            sage: p.set_engine('internal')                     # optional - TOPCOM
+            sage: p.set_engine('internal')                     # optional - topcom
         """
         if self._use_TOPCOM:
             for triangulation in self._TOPCOM_triangulations(verbose):
@@ -1006,10 +1014,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             [(<0,1,2>, <1,2,3>), (<0,1,3>, <0,2,3>)]
             sage: map(list, p.triangulations_list() )
             [[(0, 1, 2), (1, 2, 3)], [(0, 1, 3), (0, 2, 3)]]
-            sage: p.set_engine('TOPCOM')       # optional - TOPCOM
-            sage: p.triangulations_list()      # optional - TOPCOM
+            sage: p.set_engine('topcom')       # optional - topcom
+            sage: p.triangulations_list()      # optional - topcom
             [(<0,1,2>, <1,2,3>), (<0,1,3>, <0,2,3>)]
-            sage: p.set_engine('internal')     # optional - TOPCOM
+            sage: p.set_engine('internal')     # optional - topcom
         """
         return list(self.triangulations(verbose))
 
@@ -1039,12 +1047,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         Using TOPCOM yields a different, but equally good, triangulation::
 
-            sage: p.set_engine('TOPCOM')           # optional - TOPCOM
-            sage: p.triangulate()                  # optional - TOPCOM
+            sage: p.set_engine('topcom')           # optional - topcom
+            sage: p.triangulate()                  # optional - topcom
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
-            sage: list( p.triangulate() )          # optional - TOPCOM
+            sage: list( p.triangulate() )          # optional - topcom
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
-            sage: p.set_engine('internal')         # optional - TOPCOM
+            sage: p.set_engine('internal')         # optional - topcom
         """
         if self._use_TOPCOM and self._regular!=False:
             try:
@@ -1057,7 +1065,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             return self.placing_triangulation()
 
         try:
-            return self.triangulations(verbose).next()
+            return next(self.triangulations(verbose))
         except StopIteration:
             # there is no triangulation
             pass
@@ -1084,15 +1092,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         self._polyhedron = Polyhedron(vertices=pts);
         return self._polyhedron
 
-
+    @cached_method
     def restricted_automorphism_group(self):
         r"""
         Return the restricted automorphism group.
 
         First, let the linear automorphism group be the subgroup of
-        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
+        the affine group `AGL(d,\RR) = GL(d,\RR) \ltimes \RR^d`
         preserving the `d`-dimensional point configuration. The
-        Euclidean group acts in the usual way `\vec{x}\mapsto
+        affine group acts in the usual way `\vec{x}\mapsto
         A\vec{x}+b` on the ambient space.
 
         The restricted automorphism group is the subgroup of the
@@ -1132,9 +1140,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: DihedralGroup(1).is_isomorphic(_)
             True
         """
-        if '_restricted_automorphism_group' in self.__dict__:
-            return self._restricted_automorphism_group
-
         v_list = [ vector(p.projective()) for p in self ]
         Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
 
@@ -1151,10 +1156,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 v_j = v_list[j]
                 G.add_edge(i+1,j+1, v_i * Qinv * v_j)
 
-        group = G.automorphism_group(edge_labels=True)
-        self._restricted_automorphism_group = group
-        return group
-
+        return G.automorphism_group(edge_labels=True)
 
     def face_codimension(self, point):
         r"""
@@ -1533,7 +1535,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
             sage: Tneg.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
 
         The 3d analog::
 
@@ -1548,6 +1552,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics3d Object
         """
         flips = []
         for C in self.circuits():
@@ -1961,7 +1966,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # identify visible facets
             visible_facets = []
             for facet in facets:
-                origin = iter(facet).next()
+                origin = next(iter(facet))
                 normal = facet_normals[facet]
                 v = point.reduced_affine_vector() - origin.reduced_affine_vector()
                 if v*normal>0:
@@ -1971,7 +1976,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             new_facets = set()
             for facet in visible_facets:
                 simplex = frozenset(list(facet) + [point])
-                # print 'simplex', simplex
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
                     if facet in visible_facets: continue

@@ -27,10 +27,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.randstate import current_randstate
 
-from sage.schemes.plane_curves.projective_curve import Hasse_bounds
+from sage.schemes.curves.projective_curve import Hasse_bounds
 from ell_field import EllipticCurve_field
 from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
@@ -39,7 +40,7 @@ from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
-from sage.rings.arith import gcd, lcm
+from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 
 import sage.plot.all as plot
@@ -272,13 +273,30 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def random_element(self):
         """
-        Returns a random point on this elliptic curve.
+        Return a random point on this elliptic curve, uniformly chosen
+        among all rational points.
 
-        If `q` is small, finds all points and returns one at random.
-        Otherwise, returns the point at infinity with probability
-        `1/(q+1)` where the base field has cardinality `q`, and then
-        picks random `x`-coordinates from the base field until one
-        gives a rational point.
+        ALGORITHM:
+
+        Choose the point at infinity with probability `1/(2q + 1)`.
+        Otherwise, take a random element from the field as x-coordinate
+        and compute the possible y-coordinates. Return the i'th
+        possible y-coordinate, where i is randomly chosen to be 0 or 1.
+        If the i'th y-coordinate does not exist (either there is no
+        point with the given x-coordinate or we hit a 2-torsion point
+        with i == 1), try again.
+
+        This gives a uniform distribution because you can imagine
+        `2q + 1` buckets, one for the point at infinity and 2 for each
+        element of the field (representing the x-coordinates). This
+        gives a 1-to-1 map of elliptic curve points into buckets. At
+        every iteration, we simply choose a random bucket until we find
+        a bucket containing a point.
+
+        AUTHOR:
+
+        - Jeroen Demeyer (2014-09-09): choose points uniformly random,
+          see :trac:`16951`.
 
         EXAMPLES::
 
@@ -296,7 +314,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
-            (2*a^4 + 3*a^2 + 4*a : 3*a^4 + 6*a^2 + 5 : 1)
+            (5*a^4 + 3*a^3 + 2*a^2 + a + 4 : 2*a^4 + 3*a^3 + 4*a^2 + a + 5 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -307,7 +325,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(2^5)
             sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
             sage: P = E.random_element(); P
-            (a^4 + a^2 + 1 : a^3 + a : 1)
+            (a^4 + a : a^4 + a^3 + a^2 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -345,28 +363,20 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             1
 
         """
-        random = current_randstate().c_rand_double
         k = self.base_field()
-        q = k.order()
-
-        # For small fields we find all the rational points and pick
-        # one at random.  Note that the group can be trivial for
-        # q=2,3,4 only (see #8311) so these cases need special
-        # treatment.
-
-        if q < 5:
-            pts = self.points() # will be cached
-            return pts[ZZ.random_element(len(pts))]
-
-
-        # The following allows the origin self(0) to be picked
-        if random() <= 1/float(q+1):
-            return self(0)
+        n = 2 * k.order() + 1
 
         while True:
+            # Choose the point at infinity with probability 1/(2q + 1)
+            i = ZZ.random_element(n)
+            if not i:
+                return self.point(0)
+
             v = self.lift_x(k.random_element(), all=True)
-            if v:
-                return v[int(random() * len(v))]
+            try:
+                return v[i % 2]
+            except IndexError:
+                pass
 
     random_point = random_element
 
@@ -907,15 +917,21 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             self._order = self.cardinality_bsgs()
             return self._order
 
-        kj=GF(p**j_deg,name='a',modulus=j_pol)
-        jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
+        # Let jkj be the j-invariant as element of the smallest finite
+        # field over which j is defined.
+        if j_deg == 1:
+            # j_pol is of the form X - j
+            jkj = -j_pol[0]
+        else:
+            jkj = GF(p**j_deg, name='a', modulus=j_pol).gen()
 
         # recursive call which will do all the real work:
         Ej = EllipticCurve_from_j(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
 
         # if curve ia a (quadratic) twist of the "standard" one:
-        if not self.is_isomorphic(EllipticCurve_from_j(j)): N=2*(q+1)-N
+        if not self.is_isomorphic(EllipticCurve_from_j(j)):
+            N = 2*(q+1) - N
 
         self._order = N
         return self._order
@@ -1105,13 +1121,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         q = k.order()
         if q<50:
             if verbose:
-                print "q=",q,"< 50 so using exhaustive count"
+                print("q=", q, "< 50 so using exhaustive count")
             return self.cardinality_exhaustive()
 
         # Construct the quadratic twist:
         E2 = E1.quadratic_twist()
         if verbose:
-            print "Quadratic twist is ",E2.ainvs()
+            print("Quadratic twist is ", E2.ainvs())
 
         bounds = Hasse_bounds(q)
         lower, upper = bounds
@@ -1146,14 +1162,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 M *= (N2//g) # = lcm(M,N2)
                 a = a%M
                 if verbose:
-                    print "(a,M)=",(a,M)
+                    print("(a,M)=", (a, M))
                 kmin = ((-B-a)/M).ceil()
                 kmax = ((B-a)/M).floor()
                 if kmin==kmax:
                     self._order = q1-a-kmin*M
-                    if verbose: print "no random points were needed"
+                    if verbose: print("no random points were needed")
                     return self._order
-            if verbose: print "(2,3,5)-torsion subgroup gives M=",M
+            if verbose: print("(2,3,5)-torsion subgroup gives M=", M)
 
         # N1, N2 are divisors of the orders of E1, E2 separately,
         # which are used to speed up the computation of the orders of
@@ -1166,7 +1182,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             # Hasse bounds and the fact that we know that the group
             # order is a multiple of N1:
             n = generic.order_from_bounds(E1.random_point(),bounds,N1,operation='+')
-            if verbose: print "New point on E has order ",n
+            if verbose: print("New point on E has order ", n)
             # update N1 and M
             N1 = N1.lcm(n)
             g,u,v = M.xgcd(n) # g==u*M+v*n
@@ -1175,19 +1191,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 a = (a*v*n+q1*u*M)//g
                 M *= (n//g) # = lcm(M,n)
                 a = a%M
-                if verbose: print "(a,M)=",(a,M)
+                if verbose: print("(a,M)=", (a, M))
                 kmin = ((-B-a)/M).ceil()
                 kmax = ((B-a)/M).floor()
                 if kmin==kmax:
                     self._order = q1-a-kmin*M
                     return self._order
-                if verbose: print "number of possibilities is now ",kmax-kmin+1
+                if verbose: print("number of possibilities is now ",kmax-kmin+1)
 
             # Get a random point on E2 and find its order, using the
             # Hasse bounds and the fact that we know that the group
             # order is a multiple of N2:
             n = generic.order_from_bounds(E2.random_point(),bounds,N2,operation='+')
-            if verbose:  print "New point on E' has order ",n
+            if verbose:  print("New point on E' has order ", n)
             # update N2 and M
             N2 = N2.lcm(n)
             g,u,v = M.xgcd(n) # g==u*M+v*n
@@ -1196,13 +1212,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 a = (a*v*n-q1*u*M)//g
                 M *= (n//g) # = lcm(M,n)
                 a = a%M
-                if verbose: print "(a,M)=",(a,M)
+                if verbose: print("(a,M)=", (a, M))
                 kmin = ((-B-a)/M).ceil()
                 kmax = ((B-a)/M).floor()
                 if kmin==kmax:
                     self._order = q1-a-kmin*M
                     return self._order
-                if verbose: print "number of possibilities is now ",kmax-kmin+1
+                if verbose: print("number of possibilities is now ",kmax-kmin+1)
 
     def gens(self):
         """
@@ -1246,7 +1262,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(11), [1,2])
-            sage: for P in E:  print P, P.order()
+            sage: for P in E:  print("{} {}".format(P, P.order()))
             (0 : 1 : 0) 1
             (1 : 2 : 1) 4
             (1 : 9 : 1) 4
@@ -1270,7 +1286,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             (10 : 76 : 1)
             sage: E[15]
             (17 : 10 : 1)
-            sage: for P in E: print P.order()
+            sage: for P in E: print(P.order())
             1
             50
             50
@@ -1410,27 +1426,27 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         bounds = Hasse_bounds(q)
         lower, upper = bounds
         if debug:
-            print "Lower and upper bounds on group order: [",lower,",",upper,"]"
+            print("Lower and upper bounds on group order: [",lower,",",upper,"]")
 
         try:
             N=self._order
             if debug:
-                print "Group order already known to be ",N
+                print("Group order already known to be ", N)
         except Exception:
             if (q<50):
                 if debug:
-                    print "Computing group order naively"
+                    print("Computing group order naively")
                 N=self.cardinality_exhaustive()
             elif d==1:
                 if debug:
-                    print "Computing group order using PARI"
+                    print("Computing group order using PARI")
                 N=self.cardinality()
             else:
                 if debug:
-                    print "Computing group order using bsgs"
+                    print("Computing group order using bsgs")
                 N=self.cardinality_bsgs()
             if debug:
-                print "... group order = ",N
+                print("... group order = ", N)
 
         self._order=N
         plist = N.prime_factors()
@@ -1455,20 +1471,19 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             while Q.is_zero(): Q = self.random_point()
             npts += 1
             if debug:
-                print "Q = ",Q,":",
-                print " Order(Q) = ", Q.order()
+                print("Q = ", Q, ": Order(Q) = ", Q.order())
 
             Q1=n1*Q;
 
             if Q1.is_zero() and npts>=10: # then P1,n1 will not change but we may increase n2
-                if debug: print "Case 2: n2 may increase"
+                if debug: print("Case 2: n2 may increase")
                 n1a = 1; n1b = n1
                 P1a = P1
                 n1a = n1.prime_to_m_part(N//n1)
                 n1b = n1//n1a
                 Q = n1a*Q       # has order | n1b
                 P1a = n1a*P1    # has order = n1b
-                if debug: print "n1a=",n1a
+                if debug: print("n1a=", n1a)
                 a = None
                 for m in n1b.divisors():
                     try:
@@ -1478,7 +1493,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         pass
                 assert a is not None
                 a *= (m*n1a)
-                if debug: print "linear relation gives m=",m,", a=",a
+                if debug: print("linear relation gives m=",m,", a=",a)
                 if debug: assert m*Q==a*P1
                 if m>1: # else Q is in <P1>
                     Q=Q-(a//m)*P1; # has order m and is disjoint from P1
@@ -1488,8 +1503,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         P2=Q
                         n2=m
                         if debug:
-                            print "Adding second generator ",P2," of order ",n2
-                            print "Subgroup order now ",n1*n2,"=",n1,"*",n2
+                            print("Adding second generator ",P2," of order ",n2)
+                            print("Subgroup order now ",n1*n2,"=",n1,"*",n2)
                     else:     # we must merge P2 and Q:
                         oldn2=n2 # holds old value
                         P2,n2=generic.merge_points((P2,n2),(Q,m),operation='+', check=debug)
@@ -1497,65 +1512,65 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         P2._order=n2
                         if debug:
                             if n2>oldn2:
-                                print "Replacing second generator by ",P2,
-                                print " of order ",n2, "  gaining index ",n2//oldn2
-                                print "Subgroup order now ",n1*n2,"=",n1,"*",n2
+                                print("Replacing second generator by ",P2,end="")
+                                print(" of order ",n2, "  gaining index ",n2//oldn2)
+                                print("Subgroup order now ",n1*n2,"=",n1,"*",n2)
             elif not Q1.is_zero(): # Q1 nonzero: n1 will increase
-                if debug:  print "Case 1: n1 may increase"
+                if debug:  print("Case 1: n1 may increase")
                 oldn1=n1
                 if n2>1:
                     P3=(n1//n2)*P1  # so P2,P3 are a basis for n2-torsion
                     if debug: assert P3.order()==n2
                     P3._order=n2
-                    if debug: print "storing generator ",P3," of ",n2,"-torsion"
+                    if debug: print("storing generator ",P3," of ",n2,"-torsion")
                 m = generic.order_from_multiple(Q,N,plist,operation='+', check=debug)
                 P1,n1=generic.merge_points((P1,n1),(Q,m), check=debug)
                 if debug: assert P1.order()==n1
                 P1._order=n1
                 if debug:
-                    print "Replacing first  generator by ",P1," of order ",
-                    print n1,", gaining index ",n1//oldn1
-                    print "Subgroup order now ",n1*n2,"=",n1,"*",n2
+                    print("Replacing first  generator by ",P1," of order ",end="")
+                    print(n1,", gaining index ",n1//oldn1)
+                    print("Subgroup order now ",n1*n2,"=",n1,"*",n2)
 
                 # Now replace P2 by a point of order n2 s.t. it and
                 # (n1//n2)*P1 are still a basis for n2-torsion:
                 if n2>1:
                     a,m = generic.linear_relation(P1,P3,operation='+')
-                    if debug: print "linear relation gives m=",m,", a=",a
+                    if debug: print("linear relation gives m=",m,", a=",a)
                     P3=P3-(a//m)*P1
                     if debug: assert P3.order()==m
                     P3._order=m
-                    if debug: print "First  P2 component =",P3
+                    if debug: print("First  P2 component =",P3)
                     if m==n2:
                         P2=P3
                     else:
                         a,m = generic.linear_relation(P1,P2,operation='+')
-                        if debug: print "linear relation gives m=",m,", a=",a
+                        if debug: print("linear relation gives m=",m,", a=",a)
                         P2=P2-(a//m)*P1;
                         if debug: assert P2.order()==m
                         P2._order=m
-                        if debug: print "Second  P2 component =",P2
+                        if debug: print("Second  P2 component =",P2)
                         P2,n2=generic.merge_points((P2,n2),(P3,m), check=debug)
                         if debug: assert P2.order()==n2
                         P2._order=n2
-                        if debug: print "Combined P2 component =",P2
+                        if debug: print("Combined P2 component =",P2)
 
             if debug:
                 if P1.order()!=n1:
-                    print "Generator P1 = ",P1," has order ",P1.order(),
-                    print " and not ",n1
+                    print("Generator P1 = ",P1," has order ",P1.order(),end="")
+                    print(" and not ",n1)
                     raise ValueError
                 if P2.order()!=n2:
-                    print "Generator P2 = ",P2," has order ",P2.order()
-                    print " and not ",n2
+                    print("Generator P2 = ",P2," has order ",P2.order())
+                    print(" and not ", n2)
                     raise ValueError
                 if n2>1:
                     if generic.linear_relation(P1,P2,operation='+')[1]!=n2:
-                        print "Generators not independent!"
+                        print("Generators not independent!")
                         raise ValueError
-                print "Generators: P1 = ",P1," of order ",n1,
-                print ", P2 = ",P2," of order ",n2
-                print "Subgroup order is now ",n1*n2,"=",n1,"*",n2
+                print("Generators: P1 = ",P1," of order ",n1,end="")
+                print(", P2 = ",P2," of order ",n2)
+                print("Subgroup order is now ",n1*n2,"=",n1,"*",n2)
 
         # Finished: record group order, structure and generators
 
@@ -1890,7 +1905,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
             if value * G != self(0):
                 raise ValueError('Value %s illegal (multiple of random point not the identity)'%value)
         if(num_checks <= 0):
-            print 'WARNING: No checking done in set_order'
+            print('WARNING: No checking done in set_order')
         self._order = value
 
 def supersingular_j_polynomial(p):
@@ -1943,7 +1958,6 @@ def supersingular_j_polynomial(p):
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
-    from sage.rings.arith import binomial
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()

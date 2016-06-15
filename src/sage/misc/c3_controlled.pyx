@@ -1,5 +1,5 @@
 """
-The ``C3`` algorithm, under control of a total order.
+The C3 algorithm, under control of a total order
 
 Abstract
 ========
@@ -197,7 +197,7 @@ key.
 We consider the smallest poset describing a class hierarchy admitting
 no MRO whatsoever::
 
-    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, facade=True)
+    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, linear_extension=True, facade=True)
 
 And build a `HierarchyElement` from it::
 
@@ -220,7 +220,8 @@ We also get a failure when we relabel `P` according to another linear
 extension. For easy relabelling, we first need to set an appropriate
 default linear extension for `P`::
 
-    sage: P = P.with_linear_extension(reversed(IntegerRange(1,11)))
+    sage: linear_extension = list(reversed(IntegerRange(1,11)))
+    sage: P = P.with_linear_extension(linear_extension)
     sage: list(P)
     [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
@@ -276,11 +277,12 @@ algorithms succeed; along the way, we collect some statistics::
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())
-    ....:     try:
+    ....:     try: # Check that x.mro_standard always fails with a ValueError
     ....:         x.mro_standard
-    ....:         assert False
-    ....:     except:
+    ....:     except ValueError:
     ....:         pass
+    ....:     else:
+    ....:         assert False
     ....:     assert x.mro            == list(P)
     ....:     assert x.mro_controlled == list(P)
     ....:     assert x.all_bases_len() == 15
@@ -314,9 +316,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    66
+    67
     sage: x.all_bases_controlled_len()
-    69
+    70
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
@@ -324,12 +326,15 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    82
+    92
     sage: x.all_bases_controlled_len()
-    89
+    100
 
 The following can be used to search through the Sage named categories
-for any that requires the addition of some bases::
+for any that requires the addition of some bases. The output may
+change a bit when the category hierarchy is changed. As long as the
+list below does not change radically, it's fine to just update this
+doctest::
 
     sage: from sage.categories.category import category_sample
     sage: sorted([C for C in category_sample()
@@ -339,8 +344,9 @@ for any that requires the addition of some bases::
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of graded hopf algebras with basis over Rational Field,
-     Category of hopf algebras with basis over Rational Field]
+     Category of finite permutation groups,
+     Category of finite weyl groups,
+     Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
 
@@ -646,7 +652,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
+            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
     return out
 
 cpdef identity(x):
@@ -1057,7 +1063,7 @@ class HierarchyElement(object):
         from sage.combinat.posets.poset_examples import Posets
         from sage.graphs.digraph import DiGraph
         if succ in Posets():
-            assert succ in Sets().Facades()
+            assert succ in Sets().Facade()
             succ = succ.upper_covers
         if isinstance(succ, DiGraph):
             succ = succ.copy()
@@ -1325,9 +1331,9 @@ class HierarchyElement(object):
             sage: from sage.misc.c3_controlled import HierarchyElement
             sage: P = Poset((divisors(30), lambda x,y: y.divides(x)), facade=True)
             sage: HierarchyElement(1, P).all_bases()
-            set([1])
-            sage: HierarchyElement(10, P).all_bases()
-            set([...])
+            {1}
+            sage: HierarchyElement(10, P).all_bases()  # random output
+            {10, 5, 2, 1}
             sage: sorted([x.value for x in HierarchyElement(10, P).all_bases()])
             [1, 2, 5, 10]
         """

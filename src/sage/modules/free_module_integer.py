@@ -33,7 +33,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pari.pari_instance import pari
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -458,7 +457,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         .. NOTE::
 
-            If ``block_size == L.rank()`` where ``L`` is this latice, then
+            If ``block_size == L.rank()`` where ``L`` is this lattice, then
             this function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
         """
         basis = self.reduced_basis
@@ -625,7 +624,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()
 
-            count, length, vectors = pari(qf).qfminim(0, None)
+            count, length, vectors = qf._pari_().qfminim()
             v = vectors.python().columns()[0]
             w = v*B
         elif algorithm == "fplll":
@@ -722,7 +721,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         REFERENCES:
 
-        .. [Vit1996] E. Viterbo, E. Biglieri. *Computing the Voronoi Cell
+        .. [Vit1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell
            of a Lattice: The Diamond-Cutting Algorithm*.
            IEEE Transactions on Information Theory, 1996.
         """
@@ -797,7 +796,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         REFERENCES:
 
-        .. [Mic2010] D. Micciancio, P. Voulgaris. *A Deterministic Single
+        .. [Mic2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
            Exponential Time Algorithm for Most Lattice Problems based on
            Voronoi Cell Computations*.
            Proceedings of the 42nd ACM Symposium Theory of Computation, 2010.

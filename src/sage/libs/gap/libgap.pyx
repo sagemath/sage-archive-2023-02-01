@@ -109,7 +109,7 @@ Or get them as results of computations::
     sage: rec['Sym3']
     Sym( [ 1 .. 3 ] )
     sage: dict(rec)
-    {'a': 123, 'Sym3': Sym( [ 1 .. 3 ] ), 'b': 456}
+    {'Sym3': Sym( [ 1 .. 3 ] ), 'a': 123, 'b': 456}
 
 The output is a Sage dictionary whose keys are Sage strings and whose
 Values are instances of :meth:`~sage.libs.gap.element.GapElement`. So,
@@ -118,8 +118,8 @@ convert the entries into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
-    {'a': 123,
-     'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+    {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+     'a': 123,
      'b': 456}
 
 Now ``rec['a']`` is a Sage integer. We have not implemented the
@@ -241,6 +241,7 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
+from __future__ import print_function
 
 from gap_includes cimport *
 
@@ -249,6 +250,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.libs.gap.element cimport *
 
 
@@ -257,7 +259,7 @@ from sage.libs.gap.element cimport *
 ############################################################################
 
 cdef void report(libGAP_Obj bag):
-    print libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag)
+    print(libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag))
 
 
 cdef void print_gasman_objects():
@@ -271,7 +273,7 @@ cdef void print_gasman_objects():
 from sage.misc.lazy_import import is_during_startup
 if is_during_startup():
     import sys, traceback
-    print 'Importing libgap during startup!'
+    print('Importing libgap during startup!')
     traceback.print_stack(None, None, sys.stdout)
 
 
@@ -364,7 +366,6 @@ class Gap(Parent):
                 pass
             x = str(x._gap_init_())
             return make_any_gap_element(self, gap_eval(x))
-        raise ValueError('cannot represent '+str(x)+' as a GAP object')
 
     def _construct_matrix(self, M):
         """
@@ -387,6 +388,16 @@ class Gap(Parent):
             [ [ 1, 0 ], [ 0, 1 ] ]
             sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
             [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+
+        TESTS:
+
+        We gracefully handle the case that the conversion fails (:trac:`18039`)::
+
+            sage: F.<a> = GF(9, modulus="first_lexicographic")
+            sage: libgap(Matrix(F, [[a]]))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials.
         """
         ring = M.base_ring()
         try:
@@ -544,7 +555,7 @@ class Gap(Parent):
 
             sage: libgap.set_global('FooBar', 1)
             sage: with libgap.global_context('FooBar', 2):
-            ....:     print libgap.get_global('FooBar')
+            ....:     print(libgap.get_global('FooBar'))
             2
             sage: libgap.get_global('FooBar')
             1
@@ -567,7 +578,7 @@ class Gap(Parent):
         """
         return self(0)
 
-    def zero_element(self):
+    def zero(self):
         """
         Return (integer) zero in GAP.
 
@@ -577,11 +588,32 @@ class Gap(Parent):
 
         EXAMPLES::
 
+            sage: libgap.zero()
+            0
+
+        TESTS::
+
             sage: libgap.zero_element()
+            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
+            See http://trac.sagemath.org/17694 for details.
             0
         """
         return self(0)
 
+    zero_element = deprecated_function_alias(17694, zero)
+
+    def one(self):
+        r"""
+        Return (integer) one in GAP.
+
+        EXAMPLES::
+
+            sage: libgap.one()
+            1
+            sage: parent(_)
+            C library interface to GAP
+        """
+        return self(1)
 
     def __init__(self):
         r"""
@@ -599,7 +631,6 @@ class Gap(Parent):
         from sage.rings.integer_ring import ZZ
         Parent.__init__(self, base=ZZ)
 
-
     def __repr__(self):
         r"""
         Return a string representation of ``self``.
@@ -615,23 +646,18 @@ class Gap(Parent):
         """
         return 'C library interface to GAP'
 
-
-    def trait_names(self):
+    @cached_method
+    def __dir__(self):
         """
-        Return all Gap function names.
-
-        OUTPUT:
-
-        A list of strings.
+        Customize tab completion
 
         EXAMPLES::
 
-            sage: len(libgap.trait_names()) > 1000
-            True
+           sage: 'OctaveAlgebra' in dir(libgap)
+           True
         """
-        import gap_functions
-        return gap_functions.common_gap_functions
-
+        from sage.libs.gap.gap_functions import common_gap_functions
+        return dir(self.__class__) + list(common_gap_functions)
 
     def __getattr__(self, name):
         r"""
@@ -652,14 +678,16 @@ class Gap(Parent):
             sage: libgap.List
             <Gap function "List">
         """
-        if name in self.trait_names():
+        if name in dir(self.__class__):
+            return getattr(self.__class__, name)
+        from sage.libs.gap.gap_functions import common_gap_functions
+        if name in common_gap_functions:
             f = make_GapElement_Function(self, gap_eval(str(name)))
             assert f.is_function()
             self.__dict__[name] = f
             return f
         else:
-            raise AttributeError, 'No such attribute: '+name+'.'
-
+            raise AttributeError('No such attribute: '+name+'.')
 
     def show(self):
         """
@@ -682,10 +710,8 @@ class Gap(Parent):
             livekb := 47367, time := 33, totalkb := 68608 ),
             nfull := 3, npartial := 14 )
         """
-        print self.count_GAP_objects(), 'LibGAP elements currently alive'
-        print self.eval('GasmanStatistics()')
-        # print_gasman_objects()
-
+        print('{} LibGAP elements currently alive'.format(self.count_GAP_objects()))
+        print(self.eval('GasmanStatistics()'))
 
     def count_GAP_objects(self):
         """
@@ -702,7 +728,6 @@ class Gap(Parent):
             5
         """
         return sum([1 for obj in get_owned_objects()])
-
 
     def mem(self):
         """
@@ -754,7 +779,6 @@ class Gap(Parent):
         """
         return memory_usage()
 
-
     def collect(self):
         """
         Manually run the garbage collector
@@ -766,12 +790,10 @@ class Gap(Parent):
             sage: libgap.collect()
         """
         libgap_enter()
-        rc = libGAP_CollectBags(0,1)
+        rc = libGAP_CollectBags(0, 1)
         libgap_exit()
         if rc != 1:
             raise RuntimeError('Garbage collection failed.')
 
 
-
 libgap = Gap()
-

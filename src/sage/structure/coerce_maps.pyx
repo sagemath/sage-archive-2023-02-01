@@ -1,7 +1,6 @@
 """
 Coerce maps
 """
-include "sage/ext/stdsage.pxi"
 
 import re
 import types
@@ -22,9 +21,24 @@ cdef class DefaultConvertMap(Map):
     passing in the codomain as the first argument.
     """
     def __init__(self, domain, codomain, force_use=False):
-        if not PY_TYPE_CHECK(domain, Parent):
+        """
+        TESTS:
+
+        Maps of this type are morphisms in the category of sets with
+        partial maps (see :trac:`15618`)::
+
+            sage: f = GF(11).convert_map_from(GF(7)); f
+            Conversion map:
+              From: Finite Field of size 7
+              To:   Finite Field of size 11
+            sage: f.parent()
+            Set of Morphisms from Finite Field of size 7 to Finite Field of size 11 in Category of sets with partial maps
+        """
+        if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
-        Map.__init__(self, domain, codomain)
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        parent = domain.Hom(codomain, category=SetsWithPartialMaps())
+        Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use
         if (<Parent>codomain)._element_constructor is None:
@@ -136,7 +150,7 @@ cdef class NamedConvertMap(Map):
             sage: mor(t^2/4+1)
             1 + 2*t^2
         """
-        if PY_TYPE_CHECK(domain, type):
+        if isinstance(domain, type):
             domain = Set_PythonType(domain)
         Map.__init__(self, domain, codomain)
         self._coerce_cost = 400
@@ -280,16 +294,16 @@ cdef class CallableConvertMap(Map):
             sage: f(-3)
             0.0497870683678639
         """
-        if PY_TYPE_CHECK(domain, type):
+        if isinstance(domain, type):
             domain = Set_PythonType(domain)
         Map.__init__(self, domain, codomain)
         self._coerce_cost = 100
         self._func = func
         if parent_as_first_arg is None:
-            if PY_TYPE_CHECK(func, types.MethodType):
+            if isinstance(func, types.MethodType):
                 # can't easily access self
                 parent_as_first_arg = False
-            elif PY_TYPE_CHECK(func, BuiltinMethodType):
+            elif isinstance(func, BuiltinMethodType):
                 parent_as_first_arg = codomain is func.__self__
             else:
                 parent_as_first_arg = True
@@ -410,9 +424,9 @@ cdef class CallableConvertMap(Map):
                 print self._codomain
             raise
         if y is None:
-            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
+            raise RuntimeError("BUG in coercion model: %s returned None" % (self._func))
         elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+            raise RuntimeError("BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent))
         return y
 
 
@@ -421,7 +435,7 @@ cdef class CCallableConvertMap_class(Map):
     cdef public _name
 
     def __init__(self, domain, codomain, name):
-        if PY_TYPE_CHECK(domain, type):
+        if isinstance(domain, type):
             domain = Set_PythonType(domain)
         Map.__init__(self, domain, codomain)
         self._coerce_cost = 10
@@ -447,8 +461,8 @@ cdef class CCallableConvertMap_class(Map):
             Conversion via c call 'any name' map:
               From: Integer Ring
               To:   Integer Ring
-            sage: test_CCallableConvertMap(ZZ, None)  # random address
-            Conversion via c call at 0xc339000 map:
+            sage: test_CCallableConvertMap(ZZ, None)
+            Conversion via c call at 0x... map:
               From: Integer Ring
               To:   Integer Ring
         """
@@ -512,7 +526,7 @@ cdef class ListMorphism(Map):
     cdef Map _real_morphism
 
     def __init__(self, domain, Map real_morphism):
-        if not PY_TYPE_CHECK(domain, Parent):
+        if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
         Map.__init__(self, domain, real_morphism.codomain())
         self._coerce_cost = real_morphism._coerce_cost + 3
@@ -554,7 +568,7 @@ cdef class TryMap(Map):
         """
         if (morphism_preferred.domain() is not morphism_backup.domain()
              or morphism_preferred.codomain() is not morphism_backup.codomain()):
-            raise TypeError, "incorrectly matching parent"
+            raise TypeError("incorrectly matching parent")
         Map.__init__(self, morphism_preferred.parent())
         self._map_p = morphism_preferred
         self._map_b = morphism_backup

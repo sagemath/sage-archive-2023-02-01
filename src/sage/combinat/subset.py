@@ -26,6 +26,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.misc.prandom as rnd
 import itertools
@@ -38,25 +39,40 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 
 from sage.sets.set import Set, Set_object_enumerated
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-import choose_nk
+import combination
 
 ZZ_0 = ZZ.zero()
 
 def Subsets(s, k=None, submultiset=False):
     """
-    Returns the combinatorial class of the subsets of the finite set ``s``. The
-    set can be given as a list, Set or any iterable convertible to a set. It can
-    alternatively be given a non-negative integer `n` which encode the set
-    `\{1,2,\dots,n\}` (i.e. the Sage ``range(1,s+1)``).
+    Return the combinatorial class of the subsets of the finite set
+    ``s``. The set can be given as a list, Set or any iterable
+    convertible to a set. Alternatively, a non-negative integer `n`
+    can be provided in place of ``s``; in this case, the result is
+    the combinatorial class of the subsets of the set
+    `\{1,2,\dots,n\}` (i.e. of the Sage ``range(1,n+1)``).
 
-    A second optional parameter ``k`` can be given. In this case, Subsets
-    returns the combinatorial class of subsets of ``s`` of size ``k``.
+    A second optional parameter ``k`` can be given. In this case,
+    ``Subsets`` returns the combinatorial class of subsets of ``s``
+    of size ``k``.
+
+    .. WARNING::
+
+        The subsets are returned as Sets. Do not assume that
+        these Sets are ordered; they often are not!
+        (E.g., ``Subsets(10).list()[619]`` returns
+        ``{10, 4, 5, 6, 7}`` on my system.)
+        See :class:`SubsetsSorted` for a similar class which
+        returns the subsets as sorted tuples.
 
     Finally the option ``submultiset`` allows one to deal with sets with
-    repeated elements usually called multisets.
+    repeated elements, usually called multisets. The method then
+    returns the class of all multisets in which every element is
+    contained at most as often as it is contained in ``s``. These
+    multisets are encoded as lists.
 
     EXAMPLES::
 
@@ -108,7 +124,7 @@ def Subsets(s, k=None, submultiset=False):
         sage: S2.cardinality()
         256
         sage: it = iter(S2)
-        sage: [it.next() for _ in xrange(8)]
+        sage: [next(it) for _ in xrange(8)]
         [{}, {{}}, {{1}}, {{2}}, {{3}}, {{1, 2}},  {{1, 3}}, {{2, 3}}]
         sage: S2.random_element()     # random
         {{2}, {1, 2, 3}, {}}
@@ -272,7 +288,7 @@ class Subsets_s(Parent):
             sage: Subsets([0,1,2]) != Subsets([0,1,2],2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         """
@@ -294,6 +310,8 @@ class Subsets_s(Parent):
             False
             sage: Set([]) in S
             True
+            sage: 2 in S
+            False
         """
         if value not in Sets():
             return False
@@ -301,7 +319,7 @@ class Subsets_s(Parent):
 
     def cardinality(self):
         r"""
-        Returns the number of subsets of the set s.
+        Return the number of subsets of the set ``s``.
 
         This is given by `2^{|s|}`.
 
@@ -320,7 +338,7 @@ class Subsets_s(Parent):
 
     def first(self):
         """
-        Returns the first subset of s. Since we aren't restricted to
+        Returns the first subset of ``s``. Since we aren't restricted to
         subsets of a certain size, this is always the empty set.
 
         EXAMPLES::
@@ -334,8 +352,8 @@ class Subsets_s(Parent):
 
     def last(self):
         """
-        Returns the last subset of s. Since we aren't restricted to subsets
-        of a certain size, this is always the set s itself.
+        Return the last subset of ``s``. Since we aren't restricted to
+        subsets of a certain size, this is always the set ``s`` itself.
 
         EXAMPLES::
 
@@ -348,7 +366,7 @@ class Subsets_s(Parent):
 
     def __iter__(self):
         """
-        Iterates through the subsets of s.
+        Iterate through the subsets of ``s``.
 
         EXAMPLES::
 
@@ -368,8 +386,8 @@ class Subsets_s(Parent):
 
     def random_element(self):
         """
-        Returns a random element of the class of subsets of s (in other
-        words, a random subset of s).
+        Return a random element of the class of subsets of ``s`` (in other
+        words, a random subset of ``s``).
 
         EXAMPLES::
 
@@ -392,7 +410,7 @@ class Subsets_s(Parent):
 
     def rank(self, sub):
         """
-        Returns the rank of sub as a subset of s.
+        Return the rank of ``sub`` as a subset of ``s``.
 
         EXAMPLES::
 
@@ -421,11 +439,11 @@ class Subsets_s(Parent):
 
         n = self._s.cardinality()
         r = sum(binomial(n,i) for i in xrange(len(index_list)))
-        return r + choose_nk.rank(index_list,n)
+        return r + combination.rank(index_list,n)
 
     def unrank(self, r):
         """
-        Returns the subset of s that has rank k.
+        Return the subset of ``s`` that has rank ``k``.
 
         EXAMPLES::
 
@@ -450,7 +468,7 @@ class Subsets_s(Parent):
                 r -= bin
                 k += 1
                 bin = binomial(n,k)
-            return self.element_class([self._s.unrank(i) for i in choose_nk.from_rank(r, n, k)])
+            return self.element_class([self._s.unrank(i) for i in combination.from_rank(r, n, k)])
 
     def __call__(self, el):
         r"""
@@ -557,7 +575,8 @@ class Subsets_sk(Subsets_s):
 
     def __contains__(self, value):
         """
-        TESTS:
+        TESTS::
+
             sage: S = Subsets([1,2,3], 2)
             sage: Set([1,2]) in S
             True
@@ -594,7 +613,7 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(4,2) != Subsets(5,2) and Subsets(4,2) != Subsets(4,3)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def cardinality(self):
         """
@@ -700,8 +719,8 @@ class Subsets_sk(Subsets_s):
 
     def random_element(self):
         """
-        Returns a random element of the class of subsets of s of size k (in
-        other words, a random subset of s of size k).
+        Return a random element of the class of subsets of ``s`` of size
+        ``k`` (in other words, a random subset of ``s`` of size ``k``).
 
         EXAMPLES::
 
@@ -721,7 +740,7 @@ class Subsets_sk(Subsets_s):
 
     def rank(self, sub):
         """
-        Returns the rank of sub as a subset of s of size k.
+        Return the rank of ``sub`` as a subset of ``s`` of size ``k``.
 
         EXAMPLES::
 
@@ -751,11 +770,11 @@ class Subsets_sk(Subsets_s):
             raise ValueError("{} is not a subset of length {} of {}".format(
                     sub, self._k, self._s))
 
-        return choose_nk.rank(index_list, n)
+        return combination.rank(index_list, n)
 
     def unrank(self, r):
         """
-        Returns the subset of s that has rank k.
+        Return the subset of ``s`` of size ``k`` that has rank ``r``.
 
         EXAMPLES::
 
@@ -774,7 +793,7 @@ class Subsets_sk(Subsets_s):
         if self._k > n or r >= self.cardinality() or r < 0:
             raise IndexError("index out of range")
         else:
-            return self.element_class([lset[i] for i in choose_nk.from_rank(r, n, self._k)])
+            return self.element_class([lset[i] for i in combination.from_rank(r, n, self._k)])
 
     def an_element(self):
         """
@@ -809,7 +828,7 @@ def dict_to_list(d):
 
 def list_to_dict(l):
     r"""
-    Return a dictionnary whose keys are the elements of l and values are the
+    Return a dictionary whose keys are the elements of l and values are the
     multiplicity they appear in l.
 
     EXAMPLES::
@@ -827,7 +846,7 @@ def list_to_dict(l):
 
 class SubMultiset_s(Parent):
     """
-    The combinatorial class of the sub multisets of s.
+    The combinatorial class of the sub multisets of ``s``.
 
     EXAMPLES::
 
@@ -904,7 +923,7 @@ class SubMultiset_s(Parent):
             sage: Subsets([1,2,2,3], submultiset=True) != Subsets([1,2,3,3], submultiset=True)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __contains__(self, s):
         """
@@ -1122,7 +1141,7 @@ class SubMultiset_sk(SubMultiset_s):
             sage: l = [1,1,1,1,2,2,3]
             sage: for k in xrange(len(l)):
             ....:    S = Subsets(l,k,submultiset=True)
-            ....:    print S.generating_serie(x) == S.cardinality()*x**k
+            ....:    print(S.generating_serie(x) == S.cardinality()*x**k)
             True
             True
             True
@@ -1217,3 +1236,143 @@ class SubMultiset_sk(SubMultiset_s):
         elts = self._d.keys()
         for iv in IntegerVectors(self._k, len(self._d), outer=self._d.values()):
             yield sum([[elts[i]] * iv[i] for i in range(len(iv))], [])
+
+class SubsetsSorted(Subsets_s):
+    """
+    Lightweight class of all subsets of some set `S`, with each
+    subset being encoded as a sorted tuple.
+
+    Used to model indices of algebras given by subsets (so we don't
+    have to explicitly build all `2^n` subsets in memory).
+    For example, :class:`CliffordAlgebra`.
+    """
+    element_class = tuple
+
+    def __contains__(self, value):
+        """
+        TESTS::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: Set([1,2]) in S
+            True
+            sage: Set([1,4]) in S
+            False
+            sage: Set([]) in S
+            True
+            sage: (0,2) in S
+            True
+            sage: 2 in S
+            False
+        """
+        if not isinstance(value, (list, tuple)) and value not in Sets():
+            return False
+        return all(v in self._s for v in value)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: [s for s in S]
+            [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        """
+        k = ZZ_0
+        while k <= self._s.cardinality():
+            for ss in Subsets_sk(self._s, k)._fast_iterator():
+                yield self.element_class(sorted(ss))
+            k += 1
+
+    def first(self):
+        """
+        Return the first element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.first()
+            ()
+        """
+        return self.element_class([])
+
+    def last(self):
+        """
+        Return the last element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.last()
+            (0, 1, 2)
+        """
+        return tuple(sorted(self._s))
+
+    def random_element(self):
+        """
+        Return a random element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: isinstance(S.random_element(), tuple)
+            True
+        """
+        return tuple(sorted(Subsets_s.random_element(self)))
+
+    def unrank(self, r):
+        """
+        Return the subset which has rank ``r``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.unrank(4)
+            (0, 1)
+        """
+        r = Integer(r)
+        if r >= self.cardinality() or r < 0:
+            raise IndexError("index out of range")
+
+        k = ZZ_0
+        n = self._s.cardinality()
+        binom = ZZ.one()
+        while r >= binom:
+            r -= binom
+            k += 1
+            binom = binomial(n,k)
+        C = combination.from_rank(r, n, k)
+        return self.element_class(sorted([self._s.unrank(i) for i in C]))
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.an_element()
+            (0, 1)
+        """
+        return self.element_class(sorted(Subsets_s._an_element_(self)))
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: [s for s in S]
+            [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        """
+        return self.element_class(sorted(set(x)))
+

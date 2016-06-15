@@ -11,7 +11,6 @@ for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -34,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "padic_template_element.pxi"
 from cpython.int cimport *
 
@@ -83,7 +82,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if isinstance(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -94,7 +96,8 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef FMElement ans = PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -154,22 +157,6 @@ cdef class FMElement(pAdicTemplateElement):
             True
         """
         return unpickle_fme_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow))
-
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpFM(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
 
     cpdef ModuleElement _neg_(self):
         r"""
@@ -428,10 +415,10 @@ cdef class FMElement(pAdicTemplateElement):
             1 + O(7^4)
         """
         cdef long aprec, newprec
-        if PY_TYPE_CHECK(absprec, int):
+        if isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.prime_pow.prec_cap:
@@ -487,7 +474,7 @@ cdef class FMElement(pAdicTemplateElement):
         cdef bint iszero = ciszero(self.value, self.prime_pow)
         if absprec is None:
             return iszero
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
             return iszero
@@ -543,7 +530,7 @@ cdef class FMElement(pAdicTemplateElement):
             # The default absolute precision is given by the precision cap
             aprec = self.prime_pow.prec_cap
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             # If absprec is not positive, then self and right are always
             # equal.
@@ -562,7 +549,7 @@ cdef class FMElement(pAdicTemplateElement):
                     aprec < right.prime_pow.prec_cap,
                     self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -997,7 +984,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f = ZpFM(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicConvert_FM_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1151,9 +1138,9 @@ def unpickle_fme_v2(cls, parent, value):
         sage: a.parent() is R
         True
     """
-    cdef FMElement ans = PY_NEW(cls)
+    cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

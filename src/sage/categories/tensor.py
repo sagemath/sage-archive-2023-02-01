@@ -67,11 +67,11 @@ class TensorProductsCategory(CovariantConstructionCategory):
 
         sage: C = ModulesWithBasis(QQ).TensorProducts()
         sage: C
-        Category of tensor products of modules with basis over Rational Field
+        Category of tensor products of vector spaces with basis over Rational Field
         sage: C.base_category()
-        Category of modules with basis over Rational Field
+        Category of vector spaces with basis over Rational Field
         sage: latex(C)
-        \mathbf{TensorProducts}(\mathbf{ModulesWithBasis}_{\Bold{Q}})
+        \mathbf{TensorProducts}(\mathbf{WithBasis}_{\Bold{Q}})
         sage: TestSuite(C).run()
     """
 
@@ -87,7 +87,7 @@ class TensorProductsCategory(CovariantConstructionCategory):
         EXAMPLES::
 
             sage: ModulesWithBasis(QQ).TensorProducts().TensorProducts()
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
         """
         return self
 

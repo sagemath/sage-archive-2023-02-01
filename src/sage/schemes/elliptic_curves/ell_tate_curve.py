@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tate's parametrisation of `p`-adic curves with multiplicative reduction
 
@@ -49,7 +50,7 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.factory import Qp
 from sage.structure.sage_object import SageObject
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.modular.modform.constructor import EisensteinForms, CuspForms
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.functional import log
@@ -191,7 +192,7 @@ class TateCurve(SageObject):
         Delta = CuspForms(weight=12).basis()[0]
         j = (E4.q_expansion(prec+3))**3/Delta.q_expansion(prec+3)
         jinv = (1/j).power_series()
-        q_in_terms_of_jinv = jinv.reversion()
+        q_in_terms_of_jinv = jinv.reverse()
         R = Qp(self._p,prec=prec)
         qE = q_in_terms_of_jinv(R(1/self._E.j_invariant()))
         self._q = qE
@@ -589,7 +590,7 @@ class TateCurve(SageObject):
         """
 
         if not self.is_split():
-            raise NotImplementedError("The curve must have split multiplicative reduction")
+            raise NotImplementedError("The p-adic height is not implemented for non-split multiplicative reduction.")
 
         p = self._p
 

@@ -144,7 +144,7 @@ things about it.
 GAP
 ===
 
-Sage comes with GAP 4.4.10 for computational discrete mathematics,
+Sage comes with GAP for computational discrete mathematics,
 especially group theory.
 
 Here's an example of GAP's ``IdGroup`` function, which uses the
@@ -176,16 +176,11 @@ GAP interface as follows:
     sage: n = G.order(); n
     120
 
-(For some GAP functionality, you should install two optional
-Sage packages.
-Type ``sage -optional`` for a list and choose
-the one that looks like ``gap\_packages-x.y.z``, then type
-``sage -i gap\_packages-x.y.z``.  Do the same
-for ``database\_gap-x.y.z``.
-Some non-GPL'd GAP packages may be installed by downloading them
-from the GAP web site [GAPkg]_,
-and unpacking them in ``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.
-)
+For some GAP functionality, you should install two optional
+Sage packages. This can be done with the command::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -195,7 +190,7 @@ Singular provides a massive and mature library for Gröbner bases,
 multivariate polynomial gcds, bases of Riemann-Roch spaces of a
 plane curve, and factorizations, among other things. We illustrate
 multivariate polynomial factorization using the Sage interface to
-Singular (do not type the ``...``):
+Singular (do not type the ``....:``):
 
 ::
 
@@ -206,9 +201,9 @@ Singular (do not type the ``...``):
     //        block   1 : ordering dp
     //                  : names    x y
     //        block   2 : ordering C
-    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + \
-    ...   9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - \
-    ...   9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
+    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 +'
+    ....:     '9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 -'
+    ....:     '9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
 
 Now that we have defined :math:`f`, we print it and factor.
 
@@ -231,14 +226,14 @@ Now that we have defined :math:`f`, we print it and factor.
 As with the GAP example in :ref:`section-gap`, we can compute the
 above factorization without explicitly using the Singular interface
 (however, behind the scenes Sage uses the Singular interface for the
-actual computation). Do not type the ``...``:
+actual computation). Do not type the ``....:``:
 
 ::
 
     sage: x, y = QQ['x, y'].gens()
-    sage: f = 9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4\
-    ...   + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3\
-    ...   - 18*x^13*y^2 + 9*x^16
+    sage: f = (9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4
+    ....:     + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3
+    ....:     - 18*x^13*y^2 + 9*x^16)
     sage: factor(f)
     (9) * (-x^5 + y^2)^2 * (x^6 - 2*x^3*y^2 - x^2*y^3 + y^4)
 
@@ -304,25 +299,25 @@ Here's another example:
 Finally, we give an example of using Sage to plot using ``openmath``.
 Many of these were modified from the Maxima reference manual.
 
-A 2D plot of several functions (do not type the ``...``)::
+A 2D plot of several functions (do not type the ``....:``)::
 
     sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]',  # not tested
     ....:     '[plot_format,openmath]')
 
 A "live" 3D plot which you can move with your mouse (do not type
-the ``...``)::
+the ``....:``)::
 
     sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]",  # not tested
     ....:     '[plot_format, openmath]')
     sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]",  # not tested
     ....:     "[grid, 50, 50]",'[plot_format, openmath]')
 
-The next plot is the famous Möbius strip (do not type the ``...``)::
+The next plot is the famous Möbius strip (do not type the ``....:``)::
 
     sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)), y*sin(x/2)]",  # not tested
     ....:     "[x, -4, 4]", "[y, -4, 4]", '[plot_format, openmath]')
 
-The next plot is the famous Klein bottle (do not type the ``...``)::
+The next plot is the famous Klein bottle (do not type the ``....:``)::
 
     sage: maxima("expr_1: 5*cos(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0) - 10.0")
     5*cos(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)-10.0

@@ -70,12 +70,12 @@ import os
 
 from sage.rings.all import NumberField, RationalField, PolynomialRing
 from sage.misc.misc import powerset
-import sage.misc.misc
+from sage.env import SAGE_SHARE
 
 from sage.structure.sage_object import load, save
 
 
-JONESDATA = os.path.join(sage.misc.misc.SAGE_SHARE, 'jones')
+JONESDATA = os.path.join(SAGE_SHARE, 'jones')
 
 class JonesDatabase:
     def __init__(self):

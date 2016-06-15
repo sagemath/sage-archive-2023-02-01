@@ -32,9 +32,12 @@ def init():
     """
     global gp
     if gp is None:
-        gp = Gp(script_subdirectory='simon')
-        gp.read("ell.gp")
+        import os
+        from sage.env import DOT_SAGE
+        logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
+        gp = Gp(script_subdirectory='simon', logfile=logfile)
         gp.read("ellQ.gp")
+        gp.read("ell.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 
@@ -77,7 +80,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
         (1, 1, ...)
 
-    An example that checks that :trac:`9322` is fixed (it should take less than a second to run)
+    An example that checks that :trac:`9322` is fixed (it should take less than a second to run)::
 
         sage: K.<w> = NumberField(x^2-x-232)
         sage: E = EllipticCurve([2-w,18+3*w,209+9*w,2581+175*w,852-55*w])

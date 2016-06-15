@@ -11,6 +11,7 @@ Hecke algebra representations
 import functools
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
@@ -18,7 +19,7 @@ from sage.combinat.subset import Subsets
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
-class HeckeAlgebraRepresentation(SageObject):
+class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
     r"""
     A representation of an (affine) Hecke algebra given by the action of the `T` generators
 
@@ -64,9 +65,19 @@ class HeckeAlgebraRepresentation(SageObject):
         sage: H.Y()
         Lazy family (...)_{i in Coroot lattice of the Root system of type ['A', 3, 1]}
 
+    TESTS::
+
+        sage: from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
+        sage: W = SymmetricGroup(3)
+        sage: domain = W.algebra(QQ)
+        sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
+        sage: r = HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
+        sage: hash(r) # random
+        3
+
     REFERENCES:
 
-    .. [HST2008] F. Hivert, A. Schilling, N. Thiery,
+    .. [HST2008] \F. Hivert, A. Schilling, N. Thiery,
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """
@@ -79,8 +90,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: domain = W.algebra(QQ)
             sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
             sage: HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
-            A representation of the (1, -1)-Hecke algebra of type ['A', 2]
-             on Symmetric group algebra of order 3 over Rational Field
+            A representation of the (1, -1)-Hecke algebra of type ['A', 2] on Symmetric group algebra of order 3 over Rational Field
         """
         self._domain = domain
         self._Ti_on_basis = on_basis

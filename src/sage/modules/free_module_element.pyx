@@ -10,10 +10,9 @@ AUTHORS:
 - Thomas Feulner (2012-11): Added :meth:`FreeModuleElement.hamming_weight` and
   :meth:`FreeModuleElement_generic_sparse.hamming_weight`
 
-TODO: Change to use a get_unsafe / set_unsafe, etc., structure
-exactly like with matrices, since we'll have to define a bunch of
-special purpose implementations of vectors easily and
-systematically.
+- Jeroen Demeyer (2015-02-24): Implement fast Cython methods
+  ``get_unsafe`` and ``set_unsafe`` similar to other places in Sage
+  (:trac:`17562`)
 
 EXAMPLES: We create a vector space over `\QQ` and a
 subspace of this space.
@@ -98,49 +97,35 @@ TESTS::
     (168, 194, 110, 116, 102)
 """
 
-import math
-import operator
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-from cpython.dict cimport *
-from cpython.list cimport *
-import sage.misc.misc as misc
-import sage.misc.latex
+cimport cython
+from cpython.slice cimport PySlice_GetIndicesEx
 
 from sage.structure.sequence import Sequence
-
-from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
+from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.element import canonical_coercion
 
-import sage.rings.arith
-
-from sage.rings.infinity import Infinity
-import sage.rings.integer
+from sage.rings.ring import is_Ring
+from sage.rings.infinity import Infinity, AnInfinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.misc.derivative import multi_derivative
 
-
-# We use some cimports for very quick checking of Integer and Ring
-# type to optimize vector(ring,n) for creating the zero vector.
 from sage.rings.ring cimport Ring
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 
-# We define our own faster is_Ring since is_Ring in the
-# sage.rings.ring module is slow due to it doing an import every time,
-# and creating a category.  We should rarely hit the second case
-# (is_Ring_slow below).  Note that this function will slightly slow
-# down in the very rare case when R is not of type Ring, but it is in
-# the category of rings.  But it gives a big speedup for the most
-# common case when R is a Ring.
-from sage.rings.ring import is_Ring as is_Ring_slow
-cdef is_Ring(R):
-    return isinstance(R, Ring) or is_Ring_slow(R)
+# For the norm function, we cache Sage integers 1 and 2
+__one__ = smallInteger(1)
+__two__ = smallInteger(2)
 
-#For the norm function, we cache a Sage integer "one"
-__one__ = sage.rings.integer.Integer(1)
 
 def is_FreeModuleElement(x):
     """
@@ -174,23 +159,20 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
         5. vector(ring, degree)
 
-        6. vector(numpy_array)
-
     INPUT:
 
-    -  ``object`` - a list, dictionary, or other
-       iterable containing the entries of the vector, including
-       any object that is palatable to the ``Sequence`` constructor
+    - ``object`` -- a list, dictionary, or other
+      iterable containing the entries of the vector, including
+      any object that is palatable to the ``Sequence`` constructor
 
-    -  ``ring`` - a base ring (or field) for the vector
-       space or free module, which contains all of the elements
+    - ``ring`` -- a base ring (or field) for the vector space or free module,
+      which contains all of the elements
 
-    -  ``degree`` - an integer specifying the number of
-       entries in the vector or free module element
+    - ``degree`` -- an integer specifying the number of
+      entries in the vector or free module element
 
-    -  ``numpy_array`` - a NumPy array with the desired entries
-
-    -  ``sparse`` - optional
+    - ``sparse`` -- boolean, whether the result should be a sparse
+      vector
 
     In call format 4, an error is raised if the ``degree`` does not match
     the length of ``object`` so this call can provide some safeguards.
@@ -199,8 +181,8 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
     OUTPUT:
 
-    An element of the vector space or free module with the given
-    base ring and implied or specified dimension or rank,
+    An element of the ambient vector space or free module with the
+    given base ring and implied or specified dimension or rank,
     containing the specified entries and with correct degree.
 
     In call format 5, no entries are specified, so the element is
@@ -348,21 +330,41 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         ...
         ValueError: dictionary of entries has a key (index) exceeding the requested degree
 
-    Any 1 dimensional numpy array of type float or complex may be
-    passed to vector. The result will be a vector in the appropriate
-    dimensional vector space over the real double field or the complex
-    double field. The data in the array must be contiguous so
-    column-wise slices of numpy matrices will raise an exception. ::
+    A 1-dimensional numpy array of type float or complex may be
+    passed to vector. Unless an explicit ring is given, the result will
+    be a vector in the appropriate dimensional vector space over the
+    real double field or the complex double field. The data in the array
+    must be contiguous, so column-wise slices of numpy matrices will
+    raise an exception. ::
 
         sage: import numpy
-        sage: x=numpy.random.randn(10)
-        sage: y=vector(x)
-        sage: v=numpy.random.randn(10)*numpy.complex(0,1)
-        sage: w=vector(v)
+        sage: x = numpy.random.randn(10)
+        sage: y = vector(x)
+        sage: parent(y)
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(RDF, x))
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(CDF, x))
+        Vector space of dimension 10 over Complex Double Field
+        sage: parent(vector(RR, x))
+        Vector space of dimension 10 over Real Field with 53 bits of precision
+        sage: v = numpy.random.randn(10) * numpy.complex(0,1)
+        sage: w = vector(v)
+        sage: parent(w)
+        Vector space of dimension 10 over Complex Double Field
+
+    Multi-dimensional arrays are not supported::
+
+        sage: import numpy as np
+        sage: a = np.array([[1, 2, 3], [4, 5, 6]], np.float64)
+        sage: vector(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot convert 2-dimensional array to a vector
 
     If any of the arguments to vector have Python type int, long, real,
     or complex, they will first be coerced to the appropriate Sage
-    objects. This fixes trac #3847. ::
+    objects. This fixes :trac:`3847`. ::
 
         sage: v = vector([int(0)]); v
         (0)
@@ -378,7 +380,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Complex Double Field
 
     If the argument is a vector, it doesn't change the base ring. This
-    fixes trac #6643. ::
+    fixes :trac:`6643`::
 
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
@@ -424,7 +426,12 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     # over a ring. See trac 11657.
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
     if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
-        return (arg0**arg1).zero_vector()
+        if sparse:
+            from free_module import FreeModule
+            M = FreeModule(arg0, arg1, sparse=True)
+        else:
+            M = arg0 ** arg1
+        return M.zero_vector()
 
     # WARNING TO FUTURE OPTIMIZERS: The following two hasattr's take
     # quite a significant amount of time.
@@ -437,7 +444,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     # consider a possible degree specified in second argument
     degree = None
     maxindex = None
-    if sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long)):
+    if isinstance(arg1, (Integer, int, long)):
         if arg1 < 0:
             raise ValueError("cannot specify the degree of a vector as a negative integer (%s)" % arg1)
         if isinstance(arg2, dict):
@@ -469,19 +476,20 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         R = None
 
     from numpy import ndarray
-    from free_module import VectorSpace
-    if isinstance(v,ndarray):
-        if len(v.shape)==1:
-            if str(v.dtype).count('float')==1:
-                V=VectorSpace(RDF,v.shape[0])
-                import vector_real_double_dense
-                _v=vector_real_double_dense.Vector_real_double_dense(V, v)
-                return _v
-            if str(v.dtype).count('complex')==1:
-                V=VectorSpace(CDF,v.shape[0])
-                import vector_complex_double_dense
-                _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
-                return _v
+    if isinstance(v, ndarray):
+        if len(v.shape) != 1:
+            raise TypeError("cannot convert %r-dimensional array to a vector" % len(v.shape))
+        from free_module import VectorSpace
+        if (R is None or R is RDF) and v.dtype.kind == 'f':
+            V = VectorSpace(RDF, v.shape[0])
+            from vector_real_double_dense import Vector_real_double_dense
+            return Vector_real_double_dense(V, v)
+        if (R is None or R is CDF) and v.dtype.kind == 'c':
+            V = VectorSpace(CDF, v.shape[0])
+            from vector_complex_double_dense import Vector_complex_double_dense
+            return Vector_complex_double_dense(V, v)
+        # Use slower conversion via list
+        v = list(v)
 
     if isinstance(v, dict):
         if degree is None:
@@ -496,10 +504,12 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     v, R = prepare(v, R, degree)
 
     if sparse:
-        import free_module  # slow -- can we improve
-        return free_module.FreeModule(R, len(v), sparse=True)(v)
+        from free_module import FreeModule
+        M = FreeModule(R, len(v), sparse=True)
     else:
-        return (R**len(v))(v)
+        M = R ** len(v)
+    return M(v)
+
 
 free_module_element = vector
 
@@ -570,8 +580,8 @@ def prepare(v, R, degree=None):
         sage: prepare(c, None)
         ([2.0, 3.0], Real Double Field)
 
-    This checks a bug listed at Trac #10595.  Without good evidence for a ring, the default
-    is the integers. ::
+    This checks a bug listed at :trac:`10595`. Without good evidence
+    for a ring, the default is the integers. ::
 
         sage: prepare([], None)
         ([], Integer Ring)
@@ -784,14 +794,14 @@ def random_vector(ring, degree=None, *args, **kwds):
         ...
         ValueError: degree of a random vector must be non-negative, not -9
     """
-    if sage.rings.integer.is_Integer(ring) or isinstance(ring,(int,long)):
+    if isinstance(ring, (Integer, int, long)):
         if not degree is None:
             arglist = list(args)
             arglist.insert(0, degree)
             args = tuple(arglist)
         degree = ring
         ring = ZZ
-    if not (sage.rings.integer.is_Integer(degree) or isinstance(degree,(int,long))):
+    if not isinstance(degree,(Integer, int, long)):
         raise TypeError("degree of a random vector must be an integer, not %s" % degree)
     if degree < 0:
         raise ValueError("degree of a random vector must be non-negative, not %s" % degree)
@@ -803,7 +813,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     entries = [ring.random_element(*args, **kwds) for _ in range(degree)]
     return vector(ring, degree, entries, sparse)
 
-cdef class FreeModuleElement(element_Vector):   # abstract base class
+cdef class FreeModuleElement(Vector):   # abstract base class
     """
     An element of a generic free module.
     """
@@ -823,24 +833,78 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional - giac
-            sage: giac(v)+v                                #optional -  giac
+            sage: v = vector(ZZ, 4, range(4))              # optional - giac
+            sage: giac(v)+v                                # optional -  giac
             [0,2,4,6]
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: giac(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])         # optional -  giac
+            sage: giac(v)                                  # optional -  giac
             [2/3,0,5/4]
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: giac(v)                                           #optional
+            sage: P.<x> = ZZ[]                                       # optional -  giac
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) # optional -  giac
+            sage: giac(v)                                            # optional -  giac
             [x^2+2,2*x+1,-2*x^2+4*x]
         """
         return self.list()
+
+    def _pari_(self):
+        """
+        Convert ``self`` to a PARI vector.
+
+        OUTPUT:
+
+        A PARI ``gen`` of type ``t_VEC``.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_()
+            [0, 1, 2, 3]
+            sage: v._pari_().type()
+            't_VEC'
+
+        A list of vectors::
+
+            sage: L = [vector(i^n for i in range(4)) for n in [1,3,5]]
+            sage: pari(L)
+            [[0, 1, 2, 3], [0, 1, 8, 27], [0, 1, 32, 243]]
+        """
+        from sage.libs.pari.all import pari
+        return pari(self.list())
+
+    def _pari_init_(self):
+        """
+        Give a string which, when evaluated in GP, gives a PARI
+        representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_init_()
+            '[0,1,2,3]'
+
+        Create the multiplication table of `GF(4)` using GP::
+
+            sage: k.<a> = GF(4, impl="pari_ffelt")
+            sage: v = gp(vector(list(k)))
+            sage: v
+            [0, 1, a, a + 1]
+            sage: v.mattranspose() * v
+            [0, 0, 0, 0; 0, 1, a, a + 1; 0, a, a + 1, 1; 0, a + 1, 1, a]
+        """
+        # Elements in vectors are always Sage Elements, so they should
+        # have a _pari_init_() method.
+        L = [x._pari_init_() for x in self.list()]
+        return "[" + ",".join(L) + "]"
 
     def _magma_init_(self, magma):
         r"""
@@ -888,11 +952,77 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         v = ','.join([a._magma_init_(magma) for a in self.list()])
         return '%s![%s]' % (R.name(), v)
 
+    def numpy(self, dtype=object):
+        """
+        Converts self to a numpy array.
+
+        INPUT:
+
+        - ``dtype`` -- the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array
+
+        EXAMPLES::
+
+            sage: v = vector([1,2,3])
+            sage: v.numpy()
+            array([1, 2, 3], dtype=object)
+            sage: v.numpy() * v.numpy()
+            array([1, 4, 9], dtype=object)
+
+            sage: vector(QQ, [1, 2, 5/6]).numpy()
+            array([1, 2, 5/6], dtype=object)
+
+        By default the ``object`` `dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_ is used.
+        Alternatively, the desired dtype can be passed in as a parameter::
+
+            sage: v = vector(QQ, [1, 2, 5/6])
+            sage: v.numpy()
+            array([1, 2, 5/6], dtype=object)
+            sage: v.numpy(dtype=float)
+            array([ 1.        ,  2.        ,  0.83333333])
+            sage: v.numpy(dtype=int)
+            array([1, 2, 0])
+            sage: import numpy
+            sage: v.numpy(dtype=numpy.uint8)
+            array([1, 2, 0], dtype=uint8)
+
+        Passing a dtype of None will let numpy choose a native type, which can
+        be more efficient but may have unintended consequences::
+
+            sage: v.numpy(dtype=None)
+            array([ 1.        ,  2.        ,  0.83333333])
+
+            sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
+            (0, 1, 9223372036854775807)
+            sage: wn = w.numpy(dtype=None); wn
+            array([                  0,                   1, 9223372036854775807]...)
+            sage: wn.dtype
+            dtype('int64')
+            sage: w.dot_product(w)
+            85070591730234615847396907784232501250
+            sage: wn.dot(wn)        # overflow
+            2
+
+        Numpy can give rather obscure errors; we wrap these to give a bit of context::
+
+            sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+        """
+        from numpy import array
+        try:
+            return array(self, dtype=dtype)
+        except ValueError as e:
+            raise ValueError(
+                "Could not convert vector over %s to numpy array of type %s: %s" % (self.coordinate_ring(), dtype, e))
+
     def __hash__(self):
         """
         Return hash of this vector.  Only mutable vectors are hashable.
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -925,7 +1055,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (1, sqrt(2))
         """
         if R is None:
-            R = self.base_ring()
+            return self
         return self.change_ring(R)
 
     def _matrix_(self, R=None):
@@ -935,15 +1065,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         EXAMPLES::
 
             sage: v = vector(ZZ, [2, 12, 22])
-            sage: vector(v)
-            (2, 12, 22)
-            sage: vector(GF(7), v)
-            (2, 5, 1)
-            sage: vector(v, ZZ['x', 'y'])
-            (2, 12, 22)
+            sage: v._matrix_()
+            [ 2 12 22]
+            sage: v._matrix_(GF(7))
+            [2 5 1]
+            sage: v._matrix_(ZZ['x', 'y'])
+            [ 2 12 22]
+            sage: v = ((ZZ^3)*(1/2))( (1/2, -1, 3/2) )
+            sage: v._matrix_()
+            [1/2  -1 3/2]
+            sage: v._matrix_(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
         """
         if R is None:
-            R = self.base_ring()
+            R = self.coordinate_ring()
         sparse = self.is_sparse()
         from sage.matrix.constructor import matrix
         return matrix(R, [list(self)], sparse=sparse)
@@ -1067,20 +1204,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
-
             sage: v = vector(CDF, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Complex Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Complex Field with 75 bits of precision
 
             sage: v = vector(Integers(8), [1,2,3])
             sage: v.n()
@@ -1115,44 +1243,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
         return vector([e.n(prec, digits, algorithm) for e in self])
-
-    def transpose(self):
-        r"""
-        Return self as a column matrix.
-
-        .. note::
-
-            The ``transpose()`` method has been deprecated as of Sage 4.6.2,
-            in favor of the :meth:`column` method which is functionally identical.
-
-        EXAMPLES::
-
-            sage: v = vector(ZZ, [2, 12, 22])
-            sage: transpose(vector(v))
-            doctest:...: DeprecationWarning: The transpose() method for vectors has been deprecated, use column() instead
-            (or check to see if you have a vector when you really want a matrix)
-            See http://trac.sagemath.org/10541 for details.
-            [ 2]
-            [12]
-            [22]
-
-        ::
-
-            sage: transpose(vector(GF(7), v))
-            [2]
-            [5]
-            [1]
-
-        ::
-
-            sage: transpose(vector(v, ZZ['x', 'y']))
-            [ 2]
-            [12]
-            [22]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10541, 'The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)')
-        return self._matrix_().transpose()
 
     def row(self):
         r"""
@@ -1293,6 +1383,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         is mutable).
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1391,18 +1482,35 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def change_ring(self, R):
         """
-        Change the base ring of this vector, by coercing each element of
-        this vector into R.
+        Change the base ring of this vector.
 
         EXAMPLES::
 
             sage: v = vector(QQ['x,y'], [1..5]); v.change_ring(GF(3))
             (1, 2, 0, 1, 2)
         """
-        P = self.parent()
-        if P.base_ring() is R:
+        if self.base_ring() is R:
             return self
-        return P.change_ring(R)(self)
+        M = self._parent.change_ring(R)
+        return M(self.list(), coerce=True)
+
+    def coordinate_ring(self):
+        """
+        Return the ring from which the coefficients of this vector come.
+
+        This is different from :meth:`base_ring`, which returns the ring
+        of scalars.
+
+        EXAMPLES::
+
+            sage: M = (ZZ^2) * (1/2)
+            sage: v = M([0,1/2])
+            sage: v.base_ring()
+            Integer Ring
+            sage: v.coordinate_ring()
+            Rational Field
+        """
+        return self._parent.coordinate_ring()
 
     def additive_order(self):
         """
@@ -1429,13 +1537,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: 10*v
             (0, 0)
         """
-        v = [None]*self.degree()
-        cdef int i
-        for i from 0 <= i < self.degree():
-            v[i] = self[i].additive_order()
-            if v[i] == +Infinity:
-               return +Infinity
-        return sage.rings.arith.LCM(v)
+        cdef list v = []
+        cdef Py_ssize_t i
+        for i in range(self._degree):
+            ord = self[i].additive_order()
+            if isinstance(ord, AnInfinity):
+               return ord
+            v.append(ord)
+        from sage.arith.all import lcm
+        return lcm(v)
 
     def iteritems(self):
         """
@@ -1461,11 +1571,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v = vector([1..5]); abs(v)
             sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            7.4161984871
+            7.416198487095663
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
-    def norm(self, p=sage.rings.integer.Integer(2)):
+    def norm(self, p=__two__):
         r"""
         Return the `p`-norm of ``self``.
 
@@ -1507,9 +1617,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
-            3.07738488539
-            sage: v.norm(pi/2)
-            4.2165958647
+            3.077384885394063
+            sage: v.norm(pi/2)    #abs tol 1e-15
+            4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
             (abs(a)^p + abs(b)^p + abs(c)^p + abs(d)^p)^(1/p)
@@ -1543,9 +1653,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.norm(0.99)
             Traceback (most recent call last):
             ...
-            ValueError: 0.990000 is not greater than or equal to 1
+            ValueError: 0.990000000000000 is not greater than or equal to 1
 
-        Norm works with python integers (see :trac:`13502`). ::
+        Norm works with Python integers (see :trac:`13502`). ::
 
             sage: v = vector(QQ, [1,2])
             sage: v.norm(int(2))
@@ -1554,17 +1664,13 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         abs_self = [abs(x) for x in self]
         if p == Infinity:
             return max(abs_self)
-        try:
-            pr = RDF(p)
-            if pr < 1:
-                raise ValueError("%f is not greater than or equal to 1" %(pr))
-        except TypeError:
-            pass
+        if p < 1:
+            raise ValueError("%s is not greater than or equal to 1" % p)
 
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -1580,17 +1686,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             True
             sage: w > v
             False
-        """
-        cdef Py_ssize_t i
-        cdef int c
-        for i from 0 <= i < left.degree():
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
         TESTS::
 
             sage: F.<y> = PolynomialRing(QQ, 'y')
@@ -1601,7 +1697,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
         """
-        return (<Element>left)._richcmp(right, op)
+        cdef Py_ssize_t i
+        cdef int c
+        for i in range(left._degree):
+            c = cmp(left[i], right[i])
+            if c: return c
+        return 0
 
     def __getitem__(self, i):
         """
@@ -1609,17 +1710,118 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         EXAMPLES::
 
-        This just raises NotImplementedError since this is an abstract
-        base class, and __getitem__ has to be overloaded in the
-        derived class::
-
             sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
             sage: v.__getitem__(0)
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t n
+        cdef list values
+        if isinstance(i, slice):
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            values = []
+            for n in range(slicelength):
+                values.append(self.get_unsafe(start + n*step))
+            from free_module import FreeModule
+            M = FreeModule(self.coordinate_ring(), slicelength, sparse=self.is_sparse())
+            return M(values, coerce=False, copy=False)
+        else:
+            n = i
+            if n < 0:
+                n += d
+            if n < 0 or n >= d:
+                raise IndexError("vector index out of range")
+            return self.get_unsafe(n)
+
+    cdef get_unsafe(self, Py_ssize_t i):
+        """
+        Cython function to get the `i`'th entry of this vector.
+
+        Used as building block for a generic ``__getitem__``.
+        """
         raise NotImplementedError
+
+    def get(self, i):
+        """
+        Like ``__getitem__`` but without bounds checking:
+        `i` must satisfy ``0 <= i < self.degree``.
+
+        EXAMPLES::
+
+            sage: vector(SR, [1/2,2/5,0]).get(0)
+            1/2
+        """
+        return self.get_unsafe(i)
+
+    def __setitem__(self, i, value):
+        """
+        Set the `i`-th entry or slice of self to ``value``.
+
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: v[0] = 5
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        For derived classes, this works::
+
+            sage: v = vector([1,2/3,8])
+            sage: v[0] = 5
+            sage: v
+            (5, 2/3, 8)
+        """
+        if not self._is_mutable:
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t n
+        cdef list values
+        R = self.coordinate_ring()
+        if isinstance(i, slice):
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            values = [R(x) for x in value]
+            if len(values) != slicelength:
+                raise IndexError("slice assignment would change dimension")
+            for n in range(slicelength):
+                self.set_unsafe(start + n*step, values[n])
+        else:
+            n = i
+            if n < 0:
+                n += d
+            if n < 0 or n >= d:
+                raise IndexError("vector index out of range")
+            self.set_unsafe(n, R(value))
+
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
+        """
+        Cython function to set the `i`'th entry of this vector to
+        ``value``.
+
+        Used as building block for a generic ``__setitem__``.
+        """
+        raise NotImplementedError
+
+    def set(self, i, value):
+        """
+        Like ``__setitem__`` but without type or bounds checking:
+        `i` must satisfy ``0 <= i < self.degree`` and ``value`` must be
+        an element of the coordinate ring.
+
+        EXAMPLES::
+
+            sage: v = vector(SR, [1/2,2/5,0]); v
+            (1/2, 2/5, 0)
+            sage: v.set(2, pi); v
+            (1/2, 2/5, pi)
+        """
+        assert value.parent() is self.coordinate_ring()
+        self.set_unsafe(i, value)
+
 
     def __invert__(self):
         """
@@ -1641,7 +1843,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: len(sage.modules.free_module_element.FreeModuleElement(QQ^2010))
             2010
         """
-        return self.parent().degree()
+        return self._degree
 
     def __mod__(self, p):
         """
@@ -1695,7 +1897,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (x, y, z)
         """
         cdef Py_ssize_t i
-        return [self[i] for i in range(self.degree())]
+        return [self[i] for i in range(self._degree)]
 
     def list_from_positions(self, positions):
         """
@@ -1718,6 +1920,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def lift(self):
         """
+        Lift ``self`` to the cover ring.
+
+        OUTPUT:
+
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        on `R`, or just `R` itself if the
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        method is not defined.
+
         EXAMPLES::
 
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
@@ -1726,8 +1939,48 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (5, 2, 6, 1)
             sage: parent(V.lift())
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        If the base ring does not have a cover method, return a copy of the vector::
+
+            sage: W = vector(QQ, [1, 2, 3])
+            sage: W1 = W.lift()
+            sage: W is W1
+            False
+            sage: parent(W1)
+            Vector space of dimension 3 over Rational Field
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        try:
+            return self.change_ring(self.base_ring().cover_ring())
+        except AttributeError:
+            from copy import copy
+            return copy(self)
+
+    def lift_centered(self):
+        """
+        Lift to a congruent, centered vector.
+
+        INPUT:
+
+        - ``self`` A vector with coefficients in `Integers(n)`.
+
+        OUTPUT:
+
+        - The unique integer vector `v` such that foreach `i`,
+          `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift_centered()
+            (-2, 2, -1, 1)
+            sage: parent(V.lift_centered())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        R = self.base_ring().cover_ring()
+        l = [foo.lift_centered() for foo in self]
+        P = self.parent().change_ring(R)
+        return P(l)
 
     def __pos__(self):
         """
@@ -1779,7 +2032,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v._repr_()
             '(theta^3 + sqrt(2) + 1/2, 1/2)'
         """
-        d = self.degree()
+        cdef Py_ssize_t d = self._degree
         if d == 0: return "()"
         # compute column widths
         S = [repr(x) for x in self.list(copy=False)]
@@ -1801,73 +2054,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(ZZ, 4, range(4))
+            sage: maple(v)  # optional - maple
             Vector[row](4, [0,1,2,3])
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [2/3,0,5/4])
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: maple(v)                                           #optional
+            sage: P.<x> = ZZ[]
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
         """
         return "Vector[row](%s)"%(str(self.list()))
-
-    def __setitem__(self, i, x):
-        """
-        Set the `i`-th entry or slice of self to x. This is not implemented,
-        since self is an abstract base class.
-
-        EXAMPLES::
-
-            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
-            sage: v[0] = 5
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        For derived classes, this works::
-
-            sage: v = vector([1,2/3,8])
-            sage: v[0] = 5
-            sage: v
-            (5, 2/3, 8)
-        """
-        raise NotImplementedError
-
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: v = vector([1,2/3,8])   # indirect test
-            sage: v == v
-            True
-        """
-        cdef int ld, rd
-        if not isinstance(left, FreeModuleElement) or not isinstance(right, FreeModuleElement):
-            # use the generic compare
-            return (<Element>left)._richcmp(right, op)
-        ld = (<FreeModuleElement>left)._degree
-        rd = (<FreeModuleElement>right)._degree
-        if ld < rd:
-            return (<Element>left)._rich_to_bool(op, -1)
-        elif ld > rd:
-            return (<Element>left)._rich_to_bool(op, 1)
-        if (<FreeModuleElement>left)._parent.base_ring() is (<FreeModuleElement>right)._parent.base_ring():
-            return (<Element>left)._rich_to_bool(op, (
-                    <FreeModuleElement>left)._cmp_same_ambient_c(right))
-        return (<Element>left)._richcmp(right, op)
-
-
-    cdef int _cmp_same_ambient_c(left, FreeModuleElement right) except -2:
-        return cmp(left.list(copy=False), right.list(copy=False))
 
     def degree(self):
         """
@@ -1896,44 +2100,61 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: 2*5*7
             70
 
+        ::
+
+            sage: M = (ZZ^2)*(1/2)
+            sage: M.basis()[0].denominator()
+            2
+
         TESTS:
 
-        The following was fixed in trac ticket #8800::
+        The following was fixed in :trac:`8800`::
 
             sage: M = GF(5)^3
             sage: v = M((4,0,2))
             sage: v.denominator()
             1
-
         """
-        R = self.base_ring()
-        if self.degree() == 0: return 1
-        x = self.list()
-        # it may be that the marks do not have a denominator!
-        d = x[0].denominator() if hasattr(x[0],'denominator') else 1
-        for y in x:
-            d = d.lcm(y.denominator()) if hasattr(y,'denominator') else d
+        # It may be that the coordinates do not have a denominator
+        # (but if one coordinate has it, they all should have it)
+        d = self.coordinate_ring().one()
+        try:
+            d = d.denominator()
+        except AttributeError:
+            return d
+        for y in self.list():
+            d = d.lcm(y.denominator())
         return d
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14])
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
 
-        In some cases when copy=False, we get back a dangerous reference::
+        In some cases, when ``copy=False``, we get back a dangerous
+        reference::
 
             sage: v = vector({0:5, 2:3/7}, sparse=True)
             sage: v.dict(copy=False)
@@ -1942,12 +2163,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v
             (18, 0, 3/7)
         """
-        e = {}
-        for i in xrange(self.degree()):
+        cdef dict e = {}
+        cdef Py_ssize_t i
+        for i in range(self._degree):
             c = self[i]
             if c:
                 e[i] = c
         return e
+
+    monomial_coefficients = dict
 
     #############################
     # Plotting
@@ -1981,6 +2205,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: A = plot(v)
             sage: B = v.plot()
             sage: A+B # should just show one vector
+            Graphics object consisting of 2 graphics primitives
 
         Examples of the plot types::
 
@@ -1988,53 +2213,64 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: B = plot(v, plot_type='point', color='green', size=20)
             sage: C = plot(v, plot_type='step') # calls v.plot_step()
             sage: A+B+C
+            Graphics object consisting of 3 graphics primitives
 
         You can use the optional arguments for :meth:`plot_step`::
 
             sage: eps = 0.1
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         Three-dimensional examples::
 
             sage: v = vector(RDF, (1,2,1))
             sage: plot(v) # defaults to an arrow plot
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='arrow')
+            Graphics3d Object
 
         ::
 
             sage: from sage.plot.plot3d.shapes2 import frame3d
             sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='step') # calls v.plot_step()
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         With greater than three coordinates, it defaults to a step plot::
 
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v)
+            Graphics object consisting of 1 graphics primitive
 
         One dimensional vectors are plotted along the horizontal axis of
         the coordinate plane::
 
             sage: plot(vector([1]))
+            Graphics object consisting of 1 graphics primitive
 
         An optional start argument may also be specified by a tuple, list, or vector::
 
             sage: u = vector([1,2]); v = vector([2,5])
             sage: plot(u, start=v)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
             sage: plot(u) #test when start=None
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
@@ -2117,7 +2353,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
             sage: v.plot_step(eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
         """
+        import math
         if res is None:
             res = self.degree()
         if eps is None:
@@ -2137,14 +2375,50 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         else:
             return points(v, **kwds)
 
+    cpdef Element _dot_product_coerce_(left, Vector right):
+        """
+        Return the dot product of left and right.
+
+        This function works even if the parents are different, the
+        degrees have to match however.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: v = vector(RDF, [0,1,2])
+            sage: w = vector(R, [x,0,0])
+            sage: p = v._dot_product_coerce_(w)
+            sage: p
+            0
+            sage: parent(p)
+            Univariate Polynomial Ring in x over Real Double Field
+
+        Zero-dimensional vectors also work correctly::
+
+            sage: v = vector(RDF, [])
+            sage: w = vector(R, [])
+            sage: parent(v._dot_product_coerce_(w))
+            Univariate Polynomial Ring in x over Real Double Field
+        """
+        if left._degree == 0:
+            return (left.coordinate_ring().zero()
+                    * right.coordinate_ring().zero())
+        cdef list a = left.list(copy=False)
+        cdef list b = right.list(copy=False)
+        cdef Py_ssize_t i
+        z = a[0] * b[0]
+        for i in range(1, left._degree):
+            z += a[i] * b[i]
+        return z
+
     def dot_product(self, right):
         r"""
-        Return the dot product of ``self`` and ``right``, which is the sum of the
-        product of the corresponding entries.
+        Return the dot product of ``self`` and ``right``, which is the
+        sum of the product of the corresponding entries.
 
         INPUT:
 
-        - ``right`` - a vector of the same degree as ``self``.
+        - ``right`` -- a vector of the same degree as ``self``.
           It does not need to belong to the same parent as ``self``,
           so long as the necessary products and sums are defined.
 
@@ -2171,6 +2445,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: w = V([4,5,6])
             sage: v.dot_product(w)
             32
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
+            sage: v*w
+            x^3 + 5*x^2 + 9*x
+            sage: (x*2*x) + (x^2*x) + (3*x*(3+x))
+            x^3 + 5*x^2 + 9*x
+            sage: w*v
+            x^3 + 5*x^2 + 9*x
 
         The vectors may be from different vector spaces,
         provided the necessary operations make sense.
@@ -2204,7 +2489,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.dot_product('junk')
             Traceback (most recent call last):
             ...
-            TypeError: right must be a free module element
+            TypeError: Cannot convert str to sage.modules.free_module_element.FreeModuleElement
 
         The degrees of the arguments must match. ::
 
@@ -2220,20 +2505,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector(CDF, [2, 2]) * vector(ZZ, [1, 3])
             8.0
 
+        Zero-dimensional vectors work::
+
+            sage: v = vector(ZZ, [])
+            sage: v.dot_product(v)
+            0
         """
-        if not PY_TYPE_CHECK(right, FreeModuleElement):
-            raise TypeError("right must be a free module element")
-        r = right.list(copy=False)
-        l = self.list(copy=False)
-        if len(r) != len(l):
-            raise ArithmeticError("degrees (%s and %s) must be the same"%(len(l),len(r)))
-        if len(r) == 0:
-            return self._parent.base_ring()(0)
-        sum = l[0] * r[0]
-        cdef Py_ssize_t i
-        for i from 1 <= i < len(l):
-            sum += l[i] * r[i]
-        return sum
+        cdef FreeModuleElement r = <FreeModuleElement?>right
+        if self._parent is r._parent:
+            # If the parents are equal, the degree is also equal
+            return self._dot_product_(r)
+        if self._degree != r._degree:
+            raise ArithmeticError("degrees (%s and %s) must be the same"%(self.degree(), right.degree()))
+        # Base rings are not equal => use dot product with coercion
+        return self._dot_product_coerce_(r)
 
     def cross_product(self, right):
         """
@@ -2316,7 +2601,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: u.cross_product(v)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
+            TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
 
         REFERENCES:
 
@@ -2327,7 +2612,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         Billy Wonderly (2010-05-11), Added 7-D Cross Product
         """
-        if not PY_TYPE_CHECK(right, FreeModuleElement):
+        if not isinstance(right, FreeModuleElement):
             raise TypeError("right must be a free module element")
         r = right.list(copy=False)
         l = self.list(copy=False)
@@ -2346,9 +2631,92 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
 
+    def cross_product_matrix(self):
+        r"""
+        Return the matrix which describes a cross product
+        between ``self`` and some other vector.
 
+        This operation is sometimes written using the `hat operator`_.
+        It is only defined for vectors of length 3 or 7.
+        For a vector `v` the cross product matrix `\hat{v}`
+        is a matrix which satisfies `\hat{v} \cdot w = v \times w`
+        and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
+        The basis vectors are assumed to be orthonormal.
+
+        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+
+        OUTPUT:
+
+        The cross product matrix of this vector.
+
+        EXAMPLES::
+
+            sage: v = vector([1, 2, 3])
+            sage: vh = v.cross_product_matrix()
+            sage: vh
+            [ 0 -3  2]
+            [ 3  0 -1]
+            [-2  1  0]
+            sage: w = random_vector(3, x=1, y=100)
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+
+        TESTS::
+
+            sage: F = GF(previous_prime(2^32))
+            sage: v = random_vector(F, 3)
+            sage: w = random_vector(F, 3)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: v = random_vector(F, 7)
+            sage: w = random_vector(F, 7)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: random_vector(F, 5).cross_product_matrix()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cross product only defined for vectors of length three or seven, not 5
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        rank = self.parent().rank()
+        R = self.base_ring()
+        zero = R.zero()
+        if rank == 3:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[2],  s[1]],
+                [ s[2],  zero, -s[0]],
+                [-s[1],  s[0],  zero]])
+        elif rank == 7:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[3], -s[6],  s[1], -s[5],  s[4],  s[2]],
+                [ s[3],  zero, -s[4], -s[0],  s[2], -s[6],  s[5]],
+                [ s[6],  s[4],  zero, -s[5], -s[1],  s[3], -s[0]],
+                [-s[1],  s[0],  s[5],  zero, -s[6], -s[2],  s[4]],
+                [ s[5], -s[2],  s[1],  s[6],  zero, -s[0], -s[3]],
+                [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
+                [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
+        else:
+            raise TypeError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """
@@ -2407,47 +2775,47 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[x],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-        ::
-
-            sage: parent(vector(QQ[y],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['y'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        ::
+
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
@@ -2458,11 +2826,133 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: w.pairwise_product(v) == v.pairwise_product(w)
             True
         """
-        if not PY_TYPE_CHECK(right, FreeModuleElement):
+        if not isinstance(right, FreeModuleElement):
             raise TypeError("right must be a free module element")
         if self._parent is not (<FreeModuleElement>right)._parent:
             self, right = canonical_coercion(self, right)
         return self._pairwise_product_(right)
+
+    def _variables(self):
+        """
+        Return the ordered variable of self, as defined by the basering.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, 3])._variables()
+            [x, y, z]
+            sage: vector(SR, [x, y, 3])._variables()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v._variables()
+            [(x, y, z) |--> x, (x, y, z) |--> y, (x, y, z) |--> z]
+        """
+        R = self._parent.base_ring()
+        try:
+            var_names = R.variable_names()
+        except ValueError:
+            if hasattr(R, 'arguments'):
+                var_names = R.arguments()
+            else:
+                raise ValueError("Unable to determine ordered variable names for %s" % R)
+        return [R(x) for x in var_names]
+
+    def div(self, variables=None):
+        """
+        Return the divergence of this vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, z]).div()
+            3
+            sage: vector([x*y, y*z, z*x]).div()
+            x + y + z
+
+            sage: R.<x,y,z,w> = QQ[]
+            sage: vector([x*y, y*z, z*x]).div([x, y, z])
+            x + y + z
+            sage: vector([x*y, y*z, z*x]).div([z, x, y])
+            0
+            sage: vector([x*y, y*z, z*x]).div([x, y, w])
+            y + z
+
+            sage: vector(SR, [x*y, y*z, z*x]).div()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: vector(SR, [x*y, y*z, z*x]).div([x, y, z])
+            x + y + z
+        """
+        if variables is None:
+            variables = self._variables()
+        if len(variables) != len(self):
+            raise ValueError("number of variables must equal dimension of self")
+        return sum(c.derivative(x) for (c, x) in zip(self, variables))
+
+    def curl(self, variables=None):
+        """
+        Return the curl of this two-dimensional or three-dimensional
+        vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([-y, x, 0]).curl()
+            (0, 0, 2)
+            sage: vector([y, -x, x*y*z]).curl()
+            (x*z, -y*z, -2)
+            sage: vector([y^2, 0, 0]).curl()
+            (0, 0, -2*y)
+            sage: (R^3).random_element().curl().div()
+            0
+
+        For rings where the variable order is not well defined, it must be
+        defined explicitly::
+
+            sage: v = vector(SR, [-y, x, 0])
+            sage: v.curl()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v.curl([x, y, z])
+            (0, 0, 2)
+
+        Note that callable vectors have well defined variable orderings::
+
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v.curl()
+            (x, y, z) |--> (0, 0, 2)
+
+        In two-dimensions, this returns a scalar value::
+
+            sage: R.<x,y> = QQ[]
+            sage: vector([-y, x]).curl()
+            2
+        """
+        if len(self) == 3:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 3:
+                raise ValueError("exactly 3 variables must be provided")
+            x, y, z = variables
+            Fx, Fy, Fz = self
+            return self.parent([Fz.derivative(y) - Fy.derivative(z),
+                                Fx.derivative(z) - Fz.derivative(x),
+                                Fy.derivative(x) - Fx.derivative(y)])
+
+        if len(self) == 2:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 2:
+                raise ValueError("exactly 2 variables must be provided")
+            x, y = variables
+            Fx, Fy = self
+            return Fy.derivative(x) - Fx.derivative(y)
+
+        raise TypeError("curl only defined for 2 or 3 dimensions")
 
     def element(self):
         """
@@ -2478,38 +2968,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return self
 
-    def get(self, Py_ssize_t i):
-        """
-        The get method is in some cases more efficient (and more
-        dangerous) than __getitem__, because it is not guaranteed to
-        do any error checking.
-
-        EXAMPLES::
-
-            sage: vector([1/2,2/5,0]).get(0)
-            1/2
-            sage: vector([1/2,2/5,0]).get(3)
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
-        """
-        return self[i]
-
-    def set(self, Py_ssize_t i, x):
-        """
-        The set method is meant to be more efficient than __setitem__,
-        because it need not be guaranteed to do any error checking or
-        coercion. Use with great, great care.
-
-        EXAMPLES::
-
-            sage: v = vector([1/2,2/5,0]); v
-            (1/2, 2/5, 0)
-            sage: v.set(2, -15/17); v
-            (1/2, 2/5, -15/17)
-        """
-        self[i] = x
-
 
     def monic(self):
         """
@@ -2521,33 +2979,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
             sage: v.monic()
             (0, 1, 15/4, 3/4, 3/2)
+            sage: v = vector(QQ, [])
+            sage: v.monic()
+            ()
         """
         cdef Py_ssize_t i
-        for i from 0 <= i < self._degree:
-            if self[i] != 0:
+        for i in range(self._degree):
+            if self[i]:
                 return (~self[i]) * self
         return self
 
-    def normalize(self):
-        """
-        This function is deprecated. For division by the p-norm use
-        'normalized', and for division by the first nonzero entry use
-        'monic' (previously the purpose of this function).
-
-        EXAMPLES::
-
-            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
-            sage: v.normalize()
-            doctest:...: DeprecationWarning: 'normalize' is deprecated...
-            (0, 1, 15/4, 3/4, 3/2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13393, "'normalize' is deprecated. For division by the \
-p-norm use 'normalized', and for division by the first nonzero entry use \
-'monic'.")
-        return self.monic()
-
-    def normalized(self, p=sage.rings.integer.Integer(2)):
+    def normalized(self, p=__two__):
         """
         Return the input vector divided by the p-norm.
 
@@ -2650,7 +3092,6 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
         """
         V = self.parent()
         R = self.base_ring()
-        degree = self.degree()
         if self.is_sparse():
             # this could be a dictionary comprehension in Python 3
             entries = {}
@@ -2658,7 +3099,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
                 entries[index] = entry.conjugate()
         else:
             entries = [entry.conjugate() for entry in self]
-        return V(vector(R, degree, entries))
+        return V(vector(R, self._degree, entries))
 
     def inner_product(self, right):
         r"""
@@ -2874,7 +3315,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             ...
             TypeError: right operand in an outer product must be a vector, not an element of Integer Ring
         """
-        if not PY_TYPE_CHECK(right, FreeModuleElement):
+        if not isinstance(right, FreeModuleElement):
             raise TypeError('right operand in an outer product must be a vector, not an element of %s' % right.parent())
         return self.column()*right.row()
 
@@ -3038,15 +3479,6 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
         """
         return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
 
-##     def zero_out_positions(self, P):
-##         """
-##         Set the positions of self in the list P equal to 0.
-##         """
-##         z = self.base_ring()(0)
-##         d = self.degree()
-##         for n in P:
-##             self[n] = z
-
     def nonzero_positions(self):
         """
         Return the sorted list of integers ``i`` such that ``self[i] != 0``.
@@ -3056,10 +3488,9 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: vector([-1,0,3,0,0,0,0.01]).nonzero_positions()
             [0, 2, 6]
         """
-        z = self.base_ring()(0)
         v = self.list()
         cdef Py_ssize_t i
-        return [i for i from 0 <= i < self.degree() if v[i] != z]
+        return [i for i in range(self._degree) if v[i]]
 
     def support(self):   # do not override.
         """
@@ -3082,7 +3513,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: vector([-1,0,3,0,0,0,0.01]).hamming_weight()
             3
         """
-        cdef int res=0
+        cdef Py_ssize_t res = 0
         for x in iter(self.list()):
             if not x.is_zero():
                 res += 1
@@ -3117,7 +3548,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: latex(w)
             \left[1.0,\,2.0,\,3.0\right\rangle
         """
-        latex = sage.misc.latex.latex
+        from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
         s += ',\,'.join([latex(a) for a in self.list()])
@@ -3346,23 +3777,14 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             (r, theta) |--> r*cos(theta)^2 + r*sin(theta)^2
         """
         if var is None:
-            if sage.symbolic.callable.is_CallableSymbolicExpressionRing(self.base_ring()):
-                return sage.calculus.all.jacobian(self, self.base_ring().arguments())
+            from sage.symbolic.callable import is_CallableSymbolicExpressionRing
+            from sage.calculus.all import jacobian
+            if is_CallableSymbolicExpressionRing(self.coordinate_ring()):
+                return jacobian(self, self.coordinate_ring().arguments())
             else:
                 raise ValueError("No differentiation variable specified.")
 
-        # We would just use apply_map, except that Cython doesn't
-        # allow lambda functions
-        if self._degree == 0:
-            from copy import copy
-            return copy(self)
-
-        if self.is_sparse():
-            v = dict([(i,z.derivative(var)) for i,z in self.dict().items()])
-        else:
-            v = [z.derivative(var) for z in self.list()]
-
-        return self.parent().ambient_module()(v)
+        return self.apply_map(lambda x: x.derivative(var))
 
     def derivative(self, *args):
         """
@@ -3412,16 +3834,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
 
         """
         from sage.misc.functional import integral
-
-        # If Cython supported lambda functions, we would just do
-        # return self.apply_map(lambda x: integral(x,*args, **kwds) for x in self)
-
-        if self.is_sparse():
-            v = dict([(i,integral(z,*args,**kwds)) for i,z in self.dict(copy=False).items()])
-        else:
-            v = [integral(z,*args,**kwds) for z in self.list()]
-
-        return vector(v,sparse=self.is_sparse())
+        return self.apply_map(lambda x: integral(x,*args, **kwds))
 
     integrate=integral
 
@@ -3440,15 +3853,15 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.333333333333, 0.459697694132)
+            (0.5, 0.3333333333333334, 0.4596976941318602)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
-            [(0.5, 5.551115123125784e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.103669643922841e-15, 21, 0)]
+            [(0.5, 5.55111512312578e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.10366964392284e-15, 21, 0)]
 
             sage: r=vector([t,0,1], sparse=True)
             sage: r.nintegral(t,0,1)
-            ((0.5, 0.0, 1.0), {0: (0.5, 5.551115123125784e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
+            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
 
         """
         # If Cython supported lambda functions, we would just do
@@ -3517,23 +3930,44 @@ def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable)
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
     A generic dense element of a free module.
+
+    TESTS::
+
+        sage: V = ZZ^3
+        sage: loads(dumps(V)) == V
+        True
+        sage: v = V.0
+        sage: loads(dumps(v)) == v
+        True
+        sage: v = (QQ['x']^3).0
+        sage: loads(dumps(v)) == v
+        True
+
+    ::
+
+        sage: v = vector([1,2/3,pi])
+        sage: v == v
+        True
+
+    ::
+
+        sage: v = vector(RR, [1,2/3,pi])
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
     """
-    ## these work fine on the command line but fail in doctests :-(
-##         TESTS:
-##             sage: V = ZZ^3
-##             sage: loads(dumps(V)) == V
-##             True
-##             sage: v = V.0
-##             sage: loads(dumps(v)) == v
-##             True
-##             sage: v = (QQ['x']^3).0
-##             sage: loads(dumps(v)) == v
-##             True
     cdef _new_c(self, object v):
-        # Create a new dense free module element with minimal overhead and
-        # no type checking.
-        cdef FreeModuleElement_generic_dense x
-        x = <FreeModuleElement_generic_dense>PY_NEW(<object>PY_TYPE(self))
+        """
+        Create a new dense free module element with minimal overhead and
+        no type checking.
+
+        INPUT:
+
+        - ``v`` -- a list which is used as the new entries (without
+          copying)
+        """
+        cdef type t = type(self)
+        cdef FreeModuleElement_generic_dense x = t.__new__(t)
         x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
@@ -3546,18 +3980,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     cdef bint is_sparse_c(self):
         return 0
 
-    def _hash(self):
-        """
-        Return hash of an immutable form of self (works even if self
-        is mutable).
-
-            sage: v = vector([-1,0,3,pi])
-            sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
-            sage: v._hash()   # random output
-        """
-        return hash(tuple(list(self)))
-
     def __copy__(self):
         """
         Return a copy of this generic dense vector.
@@ -3566,7 +3988,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -3585,12 +4007,48 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: type(vector([-1,0,3,pi]))   # indirect doctest
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            sage: type(vector(RR, [-1,0,2/3,pi,oo]))
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+
+        We can initialize with lists, tuples and derived types::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_dense
+            sage: FreeModuleElement_generic_dense(RR^5, [-1,0,2/3,pi,oo])
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^5, (-1,0,2/3,pi,oo))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^5, Sequence([-1,0,2/3,pi,oo]))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^0, 0)
+            ()
 
         TESTS:
 
-        Check that #11751 is fixed::
+        Disabling coercion can lead to illegal objects::
+
+            sage: FreeModuleElement_generic_dense(RR^5, [-1,0,2/3,pi,oo], coerce=False)
+            (-1, 0, 2/3, pi, +Infinity)
+
+        We test the ``copy`` flag::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_dense
+            sage: L = [RR(x) for x in (-1,0,2/3,pi,oo)]
+            sage: FreeModuleElement_generic_dense(RR^5, tuple(L), coerce=False, copy=False)
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: v = FreeModuleElement_generic_dense(RR^5, L, coerce=False, copy=False)
+            sage: L[4] = 42.0
+            sage: v  # last entry changed since we didn't copy
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, 42.0000000000000)
+
+        ::
+
+            sage: L = [RR(x) for x in (-1,0,2/3,pi,oo)]
+            sage: v = FreeModuleElement_generic_dense(RR^5, L, coerce=False, copy=True)
+            sage: L[4] = 42.0
+            sage: v  # last entry did not change
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+
+        Check that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = K^1
@@ -3603,7 +4061,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: N([1/x^2])
             Traceback (most recent call last):
             ...
-            TypeError: element (= [1/x^2]) is not in free module
+            TypeError: element [1/x^2] is not in free module
 
         ::
 
@@ -3616,28 +4074,29 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             Univariate Polynomial Ring in x over Rational Field
         """
         FreeModuleElement.__init__(self, parent)
-        R = self.parent().base_ring()
-        if entries == 0:
-            entries = [R(0)]*self.degree()
+        R = self.base_ring()
+        if not entries:
+            entries = [R.zero()]*self._degree
         else:
-            if not isinstance(entries, (list, tuple)):
-                raise TypeError("entries (=%s) must be a list"%(entries, ))
+            if type(entries) is not list:
+                if not isinstance(entries, (list, tuple)):
+                    raise TypeError("entries must be a list or tuple, not %s" % type(entries))
+                copy = True  # ensure we have a true Python list
 
-            if len(entries) != self.degree():
-                raise TypeError("entries must be a list of length %s"%\
-                            self.degree())
+            if len(entries) != self._degree:
+                raise TypeError("entries must be a list of length %s" % self.degree())
             if coerce:
-                if len(entries) != 0:
-                    coefficient_ring = parent.basis()[0][0].parent()
-                    try:
-                        entries = [coefficient_ring(x) for x in entries]
-                    except TypeError:
-                        raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
+                coefficient_ring = parent.coordinate_ring()
+                try:
+                    entries = [coefficient_ring(x) for x in entries]
+                except TypeError:
+                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
             elif copy:
-                # Make a copy
-                entries = list(entries)
+                entries = list(entries)  # make a copy/convert to list
         self._entries = entries
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef ModuleElement _add_(left, ModuleElement right):
         """
         Add left and right.
@@ -3648,14 +4107,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v._add_(w)
             (1/3, pi^2 + 2/3, pi + 1)
         """
-        cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
-        v = [None]*n
-        for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._add_(<RingElement>
-                                            ((<FreeModuleElement_generic_dense>right)._entries[i]))
+        cdef list a = left._entries
+        cdef list b = (<FreeModuleElement_generic_dense>right)._entries
+        v = [(<RingElement> a[i])._add_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef ModuleElement _sub_(left, ModuleElement right):
         """
         Subtract right from left.
@@ -3669,12 +4127,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: V.0 - W.0
             (1, -1, 0, 0, 0)
         """
-        cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
-        v = [None]*n
-        for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._sub_(<RingElement>
-                                            ((<FreeModuleElement_generic_dense>right)._entries[i]))
+        cdef list a = left._entries
+        cdef list b = (<FreeModuleElement_generic_dense>right)._entries
+        v = [(<RingElement> a[i])._sub_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
     cpdef ModuleElement _rmul_(self, RingElement left):
@@ -3707,24 +4162,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [x * right for x in self._entries]
         return self._new_c(v)
 
-    cpdef Element _dot_product_(left, element_Vector right):
-        """
-        Return the dot product of left and right.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
-            sage: v*w
-            x^3 + 5*x^2 + 9*x
-            sage: (x*2*x) + (x^2*x) + (3*x*(3+x))
-            x^3 + 5*x^2 + 9*x
-            sage: w*v
-            x^3 + 5*x^2 + 9*x
-        """
-        return left.dot_product(right)
-
-    cpdef element_Vector _pairwise_product_(left, element_Vector right):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef Vector _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -3735,14 +4175,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: w.pairwise_product(v)
             (2*x^2, x^3, 3*x^2 + 9*x)
         """
-        if not right.parent() == left.parent():
+        if not right._parent is left._parent:
             right = left.parent().ambient_module()(right)
-        # Component wise vector * vector multiplication.
-        cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
-        v = [None]*n
-        for i from 0 <= i < n:
-            v[i] = (<RingElement>left._entries[i])._mul_((<FreeModuleElement_generic_dense>right)._entries[i])
+        cdef list a = left._entries
+        cdef list b = (<FreeModuleElement_generic_dense>right)._entries
+        v = [(<RingElement> a[i])._mul_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
     def __reduce__(self):
@@ -3755,9 +4192,17 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
-    def __getitem__(self, i):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef get_unsafe(self, Py_ssize_t i):
         """
         EXAMPLES::
+
+            sage: v = vector(RR, [-1,0,2/3,pi])
+            sage: v.get(3)
+            3.14159265358979
+
+        ::
 
             sage: v = vector([RR(1), RR(2)]); v
             (1.00000000000000, 2.00000000000000)
@@ -3768,11 +4213,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[4]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
             sage: v[-4]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
+
+        ::
 
             sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
             sage: v
@@ -3780,58 +4227,21 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[1:]
             (2, x*y)
         """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), list(self)[start:stop:step])
-        else:
-            degree = self.degree()
-            if i < 0:
-                i += degree
-            if i < 0 or i >= self.degree():
-                raise IndexError("index must be between -%s and %s"%(degree, degree-1))
-            return self._entries[i]
+        return self._entries[i]
 
-    def __setitem__(self, i, value):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
-        Set entry i of self to value.
-
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi])
-            sage: v[1] = 19+pi
+            sage: v = vector(RR, [-1,0,2/3,pi])
+            sage: v.set(3, RR(1))
             sage: v
-            (1, pi + 19, pi)
-            sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
-            sage: v
-            (1, 2, x*y)
-            sage: v[1:]
-            (2, x*y)
-            sage: v[1:] = [4,5]; v
-            (1, 4, 5)
-            sage: v[:2] = [5,(6,2)]; v
-            (5, 3, 5)
-            sage: v[:2]
-            (5, 3)
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 1.00000000000000)
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, n, d
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self._entries[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0 or i >= self.degree():
-                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
-                                self.degree()-1))
-            self._entries[i] = self.base_ring()(value)
+        self._entries[i] = value
+
 
     def list(self, copy=True):
         """
@@ -3874,7 +4284,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2
@@ -3896,7 +4306,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v=vector([x,y,x*sin(y)])
             sage: w=v.function([x,y]); w
             (x, y) |--> (x, y, x*sin(y))
-            sage: w.base_ring()
+            sage: w.coordinate_ring()
             Callable function ring with arguments (x, y)
             sage: w(1,2)
             (1, 2, sin(2))
@@ -3911,8 +4321,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v=vector([x,y,x*sin(y)])
             sage: w=v.function([x]); w
             x |--> (x, y, x*sin(y))
-            sage: w.base_ring()
-            Callable function ring with arguments (x,)
+            sage: w.coordinate_ring()
+            Callable function ring with argument x
             sage: w(4)
             (4, y, 4*sin(y))
         """
@@ -3922,18 +4332,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 #############################################
 # Generic sparse element
 #############################################
-def _sparse_dot_product(v, w):
-    """
-    v and w are dictionaries with integer keys.
-
-    EXAMPLES::
-
-        sage: sage.modules.free_module_element._sparse_dot_product({0:5,1:7,2:3}, {0:-1, 2:2})
-        1
-    """
-    x = set(v.keys()).intersection(set(w.keys()))
-    return sum([v[k]*w[k] for k in x])
-
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     """
     EXAMPLES::
@@ -3970,7 +4368,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     A generic sparse free module element is a dictionary with keys ints
     i and entries in the base ring.
 
-    EXAMPLES:
+    TESTS::
+
+        sage: v = vector([1,2/3,pi], sparse=True)
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
 
     Pickling works::
 
@@ -3992,10 +4395,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         {2: -1}
     """
     cdef _new_c(self, object v):
-        # Create a new sparse free module element with minimal overhead and
-        # no type checking.
-        cdef FreeModuleElement_generic_sparse x
-        x = PY_NEW(FreeModuleElement_generic_sparse)
+        """
+        Create a new sparse free module element with minimal overhead and
+        no type checking.
+
+        INPUT:
+
+        - ``v`` -- a dict which is used as the new entries (without
+          copying)
+        """
+        cdef type t = type(self)
+        cdef FreeModuleElement_generic_sparse x = t.__new__(t)
         x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
@@ -4030,9 +4440,30 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.is_sparse()
             True
 
+        We can initialize with dicts, lists, tuples and derived types::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_sparse
+            sage: def S(R,n):
+            ....:     return FreeModule(R, n, sparse=True)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), {0:-1, 2:2/3, 3:pi, 4:oo})
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), [-1,0,2/3,pi,oo])
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), (-1,0,2/3,pi,oo))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), Sequence([-1,0,2/3,pi,oo]))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,0), 0)
+            ()
+            sage: from collections import defaultdict
+            sage: D = defaultdict(RR)
+            sage: D[0] = -1
+            sage: FreeModuleElement_generic_sparse(S(RR,5), D)
+            (-1.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000)
+
         TESTS:
 
-        Test that 11751 is fixed::
+        Test that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = FreeModule(K, 1, sparse=True)
@@ -4045,7 +4476,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: N({0:1/x^2})
             Traceback (most recent call last):
             ...
-            TypeError: element (= {0: 1/x^2}) is not in free module
+            TypeError: element {0: 1/x^2} is not in free module
 
         ::
 
@@ -4056,36 +4487,57 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: R = L.span([{0:x, 1:x^2}])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        Test that :trac:`17101` is fixed::
+
+            sage: v = vector([RIF(-1, 1)], sparse=True)
+            sage: v.is_zero()
+            False
+
+        We correctly initialize values which become 0 only after coercion::
+
+            sage: v = FreeModuleElement_generic_sparse(S(GF(3),6), [1,2,3,4,5,6])
+            sage: v.nonzero_positions()
+            [0, 1, 3, 4]
         """
-        #WARNING: In creation, we do not check that the i pairs satisfy
-        #     0 <= i < degree.
+        #WARNING: In creation, we do not check that the indices i satisfy
+        #     0 <= i < degree
+        # or even that the indices are integers.
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
-        if entries == 0:
+        cdef Py_ssize_t i
+        if not entries:
             entries = {}
         else:
-            if isinstance(entries, list):
-                if len(entries) != self.degree():
-                    raise TypeError("entries has the wrong length")
-                x = entries
-                entries = {}
-                for i in xrange(self.degree()):
-                    if x[i] != 0:
-                        entries[i] = x[i]
-                copy = False
-            if not isinstance(entries, dict):
-                raise TypeError, "entries must be a dict"
-            if copy:
-                # Make a copy
-                entries = dict(entries)
+            if type(entries) is not dict:
+                if isinstance(entries, dict):
+                    # Convert derived type to dict
+                    copy = True
+                elif isinstance(entries, (list, tuple)):
+                    if len(entries) != self._degree:
+                        raise TypeError("entries has the wrong length")
+                    e = entries
+                    entries = {}
+                    for i in range(self._degree):
+                        x = e[i]
+                        if x:
+                            entries[i] = x
+                    copy = False
+                else:
+                    raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
             if coerce:
-                if len(entries) != 0:
-                    coefficient_ring = parent.basis()[0][0].parent()
-                    try:
-                        for k, x in entries.iteritems():
-                            entries[k] = coefficient_ring(x)
-                    except TypeError:
-                        raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+                coefficient_ring = parent.coordinate_ring()
+                e = entries
+                entries = {}
+                try:
+                    for k, x in e.iteritems():
+                        x = coefficient_ring(x)
+                        if x:
+                            entries[k] = x
+                except TypeError:
+                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+            elif copy:
+                entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -4098,18 +4550,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._add_(v)
             (2, 4/3, 2*pi)
         """
-        cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        cdef dict v = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
-            if i in e:
-                sum = (<RingElement>a)._add_(<RingElement> e[i])
+            if i in v:
+                sum = (<RingElement>a)._add_(<RingElement> v[i])
                 if sum:
-                    e[i] = sum
+                    v[i] = sum
                 else:
-                    del e[i]
+                    del v[i]
             elif a:
-                e[i] = a
-        return left._new_c(e)
+                v[i] = a
+        return left._new_c(v)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
         """
@@ -4119,18 +4570,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._sub_(v)
             (0, 0, 0)
         """
-        cdef object v, e
-        e = dict(left._entries)   # dict to make a copy
+        cdef dict v = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
-            if i in e:
-                diff = (<RingElement> e[i])._sub_(<RingElement>a)
+            if i in v:
+                diff = (<RingElement> v[i])._sub_(<RingElement>a)
                 if diff:
-                    e[i] = diff
+                    v[i] = diff
                 else:
-                    del e[i]
+                    del v[i]
             elif a:
-                e[i] = -a
-        return left._new_c(e)
+                v[i] = -a
+        return left._new_c(v)
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
@@ -4140,8 +4590,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._lmul_(SR(3))
             (3, 2, 3*pi)
         """
-        cdef object v
-        v = PyDict_New()
+        cdef dict v = {}
         if right:
             for i, a in self._entries.iteritems():
                 prod = (<RingElement>a)._mul_(right)
@@ -4157,8 +4606,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._rmul_(SR(3))
             (3, 2, 3*pi)
         """
-        cdef object v
-        v = PyDict_New()
+        cdef dict v = {}
         if left:
             for i, a in self._entries.iteritems():
                 prod = left._mul_(a)
@@ -4166,7 +4614,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef Element _dot_product_(left, element_Vector right):
+    cpdef Element _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -4177,16 +4625,48 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             10
             sage: w * v
             10
+
+        Over different rings::
+
+            sage: R.<x> = ZZ[]
+            sage: v = vector(RDF, [0,1,2], sparse=True)
+            sage: w = vector(R, [x,0,0], sparse=True)
+            sage: p = v._dot_product_coerce_(w)
+            sage: p
+            0
+            sage: parent(p)
+            Univariate Polynomial Ring in x over Real Double Field
+
+        Zero-dimensional vectors also work correctly::
+
+            sage: v = vector(RDF, [], sparse=True)
+            sage: w = vector(R, [], sparse=True)
+            sage: parent(v._dot_product_coerce_(w))
+            Univariate Polynomial Ring in x over Real Double Field
+
+        TESTS:
+
+        Check that :trac:`19377` is fixed::
+
+            sage: w = vector(ZZ, (1,2,3), sparse=False)
+            sage: v = vector(ZZ, (1,2,3), sparse=True)
+            sage: v._dot_product_coerce_(w)
+            14
         """
-        cdef object v, e, z
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
-        z = left.base_ring()(0)
+        cdef dict e
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except TypeError:
+            e = right.dict()
+        z = left.base_ring().zero()
+        if left.base_ring() is not right.base_ring():
+            z *= right.base_ring().zero()
         for i, a in left._entries.iteritems():
             if i in e:
-                z += (<RingElement>a)._mul_(<RingElement> e[i])
+                z += a * e[i]
         return z
 
-    cpdef element_Vector _pairwise_product_(left, element_Vector right):
+    cpdef Vector _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -4195,9 +4675,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             (-2/3, 2/3*pi^2, pi)
         """
         # Component wise vector * vector multiplication.
-        cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
-        v = PyDict_New()
+        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict v = {}
         for i, a in left._entries.iteritems():
             if i in e:
                 prod = (<RingElement>a)._mul_(<RingElement> e[i])
@@ -4205,7 +4684,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare two sparse free module elements.
 
@@ -4240,29 +4719,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         return cmp(a, b)
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
     def iteritems(self):
         """
         Return iterator over the entries of self.
@@ -4287,94 +4743,95 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
+    @cython.cdivision(True)
     def __getitem__(self, i):
         """
         EXAMPLES::
 
-            sage: v = vector([RR(1), RR(2)], sparse=True); v
-            (1.00000000000000, 2.00000000000000)
-            sage: v[0]
+            sage: v = vector(RR, range(6), sparse=True); v
+            (0.000000000000000, 1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000, 5.00000000000000)
+            sage: v[1]
             1.00000000000000
             sage: v[-1]
-            2.00000000000000
-            sage: v[5]
+            5.00000000000000
+            sage: v[9]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
-            sage: v[-3]
+            IndexError: vector index out of range
+            sage: v[-7]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between -2 and 1
+            IndexError: vector index out of range
+            sage: v[::2]
+            (0.000000000000000, 2.00000000000000, 4.00000000000000)
+            sage: v[5:2:-1]
+            (5.00000000000000, 4.00000000000000, 3.00000000000000)
+
+        All these operations with zero vectors should be very fast::
+
+            sage: v = vector(RR, 10^9, sparse=True)
+            sage: v[123456789]
+            0.000000000000000
+            sage: w = v[::-1]
+            sage: v[::-250000000]
+            (0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000)
+            sage: v[123456789:123456798:3]
+            (0.000000000000000, 0.000000000000000, 0.000000000000000)
         """
+        cdef Py_ssize_t d = self._degree
+        cdef Py_ssize_t start, stop, step, slicelength
+        cdef Py_ssize_t min, max, mod
+        cdef Py_ssize_t k, n
+        cdef dict newentries
         if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-        else:
-            i = int(i)
-            degree = self.degree()
-            if i < 0:
-                i += degree
-            if i < 0 or i >= degree:
-                raise IndexError("index must be between %s and %s"%(-degree,
-                                degree-1))
-            if i in self._entries:
-                return self._entries[i]
-            return self.base_ring()(0)  # optimize this somehow
+            PySlice_GetIndicesEx(i, d, &start, &stop, &step, &slicelength)
+            if step > 0:
+                min = start
+                max = stop-1
+            else:
+                min = stop+1
+                max = start
+            mod = start % step
+            # Loop over the old dict and convert old index n to new
+            # index k in slice
+            newentries = {}
+            for n, x in self._entries.iteritems():
+                if min <= n <= max and n % step == mod:
+                    k = (n - start) // step
+                    newentries[k] = x
+            from free_module import FreeModule
+            M = FreeModule(self.coordinate_ring(), slicelength, sparse=True)
+            return M(newentries, coerce=False, copy=False)
 
-    def get(self, i):
+        n = i
+        if n < 0:
+            n += d
+        if n < 0 or n >= d:
+            raise IndexError("vector index out of range")
+        return self.get_unsafe(n)
+
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        Like __getitem__ but with no guaranteed type or bounds checking. Returns 0
-        if access is out of bounds.
-
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v = vector([-1,0,2/3,pi], sparse=True)
             sage: v.get(1)
+            0
+            sage: v.get(2)
             2/3
+
+        For this class, 0 is returned if the access is out of bounds::
+
             sage: v.get(10)
             0
         """
-        i = int(i)
-        if i in self._entries:
+        try:
             return self._entries[i]
-        return self.base_ring()(0)  # optimize this somehow
+        except KeyError:
+            return self.coordinate_ring().zero()
 
-
-    def set(self, i, x):
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
-        Like __setitem__ but with no guaranteed type or bounds checking.
-
-        EXAMPLES::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set(1, pi^3)
-            sage: v
-            (1, pi^3, pi)
-
-        No bounds checking::
-
-            sage: v.set(10, pi)
-
-        This lack of bounds checking causes trouble later::
-
-            sage: v
-            Traceback (most recent call last):
-            ...
-            IndexError: list assignment index out of range
-        """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        i = int(i)
-        if x == 0:
-            if i in self._entries:
-                del self._entries[i]
-            return
-        self._entries[i] = x
-
-    def __setitem__(self, i, value):
-        """
-        Set the `i`-th entry or slice of self to value.
-
         EXAMPLES::
 
             sage: V = VectorSpace(GF(17), 10000000, sparse=True)
@@ -4389,28 +4846,32 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sqrt(2)) to an integer
+            TypeError: unable to convert sqrt(2) to an integer
+
+        ::
+
+            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: v.set(1, pi^3)
+            sage: v
+            (1, pi^3, pi)
+            sage: v.set(2, SR(0))
+            sage: v
+            (1, pi^3, 0)
+
+        This assignment is illegal::
+
+            sage: v.set(10, pi)
+
+        This lack of bounds checking causes trouble later::
+
+            sage: v
+            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
+        if value:
+            self._entries[i] = value
         else:
-            i = int(i)
-            if i < 0 or i >= self.degree():
-                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
-                                self.degree()-1))
-            self.set(i, self._parent.base_ring()(value))
+            self._entries.pop(i, None)
+
 
     def denominator(self):
         """
@@ -4423,59 +4884,76 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.denominator()
             70
         """
-        R = self.base_ring()
-        x = self._entries
-        if len(x) == 0:
-            return 1
-        Z = x.iteritems()
-        d = Z.next()[1].denominator()
-        for _, y in Z:
+        # It may be that the coordinates do not have a denominator
+        # (but if one coordinate has it, they all should have it)
+        d = self.coordinate_ring().one()
+        try:
+            d = d.denominator()
+        except AttributeError:
+            return d
+        for y in self._entries.itervalues():
             d = d.lcm(y.denominator())
         return d
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
         """
         if copy:
             return dict(self._entries)
         else:
             return self._entries
 
+    monomial_coefficients = dict
+
     def list(self, copy=True):
         """
-        Return list of elements of self.
+        Return list of elements of ``self``.
 
         INPUT:
 
-            - copy -- bool, return list of underlying entries
+        - ``copy`` -- ignored for sparse vectors
 
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi], sparse=True)
+            sage: R.<x> = QQ[]
+            sage: M = FreeModule(R, 3, sparse=True) * (1/x)
+            sage: v = M([-x^2, 3/x, 0])
             sage: type(v)
             <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
-            sage: a = v.list(); a
-            [1, 2/3, pi]
+            sage: a = v.list()
+            sage: a
+            [-x^2, 3/x, 0]
+            sage: [parent(c) for c in a]
+            [Fraction Field of Univariate Polynomial Ring in x over Rational Field,
+             Fraction Field of Univariate Polynomial Ring in x over Rational Field,
+             Fraction Field of Univariate Polynomial Ring in x over Rational Field]
         """
-        cdef Py_ssize_t n
-        n = self._parent.degree()
-        z = self._parent.base_ring()(0)
-        v = [z]*n
+        z = self._parent.coordinate_ring().zero()
+        cdef list v = [z] * self._degree
         for i, a in self._entries.iteritems():
             v[i] = a
         return v

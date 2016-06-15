@@ -155,8 +155,8 @@ class GenericCombinatorialSpecies(SageObject):
         of the data needed to create this object during the unpickling
         process. It returns an (\*args, \*\*kwds) tuple which is to be
         passed into the constructor for the class of this species. Any
-        subclass should define a _state_info list for any arguments which
-        need to be passed in in the constructor.
+        subclass should define a ``_state_info`` list for any arguments which
+        need to be passed in the constructor.
 
         EXAMPLES::
 

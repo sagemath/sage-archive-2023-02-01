@@ -114,14 +114,14 @@ comme dans :
 ::
 
     sage: def is_even(n):
-    ...       return n%2 == 0
+    ....:     return n%2 == 0
     sage: is_even(2)
     True
     sage: is_even(3)
     False
 
 Remarque : suivant la version du *notebook* que vous utilisez, il est
-possible que vous voyez trois points ``...`` au début de la deuxième
+possible que vous voyez trois points ``....:`` au début de la deuxième
 ligne de l'exemple. Ne les entrez pas, ils servent uniquement à signaler
 que le code est indenté.
 
@@ -134,7 +134,7 @@ la valeur par défaut ``divisor=2`` est utilisée.
 ::
 
     sage: def is_divisible_by(number, divisor=2):
-    ...       return number%divisor == 0
+    ....:     return number%divisor == 0
     sage: is_divisible_by(6,2)
     True
     sage: is_divisible_by(6)
@@ -168,11 +168,11 @@ précédentes.
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...      return v
+    ....:     v = []
+    ....:     for i in range(3,n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:    return v
     Syntax Error:
            return v
 
@@ -181,11 +181,11 @@ Une fois l'indentation corrigée, l'exemple fonctionne :
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...       return v
+    ....:     v = []
+    ....:     for i in range(3,n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:     return v
     sage: even(10)
     [4, 6, 8]
 
@@ -205,7 +205,7 @@ oblique inverse en fin de ligne :
 ::
 
     sage: 2 + \
-    ...      3
+    ....:    3
     5
 
 Pour compter en Sage, utilisez une boucle dont la variable d'itération
@@ -216,7 +216,7 @@ ou en Java :
 ::
 
     sage: for i in range(3):
-    ...       print i
+    ....:     print(i)
     0
     1
     2
@@ -226,7 +226,7 @@ La première ligne ci-dessous correspond à ``for(i=2;i<5;i++)``.
 ::
 
     sage: for i in range(2,5):
-    ...       print i
+    ....:     print(i)
     2
     3
     4
@@ -237,7 +237,7 @@ suit est équivalent à ``for(i=1;i<6;i+=2)``.
 ::
 
     sage: for i in range(1,6,2):
-    ...       print i
+    ....:     print(i)
     1
     3
     5
@@ -250,7 +250,7 @@ et des cubes en trois colonnes, chacune d'une largeur de six caractères.
 ::
 
     sage: for i in range(5):
-    ...       print '%6s %6s %6s'%(i, i^2, i^3)
+    ....:     print('%6s %6s %6s' % (i, i^2, i^3))
          0      0      0
          1      1      1
          2      4      8
@@ -287,7 +287,7 @@ indexées à partir de 0.
     sage: v[3]
     sin(x^3)
 
-La fonction ``len(v)`` donne la longueur de ``v`` ; ``v.append(obj)``
+La fonction ``len(v)`` donne la longueur de ``v``....:``v.append(obj)``
 ajoute un nouvel objet à la fin de ``v`` ; et ``del v[i]`` supprime
 l'élément d'indice ``i`` de ``v``.
 
@@ -327,11 +327,11 @@ qui représente la liste des entiers impairs strictement positifs jusqu'à
 ::
 
     sage: class Evens(list):
-    ...       def __init__(self, n):
-    ...           self.n = n
-    ...           list.__init__(self, range(2, n+1, 2))
-    ...       def __repr__(self):
-    ...           return "Even positive numbers up to n."
+    ....:     def __init__(self, n):
+    ....:         self.n = n
+    ....:         list.__init__(self, range(2, n+1, 2))
+    ....:     def __repr__(self):
+    ....:         return "Even positive numbers up to n."
 
 La méthode ``__init__`` est appelée à la création de l'objet pour
 l'initialiser ; la méthode ``__repr__`` affiche l'objet. À la seconde

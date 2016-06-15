@@ -69,6 +69,30 @@ class MagmaticAlgebras(Category_over_base_ring):
         # might want the infrastructure to take this join for us.
         return Category.join([(Magmas() & AdditiveMagmas()).Distributive(), Modules(R)], as_list=True)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of (magmatic) algebras defines no new
+        structure: a morphism of modules and of magmas between two
+        (magmatic) algebras is a (magmatic) algebra morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO::
+
+            This category should be a
+            :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`,
+            the axiom specifying the compability between the magma and
+            module structure.
+
+        EXAMPLES::
+
+            sage: from sage.categories.magmatic_algebras import MagmaticAlgebras
+            sage: MagmaticAlgebras(ZZ).additional_structure()
+        """
+        return None
+
     Associative = LazyImport('sage.categories.associative_algebras', 'AssociativeAlgebras', at_startup=True)
     Unital = LazyImport('sage.categories.unital_algebras', 'UnitalAlgebras', at_startup=True)
 
@@ -90,6 +114,34 @@ class MagmaticAlgebras(Category_over_base_ring):
     class WithBasis(CategoryWithAxiom_over_base_ring):
 
         class ParentMethods:
+
+            def algebra_generators(self):
+                r"""
+                Return generators for this algebra.
+
+                This default implementation returns the basis of this algebra.
+
+                OUTPUT: a family
+
+                .. SEEALSO::
+
+                    - :meth:`~sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.basis`
+                    - :meth:`MagmaticAlgebras.ParentMethods.algebra_generators`
+
+                EXAMPLES::
+
+                    sage: D4 = DescentAlgebra(QQ, 4).B()
+                    sage: D4.algebra_generators()
+                    Lazy family (...)_{i in Compositions of 4}
+
+                    sage: R.<x> = ZZ[]
+                    sage: P = PartitionAlgebra(1, x, R)
+                    sage: P.algebra_generators()
+                    Lazy family (Term map from Partition diagrams of order 1 to
+                     Partition Algebra of rank 1 with parameter x over Univariate Polynomial Ring in x
+                     over Integer Ring(i))_{i in Partition diagrams of order 1} 
+                """
+                return self.basis()
 
             @abstract_method(optional = True)
             def product_on_basis(self, i, j):

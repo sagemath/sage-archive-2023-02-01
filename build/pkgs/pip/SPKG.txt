@@ -10,10 +10,6 @@ easy_install.
 
 MIT
 
-== SPKG Maintainers ==
-
-* Vincent Delecroix
-
 == Upstream Contact ==
 
 Project Page: https://github.com/pypa/pip
@@ -26,3 +22,5 @@ Docs: https://pip.pypa.io/
 == Dependencies ==
 
 * python
+* setuptools
+

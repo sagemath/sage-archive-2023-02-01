@@ -1005,7 +1005,11 @@ class EllipticEU(BuiltinFunction):
             sage: elliptic_eu(x,m).diff(x)
             sqrt(-m*jacobi_sn(x, m)^2 + 1)*jacobi_dn(x, m)
             sage: elliptic_eu(x,m).diff(m)
-            1/2*(elliptic_eu(x, m) - elliptic_f(jacobi_am(x, m), m))/m - 1/2*(m*jacobi_cn(x, m)*jacobi_sn(x, m) - (m - 1)*x - elliptic_eu(x, m)*jacobi_dn(x, m))*sqrt(-m*jacobi_sn(x, m)^2 + 1)/((m - 1)*m)
+            1/2*(elliptic_eu(x, m)
+             - elliptic_f(jacobi_am(x, m), m))/m
+             - 1/2*(m*jacobi_cn(x, m)*jacobi_sn(x, m)
+             - (m - 1)*x
+             - elliptic_eu(x, m)*jacobi_dn(x, m))*sqrt(-m*jacobi_sn(x, m)^2 + 1)/((m - 1)*m)
         """
         from sage.functions.jacobi import jacobi, jacobi_am
         if diff_param == 0:
@@ -1143,7 +1147,9 @@ class EllipticF(BuiltinFunction):
             sage: elliptic_f(x,m).diff(x)
             1/sqrt(-m*sin(x)^2 + 1)
             sage: elliptic_f(x,m).diff(m)
-            -1/2*elliptic_f(x, m)/m + 1/4*sin(2*x)/(sqrt(-m*sin(x)^2 + 1)*(m - 1)) - 1/2*elliptic_e(x, m)/((m - 1)*m)
+            -1/2*elliptic_f(x, m)/m
+            + 1/4*sin(2*x)/(sqrt(-m*sin(x)^2 + 1)*(m - 1))
+            - 1/2*elliptic_e(x, m)/((m - 1)*m)
         """
         if diff_param == 0:
             return Integer(1) / sqrt(Integer(1) - m * sin(z) ** Integer(2))
@@ -1238,7 +1244,8 @@ class EllipticKC(BuiltinFunction):
         EXAMPLES::
 
             sage: elliptic_kc(x).diff(x)
-            -1/2*((x - 1)*elliptic_kc(x) + elliptic_ec(x))/((x - 1)*x)
+            -1/2*((x - 1)*elliptic_kc(x)
+            + elliptic_ec(x))/((x - 1)*x)
         """
         return ((elliptic_ec(z) - (Integer(1) - z) * elliptic_kc(z)) /
                 (Integer(2) * (Integer(1) - z) * z))
@@ -1327,11 +1334,16 @@ class EllipticPi(BuiltinFunction):
 
             sage: n,z,m = var('n,z,m')
             sage: elliptic_pi(n,z,m).diff(n)
-            1/4*(sqrt(-m*sin(z)^2 + 1)*n*sin(2*z)/(n*sin(z)^2 - 1) + 2*(m - n)*elliptic_f(z, m)/n + 2*(n^2 - m)*elliptic_pi(n, z, m)/n + 2*elliptic_e(z, m))/((m - n)*(n - 1))
+            1/4*(sqrt(-m*sin(z)^2 + 1)*n*sin(2*z)/(n*sin(z)^2 - 1)
+            + 2*(m - n)*elliptic_f(z, m)/n
+            + 2*(n^2 - m)*elliptic_pi(n, z, m)/n
+            + 2*elliptic_e(z, m))/((m - n)*(n - 1))
             sage: elliptic_pi(n,z,m).diff(z)
             -1/(sqrt(-m*sin(z)^2 + 1)*(n*sin(z)^2 - 1))
             sage: elliptic_pi(n,z,m).diff(m)
-            1/4*(m*sin(2*z)/(sqrt(-m*sin(z)^2 + 1)*(m - 1)) - 2*elliptic_e(z, m)/(m - 1) - 2*elliptic_pi(n, z, m))/(m - n)
+            1/4*(m*sin(2*z)/(sqrt(-m*sin(z)^2 + 1)*(m - 1))
+            - 2*elliptic_e(z, m)/(m - 1)
+            - 2*elliptic_pi(n, z, m))/(m - n)
         """
         if diff_param == 0:
             return ((Integer(1) / (Integer(2) * (m - n) * (n - Integer(1)))) *

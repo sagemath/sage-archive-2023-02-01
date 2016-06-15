@@ -856,7 +856,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return A
 
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over `\Z/n\Z`
 
@@ -900,7 +900,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Subtract two dense matrices over `\Z/n\Z`
 

@@ -778,7 +778,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Arithmetic                                                              #
     ###########################################################################
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Returns the sum of two rational polynomials.
 
@@ -806,7 +806,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Returns the difference of two rational polynomials.
 
@@ -988,7 +988,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return d, s, t
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of self and right.
 

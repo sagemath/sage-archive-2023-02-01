@@ -261,7 +261,7 @@ cdef class LinearTensor(ModuleElement):
             s += ']'
         return s
 
-    cpdef _add_(self, ModuleElement b):
+    cpdef _add_(self, b):
         r"""
         Return sum.
 
@@ -305,7 +305,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = -coeff
         return self.parent()(result)
 
-    cpdef _sub_(self, ModuleElement b):
+    cpdef _sub_(self, b):
         r"""
         Return difference.
 

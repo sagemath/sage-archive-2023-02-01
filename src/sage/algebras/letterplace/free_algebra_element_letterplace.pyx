@@ -484,7 +484,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         """
         return FreeAlgebraElement_letterplace(self._parent,-self._poly,check=False)
-    cpdef _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Addition, under the side condition that either one summand
         is zero, or both summands have the same degree.
@@ -517,7 +517,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly+right._poly,check=False)
 
-    cpdef _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Difference, under the side condition that either one summand
         is zero or both have the same weighted degree.
@@ -584,7 +584,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._rmul_(left),check=False)
 
-    cpdef _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Product of two free algebra elements in letterplace implementation.
 

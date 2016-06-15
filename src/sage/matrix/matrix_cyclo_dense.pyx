@@ -469,7 +469,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return the sum of two dense cyclotomic matrices.
 
@@ -497,7 +497,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix + (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return the difference of two dense cyclotomic matrices.
 

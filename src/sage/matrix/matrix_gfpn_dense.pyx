@@ -1042,7 +1042,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         memcpy(MatGetPtr(OUT.Data, self.Data.Nor), other.Data.Data, FfCurrentRowSize*other.Data.Nor)
         return OUT
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         TESTS::
 
@@ -1066,7 +1066,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         MatAdd(Left.Data, Right.Data)
         return Left
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         TESTS::
 

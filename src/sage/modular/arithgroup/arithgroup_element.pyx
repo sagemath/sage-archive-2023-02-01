@@ -202,7 +202,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return True
 
-    cpdef _mul_(self, MonoidElement right):
+    cpdef _mul_(self, right):
         """
         Return self * right.
 

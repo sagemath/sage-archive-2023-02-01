@@ -271,7 +271,7 @@ cdef class Vector_double_dense(FreeModuleElement):
                                                 numpy.PyArray_GETPTR1(self._vector_numpy, i)))
 
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two vectors together.
 
@@ -291,7 +291,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy + _right._vector_numpy)
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return self - right
 

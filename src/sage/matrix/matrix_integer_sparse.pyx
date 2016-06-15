@@ -175,7 +175,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -206,7 +206,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
         return M
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -221,7 +221,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_clear(mul)
         return M
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row

@@ -242,7 +242,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
-    cpdef _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()
@@ -253,7 +253,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return z
 
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Vector_rational_dense z, r
         r = right
         z = self._new_c()

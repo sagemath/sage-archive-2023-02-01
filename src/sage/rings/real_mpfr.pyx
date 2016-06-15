@@ -2194,7 +2194,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     #   Basic Arithmetic
     ########################
 
-    cpdef _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real numbers with the same parent.
 
@@ -2223,7 +2223,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent(1) / self
 
-    cpdef _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -2253,7 +2253,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         import sympy
         return sympy.simplify(float(self))
 
-    cpdef _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -2286,7 +2286,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
 
-    cpdef _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by other, where both are real numbers with the same
         parent.

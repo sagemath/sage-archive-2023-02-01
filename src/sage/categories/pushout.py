@@ -2838,14 +2838,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F == loads(dumps(F))
             True
         """
-        c = cmp(type(self), type(other))
-        if c == 0:
-            c = cmp(self.polys, other.polys)
-        if c == 0:
-            c = cmp(self.embeddings, other.embeddings)
-        if c == 0:
-            c = cmp(self.structures, other.structures)
-        return c
+        return (cmp(type(self), type(other))
+                or cmp((self.polys, self.embeddings, self.structures),
+                       (other.polys, other.embeddings, other.structures)))
 
     def merge(self,other):
         """

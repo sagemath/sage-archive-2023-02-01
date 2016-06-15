@@ -81,6 +81,28 @@ def setup_glpk_error_handler():
         ...
         GLPKError: glp_term_out: flag = 12345; invalid parameter
         Error detected in file env/stdout.c at line ...
+
+    Check that normal terminal output still works, see :trac:`20832`::
+
+        sage: def verbose_GLPK():
+        ....:     from sage.numerical.backends.generic_backend import get_solver
+        ....:     s = get_solver(solver = "GLPK")
+        ....:     s.set_verbosity(2)
+        ....:     return s
+        sage: p = MixedIntegerLinearProgram(solver=verbose_GLPK)
+        sage: x, y = p['x'], p['y']
+        sage: p.add_constraint(2*x + 3*y <= 6)
+        sage: p.add_constraint(3*x + 2*y <= 6)
+        sage: p.add_constraint(x >= 0)
+        sage: p.set_objective(x + y)
+        sage: p.solve()
+              0: obj =   3.000000000e+00  infeas =  3.000e+00 (0)
+        *     1: obj =   2.000000000e+00  infeas =  0.000e+00 (0)
+        *     2: obj =   2.400000000e+00  infeas =  0.000e+00 (0)
+        +     2: mip =     not found yet <=              +inf        (1; 0)
+        +     2: >>>>>   2.400000000e+00 <=   2.400000000e+00   0.0% (1; 0)
+        +     2: mip =   2.400000000e+00 <=     tree is empty   0.0% (0; 1)
+        2.4
     """
     glp_term_hook(sage_glpk_term_hook, NULL)
     glp_error_hook(sage_glpk_error_hook, NULL)

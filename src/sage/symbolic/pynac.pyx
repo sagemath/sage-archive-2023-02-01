@@ -1806,10 +1806,10 @@ cdef object py_lgamma(object x) except +:
         sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
         sage: py_lgamma(4)
         1.79175946922805
-        sage: py_lgamma(4.r)  # abs tol 2e-16
-        1.7917594692280552
-        sage: py_lgamma(4r)  # abs tol 2e-16
-        1.7917594692280552
+        sage: py_lgamma(4.r)  # abs tol 2e-14
+        1.79175946922805
+        sage: py_lgamma(4r)  # abs tol 2e-14
+        1.79175946922805
         sage: py_lgamma(CC.0)
         -0.650923199301856 - 1.87243664726243*I
         sage: py_lgamma(ComplexField(100).0)
@@ -1817,24 +1817,14 @@ cdef object py_lgamma(object x) except +:
     """
     from mpmath import loggamma
 
-    if type(x) is int or type(x) is long:
-        x = float(x)
-    if type(x) is float:
-        if x >= 0:
-            return loggamma(PyFloat_AS_DOUBLE(x))
-        else:
-            return complex(loggamma(x))
-    elif isinstance(x, Integer):
-        return x.gamma().log().n()
-
-    # try / except blocks are faster than
-    # if hasattr(x, 'log_gamma')
     try:
         return x.log_gamma()
     except AttributeError:
         pass
-
-    return mpmath_utils.call(loggamma, x, parent=parent_c(x))
+    try:
+        return RR(x).log_gamma()
+    except TypeError:
+        return mpmath_utils.call(loggamma, x, parent=parent_c(x))
 
 def py_lgamma_for_doctests(x):
     """

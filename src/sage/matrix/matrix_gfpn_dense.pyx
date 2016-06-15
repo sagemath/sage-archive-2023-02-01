@@ -1042,7 +1042,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         memcpy(MatGetPtr(OUT.Data, self.Data.Nor), other.Data.Data, FfCurrentRowSize*other.Data.Nor)
         return OUT
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         """
         TESTS::
 
@@ -1066,7 +1066,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         MatAdd(Left.Data, Right.Data)
         return Left
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         """
         TESTS::
 
@@ -1113,7 +1113,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         return self._rmul_(self._base_ring(-1))
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -1136,7 +1136,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(left)))
         return OUT
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -1232,8 +1232,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         sig_off()
         return OUT
 
-    cdef ModuleElement _mul_long(self, long n):
-        "multiply an MTX matrix with a field element represented by an integer"
+    cdef _mul_long(self, long n):
+        """
+        Multiply an MTX matrix with a field element represented by an integer
+        """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
         cdef Matrix_gfpn_dense left

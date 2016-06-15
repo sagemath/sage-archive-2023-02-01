@@ -329,7 +329,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # x  * _dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement _other):
+    cpdef _add_(self, ModuleElement _other):
         """
         EXAMPLES::
 

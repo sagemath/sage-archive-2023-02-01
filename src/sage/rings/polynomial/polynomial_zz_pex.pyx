@@ -193,7 +193,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         K = self._parent.base_ring()
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLE::
             sage: K.<a>=GF(next_prime(2**60)**3)

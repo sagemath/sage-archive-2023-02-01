@@ -261,7 +261,7 @@ cdef class LinearTensor(ModuleElement):
             s += ']'
         return s
 
-    cpdef ModuleElement _add_(self, ModuleElement b):
+    cpdef _add_(self, ModuleElement b):
         r"""
         Return sum.
 
@@ -285,7 +285,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) + coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the negative.
 
@@ -305,7 +305,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = -coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _sub_(self, ModuleElement b):
+    cpdef _sub_(self, ModuleElement b):
         r"""
         Return difference.
 
@@ -331,7 +331,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
-    cpdef ModuleElement _rmul_(self, RingElement b):
+    cpdef _rmul_(self, RingElement b):
         r"""
         Return right multiplication by scalar.
 

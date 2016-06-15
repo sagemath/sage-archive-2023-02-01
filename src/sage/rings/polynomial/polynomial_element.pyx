@@ -251,7 +251,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                   v[i] = z
           return v
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         r"""
         Add two polynomials.
 
@@ -280,7 +280,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         low = [x[i] + y[i] for i in range(min)]
         return self._parent(low + high)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         return self._parent([-x for x in self.list()])
 
     cpdef bint is_zero(self):
@@ -364,7 +364,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError("plotting of polynomials over %s not implemented"%R)
 
-    cpdef ModuleElement _lmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         Multiply self on the left by a scalar.
 
@@ -384,7 +384,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent().zero()
         return self.parent()(left) * self
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef _rmul_(self, RingElement right):
         """
         Multiply self on the right by a scalar.
 
@@ -1483,7 +1483,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError("cannot coerce nonconstant polynomial to long")
         return long(self[0])
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -2364,7 +2364,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise IndexError("polynomials are immutable")
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Quotient of division of self by other. This is denoted //.
 
@@ -8941,7 +8941,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         res.__normalize()
         return res
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         r"""
         Add two polynomials.
 
@@ -8972,7 +8972,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
         x = (<Polynomial_generic_dense>self).__coeffs
@@ -8993,7 +8993,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
@@ -9005,7 +9005,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         res.__normalize()
         return res
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:

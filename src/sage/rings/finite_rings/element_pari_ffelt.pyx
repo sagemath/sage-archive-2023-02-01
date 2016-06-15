@@ -443,7 +443,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sig_off()
         return r
 
-    cpdef ModuleElement _add_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
+    cpdef _add_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
         """
         Addition.
 
@@ -459,7 +459,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
 
-    cpdef ModuleElement _sub_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
+    cpdef _sub_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
         """
         Subtraction.
 
@@ -475,7 +475,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
 
-    cpdef RingElement _mul_(FiniteFieldElement_pari_ffelt self, RingElement right):
+    cpdef _mul_(FiniteFieldElement_pari_ffelt self, RingElement right):
         """
         Multiplication.
 
@@ -491,7 +491,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                            (<FiniteFieldElement_pari_ffelt>right).val))
         return x
 
-    cpdef RingElement _div_(FiniteFieldElement_pari_ffelt self, RingElement right):
+    cpdef _div_(FiniteFieldElement_pari_ffelt self, RingElement right):
         """
         Division.
 

@@ -2822,7 +2822,7 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             return self._parent._coerce_(z)
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, ModuleElement right):
         """
         Add left and right.
 
@@ -2917,7 +2917,7 @@ cdef class Expression(CommutativeRingElement):
             x = gadd(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, ModuleElement right):
         """
         EXAMPLES::
 
@@ -2969,7 +2969,7 @@ cdef class Expression(CommutativeRingElement):
             x = gsub(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef RingElement _mul_(left, RingElement right):
+    cpdef _mul_(left, RingElement right):
         """
         Multiply left and right.
 
@@ -3202,7 +3202,7 @@ cdef class Expression(CommutativeRingElement):
             x = gmul(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, RingElement right):
         """
         Divide left and right.
 

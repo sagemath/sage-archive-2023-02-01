@@ -324,7 +324,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -342,7 +342,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, ModuleElement right):
         """
         Add two dense matrices over QQ.
 
@@ -377,7 +377,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, ModuleElement right):
         """
         Subtract two dense matrices over QQ.
 
@@ -427,7 +427,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         return 1
         return 0
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 

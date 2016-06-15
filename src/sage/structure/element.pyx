@@ -1309,7 +1309,7 @@ cdef class ModuleElement(Element):
             return (<ModuleElement>left)._add_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, add)
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, ModuleElement right):
         raise TypeError(arith_error_message(left, right, add))
 
     def __iadd__(ModuleElement self, right):
@@ -1330,7 +1330,7 @@ cdef class ModuleElement(Element):
             return (<ModuleElement>left)._sub_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, sub)
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, ModuleElement right):
         # default implementation is to use the negation and addition
         # dispatchers:
         return left._add_(-right)
@@ -1352,7 +1352,7 @@ cdef class ModuleElement(Element):
         """
         return self._neg_()
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         # default implementation is to try multiplying by -1.
         if self._parent._base is None:
             return coercion_model.bin_op(-1, self, mul)
@@ -1377,7 +1377,7 @@ cdef class ModuleElement(Element):
         return coercion_model.bin_op(left, right, imul)
 
     # rmul -- left * self
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1389,7 +1389,7 @@ cdef class ModuleElement(Element):
 
     # lmul -- self * right
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1399,7 +1399,7 @@ cdef class ModuleElement(Element):
         """
         return None
 
-    cdef ModuleElement _mul_long(self, long n):
+    cdef _mul_long(self, long n):
         """
         Generic path for multiplying by a C long, assumed to commute.
         """
@@ -1463,7 +1463,7 @@ cdef class MonoidElement(Element):
             raise
 
 
-    cpdef MonoidElement _mul_(left, MonoidElement right):
+    cpdef _mul_(left, MonoidElement right):
         """
         Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
@@ -1538,10 +1538,10 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError("multiplicative inverse not defined for additive group elements")
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         return self._lmul_(left)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Default module left scalar multiplication, which is to try to
         canonically coerce the scalar to the integers and do that
@@ -1599,7 +1599,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
             return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
         return coercion_model.bin_op(left, right, div)
 
-    cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right):
+    cpdef _div_(self, MultiplicativeGroupElement right):
         """
         Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
@@ -1644,7 +1644,7 @@ cdef class RingElement(ModuleElement):
             return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, add)
 
-    cdef RingElement _add_long(self, long n):
+    cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
         """
@@ -1670,11 +1670,11 @@ cdef class RingElement(ModuleElement):
     # Multiplication
     ##################################
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         # We return None to invoke the default action of coercing into self
         return None
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         # We return None to invoke the default action of coercing into self
         return None
 
@@ -1798,7 +1798,7 @@ cdef class RingElement(ModuleElement):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, mul)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, RingElement right):
         """
         Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
@@ -1952,7 +1952,7 @@ cdef class RingElement(ModuleElement):
             return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, div)
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, RingElement right):
         """
         Cython classes should override this function to implement division.
         See extensive documentation at the top of element.pyx.
@@ -1998,7 +1998,7 @@ cdef class RingElement(ModuleElement):
             return (<RingElement>self)._floordiv_(<RingElement>right)
         return coercion_model.bin_op(self, right, floordiv)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Cython classes should override this function to implement floor
         division. See extensive documentation at the top of element.pyx.
@@ -2698,13 +2698,13 @@ cdef class Vector(ModuleElement):
             return (<Vector>left)._dot_product_(<Vector>right)
         return coercion_model.bin_op(left, right, mul)
 
-    cpdef Element _dot_product_(Vector left, Vector right):
+    cpdef _dot_product_(Vector left, Vector right):
         return left._dot_product_coerce_(right)
 
-    cpdef Element _dot_product_coerce_(Vector left, Vector right):
+    cpdef _dot_product_coerce_(Vector left, Vector right):
         raise TypeError(arith_error_message(left, right, mul))
 
-    cpdef Vector _pairwise_product_(Vector left, Vector right):
+    cpdef _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
     def __truediv__(self, right):
@@ -3043,13 +3043,13 @@ cdef class Matrix(ModuleElement):
             return left * ~right
         return coercion_model.bin_op(left, right, div)
 
-    cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
+    cdef _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
 
-    cdef Vector _matrix_times_vector_(matrix_left, Vector vector_right):
+    cdef _matrix_times_vector_(matrix_left, Vector vector_right):
         raise TypeError
 
-    cdef Matrix _matrix_times_matrix_(left, Matrix right):
+    cdef _matrix_times_matrix_(left, Matrix right):
         raise TypeError
 
 
@@ -3136,7 +3136,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
             x, y = canonical_coercion(self, other)
             return x.quo_rem(y)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Quotient of division of ``self`` by other.  This is denoted //.
 
@@ -3195,7 +3195,7 @@ def is_FieldElement(x):
     return isinstance(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, RingElement right):
         """
         Return the quotient of self and other. Since these are field
         elements, the floor division is exactly the same as usual division.

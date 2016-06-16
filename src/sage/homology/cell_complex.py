@@ -158,7 +158,7 @@ class GenericCellComplex(SageObject):
         try:
             return max([x.dimension() for x in self._facets])
         except AttributeError:
-            if len(self.cells()) == 0: 
+            if len(self.cells()) == 0:
                 # The empty cell complex has dimension -1.
                 return -1
             return max(self.cells())

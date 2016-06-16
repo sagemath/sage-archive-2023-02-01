@@ -25,13 +25,15 @@ This module implements morphisms and homsets of simplicial sets.
 #
 #*****************************************************************************
 
-from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet, \
+    PushoutOfSimplicialSets, PullbackOfSimplicialSets
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.rings.integer_ring import ZZ
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
 from sage.categories.simplicial_sets import SimplicialSets
+import copy
 
 class SimplicialSetHomset(Homset):
     r"""
@@ -275,6 +277,50 @@ class SimplicialSetMorphism(Morphism):
         self._dictionary = d
         Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
 
+    def __eq__(self, other):
+        """
+        Two morphisms are equal iff their domains are the same, their
+        codomains are the same, and their defining dictionaries are
+        the same.
+
+        EXAMPLES::
+
+            sage: S = simplicial_sets.Sphere(1)
+            sage: T = simplicial_sets.Torus()
+            sage: T_c = T.constant_map() * T.base_point_map()
+            sage: S_c = S.constant_map() * S.base_point_map()
+            sage: T_c == S_c
+            True
+            sage: T.constant_map() == S.constant_map()
+            False
+            sage: K = simplicial_sets.Sphere(1)
+            sage: K.constant_map() == S.constant_map()
+            False
+
+            sage: Point = simplicial_sets.Point()
+            sage: f = Point._map_from_empty_set()
+            sage: Empty = f.domain()
+            sage: g = Empty.constant_map()
+            sage: f == g
+            True
+        """
+        return (self.domain() == other.domain() and self.codomain() == other.codomain()
+                and self._dictionary == other._dictionary)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: S0 = simplicial_sets.Sphere(0)
+            sage: v,w = S0.n_cells(0)
+            sage: H = Hom(S0, S0)
+            sage: H({v:v, w:w}) != H({v:w, w:v})
+            True
+            sage: H({v:v, w:w}) != H({w:w, v:v})
+            False
+        """
+        return not self == other
+
     def image(self):
         """
         The image of this morphism as a subsimplicial set of the codomain.
@@ -296,6 +342,157 @@ class SimplicialSetMorphism(Morphism):
             {0: 0, 1: Z}
         """
         return self.codomain().subsimplicial_set(self._dictionary.values())
+
+    def pushout(self, *others):
+        """
+        The pushout of this morphism along with ``others``.
+
+        INPUT:
+
+        - ``others`` -- morphisms of simplicial sets, the domains of
+          which must all equal that of ``self``.
+
+        This returns the pushout as a simplicial set. See
+        :class:`sage.homology.simplicial_set.PushoutOfSimplicialComplexes`
+        for more documentation and examples.
+
+        EXAMPLES::
+
+            sage: T = simplicial_sets.Torus()
+            sage: K = simplicial_sets.KleinBottle()
+            sage: init_T = T._map_from_empty_set()
+            sage: init_K = K._map_from_empty_set()
+            sage: D = init_T.pushout(init_K) # the disjoint union as a pushout
+            sage: D
+            Simplicial set with 12 non-degenerate simplices
+        """
+        domain = self.domain()
+        if any(domain != f.domain() for f in others):
+            raise ValueError('the domains of the maps must be equal')
+        return PushoutOfSimplicialSets((self,) + others)
+
+    def pullback(self, *others):
+        """
+        The pullback of this morphism along with ``others``.
+
+        INPUT:
+
+        - ``others`` -- morphisms of simplicial sets, the codomains of
+          which must all equal that of ``self``.
+
+        This returns the pullback as a simplicial set. See
+        :class:`sage.homology.simplicial_set.PullbackOfSimplicialComplexes`
+        for more documentation and examples.
+
+        EXAMPLES::
+
+            sage: T = simplicial_sets.Torus()
+            sage: K = simplicial_sets.KleinBottle()
+            sage: term_T = T.constant_map()
+            sage: term_K = K.constant_map()
+            sage: P = term_T.pullback(term_K) # the product as a pullback
+            sage: P
+            Simplicial set with 150 non-degenerate simplices
+        """
+        codomain = self.codomain()
+        if any(codomain != f.codomain() for f in others):
+            raise ValueError('the codomains of the maps must be equal')
+        return PullbackOfSimplicialSets((self,) + others)
+
+    def equalizer(self, other):
+        r"""
+        The equalizer of this map with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a morphism with the same domain and codomain as this map
+
+        If the two maps are `f, g: X \to Y`, then the equalizer `P` is
+        constructed as the pullback ::
+
+            P ----> X
+            |       |
+            V       V
+            X --> X x Y
+
+        where the two maps `X \to X \times Y` are `(1,f)` and `(1,g)`.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0, name='v')
+            sage: w = AbstractSimplex(0, name='w')
+            sage: x = AbstractSimplex(0, name='x')
+            sage: evw = AbstractSimplex(1, name='vw')
+            sage: evx = AbstractSimplex(1, name='vx')
+            sage: ewx = AbstractSimplex(1, name='wx')
+            sage: X = SimplicialSet({evw: (w, v), evx: (x, v)})
+            sage: Y = SimplicialSet({evw: (w, v), evx: (x, v), ewx: (x, w)})
+
+        Here `X` is a wedge of two 1-simplices (a horn, that is), and
+        `Y` is the boundary of a 2-simplex. The map `f` includes the
+        two 1-simplices into `Y`, while the map `g` maps both
+        1-simplices to the same edge in `Y`. ::
+
+            sage: f = Hom(X, Y)({v:v, w:w, x:x, evw:evw, evx:evx})
+            sage: g = Hom(X, Y)({v:v, w:x, x:x, evw:evx, evx:evx})
+            sage: P = f.equalizer(g)
+            sage: P
+            Simplicial set with 3 non-degenerate simplices
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        if domain != other.domain() or codomain != other.codomain():
+            raise ValueError('the maps must have the same domain and the same codomain')
+        prod = domain.product(codomain)
+        one = domain.Hom(domain).identity()
+        f = prod.universal_property(one, self)
+        g = prod.universal_property(one, other)
+        return PullbackOfSimplicialSets([f, g])
+
+    def coequalizer(self, other):
+        r"""
+        The coequalizer of this map with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a morphism with the same domain and codomain as this map
+
+        If the two maps are `f, g: X \to Y`, then the coequalizer `P` is
+        constructed as the pushout ::
+
+            X v Y --> Y
+              |       |
+              V       V
+              Y ----> P
+
+        where the upper left corner is the coproduct of `X` and `Y`
+        (the wedge if they are pointed, the disjoint union otherwise),
+        and the two maps `X \amalg Y \to Y` are `f \amalg 1` and `g
+        \amalg 1`.
+
+        EXAMPLES::
+
+            sage: L = simplicial_sets.Simplex(2)
+            sage: pt = L.n_cells(0)[0]
+            sage: e = L.n_cells(1)[0]
+            sage: K = L.subsimplicial_set([e])
+            sage: f = K.inclusion_map()
+            sage: v,w = K.n_cells(0)
+            sage: g = Hom(K,L)({v:pt, w:pt, e:pt.apply_degeneracies(0)})
+            sage: P = f.coequalizer(g)
+            sage: P
+            Simplicial set with 5 non-degenerate simplices
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        if domain != other.domain() or codomain != other.codomain():
+            raise ValueError('the maps must have the same domain and the same codomain')
+        coprod = domain.coproduct(codomain)
+        one = codomain.Hom(codomain).identity()
+        f = coprod.universal_property(self, one)
+        g = coprod.universal_property(other, one)
+        return PushoutOfSimplicialSets([f, g])
 
     def is_identity(self):
         """
@@ -336,6 +533,78 @@ class SimplicialSetMorphism(Morphism):
         """
         return (self.domain() == self.codomain()
                 and all(a == b for a,b in self._dictionary.items()))
+
+    def is_surjective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_surjective()
+            False
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_surjective()
+            True
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_surjective()
+            True
+        """
+        return self.image() == self.codomain()
+
+    def is_injective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_injective()
+            True
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_injective()
+            False
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_injective()
+            True
+        """
+        domain = self.domain()
+        for n in range(domain.dimension()+1):
+            input = domain.n_cells(n)
+            output = set([self(sigma) for sigma in input if self(sigma).is_nondegenerate()])
+            if len(input) > len(output):
+                return False
+        return True
+
+    def is_bijective(self):
+        """
+        Return ``True`` if this map is surjective.
+
+        EXAMPLES::
+
+            sage: RP5 = simplicial_sets.RealProjectiveSpace(5)
+            sage: RP2 = RP5.n_skeleton(2)
+            sage: RP2.inclusion_map().is_bijective()
+            False
+
+            sage: RP5_2 = RP5.quotient(RP2)
+            sage: RP5_2.quotient_map().is_bijective()
+            False
+
+            sage: K = RP5_2.pullback(RP5_2.quotient_map(), RP5_2.base_point_map())
+            sage: f = K.universal_property(RP2.inclusion_map(), RP2.constant_map())
+            sage: f.is_bijective()
+            True
+        """
+        return self.is_injective() and self.is_surjective()
 
     def _composition_(self, right, homset):
         """

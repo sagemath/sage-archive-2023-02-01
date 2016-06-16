@@ -91,10 +91,10 @@ def eval_dist_at_powseries(phi, f):
 
     OUTPUT:
 
-    The value of ``phi`` evaluated at ````f, which will be an element in the
+    The value of ``phi`` evaluated at ``f``, which will be an element in the
     ring of definition of ``f``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.modular.btquotients.pautomorphicform import eval_dist_at_powseries
         sage: R.<X> = PowerSeriesRing(ZZ,10)
@@ -441,7 +441,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
     def riemann_sum(self, f, center=1, level=0, E=None):
         r"""
         Evaluate the integral of the function ``f`` with respect
-        to the measure determined by ``self`` over `\mathbf{P}_1(\Qp)`.
+        to the measure determined by ``self`` over `\mathbf{P}_1(\QQ_p)`.
 
         INPUT:
 
@@ -454,7 +454,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
           exponential in the level.
 
         - ``E`` - A list of edges (default = None). They should describe
-          a covering of `\mathbf{P}^1(\Qp)`.
+          a covering of `\mathbf{P}^1(\QQ_p)`.
 
         OUTPUT:
 
@@ -468,8 +468,8 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: R.<z> = PolynomialRing(QQ,1)
             sage: f = z^2
 
-       Note that `f` has a pole at infinity, so that the result will
-       be meaningless::
+        Note that `f` has a pole at infinity, so that the result will
+        be meaningless::
 
             sage: b.riemann_sum(f,level=0)
             1 + 5 + 2*5^3 + 4*5^4 + 2*5^5 + 3*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
@@ -1881,7 +1881,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         - ``level`` - integer (default: 0). If ``method`` is
           'riemann_sum', will use a covering of `P^1(\QQ_p)` with
-          balls of size `p^-\mbox{level]`.
+          balls of size `p^-\mbox{level}`.
 
         - ``method`` - string (default: ``moments``). It must be
           either ``moments`` or ``riemann_sum``.
@@ -1939,7 +1939,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         - ``level`` - integer (default: 0). If ``method`` is
           'riemann_sum', will use a covering of `P^1(\QQ_p)` with
-          balls of size `p^-\mbox{level]`.
+          balls of size `p^-\mbox{level}`.
 
         - ``method`` - string (default: ``moments``). It must be
           either ``moments`` or ``riemann_sum``.

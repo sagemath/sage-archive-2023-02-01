@@ -491,8 +491,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             Real Interval Field with 200 bits of precision
         """
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
-            raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
-                prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
+            raise ValueError("prec (=%s) must be >= %s and <= %s." % (
+                prec, MPFR_PREC_MIN, MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
         self.__lower_field = RealField(prec, sci_not, "RNDD")
@@ -735,13 +735,13 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             if (<RealField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, RealIntervalFieldElement):
             P = x.parent()
             if (<RealIntervalField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, (Integer, Rational)):
             return self(x)
         cdef RealNumber lower, upper
@@ -750,7 +750,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
         except TypeError as msg:
-            raise TypeError, "no canonical coercion of element into self"
+            raise TypeError("no canonical coercion of element into self")
 
     def __cmp__(self, other):
         """
@@ -1109,7 +1109,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
 
 #*****************************************************************************
@@ -1646,7 +1646,7 @@ cdef class RealIntervalFieldElement(RingElement):
             0.025000000000000002?
         """
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
 
         # If self is a NaN, always use brackets style.
         if mpfi_nan_p(self.value):
@@ -1685,7 +1685,7 @@ cdef class RealIntervalFieldElement(RingElement):
             return self._str_question_style(base, error_digits, e, prefer_sci)
 
         else:
-            raise ValueError, 'Illegal interval printing style %s'%printing_style
+            raise ValueError('Illegal interval printing style %s' % printing_style)
 
     cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
         r"""
@@ -1844,9 +1844,9 @@ cdef class RealIntervalFieldElement(RingElement):
 
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
-            raise ValueError, "_str_question_style on NaN or infinity"
+            raise ValueError("_str_question_style on NaN or infinity")
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
         if error_digits < 0 or error_digits > 1000:
             # The restriction to 1000 is not essential.  The reason to have
             # a restriction is that this code is not efficient for
@@ -1857,7 +1857,7 @@ cdef class RealIntervalFieldElement(RingElement):
             # purpose of question_style is to be human-readable, and
             # the human-readability will go way down after about 6
             # error digits; 1000 error digits is just silly.
-            raise ValueError, "error_digits (=%s) must be between 0 and 1000"%error_digits
+            raise ValueError("error_digits (=%s) must be between 0 and 1000" % error_digits)
 
         cdef mp_exp_t self_exp
         cdef mpz_t self_zz
@@ -1889,7 +1889,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 zz_str = <char *>PyMem_Malloc(zz_str_maxlen)
                 if zz_str == NULL:
                     mpz_clear(self_zz)
-                    raise MemoryError, "Unable to allocate memory for integer representation of interval"
+                    raise MemoryError("Unable to allocate memory for integer representation of interval")
                 sig_on()
                 mpz_get_str(zz_str, base, self_zz)
                 sig_off()
@@ -2790,7 +2790,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         cdef RealIntervalFieldElement x
         if n > sys.maxsize:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -3458,7 +3458,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         if mpfr_equal_p(&self.value.left, &self.value.right):
             if low_open or high_open:
-                raise ValueError, 'simplest_rational() on open, empty interval'
+                raise ValueError('simplest_rational() on open, empty interval')
             return self.lower().exact_rational()
 
         if mpfi_has_zero(self.value):
@@ -3900,7 +3900,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         mpfi_intersect(x.value, self.value, other_intv.value)
         if mpfr_less_p(&x.value.right, &x.value.left):
-            raise ValueError, "intersection of non-overlapping intervals"
+            raise ValueError("intersection of non-overlapping intervals")
         return x
 
     def union(self, other):
@@ -4201,7 +4201,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 ValueError: self (=0.?e1) is not >= 0
             """
         if self.lower() < 0:
-            raise ValueError, "self (=%s) is not >= 0"%self
+            raise ValueError("self (=%s) is not >= 0" % self)
         return self.square_root()
 
 

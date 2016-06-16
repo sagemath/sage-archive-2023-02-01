@@ -185,7 +185,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpfr_set(self.__re, rr.value, rnd)
             mpfr_set(self.__im, ii.value, rnd)
         except TypeError:
-            raise TypeError, "unable to coerce to a ComplexNumber: %s" % type(real)
+            raise TypeError("unable to coerce to a ComplexNumber: %s" % type(real))
 
 
     def  __dealloc__(self):
@@ -414,7 +414,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return self.real()
         elif i == 1:
             return self.imag()
-        raise IndexError, "i must be between 0 and 1."
+        raise IndexError("i must be between 0 and 1.")
 
     def __reduce__( self ):
         """
@@ -1052,7 +1052,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex to int; use int(abs(z))
         """
-        raise TypeError, "can't convert complex to int; use int(abs(z))"
+        raise TypeError("can't convert complex to int; use int(abs(z))")
 
     def __long__(self):
         r"""
@@ -1074,7 +1074,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
         """
-        raise TypeError, "can't convert complex to long; use long(abs(z))"
+        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         r"""
@@ -1195,7 +1195,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return integer.Integer(self._multiplicative_order)
         elif abs(abs(self) - 1) > 0.1:  # clearly not a root of unity
             return infinity.infinity
-        raise NotImplementedError, "order of element not known"
+        raise NotImplementedError("order of element not known")
 
 
     ########################################################################
@@ -1527,7 +1527,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         try:
             return self._parent(self._pari_().eta(not omit_frac))
         except sage.libs.pari.all.PariError:
-            raise ValueError, "value must be in the upper half plane"
+            raise ValueError("value must be in the upper half plane")
 
 
     def sin(self):
@@ -1865,7 +1865,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 mpfr_swap(b.__re, b1.__re)
                 mpfr_swap(b.__im, b1.__im)
 
-        raise ValueError, "agm algorithm must be one of 'pari', 'optimal', 'principal'"
+        raise ValueError("agm algorithm must be one of 'pari', 'optimal', 'principal'")
 
     def argument(self):
         r"""

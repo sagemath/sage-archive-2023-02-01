@@ -843,7 +843,7 @@ Set partitions::
 Partial orders on a set of `8` elements, up to isomorphism::
 
     sage: C = Posets(8); C
-    Posets containing 8 vertices
+    Posets containing 8 elements
     sage: C.cardinality()
     16999
 
@@ -862,7 +862,8 @@ there are 34 simple graphs with 5 vertices::
 
 Here are those with at most `4` edges::
 
-    sage: show(graphs(5, lambda G: G.size() <= 4))
+    sage: up_to_four_edges = list(graphs(5, lambda G: G.size() <= 4))
+    sage: pretty_print(*up_to_four_edges)
 
 .. image:: ../../media/graphs-5.png
 

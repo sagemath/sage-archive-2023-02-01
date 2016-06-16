@@ -110,7 +110,7 @@ cdef mod_int ivalue(IntegerMod_abstract x) except -1:
     elif type(x) is IntegerMod_int64:
         return (<IntegerMod_int64>x).ivalue
     else:
-        raise TypeError, "non-fixed size integer"
+        raise TypeError("non-fixed size integer")
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 

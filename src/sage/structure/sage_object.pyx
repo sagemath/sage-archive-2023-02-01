@@ -134,7 +134,7 @@ cdef class SageObject:
             try:
                 self.__custom_name = str(x)
             except AttributeError:
-                raise NotImplementedError, "object does not support renaming: %s"%self
+                raise NotImplementedError("object does not support renaming: %s" % self)
 
     def reset_name(self):
         """
@@ -411,34 +411,9 @@ cdef class SageObject:
         else:
             assert False, "_cache_key() must not be called for hashable elements"
 
-    #############################################################################
+    ##########################################################################
     # DATABASE Related code
-    #############################################################################
-
-    def version(self):
-        r"""
-        The version of Sage.
-
-        Call this to save the version of Sage in this object.
-        If you then save and load this object it will know in what
-        version of Sage it was created.
-
-        This only works on Python classes that derive from SageObject.
-
-        TESTS::
-
-            sage: v = DiGraph().version()
-            doctest:... DeprecationWarning: version() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'version() is deprecated.')
-        try:
-            return self.__version
-        except AttributeError:
-            import sage.version
-            self.__version = sage.version.version
-            return self.__version
+    ##########################################################################
 
     def save(self, filename=None, compress=True):
         """
@@ -455,7 +430,7 @@ cdef class SageObject:
             try:
                 filename = self._default_filename
             except AttributeError:
-                raise RuntimeError, "no default filename, so it must be specified"
+                raise RuntimeError("no default filename, so it must be specified")
         filename = process(filename)
         try:
             self._default_filename = filename
@@ -703,8 +678,7 @@ cdef class SageObject:
             try:
                 s = self._interface_init_(I)
             except Exception:
-                raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
-                  (repr(self), I)
+                raise NotImplementedError("coercion of object %s to %s not implemented:\n%s\n%s" % (repr(self), I))
         X = I(s)
         if c:
             try:
@@ -1391,7 +1365,7 @@ def loads(s, compress=True):
         UnpicklingError: invalid load key, 'x'.
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     if compress:
         try:
             s = comp.decompress(s)

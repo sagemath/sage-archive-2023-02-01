@@ -88,10 +88,12 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # kernel/gmp/int.h
 
-    long*   int_MSW(GEN x)
-    long*   int_LSW(GEN x)
-    long*   int_precW(long * xp)
-    long*   int_nextW(long * xp)
+    GEN     int_MSW(GEN z)
+    GEN     int_LSW(GEN z)
+    GEN     int_W(GEN z, long i)
+    GEN     int_W_lg(GEN z, long i, long lz)
+    GEN     int_precW(GEN z)
+    GEN     int_nextW(GEN z)
 
     # paristio.h
 

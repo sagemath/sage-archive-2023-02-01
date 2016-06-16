@@ -652,7 +652,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
+            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
     return out
 
 cpdef identity(x):

@@ -230,7 +230,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 # mpoly dict style has tuple keys
                 i = ii[0] if type(ii) is tuple else ii
                 if i < 0:
-                    raise ValueError, "Negative monomial degrees not allowed: %s" % i
+                    raise ValueError("Negative monomial degrees not allowed: %s" % i)
                 elif i > degree:
                     degree = i
             try:
@@ -238,7 +238,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_poly_realloc(self.__poly, degree + 1)
                 sig_off()
             except RuntimeError:
-                raise OverflowError, "Cannot allocate memory!"
+                raise OverflowError("Cannot allocate memory!")
             # now fill them in
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii
@@ -701,7 +701,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             (x + 2, 2*x + 1)
         """
         if right.is_zero():
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if self.is_zero():
             return self, self
@@ -1118,7 +1118,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Polynomial
         cdef long t
         if right == 0:
-            raise ZeroDivisionError, "division by zero"
+            raise ZeroDivisionError("division by zero")
         if not isinstance(right, Polynomial_integer_dense_flint):
             if right in ZZ:
                 sig_on()
@@ -1210,7 +1210,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2*x^2 + 7*x + 3
         """
         if n < 0:
-            raise IndexError, "n must be >= 0"
+            raise IndexError("n must be >= 0")
         if isinstance(value, int):
             sig_on()
             fmpz_poly_set_coeff_si(self.__poly, n, value)
@@ -1562,9 +1562,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError, "factorization of 0 not defined"
+            raise ValueError("factorization of 0 not defined")
         f = self._pari_()
         G = f.factormod(p)
         k = FiniteField(p)
@@ -1709,7 +1709,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if degree:
             d = degree
             if d != degree:
-                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+                raise ValueError("degree argument must be a non-negative integer, got %s" % degree)
             # FLINT expects length
             fmpz_poly_reverse(res.__poly, self.__poly, d+1)
         else:

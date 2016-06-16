@@ -19,6 +19,8 @@ AUTHORS:
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
+-  Kiran Kedlaya (2016-03): Added root counting.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -1780,7 +1782,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if self.degree() < 0:
                 return ring(0)
             if self.degree() == 0:
-                raise ValueError, "no roots A %s"%self
+                raise ValueError("no roots A %s" % self)
             if not assume_squarefree:
                 SFD = self.squarefree_decomposition()
                 SFD.sort()
@@ -1801,7 +1803,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if not (self.base_ring().is_field() and self.base_ring().is_finite()):
                     raise NotImplementedError
                 if ring.characteristic() != self.base_ring().characteristic():
-                    raise ValueError, "ring must be an extension of the base ring"
+                    raise ValueError("ring must be an extension of the base ring")
                 if not (ring.is_field() and ring.is_finite()):
                     raise NotImplementedError
                 allowed_deg_mult = Integer(ring.factored_order()[0][1]) # generally it will be the quotient of this by the degree of the base ring.
@@ -1812,7 +1814,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     self = self.gcd(xq-x)
                     degree = -1
                     if self.degree() == 0:
-                        raise ValueError, "no roots B %s"%self
+                        raise ValueError("no roots B %s" % self)
                 else:
                     xq = x
                     d = Integer(0)
@@ -1838,7 +1840,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             break
                     if degree is None:
                         if allowed_deg_mult == 1:
-                            raise ValueError, "no roots C %s"%self
+                            raise ValueError("no roots C %s" % self)
                         xq = x
                         d = Integer(0)
                         while True:
@@ -1860,7 +1862,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                                 degree = -d
                                 break
             if degree == 0:
-                raise ValueError, "degree should be nonzero"
+                raise ValueError("degree should be nonzero")
             R = self.parent()
             x = R.gen()
             if degree > 0:
@@ -1870,7 +1872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     e = self.degree()
                     if 2*d > e:
                         if degree != e:
-                            raise ValueError, "no roots D %s"%self
+                            raise ValueError("no roots D %s" % self)
                         break
                     d = d+1
                     xq = pow(xq,q,self)
@@ -1882,7 +1884,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if d == degree:
                     self = self.gcd(xq-x)
                     if self.degree() == 0:
-                        raise ValueError, "no roots E %s"%self
+                        raise ValueError("no roots E %s" % self)
             else:
                 degree = -degree
             if ring is None:
@@ -1897,7 +1899,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 try:
                     return self.roots(ring, multiplicities=False)[0] # is there something better to do here?
                 except IndexError:
-                    raise ValueError, "no roots F %s"%self
+                    raise ValueError("no roots F %s" % self)
             if q % 2 == 0:
                 while True:
                     T = R.random_element(2*degree-1)
@@ -7028,6 +7030,134 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return self.roots(ring=CC, multiplicities=False)
 
+    def number_of_roots_in_interval(self, a=None, b=None):
+        r"""
+        Return the number of roots of this polynomial in the interval 
+        [a,b], counted without multiplicity. The endpoints a, b default to
+        -Infinity, Infinity (which are also valid input values).
+
+        Calls the PARI routine polsturm. Note that as of version 2.8, PARI
+        includes the left endpoint of the interval (and no longer uses
+        Sturm's algorithm on exact inputs). polsturm requires a polynomial
+        with real coefficients; in case PARI returns an error, we try again
+        after taking the GCD of `self` with its complex conjugate.
+        
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_roots_in_interval(1, 2)
+            2
+            sage: pol.number_of_roots_in_interval(1.01, 2)
+            1
+            sage: pol.number_of_roots_in_interval(None, 2)
+            2
+            sage: pol.number_of_roots_in_interval(1, Infinity)
+            3
+            sage: pol.number_of_roots_in_interval()
+            3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.number_of_roots_in_interval()
+            3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.number_of_roots_in_interval(0,2)
+            1
+
+        TESTS::
+        
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_roots_in_interval(1, 2)
+            2
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.number_of_roots_in_interval(-1,2)
+            5
+            sage: pol.number_of_roots_in_interval(0,2)
+            3
+
+        """
+        pol = self // self.gcd(self.derivative()) #squarefree part
+        if a is None:
+            a1 = -infinity.infinity
+        else:
+            a1 = a
+        if b is None:
+            b1 = infinity.infinity
+        else:
+            b1 = b
+        try:
+            return(pari(pol).polsturm([a1,b1]))
+        except PariError:
+            # Take GCD with the conjugate, to extract the maximum factor
+            # with real coefficients.
+            pol2 = pol.gcd(pol.map_coefficients(lambda z: z.conjugate()))
+            return(pari(pol2).polsturm([a1,b1]))
+
+    def number_of_real_roots(self):
+        r"""
+        Return the number of real roots of this polynomial, counted
+        without multiplicity. 
+        
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.number_of_real_roots()
+            3
+            sage: pol = (x-1)*(x-2)*(x-3)
+            sage: pol2 = pol.change_ring(CC)
+            sage: pol2.number_of_real_roots()
+            3
+            sage: R.<x> = PolynomialRing(CC)
+            sage: pol = (x-1)*(x-CC(I))
+            sage: pol.number_of_real_roots()
+            1
+        """
+        return self.number_of_roots_in_interval()
+
+    def all_roots_in_interval(self, a=None, b=None):
+        r"""
+        Return True if the roots of this polynomial are all real and 
+        contained in the given interval.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
+            sage: pol.all_roots_in_interval(1, 3)
+            True
+            sage: pol.all_roots_in_interval(1.01, 3)
+            False
+            sage: pol = chebyshev_T(5,x)
+            sage: pol.all_roots_in_interval(-1,1)
+            True        
+            sage: pol = chebyshev_T(5,x/2)
+            sage: pol.all_roots_in_interval(-1,1)
+            False
+            sage: pol.all_roots_in_interval()
+            True
+        """
+        pol = self // self.gcd(self.derivative())
+        return(pol.number_of_roots_in_interval(a,b) == pol.degree())
+
+    def is_real_rooted(self):
+        r"""
+        Return True if the roots of this polynomial are all real.
+    
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = chebyshev_T(5, x)
+            sage: pol.is_real_rooted()
+            True
+            sage: pol = x^2 + 1
+            sage: pol.is_real_rooted()
+            False
+        """
+        return self.all_roots_in_interval()
+
     def variable_name(self):
         """
         Return name of variable used in this polynomial as a string.
@@ -8111,7 +8241,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if isinstance(var, int) or isinstance(var, Integer):
             if var:
-                raise TypeError, "Variable index %d must be < 1."%var
+                raise TypeError("Variable index %d must be < 1." % var)
             else:
                 return sum(self.coefficients())*x**self.degree()
 

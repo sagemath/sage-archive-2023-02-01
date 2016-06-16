@@ -12,7 +12,7 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from cpython cimport *
 from libc cimport math
@@ -40,7 +40,7 @@ from sage.symbolic.function import get_sfunction_from_serial
 from sage.symbolic.function cimport Function
 from sage.symbolic.constants_c cimport PynacConstant
 
-import ring
+from . import ring
 
 from sage.rings.integer cimport Integer
 
@@ -1770,6 +1770,10 @@ cdef object py_asinh(object x) except +:
     try:
         return x.arcsinh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arcsinh()
+    except TypeError:
         return CC(x).arcsinh()
 
 cdef object py_acosh(object x) except +:

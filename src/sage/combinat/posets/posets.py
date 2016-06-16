@@ -240,7 +240,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -1506,7 +1506,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
         """
-        from linear_extensions import LinearExtensionsOfPoset
+        from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
     def is_linear_extension(self, l):
@@ -1587,7 +1587,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return a Graphic object for the Hasse diagram of the poset.
 
         If the poset is ranked, the plot uses the rank function for
-        the heights of the vertices.
+        the heights of the elements.
 
         INPUT:
 
@@ -3448,9 +3448,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         # remove duplicates.
         return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
 
-    import __builtin__ # Caveat: list is overridden by the method list above!!!
+    from six.moves import builtins
+    # Caveat: list is overridden by the method list above!!!
 
-    def antichains(self, element_constructor = __builtin__.list):
+    def antichains(self, element_constructor = builtins.list):
         """
         Return the antichains of the poset.
 
@@ -3634,7 +3635,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             chains.append(chain)
         return chains
 
-    def chains(self, element_constructor=__builtin__.list, exclude=None):
+    def chains(self, element_constructor=builtins.list, exclude=None):
         """
         Return the chains of the poset.
 
@@ -3663,7 +3664,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(C)
             [[], [0], [0, 1], [0, 1, 4], [0, 2], [0, 2, 3], [0, 2, 3, 4], [0, 2, 4], [0, 3], [0, 3, 4], [0, 4], [1], [1, 4], [2], [2, 3], [2, 3, 4], [2, 4], [3], [3, 4], [4]]
 
-        Exclusion of vertices, tuple (instead of list) as constructor::
+        Exclusion of elements, tuple (instead of list) as constructor::
 
             sage: P = Poset({1: [2, 3], 2: [4], 3: [4, 5]})
             sage: list(P.chains(element_constructor=tuple, exclude=[3]))
@@ -5527,7 +5528,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.promotion`),
         and relabeling ``self`` accordingly. For more details see [Stan2009]_.
 
-        When the vertices of the poset ``self`` are labelled by
+        When the elements of the poset ``self`` are labelled by
         `\{1,2,\ldots,n\}`, the linear extension is the identity, and
         `i=1`, the above algorithm corresponds to the promotion
         operator on posets defined by Schützenberger as
@@ -5654,7 +5655,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[1, 2], [1, 5], [2, 3], [5, 6], [5, 4], [6, 7], [4, 7]]
 
-        Here is an example of a poset where the vertices are not labelled
+        Here is an example of a poset where the elements are not labelled
         by `\{1,2,\ldots,n\}`::
 
             sage: P = Poset((divisors(15), attrcall("divides")), linear_extension = True)
@@ -6349,7 +6350,7 @@ FinitePoset._dual_class = FinitePoset
 
 class FinitePosets_n(UniqueRepresentation, Parent):
     r"""
-    The finite enumerated set of all posets on `n` vertices, up to an isomorphism.
+    The finite enumerated set of all posets on `n` elements, up to an isomorphism.
 
     EXAMPLES::
 
@@ -6369,7 +6370,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Posets(3); P
-            Posets containing 3 vertices
+            Posets containing 3 elements
             sage: P.category()
             Category of finite enumerated sets
             sage: P.__class__
@@ -6385,9 +6386,9 @@ class FinitePosets_n(UniqueRepresentation, Parent):
 
             sage: P = Posets(3)
             sage: P._repr_()
-            'Posets containing 3 vertices'
+            'Posets containing 3 elements'
         """
-        return "Posets containing %s vertices" % self._n
+        return "Posets containing %s elements" % self._n
 
     def __contains__(self, P):
         """

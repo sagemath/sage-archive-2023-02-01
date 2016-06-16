@@ -424,7 +424,7 @@ cdef class RealDoubleField_class(Field):
             (1.0,)
         """
         if n != 0:
-            raise ValueError, "only 1 generator"
+            raise ValueError("only 1 generator")
         return RealDoubleElement(1)
 
     def ngens(self):
@@ -555,7 +555,7 @@ cdef class RealDoubleField_class(Field):
             9.332621544394415e+157
         """
         if n < 0:
-            raise ArithmeticError, "n must be nonnegative"
+            raise ArithmeticError("n must be nonnegative")
         return self(gsl_sf_fact(n))
 
     def zeta(self, n=2):
@@ -578,7 +578,7 @@ cdef class RealDoubleField_class(Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
     def NaN(self):
         """
@@ -1152,7 +1152,7 @@ cdef class RealDoubleElement(FieldElement):
             TypeError: Attempt to get integer part of NaN
         """
         if gsl_isnan(self._value):
-            raise TypeError, "Attempt to get integer part of NaN"
+            raise TypeError("Attempt to get integer part of NaN")
         else:
             return Integer(int(self._value))
 
@@ -1341,7 +1341,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             TypeError: unsupported operand type(s) for <<
         """
-        raise TypeError, "unsupported operand type(s) for <<"
+        raise TypeError("unsupported operand type(s) for <<")
 
     def __rshift__(x, y):
         """
@@ -1355,7 +1355,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             TypeError: unsupported operand type(s) for >>
         """
-        raise TypeError, "unsupported operand type(s) for >>"
+        raise TypeError("unsupported operand type(s) for >>")
 
     def multiplicative_order(self):
         r"""
@@ -1758,7 +1758,7 @@ cdef class RealDoubleElement(FieldElement):
             else:
                 return x
         if not extend:
-            raise ValueError, "negative number %s does not have a square root in the real field"%self
+            raise ValueError("negative number %s does not have a square root in the real field" % self)
         import sage.rings.complex_double
         return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
 

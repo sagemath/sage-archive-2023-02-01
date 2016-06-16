@@ -15,7 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-
+from __future__ import absolute_import
 
 from copy import copy
 from math import sin, cos, pi
@@ -882,7 +882,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
-    from __builtin__ import sum
+    from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
     PG = map(tuple,ProjectiveSpace(2, Fq))
     def S(x,y):

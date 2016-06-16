@@ -275,7 +275,7 @@ cdef class PowerSeries_poly(PowerSeries):
             name = P.variable_name()
             if name in kwds: # a keyword specifies the power series generator
                 if len(x) > 0:
-                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                    raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
                 try:
@@ -321,7 +321,7 @@ cdef class PowerSeries_poly(PowerSeries):
             return self[0]
 
         if t <= 0:
-            raise ValueError, "Can only substitute elements of positive valuation"
+            raise ValueError("Can only substitute elements of positive valuation")
 
         if not Q.has_coerce_map_from(P.base_ring()):
             from sage.structure.element import canonical_coercion
@@ -329,7 +329,7 @@ cdef class PowerSeries_poly(PowerSeries):
                 R = canonical_coercion(P.base_ring()(0), Q.base_ring()(0))[0].parent()
                 self = self.change_ring(R)
             except TypeError:
-                raise ValueError, "Cannot substitute this value"
+                raise ValueError("Cannot substitute this value")
 
         r = (self - self[0]).valuation()
         if r == s:                 # self is constant + O(x^s)

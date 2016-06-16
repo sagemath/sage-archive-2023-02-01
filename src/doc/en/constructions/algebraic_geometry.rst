@@ -32,7 +32,7 @@ algorithm. Here is an example of the syntax:
 
     sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
     sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
-    Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+    Projective Plane Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
     sage: C.rational_points()
     [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
     sage: C.rational_points(algorithm="bn")
@@ -49,7 +49,7 @@ Klein's quartic over :math:`GF(8)`.
     sage: x, y, z = PolynomialRing(GF(8,'a'), 3, 'xyz').gens()
     sage: f = x^3*y+y^3*z+x*z^3
     sage: C = Curve(f); C
-    Projective Curve over Finite Field in a of size 2^3 defined by x^3*y + y^3*z + x*z^3
+    Projective Plane Curve over Finite Field in a of size 2^3 defined by x^3*y + y^3*z + x*z^3
     sage: C.rational_points()
     [(0 : 0 : 1),
      (0 : 1 : 0),

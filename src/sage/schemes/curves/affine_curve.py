@@ -1,5 +1,19 @@
 """
-Affine plane curves over a general ring
+Affine curves.
+
+EXAMPLES:
+
+We can construct curves in either an affine plane::
+
+    sage: A.<x,y> = AffineSpace(QQ, 2)
+    sage: C = Curve([y - x^2], A); C
+    Affine Plane Curve over Rational Field defined by -x^2 + y
+
+or in higher dimensional affine space::
+
+    sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+    sage: C = Curve([y - x^2, z - w^3, w - y^4], A); C
+    Affine Curve over Rational Field defined by -x^2 + y, -w^3 + z, -y^4 + w
 
 AUTHORS:
 
@@ -20,6 +34,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.homset import Hom
 from sage.interfaces.all import singular
 
 from sage.misc.all import add
@@ -29,16 +44,46 @@ from sage.rings.all import degree_lowest_rational_function
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.affine.affine_space import is_AffineSpace
+
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
+from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from curve import Curve_generic
 
-class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
+class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
     def _repr_type(self):
-        return "Affine Space"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,w> = AffineSpace(QQ, 4)
+            sage: C = Curve([x - y, z - w, w - x], A)
+            sage: C._repr_type()
+            'Affine'
+        """
+        return "Affine"
 
     def __init__(self, A, X):
+        r"""
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: R.<v> = QQ[]
+            sage: K.<u> = NumberField(v^2 + 3)
+            sage: A.<x,y,z> = AffineSpace(K, 3)
+            sage: C = Curve([z - u*x^2, y^2], A); C
+            Affine Curve over Number Field in u with defining polynomial v^2 + 3
+            defined by (-u)*x^2 + z, y^2
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(7), 3)
+            sage: C = Curve([x^2 - z, z - 8*x], A); C
+            Affine Curve over Finite Field of size 7 defined by x^2 - z, -x + z
+        """
         if not is_AffineSpace(A):
             raise TypeError("A (=%s) must be an affine space"%A)
         Curve_generic.__init__(self, A, X)
@@ -46,15 +91,91 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
         if d != 1:
             raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
-class AffineCurve_generic(Curve_generic):
+    def projective_closure(self, i=0, PP=None):
+        r"""
+        Return the projective closure of this affine curve.
+
+        INPUT:
+
+        - ``i`` -- (default: 0) the index of the affine coordinate chart of the projective space that the affine
+          ambient space of this curve embeds into.
+
+        - ``PP`` -- (default: None) ambient projective space to compute the projective closure in. This is
+          constructed if it is not given.
+
+        OUTPUT:
+
+        - a curve in projective space.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y-x^2,z-x^3], A)
+            sage: C.projective_closure()
+            Projective Curve over Rational Field defined by x1^2 - x0*x2,
+            x1*x2 - x0*x3, x2^2 - x1*x3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: C = Curve([y - x^2, z - x^3], A)
+            sage: C.projective_closure()
+            Projective Curve over Rational Field defined by
+            x1^2 - x0*x2, x1*x2 - x0*x3, x2^2 - x1*x3
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: C = Curve(y - x^3 + x - 1, A)
+            sage: C.projective_closure(1)
+            Projective Plane Curve over Complex Field with 53 bits of precision defined by
+            x0^3 - x0*x1^2 + x1^3 - x1^2*x2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: P.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y - x^2], A)
+            sage: C.projective_closure(1, P).ambient_space() == P
+            True
+        """
+        from constructor import Curve
+        return Curve(AlgebraicScheme_subscheme_affine.projective_closure(self, i, PP))
+
+class AffinePlaneCurve(AffineCurve):
     def __init__(self, A, f):
-        P = f.parent()
+        r"""
+        Initialization function.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^3 - y^2], A); C
+            Affine Plane Curve over Rational Field defined by x^3 - y^2
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: C = Curve([y^2 + x^2], A); C
+            Affine Plane Curve over Complex Field with 53 bits of precision defined
+            by x^2 + y^2
+        """
         if not (is_AffineSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be an affine plane."%A)
         Curve_generic.__init__(self, A, [f])
 
     def _repr_type(self):
-        return "Affine"
+        r"""
+        Return a string representation of the type of this curve.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - 7/2*x^5 + x - 3], A)
+            sage: C._repr_type()
+            'Affine Plane'
+        """
+        return "Affine Plane"
 
     def divisor_of_function(self, r):
         """
@@ -227,7 +348,7 @@ class AffineCurve_generic(Curve_generic):
         I = self.defining_ideal()
         return I.plot(*args, **kwds)
 
-class AffineCurve_finite_field(AffineCurve_generic):
+class AffinePlaneCurve_finite_field(AffinePlaneCurve):
     def rational_points(self, algorithm="enum"):
         r"""
         Return sorted list of all rational points on this curve.
@@ -240,7 +361,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
             sage: A.<x,y> = AffineSpace(2,GF(9,'a'))
             sage: C = Curve(x^2 + y^2 - 1)
             sage: C
-            Affine Curve over Finite Field in a of size 3^2 defined by x^2 + y^2 - 1
+            Affine Plane Curve over Finite Field in a of size 3^2 defined by x^2 + y^2 - 1
             sage: C.rational_points()
             [(0, 1), (0, 2), (1, 0), (2, 0), (a + 1, a + 1), (a + 1, 2*a + 2), (2*a + 2, a + 1), (2*a + 2, 2*a + 2)]
         """
@@ -256,7 +377,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
         return points
 
 
-class AffineCurve_prime_finite_field(AffineCurve_finite_field):
+class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
@@ -347,7 +468,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: x, y = (GF(5)['x,y']).gens()
             sage: f = y^2 - x^9 - x
             sage: C = Curve(f); C
-            Affine Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
+            Affine Plane Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
             sage: C.rational_points(algorithm='bn')
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: C = Curve(x - y + 1)
@@ -367,7 +488,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return AffineCurve_finite_field.rational_points(self, algorithm="enum")
+            return AffinePlaneCurve_finite_field.rational_points(self, algorithm="enum")
 
         elif algorithm == "bn":
             f = self.defining_polynomial()._singular_()

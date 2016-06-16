@@ -495,6 +495,8 @@ def homcubes(complex=None, subcomplex=None, **kwds):
 
     :param complex: a cubical complex
     :param subcomplex: a subcomplex of ``complex`` or None (the default)
+    :param base_ring: ring over which to perform computations -- must be `\ZZ` or `\GF{p}`.
+    :type base_ring: ring; optional, default `\ZZ`
     :param generators: if True, also return list of generators
     :type generators: boolean; optional, default False
     :param verbose: if True, print helpful messages as the computation progresses

@@ -314,10 +314,10 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         return x
 
     cdef void set_from_mpz(self, mpz_t value):
-        raise NotImplementedError, "Must be defined in child class."
+        raise NotImplementedError("Must be defined in child class.")
 
     cdef void set_from_long(self, long value):
-        raise NotImplementedError, "Must be defined in child class."
+        raise NotImplementedError("Must be defined in child class.")
 
     def __abs__(self):
         """
@@ -331,7 +331,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...
             ArithmeticError: absolute valued not defined on integers modulo n.
         """
-        raise ArithmeticError, "absolute valued not defined on integers modulo n."
+        raise ArithmeticError("absolute valued not defined on integers modulo n.")
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -588,7 +588,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 n = Integer(pari(cmd))
                 return n
             except PariError as msg:
-                raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
+                raise ValueError("%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)" % msg)
 
         else: # fall back on slower native implementation
 
@@ -995,7 +995,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 return z
             if all:
                 return []
-            raise ValueError, "self must be a square"
+            raise ValueError("self must be a square")
 
         F = self._parent.factored_order()
         cdef long e, exp, val
@@ -1282,7 +1282,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 if all:
                     return []
                 else:
-                    raise ValueError, "no nth root"
+                    raise ValueError("no nth root")
             if pval > 0:
                 if all:
                     return [K(a.lift()*p**(pval // n) + p**(k - (pval - pval//n)) * b) for a in mod(upart, p**(k-pval)).nth_root(n, all=True, algorithm=algorithm) for b in range(p**(pval - pval//n))]
@@ -1296,14 +1296,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 if self % 4 == 3:
                     if n % 2 == 0:
                         if all: return []
-                        else: raise ValueError, "no nth root"
+                        else: raise ValueError("no nth root")
                     else:
                         sign = [-1]
                         self = -self
                 elif n % 2 == 0:
                     if k > 2 and self % 8 == 5:
                         if all: return []
-                        else: raise ValueError, "no nth root"
+                        else: raise ValueError("no nth root")
                     sign = [1, -1]
                 if k == 2:
                     if all: return [K(s) for s in sign[:2]]
@@ -1326,7 +1326,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     else: return self_orig
                 else:
                     if all: return []
-                    else: raise ValueError, "no nth root"
+                    else: raise ValueError("no nth root")
             if all:
                 ans = [plog // n + p**(k - nval) * i for i in range(p**nval)]
                 ans = [s*K(R.teichmuller(m) * a.exp()) for a in ans for m in modp for s in sign]
@@ -1900,7 +1900,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_add(lift.value, lift.value, other.value)
             return lift
         except ZeroDivisionError:
-            raise ZeroDivisionError, "moduli must be coprime"
+            raise ZeroDivisionError("moduli must be coprime")
 
 
     def __copy__(IntegerMod_gmp self):
@@ -1999,7 +1999,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __mod__(self, right):
         if self.modulus() % right != 0:
-            raise ZeroDivisionError, "reduction modulo right not defined."
+            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
         return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
 
@@ -2071,14 +2071,14 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             ZeroDivisionError: Inverse does not exist.
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Inverse does not exist."
+            raise ZeroDivisionError("Inverse does not exist.")
 
         cdef IntegerMod_gmp x
         x = self._new_c()
         if mpz_invert(x.value, self.value, self.__modulus.sageInteger.value):
             return x
         else:
-            raise ZeroDivisionError, "Inverse does not exist."
+            raise ZeroDivisionError("Inverse does not exist.")
 
     def lift(IntegerMod_gmp self):
         """
@@ -2314,7 +2314,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             lift.set_from_int( x * self.__modulus.int32 + self.ivalue )
             return lift
         except ZeroDivisionError:
-            raise ZeroDivisionError, "moduli must be coprime"
+            raise ZeroDivisionError("moduli must be coprime")
 
 
     def __copy__(IntegerMod_int self):
@@ -2386,7 +2386,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if self.__modulus.inverses is not None:
             right_inverse = self.__modulus.inverses[(<IntegerMod_int>right).ivalue]
             if right_inverse is None:
-                raise ZeroDivisionError, "Inverse does not exist."
+                raise ZeroDivisionError("Inverse does not exist.")
             else:
                 return self._new_c((self.ivalue * (<IntegerMod_int>right_inverse).ivalue) % self.__modulus.int32)
 
@@ -2415,7 +2415,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     def __mod__(IntegerMod_int self, right):
         right = int(right)
         if self.__modulus.int32 % right != 0:
-            raise ZeroDivisionError, "reduction modulo right not defined."
+            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
         return integer_mod_ring.IntegerModRing(right)(self)
 
@@ -2587,7 +2587,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if self.__modulus.inverses is not None:
             x = self.__modulus.inverses[self.ivalue]
             if x is None:
-                raise ZeroDivisionError, "Inverse does not exist."
+                raise ZeroDivisionError("Inverse does not exist.")
             else:
                 return x
         else:
@@ -2768,7 +2768,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             elif self.ivalue == 0:
                 return [self] if all else self
             elif not extend:
-                raise ValueError, "self must be a square"
+                raise ValueError("self must be a square")
         # Now we use a heuristic to guess whether or not it will
         # be faster to just brute-force search for squares in a c loop...
         # TODO: more tuning?
@@ -2782,7 +2782,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                 if not extend:
                     if all:
                         return []
-                    raise ValueError, "self must be a square"
+                    raise ValueError("self must be a square")
         # Either it failed but extend was True, or the generic algorithm is better
         return IntegerMod_abstract.sqrt(self, extend=extend, all=all)
 
@@ -2888,7 +2888,7 @@ cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0:
         last_t = t
         t = next_t
         next_t = last_t - q * t
-    raise ZeroDivisionError, "Inverse does not exist."
+    raise ZeroDivisionError("Inverse does not exist.")
 
 
 cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t n):
@@ -3147,7 +3147,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             lift.set_from_int( x * self.__modulus.int64 + self.ivalue )
             return lift
         except ZeroDivisionError:
-            raise ZeroDivisionError, "moduli must be coprime"
+            raise ZeroDivisionError("moduli must be coprime")
 
     def __copy__(IntegerMod_int64 self):
         return self._new_c(self.ivalue)
@@ -3236,7 +3236,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     def __mod__(IntegerMod_int64 self, right):
         right = int(right)
         if self.__modulus.int64 % right != 0:
-            raise ZeroDivisionError, "reduction modulo right not defined."
+            raise ZeroDivisionError("reduction modulo right not defined.")
         import integer_mod_ring
         return integer_mod_ring.IntegerModRing(right)(self)
 
@@ -3519,7 +3519,7 @@ cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
         mpz_powm(res, base, (<Integer>exp).value, modulus)
     if invert:
         if not mpz_invert(res, res, modulus):
-            raise ZeroDivisionError, "Inverse does not exist."
+            raise ZeroDivisionError("Inverse does not exist.")
 
 cdef int_fast64_t gcd_int64(int_fast64_t a, int_fast64_t b):
     """
@@ -3572,7 +3572,7 @@ cdef int_fast64_t mod_inverse_int64(int_fast64_t x, int_fast64_t n) except 0:
         last_t = t
         t = next_t
         next_t = last_t - q * t
-    raise ZeroDivisionError, "Inverse does not exist."
+    raise ZeroDivisionError("Inverse does not exist.")
 
 
 cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_t n):
@@ -3697,7 +3697,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     # strip off even powers of p
     cdef int i, val = a.lift().valuation(p)
     if val % 2 == 1:
-        raise ValueError, "self must be a square."
+        raise ValueError("self must be a square.")
     if val > 0:
         unit = a._parent(a.lift() // p**val)
     else:
@@ -4115,7 +4115,7 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     """
     def __init__(self, R, S):
         if not S.order().divides(R.order()):
-            raise TypeError, "No natural coercion from %s to %s" % (R, S)
+            raise TypeError("No natural coercion from %s to %s" % (R, S))
         import sage.categories.homset
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(R, S))
 

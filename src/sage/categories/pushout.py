@@ -1,6 +1,8 @@
 """
 Coercion via Construction Functors
 """
+from __future__ import print_function
+
 import six
 from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
@@ -2669,12 +2671,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         sage: F = K.construction()[0]
         sage: O = F(ZZ); O
         Relative Order in Number Field in a with defining polynomial x^3 + x^2 + 1 over its base field
-
-    Unfortunately, the relative number field is not a unique parent::
-
         sage: O.ambient() is K
-        False
-        sage: O.ambient() == K
         True
 
     """
@@ -3694,7 +3691,6 @@ def pushout(R, S):
     try:
 
         while len(Rc) > 0 or len(Sc) > 0:
-            # print Z
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
                 all = apply_from(Rc)
@@ -3874,13 +3870,12 @@ def pushout_lattice(R, S):
                         lattice[i+1,j+1] = Rc[i](lattice[i,j+1])
                         Sc[j] = None # force us to use pre-applied Sc[i]
             except (AttributeError, NameError):
-                # print i, j
                 # pp(lattice)
                 for i in range(100):
                     for j in range(100):
                         try:
                             R = lattice[i,j]
-                            print i, j, R
+                            print(i, j, R)
                         except KeyError:
                             break
                 raise CoercionException("%s does not support %s" % (lattice[i,j], 'F'))
@@ -3929,7 +3924,7 @@ def pushout_lattice(R, S):
 ##         for j in range(100):
 ##             try:
 ##                 R = lattice[i,j]
-##                 print i, j, R
+##                 print(i, j, R)
 ##             except KeyError:
 ##                 break
 

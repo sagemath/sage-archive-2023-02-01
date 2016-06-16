@@ -124,7 +124,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     - ``implementation`` - 'eclib' (default), 'sage', 'overconvergent';
        Whether to use John Cremona's eclib, the Sage implementation,
-       or the Pollack-Stevens' implementation of overconvergent
+       or Pollack-Stevens' implementation of overconvergent
        modular symbols.
 
     EXAMPLES::
@@ -187,11 +187,13 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
         sage: e = EllipticCurve('11a')
         sage: L = e.padic_lseries(5,implementation = 'overconvergent', precision = 5)
-        sage: L[0]
-        5 + 4*5^2 + 4*5^3 + O(5^5)
-        sage: L[1]
-        4*5 + 3*5^2 + O(5^3)
+        sage: L.series(3)
+        5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + 3*5^2 + O(5^3))*T + (5 + 2*5^2 + O(5^3))*T^2 + (4*5 + O(5^2))*T^3 + O(5)*T^4
 
+        sage: E = EllipticCurve("11a1")
+        sage: L = E.padic_lseries(11,implementation="overconvergent",precision=3)
+        sage: L[3]
+        BOUM ## mm TODO
     """
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
                              normalize, use_eclib, implementation, precision)
@@ -209,7 +211,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
             Phi = phi.lift(p, precision, eigensymbol = True)
         else:
             Phi = phi.p_stabilize_and_lift(p, precision, eigensymbol = True)
-        Lp = Phi.padic_lseries()
+        Lp = Phi.padic_lseries()  #mm TODO should this pass precision on too ?
         Lp._cinf = self.real_components()
     return Lp
 

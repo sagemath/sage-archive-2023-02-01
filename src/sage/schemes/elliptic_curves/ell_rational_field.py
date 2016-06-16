@@ -1289,7 +1289,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def overconvergent_modular_symbol(self, sign=0, use_eclib=True):
         """
         Create the overconvergent modular symbol attached to the
-        elliptic curve
+        elliptic curve.
 
         INPUT:
 
@@ -1309,9 +1309,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
 
             sage: E = EllipticCurve([0,1])
-            sage: symb = E.overconvergent_modular_symbol()
+            sage: symb = E.overconvergent_modular_symbol(+1)
             sage: symb.values()
-            [-1/6, 1/3, 1/2, 1/6, -1/6, 1/3, -1/3, -1/2, -1/6, 1/6, 0, -1/6, -1/6]
+            [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
         """
         return ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
 

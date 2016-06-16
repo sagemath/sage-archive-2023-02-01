@@ -104,7 +104,11 @@ class pAdicLseries(SageObject):
         self._symb = symb
 
         if gamma is None:
-            gamma = 1 + self._symb.parent().prime()
+            p = self._symb.parent().prime()
+            if p == 2:
+                gamma = 1 + 4
+            else:
+                gamma = 1 + self._symb.parent().prime()
 
         self._gamma = gamma
         self._quadratic_twist = quadratic_twist

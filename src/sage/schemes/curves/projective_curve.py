@@ -141,7 +141,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
         OUTPUT:
 
-        - a list consisting of two elements: a scheme morphism from this curve into a projective space of
+        - a tuple consisting of two elements: a scheme morphism from this curve into a projective space of
           dimension one less than that of the ambient space of this curve, and the projective curve that
           is the image of that morphism.
 
@@ -150,34 +150,32 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z,w> = ProjectiveSpace(CyclotomicField(3), 3)
             sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
             sage: C.projection()
-            [Scheme morphism:
+            (Scheme morphism:
                From: Projective Curve over Cyclotomic Field of order 3 and degree 2
             defined by -x^2 + y*w, -x^3 + z*w^2
                To:   Projective Space of dimension 2 over Cyclotomic Field of order
             3 and degree 2
                Defn: Defined on coordinates by sending (x : y : z : w) to
-                     (x - 1/2*w : y - 1/2*w : z - 1/2*w),
+                     (x : y : -z + w),
              Projective Plane Curve over Cyclotomic Field of order 3 and degree 2
-            defined by x0^6 - 3*x0^5*x1 + 3*x0^4*x1^2 - 3*x0^3*x1^3 + 2*x0^4*x1*x2 +
-            2*x0^3*x1^2*x2 - 2*x0^4*x2^2]
+            defined by x0^6 - x0^3*x1^3 - x0^4*x1*x2)
 
         ::
 
             sage: P.<x,y,z,w,a,b,c> = ProjectiveSpace(QQ, 6)
             sage: C = Curve([y - x, z - a - b, w^2 - c^2, z - x - a, x^2 - w*z], P)
             sage: C.projection()
-            [Scheme morphism:
+            (Scheme morphism:
                From: Projective Curve over Rational Field defined by -x + y, z - a -
             b, w^2 - c^2, -x + z - a, x^2 - z*w
                To:   Projective Space of dimension 5 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z : w : a : b : c)
             to
-                     (x - c : y - c : z - c : w - 2*c : a - c : b - c),
-             Projective Curve over Rational Field defined by x1 - x5, x0 - x5,
-            2*x2*x3 + x3^2 - 2*x2*x4 - 3*x3*x4 + 2*x4^2 - 3*x3*x5 + 2*x4*x5 + x5^2,
-            3*x2^2 - x3^2 - 2*x2*x4 + 2*x3*x4 - x4^2 - 6*x2*x5 + 2*x3*x5 + 2*x4*x5 +
-            x5^2, x3^3 - x3^2*x4 - 2*x3^2*x5 - 6*x2*x4*x5 - 3*x3*x4*x5 + 6*x4^2*x5 +
-            6*x2*x5^2 + 2*x3*x5^2 - 3*x5^3]
+                     (x : y : -z + w : a : b : c),
+             Projective Curve over Rational Field defined by x1 - x4, x0 - x4, x2*x3
+            + x3^2 + x2*x4 + 2*x3*x4, x2^2 - x3^2 - 2*x3*x4 + x4^2 - x5^2, x2*x4^2 +
+            x3*x4^2 + x4^3 - x3*x5^2 - x4*x5^2, x4^4 - x3^2*x5^2 - 2*x3*x4*x5^2 -
+            x4^2*x5^2)
 
         ::
 
@@ -193,7 +191,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = P.curve([x^3 - y*z*u, w^2 - u^2 + 2*x*z, 3*x*w - y^2])
             sage: C.projection()
-            [Scheme morphism:
+            (Scheme morphism:
                From: Projective Curve over Finite Field of size 7 defined by x^3 -
             y*z*u, 2*x*z + w^2 - u^2, -y^2 + 3*x*w
                To:   Projective Space of dimension 3 over Finite Field of size 7
@@ -201,7 +199,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                      (x : y : z : w),
              Projective Curve over Finite Field of size 7 defined by x1^2 - 3*x0*x3,
             x0^5*x1 + x0*x1*x2^3*x3 - 3*x1*x2^2*x3^3, x0^6 + x0^2*x2^3*x3 -
-            3*x0*x2^2*x3^3]
+            3*x0*x2^2*x3^3)
         """
         PP = self.ambient_space()
         n = PP.dimension_relative()
@@ -211,8 +209,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve must be defined over a field")
         # find a point not on the curve
         if self.base_ring().characteristic() == 0:
-            # when working over a characteristic 0 field, it suffices to find a point
-            # on which at least one nonzero element of the defining ideal of this curve does not vanish
+            # when working over a characteristic 0 field, we can construct a point not on the curve.
+            # we do this by constructing a point on which at least one nonzero element of the defining ideal of
+            # this curve does not vanish
             F = 0
             # find a nonzero element
             for i in range(len(self.defining_polynomials())):
@@ -220,8 +219,8 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                     F = self.defining_polynomials()[i]
             # find a point on which it doesn't vanish
             l = list(PP.gens())
-            for i in range(n+1):
-                l[i] = 1
+            for i in range(n + 1):
+                l[i] = 0
                 while(F(l) == 0):
                     l[i] = l[i] + 1
             Q = PP(l) # will be a point not on the curve
@@ -237,30 +236,32 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                     break
             if Q is None:
                 raise NotImplementedError("curve contains all points of the ambient space")
-        # use this point to project. Apply a change of coordinates to move this point to (0:...:0:1)
-        H = Hom(PP, PP)
-        # only need the first n coordinates of the change of coordinates map
-        coords = [PP.gens()[i] - Q[i]/Q[n]*PP.gens()[n] for i in range(n)]
-        # create the projection map onto the first n coordinates
+        # in order to create the change of coordinates map, need to determine which coordinate of Q is nonzero
+        j = 0
+        while Q[j] == 0:
+            j = j + 1
+        # use this Q to project. Apply a change of coordinates to move Q to (0:...:0:1:0:...:0)
+        # where 1 is in the jth coordinate
         PP2 = ProjectiveSpace(self.base_ring(), n - 1)
         H = Hom(self, PP2)
+        coords = [PP.gens()[i] - Q[i]/Q[j]*PP.gens()[j] for i in range(n + 1)]
+        coords.pop(j)
         psi = H(coords)
         # compute image of psi via elimination
-        R = PolynomialRing(self.base_ring(), 2*n + 1, 'x')
-        K = Hom(PP.coordinate_ring(), R)
-        phi = K([R.gens()[i] for i in range(n + 1)])
-        l = [phi(coords[i]) - R.gens()[n + 1 + i] for i in range(len(coords))]
-        l.extend([phi(f) for f in self.defining_polynomials()])
-        I = R.ideal(l)
-        J = I.elimination_ideal([R.gens()[i] for i in range(n + 1)])
-        K = Hom(R, PP2.coordinate_ring())
-        l = [0]*(n + 1)
-        l.extend([PP2.coordinate_ring().gens()[i] for i in range(n)])
+        # first construct the image of this curve by the change of coordinates. This can be found by composing the
+        # defining polynomials of this curve with the polynomials defining the inverse of the change of coordinates
+        invcoords = [Q[i]*PP.gens()[j] + PP.gens()[i] for i in range(n + 1)]
+        invcoords[j] = Q[j]*PP.gens()[j]
+        I = PP.coordinate_ring().ideal([f(invcoords) for f in self.defining_polynomials()])
+        J = I.elimination_ideal(PP.gens()[j])
+        K = Hom(PP.coordinate_ring(), PP2.coordinate_ring())
+        l = list(PP2.gens())
+        l.insert(j, 0)
         phi = K(l)
         G = [phi(f) for f in J.gens()]
         from constructor import Curve
         C = Curve(G, PP2)
-        return [psi, C]
+        return tuple([psi, C])
 
     def plane_projection(self):
         r"""
@@ -268,7 +269,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
         OUTPUT:
 
-        - a list consisting of two elements: a scheme morphism from this curve into a projective plane,
+        - a tuple consisting of two elements: a scheme morphism from this curve into a projective plane,
           and the projective curve that is the image of that morphism.
 
         EXAMPLES::
@@ -276,34 +277,29 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: P.<x,y,z,w,u,v> = ProjectiveSpace(QQ, 5)
             sage: C = P.curve([x*u - z*v, w - y, w*y - x^2, y^3*u*2*z - w^4*w])
             sage: C.plane_projection()
-            [Scheme morphism:
+            (Scheme morphism:
                From: Projective Curve over Rational Field defined by x*u - z*v, -y +
             w, -x^2 + y*w, -w^5 + 2*y^3*z*u
                To:   Projective Space of dimension 2 over Rational Field
                Defn: Defined on coordinates by sending (x : y : z : w : u : v) to
-                     (x - w + u - v : y - w + u - v : z - 2*w + 3*u - 2*v),
-             Projective Plane Curve over Rational Field defined by 7*x0^8 -
-            16*x0^7*x1 + 68*x0^6*x1^2 - 336*x0^5*x1^3 + 730*x0^4*x1^4 -
-            752*x0^3*x1^5 + 356*x0^2*x1^6 - 48*x0*x1^7 - 9*x1^8 - 4*x0^7*x2 -
-            44*x0^6*x1*x2 + 220*x0^5*x1^2*x2 - 300*x0^4*x1^3*x2 + 20*x0^3*x1^4*x2 +
-            284*x0^2*x1^5*x2 - 236*x0*x1^6*x2 + 60*x1^7*x2 + 32*x0^5*x1*x2^2 -
-            160*x0^4*x1^2*x2^2 + 320*x0^3*x1^3*x2^2 - 320*x0^2*x1^4*x2^2 +
-            160*x0*x1^5*x2^2 - 32*x1^6*x2^2]
+                     (x : -z + u : -z + v),
+             Projective Plane Curve over Rational Field defined by x0^8 + 6*x0^7*x1
+            + 4*x0^5*x1^3 - 4*x0^7*x2 - 2*x0^6*x1*x2 - 4*x0^5*x1^2*x2 + 2*x0^6*x2^2)
 
         ::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(GF(7), 4)
             sage: C = P.curve([x^2 - 6*y^2, w*z*u - y^3 + 4*y^2*z, u^2 - x^2])
             sage: C.plane_projection()
-            [Scheme morphism:
+            (Scheme morphism:
                From: Projective Curve over Finite Field of size 7 defined by x^2 +
             y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
                To:   Projective Space of dimension 2 over Finite Field of size 7
                Defn: Defined on coordinates by sending (x : y : z : w : u) to
-                     (x - w : y : z),
-             Projective Plane Curve over Finite Field of size 7 defined by x1^10 -
-            2*x1^9*x2 + 2*x0^2*x1^6*x2^2 + 3*x1^8*x2^2 - 2*x0^2*x1^5*x2^3 -
-            2*x1^7*x2^3 + x0^4*x1^2*x2^4 - x0^2*x1^4*x2^4 + x1^6*x2^4]
+                     (y : z : -x + w),
+             Projective Plane Curve over Finite Field of size 7 defined by x0^10 -
+            2*x0^9*x1 + 3*x0^8*x1^2 - 2*x0^7*x1^3 + x0^6*x1^4 + 2*x0^6*x1^2*x2^2 -
+            2*x0^5*x1^3*x2^2 - x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
         """
         PP = self.ambient_space()
         C = self
@@ -317,7 +313,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             psi = K(phi.defining_polynomials())
             H = Hom(self, L[1].ambient_space())
             phi = H([psi(L[0].defining_polynomials()[i]) for i in range(len(L[0].defining_polynomials()))])
-        return [phi, C]
+        return tuple([phi, C])
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):

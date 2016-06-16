@@ -2208,7 +2208,7 @@ class AbstractLinearCode(module.Module):
             [1 2 0]
             [0 0 1]
         """
-        return self.generator_matrix().echelon_form()
+        return LinearCodeSystematicEncoder(self).generator_matrix()
 
     @cached_method
     def gens(self):

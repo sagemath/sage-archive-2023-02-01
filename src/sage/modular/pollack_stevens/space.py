@@ -830,13 +830,12 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, use_eclib=True):
         sage: symb
         Modular symbol of level 113 with values in Sym^0 Q^2
         sage: symb.values()
-        [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
-        0, 2, 0, 0]
+        [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
 
         sage: E = EllipticCurve([0,1])
         sage: symb = E.overconvergent_modular_symbol()
         sage: symb.values()
-        [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
+        [-1/6, 1/3, 1/2, 1/6, -1/6, 1/3, -1/3, -1/2, -1/6, 1/6, 0, -1/6, -1/6]
     """
     if not (E.base_ring() is QQ):
         raise ValueError("The elliptic curve must be defined over the "
@@ -942,7 +941,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
         sage: E = EllipticCurve('11a')
         sage: f_E = E.overconvergent_modular_symbol(); f_E.values()
-        [-1/5, 3/2, -1/2]
+        [-1/5, 1, 0]
         sage: A = ModularSymbols(11, sign=1, weight=2).decomposition()[0]
         sage: f_plus = ps_modsym_from_simple_modsym_space(A); f_plus.values()
         [1, -5/2, -5/2]
@@ -955,10 +954,10 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     ``ps_modsym_from_simple_modsym_space`` is only well-defined up to a nonzero
     scalar::
 
-        sage: (-1/5)*vector(QQ, f_plus.values()) + vector(QQ, f_minus.values())
-        (-1/5, 3/2, -1/2)
+        sage: (-1/5)*vector(QQ, f_plus.values()) + (1/2)*vector(QQ, f_minus.values())
+        (-1/5, 1, 0)
         sage: vector(QQ, f_E.values())
-        (-1/5, 3/2, -1/2)
+        (-1/5, 1, 0)
 
     The next few examples all illustrate the ways in which exceptions are
     raised if A does not satisfy various constraints.

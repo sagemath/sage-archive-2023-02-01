@@ -51,7 +51,7 @@ class OverconvergentDistributions_factory(UniqueFactory):
         Space of 11-adic distributions with k=3 action and precision cap 20
         sage: v = D([1,0,0,0,0])
         sage: v.act_right([2,1,0,1])
-        (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + 4*11 + O(11))
+        (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
 
     Note that we would expect something more p-adic, but fine...::
 

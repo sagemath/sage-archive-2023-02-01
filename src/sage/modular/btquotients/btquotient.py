@@ -103,7 +103,7 @@ class DoubleCosetReduction(SageObject):
 
     INPUT:
 
-    - ``Y`` -  BTQuotient object in which to work
+    - ``Y`` -  BruhatTitsQuotient object in which to work
     - ``x`` -  Something coercible into a matrix in `\GL_2(\ZZ)`. In
        principle we should allow elements in `\GL_2(\QQ_p)`, but it is
        enough to work with integral entries
@@ -113,7 +113,7 @@ class DoubleCosetReduction(SageObject):
     EXAMPLES::
 
         sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
-        sage: Y = BTQuotient(5, 13)
+        sage: Y = BruhatTitsQuotient(5, 13)
         sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
         sage: d = DoubleCosetReduction(Y,x)
         sage: d.sign()
@@ -138,7 +138,8 @@ class DoubleCosetReduction(SageObject):
 
         EXAMPLES::
 
-            sage: Y = BTQuotient(5, 13)
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
+            sage: Y = BruhatTitsQuotient(5, 13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: d = DoubleCosetReduction(Y,x)
             sage: TestSuite(d).run()
@@ -173,7 +174,8 @@ class DoubleCosetReduction(SageObject):
 
         EXAMPLES::
 
-            sage: Y = BTQuotient(5, 13)
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
+            sage: Y = BruhatTitsQuotient(5, 13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: DoubleCosetReduction(Y,x)
             DoubleCosetReduction
@@ -186,7 +188,8 @@ class DoubleCosetReduction(SageObject):
 
         TESTS::
 
-            sage: Y = BTQuotient(5, 13)
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
+            sage: Y = BruhatTitsQuotient(5, 13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: d1 = DoubleCosetReduction(Y,x)
             sage: d1 == d1
@@ -237,7 +240,8 @@ class DoubleCosetReduction(SageObject):
 
         EXAMPLES::
 
-            sage: Y = BTQuotient(3, 11)
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
+            sage: Y = BruhatTitsQuotient(3, 11)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: d = DoubleCosetReduction(Y,x)
             sage: d.sign()
@@ -285,7 +289,7 @@ class DoubleCosetReduction(SageObject):
         EXAMPLES::
 
             sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
-            sage: Y = BTQuotient(7, 11)
+            sage: Y = BruhatTitsQuotient(7, 11)
             sage: d = DoubleCosetReduction(Y,Matrix(ZZ,2,2,[123,45,88,1]))
             sage: d.igamma()
             [6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)                                   O(7^5)]
@@ -328,7 +332,7 @@ class DoubleCosetReduction(SageObject):
         EXAMPLES::
 
             sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
-            sage: Y = BTQuotient(5, 13)
+            sage: Y = BruhatTitsQuotient(5, 13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1232])
             sage: d = DoubleCosetReduction(Y,x)
             sage: t = d.t(20)
@@ -1075,7 +1079,6 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
                     E.extend(self.subdivide([e], level))
         return E
 
-
 class Vertex(SageObject):
     r"""
     This is a structure to represent vertices of quotients of the
@@ -1127,7 +1130,7 @@ class Vertex(SageObject):
         EXAMPLES::
 
             sage: from sage.modular.btquotients.btquotient import Vertex
-            sage: Y = BTQuotient(5,13)
+            sage: Y = BruhatTitsQuotient(5,13)
             sage: v1 = Vertex(5,0,Matrix(ZZ,2,2,[1,2,3,18]))
             sage: TestSuite(v1).run()
         """
@@ -1155,7 +1158,7 @@ class Vertex(SageObject):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,5)
+            sage: X = BruhatTitsQuotient(3,5)
             sage: X.get_vertex_list()[0]
             Vertex of BT-tree for p = 3
         """
@@ -1247,7 +1250,7 @@ class Edge(SageObject):
         EXAMPLES::
 
             sage: from sage.modular.btquotients.btquotient import Edge
-            sage: Y = BTQuotient(5,11)
+            sage: Y = BruhatTitsQuotient(5,11)
             sage: el = Y.get_edge_list()
             sage: e1 = el.pop()
             sage: e2 = Edge(5,e1.label,e1.rep,e1.origin,e1.target)
@@ -1277,7 +1280,7 @@ class Edge(SageObject):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,5)
+            sage: X = BruhatTitsQuotient(3,5)
             sage: X.get_edge_list()[0]
             Edge of BT-tree for p = 3
         """
@@ -1329,7 +1332,7 @@ class Edge(SageObject):
         return 0
 
 
-class BTQuotient(SageObject, UniqueRepresentation):
+class BruhatTitsQuotient(SageObject, UniqueRepresentation):
     r"""
     This function computes the quotient of the Bruhat-Tits tree
     by an arithmetic quaternionic group. The group in question is the
@@ -1363,7 +1366,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     Here is an example without a Dirichlet character::
 
-        sage: X = BTQuotient(13, 19)
+        sage: X = BruhatTitsQuotient(13, 19)
         sage: X.genus()
         19
         sage: G = X.get_graph(); G
@@ -1372,7 +1375,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     And an example with a Dirichlet character::
 
         sage: f = DirichletGroup(6)[1]
-        sage: X = BTQuotient(3,2*5*7,character = f)
+        sage: X = BruhatTitsQuotient(3,2*5*7,character = f)
         sage: X.genus()
         5
 
@@ -1389,14 +1392,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def __classcall__(cls, p, Nminus, Nplus=1, character=None,
                       use_magma=False, seed=None):
         """
-        Ensure that a canonical BTQuotient is created.
+        Ensure that a canonical BruhatTitsQuotient is created.
 
         EXAMPLES:
 
-            sage: BTQuotient(3,17) is BTQuotient(3,17,1)
+            sage: BruhatTitsQuotient(3,17) is BruhatTitsQuotient(3,17,1)
             True
         """
-        return super(BTQuotient, cls).__classcall__(cls, p, Nminus, Nplus,
+        return super(BruhatTitsQuotient, cls).__classcall__(cls, p, Nminus, Nplus,
                                                     character, use_magma, seed)
 
     def __init__(self, p, Nminus, Nplus=1, character=None,
@@ -1407,7 +1410,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: Y = BTQuotient(19,11)
+            sage: Y = BruhatTitsQuotient(19,11)
             sage: TestSuite(Y).run()
         """
         Nminus = Integer(Nminus)
@@ -1491,10 +1494,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13)
+            sage: X = BruhatTitsQuotient(5,13)
             sage: X._cache_key()
-            7479731716828976543
-            sage: Y = BTQuotient(5,13,use_magma = True) # optional - magma
+            1375458358400022881
+            sage: Y = BruhatTitsQuotient(5,13,use_magma = True) # optional - magma
             sage: Y._cache_key() == X._cache_key() # optional - magma
             False
         """
@@ -1506,7 +1509,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13); X
+            sage: X = BruhatTitsQuotient(5,13); X
             Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 13 and level 1
         """
         return "Quotient of the Bruhat Tits tree of GL_2(QQ_%s) with discriminant %s and level %s" % (self.prime(), self.Nminus().factor(), self.Nplus().factor())
@@ -1517,8 +1520,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13)
-            sage: Y = BTQuotient(p = 5, Nminus = 13, Nplus=1,seed = 1231)
+            sage: X = BruhatTitsQuotient(5,13)
+            sage: Y = BruhatTitsQuotient(p = 5, Nminus = 13, Nplus=1,seed = 1231)
             sage: X == Y
             True
         """
@@ -1539,7 +1542,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13); latex(X)
+            sage: X = BruhatTitsQuotient(5,13); latex(X)
             X(5 \cdot 13,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
         """
         return "X(%s,%s)\\otimes_{\\mathbb{Z}} \\mathbb{F}_{%s}" % (latex(self.level().factor()), latex(self.Nplus().factor()), latex(self.prime()))
@@ -1555,7 +1558,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(37,3)
+            sage: X = BruhatTitsQuotient(37,3)
             sage: X.get_vertex_dict()
             {[1 0]
             [0 1]: Vertex of BT-tree for p = 37, [ 1  0]
@@ -1577,7 +1580,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(37,3)
+            sage: X = BruhatTitsQuotient(37,3)
             sage: X.get_vertex_list()
             [Vertex of BT-tree for p = 37, Vertex of BT-tree for p = 37]
         """
@@ -1598,7 +1601,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(37,3)
+            sage: X = BruhatTitsQuotient(37,3)
             sage: len(X.get_edge_list())
             8
 
@@ -1622,7 +1625,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(37,3)
+            sage: X = BruhatTitsQuotient(37,3)
             sage: len(X.get_list())
             16
         """
@@ -1646,7 +1649,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,13)
+            sage: X = BruhatTitsQuotient(3,13)
             sage: len(X.get_nontorsion_generators())
             3
         """
@@ -1673,7 +1676,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,2)
+            sage: X = BruhatTitsQuotient(3,2)
             sage: len(X.get_generators())
             2
         """
@@ -1694,7 +1697,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(23,11)
+            sage: X = BruhatTitsQuotient(23,11)
             sage: X._compute_invariants()
         """
         Nplus = self._Nplus
@@ -1739,7 +1742,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(31,3)
+            sage: X = BruhatTitsQuotient(31,3)
             sage: X.e3
             1
 
@@ -1762,7 +1765,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(31,3)
+            sage: X = BruhatTitsQuotient(31,3)
             sage: X.e4
             2
 
@@ -1781,7 +1784,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(29,3)
+            sage: X = BruhatTitsQuotient(29,3)
             sage: X.mu
             2
         """
@@ -1802,7 +1805,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(29,11)
+            sage: X = BruhatTitsQuotient(29,11)
             sage: X.get_num_verts()
             4
         """
@@ -1819,7 +1822,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,2)
+            sage: X = BruhatTitsQuotient(3,2)
             sage: X.get_num_ordered_edges()
             2
         """
@@ -1836,7 +1839,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,2*3*29)
+            sage: X = BruhatTitsQuotient(5,2*3*29)
             sage: X.genus_no_formula()
             17
             sage: X.genus_no_formula() == X.genus()
@@ -1868,7 +1871,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,2*5*31)
+            sage: X = BruhatTitsQuotient(3,2*5*31)
             sage: X.genus()
             21
             sage: X.genus() == X.genus_no_formula()
@@ -1889,18 +1892,18 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: [X.dimension_harmonic_cocycles(k) for k in range(2,20,2)]
             [1, 4, 4, 8, 8, 12, 12, 16, 16]
 
-            sage: X = BTQuotient(2,5) # optional - magma
+            sage: X = BruhatTitsQuotient(2,5) # optional - magma
             sage: [X.dimension_harmonic_cocycles(k) for k in range(2,40,2)] # optional - magma
             [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
 
-            sage: X = BTQuotient(7, 2 * 3 * 5)
+            sage: X = BruhatTitsQuotient(7, 2 * 3 * 5)
             sage: X.dimension_harmonic_cocycles(4)
             12
-            sage: X = BTQuotient(7, 2 * 3 * 5 * 11 * 13)
+            sage: X = BruhatTitsQuotient(7, 2 * 3 * 5 * 11 * 13)
             sage: X.dimension_harmonic_cocycles(2)
             481
             sage: X.dimension_harmonic_cocycles(4)
@@ -1961,7 +1964,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7,1)
+            sage: X = BruhatTitsQuotient(5,7,1)
             sage: X.Nplus()
             1
         """
@@ -1978,7 +1981,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.Nminus()
             7
         """
@@ -1997,7 +2000,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.level()
             35
         """
@@ -2013,7 +2016,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.prime()
             5
         """
@@ -2029,7 +2032,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,5)
+            sage: X = BruhatTitsQuotient(11,5)
             sage: X.get_graph()
             Multi-graph on 2 vertices
         """
@@ -2049,7 +2052,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,5)
+            sage: X = BruhatTitsQuotient(11,5)
             sage: X.get_fundom_graph()
             Graph on 24 vertices
         """
@@ -2069,7 +2072,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,23)
+            sage: X = BruhatTitsQuotient(7,23)
             sage: X.plot()
             Graphics object consisting of 17 graphics primitives
         """
@@ -2102,7 +2105,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,23)
+            sage: X = BruhatTitsQuotient(7,23)
             sage: X.plot_fundom()
             Graphics object consisting of 88 graphics primitives
         """
@@ -2141,7 +2144,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: [X.is_admissible(D) for D in range(-1,-20,-1)]
             [False, True, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, True, False]
         """
@@ -2169,7 +2172,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,3)
+            sage: X = BruhatTitsQuotient(11,3)
             sage: phi = X._local_splitting_map(10)
             sage: B.<i,j,k> = QuaternionAlgebra(3)
             sage: phi(i)**2 == QQ(i**2)*phi(B(1))
@@ -2198,7 +2201,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,3)
+            sage: X = BruhatTitsQuotient(11,3)
             sage: phi = X._local_splitting_map(10)
             sage: B.<i,j,k> = QuaternionAlgebra(3)
             sage: phi(i)**2 == QQ(i**2)*phi(B(1))
@@ -2251,7 +2254,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         Note that the entries of the matrix are elements of Zmod::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: A = X.get_embedding_matrix(10)  # indirect doctest
             sage: R = A.base_ring()
             sage: B = X.get_eichler_order_basis()
@@ -2302,7 +2305,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         not trivial it might return an empty list::
 
             sage: f = DirichletGroup(6)[1]
-            sage: X = BTQuotient(3,2*5*7,character = f)
+            sage: X = BruhatTitsQuotient(3,2*5*7,character = f)
             sage: X.get_extra_embedding_matrices()
             []
         """
@@ -2362,7 +2365,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES:
 
-            sage: X = BTQuotient(3,101)
+            sage: X = BruhatTitsQuotient(3,101)
             sage: X.get_embedding_matrix()
             [    O(3) 1 + O(3) 1 + O(3) 1 + O(3)]
             [2 + O(3)     O(3) 2 + O(3) 2 + O(3)]
@@ -2396,7 +2399,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,2*3*5)
+            sage: X = BruhatTitsQuotient(7,2*3*5)
             sage: X.get_embedding_matrix(4)
             [                      1 + O(7^4)         5 + 2*7 + 3*7^3 + O(7^4) 4 + 5*7 + 6*7^2 + 6*7^3 + O(7^4)       6 + 3*7^2 + 4*7^3 + O(7^4)]
             [                          O(7^4)                           O(7^4)                   3 + 7 + O(7^4) 1 + 6*7 + 3*7^2 + 2*7^3 + O(7^4)]
@@ -2467,7 +2470,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,2)
+            sage: X = BruhatTitsQuotient(7,2)
             sage: l = X.get_units_of_order()
             sage: len(l)
             12
@@ -2500,7 +2503,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,3)
+            sage: X = BruhatTitsQuotient(5,3)
             sage: f = X.get_embedding(prec = 4)
             sage: b = Matrix(ZZ,4,1,[1,2,3,4])
             sage: f(b)
@@ -2530,7 +2533,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X=BTQuotient(3,2)
+            sage: X=BruhatTitsQuotient(3,2)
             sage: s = X.get_edge_stabilizers()
             sage: len(s) == X.get_num_ordered_edges()/2
             True
@@ -2564,7 +2567,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X=BTQuotient(3,5)
+            sage: X=BruhatTitsQuotient(3,5)
             sage: s = X.get_stabilizers()
             sage: len(s) == X.get_num_ordered_edges()
             True
@@ -2590,7 +2593,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,2)
+            sage: X = BruhatTitsQuotient(13,2)
             sage: S = X.get_vertex_stabs()
             sage: gamma = X.embed_quaternion(S[0][0][0],prec = 20)
             sage: v = X.get_vertex_list()[0].rep
@@ -2614,7 +2617,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.get_quaternion_algebra()
             Quaternion Algebra (-1, -7) with base ring Rational Field
         """
@@ -2635,7 +2638,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.get_eichler_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
         """
@@ -2666,7 +2669,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X.get_maximal_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
         """
@@ -2693,7 +2696,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,11)
+            sage: X = BruhatTitsQuotient(5,11)
             sage: X.get_splitting_field()
             Traceback (most recent call last):
             ...
@@ -2701,7 +2704,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         If we do have Magma installed, then it works::
 
-            sage: X = BTQuotient(5,11,use_magma=True) # optional - magma
+            sage: X = BruhatTitsQuotient(5,11,use_magma=True) # optional - magma
             sage: X.get_splitting_field() # optional - magma
             Number Field in a with defining polynomial X1^2 + 11
         """
@@ -2724,7 +2727,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
+            sage: X = BruhatTitsQuotient(7,11)
             sage: X.get_eichler_order_basis()
             [1/2 + 1/2*j, 1/2*i + 1/2*k, j, k]
         """
@@ -2747,7 +2750,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
+            sage: X = BruhatTitsQuotient(7,11)
             sage: X.get_eichler_order_quadform()
             Quadratic form in 4 variables over Integer Ring with coefficients:
             [ 3 0 11 0 ]
@@ -2773,7 +2776,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
+            sage: X = BruhatTitsQuotient(7,11)
             sage: X.get_eichler_order_quadmatrix()
             [ 6  0 11  0]
             [ 0  6  0 11]
@@ -2801,7 +2804,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
+            sage: X = BruhatTitsQuotient(7,11)
             sage: X.get_units_of_order()
             [
             [ 0]  [-2]
@@ -2927,7 +2930,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: X._get_Up_data()
             [[
             [1/3   0]
@@ -2962,7 +2965,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,5)
+            sage: X = BruhatTitsQuotient(3,5)
             sage: X._get_atkin_lehner_data(3)
             [
             [ 2]
@@ -3010,7 +3013,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
+            sage: X = BruhatTitsQuotient(3,17)
             sage: len(X._get_hecke_data(5))
             2
         """
@@ -3093,7 +3096,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
             sage: X._find_equivalent_vertex(M)[-1] in X.get_vertex_list()
@@ -3139,7 +3142,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
             sage: X._find_equivalent_edge(M)[-1] in X.get_edge_list()
@@ -3178,7 +3181,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
             sage: X.fundom_rep(M)
@@ -3226,7 +3229,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
+            sage: X = BruhatTitsQuotient(3,17)
             sage: X._find_lattice(Matrix(ZZ,2,2,[1,2,3,4]),Matrix(ZZ,2,2,[3,2,1,5]), True,0)
             (
             [1 0 0 0]  [138 204 -35 102]
@@ -3269,7 +3272,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BruhatTitsQuotient(3,7)
             sage: X._stabilizer(Matrix(ZZ,2,2,[3,8,2,9]))[0][2]
             False
         """
@@ -3330,7 +3333,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: f = DirichletGroup(6)[1]
-            sage: X = BTQuotient(3,2,1,f)
+            sage: X = BruhatTitsQuotient(3,2,1,f)
             sage: e = Matrix(ZZ,2,2,[1,2,5,7])
             sage: m = e.determinant().valuation(3)
             sage: twom = 2*m
@@ -3391,7 +3394,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,5)
+            sage: X = BruhatTitsQuotient(7,5)
             sage: M1 = Matrix(ZZ,2,2,[88,3,1,1])
             sage: M1.set_immutable()
             sage: X._are_equivalent(M1,M1) == False
@@ -3441,7 +3444,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         TESTS::
 
-            sage: X = BTQuotient(3,23,use_magma=True) # optional - magma
+            sage: X = BruhatTitsQuotient(3,23,use_magma=True) # optional - magma
             sage: X._compute_exact_splitting() # optional - magma
         """
         # A = self.get_quaternion_algebra()
@@ -3462,7 +3465,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,23)
+            sage: X = BruhatTitsQuotient(3,23)
             sage: X._init_order()
         """
         if self._order_is_initialized:
@@ -3507,7 +3510,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
+            sage: X = BruhatTitsQuotient(7,11)
             sage: v,pow = X.B_one()
             sage: X._conv(v) == 1
             True
@@ -3530,7 +3533,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: A = X.get_quaternion_algebra()
             sage: i,j,k = A.gens()
             sage: B = X.get_eichler_order_basis()
@@ -3561,7 +3564,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
+            sage: X = BruhatTitsQuotient(5,7)
             sage: X._find_elements_in_order(23)
             [[2, 9, -1, -5], [0, 8, 0, -5], [-2, 9, 1, -5], [6, 7, -3, -4], [2, 5, -1, -4], [0, 6, -1, -4], [0, 8, -1, -4], [2, 9, -1, -4], [-2, 5, 1, -4], [0, 6, 1, -4], [0, 8, 1, -4], [-2, 9, 1, -4], [-6, 7, 3, -4], [7, 6, -4, -3], [7, 6, -3, -3], [6, 7, -3, -3], [0, 8, 0, -3], [-7, 6, 3, -3], [-6, 7, 3, -3], [-7, 6, 4, -3], [0, 1, -1, -2], [0, 6, -1, -2], [0, 1, 1, -2], [0, 6, 1, -2], [9, 2, -5, -1], [6, 0, -4, -1], [8, 0, -4, -1], [5, 2, -4, -1], [9, 2, -4, -1], [1, 0, -2, -1], [6, 0, -2, -1], [0, -1, -1, -1], [-1, 0, -1, -1], [5, 2, -1, -1], [2, 5, -1, -1], [0, -1, 1, -1], [1, 0, 1, -1], [-5, 2, 1, -1], [-2, 5, 1, -1], [-6, 0, 2, -1], [-1, 0, 2, -1], [-8, 0, 4, -1], [-6, 0, 4, -1], [-9, 2, 4, -1], [-5, 2, 4, -1], [-9, 2, 5, -1], [8, 0, -5, 0], [8, 0, -3, 0]]
             sage: X._find_elements_in_order(23,1)
@@ -3584,35 +3587,35 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,2)
+            sage: X = BruhatTitsQuotient(11,2)
             sage: X.get_graph() # indirect doctest
             Multi-graph on 2 vertices
 
-            sage: X = BTQuotient(17,19)
+            sage: X = BruhatTitsQuotient(17,19)
             sage: X.get_graph() # indirect doctest
             Multi-graph on 4 vertices
 
        The following examples require magma::
 
-            sage: X = BTQuotient(5,7,12) # optional - magma
+            sage: X = BruhatTitsQuotient(5,7,12) # optional - magma
             sage: X.get_graph()          # optional - magma
             Multi-graph on 24 vertices
             sage: len(X._edge_list)      # optional - magma
             72
 
-            sage: X = BTQuotient(2,3,5)  # optional - magma
+            sage: X = BruhatTitsQuotient(2,3,5)  # optional - magma
             sage: X.get_graph() # optional - magma
             Multi-graph on 4 vertices
 
-            sage: X = BTQuotient(2,3,35) # optional - magma
+            sage: X = BruhatTitsQuotient(2,3,35) # optional - magma
             sage: X.get_graph() # optional - magma
             Multi-graph on 16 vertices
 
-            sage: X = BTQuotient(53,11,2) # optional - magma
+            sage: X = BruhatTitsQuotient(53,11,2) # optional - magma
             sage: X.get_graph() # optional - magma
             Multi-graph on 6 vertices
 
-            sage: X = BTQuotient(2,13,9) # optional - magma
+            sage: X = BruhatTitsQuotient(2,13,9) # optional - magma
             sage: X.get_graph() # optional - magma
             Multi-graph on 24 vertices
 
@@ -3731,20 +3734,20 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: E = EllipticCurve('21a1')
-            sage: X = BTQuotient(7,3)
+            sage: X = BruhatTitsQuotient(7,3)
             sage: f = X.harmonic_cocycle_from_elliptic_curve(E,10)
             sage: T29 = f.parent().hecke_operator(29)
             sage: T29(f) == E.ap(29) * f
             True
             sage: E = EllipticCurve('51a1')
-            sage: X = BTQuotient(3,17)
+            sage: X = BruhatTitsQuotient(3,17)
             sage: f = X.harmonic_cocycle_from_elliptic_curve(E,20)
             sage: T31 = f.parent().hecke_operator(31)
             sage: T31(f) == E.ap(31) * f
             True
         """
-        from pautomorphicform import HarmonicCocycles
-        M = HarmonicCocycles(self, 2, prec=prec)
+        from pautomorphicform import BruhatTitsHarmonicCocycles
+        M = BruhatTitsHarmonicCocycles(self, 2, prec=prec)
         q = ZZ.one()
         F = E.base_ring()
         try:
@@ -3769,3 +3772,65 @@ class BTQuotient(SageObject, UniqueRepresentation):
             K = K.intersection(K1)
         col = [ZZ(o) for o in K.matrix().list()]
         return sum([a * M.gen(i) for i, a in enumerate(col) if a != 0], M(0))
+
+    def harmonic_cocycles(self, k, prec=None, basis_matrix=None, base_field=None):
+        r"""
+        Compute the space of harmonic coclyces of a given even weight ``k``.
+
+        INPUT:
+
+        - ``k`` - integer - The weight. It must be even.
+
+        - ``prec`` - integer (Default: None). If specified, the
+        precision for the coefficient module
+
+        - ``basis_matrix`` - a matrix (Default: None).
+
+        - ``base_field`` - a ring (Default: None)
+
+        OUTPUT: A space of harmonic cocycles
+
+        EXAMPLE::
+
+            sage: X = BruhatTitsQuotient(31,7)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: H
+            Space of harmonic cocycles of weight 2 on Quotient of the Bruhat Tits tree of GL_2(QQ_31) with discriminant 7 and level 1
+            sage: H.basis()[0]
+            Harmonic cocycle with values in Sym^0 Q_31^2
+        """
+        from pautomorphicform import BruhatTitsHarmonicCocycles
+        return BruhatTitsHarmonicCocycles(self, k, prec=prec, basis_matrix=basis_matrix, base_field=base_field)
+
+    def padic_automorphic_forms(self, U, prec=None, t=None, R=None, overconvergent=False):
+        r"""
+        The module of (quaternionic) `p`-adic automorphic forms.
+
+        INPUT:
+
+        - ``U`` - A coefficient module or an integer. If U is a
+          coefficient module then this creates the relevant space of
+          automorphic forms. If U is an integer then the coefficients
+          are the (`U-2`)nd power of the symmetric representation of
+          `\GL_2(\Qp)`.
+
+          - ``prec`` - A precision (Default = None). If not None should
+          be a positive integer
+
+          - ``t`` - (Default = None). #mm TODO
+
+          - ``R`` - (Default = None).
+
+          - ``overconvergent`` - Boolean (Default = False).
+
+        EXAMPLES:
+
+        The space of weight 2 p-automorphic forms is isomorphic with
+        the space of scalar valued invariant harmonic cocycles::
+
+            sage: X = BruhatTitsQuotient(11,5)
+            sage: X.padic_automorphic_forms(2,prec=10)
+            Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_11) with discriminant 5 and level 1 with values in Sym^0 Q_11^2
+        """
+        from pautomorphicform import pAdicAutomorphicForms
+        return pAdicAutomorphicForms(self, U, prec=prec, t=t, R=R, overconvergent=overconvergent)

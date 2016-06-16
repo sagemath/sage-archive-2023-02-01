@@ -1663,7 +1663,7 @@ cdef class WeightKAction(Action):
 
             sage: D = OverconvergentDistributions(4,5,4)
             sage: D([1,2,5,3]) * D._act.actor()(Matrix(ZZ,2,2,[1,1,0,1]))
-            (1 + O(5^4), 3 + O(5^3), 2*5 + O(5^2), 4*5 + O(5))
+            (1 + O(5^4), 3 + O(5^3), 2*5 + O(5^2), O(5))
             sage: D._act.clear_cache()
         """
         self._actmat = {}

@@ -1,3 +1,3 @@
-from btquotient import BTQuotient as BruhatTitsQuotient
-from pautomorphicform import pAutomorphicForms as pAdicAutomorphicForms
-from pautomorphicform import HarmonicCocycles as BruhatTitsHarmonicCocycles
+from btquotient import BruhatTitsQuotient
+#from pautomorphicform import pAdicAutomorphicForms
+#from pautomorphicform import BruhatTitsHarmonicCocycles

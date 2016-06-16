@@ -113,13 +113,13 @@ def eval_dist_at_powseries(phi, f):
                if i >= 0 and i < nmoments)
 
 
-class HarmonicCocycleElement(HeckeModuleElement):
+class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
     r"""
     Gamma-invariant harmonic cocycles on the Bruhat-Tits
     tree. Gamma-invariance is necessary so that the cocycle can be
     stored in terms of a finite amount of data.
 
-    More precisely, given a BTQuotient T, harmonic cocycles are stored as
+    More precisely, given a BruhatTitsQuotient T, harmonic cocycles are stored as
     a list of values in some coefficient module (e.g. for weight 2 forms
     can take Cp) indexed by edges of a fundamental domain for T in the
     Bruhat-Tits tree. Evaluate the cocycle at other edges using Gamma
@@ -137,8 +137,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
     Harmonic cocycles form a vector space, so they can be added and/or
     subtracted from each other::
 
-        sage: X = BTQuotient(5,23)
-        sage: H = HarmonicCocycles(X,2,prec=10)
+        sage: X = BruhatTitsQuotient(5,23)
+        sage: H = X.harmonic_cocycles(2,prec=10)
         sage: v1 = H.basis()[0]; v2 = H.basis()[1] # indirect doctest
         sage: v3 = v1+v2
         sage: v1 == v3-v2
@@ -166,8 +166,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(31,7)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(31,7)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v = H.basis()[0] # indirect doctest
             sage: TestSuite(v).run()
         """
@@ -194,8 +194,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]; v2 = H.basis()[1]
             sage: v3 = v1+v2 # indirect doctest
             sage: v1 == v3-v2
@@ -217,8 +217,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]; v2 = H.basis()[1]
             sage: v3 = v1-v2 # indirect doctest
             sage: v1 == v3+v2
@@ -242,8 +242,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]
             sage: v2 = 2*v1 # indirect doctest
             sage: v1 == v2-v1
@@ -262,8 +262,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]
             sage: v2 = 3*v1 # indirect doctest
             sage: 2*v1 == v2-v1
@@ -281,8 +281,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0] # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
@@ -294,10 +294,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+            sage: M = BruhatTitsQuotient(3,5).harmonic_cocycles(2,prec=10)
             sage: M.monomial_coefficients()
             {}
-
         """
         return {}
 
@@ -307,8 +306,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0].print_values()
             0   |1 + O(5^10)
             1   |0
@@ -339,8 +338,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: b1 = H.basis()[0]
             sage: b2 = 3*b1
             sage: b1.valuation()
@@ -366,8 +365,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
             (1 + O(3^9), O(3^9), 0)
             sage: H.basis()[1]._compute_element()
@@ -400,7 +399,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
             res = rest.transpose()
         return self.parent().free_module()(res.row(0))
 
-    #In HarmonicCocycle
+    #In BruhatTitsHarmonicCocycle
     def evaluate(self, e1):
         r"""
         Evaluate a harmonic cocycle on an edge of the Bruhat-Tits tree.
@@ -417,10 +416,10 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,17)
+            sage: X = BruhatTitsQuotient(5,17)
             sage: e0 = X.get_edge_list()[0]
             sage: e1 = X.get_edge_list()[1]
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: b = H.basis()[0]
             sage: b.evaluate(e0.rep)
             1 + O(5^10)
@@ -437,7 +436,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         return u.igamma(self.parent().embed_quaternion, scale=p ** (-u.power)) * val
 
-    #In HarmonicCocycle
+    #In BruhatTitsHarmonicCocycle
     def riemann_sum(self, f, center=1, level=0, E=None):
         r"""
         Evaluate the integral of the function ``f`` with respect
@@ -462,8 +461,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: b = H.basis()[0]
             sage: R.<z> = PolynomialRing(QQ,1)
             sage: f = z^2
@@ -518,8 +517,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,23)
-            sage: H = HarmonicCocycles(X,2,prec = 8)
+            sage: X = BruhatTitsQuotient(3,23)
+            sage: H = X.harmonic_cocycles(2,prec = 8)
             sage: b = H.basis()[0]
             sage: R.<a> = Qq(9,prec=10)
             sage: x1 = b.modular_form(a,level = 0); x1
@@ -535,7 +534,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         """
         return self.derivative(z, level, order=0)
 
-    # In HarmonicCocycle
+    # In BruhatTitsHarmonicCocycle
     def derivative(self, z=None, level=0, order=1):
         r"""
         Integrate Teitelbaum's `p`-adic Poisson kernel against
@@ -570,8 +569,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,23)
-            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: X = BruhatTitsQuotient(3,23)
+            sage: H = X.harmonic_cocycles(2,prec=5)
             sage: b = H.basis()[0]
             sage: R.<a> = Qq(9,prec=10)
             sage: b.modular_form(a,level=0) == b.derivative(a,level=0,order=0)
@@ -609,19 +608,19 @@ class HarmonicCocycleElement(HeckeModuleElement):
             return F(z)
 
 
-class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
+class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
     r"""
     Ensure unique representation
 
     EXAMPLES::
 
-        sage: X = BTQuotient(3,5)
-        sage: M1 = HarmonicCocycles(X, 2, prec = 10)
-        sage: M2 = HarmonicCocycles(X, 2, 10)
+        sage: X = BruhatTitsQuotient(3,5)
+        sage: M1 = X.harmonic_cocycles( 2, prec = 10)
+        sage: M2 = X.harmonic_cocycles( 2, 10)
         sage: M1 is M2
         True
     """
-    Element = HarmonicCocycleElement
+    Element = BruhatTitsHarmonicCocycleElement
 
     @staticmethod
     def __classcall__(cls, X, k, prec=None, basis_matrix=None, base_field=None):
@@ -631,7 +630,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         INPUT:
 
-        - ``X`` - A BTQuotient object
+        - ``X`` - A BruhatTitsQuotient object
 
         - ``k`` - integer - The weight. It must be even.
 
@@ -644,8 +643,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,23)
-            sage: H = HarmonicCocycles(X,2,prec = 5)
+            sage: X = BruhatTitsQuotient(3,23)
+            sage: H = X.harmonic_cocycles(2,prec = 5)
             sage: H.dimension()
             3
             sage: X.genus()
@@ -653,7 +652,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         Higher even weights are implemented::
 
-            sage: H = HarmonicCocycles(X,8, prec = 10)
+            sage: H = X.harmonic_cocycles(8, prec = 10)
             sage: H.dimension()
             26
 
@@ -662,9 +661,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu
         """
-        return super(HarmonicCocycles, cls).__classcall__(cls, X, k, prec,
-                                                          basis_matrix,
-                                                          base_field)
+        return super(BruhatTitsHarmonicCocycles, cls).__classcall__(cls, X, k, prec,
+                                                                    basis_matrix,
+                                                                    base_field)
 
     def __init__(self, X, k, prec=None, basis_matrix=None, base_field=None):
         """
@@ -672,8 +671,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,37)
-            sage: H = HarmonicCocycles(X,4,prec=10)
+            sage: X = BruhatTitsQuotient(3,37)
+            sage: H = X.harmonic_cocycles(4,prec=10)
             sage: TestSuite(H).run()
         """
         self._k = k
@@ -728,7 +727,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: M = HarmonicCocycles(BTQuotient(3,5),2,prec=10)
+            sage: M = BruhatTitsQuotient(3,5).harmonic_cocycles(2,prec=10)
             sage: M.monomial_coefficients()
             {}
 
@@ -750,8 +749,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,19)
-            sage: H = HarmonicCocycles(X,2,10)
+            sage: X = BruhatTitsQuotient(3,19)
+            sage: H = X.harmonic_cocycles(2,10)
             sage: H.base_ring()
             3-adic Field with capped relative precision 10
             sage: H1 = H.base_extend(Qp(3,prec=15))
@@ -778,8 +777,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,17)
-            sage: H = HarmonicCocycles(X,2,10)
+            sage: X = BruhatTitsQuotient(5,17)
+            sage: H = X.harmonic_cocycles(2,10)
             sage: H.base_ring()
             5-adic Field with capped relative precision 10
             sage: H1 = H.base_extend(Qp(5,prec=15)) # indirect doctest
@@ -806,11 +805,11 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,11)
-            sage: H = HarmonicCocycles(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(7,11)
+            sage: H = X.harmonic_cocycles(2,prec = 10)
             sage: X.genus() == H.rank()
             True
-            sage: H1 = HarmonicCocycles(X,4,prec = 10)
+            sage: H1 = X.harmonic_cocycles(4,prec = 10)
             sage: H1.rank()
             16
         """
@@ -832,8 +831,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.rank()
             3
             sage: v = H.gen(0)
@@ -843,7 +842,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             ...
             NotImplementedError
         """
-        # return HarmonicCocyclesSubmodule(self, v)
+        # return BruhatTitsHarmonicCocyclesSubmodule(self, v)
         raise NotImplementedError
 
     def is_simple(self):
@@ -856,14 +855,14 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,29)
-            sage: H = HarmonicCocycles(X,4,prec =10)
+            sage: X = BruhatTitsQuotient(3,29)
+            sage: H = X.harmonic_cocycles(4,prec =10)
             sage: H.rank()
             14
             sage: H.is_simple()
             False
-            sage: X = BTQuotient(7,2)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(7,2)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.rank()
             1
             sage: H.is_simple()
@@ -877,8 +876,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H
             Space of harmonic cocycles of weight 2 on Quotient of the Bruhat
             Tits tree of GL_2(QQ_5) with discriminant 23 and level 1
@@ -892,8 +891,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: latex(H) # indirect doctest
             \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
         """
@@ -911,8 +910,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES:
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.an_element() # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
@@ -920,23 +919,23 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def _coerce_map_from_(self, S):
         r"""
-        Can coerce from other HarmonicCocycles or from
-        pAutomorphicForms, also from 0
+        Can coerce from other BruhatTitsHarmonicCocycles or from
+        pAdicAutomorphicForms, also from 0
 
         OUTPUT:
 
-        Boolean. True iff ``self`` is a space of HarmonicCocycles or
-        pAutomorphicForms.
+        Boolean. True iff ``self`` is a space of BruhatTitsHarmonicCocycles or
+        pAdicAutomorphicForms.
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A(H.basis()[0]) # indirect doctest
             p-adic automorphic form of cohomological weight 0
         """
-        if isinstance(S, (HarmonicCocycles, pAutomorphicForms)):
+        if isinstance(S, (BruhatTitsHarmonicCocycles, pAdicAutomorphicForms)):
             if S._k != self._k:
                 return False
             if S._X != self._X:
@@ -946,11 +945,11 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
     def __cmp__(self, other):
         r"""
-        Test whether two HarmonicCocycle spaces are equal.
+        Test whether two BruhatTitsHarmonicCocycle spaces are equal.
 
         INPUT:
 
-        - `other` - a HarmonicCocycles class.
+        - `other` - a BruhatTitsHarmonicCocycles class.
 
         OUTPUT:
 
@@ -958,9 +957,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
-            sage: H1 = HarmonicCocycles(X,2,prec=10)
-            sage: H2 = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
             sage: H1 == H2
             True
         """
@@ -989,8 +988,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H(H.an_element()) # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_3^2
             sage: H(0)
@@ -1008,9 +1007,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         if hasattr(x, 'parent'):
             parent = x.parent()
-            if isinstance(parent, HarmonicCocycles):
+            if isinstance(parent, BruhatTitsHarmonicCocycles):
                 return self.element_class(self, [self._U(o) for o in x._F])
-            elif isinstance(parent, pAutomorphicForms):
+            elif isinstance(parent, pAdicAutomorphicForms):
                 tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep)
                        for ii in range(self._nE)]
                 # tmp = [self._E[ii].rep * self._U(x._F[ii]) for ii in range(self._nE)]
@@ -1031,8 +1030,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,7)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.free_module()
             Vector space of dimension 1 over 3-adic Field with
             capped relative precision 10
@@ -1055,8 +1054,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
-            sage: H = HarmonicCocycles(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(3,7)
+            sage: H = X.harmonic_cocycles(2,prec = 10)
             sage: f = H.character()
             sage: f(1)
             1
@@ -1079,9 +1078,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,2)
+            sage: X = BruhatTitsQuotient(7,2)
             sage: q = X.get_stabilizers()[0][1][0]
-            sage: H = HarmonicCocycles(X,2,prec = 5)
+            sage: H = X.harmonic_cocycles(2,prec = 5)
             sage: Hmat = H.embed_quaternion(q)
             sage: Hmat.matrix().trace() == X._conv(q).reduced_trace() and Hmat.matrix().determinant() == 1
             True
@@ -1100,7 +1099,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         of Gamma invariant `M` valued harmonic cocycles can be
         represented as a subspace of the finite rank space of all
         functions from the finitely many edges in the corresponding
-        BTQuotient into `M`. This function computes this
+        BruhatTitsQuotient into `M`. This function computes this
         representation of the space of cocycles.
 
         OUTPUT:
@@ -1110,8 +1109,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,3)
-            sage: M = HarmonicCocycles(X,4,prec = 20)
+            sage: X = BruhatTitsQuotient(5,3)
+            sage: M = X.harmonic_cocycles(4,prec = 20)
             sage: B = M.basis() # indirect doctest
             sage: len(B) == X.dimension_harmonic_cocycles(4)
             True
@@ -1195,8 +1194,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,17)
-            sage: H = HarmonicCocycles(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(5,17)
+            sage: H = X.harmonic_cocycles(2,prec = 10)
             sage: A = H.atkin_lehner_operator(5).matrix() # indirect doctest
             sage: A**2 == 1
             True
@@ -1233,8 +1232,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,17)
-            sage: H = HarmonicCocycles(X,2,prec=50)
+            sage: X = BruhatTitsQuotient(5,17)
+            sage: H = X.harmonic_cocycles(2,prec=50)
             sage: A = H.hecke_operator(7).matrix() # indirect doctest
             sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [-8, -12, 12, 20, 8, 1]
@@ -1267,7 +1266,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         INPUT:
 
         - ``d`` - an integer dividing p*Nminus*Nplus, where these
-          quantities are associated to the BTQuotient self._X
+          quantities are associated to the BruhatTitsQuotient self._X
 
         OUTPUT:
 
@@ -1276,8 +1275,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13)
-            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: X = BruhatTitsQuotient(5,13)
+            sage: H = X.harmonic_cocycles(2,prec=5)
             sage: A = H.atkin_lehner_operator(5).matrix() # indirect doctest
             sage: A**2 == 1
             True
@@ -1301,8 +1300,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,11)
-            sage: H = HarmonicCocycles(X,4,prec=60)
+            sage: X = BruhatTitsQuotient(3,11)
+            sage: H = X.harmonic_cocycles(4,prec=60)
             sage: A = H.hecke_operator(7).matrix() # long time, indirect doctest
             sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()] # long time
             [6496256, 1497856, -109040, -33600, -904, 32, 1]
@@ -1326,8 +1325,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,17)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,17)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: A = H.hecke_operator(11).matrix() # indirect doctest
             sage: [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [-12, -1, 4, 1]
@@ -1359,9 +1358,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         res.set_immutable()
         return res
 
-# class HarmonicCocyclesSubmodule(HarmonicCocycles,sage.modular.hecke.submodule.HeckeSubmodule):
+# class BruhatTitsHarmonicCocyclesSubmodule(BruhatTitsHarmonicCocycles,sage.modular.hecke.submodule.HeckeSubmodule):
 #     r"""
-#     Submodule of a space of HarmonicCocycles.
+#     Submodule of a space of BruhatTitsHarmonicCocycles.
 #
 #     INPUT:
 #
@@ -1373,8 +1372,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #
 #     EXAMPLES::
 #
-#         sage: X = BTQuotient(3,17)
-#         sage: H = HarmonicCocycles(X,2,prec=10)
+#         sage: X = BruhatTitsQuotient(3,17)
+#         sage: H = X.harmonic_cocycles(2,prec=10)
 #         sage: N = H.free_module().span([H.an_element().element()])
 #         sage: H1 = H.submodule(N) # indirect doctest
 #         sage: H1
@@ -1390,7 +1389,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #
 #         INPUT:
 #
-#         - ``ambient_module`` - HarmonicCocycles
+#         - ``ambient_module`` - BruhatTitsHarmonicCocycles
 #
 #         - ``submodule`` - submodule of the ambient space.
 #
@@ -1399,8 +1398,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #
 #         EXAMPLES::
 #
-#             sage: X = BTQuotient(3,17)
-#             sage: H = HarmonicCocycles(X,2,prec=10)
+#             sage: X = BruhatTitsQuotient(3,17)
+#             sage: H = X.harmonic_cocycles(2,prec=10)
 #             sage: N = H.free_module().span([H.an_element().element()])
 #             sage: H1 = H.submodule(N)
 #             sage: TestSuite(H1).run()
@@ -1409,7 +1408,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #         self.__rank = submodule.dimension()
 #         basis_matrix = submodule.basis_matrix()*A.basis_matrix()
 #         basis_matrix.set_immutable()
-#         HarmonicCocycles.__init__(self,A._X,A._k,A._prec,basis_matrix,A.base_ring())
+#         BruhatTitsHarmonicCocycles.__init__(self,A._X,A._k,A._prec,basis_matrix,A.base_ring())
 #
 #     def rank(self):
 #         r"""
@@ -1421,8 +1420,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #
 #         EXAMPLES::
 #
-#             sage: X = BTQuotient(3,17)
-#             sage: H = HarmonicCocycles(X,2,prec=10)
+#             sage: X = BruhatTitsQuotient(3,17)
+#             sage: H = X.harmonic_cocycles(2,prec=10)
 #             sage: N = H.free_module().span([H.an_element().element()])
 #             sage: H1 = H.submodule(basis = [H.an_element()])
 #             sage: H1.rank()
@@ -1440,8 +1439,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #
 #         EXAMPLES::
 #
-#             sage: X = BTQuotient(3,17)
-#             sage: H = HarmonicCocycles(X,2,prec=10)
+#             sage: X = BruhatTitsQuotient(3,17)
+#             sage: H = X.harmonic_cocycles(2,prec=10)
 #             sage: N = H.free_module().span([H.an_element().element()])
 #             sage: H1=H.submodule(N)
 #             sage: H1
@@ -1450,7 +1449,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 #         return "Subspace of %s of dimension %s"%(self.ambient(),self.dimension())
 
 
-class pAutomorphicFormElement(ModuleElement):
+class pAdicAutomorphicFormElement(ModuleElement):
     r"""
     Rudimentary implementation of a class for a p-adic
     automorphic form on a definite quaternion algebra over Q. These
@@ -1465,10 +1464,10 @@ class pAutomorphicFormElement(ModuleElement):
 
     EXAMPLES::
 
-        sage: X = BTQuotient(17,3)
-        sage: H = HarmonicCocycles(X,2,prec=10)
+        sage: X = BruhatTitsQuotient(17,3)
+        sage: H = X.harmonic_cocycles(2,prec=10)
         sage: h = H.an_element()
-        sage: HH = pAutomorphicForms(X,2,10)
+        sage: HH = X.padic_automorphic_forms(2,10)
         sage: a = HH(h)
         sage: a
         p-adic automorphic form of cohomological weight 0
@@ -1484,12 +1483,12 @@ class pAutomorphicFormElement(ModuleElement):
     """
     def __init__(self, parent, vec):
         """
-        Create a pAutomorphicFormElement
+        Create a pAdicAutomorphicFormElement
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: TestSuite(A.an_element()).run()
         """
         self._num_generators = len(parent._list)
@@ -1512,8 +1511,8 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: a = A.an_element()
             sage: b = a + a # indirect doctest
         """
@@ -1537,8 +1536,8 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: a = A.an_element()
             sage: b = a - a # indirect doctest
             sage: b == 0
@@ -1552,7 +1551,7 @@ class pAutomorphicFormElement(ModuleElement):
 
     def __cmp__(self, other):
         r"""
-        Test for equality of pAutomorphicForm elements
+        Test for equality of pAdicAutomorphicForm elements
 
         INPUT:
 
@@ -1560,9 +1559,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: v1 = A(H.basis()[0])
             sage: v2 = 3*v1
             sage: 2*v1 == v2-v1 # indirect doctest
@@ -1584,9 +1583,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,4,prec = 20)
-            sage: A = pAutomorphicForms(X,4,prec = 20)
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(4,prec = 20)
+            sage: A = X.padic_automorphic_forms(4,prec = 20)
             sage: v1 = A(H.basis()[1])
             sage: v1.__nonzero__()
             True
@@ -1610,9 +1609,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: M = HarmonicCocycles(X,2,prec=5)
-            sage: A = pAutomorphicForms(X,2,prec=5)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: M = X.harmonic_cocycles(2,prec=5)
+            sage: A = X.padic_automorphic_forms(2,prec=5)
             sage: a = A(M.gen(0))
             sage: a[Matrix(ZZ,2,2,[1,2,3,4])]
             8 + 8*17 + 8*17^2 + 8*17^3 + 8*17^4 + O(17^5)
@@ -1633,9 +1632,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,5)
-            sage: M = HarmonicCocycles(X,2,prec=5)
-            sage: A = pAutomorphicForms(X,2,prec=5)
+            sage: X = BruhatTitsQuotient(7,5)
+            sage: M = X.harmonic_cocycles(2,prec=5)
+            sage: A = X.padic_automorphic_forms(2,prec=5)
             sage: a = A(M.basis()[0])
             sage: a.evaluate(Matrix(ZZ,2,2,[1,2,3,1]))
             4 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)
@@ -1655,9 +1654,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: M = HarmonicCocycles(X,2,prec=5)
-            sage: A = pAutomorphicForms(X,2,prec=5)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: M = X.harmonic_cocycles(2,prec=5)
+            sage: A = X.padic_automorphic_forms(2,prec=5)
             sage: a = A(M.basis()[0])
             sage: a.evaluate(Matrix(ZZ,2,2,[1,2,3,4]))
             8 + 8*17 + 8*17^2 + 8*17^3 + 8*17^4 + O(17^5)
@@ -1682,8 +1681,8 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: a = A.an_element()
             sage: a # indirect doctest
             p-adic automorphic form of cohomological weight 0
@@ -1702,9 +1701,9 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(17,3)
-            sage: M = HarmonicCocycles(X,2,prec=10)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(17,3)
+            sage: M = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: a = A(M.gen(0))
             sage: a.valuation()
             0
@@ -1727,10 +1726,10 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(7,2)
-            sage: H = HarmonicCocycles(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(7,2)
+            sage: H = X.harmonic_cocycles(2,prec = 10)
             sage: h = H.gen(0)
-            sage: A = pAutomorphicForms(X,2,prec = 10,overconvergent=True)
+            sage: A = X.padic_automorphic_forms(2,prec = 10,overconvergent=True)
             sage: a = A.lift(h) # indirect doctest
 
         REFERENCES:
@@ -1799,7 +1798,7 @@ class pAutomorphicFormElement(ModuleElement):
         computed efficiently using the overconvergent method, as long
         as one starts with an ordinary form::
 
-            sage: X = BTQuotient(7,2)
+            sage: X = BruhatTitsQuotient(7,2)
             sage: X.genus()
             1
 
@@ -1811,9 +1810,9 @@ class pAutomorphicFormElement(ModuleElement):
         ordinary at `7`, and so we can apply the overconvergent method
         directly to this form without `p`-stabilizing::
 
-            sage: H = HarmonicCocycles(X,2,prec = 5)
+            sage: H = X.harmonic_cocycles(2,prec = 5)
             sage: h = H.gen(0)
-            sage: A = pAutomorphicForms(X,2,prec = 5,overconvergent=True)
+            sage: A = X.padic_automorphic_forms(2,prec = 5,overconvergent=True)
             sage: a = A.lift(h)
             sage: a._value[0].moment(2)
             2 + 6*7 + 4*7^2 + O(7^3)
@@ -1899,7 +1898,7 @@ class pAutomorphicFormElement(ModuleElement):
         computed efficiently using the overconvergent method, as long
         as one starts with an ordinary form::
 
-            sage: X = BTQuotient(7, 2)
+            sage: X = BruhatTitsQuotient(7, 2)
             sage: X.genus()
             1
 
@@ -1911,8 +1910,8 @@ class pAutomorphicFormElement(ModuleElement):
         ordinary at `7`, and so we can apply the overconvergent method
         directly to this form without `p`-stabilizing::
 
-            sage: H = HarmonicCocycles(X,2,prec = 5)
-            sage: A = pAutomorphicForms(X,2,prec = 5,overconvergent=True)
+            sage: H = X.harmonic_cocycles(2,prec = 5)
+            sage: A = X.padic_automorphic_forms(2,prec = 5,overconvergent=True)
             sage: f0 = A.lift(H.basis()[0])
 
         Now that we've lifted our harmonic cocycle to an
@@ -1960,7 +1959,7 @@ class pAutomorphicFormElement(ModuleElement):
         computed efficiently using the overconvergent method, as long
         as one starts with an ordinary form::
 
-            sage: X = BTQuotient(7, 2)
+            sage: X = BruhatTitsQuotient(7, 2)
             sage: X.genus()
             1
 
@@ -1972,9 +1971,9 @@ class pAutomorphicFormElement(ModuleElement):
         ordinary at `7`, and so we can apply the overconvergent method
         directly to this form without `p`-stabilizing::
 
-            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: H = X.harmonic_cocycles(2,prec=5)
             sage: h = H.gen(0)
-            sage: A = pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: A = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
             sage: f0 = A.lift(h)
 
         Now that we've lifted our harmonic cocycle to an
@@ -2064,12 +2063,12 @@ class pAutomorphicFormElement(ModuleElement):
             sage: p = 7
             sage: lev = 2
             sage: prec = 10
-            sage: X = BTQuotient(p,lev, use_magma = True) # optional - magma
+            sage: X = BruhatTitsQuotient(p,lev, use_magma = True) # optional - magma
             sage: k = 2 # optional - magma
-            sage: M = HarmonicCocycles(X,k,prec) # optional - magma
+            sage: M = X.harmonic_cocycles(k,prec) # optional - magma
             sage: B = M.basis() # optional - magma
             sage: f = 3*B[0] # optional - magma
-            sage: MM = pAutomorphicForms(X,k,prec,overconvergent = True) # optional - magma
+            sage: MM = X.padic_automorphic_forms(k,prec,overconvergent = True) # optional - magma
             sage: D = -11 # optional - magma
             sage: X.is_admissible(D) # optional - magma
             True
@@ -2147,8 +2146,8 @@ class pAutomorphicFormElement(ModuleElement):
         return value
 
 
-class pAutomorphicForms(Module, UniqueRepresentation):
-    Element = pAutomorphicFormElement
+class pAdicAutomorphicForms(Module, UniqueRepresentation):
+    Element = pAdicAutomorphicFormElement
 
     @staticmethod
     def __classcall__(cls, domain, U, prec=None, t=None, R=None,
@@ -2158,31 +2157,31 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         INPUT:
 
-        - `domain` - A BTQuotient.
+        - ``domain`` - A BruhatTitsQuotient.
 
-        - `U` - A coefficient module or an integer. If U is a
+        - ``U`` - A coefficient module or an integer. If U is a
           coefficient module then this creates the relevant space of
           automorphic forms. If U is an integer then the coefficients
           are the (`U-2`)nd power of the symmetric representation of
           `\GL_2(\Qp)`.
 
-          - `prec` - A precision (Default = None). If not None should
+          - ``prec`` - A precision (Default = None). If not None should
           be a positive integer
 
-          - `t` - (Default = None).
+          - ``t`` - (Default = None). #mm TODO
 
-          - `R` - (Default = None).
+          - ``R`` - (Default = None).
 
-          - `overconvergent` - Boolean (Default = False).
+          - ``overconvergent`` - Boolean (Default = False).
 
         EXAMPLES:
 
         The space of weight 2 p-automorphic forms is isomorphic with
         the space of scalar valued invariant harmonic cocycles::
 
-            sage: X = BTQuotient(11,5)
-            sage: H0 = pAutomorphicForms(X,2,10)
-            sage: H1 = pAutomorphicForms(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(11,5)
+            sage: H0 = X.padic_automorphic_forms(2,10)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
             sage: H0 == H1
             True
 
@@ -2191,7 +2190,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu (2012-02-20)
         """
-        return super(pAutomorphicForms, cls).__classcall__(cls, domain, U,
+        return super(pAdicAutomorphicForms, cls).__classcall__(cls, domain, U,
                                                            prec, t, R,
                                                            overconvergent)
 
@@ -2202,9 +2201,9 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,5)
-            sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(11,5)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: TestSuite(A).run()
         """
         if R is None:
@@ -2258,9 +2257,9 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(11,5)
-            sage: H = HarmonicCocycles(X,2,prec = 10)
-            sage: A = pAutomorphicForms(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(11,5)
+            sage: H = X.harmonic_cocycles(2,prec = 10)
+            sage: A = X.padic_automorphic_forms(2,prec = 10)
             sage: A.prime()
             11
         """
@@ -2272,8 +2271,8 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5, 7)
-            sage: H1 = pAutomorphicForms(X, 2, prec=10)
+            sage: X = BruhatTitsQuotient(5, 7)
+            sage: H1 = X.padic_automorphic_forms( 2, prec=10)
             sage: H1.zero_element() == 0
             True
         """
@@ -2281,7 +2280,7 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def __cmp__(self, other):
         r"""
-        Test whether two pAutomorphicForm spaces are equal.
+        Test whether two pAdicAutomorphicForm spaces are equal.
 
         INPUT:
 
@@ -2293,9 +2292,9 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,7)
-            sage: H1 = pAutomorphicForms(X,2,prec = 10)
-            sage: H2 = pAutomorphicForms(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
             sage: H1 == H2
             True
         """
@@ -2316,8 +2315,8 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
-            sage: A = pAutomorphicForms(X,2,prec = 10)
+            sage: X = BruhatTitsQuotient(3,7)
+            sage: A = X.padic_automorphic_forms(2,prec = 10)
             sage: A # indirect doctest
             Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 7 and level 1 with values in Sym^0 Q_3^2
         """
@@ -2328,11 +2327,11 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
     def _coerce_map_from_(self, S):
         r"""
-        Can coerce from other HarmonicCocycles or from pAutomorphicForms
+        Can coerce from other BruhatTitsHarmonicCocycles or from pAdicAutomorphicForms
 
         INPUT:
 
-        - ``S`` - a HarmonicCocycle or pAutomorphicForm
+        - ``S`` - a BruhatTitsHarmonicCocycle or pAdicAutomorphicForm
 
         OUTPUT:
 
@@ -2340,19 +2339,19 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
-            sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(3,7)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A._coerce_map_from_(H)
             True
         """
-        if isinstance(S, HarmonicCocycles):
+        if isinstance(S, BruhatTitsHarmonicCocycles):
             if S.weight() - 2 != self._n:
                 return False
             if S._X != self._source:
                 return False
             return True
-        if isinstance(S, pAutomorphicForms):
+        if isinstance(S, pAdicAutomorphicForms):
             if S._n != self._n:
                 return False
             if S._source != self._source:
@@ -2374,10 +2373,10 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,5)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(13,5)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: h=H.an_element() # indirect doctest
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A(h)
             p-adic automorphic form of cohomological weight 0
         """
@@ -2386,10 +2385,10 @@ class pAutomorphicForms(Module, UniqueRepresentation):
         if type(x) is list:
             return self.element_class(self, [self._U(o) for o in x])
 
-        if isinstance(x, pAutomorphicFormElement):
+        if isinstance(x, pAdicAutomorphicFormElement):
             return self.element_class(self, [self._U(o) for o in x._value])
 
-        if isinstance(x, HarmonicCocycleElement):
+        if isinstance(x, BruhatTitsHarmonicCocycleElement):
             E = self._list
             tmp = []
             F = []
@@ -2416,8 +2415,8 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,5)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(13,5)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A.an_element() # indirect doctest
             p-adic automorphic form of cohomological weight 0
         """
@@ -2433,8 +2432,8 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,11)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(13,11)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A.precision_cap()
             10
         """
@@ -2460,19 +2459,19 @@ class pAutomorphicForms(Module, UniqueRepresentation):
         If one does not work with an overconvergent form then lift
         does nothing::
 
-            sage: X = BTQuotient(13,5)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: X = BruhatTitsQuotient(13,5)
+            sage: H = X.harmonic_cocycles(2,prec=10)
             sage: h = H.gen(0)
-            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A.lift(h)
             p-adic automorphic form of cohomological weight 0
 
         With overconvergent forms, the input is lifted naively and its
         moments are computed::
 
-            sage: X = BTQuotient(13,11)
-            sage: H = HarmonicCocycles(X,2,prec=5)
-            sage: A2 = pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: X = BruhatTitsQuotient(13,11)
+            sage: H = X.harmonic_cocycles(2,prec=5)
+            sage: A2 = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
             sage: a = H.gen(0)
             sage: A2.lift(a)
             p-adic automorphic form of cohomological weight 0
@@ -2488,18 +2487,18 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``F`` - a classical (nonoverconvergent) pAutomorphicForm or
-          HarmonicCocycle.
+        - ``F`` - a classical (nonoverconvergent) pAdicAutomorphicForm or
+          BruhatTitsHarmonicCocycle.
 
         OUTPUT:
 
-        An overconvergent pAutomorphicForm
+        An overconvergent pAdicAutomorphicForm
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,11)
-            sage: H = HarmonicCocycles(X,2,prec = 5)
-            sage: A = pAutomorphicForms(X,2,prec = 5)
+            sage: X = BruhatTitsQuotient(13,11)
+            sage: H = X.harmonic_cocycles(2,prec = 5)
+            sage: A = X.padic_automorphic_forms(2,prec = 5)
             sage: h = H.basis()[0]
             sage: A.lift(h) # indirect doctest
             p-adic automorphic form of cohomological weight 0
@@ -2529,9 +2528,9 @@ class pAutomorphicForms(Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,11)
-            sage: M = HarmonicCocycles(X,4,10)
-            sage: A = pAutomorphicForms(X,4,10, overconvergent = True)
+            sage: X = BruhatTitsQuotient(3,11)
+            sage: M = X.harmonic_cocycles(4,10)
+            sage: A = X.padic_automorphic_forms(4,10, overconvergent = True)
             sage: F = A.lift(M.basis()[0]); F # indirect doctest
             p-adic automorphic form of cohomological weight 2
         """

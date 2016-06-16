@@ -122,7 +122,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain
+            sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain, ManinRelations
             sage: isinstance(ManinRelations(11), PollackStevensModularDomain) # indirect doctest
             True
 
@@ -165,6 +165,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: len(A)
             12
@@ -177,6 +178,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A[4]
             [-1 -2]
@@ -191,6 +193,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: for rep in A:
             ....:     if rep[1,0] == 1:
@@ -210,6 +213,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.gens()
             [
@@ -229,6 +233,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(137)
             sage: A.gen(17)
             [-4 -1]
@@ -247,6 +252,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(1137)
             sage: A.ngens()
             255
@@ -264,6 +270,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.level()
             11
@@ -290,6 +297,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.indices()
             [0, 2, 3]
@@ -327,6 +335,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.reps(0)
             [1 0]
@@ -383,6 +392,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
             sage: MR.indices()
             [0, 2, 3]
@@ -483,6 +493,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
             sage: A = matrix(ZZ,2,2,[1,5,3,16])
             sage: j = MR.equivalent_index(A); j
@@ -513,6 +524,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = matrix([[5,3],[38,23]])
             sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
@@ -526,6 +538,7 @@ class PollackStevensModularDomain(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.P1()
             The projective line over the integers modulo 11
@@ -545,6 +558,7 @@ class ManinRelations(PollackStevensModularDomain):
 
     EXAMPLES::
 
+        sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
         sage: ManinRelations(1)
         Manin Relations of level 1
         sage: ManinRelations(11)
@@ -581,6 +595,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: type(ManinRelations(30))
             <class 'sage.modular.pollack_stevens.fund_domain.ManinRelations'>
         """
@@ -875,6 +890,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: ManinRelations(11)._repr_()
             'Manin Relations of level 11'
         """
@@ -892,6 +908,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
             sage: MR.indices_with_two_torsion()
             []
@@ -936,6 +953,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
             sage: MR.reps_with_two_torsion()
             []
@@ -978,6 +996,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(25)
             sage: B = MR.reps_with_two_torsion()[0]
 
@@ -1001,6 +1020,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
             sage: MR.indices_with_three_torsion()
             []
@@ -1043,6 +1063,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(13)
             sage: B = MR.reps_with_three_torsion()[0]; B
             [ 0 -1]
@@ -1082,6 +1103,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(37)
             sage: B = MR.reps_with_three_torsion()[0]
 
@@ -1114,6 +1136,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.form_list_of_cusps()
             [-1, -2/3, -1/2, -1/3, 0]
@@ -1274,6 +1297,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.is_unimodular_path(0,1/3)
             True
@@ -1306,6 +1330,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.unimod_to_matrices(0,1/3)
             (
@@ -1346,6 +1371,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: C = A.form_list_of_cusps(); C
             [-1, -2/3, -1/2, -1/3, 0]
@@ -1447,9 +1473,9 @@ class ManinRelations(PollackStevensModularDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
-            [-1/5, 3/2, -1/2]
+            [-1/5, 1, 0]
             sage: M = phi.parent().source()
             sage: w = M.prep_hecke_on_gen(2, M.gens()[0])
             sage: one = Matrix(ZZ,2,2,1)
@@ -1517,9 +1543,9 @@ class ManinRelations(PollackStevensModularDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
-            [-1/5, 3/2, -1/2]
+            [-1/5, 1, 0]
             sage: M = phi.parent().source()
             sage: len(M.prep_hecke_on_gen_list(2, M.gens()[0]))
             4

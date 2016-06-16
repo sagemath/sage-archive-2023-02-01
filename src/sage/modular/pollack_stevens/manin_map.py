@@ -8,13 +8,14 @@ provides basic arithmetic and right action of matrices.
 EXAMPLES::
 
     sage: E = EllipticCurve('11a')
-    sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+    sage: phi = E.overconvergent_modular_symbol()
     sage: phi
     Modular symbol of level 11 with values in Sym^0 Q^2
     sage: phi.values()
-    [-1/5, 3/2, -1/2]
+    [-1/5, 1, 0]
 
     sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z
+    sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
     sage: D = OverconvergentDistributions(0, 11, 10)
     sage: MR = ManinRelations(11)
     sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -191,6 +192,8 @@ class ManinMap(object):
 
         Test that it fails gracefully on some bogus inputs::
 
+            sage: from sage.modular.pollack_stevens.manin_map import  ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: rels = ManinRelations(37)
             sage: ManinMap(ZZ, rels, {})
             Traceback (most recent call last):
@@ -233,6 +236,7 @@ class ManinMap(object):
         EXAMPLE::
 
             sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37)
             sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
@@ -261,6 +265,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: D = OverconvergentDistributions(0, 11, 10)
             sage: MR = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -292,6 +297,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37); MR.gens()
             [
@@ -330,6 +336,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37); MR.gens()
             [
@@ -499,6 +506,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: D = OverconvergentDistributions(0, 11, 10)
             sage: MR = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
@@ -529,9 +537,10 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: D = OverconvergentDistributions(0, 11, 10); D
             Space of 11-adic distributions with k=0 action and precision cap 10
-            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
+            sage: manin = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
@@ -578,6 +587,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37)
             sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
@@ -607,6 +617,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37)
             sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
@@ -763,13 +774,13 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: phi.values()
-            [-1/5, 3/2, -1/2]
+            [-1/5, 1, 0]
             sage: phi.is_Tq_eigensymbol(7,7,10)
             True
             sage: phi.hecke(7).values()
-            [2/5, -3, 1]
+            [2/5, -2, 0]
             sage: phi.Tq_eigenvalue(7,7,10)
             -2
         """
@@ -817,7 +828,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.modular_symbol(implementation = 'pollack-stevens')
+            sage: phi = E.overconvergent_modular_symbol()
             sage: f = phi._map
             sage: V = phi.parent()
             sage: f.p_stabilize(5,1,V)

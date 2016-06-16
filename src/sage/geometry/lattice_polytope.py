@@ -101,7 +101,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
@@ -109,7 +109,6 @@ from sage.geometry.point_collection import PointCollection, is_PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.interfaces.all import maxima
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
@@ -125,6 +124,8 @@ from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
 from sage.structure.sage_object import SageObject
+from sage.numerical.mip import MixedIntegerLinearProgram
+
 
 from copy import copy
 import collections
@@ -6240,10 +6241,8 @@ def positive_integer_relations(points):
 
     INPUT:
 
-
-    -  ``points`` - lattice points given as columns of a
-       matrix
-
+    - ``points`` - lattice points given as columns of a
+      matrix
 
     OUTPUT: matrix of relations between given points with non-negative
     integer coefficients
@@ -6251,7 +6250,7 @@ def positive_integer_relations(points):
     EXAMPLES: This is a 3-dimensional reflexive polytope::
 
         sage: p = LatticePolytope([(1,0,0), (0,1,0),
-        ...             (-1,-1,0), (0,0,1), (-1,0,-1)])
+        ....:         (-1,-1,0), (0,0,1), (-1,0,-1)])
         sage: p.points()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -6277,7 +6276,9 @@ def positive_integer_relations(points):
         [1 0 0 1 1 0]
         [1 1 1 0 0 0]
         [0 0 0 0 0 1]
-        sage: lattice_polytope.positive_integer_relations(ReflexivePolytope(2,1).vertices().column_matrix())
+
+        sage: cm = ReflexivePolytope(2,1).vertices().column_matrix()
+        sage: lattice_polytope.positive_integer_relations(cm)
         [2 1 1]
     """
     points = points.transpose().base_extend(QQ)
@@ -6286,23 +6287,22 @@ def positive_integer_relations(points):
     nonpivot_relations = relations.matrix_from_columns(nonpivots)
     n_nonpivots = len(nonpivots)
     n = nonpivot_relations.nrows()
-    a = matrix(QQ,n_nonpivots,n_nonpivots)
+    a = matrix(QQ, n_nonpivots, n_nonpivots)
     for i in range(n_nonpivots):
         a[i, i] = -1
     a = nonpivot_relations.stack(a).transpose()
-    a = sage_matrix_to_maxima(a)
-    maxima.load("simplex")
-
     new_relations = []
     for i in range(n_nonpivots):
         # Find a non-negative linear combination of relations,
         # such that all components are non-negative and the i-th one is 1
-        b = [0]*i + [1] + [0]*(n_nonpivots - i - 1)
-        c = [0]*(n+i) + [1] + [0]*(n_nonpivots - i - 1)
-        x = maxima.linear_program(a, b, c)
-        if x.str() == r'?Problem\not\feasible\!':
-            raise ValueError("cannot find required relations")
-        x = x.sage()[0][:n]
+        MIP = MixedIntegerLinearProgram(maximization=False, base_ring=QQ)
+        w = MIP.new_variable(integer=False, nonnegative=True)
+        b = vector([0] * i + [1] + [0] * (n_nonpivots - i - 1))
+        MIP.add_constraint(a * w == b)
+        c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
+        MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
+        MIP.solve()
+        x = MIP.get_values(w).values()[:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
 
@@ -6312,12 +6312,12 @@ def positive_integer_relations(points):
         for j in range(n):
             coef = relations[j,nonpivots[i]]
             if coef < 0:
-                relations.add_multiple_of_row(j, n+i, -coef)
+                relations.add_multiple_of_row(j, n + i, -coef)
     # Get a new basis
     relations = relations.matrix_from_rows(relations.transpose().pivots())
     # Switch to integers
     for i in range(n):
-        relations.rescale_row(i, 1/integral_length(relations[i]))
+        relations.rescale_row(i, 1 / integral_length(relations[i]))
     return relations.change_ring(ZZ)
 
 
@@ -6438,19 +6438,6 @@ def read_palp_matrix(data, permutation=False):
         return (mat, p)
     else:
         return mat
-        
-            
-def sage_matrix_to_maxima(m):
-    r"""
-    Convert a Sage matrix to the string representation of Maxima.
-
-    EXAMPLE::
-
-        sage: m = matrix(ZZ,2)
-        sage: lattice_polytope.sage_matrix_to_maxima(m)
-        matrix([0,0],[0,0])
-    """
-    return maxima("matrix("+",".join(str(v.list()) for v in m.rows())+")")
 
 
 def set_palp_dimension(d):

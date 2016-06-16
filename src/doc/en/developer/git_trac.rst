@@ -102,7 +102,9 @@ is not already private.
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
 instructions to :ref:`section-trac-ssh-key`, if you want to upload
-any changes.
+any changes. You may have to add your private key to your authentication agent::
+
+    [user@localhost sage]$ ssh-add
 
 .. note::
 

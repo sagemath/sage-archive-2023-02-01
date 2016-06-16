@@ -83,15 +83,15 @@ to the develop branch (latest development release)::
     [user@localhost sage]$ git checkout develop
 
 You will then need to `compile Sage
-<http://www.sagemath.org/doc/installation/source.html>`_ in order to use it (if
+<http://www.sagemath.org/doc/installation/source.html>`_ in order to use it. If
 you cloned, you will need to remain on the internet for it to download various
-packages of Sage).
+packages of Sage::
 
     [user@localhost sage]$ make
 
-(For the experts, note that the repository at
+For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
-actually takes place .)
+actually takes place.
 
 
 .. _section-walkthrough-branch:

@@ -49,6 +49,7 @@ AUTHORS:
   Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
+from __future__ import print_function
 
 import rational
 import integer
@@ -85,7 +86,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         sage: QQ('sage')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert sage to a rational
+        TypeError: unable to convert 'sage' to a rational
 
     Conversion from the reals to the rationals is done by default using
     continued fractions.
@@ -166,8 +167,10 @@ class RationalField(Singleton, number_field_base.NumberField):
             7
             sage: type(Q('49/7'))
             <type 'sage.rings.rational.Rational'>
-            sage: a = Q('19/374'); b = Q('17/371'); print a, b
-            19/374 17/371
+            sage: a = Q('19/374'); a
+            19/374
+            sage: b = Q('17/371'); b
+            17/371
             sage: a + b
             13407/138754
             sage: b + a

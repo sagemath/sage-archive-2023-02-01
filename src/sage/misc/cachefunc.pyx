@@ -44,7 +44,7 @@ that behaves the same as ``cached_function``, except that it uses a
     sage: class A: pass
     sage: @weak_cached_function
     ....: def f():
-    ....:     print "doing a computation"
+    ....:     print("doing a computation")
     ....:     return A()
     sage: a = f()
     doing a computation
@@ -135,7 +135,7 @@ that behaves the same as ``cached_function``, except that it uses a
     sage: class A: pass
     sage: @weak_cached_function
     ....: def f():
-    ....:     print "doing a computation"
+    ....:     print("doing a computation")
     ....:     return A()
     sage: a = f()
     doing a computation
@@ -301,19 +301,19 @@ Introspection works::
 
     sage: from sage.misc.edit_module import file_and_line
     sage: from sage.misc.sageinspect import sage_getdoc, sage_getfile, sage_getsource
-    sage: print sage_getdoc(test_pfunc)
+    sage: print(sage_getdoc(test_pfunc))
        Some documentation
-    sage: print sage_getdoc(O.wrapped_method)
+    sage: print(sage_getdoc(O.wrapped_method))
     some doc for a wrapped cython method
     <BLANKLINE>
-    sage: print sage_getdoc(O.direct_method)
+    sage: print(sage_getdoc(O.direct_method))
     Some doc for direct method
     <BLANKLINE>
-    sage: print sage_getsource(O.wrapped_method)
+    sage: print(sage_getsource(O.wrapped_method))
     cpdef test_meth(self,x):
         "some doc for a wrapped cython method"
         return -x
-    sage: print sage_getsource(O.direct_method)
+    sage: print(sage_getsource(O.direct_method))
     def direct_method(self, x):
         "Some doc for direct method"
         return 2*x
@@ -426,7 +426,7 @@ in caches. This can be achieved by defining an appropriate method
     sage: hash(b)
     Traceback (most recent call last):
     ...
-    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
     sage: @cached_method
     ....: def f(x): return x == a
     sage: f(b)
@@ -468,6 +468,7 @@ the parent as its first argument::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython cimport PyObject
 
@@ -819,7 +820,7 @@ cdef class CachedFunction(object):
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
             sage: from sage.misc.sageinspect import sage_getdoc
-            sage: print sage_getdoc(I.groebner_basis) # indirect doctest
+            sage: print(sage_getdoc(I.groebner_basis)) # indirect doctest
                Return the reduced Groebner basis of this ideal.
             ...
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
@@ -1261,7 +1262,7 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: class A: pass
         sage: @weak_cached_function
         ....: def f():
-        ....:     print "doing a computation"
+        ....:     print("doing a computation")
         ....:     return A()
         sage: a = f()
         doing a computation
@@ -1298,7 +1299,7 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: class A: pass
         sage: @weak_cached_function
         ....: def f():
-        ....:     print "doing a computation"
+        ....:     print("doing a computation")
         ....:     return A()
         sage: a = f()    # indirect doctest
         doing a computation
@@ -2136,7 +2137,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             ....:     def f(self):
             ....:         return self._x^2
             sage: a = Foo(2)
-            sage: print a.f.cache
+            sage: print(a.f.cache)
             None
             sage: a.f()
             4
@@ -2455,7 +2456,7 @@ cdef class CachedMethod(object):
         sage: class Foo(object):
         ....:     @cached_method
         ....:     def f(self, t, x=2):
-        ....:         print 'computing'
+        ....:         print('computing')
         ....:         return t**x
         sage: a = Foo()
 
@@ -2493,6 +2494,27 @@ cdef class CachedMethod(object):
         sage: a = A()
         sage: a.f(1, algorithm="default") is a.f(1) is a.f(1, algorithm="algorithm")
         True
+
+    Cached methods can not be copied like usual methods, see :trac:`12603`.
+    Copying them can lead to very surprising results::
+
+        sage: class A:
+        ....:     @cached_method
+        ....:     def f(self):
+        ....:         return 1
+        sage: class B:
+        ....:     g=A.f
+        ....:     def f(self):
+        ....:         return 2
+
+        sage: b=B()
+        sage: b.f()
+        2
+        sage: b.g()
+        1
+        sage: b.f()
+        1
+
     """
     def __init__(self, f, name=None, key=None):
         """
@@ -2574,12 +2596,12 @@ cdef class CachedMethod(object):
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: class Foo(object):
-            ...       def __init__(self, x):
-            ...           self._x = x
-            ...       @cached_method
-            ...       def f(self,n=2):
-            ...           return self._x^n
-            ...       g = deprecated_function_alias(57, f)
+            ....:     def __init__(self, x):
+            ....:         self._x = x
+            ....:     @cached_method
+            ....:     def f(self,n=2):
+            ....:         return self._x^n
+            ....:     g = deprecated_function_alias(57, f)
             sage: a = Foo(2)
             sage: Foo.__dict__['f'](a)
             4
@@ -2758,7 +2780,7 @@ cdef class CachedSpecialMethod(CachedMethod):
         sage: class C:
         ....:     @cached_method
         ....:     def __hash__(self):
-        ....:         print "compute hash"
+        ....:         print("compute hash")
         ....:         return int(5)
         ....:
         sage: c = C()
@@ -2786,7 +2808,7 @@ cdef class CachedSpecialMethod(CachedMethod):
             sage: class C:
             ....:     @cached_method
             ....:     def __hash__(self):
-            ....:         print "compute hash"
+            ....:         print("compute hash")
             ....:         return int(5)
             sage: c = C()
             sage: type(C.__hash__)
@@ -2878,11 +2900,11 @@ def cached_method(f, name=None, key=None):
         sage: class C:
         ....:     @cached_method
         ....:     def __hash__(self):
-        ....:         print "compute hash"
+        ....:         print("compute hash")
         ....:         return int(5)
         ....:     @cached_method
         ....:     def f(self, x):
-        ....:         print "computing cached method"
+        ....:         print("computing cached method")
         ....:         return x*2
         sage: c = C()
         sage: type(C.__hash__)
@@ -3167,7 +3189,7 @@ class FileCache(object):
             sage: FC[((),())] = 1
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
-            sage: for f in sorted(FC.file_list()): print f[len(dir):]
+            sage: for f in sorted(FC.file_list()): print(f[len(dir):])
             t-.key.sobj
             t-.sobj
             t-1_2.key.sobj
@@ -3197,7 +3219,7 @@ class FileCache(object):
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
             sage: I = FC.items()
-            sage: I.sort(); print I
+            sage: I.sort(); I
             [(((), ()), 1), (((1,), (('a', 1),)), 3), (((1, 2), ()), 2)]
         """
         return [(k,self[k]) for k in self]
@@ -3216,7 +3238,7 @@ class FileCache(object):
             sage: FC[((1,),(('a',1),))] = 3
             sage: FC[((),(('a',1),))] = 4
             sage: v = FC.values()
-            sage: v.sort(); print v
+            sage: v.sort(); v
             [1, 2, 3, 4]
         """
         return [self[k] for k in self]
@@ -3233,7 +3255,7 @@ class FileCache(object):
             sage: FC[((),())] = 1
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
-            sage: for k in sorted(FC): print k
+            sage: for k in sorted(FC): print(k)
             ((), ())
             ((1,), (('a', 1),))
             ((1, 2), ())
@@ -3253,7 +3275,7 @@ class FileCache(object):
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
             sage: K = FC.keys()
-            sage: K.sort(); print K
+            sage: K.sort(); K
             [((), ()), ((1,), (('a', 1),)), ((1, 2), ())]
         """
         cdef list K = []
@@ -3273,13 +3295,13 @@ class FileCache(object):
             sage: dir = tmp_dir()
             sage: FC = FileCache(dir, memory_cache = False, prefix='foo')
             sage: N = FC._filename(((1,2), (('a',1),('b',2))))
-            sage: print N[len(dir):]
+            sage: print(N[len(dir):])
             foo-a-1_b-2.1_2
             sage: N = FC._filename(((), (('a',1),('b',2))))
-            sage: print N[len(dir):]
+            sage: print(N[len(dir):])
             foo-a-1_b-2
             sage: N = FC._filename(((1,2), ()))
-            sage: print N[len(dir):]
+            sage: print(N[len(dir):])
             foo-1_2
         """
         a,k = key
@@ -3342,9 +3364,9 @@ class FileCache(object):
         try:
             k,v = load(f)
         except IOError:
-            raise KeyError, key
+            raise KeyError(key)
         if k != key:
-            raise RuntimeError, "cache corrupted"
+            raise RuntimeError("cache corrupted")
 
         if cache is not None:
             cache[key] = v

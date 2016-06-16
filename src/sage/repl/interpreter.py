@@ -731,10 +731,10 @@ class SageTerminalApp(TerminalIPythonApp):
     name = u'Sage'
     crash_handler_class = SageCrashHandler
 
-    test_shell = Bool(False, config=True,
-                      help='Whether the shell is a test shell')
-    shell_class = Type(InteractiveShell, config=True,
-                       help='Type of the shell')
+    test_shell = Bool(False, help='Whether the shell is a test shell')
+    test_shell.tag(config=True)
+    shell_class = Type(InteractiveShell, help='Type of the shell')
+    shell_class.tag(config=True)
 
     def load_config_file(self, *args, **kwds):
         r"""

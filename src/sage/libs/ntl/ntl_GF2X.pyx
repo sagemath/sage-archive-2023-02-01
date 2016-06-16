@@ -20,6 +20,7 @@ include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 
 from ntl_ZZ import unpickle_class_value
@@ -210,7 +211,7 @@ cdef class ntl_GF2X(object):
 
         divisible = GF2X_divide(q.x, self.x, (<ntl_GF2X>b).x)
         if not divisible:
-            raise ArithmeticError, "self (=%s) is not divisible by b (=%s)"%(self, b)
+            raise ArithmeticError("self (=%s) is not divisible by b (=%s)" % (self, b))
         return q
 
     def __div__(self, other):

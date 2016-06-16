@@ -101,7 +101,7 @@ TODO:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 cimport matrix_dense
 from libc.stdio cimport *
@@ -183,7 +183,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
 
-        See trac #10858::
+        See :trac:`10858`::
 
             sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
             ()
@@ -726,19 +726,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        ..  [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
+        ..  [AHU] \A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
                      Matrix Multiplication and Related Operations.'
                      The Design and Analysis of Computer
                      Algorithms. Addison-Wesley, 1974.
 
-        ..  [ADKF70] V. Arlazarov, E. Dinic, M. Kronrod, and
+        ..  [ADKF70] \V. Arlazarov, E. Dinic, M. Kronrod, and
                      I. Faradzev. 'On Economical Construction of the
                      Transitive Closure of a Directed Graph.'
                      Dokl. Akad. Nauk. SSSR No. 194 (in Russian),
                      English Translation in Soviet Math Dokl. No. 11,
                      1970.
 
-        ..  [Bard06] G. Bard. 'Accelerating Cryptanalysis with the
+        ..  [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the
                      Method of Four Russians'. Cryptography E-Print
                      Archive (http://eprint.iacr.org/2006/251.pdf),
                      2006.
@@ -1087,7 +1087,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of
+        .. [Bard06] \G. Bard. 'Accelerating Cryptanalysis with the Method of
            Four Russians'. Cryptography E-Print Archive
            (http://eprint.iacr.org/2006/251.pdf), 2006.
         """
@@ -1727,7 +1727,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
 
-        TESTS for handling of default arguments (ticket #18761)::
+        TESTS for handling of default arguments (:trac:`18761`)::
 
              sage: A.submatrix(17,15) == A.submatrix(17,15,183,185)
              True
@@ -1822,7 +1822,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             data = ''
         else:
             n = self._nrows*self._ncols*2 + 2
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             k = 0
             sig_on()
             for i in range(self._nrows):
@@ -1834,7 +1834,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sig_off()
             s[k-1] = <char>0
             data = str(s)
-            sage_free(s)
+            sig_free(s)
         return data
 
     def density(self, approx=False):
@@ -2068,7 +2068,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     if r == 0 or c == 0:
         return A
 
-    cdef signed char *buf = <signed char*>sage_malloc(size)
+    cdef signed char *buf = <signed char*>sig_malloc(size)
     for i from 0 <= i < size:
         buf[i] = data[i]
 
@@ -2076,7 +2076,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
     sig_off()
 
-    sage_free(buf)
+    sig_free(buf)
 
     if gdImageSX(im) != c or gdImageSY(im) != r:
         raise TypeError("Pickled data dimension doesn't match.")

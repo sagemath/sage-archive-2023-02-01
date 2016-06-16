@@ -41,7 +41,12 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             sage: from sage.libs.coxeter3.coxeter_group import CoxeterGroup  # optional - coxeter3
             sage: CoxeterGroup(['A',2])                                     # optional - coxeter3
             Coxeter group of type ['A', 2] implemented by Coxeter3
-            sage: TestSuite(CoxeterGroup(['A',2])).run()                    # optional - coxeter3
+
+        As degrees and codegrees are not implemented, they are skipped in the
+        testsuite::
+
+            sage: to_skip = ['_test_degrees', '_test_codegrees']
+            sage: TestSuite(CoxeterGroup(['A',2])).run(skip=to_skip)                    # optional - coxeter3
         """
         category = CoxeterGroups()
         if cartan_type.is_finite():
@@ -354,9 +359,9 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-            .. [Deodhar1987] V.V. Deodhar, On some geometric aspects of Bruhat orderings II. The parabolic analogue of Kazhdan-Lusztig polynomials, J. Alg. 111 (1987) 483-506.
+            .. [Deodhar1987] \V.V. Deodhar, On some geometric aspects of Bruhat orderings II. The parabolic analogue of Kazhdan-Lusztig polynomials, J. Alg. 111 (1987) 483-506.
 
-            .. [LeclercThibon1998] B. Leclerc, J.-Y. Thibon, Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials, http://front.math.ucdavis.edu/9809.5122
+            .. [LeclercThibon1998] \B. Leclerc, J.-Y. Thibon, Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials, http://front.math.ucdavis.edu/9809.5122
 
         EXAMPLES::
 

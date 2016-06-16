@@ -125,10 +125,11 @@ underscores).
 # Generic element, so all this functionality must be defined
 # by any element.  Derived class must call __init__
 ##################################################################
+from __future__ import print_function
 
 from libc.limits cimport LONG_MAX, LONG_MIN
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
@@ -1362,9 +1363,9 @@ cdef class ModuleElement(Element):
     # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        if PyInt_CheckExact(left):
+        if type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
@@ -1637,9 +1638,9 @@ cdef class RingElement(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<ModuleElement>left)._add_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, add)
 
@@ -1658,7 +1659,7 @@ cdef class RingElement(ModuleElement):
         cdef long n
         if have_same_parent_c(left, right):
             return (<ModuleElement>left)._sub_(<ModuleElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
             if (n == 0) | (<unsigned long>n != 0 - <unsigned long>n):
@@ -1791,9 +1792,9 @@ cdef class RingElement(ModuleElement):
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
             return (<RingElement>left)._mul_(<RingElement>right)
-        if PyInt_CheckExact(right):
+        if type(right) is int:
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        elif PyInt_CheckExact(left):
+        elif type(left) is int:
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         return coercion_model.bin_op(left, right, mul)
 
@@ -3454,7 +3455,7 @@ def coercion_traceback(dump=True):
     """
     if dump:
         for traceback in coercion_model.exception_stack():
-            print traceback
+            print(traceback)
     else:
         return coercion_model.exception_stack()
 

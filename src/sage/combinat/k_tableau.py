@@ -11,11 +11,11 @@ More information can be found in [LLMS2006]_ .
 
 REFERENCES:
 
-.. [LLMS2006] T. Lam, L. Lapointe, J. Morse, M. Shimozono,
+.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
    Affine insertion and Pieri rules for the affine Grassmannian,
    Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
 
-.. [LLMSSZ2013] T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
+.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
    `k`-Schur functions and affine Schubert calculus,
    preprint :arXiv:`1301.3569`
 
@@ -39,6 +39,8 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
@@ -423,9 +425,9 @@ class WeakTableau_abstract(ClonableList):
             [s2*s0, s3*s2]
         """
         if self.parent()._representation in ['core', 'bounded']:
-            print self._repr_diagram()
+            print(self._repr_diagram())
         else:
-            print self
+            print(self)
 
     def __hash__(self):
         r"""
@@ -747,7 +749,7 @@ class WeakTableau_core(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 2, 3, 4], [1, 4], [2]], 3)
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  2  3  4
             1  4
             2
@@ -1458,12 +1460,12 @@ class WeakTableau_bounded(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 1], [2, 4], [3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  1
             2  4
             3
             sage: t = WeakTableau([[1,1,1],[2,2],[3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             1  1  1
             2  2
             3
@@ -3300,7 +3302,7 @@ class StrongTableau(ClonableList):
               .  . -1 -2
             sage: Tableaux.global_options(convention="English")
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def outer_shape( self ):
         r"""

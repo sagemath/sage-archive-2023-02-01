@@ -5,19 +5,19 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include 'vector_modn_sparse_h.pxi'
 
 cdef int allocate_c_vector_modint(c_vector_modint* v, Py_ssize_t num_nonzero) except -1:
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
     """
-    v.entries = <int*>sage_malloc(num_nonzero*sizeof(int))
+    v.entries = <int*>sig_malloc(num_nonzero*sizeof(int))
     if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
-    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+    v.positions = <Py_ssize_t*>sig_malloc(num_nonzero*sizeof(Py_ssize_t))
     if v.positions == NULL:
-        sage_free(v.entries)
+        sig_free(v.entries)
         raise MemoryError, "Error allocating memory"
     return 0
 
@@ -37,8 +37,8 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
     return 0
 
 cdef void clear_c_vector_modint(c_vector_modint* v):
-    sage_free(v.entries)
-    sage_free(v.positions)
+    sig_free(v.entries)
+    sig_free(v.positions)
 
 cdef Py_ssize_t binary_search0_modn(Py_ssize_t* v, Py_ssize_t n, int x):
     """
@@ -161,8 +161,8 @@ cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
             for i from m < i < v.num_nonzero:
                 v.entries[i-1] = e[i]
                 v.positions[i-1] = pos[i]
-            sage_free(e)
-            sage_free(pos)
+            sig_free(e)
+            sig_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -187,8 +187,8 @@ cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
         for i from ins < i < v.num_nonzero:
             v.entries[i] = e[i-1]
             v.positions[i] = pos[i-1]
-        sage_free(e)
-        sage_free(pos)
+        sig_free(e)
+        sig_free(pos)
 
 cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
                                   c_vector_modint* w, int multiple) except -1:

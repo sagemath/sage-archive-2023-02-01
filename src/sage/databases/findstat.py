@@ -65,7 +65,7 @@ FindStat.  This means, that the set of `(object, value)` pairs of the
 statistic `s` as stored in the FindStat database is a superset of the
 data sent.  We can now retrieve the description from the database::
 
-    sage: print s.description()                                                 # optional -- internet,random
+    sage: print(s.description())                                         # optional -- internet,random
     The number of nestings of a perfect matching.
     <BLANKLINE>
     <BLANKLINE>
@@ -115,14 +115,14 @@ following permutation::
 
 We first have to find out, what the maps and the statistic actually do::
 
-    sage: print s.description()                                                 # optional -- internet,random
+    sage: print(s.description())                                            # optional -- internet,random
     The size of the left subtree.
 
-    sage: print s.code()                                                        # optional -- internet,random
+    sage: print(s.code())                                                 # optional -- internet,random
     def statistic(T):
         return T[0].node_number()
 
-    sage: print list_f[0].code() + "\r\n" + list_f[1].code()                    # optional -- internet,random
+    sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
         return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
@@ -166,6 +166,8 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -248,6 +250,7 @@ FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
 FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
 FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
 FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
+FINDSTAT_STATISTIC_NAME                        = 'StatisticTitle'
 FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
 FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
 FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
@@ -526,7 +529,7 @@ class FindStat(SageObject):
             # we expect a dictionary from objects or strings to
             # integers
             l = query.iteritems()
-            (key, value) = l.next()
+            (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
 
@@ -956,6 +959,7 @@ class FindStatStatistic(SageObject):
                 raise
 
         self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
         self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
@@ -1472,11 +1476,11 @@ class FindStatStatistic(SageObject):
         OEIS_string = OEIS_string.strip()
         if counter >= 4:
             if verbose:
-                print 'Searching the OEIS for "%s"'%OEIS_string
+                print('Searching the OEIS for "%s"' % OEIS_string)
             return oeis( OEIS_string )
         else:
             if verbose:
-                print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
+                print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
             return
 
     def description(self):
@@ -1490,7 +1494,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print findstat(1).description()                               # optional -- internet,random
+            sage: print(findstat(1).description())    # optional -- internet,random
             The number of ways to write a permutation as a minimal length product of simple transpositions.
             <BLANKLINE>
             That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
@@ -1518,14 +1522,14 @@ class FindStatStatistic(SageObject):
 
             sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.set_description("Random values on Dyck paths.\r\nNot for submssion.") # optional -- internet
+            sage: s.set_description("Random values on Dyck paths.\r\nNot for submission.") # optional -- internet
             sage: s                                                             # optional -- internet
             a new statistic on Cc0005: Dyck paths
             sage: s.name()                                                      # optional -- internet
             'Random values on Dyck paths.'
-            sage: print s.description()                                         # optional -- internet
+            sage: print(s.description())                              # optional -- internet
             Random values on Dyck paths.
-            Not for submssion.
+            Not for submission.
         """
         self._raise_error_modifying_statistic_with_perfect_match()
 
@@ -1547,7 +1551,11 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        # this needs to be decided how to do properly
+        if hasattr(self,"_name"):
+            return self._name
+        else:
+            return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
 
     def references(self):
         r"""
@@ -1624,11 +1632,11 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print findstat(1).code()                                      # optional -- internet,random
+            sage: print(findstat(1).code())                                   # optional -- internet,random
             def statistic(x):
                 return len(x.reduced_words())
 
-            sage: print findstat(118).code()                                    # optional -- internet,random
+            sage: print(findstat(118).code())                                 # optional -- internet,random
             (* in Mathematica *)
             tree = {{{{}, {}}, {{}, {}}}, {{{}, {}}, {{}, {}}}};
             Count[tree, {{___}, {{___}, {{___}, {___}}}}, {0, Infinity}]
@@ -1659,7 +1667,7 @@ class FindStatStatistic(SageObject):
 
             sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
             sage: s.set_code("def statistic(x):\r\n    return randint(1,1000)") # optional -- internet
-            sage: print s.code()                                                # optional -- internet
+            sage: print(s.code())                 # optional -- internet
             def statistic(x):
                 return randint(1,1000)
         """
@@ -1996,7 +2004,7 @@ class FindStatCollection(Element):
             sage: for c in l:                                                   # optional -- internet, random
             ....:     if c.id() not in long and c.is_supported():
             ....:         f = c.first_terms(lambda x: 1, max_values=10000)
-            ....:         print c, len(f), all(c.in_range(e) for e, _ in f)
+            ....:         print("{} {} {}".format(c, len(f), all(c.in_range(e) for e, _ in f)))
             ....:
             Cc0001: Permutations 10000 True
             Cc0002: Integer partitions 270 True
@@ -2159,21 +2167,34 @@ class FindStatCollection(Element):
         """
         return "%s: %s" %(self.id_str(), self._name_plural)
 
-    def name(self):
+    def name(self, style="singular"):
         r"""
         Return the name of the FindStat collection.
 
+        INPUT:
+
+        - a string -- (default:"singular") can be
+          "singular", or "plural".
+
         OUTPUT:
 
-        The name of the FindStat collection, in singular.
+        The name of the FindStat collection, in singular or in plural.
 
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Binary trees").name()                     # optional -- internet
             u'Binary tree'
+
+            sage: FindStatCollection("Binary trees").name(style="plural")       # optional -- internet
+            u'Binary trees'
         """
-        return self._name
+        if style == "singular":
+            return self._name
+        elif style == "plural":
+            return self._name_plural
+        else:
+            raise ValueError("Argument 'style' (=%s) must be 'singular' or 'plural'."%style)
 
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""
@@ -2373,8 +2394,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
             if id in self._findstat_collections:
                 c = self._findstat_collections[id]
             else:
-                print "There is a new collection available at `%s`: %s."%(findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL])
-                print "To use it with this interface, it has to be added to the dictionary FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!"
+                print("There is a new collection available at `%s`: %s." % (findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL]))
+                print("To use it with this interface, it has to be added to the dictionary FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!")
                 self._findstat_collections[id] = list(self._findstat_unsupported_collection_default)
                 c = self._findstat_collections[id]
             c[0] = j[FINDSTAT_COLLECTION_NAME]
@@ -2456,7 +2477,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
             # check whether entry is iterable (it's not a string!)
             try:
-                obj = iter(entry).next()
+                obj = next(iter(entry))
                 for (id, c) in self._findstat_collections.iteritems():
                     if isinstance(obj, c[3]):
                         return self.element_class(self, id, c, entry)
@@ -2679,7 +2700,7 @@ class FindStatMap(Element):
         EXAMPLES::
 
             sage: m = findstat("Permutations", lambda pi: pi.length())[1][1][0] # optional -- internet
-            sage: print m.description()                                         # optional -- internet,random
+            sage: print(m.description())                                    # optional -- internet,random
             Let $\sigma \in \mathcal{S}_n$ be a permutation.
             <BLANKLINE>
             Maps $\sigma$ to the permutation $\tau$ such that the major code of $\tau$ is given by the Lehmer code of $\sigma$.
@@ -2735,7 +2756,7 @@ class FindStatMap(Element):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: print FindStatMap(71).code()                                  # optional -- internet
+            sage: print(FindStatMap(71).code())                              # optional -- internet
             def descents_composition(elt):
                 if len(elt) == 0:
                     return Composition([])
@@ -2755,7 +2776,7 @@ class FindStatMap(Element):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatMap               # optional -- internet
-            sage: print FindStatMap(71).code_name()                             # optional -- internet
+            sage: print(FindStatMap(71).code_name())                      # optional -- internet
             descents_composition
         """
         return self._map[FINDSTAT_MAP_CODE_NAME]
@@ -2774,8 +2795,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
 
         sage: from sage.databases.findstat import FindStatMap, FindStatMaps
         sage: for m in sorted(FindStatMaps(), key=lambda m: (m.domain(), m.codomain)):    # optional -- internet,random
-        ....:     print m.domain().name().ljust(30), m.codomain().name().ljust(30), m.name()
-        ....:
+        ....:     print(m.domain().name().ljust(30)+" "+m.codomain().name().ljust(30)+" "+m.name())
         Permutation                    Standard tableau               Robinson-Schensted insertion tableau
         Permutation                    Integer partition              Robinson-Schensted tableau shape
         Permutation                    Binary tree                    to increasing tree

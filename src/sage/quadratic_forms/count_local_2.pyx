@@ -58,7 +58,7 @@ def extract_sublist_indices(Biglist, Smalllist):
     ## Check that Biglist has no repeated entries
     Big_set = Set(Biglist)
     if len(Set(Biglist)) != len(Biglist):
-        raise TypeError, "Biglist must not have repeated entries!"
+        raise TypeError("Biglist must not have repeated entries!")
 
     ## Extract the indices of Biglist needed to make Sublist
     index_list = []
@@ -125,15 +125,15 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
     """
     ## Check that Qdet is non-degenerate
     if Qdet % p == 0:
-        raise RuntimeError, "Qdet must be non-zero."
+        raise RuntimeError("Qdet must be non-zero.")
 
     ## Check that p is prime > 0
     if not is_prime(p) or p == 2:
-        raise RuntimeError, "p must be a prime number > 2."
+        raise RuntimeError("p must be a prime number > 2.")
 
     ## Check that n >= 1
     if n < 1:
-        raise RuntimeError, "the dimension n must be >= 1."
+        raise RuntimeError("the dimension n must be >= 1.")
 
     ## Compute the Gauss sum
     neg1 = -1
@@ -381,7 +381,6 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
 
     ## Error if we get here! =o
-    print "   Solution vector is " + str(w)
-    print "   and Q is \n" + str(Q) + "\n"
-    raise RuntimeError, "Error in IsLocalSolutionType: Should not execute this line... =( \n"
-
+    print("   Solution vector is " + str(w))
+    print("   and Q is \n" + str(Q) + "\n")
+    raise RuntimeError("Error in IsLocalSolutionType: Should not execute this line... =( \n")

@@ -313,11 +313,6 @@ GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
-# Allow git to work without warning messages after relocating Sage.
-# See trac #15901.
-GIT_TEMPLATE_DIR="$SAGE_LOCAL"/share/git-core/templates && export GIT_TEMPLATE_DIR
-GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
-
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
@@ -373,19 +368,27 @@ if [ "$PYTHON_EGG_CACHE" = "" ]; then
     export PYTHON_EGG_CACHE
 fi
 
+# Set PYTHONUSERBASE to avoid picking up non-Sage versions of
+# Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/19612.
+#
+# For more history (it used to be PYTHONNOUSERSITE=yes which killed
+# the ability to do "sage -pip install PACKAGE --user"), see
+# http://trac.sagemath.org/ticket/14243 and
+# http://trac.sagemath.org/ticket/18955.
+
+if [ "$PYTHONUSERBASE" = "" ]; then
+    PYTHONUSERBASE="$DOT_SAGE/local"
+    export PYTHONUSERBASE
+fi
+
 if [ -d "$SAGE_LOCAL/lib/python" ]; then
     PYTHONPATH="$SAGE_LOCAL/lib/python:$SAGE_LOCAL/lib/python/site_packages"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
     PYTHONHOME="$SAGE_LOCAL"
-    # Set PYTHONNOUSERSITE to avoid picking up non-Sage versions of
-    # Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/14243
-    # and http://trac.sagemath.org/ticket/18955.
-    PYTHONNOUSERSITE=yes
     export PYTHONPATH
     export PYTHONHOME
-    export PYTHONNOUSERSITE
 fi
 
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"

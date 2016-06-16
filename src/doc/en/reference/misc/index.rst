@@ -55,6 +55,7 @@ Lists and Iteration, etc.
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
+   sage/arith/srange
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -124,7 +125,6 @@ Caching
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cache
    sage/misc/cachefunc
    sage/misc/weak_dict
 
@@ -226,6 +226,7 @@ Interactive Sage Sessions
    sage/misc/viewer
    sage/misc/pager
    sage/misc/sagedoc
+   sage/misc/sphinxify
 
 Distribution
 ~~~~~~~~~~~~

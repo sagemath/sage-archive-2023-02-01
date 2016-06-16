@@ -16,7 +16,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import itertools
 
@@ -84,7 +84,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
         {'a', 'b'}
         sage: M.codomain()
         {3, 4, 5}
-        sage: for f in M: print f
+        sage: for f in M: print(f)
         map: a -> 3, b -> 3
         map: a -> 3, b -> 4
         map: a -> 3, b -> 5
@@ -391,7 +391,7 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
             Maps from {'a', 'b'} to {3, 4, 5}
             sage: M.cardinality()
             9
-            sage: for f in M: print f
+            sage: for f in M: print(f)
             map: a -> 3, b -> 3
             map: a -> 3, b -> 4
             map: a -> 3, b -> 5

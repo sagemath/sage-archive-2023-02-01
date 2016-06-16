@@ -9,6 +9,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
@@ -239,7 +240,7 @@ def init_ecl():
     cdef int i
 
     if ecl_has_booted:
-        raise RuntimeError, "ECL is already initialized"
+        raise RuntimeError("ECL is already initialized")
 
     # we need it to stop handling SIGCHLD
     ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
@@ -339,7 +340,7 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -353,7 +354,7 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -365,7 +366,7 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -419,8 +420,8 @@ def print_objects():
     c = list_of_objects
     while True:
         s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print ecl_base_string_pointer_safe(s)
-        c=cl_cadr(c)
+        print(ecl_base_string_pointer_safe(s))
+        c = cl_cadr(c)
         if c == Cnil:
             break
 
@@ -491,7 +492,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             cl_rplacd(ptr,python_to_ecl(pyobj[-1]))
             return L
     else:
-        raise TypeError,"Unimplemented type for python_to_ecl"
+        raise TypeError("Unimplemented type for python_to_ecl")
 
 cdef ecl_to_python(cl_object o):
     cdef cl_object s
@@ -680,7 +681,7 @@ cdef class EclObject:
             ...
             NotImplementedError: EclObjects do not have a pickling method
         """
-        raise NotImplementedError, "EclObjects do not have a pickling method"
+        raise NotImplementedError("EclObjects do not have a pickling method")
 
     def python(self):
         r"""
@@ -903,7 +904,7 @@ cdef class EclObject:
         cdef cl_object o
         o=ecl_safe_eval(self.obj)
         if o == NULL:
-            raise RuntimeError,"ECL runtime error"
+            raise RuntimeError("ECL runtime error")
         return ecl_wrap(o)
 
     def cons(self,EclObject d):
@@ -938,7 +939,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplaca can only be applied to a cons"
+            raise TypeError("rplaca can only be applied to a cons")
         cl_rplaca(self.obj, d.obj)
 
 
@@ -959,7 +960,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplacd can only be applied to a cons"
+            raise TypeError("rplacd can only be applied to a cons")
         cl_rplacd(self.obj, d.obj)
 
     def car(self):
@@ -984,7 +985,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"car can only be applied to a cons"
+            raise TypeError("car can only be applied to a cons")
         return ecl_wrap(cl_car(self.obj))
 
     def cdr(self):
@@ -1009,7 +1010,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"cdr can only be applied to a cons"
+            raise TypeError("cdr can only be applied to a cons")
         return ecl_wrap(cl_cdr(self.obj))
 
     def caar(self):
@@ -1034,7 +1035,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"caar can only be applied to a cons"
+            raise TypeError("caar can only be applied to a cons")
         return ecl_wrap(cl_caar(self.obj))
 
     def cadr(self):
@@ -1059,7 +1060,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cadr can only be applied to a cons"
+            raise TypeError("cadr can only be applied to a cons")
         return ecl_wrap(cl_cadr(self.obj))
 
     def cdar(self):
@@ -1084,7 +1085,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"cdar can only be applied to a cons"
+            raise TypeError("cdar can only be applied to a cons")
         return ecl_wrap(cl_cdar(self.obj))
 
     def cddr(self):
@@ -1109,7 +1110,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cddr can only be applied to a cons"
+            raise TypeError("cddr can only be applied to a cons")
         return ecl_wrap(cl_cddr(self.obj))
 
     def fixnump(self):
@@ -1253,7 +1254,7 @@ cdef class EclListIterator:
 
         """
         if not o.listp():
-            raise TypeError,"ECL object is not iterable"
+            raise TypeError("ECL object is not iterable")
         self.current = ecl_wrap(o.obj)
 
     def __iter__(EclListIterator self):

@@ -1,4 +1,5 @@
 "Cremona modular symbols"
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 
@@ -40,9 +41,9 @@ cdef class ModularSymbols:
             Cremona Modular Symbols space of dimension 29 for Gamma_0(123) of weight 2 with sign 0
         """
         if not (sign == 0 or sign == 1 or sign == -1):
-            raise ValueError, "sign (= %s) is not supported; use 0, +1 or -1"%sign
+            raise ValueError("sign (= %s) is not supported; use 0, +1 or -1" % sign)
         if level <= 1:
-            raise ValueError, "the level (= %s) must be at least 2"%level
+            raise ValueError("the level (= %s) must be at least 2" % level)
         sig_on()
         self.H = new homspace(level, sign, cuspidal, verbose)
         sig_off()
@@ -175,7 +176,7 @@ cdef class ModularSymbols:
             sage: M = CremonaModularSymbols(37)
             sage: t = M.hecke_matrix(2); t
             5 x 5 Cremona matrix over Rational Field
-            sage: print t.str()
+            sage: print(t.str())
             [ 3  0  0  0  0]
             [-1 -1  1  1  0]
             [ 0  0 -1  0  1]
@@ -183,7 +184,7 @@ cdef class ModularSymbols:
             [ 0  0  1  0 -1]
             sage: t.charpoly().factor()
             (x - 3) * x^2 * (x + 2)^2
-            sage: print M.hecke_matrix(2, dual=True).str()
+            sage: print(M.hecke_matrix(2, dual=True).str())
             [ 3 -1  0 -1  0]
             [ 0 -1  0  1  0]
             [ 0  1 -1  0  1]

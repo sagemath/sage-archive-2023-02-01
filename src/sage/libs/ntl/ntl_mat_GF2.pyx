@@ -30,6 +30,7 @@ include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
@@ -368,10 +369,10 @@ cdef class ntl_mat_GF2(object):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>x).x)
 
@@ -395,10 +396,10 @@ cdef class ntl_mat_GF2(object):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         cdef ntl_GF2 e = self._new_element()
         e.x = self.x.get( i+1, j+1 )

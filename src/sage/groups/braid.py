@@ -694,7 +694,7 @@ class Braid(FinitelyPresentedGroupElement):
         REFERENCES:
 
         .. [Big99] Stephen J. Bigelow. The Burau representation is
-           not faithful for `n = 5`. Geom. Topol., 3:397–404, 1999.
+           not faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
         .. [JonesNotes] Vaughan Jones. The Jones Polynomial.
            https://math.berkeley.edu/~vfr/jones.pdf
         """
@@ -735,9 +735,9 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
+        .. [Dynnikov07] \I. Dynnikov and B. Wiest, On the complexity of braids,
            J. Europ. Math. Soc. 9 (2007)
-        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
+        .. [Dehornoy] \P. Dehornoy, Le probleme d'isotopie des tresses, in
            lecons de mathematiques d'aujourd'hui vol. 4
         """
         coord = [0, 1] * self.strands()
@@ -1032,15 +1032,15 @@ class Braid(FinitelyPresentedGroupElement):
         i = j = 0
         while j<len(form):
             while i<len(form)-j-1:
-                e = form[i].inverse().descents()
-                s = form[i+1].descents()
+                e = form[i].idescents(from_zero=False)
+                s = form[i + 1].descents(from_zero=False)
                 S = set(s).difference(set(e))
-                while S!=set([]):
+                while S:
                     a = list(S)[0]
-                    form[i] = form[i]*Permutation((a+1, a+2))
-                    form[i+1] = Permutation((a+1, a+2))*form[i+1]
-                    e = form[i].inverse().descents()
-                    s = form[i+1].descents()
+                    form[i] = form[i] * Permutation((a, a+1))
+                    form[i + 1] = Permutation((a, a+1))*form[i+1]
+                    e = form[i].idescents(from_zero=False)
+                    s = form[i + 1].descents(from_zero=False)
                     S = set(s).difference(set(e))
                 if form[i+1].length()==0:
                     form.pop(i+1)
@@ -1049,7 +1049,7 @@ class Braid(FinitelyPresentedGroupElement):
                     i += 1
             j += 1
             i = 0
-        form = [a for a in form if a.length()>0]
+        form = [a for a in form if a.length()]
         while form!=[] and form[0]==Delta:
             form.pop(0)
             delta = delta-1
@@ -1803,7 +1803,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def _get_action_(self, S, op, self_on_left):
         """
-        Let the coercion system discover actions of the braid group on free groups.
+        Let the coercion system discover actions of the braid group on free groups. ::
 
             sage: B.<b0,b1,b2> = BraidGroup()
             sage: F.<f0,f1,f2,f3> = FreeGroup()
@@ -1822,10 +1822,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
             Unknown result parent.
         """
         import operator
-        if is_FreeGroup(S) and op==operator.mul and not self_on_left:
+        if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-
 
 
 def BraidGroup(n=None, names='s'):

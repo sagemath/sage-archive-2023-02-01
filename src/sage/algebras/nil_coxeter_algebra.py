@@ -147,7 +147,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
 
         REFERENCES:
 
-           .. [Lam2005] T. Lam, Affine Stanley symmetric functions, Amer. J. Math.  128  (2006),  no. 6, 1553--1586.
+           .. [Lam2005] \T. Lam, Affine Stanley symmetric functions, Amer. J. Math.  128  (2006),  no. 6, 1553--1586.
 
         This function is currently only defined in type `A^{(1)}`.
 

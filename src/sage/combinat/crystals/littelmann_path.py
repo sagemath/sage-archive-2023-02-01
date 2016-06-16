@@ -24,6 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_in_parent_method, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -116,7 +117,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [Littelmann95] P. Littelmann, Paths and root operators in representation
+    .. [Littelmann95] \P. Littelmann, Paths and root operators in representation
        theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
     """
 
@@ -497,8 +498,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
                 sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: for c in C:
-                ...     print c, c.dualize()
-                ...
+                ....:     print("{} {}".format(c, c.dualize()))
                 (Lambda[1] + Lambda[2],) (-Lambda[1] - Lambda[2],)
                 (-Lambda[1] + 2*Lambda[2],) (Lambda[1] - 2*Lambda[2],)
                 (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]) (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])
@@ -972,7 +972,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             REFERENCES:
 
-            .. [LNSSS2013] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+            .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
                A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.
                DMTCS proc, to appear ( {{{:arXiv:`1211.6019`}}} )
 
@@ -1005,7 +1005,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: c = b.e(0)
                 sage: c.energy_function()
                 1
-                sage: for c in sorted(LS, key=str): print c,c.energy_function()
+                sage: for c in sorted(LS, key=str):
+                ....:     print("{} {}".format(c,c.energy_function()))
                 (-2*Lambda[0] + 2*Lambda[1],)                    0
                 (-2*Lambda[1] + 2*Lambda[2],)                    0
                 (-Lambda[0] + Lambda[1], -Lambda[1] + Lambda[2]) 1

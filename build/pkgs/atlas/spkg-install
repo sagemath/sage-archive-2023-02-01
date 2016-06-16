@@ -81,6 +81,7 @@ prefix=${SAGE_ROOT}/local
 libdir=${prefix}/lib
 includedir=${prefix}/include
 Name: %s
+Version: 1.0
 Description: %s for sage, set up by the ATLAS spkg.
 Libs: -L${libdir} %s
 """%(SAGE_ROOT, target, target, libflags)

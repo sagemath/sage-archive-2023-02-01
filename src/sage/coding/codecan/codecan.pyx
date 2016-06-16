@@ -549,10 +549,10 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         for i in range(self._hyp_part.degree):
             bitset_free(self._hyp2points[i])
 
-        sage_free(self._hyp2points)
-        sage_free(self._points2hyp)
+        sig_free(self._hyp2points)
+        sig_free(self._points2hyp)
         PS_dealloc(self._hyp_part)
-        sage_free(self._hyp_refine_vals_scratch)
+        sig_free(self._hyp_refine_vals_scratch)
 
     def __repr__(self):
         """
@@ -781,12 +781,12 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             if s >= 0:
                 self._hyp_part.levels[s] = 0
 
-        self._hyp2points = < bitset_t *> sage_malloc(self._hyp_part.degree * sizeof(bitset_t))
+        self._hyp2points = < bitset_t *> sig_malloc(self._hyp_part.degree * sizeof(bitset_t))
         if self._hyp2points is NULL:
             raise MemoryError('allocating PartitionRefinementLinearCode')
-        self._points2hyp = < bitset_t *> sage_malloc(self._n * sizeof(bitset_t))
+        self._points2hyp = < bitset_t *> sig_malloc(self._n * sizeof(bitset_t))
         if self._hyp2points is NULL:
-            sage_free(self._hyp2points)
+            sig_free(self._hyp2points)
             raise MemoryError('allocating PartitionRefinementLinearCode')
 
         for i in range(self._n):
@@ -800,7 +800,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
                 bitset_add(self._hyp2points[i], j)
                 bitset_add(self._points2hyp[j], i)
 
-        self._hyp_refine_vals_scratch = <long *> sage_malloc(
+        self._hyp_refine_vals_scratch = <long *> sig_malloc(
                             self._hyp_part.degree * sizeof(long))
         if self._hyp_refine_vals_scratch is NULL:
             raise MemoryError('allocating PartitionRefinementLinearCode')
@@ -972,7 +972,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         cdef bitset_t *nonsingletons
         cdef bitset_t scratch
         bitset_init(scratch, self._hyp_part.degree)
-        nonsingletons = < bitset_t *> sage_malloc(0)
+        nonsingletons = < bitset_t *> sig_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._hyp_part, & nonsingletons)
 
         for i in range(self._n):
@@ -984,7 +984,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         for j in range(nr_cells):
             bitset_free(nonsingletons[j])
-        sage_free(nonsingletons)
+        sig_free(nonsingletons)
         bitset_free(scratch)
 
         # provide some space to store the result (if not already exists)
@@ -1017,7 +1017,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         cdef bitset_t *nonsingletons
         cdef bitset_t scratch
         bitset_init(scratch, self._part.degree)
-        nonsingletons = < bitset_t *> sage_malloc(0)
+        nonsingletons = < bitset_t *> sig_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._part, & nonsingletons)
 
         for i in range(self._hyp_part.degree):
@@ -1029,7 +1029,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         for j in range(nr_cells):
             bitset_free(nonsingletons[j])
-        sage_free(nonsingletons)
+        sig_free(nonsingletons)
         bitset_free(scratch)
 
         # provide some space to store the result (if not already exists)

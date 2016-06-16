@@ -26,10 +26,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
 import itertools
-import misc
-from __builtin__ import list as builtinlist
+from . import misc
+from six.moves.builtins import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
@@ -187,7 +188,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [2,2,1]
             sage: p2 = [2,2,1]
-            sage: print gale_ryser_theorem(p1, p2)     # not tested
+            sage: print(gale_ryser_theorem(p1, p2))     # not tested
             [1 1 0]
             [1 0 1]
             [0 1 0]
@@ -223,7 +224,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             [0 0 0 0 0 0]
             sage: p1 = [3,3,2,1]
             sage: p2 = [3,2,2,1,1]
-            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")  # not tested
+            sage: print(gale_ryser_theorem(p1, p2, algorithm="gale"))  # not tested
             [1 1 1 0 0]
             [1 1 0 0 1]
             [1 0 1 0 0]
@@ -264,8 +265,8 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             ....:     ss1 = sorted(map(lambda x : sum(x) , m.rows()), reverse = True)
             ....:     ss2 = sorted(map(lambda x : sum(x) , m.columns()), reverse = True)
             ....:     if ((ss1 != s1) or (ss2 != s2)):
-            ....:         print "Algorithm %s failed with this input:" % algorithm
-            ....:         print s1, s2
+            ....:         print("Algorithm %s failed with this input:" % algorithm)
+            ....:         print(s1, s2)
 
             sage: for algorithm in ["gale", "ryser"]:                        # long time
             ....:     for i in range(50):                                    # long time
@@ -299,9 +300,9 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
         REFERENCES:
 
-        ..  [Ryser63] H. J. Ryser, Combinatorial Mathematics,
+        ..  [Ryser63] \H. J. Ryser, Combinatorial Mathematics,
             Carus Monographs, MAA, 1963.
-        ..  [Gale57] D. Gale, A theorem on flows in networks, Pacific J. Math.
+        ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
             7(1957)1073-1082.
         """
         from sage.combinat.partition import Partition
@@ -779,10 +780,21 @@ class IntegerVectors_nk(CombinatorialClass):
             yield [self.n]
             return
 
-        for nbar in range(self.n+1):
-            n = self.n-nbar
-            for rest in IntegerVectors_nk(nbar , self.k-1):
-                yield [n] + rest
+        rem = -1 # Amount remaining
+        cur = [self.n+1]
+        k = int(self.k)
+        while cur:
+            cur[-1] -= 1
+            rem += 1
+            if rem == 0:
+                yield cur + [Integer(0)] * (k - len(cur))
+            elif cur[-1] < 0:
+                rem += cur.pop()
+            elif len(cur) == k - 1:
+                yield cur + [Integer(rem)]
+            else:
+                cur.append(rem + 1)
+                rem = -1
 
     def __repr__(self):
         """

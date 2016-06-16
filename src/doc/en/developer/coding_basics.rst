@@ -308,7 +308,7 @@ information. You can use the existing functions of Sage as templates.
 
        REFERENCES:
 
-       .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
+       .. [Nat2000] \M. B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
 
 -  A **NOTE** block for tips/tricks (optional). ::
@@ -369,6 +369,13 @@ information. You can use the existing functions of Sage as templates.
 
       .. [SC] Conventions for coding in sage.
          http://www.sagemath.org/doc/developer/conventions.html.
+
+  When abbreviating the first name of an author, be sure to put a
+  backslash in front of it. This ensures that the letter (``C.``
+  in the example below) will not be interpreted as a list
+  enumerator::
+
+      .. [Gauss] \C. F. Gauss, Disquisitiones Arithmeticae, 1801.
 
   See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
 
@@ -704,8 +711,11 @@ written.
 
       sage: for n in srange(1,10):
       ....:     if n.is_prime():
-      ....:         print n,
-      2 3 5 7
+      ....:         print(n)
+      2
+      3
+      5
+      7
 
 - **Split long lines:** You may want to split long lines of code with a
   backslash. Note: this syntax is non-standard and may be removed in the
@@ -723,6 +733,29 @@ written.
 
 Special Markup to Influence Tests
 ---------------------------------
+
+Overly complicated output in the example code can be shortened
+by an ellipsis marker ``...``::
+
+    sage: [ZZ(n).ordinal_str() for n in range(25)]
+    ['0th',
+     '1st',
+     '2nd',
+     '3rd',
+     '4th',
+     '5th',
+     ...
+     '21st',
+     '22nd',
+     '23rd',
+     '24th']
+    sage: ZZ('sage')
+    Traceback (most recent call last):
+    ...
+    TypeError: unable to convert 'sage' to an integer
+
+On the proper usage of the ellipsis marker, see :python:`Python's documentation
+<library/doctest.html#doctest.ELLIPSIS>`.
 
 There are a number of magic comments that you can put into the example
 code that change how the output is verified by the Sage doctest
@@ -785,7 +818,7 @@ framework. Here is a comprehensive list:
   doctest with tolerance contains several numbers, each of them is checked
   individually::
 
-      sage: print "The sum of 1 and 1 equals 5"  # abs tol 1
+      sage: print("The sum of 1 and 1 equals 5")  # abs tol 1
       The sum of 2 and 2 equals 4
       sage: e^(i*pi/4).n() # rel tol 1e-1
       0.7 + 0.7*I
@@ -977,7 +1010,7 @@ The Pickle Jar
 Sage maintains a pickle jar at
 ``SAGE_ROOT/src/ext/pickle_jar/pickle_jar.tar.bz2`` which is a tar
 file of "standard" pickles created by ``sage``. This pickle jar is
-used to ensure that sage maintains backward compatibility by have
+used to ensure that sage maintains backward compatibility by
 having :func:`sage.structure.sage_object.unpickle_all` check that
 ``sage`` can always unpickle all of the pickles in the pickle jar as
 part of the standard doc testing framework.

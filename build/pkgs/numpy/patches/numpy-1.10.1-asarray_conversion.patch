@@ -1,3 +1,8 @@
+BUG: Let linspace accept input that has an array_interface but is not otherwise a numpy or python type.
+
+Upstream PR: https://github.com/numpy/numpy/pull/6659
+
+
 diff -Naur numpy-1.10.1.orig/numpy/core/function_base.py numpy-1.10.1/numpy/core/function_base.py
 --- numpy-1.10.1.orig/numpy/core/function_base.py	2015-11-11 10:12:45.583322683 +1300
 +++ numpy-1.10.1/numpy/core/function_base.py	2015-11-11 10:14:05.813343880 +1300
@@ -5,8 +10,8 @@ diff -Naur numpy-1.10.1.orig/numpy/core/function_base.py numpy-1.10.1/numpy/core
  __all__ = ['logspace', 'linspace']
  
  from . import numeric as _nx
--from .numeric import result_type, NaN
-+from .numeric import result_type, NaN, asanyarray
+-from .numeric import result_type, NaN, shares_memory, MAY_SHARE_BOUNDS, TooHardError
++from .numeric import result_type, NaN, shares_memory, MAY_SHARE_BOUNDS, TooHardError, asanyarray
  
  
  def linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None):

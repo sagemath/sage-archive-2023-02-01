@@ -30,6 +30,7 @@ AUTHORS:
 
 
 from sage.calculus.functions import jacobian
+from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.cachefunc import cached_method
@@ -42,7 +43,6 @@ from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.real_mpfr import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.misc.lazy_attribute import lazy_attribute
@@ -105,6 +105,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x, y) to
                     (3*x^2/(5*y), y^2/(2*x^2))
 
+        ::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: H = Hom(A, A)
@@ -113,6 +114,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x, y) to
                     (3/2*x^2, y^2)
 
+        ::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: X = A.subscheme([x-y^2])
@@ -131,6 +133,49 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 2 over Integer Ring
               Defn: Defined on coordinates by sending (x0, x1) to
                     ((5*x0^3 + 3*x0*x1^2 - x1^3)/(x0^3 - 1), (x0^2*x1 + 3)/(x0^3 - 1))
+
+            If you pass in quotient ring elements, they are reduced::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([x-y])
+            sage: H = Hom(X,X)
+            sage: u,v,w = X.coordinate_ring().gens()
+            sage: H([u, v, u+v])
+            Scheme endomorphism of Closed subscheme of Affine Space of dimension 3
+            over Rational Field defined by:
+              x - y
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (y, y, 2*y)
+
+            You must use the ambient space variables to create rational functions::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([x^2-y^2])
+            sage: H = Hom(X,X)
+            sage: u,v,w = X.coordinate_ring().gens()
+            sage: H([u, v, (u+1)/v])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Division failed. The numerator is not a multiple of the denominator.
+            sage: H([x, y, (x+1)/y])
+            Scheme endomorphism of Closed subscheme of Affine Space of dimension 3
+            over Rational Field defined by:
+              x^2 - y^2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x, y, (x + 1)/y)
+
+            ::
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: A.<x,y,z> = AffineSpace(R, 3)
+            sage: X = A.subscheme(x^2-y^2)
+            sage: H = End(X)
+            sage: H([x^2/(t*y), t*y^2, x*z])
+            Scheme endomorphism of Closed subscheme of Affine Space of dimension 3
+            over Univariate Polynomial Ring in t over Rational Field defined by:
+              x^2 - y^2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x^2/(t*y), t*y^2, x*z)
         """
         if check:
             if not isinstance(polys, (list, tuple)):
@@ -141,15 +186,18 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
-            except TypeError:
-                if all(p.base_ring() == source_ring.base_ring() for p in polys) == False:
-                    raise TypeError("polys (=%s) must be rational functions in %s"%(polys, source_ring))
+            except TypeError: #maybe given quotient ring elements
                 try:
-                    polys = [source_ring(poly.numerator())/source_ring(poly.denominator()) for poly in polys]
-                except TypeError:
-                    raise TypeError("polys (=%s) must be rational functions in %s"%(polys, source_ring))
-            if isinstance(source_ring, QuotientRing_generic):
-                polys = [f.lift() for f in polys]
+                   polys = [source_ring(poly.lift()) for poly in polys]
+                except (TypeError, AttributeError):
+                    #must be a rational function since we cannot have
+                    #rational functions for quotient rings
+                    try:
+                        if not all(p.base_ring()==source_ring.base_ring() for p in polys):
+                            raise TypeError("polys (=%s) must be rational functions in %s"%(polys, source_ring))
+                        polys = [source_ring(poly.numerator())/source_ring(poly.denominator()) for poly in polys]
+                    except TypeError: #can't seem to coerce
+                        raise TypeError("polys (=%s) must be rational functions in %s"%(polys, source_ring))
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring()) # Needed for _fast_eval and _fastpolys
         SchemeMorphism_polynomial.__init__(self, parent, polys, False)
 
@@ -383,9 +431,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.homogenize(2)
             Scheme endomorphism of Closed subscheme of Projective Space
             of dimension 2 over Integer Ring defined by:
-              -x1^2 + x0*x2
-              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
-                    (9*x0*x2 : 3*x1*x2 : x2^2)
+                x1^2 - x0*x2
+                Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                      (9*x1^2 : 3*x1*x2 : x2^2)
 
         ::
 
@@ -442,6 +490,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             dimension 1 over Rational function field in c over Rational Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0^2 + c*x1^2 : x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2+2*z+3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -480,7 +539,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except AttributeError: #no gcd
+        except (AttributeError, ValueError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -562,6 +621,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
             + (6*c^5 + 12*c^4 + 6*c^3 + 5*c^2 + c)*x^2 + (c^4 + 2*c^3 + c^2 + 2*c)*x
             + c^6 + 3*c^5 + 3*c^4 + 3*c^3 + 2*c^2 + 1
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([z^2+3/z+1/7])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in z over Rational Field
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -571,14 +638,13 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
         F = self.homogenize(1).dynatomic_polynomial(period)
-        if F.denominator() == 1:
+        S = self.domain().coordinate_ring()
+        if S(F.denominator()).degree() == 0:
             R = F.parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))
         else:
             R = F.numerator().parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F.numerator())/phi(F.denominator()))
 
@@ -592,7 +658,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         .. TODO::
 
-        This could be improved.
+            This could be improved.
 
         INPUT:
 
@@ -642,12 +708,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         N = self.codomain().ambient_space().dimension_relative()
         F = list(self._polys)
         R = F[0].parent()
-        Coord_ring=self.codomain().coordinate_ring()
+        Coord_ring = self.codomain().ambient_space().coordinate_ring()
         D = Integer(n).digits(2)
-        if isinstance(Coord_ring, QuotientRing_generic):
-            PHI = [Coord_ring.gen(i).lift() for i in range(N)]
-        else:
-            PHI = [Coord_ring.gen(i) for i in range(N)]
+        PHI = [Coord_ring.gen(i) for i in range(N)]
         for i in range(len(D)):
             T = [F[j] for j in range(N)]
             for k in range(D[i]):
@@ -697,6 +760,19 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.nth_iterate(A(1, t), 3)
             ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 - t^7 + t^4)
 
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([x^2-y^2])
+            sage: H = End(X)
+            sage: u,v,w = X.coordinate_ring().gens()
+            sage: f = H([x^2, y^2, x+y])
+            sage: f.nth_iterate_map(2)
+            Scheme endomorphism of Closed subscheme of Affine Space of dimension 3
+            over Rational Field defined by:
+              x^2 - y^2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x^4, y^4, x^2 + y^2)
         """
         return(P.nth_iterate(self, n))
 

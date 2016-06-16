@@ -1,5 +1,5 @@
 """
-libSingular conversion routines and initialisation.
+libSingular: Conversion Routines and Initialisation
 
 AUTHOR:
 
@@ -597,7 +597,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         return si2sa_ZZmod(n, _ring, base)
 
     else:
-        raise ValueError, "cannot convert from SINGULAR number"
+        raise ValueError("cannot convert from SINGULAR number")
 
 cdef number *sa2si(Element elem, ring * _ring):
     cdef int i = 0
@@ -626,7 +626,7 @@ cdef number *sa2si(Element elem, ring * _ring):
             return n_Init(int(elem),_ring)
         return sa2si_ZZmod(elem, _ring)
     else:
-        raise ValueError, "cannot convert to SINGULAR number"
+        raise ValueError("cannot convert to SINGULAR number")
 
 
 cdef object si2sa_intvec(intvec *v):
@@ -666,8 +666,7 @@ cdef int overflow_check(long e, ring *_ring) except -1:
     TESTS:
 
     Whether an overflow occurs or not, partially depends
-    on the number of variables in the ring. See trac ticket
-    #11856::
+    on the number of variables in the ring. See :trac:`11856`::
 
         sage: P.<x,y,z> = QQ[]
         sage: y^2^30
@@ -722,7 +721,7 @@ cdef init_libsingular():
             break
 
     if handle == NULL:
-        raise ImportError, "cannot load libSINGULAR library"
+        raise ImportError("cannot load libSINGULAR library")
 
     # load SINGULAR
     siInit(lib)

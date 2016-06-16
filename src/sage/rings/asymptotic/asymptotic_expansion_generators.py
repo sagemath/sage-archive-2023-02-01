@@ -15,10 +15,6 @@ Common Asymptotic Expansions
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
         Asymptotic Ring <z^ZZ * log(z)^QQ> over Integer Ring
 
 
@@ -92,6 +88,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
@@ -360,7 +357,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         from sage.arith.all import bernoulli
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
 
         result = sum((bernoulli(k) / k / (k-1) / n**(k-1)
                       for k in srange(2, 2*precision + 2, 2)),
@@ -422,8 +419,8 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
             sage: for p in range(5):
-            ....:     print asymptotic_expansions.HarmonicNumber(
-            ....:         'n', precision=p)
+            ....:     print(asymptotic_expansions.HarmonicNumber(
+            ....:         'n', precision=p))
             O(log(n))
             log(n) + O(1)
             log(n) + euler_gamma + O(n^(-1))
@@ -457,7 +454,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision >= 3:
             result += 1 / (2 * n)
 
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
         from sage.arith.all import bernoulli
         for k in srange(2, 2*precision - 4, 2):
             result += -bernoulli(k) / k / n**k
@@ -897,7 +894,7 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.functions.other import binomial, gamma
         from sage.calculus.calculus import limit
         from sage.misc.cachefunc import cached_function
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
         from sage.rings.rational_field import QQ
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.ring import SR

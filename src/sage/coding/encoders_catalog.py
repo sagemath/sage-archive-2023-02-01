@@ -34,3 +34,4 @@ _lazy_import('sage.coding.linear_code', ['LinearCodeGeneratorMatrixEncoder',
                                          'LinearCodeParityCheckEncoder'])
 _lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
+_lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')

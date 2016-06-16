@@ -13,16 +13,16 @@ AUTHORS:
 
 REFERENCES:
 
-.. [CS] J.E.Cremona, and S. Siksek, Computing a Lower Bound for the
+.. [CS] \J.E.Cremona, and S. Siksek, Computing a Lower Bound for the
    Canonical Height on Elliptic Curves over `\QQ`, ANTS VII
    Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
    Notes in Computer Science 4076 (2006), pages 275-286.
 
-.. [TT] T. Thongjunthug, Computing a lower bound for the canonical
+.. [TT] \T. Thongjunthug, Computing a lower bound for the canonical
    height on elliptic curves over number fields, Math. Comp. 79
    (2010), pages 2431-2449.
 
-.. [CPS] J.E. Cremona, M. Prickett and S. Siksek, Height Difference
+.. [CPS] \J.E. Cremona, M. Prickett and S. Siksek, Height Difference
    Bounds For Elliptic Curves over Number Fields, Journal of Number
    Theory 116(1) (2006), pages 42-68.
 

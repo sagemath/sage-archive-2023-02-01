@@ -14,6 +14,8 @@ This module is meant for all functions related to centrality in networks.
 Functions
 ---------
 """
+from __future__ import print_function
+
 include "sage/data_structures/bitset.pxi"
 include "cysignals/signals.pxi"
 
@@ -22,7 +24,7 @@ from libc.string cimport memset
 from libc.stdint cimport uint32_t
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
-from sage.ext.memory cimport check_malloc, check_calloc
+include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 ctypedef fused numerical_type:
@@ -306,11 +308,11 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         free_short_digraph(bfs_dag)
         bitset_free(seen)
         bitset_free(next_layer)
-        sage_free(queue)
-        sage_free(n_paths_from_source)
-        sage_free(degrees)
-        sage_free(betweenness_source)
-        sage_free(betweenness)
+        sig_free(queue)
+        sig_free(n_paths_from_source)
+        sig_free(degrees)
+        sig_free(betweenness_source)
+        sig_free(betweenness)
 
     if not G.is_directed():
         betweenness_list = [x/2 for x in betweenness_list]
@@ -800,13 +802,13 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
                     break
                 kth = max(kth, farness[topk[i]])
         if verbose >= 3 or (verbose == 2 and nvis % 1000 == 0):
-            print "Visit {} from {}:".format(nvis, x)
-            print "    Lower bound: {}".format(1 / kth)
-            print "    Perf. ratio: {}".format(visited / (nvis * <double> (sd.neighbors[sd.n]-sd.edges)))
+            print("Visit {} from {}:".format(nvis, x))
+            print("    Lower bound: {}".format(1 / kth))
+            print("    Perf. ratio: {}".format(visited / (nvis * <double> (sd.neighbors[sd.n]-sd.edges))))
     sig_off()
 
     if verbose > 0:
-        print "Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n]-sd.edges)))
+        print("Final performance ratio: {}".format(visited / (n * <double> (sd.neighbors[sd.n]-sd.edges))))
 
     cdef list V = G.vertices()
     return sorted([(1.0/farness[v], V[v]) for v in topk[:k] if v != -1], reverse=True)

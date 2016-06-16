@@ -13,7 +13,7 @@ Miscellaneous arithmetic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import math
 
@@ -931,7 +931,7 @@ def primes(start, stop=None, proof=None):
     EXAMPLES::
 
         sage: for p in primes(5,10):
-        ....:     print p
+        ....:     print(p)
         5
         7
         sage: list(primes(13))
@@ -953,7 +953,7 @@ def primes(start, stop=None, proof=None):
         True
         sage: for p in primes(10, infinity):
         ....:     if p > 20: break
-        ....:     print p
+        ....:     print(p)
         11
         13
         17
@@ -2806,7 +2806,7 @@ class Euler_Phi:
             return ZZ(0)
         if n<=2:
             return ZZ(1)
-        return ZZ(pari(n).phi())
+        return ZZ(pari(n).eulerphi())
 
     def plot(self, xmin=1, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):
@@ -3687,7 +3687,7 @@ def primitive_root(n, check=True):
         5
         sage: primitive_root(25)
         2
-        sage: print [primitive_root(p) for p in primes(100)]
+        sage: print([primitive_root(p) for p in primes(100)])
         [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
         sage: primitive_root(8)
         Traceback (most recent call last):
@@ -3784,6 +3784,8 @@ def nth_prime(n):
         5
         sage: nth_prime(10)
         29
+        sage: nth_prime(10^7)
+        179424673
 
     ::
 
@@ -3796,9 +3798,10 @@ def nth_prime(n):
 
         sage: all(prime_pi(nth_prime(j)) == j for j in range(1, 1000, 10))
         True
-
     """
-    return ZZ(pari.nth_prime(n))
+    if n <= 0:
+        raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
+    return ZZ(pari.prime(n))
 
 def quadratic_residues(n):
     r"""
@@ -4236,6 +4239,7 @@ def hilbert_conductor(a, b):
 def hilbert_conductor_inverse(d):
     """
     Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
+
     The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)
     discriminant `d`.
 
@@ -4273,7 +4277,7 @@ def hilbert_conductor_inverse(d):
         sage: for i in xrange(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
-        ....:         print "hilbert_conductor_inverse failed for d =", d
+        ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
     """
     Z = ZZ
     d = Z(d)
@@ -4394,12 +4398,17 @@ def falling_factorial(x, a):
         sage: type(falling_factorial(d, 0))
         <type 'sage.symbolic.expression.Expression'>
 
+    Check that :trac:`20075` is fixed::
+
+        sage: bool(falling_factorial(int(4), int(2)) == falling_factorial(4,2))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-
+    x = py_scalar_to_element(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
@@ -4484,12 +4493,17 @@ def rising_factorial(x, a):
         sage: type(rising_factorial(d, 0))
         <type 'sage.symbolic.expression.Expression'>
 
+    Check that :trac:`20075` is fixed::
+
+        sage: bool(rising_factorial(int(4), int(2)) == rising_factorial(4,2))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-
+    x = py_scalar_to_element(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
@@ -5256,7 +5270,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     Several small values::
 
-        sage: for q in range(10): print [dedekind_sum(p,q) for p in range(q+1)]
+        sage: for q in range(10): print([dedekind_sum(p,q) for p in range(q+1)])
         [0]
         [0, 0]
         [0, 0, 0]
@@ -5303,7 +5317,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     REFERENCES:
 
-    .. [Apostol] T. Apostol, Modular functions and Dirichlet series
+    .. [Apostol] \T. Apostol, Modular functions and Dirichlet series
        in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
     - :wikipedia:`Dedekind\_sum`

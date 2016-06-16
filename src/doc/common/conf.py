@@ -75,12 +75,11 @@ release = version
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directory, that shouldn't be searched
-# for source files.
-exclude_trees = ['.build']
+# List of glob-style patterns that should be excluded when looking for
+# source files. [1] They are matched against the source file names
+# relative to the source directory, using slashes as directory
+# separators on all platforms.
+exclude_patterns = ['.build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'math'
@@ -227,8 +226,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_static = os.path.join(sagenb_path, mathjax_relative)
     html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
+    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
+                         for i in ('docs', 'README*', 'test',
+                                   'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.pngmath')
 
@@ -352,7 +352,7 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
 \DeclareUnicodeCharacter{2113}{\ell}
 
-\DeclareUnicodeCharacter{221A}{\sqrt}
+\DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
 \DeclareUnicodeCharacter{2264}{\leq}
 \DeclareUnicodeCharacter{2265}{\geq}
 \DeclareUnicodeCharacter{221E}{\infty}
@@ -603,17 +603,29 @@ def debug_inf(app, message):
 
 def call_intersphinx(app, env, node, contnode):
     """
-    Call intersphinx and work around its misshandling of relative links
+    Call intersphinx and make links between Sage manuals relative.
+
+    TESTS:
+
+    Check that the link from the thematic tutorials to the reference
+    manual is relative, see :trac:`20118`::
+
+        sage: from sage.env import SAGE_DOC
+        sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")
+        sage: for line in open(thematic_index).readlines():
+        ....:     if "padics" in line:
+        ....:         sys.stdout.write(line)
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><span>Introduction to the -adics</span></a></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
     builder = app.builder
     res =  sphinx.ext.intersphinx.missing_reference(
         app, env, node, contnode)
-    if res: #workaround intersphinx misshandling of relative links
-        # useful for debugging
-        # import pdb
-        # pdb.set_trace()
-        if res['refuri'].startswith(SAGE_DOC_SRC):
+    if res:
+        # Replace absolute links to $SAGE_DOC by relative links: this
+        # allows to copy the whole documentation tree somewhere else
+        # without breaking links, see Trac #20118.
+        if res['refuri'].startswith(SAGE_DOC):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
@@ -712,9 +724,9 @@ base_class_as_func = [
 # link to the Python documentation several links where broken because there
 # where class listed as functions. Expand the list 'base_class_as_func'
 # above instead of marking the link as broken.
-nitpick_ignore = (
+nitpick_ignore = [
     ('py:class', 'twisted.web2.resource.Resource'),
-    ('py:class', 'twisted.web2.resource.PostableResource'))
+    ('py:class', 'twisted.web2.resource.PostableResource')]
 
 def nitpick_patch_config(app):
     """
@@ -735,8 +747,8 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     See sage.misc.sagedoc.skip_TESTS_block for more information.
     """
     from sage.misc.sagedoc import skip_TESTS_block as sagedoc_skip_TESTS
-    if len(docstringlines) == 0:
-        # No docstring, so don't do anything. See :trac:`19932`.
+    if not docstringlines:
+        # No docstring, so don't do anything. See Trac #19932.
         return
     s = sagedoc_skip_TESTS("\n".join(docstringlines))
     lines = s.split("\n")

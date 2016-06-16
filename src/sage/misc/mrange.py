@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import prod
 
@@ -242,7 +243,7 @@ class xmrange_iter:
         sage: z = xmrange_iter([range(3),range(2)], tuple);z
         xmrange_iter([[0, 1, 2], [0, 1]], <type 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -294,7 +295,7 @@ class xmrange_iter:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange_iter([X, Y], tuple):
-        ...    print (i, j)
+        ....:     print((i, j))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')
@@ -499,7 +500,7 @@ class xmrange:
         sage: z = xmrange([3,2], tuple);z
         xmrange([3, 2], <type 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -551,7 +552,7 @@ class xmrange:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange([len(X), len(Y)]):
-        ...    print (X[i], Y[j])
+        ....:     print((X[i], Y[j]))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')

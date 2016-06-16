@@ -17,9 +17,10 @@ Quiver Paths
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.data_structures.bounded_integer_sequences cimport *
-from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
+from cpython.slice cimport PySlice_GetIndicesEx
 
 include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
@@ -82,7 +83,7 @@ cdef class QuiverPath(MonoidElement):
     List index and slice notation can be used to access the edges in a path.
     QuiverPaths can also be iterated over.  Trivial paths have no elements::
 
-        sage: for x in p: print x
+        sage: for x in p: print(x)
         (1, 2, 'a')
         (2, 3, 'b')
         sage: list(triv)
@@ -379,7 +380,7 @@ cdef class QuiverPath(MonoidElement):
         cdef int init, end
         cdef size_t i,ind
         cdef QuiverPath OUT
-        if PySlice_Check(index):
+        if isinstance(index, slice):
             PySlice_GetIndicesEx(index, self._path.length,
                                  &start, &stop, &step,
                                  &slicelength)
@@ -414,7 +415,7 @@ cdef class QuiverPath(MonoidElement):
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b'), (3, 4, 'c')])
-            sage: for e in p: print e
+            sage: for e in p: print(e)
             (1, 2, 'a')
             (2, 3, 'b')
             (3, 4, 'c')
@@ -440,7 +441,7 @@ cdef class QuiverPath(MonoidElement):
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}, 4:{5:['d']}}).path_semigroup()
             sage: x = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y = Q([(3, 4, 'c'), (4, 5, 'd')])
-            sage: print y*x
+            sage: print(y*x)
             None
             sage: x*y
             a*b*c*d
@@ -482,11 +483,11 @@ cdef class QuiverPath(MonoidElement):
             sage: e2 = Q([(2, 2)])
             sage: p % a
             b
-            sage: print p % b
+            sage: print(p % b)
             None
             sage: p % e1
             a*b
-            sage: print p % e2
+            sage: print(p % e2)
             None
 
         """
@@ -554,7 +555,7 @@ cdef class QuiverPath(MonoidElement):
             a*c*d*a*c*d*a
             sage: p2[1:]
             b*a*c*d*a*c*d*a*b
-            sage: print p2[2:-1].gcd(p2[1:])
+            sage: print(p2[2:-1].gcd(p2[1:]))
             (None, None, None)
 
         """

@@ -393,7 +393,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     EXAMPLES:
 
     This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
-    Since trac ticket #11900, it is also initialised as such::
+    Since :trac:`11900`, it is also initialised as such::
 
         sage: R.<x1,x2> = LaurentPolynomialRing(QQ)
         sage: R.category()
@@ -483,7 +483,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             sage: LaurentPolynomialRing(QQ,2,'x').is_integral_domain()
             True
 
-        The following used to fail; see #7530::
+        The following used to fail; see :trac:`7530`::
 
             sage: L = LaurentPolynomialRing(ZZ, 'X')
             sage: L['Y']

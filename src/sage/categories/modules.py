@@ -17,6 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
+import sage.categories.coercion_methods
 from sage.categories.tensor import TensorProductsCategory, tensor
 from dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -528,36 +529,8 @@ class Modules(Category_module):
 
     class ElementMethods:
 
-        def __mul__(left, right):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: x * int(2)
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-        def __rmul__(right, left):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: int(2) * x
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
+        __mul__ = sage.categories.coercion_methods.Modules__mul__
+        __rmul__ = sage.categories.coercion_methods.Modules__rmul__
 
     class Homsets(HomsetsCategory):
         r"""
@@ -709,3 +682,20 @@ class Modules(Category_module):
                     Integer Ring
                 """
                 return self._sets[0].base_ring()
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of modules constructed by tensor product of modules.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Modules(ZZ).TensorProducts().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: Modules(ZZ).TensorProducts().super_categories()
+                [Category of modules over Integer Ring]
+            """
+            return [self.base_category()]
+

@@ -115,7 +115,7 @@ def QuasiQuadraticResidueCode(p):
     .. [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
       March 2003, available on Mitter's MIT website).
 
-    .. [Jresidue] D. Joyner, {\it On quadratic residue codes and hyperelliptic curves},
+    .. [Jresidue] \D. Joyner, {\it On quadratic residue codes and hyperelliptic curves},
       (preprint 2006)
 
     These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.

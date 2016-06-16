@@ -120,7 +120,7 @@ defined using properties of the zeros of `C`.
 
 REFERENCES:
 
-.. [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
    Codes, Cambridge Univ. Press, 2003.
 
 AUTHOR:
@@ -150,6 +150,7 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -215,11 +216,11 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: for P in SetPartitions(6,[3,3]):
         ....:     res,aut= is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
-        ....:         print aut, P[0], P[1]
-        6 {1, 2, 3} {4, 5, 6}
-        3 {1, 2, 4} {3, 5, 6}
-        6 {1, 3, 5} {2, 4, 6}
-        6 {1, 4, 5} {2, 3, 6}
+        ....:         print((aut, P[0], P[1]))
+        (6, {1, 2, 3}, {4, 5, 6})
+        (3, {1, 2, 4}, {3, 5, 6})
+        (6, {1, 3, 5}, {2, 4, 6})
+        (6, {1, 4, 5}, {2, 3, 6})
 
     We illustrate now how to find idempotents in quotient rings::
 
@@ -539,7 +540,7 @@ def BCHCode(n,delta,F,b=0):
     for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
         L1.extend(P((a**j).minpoly()) for j in coset)
     g = P(LCM(L1))
-    #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
+
     if not(g.divides(x**n-1)):
         raise ValueError("BCH codes does not exist with the given input.")
     return CyclicCodeFromGeneratingPolynomial(n,g)
@@ -935,7 +936,7 @@ def LinearCodeFromCheckMatrix(H):
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gc = C.generator_matrix_systematic()
         sage: Gh == Gc
         True
         sage: C = codes.HammingCode(GF(3), 2)
@@ -943,7 +944,7 @@ def LinearCodeFromCheckMatrix(H):
         [1 0 1 1]
         [0 1 1 2]
         sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
-        sage: Gc = C.generator_matrix().echelon_form()
+        sage: Gc = C.generator_matrix_systematic()
         sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
@@ -1049,7 +1050,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         ...
         ValueError: the order of the finite field must be a quadratic residue modulo n
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")
@@ -1111,7 +1112,7 @@ def QuadraticResidueCodeOddPair(n,F):
         ...
         ValueError: the argument n must be an odd prime
     """
-    from sage.misc.misc import srange
+    from sage.arith.srange import srange
     from sage.categories.finite_fields import FiniteFields
     if F not in FiniteFields():
         raise ValueError("the argument F must be a finite field")
@@ -1273,7 +1274,7 @@ def ToricCode(P,F):
 
     REFERENCES:
 
-    .. [J] D. Joyner, Toric codes over finite fields, Applicable
+    .. [J] \D. Joyner, Toric codes over finite fields, Applicable
        Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples

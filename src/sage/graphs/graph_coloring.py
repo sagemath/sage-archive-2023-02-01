@@ -51,6 +51,7 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
@@ -133,32 +134,32 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         ....:                 if G.has_edge(P[i],P[j]):
         ....:                     raise RuntimeError("Coloring Failed.")
         ....:     n+=1
-        sage: print "G has %s 3-colorings."%n
+        sage: print("G has %s 3-colorings." % n)
         G has 12 3-colorings.
 
 
     TESTS::
 
         sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: for C in all_graph_colorings(G,0): print C
-        sage: for C in all_graph_colorings(G,-1): print C
+        sage: for C in all_graph_colorings(G,0): print(C)
+        sage: for C in all_graph_colorings(G,-1): print(C)
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative.
         sage: G = Graph({0:[1],1:[2]})
-        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G,2,hex_colors = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors = True): print(c)
         {'#00ffff': [1], '#ff0000': [0, 2]}
         {'#ff0000': [1], '#00ffff': [0, 2]}
-        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
         {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
-        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print(c)
         1
         1
     """
@@ -1304,12 +1305,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):
@@ -1509,12 +1512,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):

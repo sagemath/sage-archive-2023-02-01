@@ -179,30 +179,31 @@ class FiniteMonoids(CategoryWithAxiom):
             from sage.homology.simplicial_set import SimplicialSet, AbstractSimplex
             # There is a single vertex. Name it after the identity
             # element of the monoid.
-            e = AbstractSimplex(0, name=str(self.one()))
+            one = self.one()
+            e = AbstractSimplex(0, name=str(one))
 
             # Build the dictionary simplices, to be used for
             # constructing the simplicial set.
             simplices = {e: None}
 
-            # Build up chains of elements inductively, from dimension
-            # d-1 to dimension d. So we do dimension 1 by hand,
-            # because we don't want to build up from the identity
-            # element in dimension 0.
-
             # face_dict: dictionary of simplices: keys are
             # composites of monoid elements (as tuples), values are
             # the corresponding simplices.
             face_dict = {}
+
+            # Build up chains of elements inductively, from dimension
+            # d-1 to dimension d. So we do dimension 1 by hand,
+            # because we don't want to build up from the identity
+            # element in dimension 0.
             for g in self:
-                if g != self.one():
+                if g != one:
                     x = AbstractSimplex(1, name=str(g))
                     simplices[x] = (e, e)
                     face_dict[(g,)] = x
 
             for d in range(2, n+1):
                 for g in self:
-                    if g == self.one():
+                    if g == one:
                         continue
                     new_faces = {}
                     for t in face_dict.keys():
@@ -211,18 +212,15 @@ class FiniteMonoids(CategoryWithAxiom):
                         # chain: chain of group elements to multiply,
                         # as a tuple.
                         chain = t + (g,)
-                        # bdries: the face maps applied to chain, in a
-                        # format suitable for passing to the DeltaComplex
-                        # constructor.
                         x = AbstractSimplex(d,
-                                  name=' * '.join(str(_) for _ in chain))
+                                            name=' * '.join(str(_) for _ in chain))
                         new_faces[chain] = x
 
                         # Compute faces of x.
                         faces = [face_dict[chain[1:]]]
                         for i in range(d-1):
                             product = chain[i] * chain[i+1]
-                            if product == self.one():
+                            if product == one:
                                 # Degenerate.
                                 if d == 2:
                                     face = e.apply_degeneracies(i)

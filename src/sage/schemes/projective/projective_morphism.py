@@ -82,7 +82,7 @@ from sage.schemes.projective.projective_morphism_helper import _fast_possible_pe
 import sys
 from sage.sets.set import Set
 from sage.combinat.permutation import Arrangements
-
+from sage.combinat.subset import Subsets
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 
@@ -2675,14 +2675,27 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [1 0]  [0 2]  [-1  0]  [ 0 -2]
             [0 1], [2 0], [ 0  1], [ 2  0]
             ]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x**2 + x*z, y**2, z**2])
+            sage: f.conjugating_set(f) # long test
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
         """
 
         alg = kwds.get('algorithm', None)
         p = kwds.get('starting_prime', 5)
         return_functions = kwds.get('return_functions', False)
         iso_type = kwds.get('iso_type', False)
-
         if self.domain().dimension_relative() != 1:
+            return self.conjugating_set(self)
+        if self.base_ring()!=QQ  and self.base_ring!= ZZ:
             return self.conjugating_set(self)
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
@@ -4496,40 +4509,68 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ...
             ValueError: not enough rational preimages
 
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x**2 + x*z, y**2, z**2])
+            sage: f.conjugating_set(f) # long test
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
         """
-        f=copy(self)
-        g=copy(other)
+        f = copy(self)
+        g = copy(other)
         try:
             f.normalize_coordinates()
             g.normalize_coordinates()
         except (ValueError):
-            pass# do nothing
-        if f.degree()!=g.degree():
+            pass
+        if f.degree() != g.degree():
             return []
-        n=f.domain().dimension_relative()
-        L=Set(f.periodic_points(1))
-        K=Set(g.periodic_points(1))
-        if len(L)!=len(K): # if n =2 fixed points check independents otherwise enter while loop and once in side while loop once n+2 pooints had
+        n = f.domain().dimension_relative()
+        L = Set(f.periodic_points(1))
+        K = Set(g.periodic_points(1))
+        if len(L)!=len(K):
             return []
-        d=len(L)
-        while d<n+2: # need this to be a bool, check to make sure right value,
-            Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
-            Tk=[Q for i in K for Q in g.rational_preimages(i)]
-            if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
-                return []
-            L=L.union(Set(Tl))
-            K=K.union(Set(Tk))
-            if d==len(L):
-                raise ValueError("not enough rational preimages")
-            d=len(L)
-        Conj=[]
-        Z=n+2
-        J=list(L)
-        Tf=[J[i] for i in range(n+2)]
+        d = len(L)
+        r = f.domain().base_ring()
+        more = True
+        if d >= n+2:
+            for i in Subsets(L, n+2):
+                Ml = matrix(r, [list(s) for s in i])
+                if not any([j == 0 for j in Ml.minors(n+1)]):
+                    Tf=list(i)
+                    more=False
+                    break
+        while more == True:
+                Tl = [Q for i in L for Q in f.rational_preimages(i)]
+                Tk = [Q for i in K for Q in g.rational_preimages(i)]
+                if len(Tl)!=len(Tk):
+                    return []
+                L = L.union(Set(Tl))
+                K = K.union(Set(Tk))
+                if d == len(L):
+                    raise ValueError("not enough rational preimages")
+                d = len(L)
+                if d >= n+2:
+                    for i in Subsets(L, n+2):
+                        r = f.domain().base_ring()
+                        Ml = matrix(r, [list(s) for s in i])
+                        if not any([j == 0 for j in Ml.minors(n+1)]):
+                            more = False
+                            Tf = list(i)
+                            break
+        Conj = []
         for i in Arrangements(K,(n+2)):
-            s=f.domain().point_transformation_matrix(i,Tf)
-            if self.conjugate(s)==other:
-                Conj.append(s) # return true for is conj. leave for conj sets
+            try:
+                s = f.domain().point_transformation_matrix(i,Tf)
+                if self.conjugate(s )== other:
+                    Conj.append(s)
+            except (ValueError):
+                pass
         return Conj
 
     def is_conjugate(self, other):
@@ -4559,39 +4600,56 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: D8.is_conjugate(D8)
             True
         """
-        f=copy(self)
-        g=copy(other)
+        f = copy(self)
+        g = copy(other)
         try:
             f.normalize_coordinates()
             g.normalize_coordinates()
         except (ValueError):
             pass
-        if f.degree()!=g.degree():
+        if f.degree() != g.degree():
             return False
-        n=f.domain().dimension_relative()
-        L=Set(f.periodic_points(1))
-        K=Set(g.periodic_points(1))
-        if len(L)!=len(K):
+        n = f.domain().dimension_relative()
+        L = Set(f.periodic_points(1))
+        K = Set(g.periodic_points(1))
+        if len(L) != len(K):
             return False
-        d=len(L)
-        while d<n+2:  # factor tree want equal to n +1 chekc, not enough poits keep going... stop if n+1 points
-            Tl=[Q for i in L for Q in f.rational_preimages(i)]  # for i in L for Q in ore(i) get Q
-            Tk=[Q for i in K for Q in g.rational_preimages(i)]
-            if len(Tl)!=len(Tk):#if the two functions ahve diff # of preimages at any level early exit.
-                return False
-            L=L.union(Set(Tl))
-            K=K.union(Set(Tk))
-            if d==len(L):
-                raise ValueError("not enough rational preimages")
-            d=len(L)
-        Conj=[]
-        Z=n+2
-        J=list(L)
-        Tf=[J[i] for i in range(n+2)]
+        d = len(L)
+        r = f.domain().base_ring()
+        more = True
+        if d >= n+2:
+            for i in Subsets(L, n+2):
+                Ml = matrix(r, [list(s) for s in i])
+                if not any([j == 0 for j in Ml.minors(n+1)]):
+                    Tf = list(i)
+                    more = False
+                    break
+        while more == True:
+                Tl = [Q for i in L for Q in f.rational_preimages(i)]
+                Tk = [Q for i in K for Q in g.rational_preimages(i)]
+                if len(Tl)!=len(Tk):
+                    return False
+                L = L.union(Set(Tl))
+                K = K.union(Set(Tk))
+                if d == len(L):
+                    raise ValueError("not enough rational preimages")
+                d = len(L)
+                if d >= n+2:
+                    for i in Subsets(L, n+2):
+                        r = f.domain().base_ring()
+                        Ml = matrix(r, [list(s) for s in i])
+                        if not any([j == 0 for j in Ml.minors(n+1)]):
+                            more = False
+                            Tf = list(i)
+                            break
+        Conj = []
         for i in Arrangements(K,(n+2)):
-            s=f.domain().point_transformation_matrix(i,Tf)
-            if self.conjugate(s)==other:
-                return True
+            try:
+                s = f.domain().point_transformation_matrix(i,Tf)
+                if self.conjugate(s) == other:
+                    return True
+            except (ValueError):
+                pass
         return False
 
     def is_polynomial(self):
@@ -4609,7 +4667,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2 + 2*x*y - 5*y^2, 2*x*y])
+            sage: f = H([x**2 + 2*x*y - 5*y**2, 2*x*y])
             sage: f.is_polynomial()
             False
 
@@ -4619,7 +4677,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = QuadraticField(7)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
-            sage: f = H([x^2 - 7*x*y, 2*y^2])
+            sage: f = H([x**2 - 7*x*y, 2*y**2])
             sage: m = matrix(K, 2, 2, [w, 1, 0, 1])
             sage: f = f.conjugate(m)
             sage: f.is_polynomial()
@@ -4631,16 +4689,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: S = P.coordinate_ring()
-            sage: f = H([x^3 + w*y^3,x*y^2])
+            sage: f = H([x**3 + w*y^3,x*y**2])
             sage: f.is_polynomial()
             False
 
         ::
 
-            sage: K = GF(3^2, prefix='w')
+            sage: K = GF(3**2, prefix='w')
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x^2 + K.gen()*y^2, x*y])
+            sage: f = H([x**2 + K.gen()*y**2, x*y])
             sage: f.is_polynomial()
             False
         """

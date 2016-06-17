@@ -4071,7 +4071,14 @@ class LinearCodeSystematicEncoder(Encoder):
     r"""
     Encoder based on a generator matrix in systematic form for Linear codes.
 
-    It constructs the generator matrix through ``code``'s default encoder.
+    To encode an element of its message space, this encoder first builds a
+    generator matrix in systematic form. What is called systematic form here
+    is the row echelon form of a matrix, which is not necessarily
+    `[I \vert H]`, where `I` is the identity block and `H` the parity block.
+    One can refer to :meth:`LinearCodeSystematicEncoder.generator_matrix`
+    for a concrete example.
+    Once such a matrix has been computed, it is used to encode any message
+    into a codeword.
 
     INPUT:
 

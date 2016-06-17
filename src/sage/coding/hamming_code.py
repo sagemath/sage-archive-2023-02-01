@@ -169,9 +169,3 @@ class HammingCode(AbstractLinearCode):
             3
         """
         return 3
-
-####################### registration ###############################
-
-HammingCode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
-HammingCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-HammingCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

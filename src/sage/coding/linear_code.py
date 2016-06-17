@@ -803,6 +803,14 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: 'generator' must be defined on a field (not a ring)
         """
+        ### Add here any generic encoder/decoder ###
+        #This allows any class which inherits from AbstractLinearCode
+        #to use generic decoders/encoders
+        self._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
+        self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
+        self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+        self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         if not base_field.is_field():
@@ -811,6 +819,7 @@ class AbstractLinearCode(module.Module):
             raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
             raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
+
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
@@ -946,13 +955,13 @@ class AbstractLinearCode(module.Module):
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
             sage: C.encoders_available()
-            ['MyEncoder', 'ParityCheck']
+            ['MyEncoder', 'ParityCheck', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C2.encoders_available()
-            ['ParityCheck']
+            ['Systematic', 'ParityCheck']
 
         TESTS:
 
@@ -1903,7 +1912,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the encoder amongst the list of the available ones::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic']
+            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
@@ -1956,7 +1965,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic']
+            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
@@ -1985,10 +1994,11 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'Systematic']
+            ['GeneratorMatrix', 'Systematic', 'ParityCheck']
             sage: C.encoders_available(True)
             {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
-            'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
+             'ParityCheck': <class 'sage.coding.linear_code.LinearCodeParityCheckEncoder'>,
+             'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
         """
         if classes == True:
             return copy(self._registered_encoders)
@@ -4724,9 +4734,6 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 ####################### registration ###############################
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
-LinearCode._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
 
-LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
-LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

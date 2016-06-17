@@ -718,5 +718,3 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
 PuncturedCode._registered_encoders["PuncturedMatrix"] = PuncturedCodePuncturedMatrixEncoder
 PuncturedCode._registered_decoders["OriginalCode"] = PuncturedCodeOriginalCodeDecoder
 PuncturedCodeOriginalCodeDecoder._decoder_type = {"dynamic"}
-PuncturedCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-PuncturedCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder

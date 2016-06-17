@@ -2147,9 +2147,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
 
-GeneralizedReedSolomonCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-GeneralizedReedSolomonCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
-
 GeneralizedReedSolomonCode._registered_decoders["BerlekampWelch"] = GRSBerlekampWelchDecoder
 GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["Gao"] = GRSGaoDecoder

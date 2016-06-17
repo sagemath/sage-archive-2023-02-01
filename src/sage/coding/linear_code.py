@@ -4008,7 +4008,7 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
             sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(LinearCodeParityCheckEncoder, self).__init__(code)
 
@@ -4022,9 +4022,9 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
             sage: E
-            Parity check matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Parity check matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
-        return "Parity check matrix-based encoder for the %s" % self.code()
+        return "Parity check matrix-based encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -4036,9 +4036,9 @@ class LinearCodeParityCheckEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
             sage: latex(E)
-            \textnormal{Parity check matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Parity check matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Parity check matrix-based encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Parity check matrix-based encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):
@@ -4086,7 +4086,7 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E
-            Generator matrix in systematic form-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(LinearCodeSystematicEncoder, self).__init__(code)
 
@@ -4100,9 +4100,9 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: E
-            Generator matrix in systematic form-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Systematic encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
-        return "Generator matrix in systematic form-based encoder for the %s" % self.code()
+        return "Systematic encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -4114,9 +4114,9 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
             sage: latex(E)
-            \textnormal{Generator matrix in systematic form-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Systematic encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Generator matrix in systematic form-based encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Systematic encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):

@@ -4129,7 +4129,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
             The matrix returned by this method will not necessarily be `[I \vert H]`, where `I`
             is the identity block and `H` the parity block. If one wants to know which columns
-            create the identity block, one should use :meth:`rank_profile_column_indices`
+            create the identity block, one should use :meth:`systematic_positions`
 
         EXAMPLES::
 
@@ -4157,9 +4157,9 @@ class LinearCodeSystematicEncoder(Encoder):
         return self.code().generator_matrix().echelon_form()
 
 
-    def rank_profile_column_indices(self):
+    def systematic_positions(self):
         r"""
-        Returns a list containing the indices of the columns which form an
+        Returns a tuple containing the indices of the columns which form an
         identity matrix when the generator matrix is in systematic form.
 
         EXAMPLES::
@@ -4167,37 +4167,28 @@ class LinearCodeSystematicEncoder(Encoder):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
-            sage: E.rank_profile_column_indices()
-            [0, 1, 2, 3]
+            sage: E.systematic_positions()
+            (0, 1, 2, 3)
 
         We take another matrix with a less nice shape::
 
             sage: G = Matrix(GF(2), [[1,1,0,0,1,0,1],[1,1,0,0,1,0,0],[0,0,1,0,0,1,0],[0,0,1,0,1,0,1]])
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeSystematicEncoder(C)
-            sage: E.rank_profile_column_indices()
-            [0, 2, 4, 6]
+            sage: E.systematic_positions()
+            (0, 2, 4, 6)
 
         These positions correspond to the positions which carry information in a codeword::
 
             sage: MS = E.message_space()
             sage: m = MS.random_element()
             sage: c = m * E.generator_matrix()
-            sage: pos = E.rank_profile_column_indices()
+            sage: pos = E.systematic_positions()
             sage: info = MS([c[i] for i in pos])
             sage: m == info
             True
         """
-        G = self.generator_matrix()
-        rank_profile_column_indices = []
-        one = self.code().base_field().one()
-        n = G.ncols()
-        for i in range(G.nrows()):
-            for j in range(n):
-                if G[i, j] == one:
-                    rank_profile_column_indices.append(j)
-                    break
-        return rank_profile_column_indices
+        return self.generator_matrix().pivots()
 
 
 

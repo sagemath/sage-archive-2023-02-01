@@ -68,8 +68,8 @@ class _btquot_adjuster(Sigma0ActionAdjuster):
 
             sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
             sage: adj = _btquot_adjuster()
-            sage: adj(matrix(ZZ,2,2,[1..4]))
-            (4, 2, 3, 1)
+            sage: adj(matrix(ZZ,2,2,[0, 1, 2, 3]))
+            (3, 1, 2, 0)
         """
         a, b, c, d = g.list()
         return tuple([d, b, c, a])
@@ -219,7 +219,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BruhatTitsQuotient(5,23)
+            sage: X = BruhatTitsQuotient(5,11)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]; v2 = H.basis()[1]
             sage: v3 = v1-v2 # indirect doctest
@@ -244,7 +244,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BruhatTitsQuotient(5,23)
+            sage: X = BruhatTitsQuotient(3,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]
             sage: v2 = 2*v1 # indirect doctest
@@ -264,7 +264,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BruhatTitsQuotient(5,23)
+            sage: X = BruhatTitsQuotient(11,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: v1 = H.basis()[0]
             sage: v2 = 3*v1 # indirect doctest
@@ -283,7 +283,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES::
 
-            sage: X = BruhatTitsQuotient(5,23)
+            sage: X = BruhatTitsQuotient(5,13)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0] # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
@@ -2465,7 +2465,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: h = H.gen(0)
             sage: A = X.padic_automorphic_forms(2,prec=10)
-            sage: A.lift(h)
+            sage: A.lift(h) # long time
             p-adic automorphic form of cohomological weight 0
 
         With overconvergent forms, the input is lifted naively and its
@@ -2475,7 +2475,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H = X.harmonic_cocycles(2,prec=5)
             sage: A2 = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
             sage: a = H.gen(0)
-            sage: A2.lift(a)
+            sage: A2.lift(a) # long time
             p-adic automorphic form of cohomological weight 0
         """
         F = self(f)
@@ -2502,7 +2502,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H = X.harmonic_cocycles(2,prec = 5)
             sage: A = X.padic_automorphic_forms(2,prec = 5)
             sage: h = H.basis()[0]
-            sage: A.lift(h) # indirect doctest
+            sage: A.lift(h) # indirect doctest long time
             p-adic automorphic form of cohomological weight 0
         """
         S = self._source.get_stabilizers()

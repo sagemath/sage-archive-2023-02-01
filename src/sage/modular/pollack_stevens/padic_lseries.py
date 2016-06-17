@@ -84,16 +84,16 @@ class pAdicLseries(SageObject):
         EXAMPLE::
 
             sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
-            sage: E = EllipticCurve('37a')
+            sage: E = EllipticCurve('11a3')
             sage: phi = E.overconvergent_modular_symbol()
-            sage: p = 37
+            sage: p = 11
             sage: prec = 3
-            sage: Phi = phi.lift(p, prec,eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L[1]
-            4 + 37 + O(37^2)
+            sage: Phi = phi.lift(p, prec,eigensymbol=True) # long time
+            sage: L = pAdicLseries(Phi)                    # long time
+            sage: L.series(3, prec=3)                      # long time
+            O(11^3) + (2 + 5*11 + O(11^2))*T + (10 + O(11))*T^2
 
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run()                       # long time
         """
         self._coefficients = {}
 

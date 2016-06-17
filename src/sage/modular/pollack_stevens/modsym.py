@@ -462,7 +462,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi.hecke(101) == phi * E.ap(101)
             True
 
-            sage: all([phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]])
+            sage: all([phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]]) # long time
             True
         """
         return self.__class__(self._map.hecke(ell, algorithm),
@@ -949,7 +949,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
             sage: phi11, h11 = phi.completions(11,20)[0]
             sage: phi11s = phi11.p_stabilize()
-            sage: phi11s.is_Tq_eigensymbol(11)
+            sage: phi11s.is_Tq_eigensymbol(11) # long time
             True
         """
         if check:
@@ -1099,8 +1099,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: p = 5
             sage: prec = 4
             sage: phi = E.overconvergent_modular_symbol()
-            sage: Phi = phi.p_stabilize_and_lift(p,prec, algorithm = 'stevens', eigensymbol = True)
-            sage: Phi.Tq_eigenvalue(5,M = 4)
+            sage: Phi = phi.p_stabilize_and_lift(p,prec, algorithm='stevens', eigensymbol=True) # long time
+            sage: Phi.Tq_eigenvalue(5,M = 4) # long time
             3 + 2*5 + 4*5^2 + 2*5^3 + O(5^4)
 
         Another example::
@@ -1110,9 +1110,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: p = 5
             sage: prec = 6
             sage: phi = E.overconvergent_modular_symbol()
-            sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L.symb() is Phi
+            sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True) #long time
+            sage: L = pAdicLseries(Phi)          # long time
+            sage: L.symb() is Phi                # long time
             True
 
        Examples using Greenberg's algorithm::
@@ -1129,11 +1129,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: f = ps_modsym_from_simple_modsym_space(Newforms(7, 4)[0].modular_symbols(1))
             sage: fs = f.p_stabilize(5)
-            sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg')
-            sage: FsG.values()[0]
+            sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg') # long time
+            sage: FsG.values()[0]                                            # long time
             5^-1 * (2*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^7), O(5^6), 2*5^2 + 3*5^3 + O(5^5), O(5^4), 5^2 + O(5^3), O(5^2))
-            sage: FsS = fs.lift(M=6, eigensymbol=True,algorithm='stevens')
-            sage: FsS == FsG
+            sage: FsS = fs.lift(M=6, eigensymbol=True,algorithm='stevens')   # long time
+            sage: FsS == FsG                                                 # long time
             True
         """
         if p is None:
@@ -1382,12 +1382,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
             sage: E = EllipticCurve('11a')
             sage: f = E.overconvergent_modular_symbol()
-            sage: g = f.p_stabilize_and_lift(3,10)
-            sage: g.Tq_eigenvalue(5)
+            sage: g = f.p_stabilize_and_lift(3,10)  # long time
+            sage: g.Tq_eigenvalue(5)                # long time
             1 + O(3^10)
-            sage: g.Tq_eigenvalue(7)
+            sage: g.Tq_eigenvalue(7)                # long time
             1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
-            sage: g.Tq_eigenvalue(3)
+            sage: g.Tq_eigenvalue(3)                # long time
             2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + O(3^10)
         """ #mm TODO inputs
         if check:
@@ -1487,10 +1487,10 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
             sage: E = EllipticCurve('37a')
             sage: phi = E.overconvergent_modular_symbol()
-            sage: L = phi.lift(37, M=6, eigensymbol=True).padic_lseries(); L
+            sage: L = phi.lift(37, M=6, eigensymbol=True).padic_lseries(); L  # long time
             37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 7
-            sage: L[0]
-            O(37^6)
+            sage: L.series(6,2) # long time
+            O(37^6) + (4 + 37 + 36*37^2 + 19*37^3 + 21*37^4 + O(37^5))*T
         """
         from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
         return pAdicLseries(self, *args, **kwds)

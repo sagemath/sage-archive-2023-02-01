@@ -42,6 +42,8 @@ Overconvergent modular symbols
    sage/modular/pollack_stevens/distributions
    sage/modular/pollack_stevens/fund_domain
    sage/modular/pollack_stevens/padic_lseries
+   sage/modular/pollack_stevens/manin_map
+   sage/modular/pollack_stevens/modsym
 
    sage/modular/btquotients/btquotient
    sage/modular/btquotients/pautomorphicform

@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 r"""
+
+
 Represents maps from a set of right coset representatives to a
 coefficient module.
 
@@ -29,7 +32,7 @@ EXAMPLES::
     sage: f = ManinMap(S,MR,data)
     sage: f(M2Z([2,3,4,5]))
     1
-"""
+"""##mm TODO :One line title of file
 
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -81,8 +84,8 @@ def unimod_matrices_to_infty(r, s):
     ALGORITHM:
 
     This is Manin's continued fraction trick, which gives an expression
-    `{0,r/s} = {0,\infty} + ... + {a,b} + ... + {*,r/s}`, where each `{a,b}` is
-    the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
+    `\{0,r/s\} = \{0,\infty\} + ... + \{a,b\} + ... + \{*,r/s\}`, where each `\{a,b\}` is
+    the image of `\{0,\infty\}` under a matrix in `SL_2(\ZZ)`.
 
     """
     if s == 0:
@@ -136,8 +139,8 @@ def unimod_matrices_from_infty(r, s):
     ALGORITHM:
 
     This is Manin's continued fraction trick, which gives an expression
-    `{\infty,r/s} = {\infty,0} + ... + {a,b} + ... + {*,r/s}`, where each
-    `{a,b}` is the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
+    `\{\infty,r/s\} = \{\infty,0\} + ... + \{a,b\} + ... + \{*,r/s\}`, where each
+    `\{a,b\}` is the image of `\{0,\infty\}` under a matrix in `SL_2(\ZZ)`.
 
     """
     if s != 0:
@@ -164,29 +167,39 @@ class ManinMap(object):
     Map from a set of right coset representatives of `\Gamma_0(N)` in
     `SL_2(\ZZ)` to a coefficient module that satisfies the Manin
     relations.
+
+    INPUT:
+
+    - ``codomain`` -- coefficient module
+    - ``manin_relations`` -- a :class:`sage.modular.pollack_stevens.fund_domain.ManinRelations` object
+    - ``defining_data`` -- a dictionary whose keys are a superset of
+      ``manin_relations.gens()`` and a subset of ``manin_relations.reps()``,
+      and whose values are in the codomain.
+    - ``check`` -- do numerous (slow) checks and transformations to
+      ensure that the input data is perfect.
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+        sage: D = OverconvergentDistributions(0, 11, 10)
+        sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
+        sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
+        sage: f = ManinMap(D, manin, data); f # indirect doctest
+        Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
+        sage: f(M2Z([1,0,0,1]))
+        (1 + O(11^2), 2 + O(11))
     """
     def __init__(self, codomain, manin_relations, defining_data, check=True):
         """
         INPUT:
 
         - ``codomain`` -- coefficient module
-        - ``manin_relations`` -- a ManinRelations object
+        - ``manin_relations`` -- a :class:`ManinRelations` object
         - ``defining_data`` -- a dictionary whose keys are a superset of
-          manin_relations.gens() and a subset of manin_relations.reps(),
+          :meth:`manin_relations.gens()` and a subset of manin_relations.reps(),
           and whose values are in the codomain.
         - ``check`` -- do numerous (slow) checks and transformations to
           ensure that the input data is perfect.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-            sage: D = OverconvergentDistributions(0, 11, 10)
-            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
-            sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
-            sage: f = ManinMap(D, manin, data); f # indirect doctest
-            Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
-            sage: f(M2Z([1,0,0,1]))
-            (1 + O(11^2), 2 + O(11))
 
         TESTS:
 
@@ -319,7 +332,6 @@ class ManinMap(object):
             36 + O(37)
             sage: f[MR.gens()[5]]
             36 + O(37)
-
         """
         try:
             return self._dict[B]
@@ -424,7 +436,6 @@ class ManinMap(object):
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10
             sage: (f-f)(M2Z([1,0,0,1]))
             (O(11^2), O(11))
-
         """
         D = {}
         sd = self._dict
@@ -485,7 +496,6 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data)
             sage: f.__repr__()
             'Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10'
-
         """
         return "Map from the set of right cosets of Gamma0(%s) in SL_2(Z) to %s" % (self._manin.level(), self._codomain)
 
@@ -501,7 +511,7 @@ class ManinMap(object):
 
         OUTPUT:
 
-        The value of self on the divisor corresponding to `A` -- i.e. on the divisor `{A(0)} - {A(\infty)}`.
+        The value of self on the divisor corresponding to `A` -- i.e. on the divisor `\{A(0)\} - \{A(\infty)\}`.
 
         EXAMPLES::
 
@@ -514,7 +524,6 @@ class ManinMap(object):
             sage: A = MR.reps()[1]
             sage: f._eval_sl2(A)
             (10 + 10*11 + O(11^2), 8 + O(11))
-
         """
         SN = Sigma0(self._manin._N)
         A = M2Z(A)
@@ -532,7 +541,7 @@ class ManinMap(object):
 
         OUTPUT:
 
-        The value of self on the divisor corresponding to A -- an element of the codomain of self.
+        The value of self on the divisor corresponding to ``A`` -- an element of the codomain of self.
 
         EXAMPLES::
 
@@ -553,7 +562,6 @@ class ManinMap(object):
             sage: f = ManinMap(S,MR,data)
             sage: f(M2Z([2,3,4,5]))
             1
-
         """
         a = A[t00]
         b = A[t01]
@@ -583,6 +591,8 @@ class ManinMap(object):
 
         This might be used to normalize, reduce modulo a prime, change
         base ring, etc.
+
+        INPUT: ##mm TODO
 
         EXAMPLES::
 
@@ -630,14 +640,14 @@ class ManinMap(object):
 
     def _right_action(self, gamma):
         r"""
-        Return self | gamma, where gamma is a `2 \times 2` integer matrix.
+        Return `self | \gamma`, where `\gamma` is a `2 \times 2` integer matrix.
 
-        The action is defined by `(self | gamma)(D) = self(gamma D)|gamma`
+        The action is defined by `(self | \gamma)(D) = self(\gamma D)|\gamma`
 
-        For the action by a single element gamma to be a modular symbol, gamma
+        For the action by a single element `\gamma` to be a modular symbol, `\gamma`
         must normalize `\Gamma_0(N)`.  However, this right action
         can also be used to define Hecke operators, in which case each
-        individual self | gamma is not a modular symbol on `\Gamma_0(N)`, but
+        individual `self | \gamma` is not a modular symbol on `\Gamma_0(N)`, but
         the sum over acting by the appropriate double coset representatives is.
 
         INPUT:
@@ -647,7 +657,7 @@ class ManinMap(object):
 
         OUTPUT:
 
-        - the image of self under the action of gamma -- a Manin map.
+        - the image of self under the action of `\gamma` -- a Manin map.
 
         EXAMPLES::
 
@@ -671,7 +681,6 @@ class ManinMap(object):
             sage: x = sage.modular.pollack_stevens.fund_domain.M2Z([2,3,1,0])
             sage: g(x)
             (17, -34, 69)
-
         """
         D = {}
         sd = self._dict
@@ -684,7 +693,7 @@ class ManinMap(object):
     def normalize(self):
         r"""
         Normalize every value of self -- e.g., reduces each value's
-        `j`-th moment modulo `p^(N-j)`
+        `j`-th moment modulo `p^{N-j}`
 
         EXAMPLES::
 
@@ -811,7 +820,7 @@ class ManinMap(object):
     def p_stabilize(self, p, alpha, V):
         r"""
         Return the `p`-stablization of self to level `N*p` on which
-        `U_p` acts by `alpha`.
+        `U_p` acts by `\alpha`.
 
         INPUT:
 

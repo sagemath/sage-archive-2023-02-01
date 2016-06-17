@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 """
+`p`-adic distributions spaces
+
 This module implements p-adic distributions, a p-adic Banach
 space dual to locally analytic functions on a disc.
 
@@ -7,7 +10,6 @@ EXAMPLES::
     sage: D = OverconvergentDistributions(5, 7, 15)
     sage: v = D([7,14,21,28,35]); v
     (7 + O(7^5), 2*7 + O(7^4), 3*7 + O(7^3), 4*7 + O(7^2), O(7))
-
 """
 
 #*****************************************************************************
@@ -70,18 +72,20 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
     - ``p``        -- prime
 
-    - ``prec_cap`` -- The p-adic precision cap
+    - ``prec_cap`` -- The `p`-adic precision cap
 
     - ``base``     -- The base ring
 
     - ``symk``     -- An element of Symk
 
-    - ``implementation`` - string - If not None, override the automatic choice of implementation. May be 'long' or 'vector', otherwise raise a NotImplementedError
+    - ``implementation`` - string - If not None, override the
+      automatic choice of implementation. May be 'long' or 'vector',
+      otherwise raise a ``NotImplementedError``
 
     OUTPUT:
 
     - Either a Dist_vector and WeightKAction_vector, or a Dist_vector_long
-       and WeightKAction_vector_long
+      and WeightKAction_vector_long
 
     EXAMPLES::
 
@@ -106,7 +110,8 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
         else:
             raise NotImplementedError('The implementation "%s" does not exist yet' % (implementation))
 
-    return Dist_vector, WeightKAction_vector # We return always the "slow" (but safe) implementation.
+    return Dist_vector, WeightKAction_vector
+    # We return always the "slow" (but safe) implementation.
     # if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
     #     return Dist_vector, WeightKAction_vector
     # if 7 * p ** (prec_cap) < ZZ(2) ** (4 * sizeof(long) - 1):
@@ -117,10 +122,10 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
 cdef class Dist(ModuleElement):
     r"""
-        The main p-adic distribution class, implemented as per the paper
+        The main `p`-adic distribution class, implemented as per the paper
         'Overconvergent Modular Symbols and p-adic L-functions' by Pollack
         & Stevens
-    """
+    """ ## mm TODO reference
     def moment(self, n):
         r"""
         Return the `n`-th moment.
@@ -193,12 +198,12 @@ cdef class Dist(ModuleElement):
 
     cpdef long _ord_p(self):
         r"""
-        Return power of p by which the moments are shifted.
+        Return power of `p` by which the moments are shifted.
 
-        NOTE::
+        .. NOTE:
 
             This is not necessarily the same as the valuation,
-            since the moments could all be divisible by p.
+            since the moments could all be divisible by `p`.
 
         EXAMPLES::
 
@@ -212,7 +217,7 @@ cdef class Dist(ModuleElement):
 
     def scale(self, left):
         r"""
-        Scale the moments of the distribution by `left`
+        Scale the moments of the distribution by ``left``
 
         INPUT:
 
@@ -220,7 +225,7 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - Scales the moments by `left`
+        - Scales the moments by ``left``
 
         EXAMPLES::
 
@@ -247,10 +252,10 @@ cdef class Dist(ModuleElement):
 
     def is_zero(self, p=None, M=None):
         r"""
-        Return True if the `i`th moment is zero for all `i` (case M is None)
-        or zero modulo p^(M-i) for all `i` (M is not None).
+        Return True if the `i`-th moment is zero for all `i` (case ``M`` is None)
+        or zero modulo `p^{M-i}` for all `i` (when ``M`` is not None).
 
-        Note that some moments are not known to precision M, in which
+        Note that some moments are not known to precision ``M``, in which
         case they are only checked to be equal to zero modulo the
         precision to which they are defined.
 
@@ -320,9 +325,9 @@ cdef class Dist(ModuleElement):
     def find_scalar(self, _other, p, M=None, check=True):
         r"""
         Return an ``alpha`` with ``other = self * alpha``, or raises
-        a ValueError.
+        a ``ValueError``.
 
-        It will also raise a ValueError if this distribution is zero.
+        It will also raise a ``ValueError`` if this distribution is zero.
 
         INPUT:
 
@@ -444,9 +449,9 @@ cdef class Dist(ModuleElement):
     def find_scalar_from_zeroth_moment(self, _other, p, M=None, check=True):
         r"""
         Return an ``alpha`` with ``other = self * alpha`` using only
-        the zeroth moment, or raises a ValueError.
+        the zeroth moment, or raises a ``ValueError``.
 
-        It will also raise a ValueError if the zeroth moment of the
+        It will also raise a ``ValueError`` if the zeroth moment of the
         distribution is zero.
 
         INPUT:
@@ -615,7 +620,7 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        -
+        - an integer
 
         .. WARNING::
 
@@ -644,8 +649,8 @@ cdef class Dist(ModuleElement):
     def specialize(self, new_base_ring=None):
         """
         Return the image of this overconvergent distribution under
-        the canonical projection from distributions of weight k to
-        Sym^k.
+        the canonical projection from distributions of weight `k` to
+        `Sym^k`.
 
         INPUT:
 
@@ -654,7 +659,7 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - An element of Sym^k(K), where K is the specified base ring.
+        - An element of `Sym^k(K)`, where `K` is the specified base ring.
 
         EXAMPLES::
 
@@ -677,12 +682,12 @@ cdef class Dist(ModuleElement):
 
     def lift(self, p=None, M=None, new_base_ring=None):
         r"""
-        Lift a distribution or element of Sym^k to an overconvergent distribution.
+        Lift a distribution or element of `Sym^k` to an overconvergent distribution.
 
         INPUT:
 
         - ``p`` -- (default: None) a positive integral prime.  If None
-          then p must be available in the parent.
+          then ``p`` must be available in the parent.
 
         - ``M`` -- (default: None) a positive integer giving the
           desired number of moments. If None, returns a distribution having one
@@ -773,7 +778,7 @@ cdef class Dist_vector(Dist):
     r"""
     A distribution is stored as a vector whose `j`-th entry is the `j`-th moment of the distribution.
 
-    The `j`-th entry is stored modulo `p^(N-j)` where `N` is the total number of moments.
+    The `j`-th entry is stored modulo `p^{N-j}` where `N` is the total number of moments.
     (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
 
     INPUTS:
@@ -854,7 +859,7 @@ cdef class Dist_vector(Dist):
 
         - A distribution with no moments.  The moments are then filled
           in by the calling function.
-        """
+        """## mm TODO EXAMPLES
         cdef Dist_vector ans = PY_NEW(Dist_vector)
         ans._parent = self._parent
         return ans
@@ -909,20 +914,20 @@ cdef class Dist_vector(Dist):
     cdef long _relprec(self):
         """
         Return the number of moments.
-        """
+        """ ##mm TODO EXMPLES
         return len(self._moments)
 
     cdef _unscaled_moment(self, long n):
         r"""
-        Return the `n`-th moment, unscaled by the overall power of p
-        stored in self.ordp.
-        """
+        Return the `n`-th moment, unscaled by the overall power of `p`
+        stored in ``self.ordp``.
+        """ ##mm TODO EXMPLES
         return self._moments[n]
 
     cdef Dist_vector _addsub(self, Dist_vector right, bint negate):
         r"""
         Common code for the sum and the difference of two distributions
-        """
+        """ ##mm TODO
         cdef Dist_vector ans = self._new_c()
         cdef long aprec = min(self.ordp + len(self._moments), right.ordp + len(right._moments))
         ans.ordp = min(self.ordp, right.ordp)
@@ -959,7 +964,6 @@ cdef class Dist_vector(Dist):
             sage: v = D([1,2,3,4,5]); w = D([3,6,9,12,15])
             sage: v+w
             (4 + O(7^5), 1 + 7 + O(7^4), 5 + 7 + O(7^3), 2 + 2*7 + O(7^2), 6 + O(7))
-
         """
         return self._addsub(<Dist_vector>_right, False)
 
@@ -973,7 +977,6 @@ cdef class Dist_vector(Dist):
             sage: v = D([1,2,3,4,5]); w = D([1,1,1,8,8])
             sage: v-w
             (O(7^5), 1 + O(7^4), 2 + O(7^3), 3 + 6*7 + O(7^2), 4 + O(7))
-
         """
         return self._addsub(<Dist_vector>_right, True)
 
@@ -989,7 +992,6 @@ cdef class Dist_vector(Dist):
             sage: 3*v; 7*v
             (3 + O(7^5), 6 + O(7^4), 2 + 7 + O(7^3), 5 + 7 + O(7^2), 1 + O(7))
             7 * (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
-
         """
         cdef Dist_vector ans = self._new_c()
         p = self.parent().prime()
@@ -1014,7 +1016,7 @@ cdef class Dist_vector(Dist):
         Return the relative precision of this distribution.
 
         The precision is just the number of moments stored, which is
-        also k+1 in the case of Sym^k(R).  For overconvergent
+        also `k+1` in the case of `Sym^k(R)`.  For overconvergent
         distributions, the precision is the integer `m` so that the
         sequence of moments is known modulo `Fil^m`.
 
@@ -1141,14 +1143,14 @@ cdef class Dist_vector(Dist):
 
     def solve_difference_equation(self):
         r"""
-        Solve the difference equation. self = v | Delta, where Delta = [1, 1; 0, 1] - 1.
+        Solve the difference equation. `self = v | \Delta`, where `\Delta = [1, 1; 0, 1] - 1`.
 
         See Theorem 4.5 and Lemma 4.4 of [PS].
 
         OUTPUT:
 
-        - a distribution v so that self = v | Delta , assuming self.moment(0) == 0.
-          Otherwise solves the difference equation for self - (self.moment(0),0,...,0).
+        - a distribution `v` so that `self = v | Delta` , assuming ``self.moment(0) == 0``.
+          Otherwise solves the difference equation for ``self - (self.moment(0),0,...,0)``.
 
         EXAMPLES::
 
@@ -1600,19 +1602,20 @@ cdef class Dist_vector(Dist):
 
 cdef class WeightKAction(Action):
     r"""
+    ## mm TODO
 
     INPUT:
 
     - ``Dk`` -- a space of distributions
-    - ``character`` -- data specifying a Dirichlet character to apply to the
-      top right corner, and a power of the determinant by which to scale.  See
-      the documentation of
+    - ``character`` -- data specifying a Dirichlet character to apply to
+      the top right corner, and a power of the determinant by which to scale.
+      See the documentation of
       :class:`sage.modular.pollack_stevens.distributions.OverconvergentDistributions_factory`
       for more details.
     - ``adjuster`` -- a callable object that turns matrices into 4-tuples.
     - ``on_left`` -- whether this action should be on the left.
     - ``dettwist`` -- a power of the determinant to twist by
-    - ``padic`` -- if True, define an action of p-adic matrices (not just integer ones)
+    - ``padic`` -- if True, define an action of `p`-adic matrices (not just integer ones)
 
     EXAMPLES::
 
@@ -1655,7 +1658,7 @@ cdef class WeightKAction(Action):
 
     def clear_cache(self):
         r"""
-        Clear the cached matrices which define the action of Up
+        Clear the cached matrices which define the action of `U_p`
         (these depend on the desired precision) and the
         dictionary that stores the maximum precisions computed so far.
 
@@ -1741,8 +1744,8 @@ cdef class WeightKAction(Action):
 
         OUTPUT:
 
-        - ``G`` -- an `M \times M` matrix. If v is the vector of moments of a
-        distribution mu, then v*G is the vector of moments of mu|[a,b;c,d]
+        - ``G`` -- an `M \times M` matrix. If `v `is the vector of moments of a
+          distribution `\mu`, then `v*G` is the vector of moments of `\mu|[a,b;c,d]`
 
         EXAMPLES::
 
@@ -1770,8 +1773,8 @@ cdef class WeightKAction_vector(WeightKAction):
 
         OUTPUT:
 
-        - ``G`` -- an `M \times M` matrix. If v is the vector of moments of a
-        distribution mu, then v*G is the vector of moments of mu|[a,b;c,d]
+        - ``G`` -- an `M \times M` matrix. If `v` is the vector of moments of a
+          distribution `\mu`, then `v*G` is the vector of moments of `\mu|[a,b;c,d]`
 
         EXAMPLES::
 

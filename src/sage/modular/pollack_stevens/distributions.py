@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 Spaces of Distributions for overconvergent modular symbols
 
-"""
+""" ## mm TODO
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
@@ -33,16 +34,17 @@ class OverconvergentDistributions_factory(UniqueFactory):
 
     INPUT:
 
-    - `k` -- nonnegative integer
-    - `p` -- prime number or None
+    - ``k`` -- nonnegative integer
+    - ``p`` -- prime number or None
     - ``prec_cap`` -- positive integer or None
     - ``base`` -- ring or None
     - ``character`` -- a dirichlet character or None
-    - ``adjuster`` -- None or callable that turns `2 \times 2` matrices into a 4-tuple
+    - ``adjuster`` -- None or callable that turns 2 x 2 matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
     - ``dettwist`` -- integer or None (interpreted as 0)
-    - ``act_padic`` -- whether monoid should allow p-adic coefficients
-    - ``implementation`` -- string (default: None) Either None (for automatic), 'long', or 'vector'
+    - ``act_padic`` -- whether monoid should allow `p`-adic coefficients
+    - ``implementation`` -- string (default: None).
+      Either None (for automatic), 'long', or 'vector'
 
     EXAMPLES::
 
@@ -53,7 +55,7 @@ class OverconvergentDistributions_factory(UniqueFactory):
         sage: v.act_right([2,1,0,1])
         (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
 
-    Note that we would expect something more p-adic, but fine...::
+    Note that we would expect something more `p`-adic, but fine...::
 
         sage: D = OverconvergentDistributions(3, 11, 20, dettwist=1)
         sage: v = D([1,0,0,0,0])
@@ -117,15 +119,17 @@ class OverconvergentDistributions_factory(UniqueFactory):
 
 class Symk_factory(UniqueFactory):
     r"""
-    Create the space of polynomial distributions of degree k (stored as a sequence of k + 1 moments).
+    Create the space of polynomial distributions of degree `k`
+    (stored as a sequence of `k + 1` moments).
 
     INPUT:
 
-    - ``k`` (integer): the degree (degree `k` corresponds to weight `k + 2` modular forms)
-    - ``base`` (ring, default None): the base ring (None is interpreted as `\QQ`)
-    - ``character`` (Dirichlet character or None, default None) the character
-    - ``adjuster`` (None or a callable that turns `2 \times 2` matrices into a 4-tuple, default None)
-    - ``act_on_left`` (boolean, default False) whether to have the group acting
+    - ``k`` - (integer): the degree (degree `k` corresponds to weight `k + 2` modular forms)
+    - ``base`` - (ring, default None): the base ring (None is interpreted as `\QQ`)
+    - ``character`` - (Dirichlet character or None, default None) the character
+    - ``adjuster`` - (None or a callable that turns
+      `2 \times 2` matrices into a 4-tuple, default None)
+    - ``act_on_left`` - (boolean, default False) whether to have the group acting
       on the left rather than the right.
     - ``dettwist`` (integer or None) -- power of determinant to twist by
 
@@ -204,23 +208,25 @@ class OverconvergentDistributions_abstract(Module):
         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
         sage: OverconvergentDistributions(2, 17, 100)
         Space of 17-adic distributions with k=2 action and precision cap 100
-    """
+    """## mm TODO, I guess the documentation should move from init to the class
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None,
                  adjuster=None, act_on_left=False, dettwist=None,
                  act_padic=False, implementation=None):
         """
         INPUT:
 
-        - `k`             -- integer; k is the usual modular forms weight minus 2
+        - `k`             -- integer; `k` is the usual modular forms weight minus 2
         - `p`             -- None or prime
         - ``prec_cap``    -- None or positive integer
-        - ``base``        -- None or TODO
+        - ``base``        -- None or #mm TODO
         - ``character``   -- None or Dirichlet character
-        - ``adjuster``    -- None or TODO
+        - ``adjuster``    -- None or #mm TODO
         - ``act_on_left`` -- bool (default: False)
         - ``dettwist``    -- None or integer (twist by determinant). Ignored for Symk spaces
-        - ``act_padic``   -- bool (default: False) If true, will allow action by p-adic matrices.
-        - ``implementation`` -- string (default: None) Either automatic (if None), 'vector' or 'long'.
+        - ``act_padic``   -- bool (default: False) If true, will allow
+          action by `p`-adic matrices.
+        - ``implementation`` -- string (default: None) Either automatic (if None),
+          'vector' or 'long'.
 
         EXAMPLES::
 
@@ -230,7 +236,7 @@ class OverconvergentDistributions_abstract(Module):
             sage: type(D)
             <class 'sage.modular.pollack_stevens.distributions.OverconvergentDistributions_class_with_category'>
 
-        p must be a prime, but p=6 below, which is not prime::
+        `p` must be a prime, but `p=6` below, which is not prime::
 
             sage: OverconvergentDistributions(k=0, p=6, prec_cap=10)
             Traceback (most recent call last):
@@ -277,7 +283,7 @@ class OverconvergentDistributions_abstract(Module):
 
     def _coerce_map_from_(self, other):
         """
-        Determine if self has a coerce map from other.
+        Determine if ``self`` has a coerce map from other.
 
         EXAMPLES::
 
@@ -327,7 +333,7 @@ class OverconvergentDistributions_abstract(Module):
 
         OUTPUT:
 
-        - a prime
+        - a prime or 0
 
         EXAMPLES::
 
@@ -394,13 +400,13 @@ class OverconvergentDistributions_abstract(Module):
 
     def lift(self, p=None, M=None, new_base_ring=None):
         """
-        Return distribution space that contains lifts with given p,
-        precision cap M, and base ring new_base_ring.
+        Return distribution space that contains lifts with given ``p``,
+        precision cap ``M``, and base ring ``new_base_ring``.
 
         INPUT:
 
-        - `p` -- prime or None
-        - `M` -- nonnegative integer or None
+        - ``p`` -- prime or None
+        - ``M`` -- nonnegative integer or None
         - ``new_base_ring`` -- ring or None
 
         EXAMPLES::
@@ -443,12 +449,12 @@ class OverconvergentDistributions_abstract(Module):
     @cached_method
     def approx_module(self, M=None):
         """
-        Return the M-th approximation module, or if M is not specified,
+        Return the `M`-th approximation module, or if `M` is not specified,
         return the largest approximation module.
 
         INPUT:
 
-        - `M` -- None or nonnegative integer that is at most the precision cap
+        - ``M`` -- None or nonnegative integer that is at most the precision cap
 
         EXAMPLES::
 
@@ -461,7 +467,7 @@ class OverconvergentDistributions_abstract(Module):
             sage: D.approx_module(0)
             Ambient free module of rank 0 over the principal ideal domain 5-adic Ring with capped absolute precision 10
 
-        Note that M must be at most the precision cap, and must be nonnegative::
+        Note that ``M`` must be at most the precision cap, and must be nonnegative::
 
             sage: D.approx_module(11)
             Traceback (most recent call last):
@@ -473,7 +479,7 @@ class OverconvergentDistributions_abstract(Module):
             ValueError: rank (=-1) must be nonnegative
         """
 
-#        print "Calling approx_module with self = ",self," and M = ",M
+        # print "Calling approx_module with self = ",self," and M = ",M
         if M is None:
             M = self._prec_cap
         elif M > self._prec_cap:
@@ -485,12 +491,12 @@ class OverconvergentDistributions_abstract(Module):
 
     def random_element(self, M=None, **args):
         """
-        Return a random element of the M-th approximation module with
+        Return a random element of the `M`-th approximation module with
         non-negative valuation.
 
         INPUT:
 
-        - `M` -- None or a nonnegative integer
+        - ``M`` -- None or a nonnegative integer
 
         EXAMPLES::
 
@@ -534,6 +540,10 @@ class OverconvergentDistributions_abstract(Module):
     def basis(self, M=None):
         """
         Return a basis for this space of distributions.
+
+        INPUT:
+
+        - ``M`` -- ##mm TODO
 
         EXAMPLES::
 
@@ -638,7 +648,7 @@ class Symk_class(OverconvergentDistributions_abstract):
 
     def is_symk(self):
         """
-        Whether or not this distributions space is Sym^k (ring).
+        Whether or not this distributions space is `Sym^k(R)` for some ring `R`.
 
         EXAMPLES::
 
@@ -660,7 +670,7 @@ class Symk_class(OverconvergentDistributions_abstract):
 
     def change_ring(self, new_base_ring):
         """
-        Return a Symk with the same k but a different base ring.
+        Return a Symk with the same `k` but a different base ring.
 
         EXAMPLES::
 
@@ -697,7 +707,7 @@ class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
         sage: D = OverconvergentDistributions(0, 5, 10)
         sage: TestSuite(D).run()
-    """
+    """ # mm TODO
 
     def _repr_(self):
         """
@@ -732,7 +742,7 @@ class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
 
     def is_symk(self):
         """
-        Whether or not this distributions space is Sym^k (ring).
+        Whether or not this distributions space is `Sym^k(R)` for some ring `R`.
 
         EXAMPLES::
 
@@ -756,6 +766,8 @@ class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
         """
         Return space of distributions like this one, but with the base ring changed.
 
+        INPUT: ##mm TODO
+
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
@@ -772,9 +784,9 @@ class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
 
     def specialize(self, new_base_ring=None):
         """
-        Return distribution space got by specializing to Sym^k, over
-        the new_base_ring.  If new_base_ring is not given, use current
-        base_ring.
+        Return distribution space got by specializing to `Sym^k`, over
+        the ``new_base_ring``.  If ``new_base_ring`` is not given, use current
+        ``base_ring``.
 
         EXAMPLES::
 

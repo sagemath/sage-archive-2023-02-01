@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The monoid `\Sigma_0(N)`.
 
@@ -5,7 +6,8 @@ This stands for a monoid of matrices over `\ZZ`, `\QQ`, `\ZZ_p`, or `\QQ_p`,
 depending on an integer `N \ge 1`. This class exists in order to act on p-adic
 distribution spaces.
 
-Over `\QQ` or `\ZZ`, it is the monoid of matrices `2\times2` matrices `\begin{pmatrix} a & b \\ c & d \end{pmatrix}`
+Over `\QQ` or `\ZZ`, it is the monoid of matrices `2\times2` matrices
+`\begin{pmatrix} a & b \\ c & d \end{pmatrix}`
 such that
 - `ad - bc \ne 0`,
 - `a` is integral and invertible at the primes dividing `N`,
@@ -37,7 +39,7 @@ EXAMPLES::
 AUTHORS:
 
     - David Pollack (2012): initial version
-"""
+""" ## mm TODO change title
 
 # Warning to developers: when working with Sigma0 elements it is generally a
 # good idea to avoid using the entries of x.matrix() directly; rather, use the
@@ -64,7 +66,7 @@ class Sigma0ActionAdjuster(UniqueRepresentation):
     @abstract_method
     def __call__(self, x):
         r"""
-        Given a Sigma0 element x, return four integers.
+        Given a :class:`Sigma0element` ``x``, return four integers.
 
         EXAMPLE::
 
@@ -72,7 +74,7 @@ class Sigma0ActionAdjuster(UniqueRepresentation):
             sage: A = _default_adjuster()
             sage: A(matrix(ZZ, 2, [1,2,3,4])) # indirect doctest
             (1, 2, 3, 4)
-        """
+        """# mm TODO
         pass
 
 
@@ -112,7 +114,8 @@ class Sigma0_factory(UniqueFactory):
     INPUT:
 
     - ``N`` (integer) -- the level (should be strictly positive)
-    - ``base_ring`` (commutative ring, default `\ZZ`) -- the base ring (normally `\ZZ` or a `p`-adic ring)
+    - ``base_ring`` (commutative ring, default `\ZZ`) -- the base
+      ring (normally `\ZZ` or a `p`-adic ring)
     - ``adjuster`` -- None, or a callable which takes a `2 \times 2` matrix and returns
       a 4-tuple of integers. This is supplied in order to support differing
       conventions for the action of `2 \times 2` matrices on distributions.
@@ -163,7 +166,7 @@ Sigma0 = Sigma0_factory('sage.modular.pollack_stevens.sigma0.Sigma0')
 class Sigma0Element(MonoidElement):
     r"""
     An element of the monoid Sigma0. This is a wrapper around a `2 \times 2` matrix.
-    """
+    """##mm TODO
     def __init__(self, parent, mat):
         r"""
         EXAMPLE::
@@ -301,7 +304,7 @@ class _Sigma0Embedding(Morphism):
     r"""
     A Morphism object giving the natural inclusion of `\Sigma_0` into the
     appropriate matrix space. This snippet of code is fed to the coercion
-    framework so that "x * y" will work if x is a matrix and y is a Sigma0
+    framework so that "x * y" will work if ``x`` is a matrix and ``y`` is a `\Sigma_0`
     element (returning a matrix, *not* a Sigma0 element).
     """
     def __init__(self, domain):
@@ -348,7 +351,9 @@ class _Sigma0Embedding(Morphism):
 
 
 class Sigma0_class(Parent):
+    r"""
 
+    """ #mm TODO
     Element = Sigma0Element
 
     def __init__(self, N, base_ring, adjuster):

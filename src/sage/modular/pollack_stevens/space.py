@@ -14,7 +14,7 @@ and the ones in :mod:`sage.modular.modsym`:
 - There is a duality: these modular symbols are functions from
   `Div^0(P^1(\QQ))` (cohomological objects), the others are formal linear
   combinations of `Div^0(P^1(\QQ))` (homological objects).
-"""
+"""## mm TODO examples?
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
@@ -156,7 +156,7 @@ class PollackStevensModularSymbolspace(Module):
     r"""
     A class for spaces of modular symbols that use Glenn Stevens' conventions.
     This class should not be instantiated directly by the user: this is handled
-    by the factory object ``PollackStevensModularSymbols``.
+    by the factory object :class:`PollackStevensModularSymbols`.
 
     INPUT:
 
@@ -293,7 +293,8 @@ class PollackStevensModularSymbolspace(Module):
 
         EXAMPLES::
 
-            sage: D = OverconvergentDistributions(2, 11);  M = PollackStevensModularSymbols(Gamma0(2), coefficients=D)
+            sage: D = OverconvergentDistributions(2, 11)
+            sage: M = PollackStevensModularSymbols(Gamma0(2), coefficients=D)
             sage: M.source()
             Manin Relations of level 2
         """
@@ -305,7 +306,8 @@ class PollackStevensModularSymbolspace(Module):
 
         EXAMPLES::
 
-            sage: D = OverconvergentDistributions(2, 11);  M = PollackStevensModularSymbols(Gamma0(2), coefficients=D)
+            sage: D = OverconvergentDistributions(2, 11)
+            sage: M = PollackStevensModularSymbols(Gamma0(2), coefficients=D)
             sage: M.coefficient_module()
             Space of 11-adic distributions with k=2 action and precision cap 20
             sage: M.coefficient_module() is D
@@ -374,7 +376,7 @@ class PollackStevensModularSymbolspace(Module):
         OUTPUT:
 
         The number of coset representatives stored in the manin relations.
-        (Just the size of P^1(Z/NZ))
+        (Just the size of `P^1(\ZZ/N\ZZ)`)
 
         EXAMPLES::
 
@@ -479,8 +481,8 @@ class PollackStevensModularSymbolspace(Module):
     def _p_stabilize_parent_space(self, p, new_base_ring):
         r"""
         Return the space of Pollack-Stevens modular symbols of level
-        ``p * N``, with changed base ring.  This is used internally when
-        constructing the p-stabilization of a modular symbol.
+        `p N`, with changed base ring.  This is used internally when
+        constructing the `p`-stabilization of a modular symbol.
 
         INPUT:
 
@@ -489,18 +491,20 @@ class PollackStevensModularSymbolspace(Module):
 
         OUTPUT:
 
-        The space of modular symbols of level ``p * N``, where N is the level
+        The space of modular symbols of level `p N`, where `N` is the level
         of this space.
 
         EXAMPLES::
 
-            sage: D = OverconvergentDistributions(2, 7); M = PollackStevensModularSymbols(Gamma(13), coefficients=D)
+            sage: D = OverconvergentDistributions(2, 7)
+            sage: M = PollackStevensModularSymbols(Gamma(13), coefficients=D)
             sage: M._p_stabilize_parent_space(7, M.base_ring())
             Space of overconvergent modular symbols for Congruence Subgroup
             Gamma(91) with sign 0 and values in Space of 7-adic distributions
             with k=2 action and precision cap 20
 
-            sage: D = OverconvergentDistributions(4, 17); M = PollackStevensModularSymbols(Gamma1(3), coefficients=D)
+            sage: D = OverconvergentDistributions(4, 17)
+            sage: M = PollackStevensModularSymbols(Gamma1(3), coefficients=D)
             sage: M._p_stabilize_parent_space(17, Qp(17))
             Space of overconvergent modular symbols for Congruence
             Subgroup Gamma1(51) with sign 0 and values in Space of
@@ -538,7 +542,8 @@ class PollackStevensModularSymbolspace(Module):
 
         EXAMPLES::
 
-            sage: D = OverconvergentDistributions(7, 5);  M = PollackStevensModularSymbols(Gamma0(2), coefficients=D); M
+            sage: D = OverconvergentDistributions(7, 5)
+            sage: M = PollackStevensModularSymbols(Gamma0(2), coefficients=D); M
             Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=7 action and precision cap 20
             sage: M._specialize_parent_space(QQ)
             Space of modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Sym^7 Q^2
@@ -609,7 +614,7 @@ class PollackStevensModularSymbolspace(Module):
 
     def _an_element_(self):
 #        WARNING -- THIS ISN'T REALLY AN ELEMENT OF THE SPACE BECAUSE IT DOESN'T
-#       SATISFY THE MANIN RELATIONS
+#       SATISFY THE MANIN RELATIONS ##mm TODO should be in the docstring
 
         r"""
         Return the cusps associated to an element of a congruence subgroup.
@@ -634,13 +639,12 @@ class PollackStevensModularSymbolspace(Module):
             [(0, 1 + O(11^20), 2 + O(11^20)), (0, 1 + O(11^20), 2 + O(11^20))]
             sage: x in M
             True
-
         """
         return self(self.coefficient_module().an_element())
 
     def random_element(self, M=None):
         r"""
-        Return a random overcovergent modular symbol in this space with M moments
+        Return a random overcovergent modular symbol in this space with `M` moments
 
         INPUT:
 
@@ -648,7 +652,7 @@ class PollackStevensModularSymbolspace(Module):
 
         OUTPUT:
 
-        An element of the modular symbol space with ``M`` moments
+        An element of the modular symbol space with `M` moments
 
         Returns a random element in this space by randomly choosing
         values of distributions on all but one divisor, and solves the
@@ -773,7 +777,7 @@ def cusps_from_mat(g):
         sage: cusps_from_mat(g)
         (+Infinity, 0)
 
-    You can also just give the matrix of g::
+    You can also just give the matrix of ``g``::
 
         sage: type(g)
         <type 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>

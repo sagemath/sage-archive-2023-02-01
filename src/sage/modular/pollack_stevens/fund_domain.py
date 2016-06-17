@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Manin Relations for overconvergent modular symbols
 
@@ -44,7 +45,9 @@ M2ZSpace = MatrixSpace(ZZ,2)
 
 def M2Z(x):
     r"""
-    Create an immutable `2 \times 2` integer matrix from x.
+    Create an immutable `2 \times 2` integer matrix from ``x``.
+
+    INPUT: ##mm TODO
 
     EXAMPLES::
 
@@ -76,23 +79,23 @@ class PollackStevensModularDomain(SageObject):
     INPUT:
 
     - ``N`` -- a positive integer, the level of the congruence subgroup
-          `\Gamma_0(N)`
+      `\Gamma_0(N)`
 
-    - ``reps`` -- a list of `2 \times 2` matrices, the coset representatives of
-          `Div^0(P^1(\QQ))`
+    - ``reps`` -- a list of `2 \times 2` matrices, the coset
+      representatives of `Div^0(P^1(\QQ))`
 
-    - ``indices`` -- a list of integers; indices of elements in ``reps``
-          which are generators
+    - ``indices`` -- a list of integers; indices of elements in
+      ``reps`` which are generators
 
     - ``rels`` -- a list of list of triples ``(d, A, i)``, one for each
-          coset representative of ``reps`` which describes how to express the
-          elements of ``reps`` in terms of generators specified by ``indices``.
-          See :meth:`relations` for a detailed explanations of these triples.
+      coset representative of ``reps`` which describes how to express the
+      elements of ``reps`` in terms of generators specified by ``indices``.
+      See :meth:`relations` for a detailed explanations of these triples.
 
-     - ``equiv_ind`` -- a dictionary which maps normalized coordinates on
-          `P^1(\ZZ/N\ZZ)` to an integer such that a matrix whose bottom row is
-          equivalent to `[a:b]` in `P^1(\ZZ/N\ZZ)` is in the coset of
-          ``reps[equiv_ind[(a,b)]]``
+    - ``equiv_ind`` -- a dictionary which maps normalized coordinates on
+      `P^1(\ZZ/N\ZZ)` to an integer such that a matrix whose bottom row is
+      equivalent to `[a:b]` in `P^1(\ZZ/N\ZZ)` is in the coset of
+      ``reps[equiv_ind[(a,b)]]``
 
     EXAMPLES::
 
@@ -125,7 +128,6 @@ class PollackStevensModularDomain(SageObject):
             sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain, ManinRelations
             sage: isinstance(ManinRelations(11), PollackStevensModularDomain) # indirect doctest
             True
-
         """
         self._N = ZZ(N)
         self._reps = reps
@@ -155,7 +157,6 @@ class PollackStevensModularDomain(SageObject):
             sage: from sage.modular.pollack_stevens.fund_domain import PollackStevensModularDomain, M2Z
             sage: PollackStevensModularDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
             'Modular Symbol domain of level 2'
-
         """
         return "Modular Symbol domain of level %s" % self._N
 
@@ -183,7 +184,6 @@ class PollackStevensModularDomain(SageObject):
             sage: A[4]
             [-1 -2]
             [ 2  3]
-
         """
         return self._reps[i]
 
@@ -312,7 +312,6 @@ class PollackStevensModularDomain(SageObject):
             sage: A = ManinRelations(101)
             sage: A.indices()
             [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
-
         """
         if n is None:
             return self._indices
@@ -354,7 +353,6 @@ class PollackStevensModularDomain(SageObject):
             [ 0 -1]  [ 1  0]  [-1 -1]  [ 1 -1]
             [ 1  1], [-1  1], [ 2  1], [-1  2]
             ]
-
         """
         if n is None:
             return self._reps
@@ -1367,7 +1365,7 @@ class ManinRelations(PollackStevensModularDomain):
 
         A list of `2 \times 2` integer matrices of determinant 1 whose associated
         unimodular paths give the boundary of a fundamental domain for
-        `Gamma_0(N)` (or nearly so in the case of 3-torsion).
+        `\Gamma_0(N)` (or nearly so in the case of 3-torsion).
 
         EXAMPLES::
 
@@ -1443,7 +1441,7 @@ class ManinRelations(PollackStevensModularDomain):
         divisors.  For each such unimodular divisor, say `[M]` where `M` is a
         `SL_2` matrix, we then write `M=\gamma h` where `\gamma` is in
         `\Gamma_0(N)` and `h` is one of our chosen coset representatives.  Then
-        `\phi([M]) = \phi([h]) | `\gamma^{-1}`.  Thus, one has
+        `\phi([M]) = \phi([h]) | \gamma^{-1}`.  Thus, one has
 
         .. MATH::
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #########################################################################
 #       Copyright (C) 2011 Cameron Franc and Marc Masdeu
 #
@@ -1163,9 +1164,9 @@ class Vertex(SageObject):
 
             sage: X = BruhatTitsQuotient(3,5)
             sage: X.get_vertex_list()[0]
-            Vertex of BT-tree for p = 3
+            Vertex of Bruhat-Tits tree for p = 3
         """
-        return "Vertex of BT-tree for p =  %s" % (self.p)
+        return "Vertex of Bruhat-Tits tree for p = %s" % (self.p)
 
     def __cmp__(self, other):
         """
@@ -1585,7 +1586,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(37,3)
             sage: X.get_vertex_list()
-            [Vertex of BT-tree for p = 37, Vertex of BT-tree for p = 37]
+            [Vertex of Bruhat-Tits tree for p = 37, Vertex of Bruhat-Tits tree for p = 37]
         """
         try:
             return self._vertex_list
@@ -3185,7 +3186,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
             sage: X.fundom_rep(M)
-            Vertex of BT-tree for p = 3
+            Vertex of Bruhat-Tits tree for p = 3
         """
         try:
             tmp = self._cached_paths[v1]

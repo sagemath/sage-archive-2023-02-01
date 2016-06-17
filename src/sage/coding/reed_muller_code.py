@@ -1,8 +1,8 @@
 r"""
 Reed-Muller code
 
-Given integers `m, r` and a finite field `F`
-corresponding Reed-Muller Code is the set:
+Given integers `m, r` and a finite field `F`,
+the corresponding Reed-Muller Code is the set:
 
 .. math::
 
@@ -47,7 +47,8 @@ from functools import reduce
 
 def _binomial_sum(n, k):
     r"""
-    Returns the sum of all binomials `\binom{n}{i}`, with `i` ranging from `0` to `k` and including `k`.
+    Returns the sum of all binomials `\binom{n}{i}`,
+    with `i` ranging from `0` to `k` and including `k`.
 
     INPUT:
 
@@ -67,17 +68,16 @@ def _binomial_sum(n, k):
     return s
 
 
-def _multivariate_polynomial_interpolation(
-        evaluation,
-        order,
-        polynomial_ring):
+def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
     r"""
-    Given order $r$, multivariate polynomial ring over $m$ variables, a vector $(v_1, v_2, \ldots, v_{q^m})$ over a finite field $F$ of size $q$, the algorithm finds a polynomial in $m$ variables and degree$\leq r$, such that,
-    .. math::
-        f(\alpha_{i1},\alpha_{i2},\ldots,\alpha_{im})=v_i,
+    Returns `f \in \GF(q)[X_1,...,X_m]` such that `f(\mathbf a) = v[i(\mathbf a)]`
+    for all `\mathbf a \in \GF(q^m)`, where `v \in GF(q){qm}` is a given
+    vector of evaluations, and `i(a)` is a specific ordering of `GF(q^m)` (see below for details)
 
-    where $\alpha_{ij}=\beta_{i \ mod \ q^j}$ $\forall$ $i,j$. $[\beta_1, \beta_2, \ldots, \beta_q]$ are the elements of $F$ in the order returned by the list() attribute of FiniteField class.
-    If such a polynomial $f$ does not exist, then it outputs an arbitrary polynomial.
+    The ordering `i(a)` is the one used by Sage when listing the elements
+    of a Finite Field with a call to the method ``list``.
+
+    In case the polynomial `f` does not exist, this method returns an arbitray polynomial.
 
     INPUT:
 
@@ -136,6 +136,7 @@ def _multivariate_polynomial_interpolation(
 def ReedMullerCode(base_field, order, num_of_var):
     r"""
     Returns a Reed-Muller code.
+
     A Reed-Muller Code of order `r` and number of variables `m` over a finite field `F` is the set:
 
     .. math::
@@ -144,25 +145,30 @@ def ReedMullerCode(base_field, order, num_of_var):
 
     INPUT:
 
-    - ``base_field`` -- The finite field `F` over which code is built.
+    - ``base_field`` -- The finite field `F` over which the code is built.
 
-    - ``order`` -- The order of the Reed-Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
+    - ``order`` -- The order of the Reed-Muller Code, which is the maximum
+                   degree of the polynomial to be used in the code.
 
-    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in polynomial.
 
     .. WARNING::
 
         For now, this implementation only supports Reed-Muller codes whose order is less than q.
-        Binary Reed-Muller codes must have it's order less than or equal to the number of variables.
+        Binary Reed-Muller codes must have their order less than or
+        equal to their number of variables.
 
     EXAMPLES:
 
-    A Reed-Muller code can be constructed by using a predefined field or using the value of q::
+    We build a Reed-Muller code::
 
         sage: F = GF(3)
         sage: C = codes.ReedMullerCode(F, 2, 2)
         sage: C
         Reed-Muller Code of order 2 and 2 variables over Finite Field of size 3
+
+    We ask for its parameters::
+
         sage: C.length()
         9
         sage: C.dimension()
@@ -170,7 +176,7 @@ def ReedMullerCode(base_field, order, num_of_var):
         sage: C.minimum_distance()
         3
 
-    Simmilarly, using the finite field `F` of size 2 we can generate a binary Reed-Muller code::
+    If one provides a finite field of size 2, a Binary Reed-Muller code is built::
 
         sage: F = GF(2)
         sage: C = codes.ReedMullerCode(F, 2, 2)
@@ -190,15 +196,22 @@ class QAryReedMullerCode(AbstractLinearCode):
     r"""
     Representation of a q-ary Reed-Muller code.
 
-    Look at the documentation of :method:<backquote>ReedMullerCode<backquote> . Note that you are advised to use :method:<backquote>ReedMullerCode<backquote> rather than use this class directly.
+    For details on the definition of Reed-Muller codes, refer to
+    :meth:`ReedMullerCode`.
+
+    .. NOTE::
+
+        It is better to use the aforementioned method rather than calling
+        this class directly, as :meth:`ReedMullerCode` creates either
+        a binary or a q-ary Reed-Muller code according to the arguments it receives.
 
     INPUT:
 
-    - ``base_field`` -- The finite field `F` or the size of finite field `F` over which code is built.
+    - ``base_field`` -- A finite field, which is the base field of the code.
 
     - ``order`` -- The order of the Reed-Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
 
-    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in polynomial.
 
     .. WARNING::
 
@@ -260,7 +273,9 @@ class QAryReedMullerCode(AbstractLinearCode):
 
     def order(self):
         r"""
-        Returns the order of ``self``. Order is the maximum degree of the polynomial used in the Reed-Muller code.
+        Returns the order of ``self``.
+
+        Order is the maximum degree of the polynomial used in the Reed-Muller code.
 
         EXAMPLES::
 
@@ -288,8 +303,9 @@ class QAryReedMullerCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``.
-        The minimum distance of a q-ary Reed-Muller code with order $d$ and number of variables $m$ is $(q-d)q^{m-1}$
+        Returns the minimum distance between two words in ``self``.
+
+        The minimum distance of a q-ary Reed-Muller code with order `d` and number of variables `m` is `(q-d)q^{m-1}`
 
         EXAMPLES::
 
@@ -357,15 +373,23 @@ class QAryReedMullerCode(AbstractLinearCode):
 
 class BinaryReedMullerCode(AbstractLinearCode):
     r"""
-    Representation of a binary Reed-Muller code with `r<=m`.
+    Representation of a binary Reed-Muller code.
 
-    Look at the documentation of :method:<backquote>ReedMullerCode<backquote> . Note that you are advised to use :method:<backquote>ReedMullerCode<backquote> rather than use this class directly.
+    For details on the definition of Reed-Muller codes, refer to
+    :meth:`ReedMullerCode`.
+
+    .. NOTE::
+
+        It is better to use the aforementioned method rather than calling
+        this class directly, as :meth:`ReedMullerCode` creates either
+        a binary or a q-ary Reed-Muller code according to the arguments it receives.
+
 
     INPUT:
 
     - ``order`` -- The order of the Reed-Muller Code, i.e., the maximum degree of the polynomial to be used in the code.
 
-    - ``num_of_var`` -- The number of variables used in polynomial (i.e. `m`).
+    - ``num_of_var`` -- The number of variables used in the polynomial.
 
     EXAMPLES:
 
@@ -374,9 +398,6 @@ class BinaryReedMullerCode(AbstractLinearCode):
         sage: C = codes.BinaryReedMullerCode(2, 4)
         sage: C
         Binary Reed-Muller Code of order 2 and number of variables 4
-
-    .. WARNING::
-        The order of Reed-Muller code here must be LESS THAN OR EQUAL TO the number of variables.
     """
 
     _registered_encoders = {}
@@ -410,13 +431,8 @@ class BinaryReedMullerCode(AbstractLinearCode):
                 "The order must be less than or equal to %s" %
                 num_of_var)
 
-        super(
-            BinaryReedMullerCode,
-            self).__init__(
-            GF(2),
-            2**num_of_var,
-            "EvaluationVector",
-            "Syndrome")
+        super(BinaryReedMullerCode, self).__init__(GF(2), 2**num_of_var,
+            "EvaluationVector", "Syndrome")
         self._order = order
         self._num_of_var = num_of_var
         self._dimension = _binomial_sum(num_of_var, order)
@@ -504,15 +520,24 @@ class ReedMullerVectorEncoder(Encoder):
     r"""
     Encoder for Reed-Muller codes which encodes vectors into codewords.
 
-    Say the order is $r$ and the number of polynomials is $m$. Monomials of total degree $t$ are ordered in the following manner,
-    If two terms have the same power for $x_1, x_2, \ldots, x__{i-1}$ and one of them have higher power for $x_i$ then the one containit $x_i$ have a lower index.
+    Consider a Reed-Muller code of order `r`, number of variables `m`, length `n`,
+    dimension `k` over some finite field `F`.
+    Let those variables be `(x_1, x_2, \dots, x_m)`.
+    We order the monomials by lowest power on lowest index variables. If we have three monomials
+    `x_1 \times x_2`, `x_1 \times x_2^2` and `x_1^2 \times x_2`, the ordering is:
+    `x_1 \times x_2 < x_1 \times x_2^2 < x_1^2 \times x_2`
 
-    Using this manner the monomials of appropiate degree are listed and given a message vetor $(v_1,v_2,\ldots,v_d)$ the polynomial is $\sum^d_{i=1} v_iX_i$. Here $d$ is the dimension of the code and $X_i$ is the $i^th$ polynomial generated.
+    Let now `(v_1,v_2,\ldots,v_k)` be a vector of `F`, which corresponds to the polynomial
+    `f = \Sigma^{k}_{i=1} v_i \times x_i`.
 
-    Say $[\beta_1, \beta_2, \ldots, \beta_q]$ are the elements of the finite field $F$ in the order returned by the list() attribute of FiniteField class.
-    Then a polynomial $f$ is encoded as, (f(\alpha_{11},\alpha_{12},\ldots,\alpha_{1m}),f(\alpha_{21},\alpha_{22},\ldots,\alpha_{2m}),\ldots,f(\alpha_{q^m1},\alpha_{q^m2},\ldots,\alpha_{q^mm})),
+    Let `(\beta_1, \beta_2, \ldots, \beta_q)` be the elements of `F` ordered as they are
+    returned by Sage when calling ``F.list()``.
 
-    where $\alpha_{ij}=\beta_{i \ mod \ q^j}$ $\forall$ $i,j$.
+    The aforementioned polynomial `f` is encoded as:
+
+    `(f(\alpha_{11},\alpha_{12},\ldots,\alpha_{1m}),f(\alpha_{21},\alpha_{22},\ldots,
+    \alpha_{2m}),\ldots,f(\alpha_{q^m1},\alpha_{q^m2},\ldots,\alpha_{q^mm}`, with
+    `\alpha_{ij}=\beta_{i \ mod \ q^j} \forall (i,j)`
 
     INPUT:
 
@@ -632,11 +657,8 @@ class ReedMullerVectorEncoder(Encoder):
         matrix_list = []
         max_individual_degree = min(order, (q - 1))
         for degree in range(order + 1):
-            exponents = Subsets(
-                range(num_of_var) *
-                max_individual_degree,
-                degree,
-                submultiset=True)
+            exponents = Subsets(range(num_of_var) * max_individual_degree,
+                                degree, submultiset=True)
             matrix_list += [[reduce(mul, [x[i] for i in exponent], 1)
                              for x in points] for exponent in exponents]
         return matrix(base_field, matrix_list)
@@ -662,15 +684,32 @@ class ReedMullerPolynomialEncoder(Encoder):
     r"""
     Encoder for Reed-Muller codes which encodes appropiate multivariate polynomials into codewords.
 
-    Say $[\beta_1, \beta_2, \ldots, \beta_q]$ are the elements of the finite field $F$ in the order returned by the list() attribute of FiniteField class.
-    Then a polynomial $f$ is encoded as, $(f(\alpha_{11},\alpha_{12},\ldots,\alpha_{1m}),f(\alpha_{21},\alpha_{22},\ldots,\alpha_{2m}),\ldots,f(\alpha_{q^m1},\alpha_{q^m2},\ldots,\alpha_{q^mm}))$,
-    where $\alpha_{ij}=\beta_{i \ mod \ q^j}$ $\forall$ $i,j$.
+    Consider a Reed-Muller code of order `r`, number of variables `m`, length `n`,
+    dimension `k` over some finite field `F`.
+    Let those variables be `(x_1, x_2, \dots, x_m)`.
+    We order the monomials by lowest power on lowest index variables. If we have three monomials
+    `x_1 \times x_2`, `x_1 \times x_2^2` and `x_1^2 \times x_2`, the ordering is:
+    `x_1 \times x_2 < x_1 \times x_2^2 < x_1^2 \times x_2`
+
+    Let now `f` be a polynomial of the multivariate polynomial ring `F[x_1, \dots, x_m]`.
+
+    Let `(\beta_1, \beta_2, \ldots, \beta_q)` be the elements of `F` ordered as they are
+    returned by Sage when calling ``F.list()``.
+
+    The aforementioned polynomial `f` is encoded as:
+
+    `(f(\alpha_{11},\alpha_{12},\ldots,\alpha_{1m}),f(\alpha_{21},\alpha_{22},\ldots,
+    \alpha_{2m}),\ldots,f(\alpha_{q^m1},\alpha_{q^m2},\ldots,\alpha_{q^mm}`, with
+    `\alpha_{ij}=\beta_{i \ mod \ q^j} \forall (i,j)`
+
 
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
 
-    -``polynomial_ring`` -- The polynomial ring from which the message is chosen.
+    -``polynomial_ring`` -- (default:``None``) The polynomial ring from which the message is chosen.
+                            If this is set to ``None``, a polynomial ring in `x` will be built
+                            from the code parameters.
 
     EXAMPLES::
 
@@ -698,7 +737,7 @@ class ReedMullerPolynomialEncoder(Encoder):
         Evaluation polynomial-style encoder for Binary Reed-Muller Code of order 2 and number of variables 4
     """
 
-    def __init__(self, code, polynomial_ring='default'):
+    def __init__(self, code, polynomial_ring=None):
         r"""
         TESTS:
 
@@ -725,9 +764,9 @@ class ReedMullerPolynomialEncoder(Encoder):
                 or isinstance(code, BinaryReedMullerCode)):
             raise ValueError("the code has to be a Reed-Muller code")
         super(ReedMullerPolynomialEncoder, self).__init__(code)
-        if (polynomial_ring == 'default'):
-            self._polynomial_ring = PolynomialRing(
-                code.base_field(), code.number_of_variables(), 'x')
+        if polynomial_ring is None:
+            self._polynomial_ring = PolynomialRing(code.base_field(),
+                    code.number_of_variables(), 'x')
         else:
             if (polynomial_ring.base_ring() == code.base_field()) and (
                     len(polynomial_ring.variable_names()) == code.number_of_variables()):
@@ -780,8 +819,8 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: D1 is D2
             False
         """
-        return (isinstance(other, ReedMullerPolynomialEncoder)
-                ) and self.code() == other.code()
+        return isinstance(other, ReedMullerPolynomialEncoder) \
+               and self.code() == other.code()
 
     def encode(self, p):
         r"""
@@ -808,7 +847,8 @@ class ReedMullerPolynomialEncoder(Encoder):
             sage: c in C
             True
 
-        If a polynomial of too high degree is given, an error is raised::
+        If a polynomial with good monomial degree but wrong monomial
+        degree is given,an error is raised::
 
             sage: p = x0^2*x1
             sage: E.encode(p)
@@ -830,12 +870,9 @@ class ReedMullerPolynomialEncoder(Encoder):
             raise ValueError("The value to encode must be in %s" % M)
         C = self.code()
         if p.degree() > C.order():
-            raise ValueError(
-                "The polynomial to encode must have degree at most %s" %
-                C.order())
-        base_fieldTuple = Tuples(
-            C.base_field().list(),
-            C.number_of_variables())
+            raise ValueError("The polynomial to encode must have degree at most %s"
+                             % C.order())
+        base_fieldTuple = Tuples(C.base_field().list(), C.number_of_variables())
         return vector(C.base_ring(), [p(x) for x in base_fieldTuple])
 
     def unencode_nocheck(self, c):
@@ -914,7 +951,8 @@ class ReedMullerPolynomialEncoder(Encoder):
 
     def points(self):
         r"""
-        Returns the points of $F^m$, where $F$ is base field and $m$ is the number of variables, in order of which polynomials are evaluated on.
+        Returns the evaluation points in the appropriate order as used by ``self`` when
+        encoding a message.
 
         EXAMPLES::
 
@@ -931,17 +969,12 @@ class ReedMullerPolynomialEncoder(Encoder):
 
 ####################### registration ###############################
 
-QAryReedMullerCode._registered_encoders[
-    "EvaluationVector"] = ReedMullerVectorEncoder
-QAryReedMullerCode._registered_encoders[
-    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+QAryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
+QAryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
 QAryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 
-BinaryReedMullerCode._registered_encoders[
-    "EvaluationVector"] = ReedMullerVectorEncoder
-BinaryReedMullerCode._registered_encoders[
-    "EvaluationPolynomial"] = ReedMullerPolynomialEncoder
+BinaryReedMullerCode._registered_encoders["EvaluationVector"] = ReedMullerVectorEncoder
+BinaryReedMullerCode._registered_encoders["EvaluationPolynomial"] = ReedMullerPolynomialEncoder
 
-BinaryReedMullerCode._registered_decoders[
-    "Syndrome"] = LinearCodeSyndromeDecoder
+BinaryReedMullerCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder

@@ -101,6 +101,7 @@ public:
 	const epvector & get_sorted_seq() const override;
 	//int compare_symbol(const symbol &other) const;
 	//int compare_pow(const power &other) const;
+        ex without_known_factor(const ex& f) const;
 protected:
 	void print_overall_coeff(const ex coeff_ex, const print_context & c,
 			const char *mul_sym, bool latex=false) const;

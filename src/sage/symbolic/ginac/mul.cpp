@@ -1558,4 +1558,23 @@ std::unique_ptr<epvector> mul::expandchildren(unsigned options) const
 	return std::unique_ptr<epvector>(nullptr); // nothing has changed
 }
 
+ex mul::without_known_factor(const ex& f) const
+{
+	epvector s;
+	s.reserve(seq.size()-1);
+
+        bool found = false;
+	for (const auto & elem : seq) {
+                ex t = recombine_pair_to_ex(elem);
+                if (not found and t.is_equal(f)) {
+                        found = true;
+                }
+                else
+			s.push_back(elem);
+	}
+
+	mul * result = new mul(s, ex_to<numeric>(overall_coeff));
+	return result->setflag(status_flags::dynallocated);
+}
+
 } // namespace GiNaC

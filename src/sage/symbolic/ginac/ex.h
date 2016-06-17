@@ -73,6 +73,7 @@ class const_postorder_iterator;
 class symbol;
 class symbolhasher;
 using symbolset = std::unordered_set<symbol,symbolhasher>;
+using expairvec = std::vector<std::pair<ex,ex>>;
 
 /** Lightweight wrapper for GiNaC's symbolic objects.  It holds a pointer to
  *  the other object in order to do garbage collection by the method of
@@ -191,6 +192,7 @@ public:
 	ex coeff(const ex & s, int n = 1) const { return bp->coeff(s, n); }
 	ex lcoeff(const ex & s) const { return coeff(s, degree(s)); }
 	ex tcoeff(const ex & s) const { return coeff(s, ldegree(s)); }
+        void coefficients(const ex & s, expairvec & vec) const;
 
 	// expand/collect
 	ex expand(unsigned options=0) const;

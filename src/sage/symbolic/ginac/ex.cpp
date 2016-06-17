@@ -32,6 +32,7 @@
 #include "symbol.h"
 #include "relational.h"
 #include "utils.h"
+#include "operators.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -401,6 +402,105 @@ ex ex::sorted_op(size_t i) const
 	else
 		return bp->op(i);
 }
+
+static bool match_monom(const ex& term, const symbol& symb, ex& expo, ex& coef)
+{
+//    std::cerr << "mm(" << term << "," << symb << ")\n";
+        if (term.is_equal(symb)) {
+                expo = _ex1;
+                coef = _ex1;
+                return true;
+        }
+        if (is_exactly_a<power>(term)) {
+                const power& p = ex_to<power>(term);
+                if (p.op(0).is_equal(symb)) {
+                        expo = p.op(1);
+                        coef = _ex1;
+                        return true;
+                }
+                else
+                        return false;
+        }
+        if (is_exactly_a<mul>(term)) {
+                for (const auto& mterm : term) {
+                        if (is_exactly_a<power>(mterm)) {
+                                const power& p = ex_to<power>(mterm);
+                                if (p.op(0).is_equal(symb)) {
+                                        expo = p.op(1);
+                                        coef = ex_to<mul>(term).without_known_factor(mterm);
+                                        return true;
+                                }
+                        }
+                        if (mterm.is_equal(symb)) {
+                                expo = _ex1;
+                                coef = ex_to<mul>(term).without_known_factor(mterm);
+                                return true;
+                        }
+                }
+        }
+        return false;
+}
+
+void ex::coefficients(const ex & s, expairvec & vec) const
+{
+        vec.clear();
+        if (not has(s)) {
+                vec.push_back(std::make_pair(*this, _ex0));
+                return;
+        }
+
+        symbol symb;
+        exmap submap {{s, symb}}, revmap {{symb, s}};
+        ex sub = expand().subs(submap);
+
+        if (is_exactly_a<power>(s)) {
+                ex m = sub.coeff(symb);
+                vec.push_back(std::make_pair((sub - m*symb).subs(revmap), _ex0));
+                vec.push_back(std::make_pair(m.subs(revmap), _ex1));
+                return;
+        }
+        if (is_exactly_a<add>(sub)) {
+                ex constant_term = sub;
+                const add& addref = ex_to<add>(sub);
+                for (const auto& term : addref.seq) {
+                        ex expo, coef;
+                        ex t = addref.recombine_pair_to_ex(term);
+                        if (match_monom(t, symb, expo, coef)) {
+                                vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
+                                constant_term -= t;
+                        }
+                }
+                vec.push_back(std::make_pair(constant_term.subs(revmap), _ex0));
+        }
+        else {
+                ex expo, coef;
+                if (match_monom(sub, symb, expo, coef))
+                        vec.push_back(std::make_pair(coef.subs(revmap), expo.subs(revmap)));
+                return;
+        }
+
+        std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x, const std::pair<ex,ex>& y)
+        {
+                return x.second < y.second;
+        });
+
+        auto tmp_it = vec.end();
+        for (auto it = vec.end(); it != vec.begin(); ) {
+                --it;
+                if ((it->first).is_zero() and (it->second).is_zero()) {
+                        vec.erase(it);
+                        tmp_it = vec.end();
+                        continue;
+                }
+                if (tmp_it != vec.end() and (tmp_it->second).is_equal(it->second)) {
+                        it->first += tmp_it->first;
+                        vec.erase(tmp_it);
+                        }
+                tmp_it = it;
+        }
+
+}
+
 // private
 
 /** Make this ex writable (if more than one ex handle the same basic) by 

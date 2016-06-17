@@ -4302,7 +4302,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = F.list()
+        l = copy(F.list())
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights

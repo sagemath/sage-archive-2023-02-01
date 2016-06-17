@@ -3,7 +3,7 @@ Generalized Reed-Solomon code
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, and `n` column multipliers `\beta_1, \dots, \beta_n`, the
-corresponding GRS code of dimension `k` is the set:
+corresponding GRS code of length `n` and dimension `k` is the set:
 
 .. math::
 
@@ -252,7 +252,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``. Since a GRS code is always
+        Returns the minimum distance between two words in ``self``.
+
+        Since a GRS code is always
         Maximum-Distance-Separable (MDS), this returns ``C.length() -
         C.dimension() + 1``.
 
@@ -268,7 +270,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def evaluation_points(self):
         r"""
-        Returns the evaluation points of ``self`` as a vector.
+        Returns the vector of field elements used for the polynomial evaluations.
 
         EXAMPLES::
 
@@ -282,7 +284,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def column_multipliers(self):
         r"""
-        Returns the column multipliers of ``self`` as a vector.
+        Returns the vector of positions scalars for the polynomial evaluations.
 
         EXAMPLES::
 
@@ -320,7 +322,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def parity_column_multipliers(self):
         r"""
-        Returns the list of column multipliers of ``self``'s parity check matrix.
+        Returns the list of positions scalaers f or the polynomial evaluations
+        over the dual code.
 
         EXAMPLES::
 
@@ -427,7 +430,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def weight_enumerator(self):
         r"""
-        Returns the polynomial whose coefficient to `x^i` is the number of codewords of weight `i` in ``self``.
+        Returns the polynomial whose coefficient to `x^i` is the
+        number of codewords of weight `i` in ``self``.
 
         Computing the weight enumerator for a GRS code is very fast. Note that
         for random linear codes, it is computationally hard.
@@ -516,7 +520,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
-####################### encoders ###############################
+
 
 
 ####################### encoders ###############################
@@ -525,6 +529,18 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
     Encoder for Generalized Reed-Solomon codes which encodes vectors into codewords.
+
+    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
+    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
+    `i` ranging from `1` to `n` (inclusive).
+    Let `m = (m_1, \dots, m_k)` a vector over F.
+    We build a polynomial using the coordinates of `m` as coefficients:
+    `p = \Sigma_{i=1}^{m} m_i \times x^i`.
+
+    The corresponding codeword is the following vector:
+
+    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
+
 
     INPUT:
 
@@ -614,6 +630,15 @@ class GRSEvaluationVectorEncoder(Encoder):
         r"""
         Returns a generator matrix of ``self``
 
+        Considering a GRS code of length `n`, dimension `k`, with
+        evaluation points `(\alpha_1, \dots \alpha_n)` and column multipliers
+        `(\beta_1, \dots \beta_n)`, its generator matrix `G` is built using
+        the following formula:
+
+        `G = [g_{i,j}], g_{i,j} = \beta_j \times \alpha_{j}^{i}`
+
+        This matrix is a Vandermonde matrix.
+
         EXAMPLES::
 
             sage: F = GF(11)
@@ -643,6 +668,15 @@ class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
     Encoder for Generalized Reed-Solomon codes which uses evaluation of
     polynomials to obtain codewords.
+
+    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
+    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
+    `i` ranging from `1` to `n` (inclusive).
+    Let `p` be a polynomial of degree at most `k-1` in `F[x]`.
+
+    The corresponding codeword is the following vector:
+
+    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
 
     INPUT:
 
@@ -1560,6 +1594,17 @@ class GRSErrorErasureDecoder(Decoder):
     r"""
     Decoder for Generalized Reed-Solomon codes which is able to correct both errors
     and erasures in codewords.
+
+    Let `C` be a GRS code of length `n` and dimension `k`.
+    Considering `y` a codeword with at most `t` errors
+    (`t` being the decoding radius), and `e` the erasure vector,
+    this decoder works as follows:
+
+    - Puncture the erased coordinates which are identified in `e`.
+    - Create a new GRS code of length `n-hamming_weight(e)`, dimension `k`.
+    - Use Gao decoder over this new code one the punctured word built on the first step.
+    - Recover the original message from the decoded word computed on the previous step.
+    - Encode this message using an encoder over `C`.
 
     INPUT:
 

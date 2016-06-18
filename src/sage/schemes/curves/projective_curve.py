@@ -131,13 +131,18 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
-    def projection(self):
+    def projection(self, P=None):
         r"""
         Return a projection of this curve into projective space of dimension one less than the dimension of
         the ambient space of this curve.
 
         This curve must not already be a plane curve. Over finite fields, if this curve contains all points
         in its ambient space, then an error will be returned.
+
+        INPUT:
+
+        - ``P`` -- (default: None). A point not on this curve that will be used to define the projection map;
+          this is constructed if not specified.
 
         OUTPUT:
 
@@ -200,6 +205,22 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
              Projective Curve over Finite Field of size 7 defined by x1^2 - 3*x0*x3,
             x0^5*x1 + x0*x1*x2^3*x3 - 3*x1*x2^2*x3^3, x0^6 + x0^2*x2^3*x3 -
             3*x0*x2^2*x3^3)
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = P.curve([x^3 - z^2*y, w^2 - z*x])
+            sage: Q = P([1,0,1,1])
+            sage: C.projection(Q)
+            (Scheme morphism:
+               From: Projective Curve over Rational Field defined by x^3 - y*z^2,
+            -x*z + w^2
+               To:   Projective Space of dimension 2 over Rational Field
+               Defn: Defined on coordinates by sending (x : y : z : w) to
+                     (y : -x + z : -x + w),
+             Projective Plane Curve over Rational Field defined by x0*x1^5 -
+            6*x0*x1^4*x2 + 14*x0*x1^3*x2^2 - 16*x0*x1^2*x2^3 + 9*x0*x1*x2^4 -
+            2*x0*x2^5 - x2^6)
         """
         PP = self.ambient_space()
         n = PP.dimension_relative()
@@ -207,36 +228,50 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve is already a plane curve")
         if self.base_ring() not in Fields():
             raise TypeError("this curve must be defined over a field")
-        # find a point not on the curve
-        if self.base_ring().characteristic() == 0:
-            # when working over a characteristic 0 field, we can construct a point not on the curve.
-            # we do this by constructing a point on which at least one nonzero element of the defining ideal of
-            # this curve does not vanish
-            F = 0
-            # find a nonzero element
-            for i in range(len(self.defining_polynomials())):
-                if self.defining_polynomials()[i] != 0:
-                    F = self.defining_polynomials()[i]
-            # find a point on which it doesn't vanish
-            l = list(PP.gens())
-            for i in range(n + 1):
-                l[i] = 0
-                while(F(l) == 0):
-                    l[i] = l[i] + 1
-            Q = PP(l) # will be a point not on the curve
+        if P is None:
+            # find a point not on the curve if not given
+            if self.base_ring().characteristic() == 0:
+                # when working over a characteristic 0 field, we can construct a point not on the curve.
+                # we do this by constructing a point on which at least one nonzero element of the defining ideal of
+                # this curve does not vanish
+                F = 0
+                # find a nonzero element
+                for i in range(len(self.defining_polynomials())):
+                    if self.defining_polynomials()[i] != 0:
+                        F = self.defining_polynomials()[i]
+                # find a point on which it doesn't vanish
+                l = list(PP.gens())
+                for i in range(n + 1):
+                    l[i] = 0
+                    while(F(l) == 0):
+                        l[i] = l[i] + 1
+                Q = PP(l) # will be a point not on the curve
+            else:
+                # if the base ring is a finite field, iterate over all points in the ambient space and check which
+                # are on this curve
+                Q = None
+                for P in PP.rational_points():
+                    try:
+                        self(P)
+                    except TypeError:
+                        Q = P
+                        break
+                if Q is None:
+                    raise NotImplementedError("curve contains all points of the ambient space")
         else:
-            # if the base ring is a finite field, iterate over all points in the ambient space and check which
-            # are on this curve
+            # make sure the given point is in the ambient space of the curve, but not on the curve
             Q = None
-            for P in PP.rational_points():
-                try:
-                    self(P)
-                except TypeError:
-                    Q = P
-                    break
-            if Q is None:
-                raise NotImplementedError("curve contains all points of the ambient space")
-        # in order to create the change of coordinates map, need to determine which coordinate of Q is nonzero
+            try:
+                Q = self(P)
+            except TypeError:
+                pass
+            if not Q is None:
+                raise TypeError("(=%s) must be a point not on this curve"%P)
+            try:
+                Q = self.ambient_space()(P)
+            except TypeError:
+                raise TypeError("(=%s) must be a point in the ambient space of this curve"%P)
+        # in order to create the change of coordinates map, need to find a coordinate of Q that is nonzero
         j = 0
         while Q[j] == 0:
             j = j + 1

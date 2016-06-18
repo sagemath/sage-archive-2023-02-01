@@ -52,7 +52,6 @@ from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from curve import Curve_generic
-from warnings import warn
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
     def _repr_type(self):
@@ -242,7 +241,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
         else:
             indices = [int(i) for i in indices] # type checking
             indices.sort()
-            if indices[0] < 0 or indices[len(indices) - 1] > n - 1:
+            if indices[0] < 0 or indices[-1] > n - 1:
                 raise ValueError("index values must be between 0 and one minus the dimension of the ambient space " \
                                  "of this curve")
         # construct the projection map

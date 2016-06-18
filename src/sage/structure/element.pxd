@@ -17,17 +17,17 @@ cpdef inline parent(x):
 
     OUTPUT:
 
-    - if ``x`` is a Sage :class:`Element`, return ``x.parent()``.
+    - If ``x`` is a Sage :class:`Element`, return ``x.parent()``.
 
-    - if ``x`` has a ``parent`` method and ``x`` does not have an
+    - If ``x`` has a ``parent`` method and ``x`` does not have an
       ``__int__`` or ``__float__`` method, return ``x.parent()``.
 
-    - otherwise, return ``type(x)``.
+    - Otherwise, return ``type(x)``.
 
     .. SEEALSO::
 
         `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
-            Section in the Sage Tutorial
+        Section in the Sage Tutorial
 
     EXAMPLES::
 
@@ -81,37 +81,37 @@ cdef inline int classify_elements(left, right):
 
     OUTPUT: the sum of the following bits:
 
-    - 1: left is an Element
-    - 2: right is an Element
-    - 4: both are Element
-    - 8: left and right have the same type
-    - 16: left and right have the same parent
+    - 0o01: left is an Element
+    - 0o02: right is an Element
+    - 0o04: both are Element
+    - 0o10: left and right have the same type
+    - 0o20: left and right have the same parent
 
     These are the possible outcomes:
 
-    - 1: left is an Element, right is not
-    - 2: right is an Element, left is not
-    - 7: both are Element, different types, different parents
-    - 15: both are Element, same type, different parents
-    - 23: both are Element, different types, same parent
-    - 31: both are Element, same type, same parent
+    - 0o01: left is an Element, right is not
+    - 0o02: right is an Element, left is not
+    - 0o07: both are Element, different types, different parents
+    - 0o17: both are Element, same type, different parents
+    - 0o27: both are Element, different types, same parent
+    - 0o37: both are Element, same type, same parent
     """
     if type(left) is type(right):
         # We know at least one of the arguments is an Element. So if
         # their types are *equal* (fast to check) then they are both
         # Elements.
         if (<Element>left)._parent is (<Element>right)._parent:
-            return 31
+            return 0o37
         else:
-            return 15
+            return 0o17
     if not isinstance(right, Element):
-        return 1
+        return 0o01
     if not isinstance(left, Element):
-        return 2
+        return 0o02
     if (<Element>left)._parent is (<Element>right)._parent:
-        return 23
+        return 0o27
     else:
-        return 7
+        return 0o07
 
 # Functions to help understand the result of classify_elements()
 cdef inline bint BOTH_ARE_ELEMENT(int cl):

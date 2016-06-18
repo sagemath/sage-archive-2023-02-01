@@ -2695,7 +2695,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         iso_type = kwds.get('iso_type', False)
         if self.domain().dimension_relative() != 1:
             return self.conjugating_set(self)
-        if self.base_ring()!=QQ  and self.base_ring!= ZZ:
+        if self.base_ring() != QQ  and self.base_ring != ZZ:
             return self.conjugating_set(self)
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
@@ -4436,28 +4436,28 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def conjugating_set(self, other):
         r"""
-        Returns the set of elements in PGL that conjugate the two maps given.
+        Returns the set of elements in PGL that create homomorphisms between the two maps given.
 
-        Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that conjugates one rational function to another. It does this by taking the fixed points of 'self' and mapping them to all unique permutations of the fixed points of 'other'. Implimented as part of GSOC 2016.
+        Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
+        conjugates one rational function to another. It does this by taking the fixed points of 'self' and mapping
+        them to all unique permutations of the fixed points of 'other'. If there are not enoiught fixed points the
+        function compares the mapping betwewn preimages of fixed points and the preimeages of the preimages of
+        fixed points until there are enough points, at least n+1 of which are lineraly independent.
 
         ALGORITHIM:
 
-        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages invariant under conjugation find all conj that take one set to another.
+        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages of fixed points is
+        invariant under conjugation find all elements of PGL that take one set to another.
 
         INPUT: Two nonconstant rational functions of same degree
 
-        OUTPUT: Set of conjgating elements
+        OUTPUT: Set of conjugating n+1 matrices.
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\[FMV]_
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray[FMV]_.
 
-        - Modiifed by Rebecca Lauren Miller, as part pf GSOC 2016.
-
-        REFERENCES:
-
-        .. [FMV] Xander Faber, Michelle Manes, and Bianca Viray. Computing Conjugating Sets
-        and Automorphism Groups of Rational Functions. Journal of Algebra, 423 (2014), 1161-1190.
+        - Implimented by Rebecca Lauren Miller, as part pf GSOC 2016.
 
         EXAMPLES::
 
@@ -4487,16 +4487,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ::
 
-            sage: K.<w> = QuadraticField(-1)
+            sage: K.<i> = QuadraticField(-1)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x**2 + y**2, x*y])# has 1 fixed point
-            sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
-            sage: g = f.conjugate(m)
-            sage: f.conjugating_set(g) # long test
+            sage: D8 = H([y**3, x**3])
+            sage: D8.conjugating_set(D8) # long test
             [
-            [1 1]  [-1 -1]
-            [2 1], [ 2  1]
+            [1 0]  [0 1]  [ 0 -i]  [i 0]  [ 0 -1]  [-1  0]  [-i  0]  [0 i]
+            [0 1], [1 0], [ 1  0], [0 1], [ 1  0], [ 0  1], [ 0  1], [1 0]
             ]
 
         ::
@@ -4528,46 +4526,46 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             g.normalize_coordinates()
         except (ValueError):
             pass
-        if f.degree() != g.degree():
+        if f.degree() != g.degree():# checks that maps are of equal degree
             return []
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
-        if len(L)!=len(K):
+        if len(L) != len(K):  # checks maps have the same number of fixed points
             return []
         d = len(L)
         r = f.domain().base_ring()
         more = True
-        if d >= n+2:
-            for i in Subsets(L, n+2):
+        if d >= n+2: # need at least n+2 points
+            for i in Subsets(L, n+2):# makes sure at least n+1  points are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
                 if not any([j == 0 for j in Ml.minors(n+1)]):
-                    Tf=list(i)
-                    more=False
+                    Tf = list(i)
+                    more= False
                     break
-        while more == True:
-                Tl = [Q for i in L for Q in f.rational_preimages(i)]
-                Tk = [Q for i in K for Q in g.rational_preimages(i)]
-                if len(Tl)!=len(Tk):
-                    return []
-                L = L.union(Set(Tl))
-                K = K.union(Set(Tk))
-                if d == len(L):
-                    raise ValueError("not enough rational preimages")
-                d = len(L)
-                if d >= n+2:
-                    for i in Subsets(L, n+2):
-                        r = f.domain().base_ring()
-                        Ml = matrix(r, [list(s) for s in i])
-                        if not any([j == 0 for j in Ml.minors(n+1)]):
-                            more = False
-                            Tf = list(i)
-                            break
+        while more:
+            Tl = [Q for i in L for Q in f.rational_preimages(i)] #  finds preimages of fixed points
+            Tk = [Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl) != len(Tk):
+                return []
+            L = L.union(Set(Tl))
+            K = K.union(Set(Tk))
+            if d == len(L):
+                raise ValueError("not enough rational preimages") # if no more preimages function breaks
+            d = len(L)
+            if d >= n+2:
+                for i in Subsets(L, n+2):
+                    r = f.domain().base_ring()
+                    Ml = matrix(r, [list(s) for s in i])
+                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                        more = False
+                        Tf = list(i)
+                        break
         Conj = []
-        for i in Arrangements(K,(n+2)):
+        for i in Arrangements(K,(n+2)): # checks at least n+1 are linearly independent
             try:
-                s = f.domain().point_transformation_matrix(i,Tf)
-                if self.conjugate(s )== other:
+                s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
+                if self.conjugate(s) == other:
                     Conj.append(s)
             except (ValueError):
                 pass
@@ -4579,17 +4577,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ALGORITHIM:
 
-        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages invariant under conjugation find all conj that take one set to another.
+
+        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages is
+        invariant under conjugation this function finds whether two maps are conjugate
 
         INPUT: Two nonconstant rational functions of same degree
 
-        OUTPUT: Bool
+        OUTPUT: Boolean
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_.
 
-        - Modiifed by Rebecca Lauren Miller
+        - Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
         EXAMPLES::
 
@@ -4607,45 +4607,45 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             g.normalize_coordinates()
         except (ValueError):
             pass
-        if f.degree() != g.degree():
+        if f.degree() != g.degree(): # checks that maps are of equal degree
             return False
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))
         K = Set(g.periodic_points(1))
-        if len(L) != len(K):
+        if len(L) != len(K): # checks maps have the same number of fixed points
             return False
         d = len(L)
         r = f.domain().base_ring()
         more = True
-        if d >= n+2:
-            for i in Subsets(L, n+2):
+        if d >= n+2: # need at least n+2 points
+            for i in Subsets(L, n+2): # makes sure at least n+1  points are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
                 if not any([j == 0 for j in Ml.minors(n+1)]):
                     Tf = list(i)
                     more = False
                     break
-        while more == True:
-                Tl = [Q for i in L for Q in f.rational_preimages(i)]
-                Tk = [Q for i in K for Q in g.rational_preimages(i)]
-                if len(Tl)!=len(Tk):
-                    return False
-                L = L.union(Set(Tl))
-                K = K.union(Set(Tk))
-                if d == len(L):
-                    raise ValueError("not enough rational preimages")
-                d = len(L)
-                if d >= n+2:
-                    for i in Subsets(L, n+2):
-                        r = f.domain().base_ring()
-                        Ml = matrix(r, [list(s) for s in i])
-                        if not any([j == 0 for j in Ml.minors(n+1)]):
-                            more = False
-                            Tf = list(i)
-                            break
+        while more:
+            Tl = [Q for i in L for Q in f.rational_preimages(i)] # finds preimages of fixed points
+            Tk = [Q for i in K for Q in g.rational_preimages(i)]
+            if len(Tl) != len(Tk):
+                return False
+            L = L.union(Set(Tl))
+            K = K.union(Set(Tk))
+            if d == len(L):
+                raise ValueError("not enough rational preimages") # if no more preimages function breaks
+            d = len(L)
+            if d >= n+2:
+                for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
+                    r = f.domain().base_ring()
+                    Ml = matrix(r, [list(s) for s in i])
+                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                        more = False
+                        Tf = list(i)
+                        break
         Conj = []
-        for i in Arrangements(K,(n+2)):
+        for i in Arrangements(K,n+2):
             try:
-                s = f.domain().point_transformation_matrix(i,Tf)
+                s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
             except (ValueError):

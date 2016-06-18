@@ -20,13 +20,13 @@ AUTHOR:
 - David Loeffler (2008-08-22): initial version
 """
 
-# ***************************************************************************
+#****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-# ***************************************************************************
+#****************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.rings.power_series_ring import PowerSeriesRing

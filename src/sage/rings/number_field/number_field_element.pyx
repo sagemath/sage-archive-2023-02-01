@@ -2266,8 +2266,8 @@ cdef class NumberFieldElement(FieldElement):
 
         Suppose that this element is x/d and the parent mod'ding polynomial
         is M/D. The NTL function XGCD( r, s, t, a, b ) computes r,s,t such
-        that `r=s*a+t*b`. We compute XGCD( r, s, t, x\*D, M )
-        and set num=s\*D\*d den=r
+        that `r=s*a+t*b`. We compute XGCD( r, s, t, x, M )
+        and set num=s\*d den=r
 
         EXAMPLES:
 
@@ -2276,12 +2276,12 @@ cdef class NumberFieldElement(FieldElement):
         on this functionality.
         """
         cdef ZZX_c t # unneeded except to be there
-        cdef ZZX_c a, b
+        #cdef ZZX_c a, b
         sig_on()
-        ZZX_mul_ZZ( a, self.__numerator, self.__fld_denominator.x )
+        #ZZX_mul_ZZ( a, self.__numerator, self.__fld_denominator.x )
         #ZZX_mul_ZZ( b, self.__fld_numerator.x, self.__denominator )
-        ZZX_XGCD( den[0], num[0],  t, a, self.__fld_numerator.x, 1 )
-        ZZX_mul_ZZ( num[0], num[0], self.__fld_denominator.x )
+        ZZX_XGCD( den[0], num[0],  t, self.__numerator, self.__fld_numerator.x, 1 )
+        #ZZX_mul_ZZ( num[0], num[0], self.__fld_denominator.x )
         ZZX_mul_ZZ( num[0], num[0], self.__denominator )
         sig_off()
 

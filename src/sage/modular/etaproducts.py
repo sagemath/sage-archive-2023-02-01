@@ -20,14 +20,13 @@ AUTHOR:
 - David Loeffler (2008-08-22): initial version
 """
 
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+# ***************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -901,7 +900,8 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
         Highest possible degree of a term = 15
         Trying all coefficients from q^-12 to q^15 inclusive
         No polynomial relation of order 3 valid for 28 terms
-        Check: Trying all coefficients from q^-12 to q^20 inclusive
+        Check:
+        Trying all coefficients from q^-12 to q^20 inclusive
         No polynomial relation of order 3 valid for 33 terms
 
     ::
@@ -911,7 +911,8 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
         Lowest order of a term at infinity = -16
         Highest possible degree of a term = 20
         Trying all coefficients from q^-16 to q^20 inclusive
-        Check: Trying all coefficients from q^-16 to q^25 inclusive
+        Check:
+        Trying all coefficients from q^-16 to q^25 inclusive
         [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
     """
     if len(eta_elements) > 2:
@@ -932,7 +933,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     m = loterm + maxdeg + 1
     oldgrob = _eta_relations_helper(eta1, eta2, degree, m, labels, verbose)
     if verbose:
-        print("Check: ", end="")
+        print("Check:")
     newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels, verbose)
     if oldgrob != newgrob:
         if verbose:

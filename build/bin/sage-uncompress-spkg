@@ -122,12 +122,11 @@ class SageTarFile(tarfile.TarFile):
         Same as tarfile.TarFile.extractall but allows filenames for
         the members argument (like zipfile.ZipFile).
         """
-
         if members:
+            name_to_member = dict([member.name, member] for member in self.getmembers())
             members = [m if isinstance(m, tarfile.TarInfo)
-                         else self.getmember(m)
-                         for m in members]
-
+                       else name_to_member[m]
+                       for m in members]
         return super(SageTarFile, self).extractall(path=path, members=members)
 
     def extractbytes(self, member):

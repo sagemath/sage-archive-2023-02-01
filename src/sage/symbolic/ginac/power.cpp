@@ -981,7 +981,8 @@ ex power::expand(unsigned options) const
 
 		// take care on the numeric coefficient
 		ex coef = (possign? _ex1 : _ex_1);
-		if (m.overall_coeff.info(info_flags::positive) && m.overall_coeff != _ex1)
+		if (m.overall_coeff.info(info_flags::positive)
+                                and not m.overall_coeff.is_integer_one())
 			prodseq.push_back(power(m.overall_coeff, exponent));
 		else if (m.overall_coeff.info(info_flags::negative) && m.overall_coeff != _ex_1)
 			prodseq.push_back(power(-m.overall_coeff, exponent));

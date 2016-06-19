@@ -377,9 +377,7 @@ class TateCurve(SageObject):
 
         REFERENCES:
 
-        .. [MTT] \B. Mazur, J. Tate, and J. Teitelbaum,
-           On `p`-adic analogues of the conjectures of Birch and
-           Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+        [MTT]_
 
         .. [Col] Pierre Colmez, Invariant `\mathcal{L}` et derivees de
            valeurs propres de Frobenius, preprint, 2004.
@@ -642,8 +640,7 @@ class TateCurve(SageObject):
         .. [Wer] Annette Werner, Local heights on abelian varieties and
            rigid analytic unifomization, Doc. Math. 3 (1998), 301-319.
 
-        .. [SW] William Stein and Christian Wuthrich, Computations About
-           Tate-Shafarevich Groups using Iwasawa theory, preprint 2009.
+        [SW]_
 
         EXAMPLES::
 

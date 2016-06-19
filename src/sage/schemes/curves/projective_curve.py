@@ -128,6 +128,85 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
+    def is_complete_intersection(self):
+        r"""
+        Return whether this projective curve is or is not a complete intersection.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C.is_complete_intersection()
+            False
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
+            sage: C = Curve([y - z - w, y^3 - x*w*u, u^2 - x^2 - y^2], P)
+            sage: C.is_complete_intersection()
+            True
+        """
+        singular.lib("sing.lib")
+        I = singular.simplify(self.defining_ideal().radical(), 10)
+        L = singular.is_ci(I).sage()
+        return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
+
+    def intersection_multiplicity(self, C, P):
+        r"""
+        Return the intersection multiplicity of this curve and the curve ``C`` at the point ``P``.
+
+        This is computed by computing the corresponding multiplicity of the intersection of affine patches
+        of this curve and ``C`` at ``P``.
+
+        INPUT:
+
+        - ``C`` -- curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of this curve with ``C``.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x^2 - z^2, y^3 - w*x^2], P)
+            sage: D = Curve([w^2 - 2*x*y + z^2, y^2 - w^2], P)
+            sage: Q = P([1,1,-1,1])
+            sage: C.intersection_multiplicity(D, Q)
+            1
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve([x^4 - z^2*y^2], P)
+            sage: D = Curve([y^4*z - x^5 - x^3*z^2], P)
+            sage: Q1 = P([0,1,0])
+            sage: C.intersection_multiplicity(D, Q1)
+            4
+            sage: Q2 = P([0,0,1])
+            sage: C.intersection_multiplicity(D, Q2)
+            6
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of this curve with (=%s)"%(P, C))
+        # Find an affine chart of the ambient space of this curve that contains P
+        n = self.ambient_space().dimension_relative()
+        for i in range(n + 1):
+            if P[i] != 0:
+                break
+        C1 = self.affine_patch(i)
+        C2 = C.affine_patch(i)
+        Q = list(P)
+        t = Q.pop(i)
+        Q = [1/t*Q[j] for j in range(n)]
+        return C1.intersection_multiplicity(C2, Q)
+
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
         r"""

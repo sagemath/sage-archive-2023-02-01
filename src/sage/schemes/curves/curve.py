@@ -2,8 +2,9 @@
 Generic curves.
 """
 
-from sage.misc.all import latex
+from sage.categories.finite_fields import FiniteFields
 
+from sage.misc.all import latex
 
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
@@ -195,3 +196,118 @@ class Curve_generic(AlgebraicScheme_subscheme):
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union
+
+    def intersects_at(self, C, P):
+        r"""
+        Return whether the point ``P`` is or is not in the intersection of this curve with the curve ``C``.
+
+        INPUT:
+
+        - ``C`` -- a curve in the same ambient space as this curve.
+
+        - ``P`` -- a point in the ambient space of this curve.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x^2 - z^2, y^3 - w*x^2], P)
+            sage: D = Curve([w^2 - 2*x*y + z^2, y^2 - w^2], P)
+            sage: Q1 = P([1,1,-1,1])
+            sage: C.intersects_at(D, Q1)
+            True
+            sage: Q2 = P([0,0,1,-1])
+            sage: C.intersects_at(D, Q2)
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(GF(13), 2)
+            sage: C = Curve([y + 12*x^5 + 3*x^3 + 7], A)
+            sage: D = Curve([y^2 + 7*x^2 + 8], A)
+            sage: Q1 = A([9,6])
+            sage: C.intersects_at(D, Q1)
+            True
+            sage: Q2 = A([3,7])
+            sage: C.intersects_at(D, Q2)
+            False
+        """
+        if C.ambient_space() != self.ambient_space():
+            raise TypeError("(=%s) must be a curve in the same ambient space as (=%s)"%(C,self))
+        if not isinstance(C, Curve_generic):
+            raise TypeError("(=%s) must be a curve"%C)
+        try:
+            P = self.ambient_space()(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the ambient space of this curve"%P)
+        try:
+            P = self(P)
+        except TypeError:
+            return False
+        try:
+            P = C(P)
+        except TypeError:
+            return False
+        return True
+
+    def intersection_points(self, C, F=None):
+        r"""
+        Return the points in the intersection of this curve and the curve ``C``.
+
+        If the intersection of these two curves has dimension greater than zero, and if
+        the base ring of this curve is not a finite field, then an error is returned.
+
+        INPUT:
+
+        - ``C`` -- a curve in the same ambient space as this curve.
+
+        - ``F`` -- (default: None). Field over which to compute the intersection points. If not specified,
+          the base ring of this curve is used.
+
+        OUTPUT:
+
+        - a list of points in the ambient space of this curve.
+
+        EXAMPLES::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 + a + 1)
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y^2 - w*z, w^3 - y^3], P)
+            sage: D = Curve([x*y - w*z, z^3 - y^3], P)
+            sage: C.intersection_points(D, F=K)
+            [(-b - 1 : -b - 1 : b : 1), (b : b : -b - 1 : 1), (1 : 1 : 1 : 1)]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(GF(7), 2)
+            sage: C = Curve([y^3 - x^3], A)
+            sage: D = Curve([-x*y^3 + y^4 - 2*x^3 + 2*x^2*y], A)
+            sage: C.intersection_points(D)
+            [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 3), (5, 5), (5, 6), (6, 6)]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^3 - x^3], A)
+            sage: D = Curve([-x*y^3 + y^4 - 2*x^3 + 2*x^2*y], A)
+            sage: C.intersection_points(D)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the intersection must have dimension zero or
+            (=Rational Field) must be a finite field
+        """
+        if C.ambient_space() != self.ambient_space():
+            raise TypeError("(=%s) must be a curve in the same ambient space as (=%s)"%(C,self))
+        if not isinstance(C, Curve_generic):
+            raise TypeError("(=%s) must be a curve"%C)
+        X = self.intersection(C)
+        if F is None:
+            F = self.base_ring()
+        if X.dimension() == 0 or F in FiniteFields():
+            return X.rational_points(F=F)
+        else:
+            raise NotImplementedError("the intersection must have dimension zero or (=%s) must be a finite field"%F)

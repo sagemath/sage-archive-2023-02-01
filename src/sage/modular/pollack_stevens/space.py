@@ -830,14 +830,14 @@ def ps_modsym_from_elliptic_curve(E, sign = 0, use_eclib=True):
     EXAMPLES::
 
         sage: E = EllipticCurve('113a1')
-        sage: symb = E.overconvergent_modular_symbol() # indirect doctest
+        sage: symb = E.pollack_stevens_modular_symbol() # indirect doctest
         sage: symb
         Modular symbol of level 113 with values in Sym^0 Q^2
         sage: symb.values()
         [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
 
         sage: E = EllipticCurve([0,1])
-        sage: symb = E.overconvergent_modular_symbol()
+        sage: symb = E.pollack_stevens_modular_symbol()
         sage: symb.values()
         [-1/6, 1/3, 1/2, 1/6, -1/6, 1/3, -1/3, -1/2, -1/6, 1/6, 0, -1/6, -1/6]
     """
@@ -944,7 +944,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
 
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
         sage: E = EllipticCurve('11a')
-        sage: f_E = E.overconvergent_modular_symbol(); f_E.values()
+        sage: f_E = E.pollack_stevens_modular_symbol(); f_E.values()
         [-1/5, 1, 0]
         sage: A = ModularSymbols(11, sign=1, weight=2).decomposition()[0]
         sage: f_plus = ps_modsym_from_simple_modsym_space(A); f_plus.values()

@@ -1286,7 +1286,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return lambda a: self._modsym(a, prec).imag() / P
 
 
-    def overconvergent_modular_symbol(self, sign=0, use_eclib=True):
+    def pollack_stevens_modular_symbol(self, sign=0, use_eclib=True):
         """
         Create the overconvergent modular symbol attached to the
         elliptic curve.
@@ -1302,14 +1302,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('113a1')
-            sage: symb = E.overconvergent_modular_symbol()
+            sage: symb = E.pollack_stevens_modular_symbol()
             sage: symb
             Modular symbol of level 113 with values in Sym^0 Q^2
             sage: symb.values()
             [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
 
             sage: E = EllipticCurve([0,1])
-            sage: symb = E.overconvergent_modular_symbol(+1)
+            sage: symb = E.pollack_stevens_modular_symbol(+1)
             sage: symb.values()
             [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
         """

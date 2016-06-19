@@ -1471,7 +1471,7 @@ class ManinRelations(PollackStevensModularDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.overconvergent_modular_symbol()
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: M = phi.parent().source()
@@ -1541,7 +1541,7 @@ class ManinRelations(PollackStevensModularDomain):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.overconvergent_modular_symbol()
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: M = phi.parent().source()

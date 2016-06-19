@@ -11,7 +11,7 @@ provides basic arithmetic and right action of matrices.
 EXAMPLES::
 
     sage: E = EllipticCurve('11a')
-    sage: phi = E.overconvergent_modular_symbol()
+    sage: phi = E.pollack_stevens_modular_symbol()
     sage: phi
     Modular symbol of level 11 with values in Sym^0 Q^2
     sage: phi.values()
@@ -783,7 +783,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.overconvergent_modular_symbol()
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: phi.is_Tq_eigensymbol(7,7,10)
@@ -837,7 +837,7 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.overconvergent_modular_symbol()
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: f = phi._map
             sage: V = phi.parent()
             sage: f.p_stabilize(5,1,V)

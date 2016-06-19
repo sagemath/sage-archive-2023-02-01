@@ -168,13 +168,13 @@ class pAdicLseries(SageObject):
         -  ``p`` - a prime of good reduction
         -  ``implementation`` - string (default:'eclib'); either 'eclib' to use
            John Cremona's ``eclib`` for the computation of modular
-           symbols, or 'sage' to use Sage's own implementation, or 'overconvergent'
+           symbols, or 'sage' to use Sage's own implementation, or 'pollackstevens'
            to use the overconvergent modular symbols of Pollack-Stevens.
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
            this is describes the way the modular symbols
            are normalized. See ``modular_symbol`` of
            an elliptic curve over Q for more details. Currently ignored if ``implementation``
-           is 'overconvergent'
+           is 'pollackstevens'
 
         EXAMPLES::
 
@@ -186,8 +186,8 @@ class pAdicLseries(SageObject):
         self._E = E
         self._p = ZZ(p)
         self._normalize = normalize
-        if implementation not in ['eclib', 'sage', 'overconvergent']:
-            raise ValueError("Implementation should be one of 'eclib', 'sage' or 'overconvergent'")
+        if implementation not in ['eclib', 'sage', 'pollackstevens']:
+            raise ValueError("Implementation should be one of 'eclib', 'sage' or 'pollackstevens'")
         self._implementation = implementation
         if not self._p.is_prime():
             raise ValueError("p (=%s) must be a prime"%p)
@@ -199,7 +199,7 @@ class pAdicLseries(SageObject):
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
-        sign = 0 if implementation == 'overconvergent' else +1 # This should be fixed to be consistent.
+        sign = 0 if implementation == 'pollackstevens' else +1 # This should be fixed to be consistent.
         use_eclib = True if implementation == 'eclib' else False
         self._modular_symbol = E.modular_symbol(sign=sign, use_eclib=use_eclib, normalize=normalize)
 

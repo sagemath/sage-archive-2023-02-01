@@ -115,9 +115,9 @@ cdef inline int classify_elements(left, right):
 
 # Functions to help understand the result of classify_elements()
 cdef inline bint BOTH_ARE_ELEMENT(int cl):
-    return cl & 4
+    return cl & 0o04
 cdef inline bint HAVE_SAME_PARENT(int cl):
-    return cl & 16
+    return cl & 0o20
 
 
 cpdef inline bint have_same_parent(left, right):

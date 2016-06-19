@@ -997,7 +997,7 @@ class ClusterSeed(SageObject):
             sage: S.interact() # long time
             'The interactive mode only runs in the Sage notebook.'
         """
-        ## Also update so works in cloud and not just notebook
+        # Also update so works in cloud and not just notebook
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
         from sage.misc.all import html,latex
@@ -4104,24 +4104,24 @@ class ClusterSeed(SageObject):
             J = R.ideal(initial_product)
             if verbose:
                 msg = 'Computing relations among {} generators'
-                print msg.format(len(gens))
+                print(msg.format(len(gens)))
             start = time.time()
             ISat = I.saturation(J)[0]
             spend = time.time() - start
             if verbose:
                 msg = 'Computed {} relations in {} seconds'
-                print msg.format(len(ISat.gens()), spend)
+                print(msg.format(len(ISat.gens()), spend))
             deep_ideal = R.ideal(deep_gens) + ISat
             initial_product_ideal = R.ideal(initial_product) + ISat
             if verbose:
-                print 'Attempting to find a new element of the upper bound'
+                print('Attempting to find a new element of the upper bound')
             start = time.time()
             M = initial_product_ideal.saturation(deep_ideal)[0]
             spend = time.time() - start
             if M == initial_product_ideal:
                 if verbose:
-                    print 'Verified that there are no new elements in', spend, 'seconds'
-                    print 'Returning a presentation for the upper bound'
+                    print('Verified that there are no new elements in', spend, 'seconds')
+                    print('Returning a presentation for the upper bound')
                 return R.quotient_ring(ISat)
             else:
                 gens.append('z' + str(len(gens) - 2 * rank))
@@ -4134,8 +4134,8 @@ class ClusterSeed(SageObject):
                         rels.append('z' + str(len(gens) - 2 * rank - 1) + '*' + initial_product + '-(' + str(f) + ')')
                         new_gen_found = True
                         if verbose:
-                            print 'Found a new element in', spend, 'seconds!'
-                            print ''
+                            print('Found a new element in', spend, 'seconds!')
+                            print('')
                     i += 1
 
 

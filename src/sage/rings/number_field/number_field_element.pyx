@@ -2118,41 +2118,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             ZeroDivisionError: number field element division by zero
         """
-        cdef NumberFieldElement x
-        cdef NumberFieldElement _right = right
-        cdef ZZX_c inv_num
-        cdef ZZ_c inv_den
-        cdef ZZX_c temp
-        cdef ZZ_c temp1
-        if not _right:
-            raise ZeroDivisionError("number field element division by zero")
-        try:
-            # Try to use NTL to perfom the division.  This is fast,
-            # but may fail if NTL runs out of FFT primes.
-            x = self._new()
-            sig_on()
-            ZZX_XGCD(inv_den, inv_num, temp, _right.__numerator, self.__fld_numerator.x, 1)
-            ZZX_mul_ZZ(inv_num, inv_num, _right.__denominator)
-            ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            # MulMod doesn't handle non-monic polynomials; we handle
-            # the non-monic case separately.
-            if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
-                ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
-            else:
-                ZZX_mul(x.__numerator, self.__numerator, inv_num)
-                if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
-                    ZZX_mul_ZZ(x.__numerator, x.__numerator, self.__fld_denominator.x)
-                    ZZX_mul_ZZ(temp, self.__fld_numerator.x, x.__denominator)
-                    ZZ_power(temp1, ZZX_LeadCoeff(temp), ZZX_deg(x.__numerator) - ZZX_deg(self.__fld_numerator.x) + 1)
-                    ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                    ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
-                    ZZ_mul(x.__denominator, x.__denominator, temp1)
-            x._reduce_c_()
-            sig_off()
-        except NTLError:
-            # In case NTL fails we fall back to PARI.
-            x = self._parent(self._pari_() / right._pari_())
-        return x
+        return self._mul_(right.__invert__())
 
     def __nonzero__(self):
         """

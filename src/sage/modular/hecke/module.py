@@ -1123,17 +1123,6 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: ModularSymbols(14).cuspidal_subspace().simple_factors()[1].dual_eigenvector()
             (0, 1, 0, 0, 0)
-
-        We check that :trac:`20693` is fixed
-        ::
-
-            sage: M=ModularSymbols(DirichletGroup(23).gen()**2,6,sign=1)
-            sage: A=M.cuspidal_subspace().new_subspace().decomposition()[0]
-            sage: v = A.dual_eigenvector() # long time (about 2:45min on a 2014 MacBook Pro)
-            sage: v[1].trace() # long time
-            -6916377304966118028840154319744623313289720847089107292253549548960207679321409496876643/2275702878094574968149055169963412278190068684049608491395136083103585448350159960807
-            
-            
                 
         """
         # TODO -- optimize by computing the answer for i not None in terms

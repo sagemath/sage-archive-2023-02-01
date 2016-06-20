@@ -39,6 +39,8 @@ cdef class Element(SageObject):
     cpdef int _cmp_(left, Element right) except -2
     cpdef base_extend(self, R)
 
+    cdef getattr_from_category(self, name)
+
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)
 

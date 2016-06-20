@@ -333,10 +333,6 @@ cdef class Element(SageObject):
 
         .. NOTES::
 
-            - Attributes beginning with two underscores but not ending
-              with an unnderscore are considered private and are thus
-              exempted from the lookup in ``cat.element_class``.
-
             - The attribute or method is actually looked up in
               ``P._abstract_element_class``. In most cases this is
               just an alias for ``C.element_class``, but some parents,

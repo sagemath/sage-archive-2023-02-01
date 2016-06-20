@@ -762,12 +762,6 @@ cdef class Parent(category_object.CategoryObject):
         ``self`` being an instance of both ``Parent`` and
         ``cat.parent_class``, in that order, for attribute lookup.
 
-        NOTE:
-
-        Attributes beginning with two underscores but not ending with
-        an unnderscore are considered private and are thus exempted
-        from the lookup in ``cat.parent_class``.
-
         EXAMPLES:
 
         We test that ZZ (an extension type) inherits the methods from

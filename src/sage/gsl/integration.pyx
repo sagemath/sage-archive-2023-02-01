@@ -9,7 +9,7 @@ AUTHORS:
 
 - Robert Bradshaw (2008-08): fast float integration
 
-- Jeroen Demeyer (2011-11-23): Trac #12047: return 0 when the
+- Jeroen Demeyer (2011-11-23): :trac:`12047`: return 0 when the
   integration interval is a point; reformat documentation and add to
   the reference manual.
 """
@@ -23,6 +23,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 from sage.libs.gsl.all cimport *
@@ -47,7 +48,7 @@ cdef double c_f(double t,void *params):
       else:
          value=wrapper.the_function(t)
    except Exception as msg:
-      print msg
+      print(msg)
       return 0
 
    return value
@@ -187,7 +188,7 @@ def numerical_integral(func, a, b=None,
 
     If the interval of integration is a point, then the result is
     always zero (this makes sense within the Lebesgue theory of
-    integration), see Trac ticket #12047::
+    integration), see :trac:`12047`::
 
         sage: numerical_integral(log, 0, 0)
         (0.0, 0.0)
@@ -206,7 +207,7 @@ def numerical_integral(func, a, b=None,
     TESTS:
 
     Make sure that constant Expressions, not merely uncallable arguments,
-    can be integrated (trac #10088), at least if we can coerce them
+    can be integrated (:trac:`10088`), at least if we can coerce them
     to float::
 
         sage: f, g = x, x-1
@@ -276,12 +277,12 @@ def numerical_integral(func, a, b=None,
       if not func is None:
          wrapper.the_function = func
       else:
-         raise ValueError, "No integrand defined"
+         raise ValueError("No integrand defined")
       try:
          if params==[] and len(inspect.getargspec(wrapper.the_function)[0])==1:
             wrapper.the_parameters=[]
          elif params==[] and len(inspect.getargspec(wrapper.the_function)[0])>1:
-            raise ValueError, "Integrand has parameters but no parameters specified"
+            raise ValueError("Integrand has parameters but no parameters specified")
          elif params!=[]:
             wrapper.the_parameters = params
       except TypeError:
@@ -335,7 +336,7 @@ def numerical_integral(func, a, b=None,
          sig_off()
 
    else:
-      raise TypeError, "invalid integration algorithm"
+      raise TypeError("invalid integration algorithm")
 
    if W != NULL:
       gsl_integration_workspace_free(W)

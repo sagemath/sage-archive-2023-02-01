@@ -459,7 +459,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             1
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         P = self._parent
         return P(self._x.xgcd(P._polynomial)[1])
 

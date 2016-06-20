@@ -17,13 +17,27 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
+from __future__ import print_function
+
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
 from sage.numerical.mip import MIPSolverException
 from copy import copy
 
 cdef class CoinBackend(GenericBackend):
+
+    """
+    MIP Backend that uses the COIN solver (CBC).
+
+    TESTS:
+
+    General backend testsuite::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                       # optional - cbc
+            sage: TestSuite(p).run(skip="_test_pickling")               # optional - cbc
+    """
 
     def __cinit__(self, maximization = True):
         """
@@ -179,10 +193,21 @@ cdef class CoinBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - cbc
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - cbc
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - cbc
             6
-            sage: p.col_name(5)                                                        # optional - cbc
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - cbc
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - cbc
+            True
+            sage: p.col_name(5)              # optional - cbc
             'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - cbc
+            42.0
         """
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
@@ -454,13 +479,13 @@ cdef class CoinBackend(GenericBackend):
 
             c = constraints[i]
             if c < 0 or c >= nrows:
-                sage_free(rows)
+                sig_free(rows)
                 raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
 
             rows[i] = c
 
         self.si.deleteRows(m,rows)
-        sage_free(rows)
+        sig_free(rows)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -672,7 +697,7 @@ cdef class CoinBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -711,6 +736,9 @@ cdef class CoinBackend(GenericBackend):
             c_values[i] = coeffs[i]
 
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
+
+        self.col_names.append("")
+
 
     cpdef int solve(self) except -1:
         r"""
@@ -1128,7 +1156,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
             sage: p.problem_name("There once was a french fry") # optional - cbc
-            sage: print p.problem_name()                        # optional - cbc
+            sage: print(p.problem_name())                       # optional - cbc
             There once was a french fry
         """
         if name == NULL:
@@ -1153,7 +1181,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                                     # optional - cbc
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])  # optional - cbc
-            sage: print p.row_name(0)                                                 # optional - cbc
+            sage: print(p.row_name(0))                                                # optional - cbc
             Empty constraint 1
         """
         if self.row_names is not None:
@@ -1175,7 +1203,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")          # optional - cbc
             sage: p.add_variable(name='I am a variable')   # optional - cbc
             0
-            sage: print p.col_name(0)                      # optional - cbc
+            sage: print(p.col_name(0))                     # optional - cbc
             I am a variable
         """
         if self.col_names is not None:
@@ -1183,7 +1211,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return ""
 
-    cpdef CoinBackend copy(self):
+    cpdef __copy__(self):
         """
         Returns a copy of self.
 
@@ -1198,7 +1226,7 @@ cdef class CoinBackend(GenericBackend):
             6.0
         """
         # create new backend
-        cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
+        cdef CoinBackend p = type(self)(maximization = (1 if self.is_maximization() else -1))
 
         # replace solver with copy of self's solver
         del p.si
@@ -1310,8 +1338,8 @@ cdef class CoinBackend(GenericBackend):
             rstat = [c_rstat[j] for j in range(m)]
             return (cstat, rstat)
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef int set_basis_status(self, list cstat, list rstat) except -1:
         """
@@ -1440,8 +1468,8 @@ cdef class CoinBackend(GenericBackend):
         else:
             return result
         finally:
-            sage_free(c_cstat)
-            sage_free(c_rstat)
+            sig_free(c_cstat)
+            sig_free(c_rstat)
 
     cpdef get_binva_row(self, int i):
         """
@@ -1508,8 +1536,8 @@ cdef class CoinBackend(GenericBackend):
             ithrow = [c_z[j] for j in range(n)]
             return (ithrow, slack)
         finally:
-            sage_free(c_slack)
-            sage_free(c_z)
+            sig_free(c_slack)
+            sig_free(c_z)
 
     cpdef get_binva_col(self, int j):
         """
@@ -1569,7 +1597,7 @@ cdef class CoinBackend(GenericBackend):
             jthcol = [c_vec[i] for i in range(m)]
             return jthcol
         finally:
-            sage_free(c_vec)
+            sig_free(c_vec)
 
     cpdef get_basics(self):
         r"""
@@ -1611,7 +1639,7 @@ cdef class CoinBackend(GenericBackend):
             indices = [c_indices[j] for j in range(m)]
             return indices 
         finally:
-            sage_free(c_indices)
+            sig_free(c_indices)
 
     cpdef get_row_price(self):
         r"""

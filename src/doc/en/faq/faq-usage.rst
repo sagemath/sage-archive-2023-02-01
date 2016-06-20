@@ -19,12 +19,6 @@ You can try out Sage without downloading anything:
 * **Sage cell:** A "one-off" version of Sage, available for doing one
   computation at a time. http://sagecell.sagemath.org/
 
-* **Sagenb:** Some public Sage notebook servers allow you to create a free
-  account.
-
-  If you log in, you will be working on a free, browser-based Sage notebook 
-  server that will work identically to the one you get within Sage. 
-
 To download a **pre-built binary** Sage distribution, visit
 http://sagemath.org/download.html and click on the link for the binary for your
 operating system.
@@ -513,17 +507,6 @@ On Ubuntu, try disabling "Power Manager" via ::
 under the "Startup Programs" or using ``cpufreq-set`` via the command
 line.
 
-
-Sage fails with the error message "restore segment prot after reloc: Permission denied". What is wrong?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The problem is related to SELinux. See this page for some tips to fix
-this:
-http://www.ittvis.com/services/techtip.asp?ttid=3092.
-We are currently tracking this issue at
-`ticket #480 <http://www.sagetrac.org/sage_trac/ticket/480>`_.
-
-
 When I start Sage, SELinux complains that "/path/to/libpari-gmp.so.2" requires text-relocation. How can I fix it?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -545,11 +528,7 @@ by typing ``make build`` in a terminal.
 How do I run sage in daemon mode, i.e. as a service?
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-We currently do not have a ready-to-go solution. There are several
-possibilities. Use ``screen``, ``nohup`` or ``disown``. We are
-tracking the issue at
-`ticket #381 <http://www.sagetrac.org/sage_trac/ticket/381>`_
-so stay tuned.
+There are several possibilities. Use ``screen``, ``nohup`` or ``disown``.
 
 
 The show command for plotting 3-D objects does not work.

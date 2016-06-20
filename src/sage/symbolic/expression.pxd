@@ -1,5 +1,6 @@
-from ginac cimport *
+from .ginac cimport *
 
+cdef class Expression
 from sage.structure.element cimport CommutativeRingElement
 
 cdef class Expression(CommutativeRingElement):

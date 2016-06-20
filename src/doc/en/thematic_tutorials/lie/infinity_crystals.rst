@@ -206,7 +206,7 @@ at least one `y_i(k) \neq 0`.  The crystal structure on this set is defined by
 
 where `\{h_i : i \in I\}` and `\{\Lambda_i : i \in I \}` are the simple
 coroots and fundamental weights, respectively.  With a chosen set of integers
-`C = (c_{ij})_{i\neq j}` such that `c_{ij}+c{ji} =1`, one defines
+`C = (c_{ij})_{i\neq j}` such that `c_{ij}+c_{ji} =1`, one defines
 
 .. MATH::
 
@@ -227,7 +227,16 @@ where `(a_{ij})` is a Cartan matrix.  Then
     Monomial crystals depend on the choice of positive integers
     `C = (c_{ij})_{i\neq j}` satisfying the condition `c_{ij}+c_{ji}=1`.
     This choice has been made in Sage such that `c_{ij} = 1` if
-    `i < j` and `c_{ij} = 0` if `i>j`.
+    `i < j` and `c_{ij} = 0` if `i>j`, but other choices may be used if
+    deliberately stated at the intialization of the crystal::
+
+        sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
+        sage: La = RootSystem(['C',3]).weight_lattice().fundamental_weights()
+        sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
+        sage: M.c()
+        [0 0 1]
+        [1 0 0]
+        [0 1 0]
 
 It is shown in [KKS2007]_ that the connected component of `\widehat{\mathcal{M}}`
 containing the element `\boldsymbol{1}`, which we denote by
@@ -242,16 +251,18 @@ containing the element `\boldsymbol{1}`, which we denote by
     sage: m.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
 
-We can also model `B(\infty)` using the monomials `A_{i,k}` instead::
+We can also model `B(\infty)` using the variables `A_{i,k}` instead::
 
-    sage: Ninf = crystals.infinity.NakajimaMonomials(['C',3,1], use_Y = False)
-    sage: ninf = Ninf.highest_weight_vector()
-    sage: n = ninf.f_string([0,1,2,3,2,1,0]); n
+    sage: Minf = crystals.infinity.NakajimaMonomials(['C',3,1])
+    sage: minf = Minf.highest_weight_vector()
+    sage: Minf.set_variables('A')
+    sage: m = minf.f_string([0,1,2,3,2,1,0]); m
     A(0,0)^-1 A(0,3)^-1 A(1,0)^-1 A(1,2)^-1 A(2,0)^-1 A(2,1)^-1 A(3,0)^-1
-    sage: n.weight()
+    sage: m.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
-    sage: n.weight_in_root_lattice()
+    sage: m.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
+    sage: Minf.set_variables('Y')
 
 Building the crystal graph output for these monomial crystals is the same
 as the constructions above::

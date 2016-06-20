@@ -108,6 +108,7 @@ graphs. Here is what they can do
 Methods
 -------
 """
+from __future__ import print_function
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -1029,7 +1030,7 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: for a in D.incoming_edge_iterator([0]):
-            ...    print a
+            ....:     print(a)
             (1, 0, None)
             (4, 0, None)
         """
@@ -1075,7 +1076,7 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: for a in D.outgoing_edge_iterator([0]):
-            ...    print a
+            ....:     print(a)
             (0, 1, None)
             (0, 2, None)
             (0, 3, None)
@@ -1117,7 +1118,7 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: for a in D.neighbor_in_iterator(0):
-            ...    print a
+            ....:     print(a)
             1
             4
         """
@@ -1147,7 +1148,7 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: for a in D.neighbor_out_iterator(0):
-            ...    print a
+            ....:     print(a)
             1
             2
             3
@@ -1200,7 +1201,7 @@ class DiGraph(GenericGraph):
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
             sage: for i in D.in_degree_iterator():
-            ...    print i
+            ....:     print(i)
             3
             3
             2
@@ -1210,7 +1211,7 @@ class DiGraph(GenericGraph):
             2
             3
             sage: for i in D.in_degree_iterator(labels=True):
-            ...    print i
+            ....:    print(i)
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
@@ -1280,7 +1281,7 @@ class DiGraph(GenericGraph):
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
             sage: for i in D.out_degree_iterator():
-            ...    print i
+            ....:     print(i)
             3
             3
             2
@@ -1290,7 +1291,7 @@ class DiGraph(GenericGraph):
             2
             3
             sage: for i in D.out_degree_iterator(labels=True):
-            ...    print i
+            ....:     print(i)
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
@@ -1476,13 +1477,13 @@ class DiGraph(GenericGraph):
         Comparing with/without constraint generation. Also double-checks ticket :trac:`12833`::
 
             sage: for i in range(20):
-            ...      g = digraphs.RandomDirectedGNP(10,.3)
-            ...      x = g.feedback_edge_set(value_only = True)
-            ...      y = g.feedback_edge_set(value_only = True,
-            ...             constraint_generation = False)
-            ...      if x != y:
-            ...         print "Oh my, oh my !"
-            ...         break
+            ....:     g = digraphs.RandomDirectedGNP(10,.3)
+            ....:     x = g.feedback_edge_set(value_only = True)
+            ....:     y = g.feedback_edge_set(value_only = True,
+            ....:            constraint_generation = False)
+            ....:     if x != y:
+            ....:         print("Oh my, oh my !")
+            ....:         break
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
@@ -1526,7 +1527,7 @@ class DiGraph(GenericGraph):
                     break
 
                 if verbose:
-                    print "Adding a constraint on circuit : ",certificate
+                    print("Adding a constraint on circuit : {}".format(certificate))
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -1956,7 +1957,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: pi = g._all_paths_iterator('a')
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
@@ -1966,7 +1967,7 @@ class DiGraph(GenericGraph):
         ::
 
             sage: pi = g._all_paths_iterator('b')
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['b', 'c']
             ['b', 'c', 'd']
             ['b', 'c', 'd', 'c']
@@ -1988,14 +1989,14 @@ class DiGraph(GenericGraph):
         It is possible to specify the allowed ending vertices::
 
             sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['a', 'b', 'c']
             ['a', 'a', 'b', 'c']
             ['a', 'a', 'a', 'b', 'c']
             ['a', 'b', 'c', 'd', 'c']
             ['a', 'a', 'a', 'a', 'b', 'c']
             sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
@@ -2101,7 +2102,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: pi = g.all_paths_iterator()
-            sage: for _ in range(7): print next(pi)
+            sage: for _ in range(7): print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['b', 'c']
@@ -2113,14 +2114,14 @@ class DiGraph(GenericGraph):
         It is possible to precise the allowed starting and/or ending vertices::
 
             sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
             ['a', 'b', 'c']
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b'])
-            sage: for _ in range(5): print next(pi)
+            sage: for _ in range(5): print(next(pi))
             ['a', 'b']
             ['a', 'a', 'b']
             ['a', 'a', 'a', 'b']
@@ -2299,14 +2300,14 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g._all_cycles_iterator_vertex('a', simple=False, max_length=None)
-            sage: for i in range(5): print next(it)
+            sage: for i in range(5): print(next(it))
             ['a', 'a']
             ['a', 'a', 'a']
             ['a', 'a', 'a', 'a']
             ['a', 'a', 'a', 'a', 'a']
             ['a', 'a', 'a', 'a', 'a', 'a']
             sage: it = g._all_cycles_iterator_vertex('c', simple=False, max_length=None)
-            sage: for i in range(5): print next(it)
+            sage: for i in range(5): print(next(it))
             ['c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c', 'd', 'c']
@@ -2314,7 +2315,7 @@ class DiGraph(GenericGraph):
             ['c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c']
 
             sage: it = g._all_cycles_iterator_vertex('d', simple=False, max_length=None)
-            sage: for i in range(5): print next(it)
+            sage: for i in range(5): print(next(it))
             ['d', 'c', 'd']
             ['d', 'c', 'd', 'c', 'd']
             ['d', 'c', 'd', 'c', 'd', 'c', 'd']
@@ -2418,7 +2419,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g.all_cycles_iterator()
-            sage: for _ in range(7): print next(it)
+            sage: for _ in range(7): print(next(it))
             ['a', 'a']
             ['a', 'a', 'a']
             ['c', 'd', 'c']
@@ -2442,7 +2443,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g.all_cycles_iterator(starting_vertices=['b', 'c'])
-            sage: for _ in range(3): print next(it)
+            sage: for _ in range(3): print(next(it))
             ['c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c', 'd', 'c']
@@ -2823,10 +2824,10 @@ class DiGraph(GenericGraph):
         ::
 
             sage: for sort in D.topological_sort_generator():
-            ...       for edge in D.edge_iterator():
-            ...           u,v,l = edge
-            ...           if sort.index(u) > sort.index(v):
-            ...               print "This should never happen."
+            ....:     for edge in D.edge_iterator():
+            ....:         u,v,l = edge
+            ....:         if sort.index(u) > sort.index(v):
+            ....:             print("This should never happen.")
         """
         from sage.graphs.linearextensions import LinearExtensions
         try:
@@ -3085,7 +3086,7 @@ class DiGraph(GenericGraph):
         The following digraph has three strongly connected components,
         and the digraph of those is a chain::
 
-            sage: g = DiGraph({0:{1:"01", 2: "02", 3: 03}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
+            sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
             sage: scc_digraph = g.strongly_connected_components_digraph()
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]

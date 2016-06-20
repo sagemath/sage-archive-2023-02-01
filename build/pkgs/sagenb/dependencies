@@ -1,4 +1,4 @@
-$(PYTHON) setuptools pexpect jinja2 sphinx docutils
+$(PYTHON) | pip babel flask flask_autoindex flask_babel flask_oldsessions flask_openid mathjax twisted
 
 ----------
 All lines of this file are ignored except the first.

@@ -427,6 +427,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import column_matrix
@@ -1197,7 +1198,7 @@ class RijndaelGF(SageObject):
             raise TypeError(msg)
 
         def add_cols(col1, col2):
-            return map(lambda (x,y): x + y, zip(col1, col2))
+            return [x + y for x, y in zip(col1, col2)]
 
         key_cols = []
         for i in range(self._Nb * (self._Nr + 1)):
@@ -2330,7 +2331,7 @@ class RijndaelGF(SageObject):
             if algorithm not in ['encrypt', 'decrypt']:
                 msg = ("keyword 'algorithm' must be either 'encrypt' or "
                        "'decrypt'")
-                print algorithm
+                print(algorithm)
                 raise ValueError(msg)
             return self._polynomial_constr(row, col, algorithm, **kwargs)
 

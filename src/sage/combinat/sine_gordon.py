@@ -28,7 +28,7 @@ The same integer tuple but for the non-reduced case::
 
 REFERENCES:
 
-.. [NS] T. Nakanishi, S. Stella, Wonder of sine-Gordon Y-systems,
+.. [NS] \T. Nakanishi, S. Stella, Wonder of sine-Gordon Y-systems,
    to appear in Trans. Amer. Math. Soc., :arxiv:`1212.6853`
 """
 #*****************************************************************************

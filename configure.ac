@@ -287,6 +287,13 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
+# Check whether git works by executing "git --version"
+need_to_install_git=no
+AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
+    AC_PATH_PROGS_FEATURE_CHECK([GIT], [git],
+    [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
+    [need_to_install_git=yes; ac_cv_path_GIT=no])])
+
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -634,94 +641,9 @@ SHELL = `command -v bash`
 # Directory to keep track of which packages are installed
 INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
+# Aliases for optional packages selected at configure time
 EOF
 
-AC_MSG_CHECKING([package versions])
-AC_MSG_RESULT([])
-
-# Usage: newest_version $pkg
-# Print version number of latest standard package $pkg
-newest_version() {
-    PKG=$1
-    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
-        AS_ECHO_N(["$PKG-"])
-        cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
-    else
-        echo "$PKG"
-    fi
-}
-
-# Outputs the list of packages, filtered by 'type', e.g.:
-#
-#     filtered_packages_list base
-#     filtered_packages_list standard
-#     filtered_packages_list optional
-#     filtered_packages_list experimental
-#
-# Or, if you want all packages:
-#
-#     filtered_packages_list all
-#
-# The output consists of triples
-# PKG_NAME PKG_VERSION PKG_VAR
-#
-
-[
-filtered_packages_list() {
-    # for each package in pkgs/
-    for DIR in $SAGE_ROOT/build/pkgs/*; do
-        test -d "$DIR" || continue
-
-        PKG_TYPE_FILE="$DIR/type"
-        if [ -f "$PKG_TYPE_FILE" ]; then
-            PKG_TYPE=`cat $PKG_TYPE_FILE`
-        else
-            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
-            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
-            exit 1
-        fi
-
-        # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && \
-           [ "$PKG_TYPE" != "standard" ] && \
-           [ "$PKG_TYPE" != "optional" ] && \
-           [ "$PKG_TYPE" != "experimental" ] && \
-           [ "$PKG_TYPE" != "script" ] && \
-           [ "$PKG_TYPE" != "pip" ]; then
-            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
-            exit 1
-        fi
-
-        # Filter
-        if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
-            PKG_NAME=$(basename $DIR)
-            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
-            PKG_VERSION=$(newest_version $PKG_NAME)
-            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
-        fi
-    done
-}
-]
-
-echo >&7 '# Files to track installation of packages'
-filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" != "$PKG_VERSION"; then
-        # If $need_to_install_{PKG_NAME} is set to no, then set $PKG_VAR
-        # to some dummy file to skip the installation. Note that an
-        # explicit "./sage -i PKG_NAME" will still install the package.
-        need_to_install="need_to_install_${PKG_NAME}"
-        if test "${!need_to_install}" != no ; then
-            echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
-            AC_MSG_RESULT([    $PKG_VERSION])
-        else
-            echo >&7 "$PKG_VAR = \$(INST)/.dummy"
-            AC_MSG_RESULT([    $PKG_VERSION not installed (configure check)])
-        fi
-    fi
-done
-
-echo >&7
-echo >&7 '# Aliases for optional packages selected at configure time'
 
 # Python version
 if test "$SAGE_PYTHON3" = yes; then
@@ -754,11 +676,138 @@ else
     echo >&7 'MP_LIBRARY = $(inst_gmp)'
 fi
 
+# BLAS library
+AC_MSG_CHECKING([BLAS library])
+AC_ARG_WITH([blas],
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=openblas],
+    [use OpenBLAS as BLAS library])],,
+    [with_blas=atlas]  # default
+)
+
+case "$with_blas" in
+    atlas) true;;
+    openblas) need_to_install_atlas=no;;
+    *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
+esac
+
+AC_MSG_RESULT([$with_blas])
+
+echo >&7 "BLAS = \$(inst_${with_blas})"
+
 # $(TOOLCHAIN) variable containing prerequisites for the build
 AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
     AS_ECHO_N(>&7 [' $(inst_ccache)'])
 fi
+echo >&7
+
+AC_MSG_CHECKING([package versions])
+AC_MSG_RESULT([])
+
+# Usage: newest_version $pkg
+# Print version number of latest package $pkg
+newest_version() {
+    PKG=$1
+    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
+        AS_ECHO_N(["$PKG-"])
+        cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
+    else
+        echo "$PKG"
+    fi
+}
+
+# Outputs the list of packages, filtered by 'type', e.g.:
+#
+#     filtered_packages_list base
+#     filtered_packages_list standard
+#     filtered_packages_list optional
+#     filtered_packages_list experimental
+#
+# Or, if you want all packages:
+#
+#     filtered_packages_list all
+#
+# Or, if you want all packages which should appear in the source tarball:
+#
+#     filtered_packages_list sdist
+#
+# The output consists of triples
+# PKG_NAME PKG_VERSION PKG_VAR
+#
+
+[
+filtered_packages_list() {
+    # for each package in pkgs/
+    for DIR in $SAGE_ROOT/build/pkgs/*; do
+        test -d "$DIR" || continue
+
+        PKG_TYPE_FILE="$DIR/type"
+        if [ -f "$PKG_TYPE_FILE" ]; then
+            PKG_TYPE=`cat $PKG_TYPE_FILE`
+        else
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing."
+            exit 1
+        fi
+
+        # Check consistency of 'DIR/type' file
+        if [ "$PKG_TYPE" != "base" ] && \
+           [ "$PKG_TYPE" != "standard" ] && \
+           [ "$PKG_TYPE" != "optional" ] && \
+           [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "script" ] && \
+           [ "$PKG_TYPE" != "pip" ]; then
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'"
+            exit 1
+        fi
+
+        PKG_NAME=$(basename $DIR)
+
+        # Filter
+        filter=no
+        if [ "$1" = all ]; then
+            filter=yes
+        elif [ "$1" = "$PKG_TYPE" ]; then
+            filter=yes
+        elif [ "$1" = sdist ]; then
+            # sdist packages are all standard packages, together with
+            # mpir and python2.
+            if [ "$PKG_TYPE" = standard ]; then
+                filter=yes
+            elif [ "$PKG_NAME" = mpir ]; then
+                filter=yes
+            elif [ "$PKG_NAME" = python2 ]; then
+                filter=yes
+            fi
+        fi
+        if [ $filter = yes ]; then
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
+            PKG_VERSION=$(newest_version $PKG_NAME)
+            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
+        fi
+    done
+}
+]
+
+echo >&7
+echo >&7 '# Files to track installation of packages'
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if test "$PKG_NAME" != "$PKG_VERSION"; then
+        # If $need_to_install_{PKG_NAME} is set to no, then set $PKG_VAR
+        # to some dummy file to skip the installation. Note that an
+        # explicit "./sage -i PKG_NAME" will still install the package.
+        need_to_install="need_to_install_${PKG_NAME}"
+        if test "${!need_to_install}" != no ; then
+            echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
+            AC_MSG_RESULT([    $PKG_VERSION])
+        else
+            echo >&7 "$PKG_VAR = \$(INST)/.dummy"
+            AC_MSG_RESULT([    $PKG_VERSION not installed (configure check)])
+        fi
+    fi
+done
+
 echo >&7
 echo >&7
 
@@ -780,6 +829,15 @@ filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
 done
 echo >&7
 echo >&7
+
+echo >&7 '# All packages which should be downloaded'
+echo >&7 'SDIST_PACKAGES = \'
+filtered_packages_list sdist | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&7 "    \$(INST)/$PKG_VERSION \\"
+done
+echo >&7
+echo >&7
+
 
 echo >&7 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
@@ -851,7 +909,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     if [ "$TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
@@ -863,7 +921,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         echo >&7 "$PKG_NAME:$DEPS"
         echo >&7 "	cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
-        echo >&7 "	    sage-logger '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
@@ -875,7 +933,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"

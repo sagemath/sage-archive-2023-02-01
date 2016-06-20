@@ -6,18 +6,28 @@ is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathem
 in the following form
 
 .. MATH::
-    \max \sum_{i,j=1}^n c_{ij}x_{ij}\\
-    \text{Subject to:} &\sum_{i,j=1}^n a_{ijk}x_{ij} = b_k, \qquad k=1\ldots m\\
+    \min \sum_{i,j=1}^n C_{ij}X_{ij} & \qquad \text{(Dual problem)}\\
+    \text{Subject to:} & \sum_{i,j=1}^n A_{ijk}X_{ij} = b_k, \qquad k=1\dots m\\
     &X \succeq 0
 
-where the `x_{ij}`, `i \leq i,j \leq n` are `n^2` variables satisfying the symmetry
-conditions `x_{ij} = x_{ji}` for all `i,j`, the `c_{ij}`, `a_{ijk}` and `b_k`
+where the `X_{ij}`, `i \leq i,j \leq n` are `n^2` variables satisfying the symmetry
+conditions `x_{ij} = x_{ji}` for all `i,j`, the `C_{ij}=C_{ji}`, `A_{ijk}=A_{kji}` and `b_k`
 are real coefficients, and `X` is positive semidefinite, i.e., all the eigenvalues of `X` are nonnegative.
+A closely related problem is a dual of this one is the following, where we denote by
+`A_k` the matrix `(A_{kij})` and by `C` the matrix `(C_{ij})`.
 
-A wide variety of problems in optimization can be formulated in this standard
-form. Then, solvers are able to calculate a solution.
+.. MATH::
+    \max \sum_k b_k x_k & \qquad \text{(Primal problem)}\\
+    \text{Subject to:} & \sum_k x_k A_k \preceq C.
 
-For instance, you want to minimize `x_0 - x_1` where:
+Here `(x_1,...,x_m)` is a vector of scaral variables.
+A wide variety of problems in optimization can be formulated in one of these two standard
+forms. Then, solvers are able to calculate an approximation to a solution.
+Here we refer to the latter problem as primal, and to the former problem as dual.
+The optimal value of the dual is always at least the
+optimal value of the primal, and usually (although not always) they are equal.
+
+For instance, you want to maximize `x_1 - x_0` subject to
 
 .. MATH::
  \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x_0 +
@@ -25,21 +35,17 @@ For instance, you want to minimize `x_0 - x_1` where:
  \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right),\quad
  \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) x_0 +
  \left( \begin{array}{cc} 2 & 2  \\ 2 & 2  \end{array} \right) x_1 \preceq
- \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right),
- \quad x_0\geq 0, x_1\geq 0.
+ \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right).
 
-A semidefinite program can give you an answer
-to the problem above. Here is how it's done:
+An SDP can give you an answer to the problem above. Here is how it's done:
 
-  #. You have to create an instance of :class:`SemidefiniteProgram`. We
-     add the parameter maximization=False since we want to minimize `x_0 - x_1`.
+  #. You have to create an instance of :class:`SemidefiniteProgram`.
   #. Create an dictionary ``x`` of integer variables ``x`` via ``x =
-     p.new_variable()`` (note that **by default all variables are
-     non-negative**, cf :meth:`~SemidefiniteProgram.new_variable`).
-  #. Add those two inequalities as inequality constraints via
-     :meth:`add_constraint <sage.numerical.sdp.SemidefiniteProgram.add_constraint>`.
-  #. Specify the objective function via :meth:`set_objective <sage.numerical.sdp.SemidefiniteProgram.set_objective>`.
-     In our case it is  `x_0 - x_1`. If it
+     p.new_variable()``.
+  #. Add those two matrix inequalities as inequality constraints via
+     :meth:`~SemidefiniteProgram.add_constraint`.
+  #. Specify the objective function via :meth:`~SemidefiniteProgram.set_objective`.
+     In our case it is  `x_1 - x_0`. If it
      is a pure constraint satisfaction problem, specify it as ``None``.
   #. To check if everything is set up correctly, you can print the problem via
      :meth:`show <sage.numerical.sdp.SemidefiniteProgram.show>`.
@@ -47,9 +53,9 @@ to the problem above. Here is how it's done:
 
 The following example shows all these steps::
 
-    sage: p = SemidefiniteProgram(maximization = False)
+    sage: p = SemidefiniteProgram()
     sage: x = p.new_variable()
-    sage: p.set_objective(x[0] - x[1])
+    sage: p.set_objective(x[1] - x[0])
     sage: a1 = matrix([[1, 2.], [2., 3.]])
     sage: a2 = matrix([[3, 4.], [4., 5.]])
     sage: a3 = matrix([[5, 6.], [6., 7.]])
@@ -59,24 +65,47 @@ The following example shows all these steps::
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
     sage: p.solver_parameter("show_progress", True)
-    sage: print 'Objective Value:', round(p.solve(),3)
-    Objective Value:      pcost       dcost       gap    pres   dres   k/t
-    0: -3.00...
+    sage: opt = p.solve()
+        pcost       dcost       gap    pres   dres   k/t
+    0: ...
     ...
     Optimal solution found.
-    -3.0
+    sage: print('Objective Value: {}'.format(round(opt,3)))
+    Objective Value: 3.0
     sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
     [-1.0, 2.0]
     sage: p.show()
-    Minimization:
+    Maximization:
       x_0 - x_1
     Constraints:
-      constraint_0: [1.0 2.0][2.0 3.0]x_0 + [3.0 4.0][4.0 5.0]x_1 <=  [5.0 6.0][6.0 7.0]
-      constraint_1: [1.0 1.0][1.0 1.0]x_0 + [2.0 2.0][2.0 2.0]x_1 <=  [3.0 3.0][3.0 3.0]
+      constraint_0: [3.0 4.0][4.0 5.0]x_0 + [1.0 2.0][2.0 3.0]x_1 <=  [5.0 6.0][6.0 7.0]
+      constraint_1: [2.0 2.0][2.0 2.0]x_0 + [1.0 1.0][1.0 1.0]x_1 <=  [3.0 3.0][3.0 3.0]
     Variables:
        x_0,  x_1
 
-More interesting example, the :meth:`Lovasz theta <sage.graphs.Graph.lovasz_theta>` of the 7-gon::
+Most solvers, e.g. the default Sage SDP solver CVXOPT, solve simultaneously the pair
+of primal and dual problems. Thus we can get the optimizer `X` of the dual problem
+as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
+E.g.::
+
+    sage: p.dual_variable(1)  # tol 5e-03
+    [ 1.44 -1.22]
+    [-1.22  1.44]
+
+We can see that the optimal value of the dual is equal (up to numerical noise) to `opt`.::
+
+    sage: opt-((p.dual_variable(0)*a3).trace()+(p.dual_variable(1)*b3).trace())  # tol 8e-08
+    0.0
+
+Dual variable blocks at optimality are orthogonal to "slack variables", that is,
+matrices `C-\sum_k x_k A_k`, cf. (Primal problem) above, available via
+:meth:`~SemidefiniteProgram.slack`. E.g.::
+
+    sage: (p.slack(0)*p.dual_variable(0)).trace()       # tol 2e-07
+    0.0
+
+
+More interesting example, the :func:`Lovasz theta <sage.graphs.lovasz_theta.lovasz_theta>` of the 7-gon::
 
     sage: c=graphs.CycleGraph(7)
     sage: c2=c.distance_graph(2).adjacency_matrix()
@@ -86,6 +115,11 @@ More interesting example, the :meth:`Lovasz theta <sage.graphs.Graph.lovasz_thet
     sage: p.set_objective(y[0]*(c2**2).trace()+y[1]*(c3**2).trace())
     sage: x=p.solve(); x+1
     3.31766...
+
+Unlike in the previous example, the slack variable is very far from 0::
+
+    sage: p.slack(0).trace()        # tol 1e-14
+    1.0
 
 The default CVXOPT backend computes with the Real Double Field, for example::
 
@@ -141,26 +175,28 @@ also implements the :class:`SDPSolverException` exception, as well as the
 
     :meth:`~SemidefiniteProgram.add_constraint`            | Adds a constraint to the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.base_ring`                 | Return the base ring
-    :meth:`~SemidefiniteProgram.get_backend`               | Returns the backend instance used
+    :meth:`~SemidefiniteProgram.dual_variable`             | Return optimal dual variable block
+    :meth:`~SemidefiniteProgram.get_backend`               | Return the backend instance used
     :meth:`~SemidefiniteProgram.get_values`                | Return values found by the previous call to ``solve()``
     :meth:`~SemidefiniteProgram.linear_constraints_parent` | Return the parent for all linear constraints
     :meth:`~SemidefiniteProgram.linear_function`           | Construct a new linear function
     :meth:`~SemidefiniteProgram.linear_functions_parent`   | Return the parent for all linear functions
-    :meth:`~SemidefiniteProgram.new_variable`              | Returns an instance of ``SDPVariable`` associated
-    :meth:`~SemidefiniteProgram.number_of_constraints`     | Returns the number of constraints assigned so far
-    :meth:`~SemidefiniteProgram.number_of_variables`       | Returns the number of variables used so far
-    :meth:`~SemidefiniteProgram.set_objective`             | Sets the objective of the ``SemidefiniteProgram``
-    :meth:`~SemidefiniteProgram.set_problem_name`          | Sets the name of the ``SemidefiniteProgram``
-    :meth:`~SemidefiniteProgram.show`                      | Displays the ``SemidefiniteProgram`` in a human-readable
-    :meth:`~SemidefiniteProgram.solve`                     | Solves the ``SemidefiniteProgram``
+    :meth:`~SemidefiniteProgram.new_variable`              | Return an instance of ``SDPVariable`` associated
+    :meth:`~SemidefiniteProgram.number_of_constraints`     | Return the number of constraints assigned so far
+    :meth:`~SemidefiniteProgram.number_of_variables`       | Return the number of variables used so far
+    :meth:`~SemidefiniteProgram.set_objective`             | Set the objective of the ``SemidefiniteProgram``
+    :meth:`~SemidefiniteProgram.set_problem_name`          | Set the name of the ``SemidefiniteProgram``
+    :meth:`~SemidefiniteProgram.slack`                     | Return the slack variable block at the optimum
+    :meth:`~SemidefiniteProgram.show`                      | Display the ``SemidefiniteProgram`` in a human-readable
+    :meth:`~SemidefiniteProgram.solve`                     | Solve the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.solver_parameter`          | Return or define a solver parameter
-    :meth:`~SemidefiniteProgram.sum`                       | Efficiently computes the sum of a sequence of LinearFunction elements
+    :meth:`~SemidefiniteProgram.sum`                       | Efficiently compute the sum of a sequence of LinearFunction elements
 
 AUTHORS:
 
 - Ingolfur Edvardsson (2014/08): added extension for exact computation
 
-- Dima Pasechnik      (2014, 2015)    : supervision, minor fixes
+- Dima Pasechnik      (2014-)    : supervision, minor fixes, duality
 
 """
 #*****************************************************************************
@@ -172,8 +208,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-include "sage/ext/stdsage.pxi"
+from __future__ import print_function
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
@@ -350,7 +385,7 @@ cdef class SemidefiniteProgram(SageObject):
              sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
              sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
              sage: p.add_constraint(b1*x[0] + b2*x[1] <= a1)
-             sage: print p
+             sage: print(p)
              Semidefinite Program ( maximization, 2 variables, 3 constraints )
          """
          cdef GenericSDPBackend b = self._backend
@@ -590,29 +625,31 @@ cdef class SemidefiniteProgram(SageObject):
             varid_name[i] = s if s else 'x_'+str(i)
 
         ##### Sense and objective function
-        print ("Maximization:" if b.is_maximization() else "Minimization:")
-        print " ",
+        print("Maximization:" if b.is_maximization() else "Minimization:")
+        print(" ", end=" ")
         first = True
         for 0<= i< b.ncols():
             c = b.objective_coefficient(i)
             if c == 0:
                 continue
-            print (("+ " if (not first and c>0) else "") +
+            print((("+ " if (not first and c>0) else "") +
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" ")) + varid_name[i]
-                   ),
+                   ), end=" ")
             first = False
-        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
-        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
-        print
+        if b.obj_constant_term > self._backend.zero():
+            print("+ {}".format(b.obj_constant_term))
+        elif b.obj_constant_term < self._backend.zero():
+            print("- {}".format(-b.obj_constant_term))
+        print("\n")
 
         ##### Constraints
-        print "Constraints:"
+        print("Constraints:")
         for 0<= i < b.nrows():
             indices, values = b.row(i)
-            print " ",
+            print(" ", end=" ")
             # Constraint's name
             if b.row_name(i):
-                print b.row_name(i)+":",
+                print(b.row_name(i)+":", end=" ")
             first = True
             l = sorted(zip(indices,values))
             l.reverse()
@@ -624,18 +661,19 @@ cdef class SemidefiniteProgram(SageObject):
             for j, c in l:
                 if c == 0:
                     continue
-                print (("+ " if (not first) else "") +
+                print((("+ " if (not first) else "") +
                         ( str(repr(c).replace('\n',"")  )  )+varid_name[j]),
+                      end=" ")
                 first = False
-            print ("<= "),
-            print repr(-last_value).replace('\n',"")
+            print(("<= "), end=" ")
+            print(repr(-last_value).replace('\n',""))
 
         ##### Variables
-        print "Variables:"
-        print ("  "),
+        print("Variables:")
+        print("  ", end=" ")
         for 0<= i < b.ncols()-1:
-            print (str(varid_name[i]) + ", "),
-        print (str(varid_name[b.ncols()-1]) ),
+            print(str(varid_name[i]) + ", ", end=" ")
+        print(str(varid_name[b.ncols()-1]), end=" ")
 
 
     def get_values(self, *lists):
@@ -907,6 +945,101 @@ cdef class SemidefiniteProgram(SageObject):
         return self._backend.get_objective_value()
 
 
+    cpdef dual_variable(self, int i, sparse=False):
+        """
+        The `i`-th dual variable
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the `i`-th dual variable
+
+        EXAMPLES:
+
+        Dual objective value is the same as the primal one ::
+
+            sage: p = SemidefiniteProgram(maximization = False)
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()                                                         # tol 1e-08
+            -3.0
+            sage: x=p.get_values(x).values()
+            sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()  # tol 1e-07
+            -3.0
+
+        Dual variable is orthogonal to the slack ::
+
+            sage: g = sum((p.slack(j)*p.dual_variable(j)).trace() for j in range(2)); g # tol 1.2e-08
+            0.0
+
+        TESTS::
+
+            sage: p.dual_variable(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return self._backend.dual_variable(i, sparse=sparse)
+
+    cpdef slack(self, int i, sparse=False):
+        """
+        Slack of the `i`-th constraint
+
+        Available after self.solve() is called, otherwise the result is undefined
+
+        - ``index`` (integer) -- the constraint's id.
+
+        OUTPUT:
+
+        The matrix of the slack of the `i`-th constraint
+
+        EXAMPLE::
+
+            sage: p = SemidefiniteProgram(maximization = False)
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[0] - x[1])
+            sage: a1 = matrix([[1, 2.], [2., 3.]])
+            sage: a2 = matrix([[3, 4.], [4., 5.]])
+            sage: a3 = matrix([[5, 6.], [6., 7.]])
+            sage: b1 = matrix([[1, 1.], [1., 1.]])
+            sage: b2 = matrix([[2, 2.], [2., 2.]])
+            sage: b3 = matrix([[3, 3.], [3., 3.]])
+            sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
+            sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+            sage: p.solve()                         # tol 1e-08
+            -3.0
+            sage: B1 = p.slack(1); B1               # tol 1e-08
+            [0.0 0.0]
+            [0.0 0.0]
+            sage: B1.is_positive_definite()
+            True
+            sage: x = p.get_values(x).values()
+            sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-09
+            [0.0 0.0]
+            [0.0 0.0]
+
+        TESTS::
+
+            sage: p.slack(7)
+            ...
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return self._backend.slack(i, sparse=sparse)
+
     def solver_parameter(self, name, value = None):
         """
         Return or define a solver parameter
@@ -1044,7 +1177,7 @@ class SDPSolverException(RuntimeError):
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: e = SDPSolverException("Error")
-        sage: print e
+        sage: print(e)
         Error
     """
     pass

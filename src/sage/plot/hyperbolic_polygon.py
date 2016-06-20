@@ -22,6 +22,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.bezier_path import BezierPath
 from sage.plot.misc import options, rename_keyword
 from sage.rings.all import CC
@@ -46,7 +48,7 @@ class HyperbolicPolygon(BezierPath):
     :func:`hyperbolic_triangle`::
 
          sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
-         sage: print HyperbolicPolygon([0, 1/2, I], {})
+         sage: print(HyperbolicPolygon([0, 1/2, I], {}))
          Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
     """
     def __init__(self, pts, options):
@@ -56,7 +58,7 @@ class HyperbolicPolygon(BezierPath):
         EXAMPLES::
 
             sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
-            sage: print HyperbolicPolygon([0, 1/2, I], {})
+            sage: print(HyperbolicPolygon([0, 1/2, I], {}))
             Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
         """
         pts = [CC(_) for _ in pts]

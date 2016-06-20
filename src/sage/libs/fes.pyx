@@ -75,7 +75,7 @@ cdef extern from "fes_interface.h":
 
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
@@ -190,11 +190,11 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
 
     # ------- initialize a data-structure to communicate the equations to the library
-    cdef int ***coeffs = <int ***> sage_calloc(len(eqs), sizeof(int **))
+    cdef int ***coeffs = <int ***> sig_calloc(len(eqs), sizeof(int **))
     for e,f in enumerate(eqs):
-        coeffs[e] = <int **> sage_calloc(degree+1, sizeof(int *))
+        coeffs[e] = <int **> sig_calloc(degree+1, sizeof(int *))
         for d in range(degree+1):
-            coeffs[e][d] = <int *> sage_calloc(binomial(n,d), sizeof(int))
+            coeffs[e][d] = <int *> sig_calloc(binomial(n,d), sizeof(int))
 
         for m in f:  # we enumerate the monomials of f
             d = m.degree()
@@ -229,9 +229,9 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
             if coeffs[e] != NULL:
                 for d in range(degree+1):
                     if coeffs[e][d] != NULL:
-                        sage_free(coeffs[e][d])
-                sage_free(coeffs[e])
-        sage_free(coeffs)
+                        sig_free(coeffs[e][d])
+                sig_free(coeffs[e])
+        sig_free(coeffs)
 
     # ------ convert (packed) solutions to suitable format
     dict_sols = []

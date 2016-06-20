@@ -7,8 +7,9 @@ The GUAVA wrappers are in guava.py.
 
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.HammingCode(3,GF(2))
-    Linear code of length 7, dimension 4 over Finite Field of size 2
+    sage: codes.HammingCode(GF(2), 3)
+    [7, 4] Hamming Code over Finite Field of size 2
+
 
 Let `F` be a finite field with `q` elements.
 Here's a constructive definition of a cyclic code of length
@@ -119,7 +120,7 @@ defined using properties of the zeros of `C`.
 
 REFERENCES:
 
-.. [HP] W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
+.. [HP] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
    Codes, Cambridge Univ. Press, 2003.
 
 AUTHOR:
@@ -149,6 +150,7 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -214,11 +216,11 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: for P in SetPartitions(6,[3,3]):
         ....:     res,aut= is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
-        ....:         print aut, P[0], P[1]
-        6 {1, 2, 3} {4, 5, 6}
-        3 {1, 2, 4} {3, 5, 6}
-        6 {1, 3, 5} {2, 4, 6}
-        6 {1, 4, 5} {2, 3, 6}
+        ....:         print((aut, P[0], P[1]))
+        (6, {1, 2, 3}, {4, 5, 6})
+        (3, {1, 2, 4}, {3, 5, 6})
+        (6, {1, 3, 5}, {2, 4, 6})
+        (6, {1, 4, 5}, {2, 3, 6})
 
     We illustrate now how to find idempotents in quotient rings::
 
@@ -538,7 +540,7 @@ def BCHCode(n,delta,F,b=0):
     for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
         L1.extend(P((a**j).minpoly()) for j in coset)
     g = P(LCM(L1))
-    #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
+
     if not(g.divides(x**n-1)):
         raise ValueError("BCH codes does not exist with the given input.")
     return CyclicCodeFromGeneratingPolynomial(n,g)
@@ -907,53 +909,6 @@ def ExtendedTernaryGolayCode():
     # C = TernaryGolayCode()
     # return C.extended_code()
 
-def HammingCode(r,F):
-    r"""
-    Implements the Hamming codes.
-
-    The `r^{th}` Hamming code over `F=GF(q)` is an
-    `[n,k,d]` code with length `n=(q^r-1)/(q-1)`,
-    dimension `k=(q^r-1)/(q-1) - r` and minimum distance
-    `d=3`. The parity check matrix of a Hamming code has rows
-    consisting of all nonzero vectors of length r in its columns,
-    modulo a scalar factor so no parallel columns arise. A Hamming code
-    is a single error-correcting code.
-
-    INPUT:
-
-
-    -  ``r`` - an integer 2
-
-    -  ``F`` - a finite field.
-
-
-    OUTPUT: Returns the r-th q-ary Hamming code.
-
-    EXAMPLES::
-
-        sage: codes.HammingCode(3,GF(2))
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C = codes.HammingCode(3,GF(3)); C
-        Linear code of length 13, dimension 10 over Finite Field of size 3
-        sage: C.minimum_distance()
-        3
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=3
-        3
-        sage: C = codes.HammingCode(3,GF(4,'a')); C
-        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
-    """
-    q = F.order()
-    n =  (q**r-1)/(q-1)
-    k = n-r
-    MS = MatrixSpace(F,n,r)
-    X = ProjectiveSpace(r-1,F)
-    PFn = [list(p) for p in X.point_set(F).points(F)]
-    H = MS(PFn).transpose()
-    Cd = LinearCode(H)
-    # Hamming code always has distance 3, so we provide the distance.
-    return LinearCode(Cd.dual_code().generator_matrix(), d=3)
-
-
 def LinearCodeFromCheckMatrix(H):
     r"""
     A linear [n,k]-code C is uniquely determined by its generator
@@ -975,18 +930,22 @@ def LinearCodeFromCheckMatrix(H):
 
     EXAMPLES::
 
-        sage: C = codes.HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(GF(2), 3)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix_systematic()
+        sage: Gh == Gc
         True
-        sage: C = codes.HammingCode(2,GF(3))
+        sage: C = codes.HammingCode(GF(3), 2)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
-        sage: codes.LinearCodeFromCheckMatrix(H) == C
+        sage: Gh = codes.LinearCodeFromCheckMatrix(H).generator_matrix()
+        sage: Gc = C.generator_matrix_systematic()
+        sage: Gh == Gc
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
         sage: H = C.parity_check_matrix()
@@ -1315,7 +1274,7 @@ def ToricCode(P,F):
 
     REFERENCES:
 
-    .. [J] D. Joyner, Toric codes over finite fields, Applicable
+    .. [J] \D. Joyner, Toric codes over finite fields, Applicable
        Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples

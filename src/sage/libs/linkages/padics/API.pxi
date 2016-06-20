@@ -53,8 +53,6 @@ file gives the function signatures.
 
 The gluing file should ctypedef celement as appropriate.
 
-Each linkage file should include stdsage.pxi
-
 .. NOTE::
 
     This particular file is not included anywhere.  It just defines
@@ -366,7 +364,7 @@ cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 1.
 
@@ -381,7 +379,7 @@ cdef inline bint cisone(celement out, PowComputer_class prime_pow) except -1:
     """
     pass
 
-cdef inline bint ciszero(celement out, PowComputer_class prime_pow) except -1:
+cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
 

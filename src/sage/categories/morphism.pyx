@@ -335,7 +335,7 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

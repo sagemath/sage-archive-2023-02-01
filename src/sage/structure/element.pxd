@@ -35,8 +35,8 @@ cdef str arith_error_message(x, y, op)
 
 cdef class Element(SageObject):
     cdef Parent _parent
-    cpdef _richcmp_(left, Element right, int op)
-    cpdef int _cmp_(left, Element right) except -2
+    cpdef _richcmp_(left, right, int op)
+    cpdef int _cmp_(left, right) except -2
     cpdef base_extend(self, R)
 
     cpdef _act_on_(self, x, bint self_on_left)
@@ -50,36 +50,31 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-
-    cpdef ModuleElement _add_(self, ModuleElement right)
-    cpdef ModuleElement _sub_(self, ModuleElement right)
-    cpdef ModuleElement _neg_(self)
+    cpdef _add_(self, right)
+    cpdef _sub_(self, right)
+    cpdef _neg_(self)
     # self._rmul_(x) is x * self
-    cpdef ModuleElement _lmul_(self, RingElement right)
+    cpdef _lmul_(self, RingElement right)
     # self._lmul_(x) is self * x, to abide with Python conventions.
-    cpdef ModuleElement _rmul_(self, RingElement left)
+    cpdef _rmul_(self, RingElement left)
 
-    cdef ModuleElement _mul_long(self, long n)
-
-    # Coerce x to the base ring of self and return the result.
-    cdef RingElement coerce_to_base_ring(self, x)
+    cdef _mul_long(self, long n)
 
 cdef class MonoidElement(Element):
-    cpdef MonoidElement _mul_(self, MonoidElement right)
+    cpdef _mul_(self, right)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right)
-
+    cpdef _div_(self, right)
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef RingElement _mul_(self, RingElement right)
-    cpdef RingElement _div_(self, RingElement right)
-    cpdef RingElement _floordiv_(self, RingElement right)
+    cpdef _mul_(self, right)
+    cpdef _div_(self, right)
+    cpdef _floordiv_(self, right)
 
-    cdef RingElement _add_long(self, long n)
+    cdef _add_long(self, long n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -118,10 +113,10 @@ cdef class Vector(ModuleElement):
     # Return the dot product using the simple metric
     # $e_i \cdot e_j = \delta_{ij}$. The first assumes that the parents
     # are equal, both assume that the degrees are equal.
-    cpdef Element _dot_product_(Vector left, Vector right)
-    cpdef Element _dot_product_coerce_(Vector left, Vector right)
+    cpdef _dot_product_(Vector left, Vector right)
+    cpdef _dot_product_coerce_(Vector left, Vector right)
 
-    cpdef Vector _pairwise_product_(Vector left, Vector right) # override, call if parents the same
+    cpdef _pairwise_product_(Vector left, Vector right) # override, call if parents the same
 
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)
@@ -132,9 +127,9 @@ cdef class Matrix(ModuleElement):
     cdef Py_ssize_t _nrows
     cdef Py_ssize_t _ncols
 
-    cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left)    # OK to override, AND call directly
-    cdef Vector _matrix_times_vector_(matrix_left, Vector vector_right)    # OK to override, AND call directly
-    cdef Matrix _matrix_times_matrix_(left, Matrix right)                  # OK to override, AND call directly
+    cdef _vector_times_matrix_(matrix_right, Vector vector_left)    # OK to override, AND call directly
+    cdef _matrix_times_vector_(matrix_left, Vector vector_right)    # OK to override, AND call directly
+    cdef _matrix_times_matrix_(left, Matrix right)                  # OK to override, AND call directly
 
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)

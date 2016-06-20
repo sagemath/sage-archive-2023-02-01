@@ -778,7 +778,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Arithmetic                                                              #
     ###########################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Returns the sum of two rational polynomials.
 
@@ -806,7 +806,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Returns the difference of two rational polynomials.
 
@@ -834,7 +834,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns the difference of two rational polynomials.
 
@@ -988,7 +988,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return d, s, t
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Returns the product of self and right.
 
@@ -1054,7 +1054,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         r"""
         Returns left * self, where left is a rational number.
 
@@ -1074,7 +1074,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self * right, where right is a rational number.
 

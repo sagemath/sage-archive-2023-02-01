@@ -2194,7 +2194,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     #   Basic Arithmetic
     ########################
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real numbers with the same parent.
 
@@ -2223,7 +2223,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent(1) / self
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -2253,7 +2253,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         import sympy
         return sympy.simplify(float(self))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -2286,7 +2286,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return x
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by other, where both are real numbers with the same
         parent.
@@ -2306,7 +2306,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the negative of ``self``.
 
@@ -3816,7 +3816,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return not mpfr_zero_p(self.value)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
         if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``

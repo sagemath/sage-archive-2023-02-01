@@ -5,7 +5,6 @@ from polynomial_compiled import CompiledPolynomialFunction
 from polynomial_compiled cimport CompiledPolynomialFunction
 
 cdef class Polynomial(CommutativeAlgebraElement):
-    cpdef ModuleElement _neg_(self)
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)

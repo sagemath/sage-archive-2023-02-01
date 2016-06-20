@@ -721,7 +721,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two rational numbers.
 
@@ -2077,7 +2077,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Return ``right`` plus ``self``.
 
@@ -2093,7 +2093,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return ``self`` minus ``right``.
 
@@ -2108,7 +2108,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Negate ``self``.
 
@@ -2122,7 +2122,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Return ``self`` times ``right``.
 
@@ -2144,7 +2144,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Return ``self`` divided by ``right``.
 

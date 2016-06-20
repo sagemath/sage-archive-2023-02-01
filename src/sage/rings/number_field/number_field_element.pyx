@@ -2068,12 +2068,10 @@ cdef class NumberFieldElement(FieldElement):
         sig_on()
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
-
+        ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
         if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
-            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, self.__fld_numerator.x)
         else:
-            ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_mul(x.__numerator, self.__numerator, _right.__numerator)
             if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
                 ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
@@ -2118,7 +2116,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Number field element division by zero
+            ZeroDivisionError: number field element division by zero
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
@@ -2127,25 +2125,33 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c temp
         cdef ZZ_c temp1
         if not _right:
-            raise ZeroDivisionError("Number field element division by zero")
-        x = self._new()
-        sig_on()
-        _right._invert_c_(&inv_num, &inv_den)
-        if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
+            raise ZeroDivisionError("number field element division by zero")
+        try:
+            # Try to use NTL to perfom the division.  This is fast,
+            # but may fail if NTL runs out of FFT primes.
+            x = self._new()
+            sig_on()
+            ZZX_XGCD(inv_den, inv_num, temp, _right.__numerator, self.__fld_numerator.x, 1)
+            ZZX_mul_ZZ(inv_num, inv_num, _right.__denominator)
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
-        else:
-            ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            ZZX_mul(x.__numerator, self.__numerator, inv_num)
-            if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
-                ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
-                ZZX_mul_ZZ( temp, self.__fld_numerator.x, x.__denominator )
-                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(self.__fld_numerator.x)+1)
-                ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
-                ZZ_mul(x.__denominator, x.__denominator, temp1)
-        x._reduce_c_()
-        sig_off()
+            # MulMod doesn't handle non-monic polynomials; we handle
+            # the non-monic case separately.
+            if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
+                ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
+            else:
+                ZZX_mul(x.__numerator, self.__numerator, inv_num)
+                if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
+                    ZZX_mul_ZZ(x.__numerator, x.__numerator, self.__fld_denominator.x)
+                    ZZX_mul_ZZ(temp, self.__fld_numerator.x, x.__denominator)
+                    ZZ_power(temp1, ZZX_LeadCoeff(temp), ZZX_deg(x.__numerator) - ZZX_deg(self.__fld_numerator.x) + 1)
+                    ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
+                    ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
+                    ZZ_mul(x.__denominator, x.__denominator, temp1)
+            x._reduce_c_()
+            sig_off()
+        except NTLError:
+            # In case NTL fails we fall back to PARI.
+            x = self._parent(self._pari_() / right._pari_())
         return x
 
     def __nonzero__(self):
@@ -2259,32 +2265,6 @@ cdef class NumberFieldElement(FieldElement):
         """
         return long(self.polynomial())
 
-    cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den) except *:
-        """
-        Computes the numerator and denominator of the multiplicative
-        inverse of this element.
-
-        Suppose that this element is x/d and the parent mod'ding polynomial
-        is M/D. The NTL function XGCD( r, s, t, a, b ) computes r,s,t such
-        that `r=s*a+t*b`. We compute XGCD( r, s, t, x, M )
-        and set num=s\*d den=r
-
-        EXAMPLES:
-
-        I'd love to, but since we are dealing with c-types, I
-        can't at this level. Check __invert__ for doc-tests that rely
-        on this functionality.
-        """
-        cdef ZZX_c t # unneeded except to be there
-        #cdef ZZX_c a, b
-        sig_on()
-        #ZZX_mul_ZZ( a, self.__numerator, self.__fld_denominator.x )
-        #ZZX_mul_ZZ( b, self.__fld_numerator.x, self.__denominator )
-        ZZX_XGCD( den[0], num[0],  t, self.__numerator, self.__fld_numerator.x, 1 )
-        #ZZX_mul_ZZ( num[0], num[0], self.__fld_denominator.x )
-        ZZX_mul_ZZ( num[0], num[0], self.__denominator )
-        sig_off()
-
     def __invert__(self):
         """
         Returns the multiplicative inverse of self in the number field.
@@ -2311,17 +2291,20 @@ cdef class NumberFieldElement(FieldElement):
             1
         """
         if IsZero_ZZX(self.__numerator):
-            raise ZeroDivisionError
+            raise ZeroDivisionError("number field element division by zero")
         cdef NumberFieldElement x
+        cdef ZZX_c temp
         try:
-            # Try to use NTL to compute the inverse which is fast
+            # Try to use NTL to compute the inverse.  This is fast,
+            # but may fail if NTL runs out of FFT primes.
             x = self._new()
             sig_on()
-            self._invert_c_(&x.__numerator, &x.__denominator)
+            ZZX_XGCD(x.__denominator, x.__numerator, temp, self.__numerator, self.__fld_numerator.x, 1)
+            ZZX_mul_ZZ(x.__numerator, x.__numerator, self.__denominator)
             x._reduce_c_()
             sig_off()
-        except NTLError as e:
-            # in case NTL fails we fall back to use pari
+        except NTLError:
+            # In case NTL fails we fall back to PARI.
             x = self._parent(~self._pari_())
         return x
 

@@ -35,7 +35,7 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZX_div_ZZ "div"( ZZX_c x, ZZX_c a, ZZ_c b)
     long ZZX_deg "deg"( ZZX_c x )
     void ZZX_rem "rem"(ZZX_c r, ZZX_c a, ZZX_c b)
-    void ZZX_XGCD "XGCD"(ZZ_c r, ZZX_c s, ZZX_c t, ZZX_c a, ZZX_c b, long deterministic) except +
+    void ZZX_XGCD "XGCD"(ZZ_c r, ZZX_c s, ZZX_c t, ZZX_c a, ZZX_c b, long deterministic)
     void ZZX_content "content"(ZZ_c d, ZZX_c f)
     void ZZX_factor "factor"(ZZ_c c, vec_pair_ZZX_long_c factors, ZZX_c f, long verbose, long bnd)
 

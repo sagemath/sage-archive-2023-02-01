@@ -356,12 +356,25 @@ pickled::
     ...   )
     sage: TestSuite(menu).run()
 
+
+== Slowest module imports (excluding / including children) ==
+exclude/ms include/ms   #parents  module name
+     3.593      3.812          1  sage.combinat.posets.hasse_diagram
+     4.394     20.471         38  sage.combinat.partition
+     4.856      4.935          1  sage.combinat.diagram_algebras
+     5.179      6.218         30  sage.combinat.permutation
+   208.358    216.462         22  sage.libs.pari.pari_instance
+Total time (sum over exclusive time): 1462.549ms
+Use sage -startuptime <module_name> to get more details about <module_name>.
+
 AUTHORS:
 
 - Andrew Mathas (2013): initial version
+- Andrew Mathas (2016): overhaul making the options attributes, enabling
+                        pickling and attaching the options to a class.
 """
 #*****************************************************************************
-#  Copyright (C) 2013 Andrew Mathas <andrew dot mathas at sydney dot edu dot au>
+#  Copyright (C) 2013,2016 Andrew Mathas <andrew dot mathas at sydney dot edu dot au>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -372,30 +385,62 @@ from __builtin__ import object, str
 from sage.misc.superseded import deprecated_function_alias
 import inspect
 
-class Option(object):
+class _Option(object):
+    r"""
+        Each option for an options class is an instance of this class which
+        implements the magic that allows the options to the attributes of the
+        options class that can be looked up, set and called.
+
+        By way of example, this class implements the following functionality.
+
+        EXAMPLES::
+
+            sage: Partitions.options.display           # indirect doctest
+            sage: Partitions.options.display='compact'
+            sage: Partitions.options.display('list')
+
+        TESTS::
+
+            sage: TestSuite(Partitions.options.display).run()
+    """
     def __init__(self, options, name):
-        object.__init__(self)
-        self._name=name
-        self._options=options
+        r"""
+        Initialise an option by settings its ``name``, "parent" option class
+        ``options`` and doc-string.
+
+        EXAMPLES::
+
+            sage: type(Partitions.options.display)    # indirect doctest
+        """
+        self._name = name
+        self._options = options
+        self.__doc__= options._doc[name]
+        super(_Option, self).__init__()
 
     def __repr__(self):
+        r"""
+        Return a string representation for this collection of options.
+
+        EXAMPLES::
+
+            sage: Partitions.options.display # indirect doctest
+        """
         return self._options.__getitem__(self._name)
 
     def __call__(self, value=None):
+        r"""
+        Get or set value of the option ``self``.
+
+        EXAMPLES::
+
+            sage: Partitions.options.display() # indirect doctest
+            sage: Partitions.options.display('exp') # indirect doctest
+        """
+        print('Options.__call: {}'.format(value))
         if value is None:
             return self._options[self._name]
         else:
             self._options.__setitem__(self._name, value)
-
-    def __getattribute__(self, name):
-        if name == '_sage_doc_':
-            print(object.__getattribute__(self, '_options')._doc[object.__getattribute__(self,'_name')])
-        else:
-            return object.__getattribute__(self, name)
-
-    def __setattr__(self, name, value=None):
-        return object.__setattr__(self, name, value)
-
 
 class AddOptionsToClass(object):
     r"""
@@ -537,7 +582,7 @@ class AddOptionsToClass(object):
         <BLANKLINE>
         Current value: espresso
     """
-    def __init__(self, options_class=None, name='', doc='', end_doc='', **options):
+    def __init__(self, name='', doc='', end_doc='', **options):
         r"""
         Initialize ``self``.
 
@@ -604,27 +649,14 @@ class AddOptionsToClass(object):
         if len(doc)>0:
             lines=doc.splitlines()
             m=min(len(line)-len(line.lstrip()) for line in lines if len(line)>0)
-            doc='\n'.join(line[m:] for line in lines)
+            self._doc_start='\n'.join(line[m:] for line in lines)
 
         if len(end_doc)>0:
             lines=end_doc.splitlines()
             m=min(len(line)-len(line.lstrip()) for line in lines if len(line)>0)
-            end_doc='\n'.join(line[m:] for line in lines)
-
-        self.__doc__='{start}\n\nOPTIONS:\n\n{options}\n\n\n{end_doc}\n\n{g_opts}'.format(
-                       start=doc, end_doc=end_doc,
-                       options='\n'.join(self._doc[opt] for opt in sorted(self._doc)),
-                       g_opts='See :class:`~sage.structure.global_options.AddOptionsToClass` for more features of these options.'
-        )
-        self._options_class=options_class
+            self._doc_end='\n'.join(line[m:] for line in lines)
 
         super(AddOptionsToClass, self).__init__()
-
-        if inspect.isclass(options_class):
-            #print('Adding options to {}'.format(options_class))
-            self._options_class=options_class
-            options_class.options=self
-            options_class.global_options=deprecated_function_alias(18555, options_class.options)
 
     __name__ = 'Options class'
 
@@ -641,13 +673,17 @@ class AddOptionsToClass(object):
             sage: FoodOptions
             options for daily meal
         """
-        if hasattr(self, '_options_class'):
-            if hasattr(self._options_class, '__name__'):
-                return 'options for %s' % self._options_class.__name__
-            else:
-                return 'options for %s' % self._options_class
-        else:
-            return 'options for ??'
+        options=self._value.keys()+self._linked_value.keys()
+        for x in self._alt_names:
+            options.remove(x)
+        if options == []:
+            return  'Current options for {}'.format(self._name)
+
+        options.sort()
+        width=1+max(len(option) for option in options)
+        return  'Current options for {}\n{}'.format(self._name,
+                    '\n'.join('  - {:{}} {}'.format(option+':',width,self[option]) for option in options)
+                )
 
     def __call__(self, *get_value, **set_value):
         r"""
@@ -677,19 +713,12 @@ class AddOptionsToClass(object):
               - drink: coffee
               - food:  apple
         """
-        print 'G).call: {} and {}.'.format(get_value, set_value)
         if get_value==() and set_value=={}:
-            print 'Current %s' % self
-            options=self._value.keys()+self._linked_value.keys()
-            for x in self._alt_names:
-                options.remove(x)
-            options.sort()
-            width=1+max(len(option) for option in options)
-            print '\n'.join('  - {:{}} {}'.format(option+':',width,self[option])
-                            for option in options)
+            print self
+            return
 
-        # use __getitem__ to return these options
         if get_value!=():
+        # use __getitem__ to return these options
             if len(get_value)==1:
                 return self.__getitem__(get_value[0])
             else:
@@ -716,7 +745,6 @@ class AddOptionsToClass(object):
             sage: FoodOptions['d']
             'water'
         """
-        print 'GetItem: {} = {} in {}.'.format(option)
         option=self._match_option(option)
         if option in self._linked_value:
             link,linked_opt=self._linked_value[option]
@@ -754,7 +782,6 @@ class AddOptionsToClass(object):
             <BLANKLINE>
             Current value: water
         """
-        print 'SetItem: {} = {} in {}.'.format(option, value, self)
         option=self._match_option(option)
         if not callable(value):
             value=self._match_value(option, value)
@@ -769,68 +796,43 @@ class AddOptionsToClass(object):
 
         else:
             self._value[option]=value
-            print('Setting: {} --> {}'.format(option, value))
 
         if option in self._setter:
             # if a setter function exists then call it with the associated
             # class, option and value
             self._setter[option](option, value)
 
-    def __getitem__(self, option):
-        r"""
-        Return the current value of the option ``option``.
-
-        EXAMPLES::
-
-            sage: from sage.structure.global_options import AddOptionsToClass
-            sage: FoodOptions=AddOptionsToClass('daily meal',
-            ...         food=dict(default='apple', values=dict(apple='a fruit',pair='of what?')),
-            ...         drink=dict(default='water', values=dict(water='a drink',coffee='a lifestyle')),
-            ...         beverage=dict(alt_name='drink'))
-            sage: FoodOptions['drink']
-            'water'
-            sage: FoodOptions['d']
-            'water'
-
-        .. NOTE::
-
-            This is redundant with the ``__call__`` syntax::
-
-                sage: FoodOptions('f')
-                'apple'
-
-            but it makes for an intuitive syntax that the user is
-            likely to expect.
-        """
-        option=self._match_option(option)
-        if option in self._linked_value:
-            link,linked_opt=self._linked_value[option]
-            return link[linked_opt]
-        elif option in self._value:
-            if option in self._display_values:
-                return self._display_values[option][self._value[option]]
-            return self._value[option]
-
-    def __getattribute__(self, name):
-        r"""
-            Returns the attribute ``name`` of the option class self, if it exists.
-
-            As the attributes of an option class are the actual options we need
-            to be able to "trap" invalid options in a sensible way. We do this
-            by sending any "non-standard" to :meth:`__getitem__` for processing.
+    def __docstring__ (self):
+        r''' Return the docstring for the options class ``self``.
 
             EXAMPLES::
 
-                sage: Partitions.options.display  # indirect doc-test
-                sage: Partitions.options.dispplay # indirect doc-test
+                sage: Partitions.options?  # not tested (too long)
+        '''
+        return '{start}\n\nOPTIONS:\n\n{options}\n\n\n{end}\n\n{g_opts}'.format(
+                   start=self._doc_start, end=self._doc_end,
+                   options='\n'.join(self._doc[opt] for opt in sorted(self._doc)),
+                   g_opts='See :class:`~sage.structure.global_options.AddOptionsToClass` for more features of these options.'
+        )
+
+    def __getattribute__(self, name):
+        r"""
+        Return the attribute ``name`` for ``self.
+
+        If ``name`` is `__doc__` then we return ``self._docstring``. This allows
+        us to dynamically alter the doc string when new options are added.
+
+        EXAMPLES::
+
+            sage: Partitions.options.display # indirect docttest
         """
-        if name[0] == '_' or name in ['reset', 'dispatch', 'default_value']:
-            return object.__getattribute__(self, name)
+        if name == '__doc__':
+            return object.__getattribute__(self, '__docstring__')()
         else:
-            return object.__getattribute__(self, '__getitem__')(name)
+            return object.__getattribute__(self, name)
 
     def __setattr__(self, name, value=None):
-       r"""
+        r"""
             Set the attribute ``name`` of the option class self equal to ``value,  
             if the attribute ``name`` exists.
 
@@ -843,6 +845,8 @@ class AddOptionsToClass(object):
                 sage: Partitions.options.display='exp'  # indirect doc-test
                 sage: Partitions.options.dispplay='exp' # indirect doc-test
         """
+        # Underscore, and "special", attributes are set using object.__setattr__
+        # Anything else is assume to be an option and directed to __setitem__.
         if name[0] == '_' or name in ['reset', 'dispatch', 'default_value']:
             object.__setattr__(self, name, value)
         else: # redirect to __setitem
@@ -904,73 +908,38 @@ class AddOptionsToClass(object):
                 {'convention': 'English',
                  'options_class': <class 'sage.combinat.partition.Partitions'>}
         """
-        if (self._options_class is not None and hasattr(self._options_class, 'global_options')):
-            pickle={'options_class': self._options_class}
-            for opt in self._value.keys():
-                if opt not in self._alt_names and self[opt]!=self.__default_value[opt]:
-                    pickle[opt]=self[opt]
-            for opt in self._linked_value:
-                link, linked_opt=self._linked_value[opt]
-                if opt not in self._alt_names and link[opt]!=link.__default_value[opt]:
-                    pickle[opt]=self[opt]
+        try: 
+            options_class=globals()[self._name]
+            if inspect.isclass(option_class) and hasattr(self._options_class, 'options'):
+                pickle={'options_class': self._options_class}
+                for opt in self._value.keys():
+                    if opt not in self._alt_names and self[opt]!=self.__default_value[opt]:
+                        pickle[opt]=self[opt]
+                for opt in self._linked_value:
+                    link, linked_opt=self._linked_value[opt]
+                    if opt not in self._alt_names and link[opt]!=link.__default_value[opt]:
+                        pickle[opt]=self[opt]
 
-            try:
-                return pickle
-            except PicklingError:
-                raise PicklingError('one or more of the global options for %s cannot  be pickled' % self._options_class)
+                try:
+                    return pickle
+                except PicklingError:
+                    raise PicklingError('one or more of the options for %s cannot  be pickled' % self._options_class)
+        except KeyError:
+            pass
 
-        else:
-            # if self._options_class is not a class then we have no way to
-            # reconstruct the global options
-            raise PicklingError('%s cannot be pickled because it is not associated with a class' % self)
-
-    def __setstate__(self, state):
-        r"""
-        This is a custom :meth:`__setstate__` method for unpickling instances of
-        the :class:`AddOptionsToClass` class.
-
-        The :meth:`__getstate__` method returns a dictionary with an
-        `options_class` key which identifies the "parent" class for the options.
-        This is then used to unpickle the options class.
-
-        EXAMPLES::
-
-            sage: Partitions.global_options()
-            Current options for Partitions
-              - convention:        English
-              - diagram_str:       *
-              - display:           list
-              - latex:             young_diagram
-              - latex_diagram_str: \ast
-            sage: Partitions.options.convention="French"
-            sage: loads(dumps(Partitions.global_options))()  # indirect doctest
-            Current options for Partitions
-              - convention:        French
-              - diagram_str:       *
-              - display:           list
-              - latex:             young_diagram
-              - latex_diagram_str: \ast
-        """
-        # copy all settings across from unpickle to `self`.
-        unpickle=state['options_class'].global_options
-        for setting in unpickle.__dict__.keys():
-            self.__dict__[setting] = unpickle.__dict__[setting]
-        self._reset()       # reset the options in `self` to their defaults
-        state.pop('options_class')
-        for opt in state: # apply the options store in state
-            self[opt]=state[opt]
-        self._options_class.options=self
+        # if self._options_class is not a class then we have no way to
+        # reconstruct the global options
+        raise PicklingError('%s cannot be pickled because it is not associated with a class' % self)
 
     def __eq__(self, other):
         r"""
-        Two options classes are equal if they return the same
-        :meth:`__getstate__.
+        Two options classes are equal if they return the same :meth:`__getstate__.
 
         EXAMPLES::
 
-            sage: Partitions.options == RegularPartitions.options # indirect doctest
+            sage: Partitions.options == PartitionsGreatestLE.options # indirect doctest
             True
-            sage: Partitions.options ==Tableaux..options
+            sage: Partitions.options == Tableaux.options
             False
         """
         return self.__getstate__() == other.__getstate__()
@@ -1060,13 +1029,14 @@ class AddOptionsToClass(object):
                         self._alias[option] = {k.lower():v.lower() for k,v in self._alias[option].iteritems()}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec!='description':
-                raise ValueError('Initialization error in Global options for %s: %s not recognized!'%(self._options_class, spec))
+                raise ValueError('Initialization error in Global options for %s: %s not recognized!'%(self._name, spec))
 
         # now build the doc string for this option
         if doc == {} and not 'description' in specifications:
             raise ValueError('no documentation specified for %s in the %s' % (option, self))
 
-        self._doc[option]=''   # a hack to put option in self._doc because __setitem__ calls _match_option
+        # first a necessary hack to initialise the option in self._doc because __setitem__ calls _match_option
+        self._doc[option]=''   
         if option in self._linked_value:
             self._doc[option]=doc
         else:
@@ -1093,8 +1063,9 @@ class AddOptionsToClass(object):
             self[option]=self.__default_value[option]
             self.__default_value[option]=self._value[option]  # in case the default is an alias
 
-        # now build getters and setters for use with self.`option`
-        object.__setattr__(self, option, Option(self, option))
+        # Build getters and setters for this option. As we have overridden __setattr__ we 
+        # call object.__setattr_ directly
+        object.__setattr__(self, option, _Option(self, option))
 
     def _match_option(self, option):
         r"""
@@ -1126,10 +1097,10 @@ class AddOptionsToClass(object):
         if len(matches)>0 and all(m.startswith(matches[0]) for m in matches):
             return matches[0]
         elif len(matches)>1:
-            raise ValueError('%s is an ambiguous option for %s'%(option, self._options_class))
+            raise ValueError('%s is an ambiguous option for %s'%(option, self._name))
 
         # if we are still here this is not a good option!
-        raise ValueError('%s is not an option for %s' % (option, self._options_class))
+        raise ValueError('%s is not an option for %s' % (option, self._name))
 
     def _match_value(self, option, value):
         r"""

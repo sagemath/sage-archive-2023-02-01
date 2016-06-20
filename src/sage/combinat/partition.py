@@ -5066,7 +5066,7 @@ class Partitions(UniqueRepresentation, Parent):
             raise ValueError("Invalid combination of arguments")
         return self
 
-AddOptionsToClass(Partitions,
+AddOptionsToClass('Partitions',
     doc=r"""
     Sets and displays the global options for elements of the partition, skew
     partition, and partition tuple classes.  If no parameters are set, then the
@@ -5157,7 +5157,7 @@ AddOptionsToClass(Partitions,
     notation = dict(alt_name='convention')
 )
 
-
+PartitionOptions = deprecated_function_alias(18555, Partitions.options)
 
 class Partitions_all(Partitions):
     """

@@ -668,7 +668,8 @@ class TensorProductOfCrystals(CrystalOfWords):
         return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
     # add options to class
-    options=GlobalOptions('TensorProductOfCrystals',
+    options=GlobalOptions('TensorProductOfCrystals', 
+        module='sage.combinat.crystals',
         doc=r"""
         Sets the global options for tensor products of crystals. The default is to
         use the anti-Kashiwara convention.

@@ -387,6 +387,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     # add options to class
     options=GlobalOptions('RiggedConfigurations',
+        module='sage.combinat.rigged_configurations.rigged_configurations',
         doc=r"""
         Sets and displays the options for rigged configurations.
         If no parameters are set, then the function returns a copy of
@@ -422,7 +423,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             sage: T.pp()
               4  5
               1  2  3
-            sage: Tableaux.options(convention="english")
+            sage: Tableaux.options.convention="english"
             sage: elt
             -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
             -1[ ]-1

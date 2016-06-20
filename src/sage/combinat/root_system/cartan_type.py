@@ -474,92 +474,6 @@ from six.moves.builtins import sorted
 
 class CartanTypeFactory(SageObject):
 
-    # add options to class
-    options=GlobalOptions('CartanType',
-        doc=r"""
-        Sets and displays the options for Cartan types. If no parameters
-        are set, then the function returns a copy of the options dictionary.
-
-        The ``options`` to partitions can be accessed as the method
-        :obj:`CartanType.options` of
-        :class:`CartanType <CartanTypeFactory>`.
-        """,
-        end_doc=r"""
-        EXAMPLES::
-
-            sage: ct = CartanType(['D',5,2]); ct
-            ['C', 4, 1]^*
-            sage: ct.dynkin_diagram()
-            O=<=O---O---O=>=O
-            0   1   2   3   4
-            C4~*
-            sage: latex(ct)
-            C_{4}^{(1)\vee}
-            sage: CartanType.options(dual_str='#', dual_latex='\\ast',)
-            sage: ct
-            ['C', 4, 1]^#
-            sage: ct.dynkin_diagram()
-            O=<=O---O---O=>=O
-            0   1   2   3   4
-            C4~#
-            sage: latex(ct)
-            C_{4}^{(1)\ast}
-            sage: CartanType.options(notation='kac', mark_special_node='both')
-            sage: ct
-            ['D', 5, 2]
-            sage: ct.dynkin_diagram()
-            @=<=O---O---O=>=O
-            0   1   2   3   4
-            D5^2
-            sage: latex(ct)
-            D_{5}^{(2)}
-
-        For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
-        automatically overriden::
-
-            sage: dct = CartanType(['A',8,2]).dual(); dct
-            ['A', 8, 2]^+
-            sage: latex(dct)
-            A_{8}^{(2)\dagger}
-            sage: dct.dynkin_diagram()
-            @=>=O---O---O=>=O
-            0   1   2   3   4
-            A8^2+
-            sage: CartanType.options._reset()
-        """,
-        notation=dict(default="Stembridge",
-                      description='Specifies which notation Cartan types should use when printed',
-                      values=dict(Stembridge="use Stembridge's notation",
-                                  Kac="use Kac's notation"),
-                      case_sensitive=False,
-                      alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
-        dual_str=dict(default="*",
-                      description='The string used for dual Cartan types when printing',
-                      checker=lambda char: isinstance(char,str)),
-        dual_latex=dict(default="\\vee",
-                        description='The latex used for dual CartanTypes when latexing',
-                        checker=lambda char: isinstance(char,str)),
-        mark_special_node=dict(default="none",
-                               description="Make the special nodes",
-                               values=dict(none="no markup", latex="only in latex",
-                                           printing="only in printing", both="both in latex and printing"),
-                               case_sensitive=False),
-        special_node_str=dict(default="@",
-                              description="The string used to indicate which node is special when printing",
-                              checker=lambda char: isinstance(char,str)),
-        marked_node_str=dict(default="X",
-                             description="The string used to indicate a marked node when printing",
-                             checker=lambda char: isinstance(char, str)),
-        latex_relabel=dict(default=True,
-                           description="Indicate in the latex output if a Cartan type has been relabelled",
-                           checker=lambda x: isinstance(x,bool)),
-        latex_marked=dict(default=True,
-                          description="Indicate in the latex output if a Cartan type has been marked",
-                          checker=lambda x: isinstance(x,bool))
-    )
-
-    global_options=deprecated_function_alias(18555, options)
-
     def __call__(self, *args):
         """
         Constructs a Cartan type object.
@@ -894,6 +808,93 @@ class CartanTypeFactory(SageObject):
             'green'
         """
         return cls._colors.get(i, 'black')
+
+    # add options to class
+    options=GlobalOptions('CartanType',
+        module='sage.combinat.root_system.cartan_type', option_class='CartanTypeFactory',
+        doc=r"""
+        Sets and displays the options for Cartan types. If no parameters
+        are set, then the function returns a copy of the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`CartanType.options` of
+        :class:`CartanType <CartanTypeFactory>`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: ct = CartanType(['D',5,2]); ct
+            ['C', 4, 1]^*
+            sage: ct.dynkin_diagram()
+            O=<=O---O---O=>=O
+            0   1   2   3   4
+            C4~*
+            sage: latex(ct)
+            C_{4}^{(1)\vee}
+            sage: CartanType.options(dual_str='#', dual_latex='\\ast',)
+            sage: ct
+            ['C', 4, 1]^#
+            sage: ct.dynkin_diagram()
+            O=<=O---O---O=>=O
+            0   1   2   3   4
+            C4~#
+            sage: latex(ct)
+            C_{4}^{(1)\ast}
+            sage: CartanType.options(notation='kac', mark_special_node='both')
+            sage: ct
+            ['D', 5, 2]
+            sage: ct.dynkin_diagram()
+            @=<=O---O---O=>=O
+            0   1   2   3   4
+            D5^2
+            sage: latex(ct)
+            D_{5}^{(2)}
+
+        For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
+        automatically overriden::
+
+            sage: dct = CartanType(['A',8,2]).dual(); dct
+            ['A', 8, 2]^+
+            sage: latex(dct)
+            A_{8}^{(2)\dagger}
+            sage: dct.dynkin_diagram()
+            @=>=O---O---O=>=O
+            0   1   2   3   4
+            A8^2+
+            sage: CartanType.options._reset()
+        """,
+        notation=dict(default="Stembridge",
+                      description='Specifies which notation Cartan types should use when printed',
+                      values=dict(Stembridge="use Stembridge's notation",
+                                  Kac="use Kac's notation"),
+                      case_sensitive=False,
+                      alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
+        dual_str=dict(default="*",
+                      description='The string used for dual Cartan types when printing',
+                      checker=lambda char: isinstance(char,str)),
+        dual_latex=dict(default="\\vee",
+                        description='The latex used for dual CartanTypes when latexing',
+                        checker=lambda char: isinstance(char,str)),
+        mark_special_node=dict(default="none",
+                               description="Make the special nodes",
+                               values=dict(none="no markup", latex="only in latex",
+                                           printing="only in printing", both="both in latex and printing"),
+                               case_sensitive=False),
+        special_node_str=dict(default="@",
+                              description="The string used to indicate which node is special when printing",
+                              checker=lambda char: isinstance(char,str)),
+        marked_node_str=dict(default="X",
+                             description="The string used to indicate a marked node when printing",
+                             checker=lambda char: isinstance(char, str)),
+        latex_relabel=dict(default=True,
+                           description="Indicate in the latex output if a Cartan type has been relabelled",
+                           checker=lambda x: isinstance(x,bool)),
+        latex_marked=dict(default=True,
+                          description="Indicate in the latex output if a Cartan type has been marked",
+                          checker=lambda x: isinstance(x,bool))
+    )
+
+    global_options = deprecated_function_alias(18555, options)
 
 
 CartanType = CartanTypeFactory()

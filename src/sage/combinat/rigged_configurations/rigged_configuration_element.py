@@ -302,7 +302,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: elt
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: RC.options.reset()
+            sage: RC.options._reset()
         """
         return self.parent().options._dispatch(self, '_repr_', 'display')
 
@@ -451,10 +451,10 @@ class RiggedConfigurationElement(ClonableArray):
                       1[ ]0        3[ ]2     0[ ]0     0[ ]0        0[ ]0
                       2[ ][ ]0     4[ ][ ]1  2[ ][ ]0  2[ ][ ]1     0[ ]0     0[ ][ ]0
             3[ ][ ]2  1[ ][ ][ ]1  4[ ][ ]4  2[ ][ ]1  0[ ][ ][ ]0  0[ ][ ]0  0[ ][ ]0
-            sage: Partitions.options.reset()
+            sage: Partitions.options._reset()
         """
         from sage.combinat.partition import Partitions
-        if Partitions.convention == "French":
+        if Partitions.options.convention == "French":
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)

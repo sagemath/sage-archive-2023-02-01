@@ -2131,7 +2131,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         super(TamariIntervalPosets, self).__init__(category=category)
 
     # add options to class
-    options=GlobalOptions('TamariIntervalPosets',
+    options=GlobalOptions('TamariIntervalPosets', 
+        module='sage.combinat.interval_posets',
         doc=r"""
         Set and display the options for Tamari interval-posets. If no
         parameters are set, then the function returns a copy of the options
@@ -2145,13 +2146,13 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.latex_options()["color_decreasing"]
+            sage: ip.latex_options.color_decreasing
             'red'
-            sage: TamariIntervalPosets.options(latex_color_decreasing='green')
-            sage: ip.latex_options()["color_decreasing"]
+            sage: TamariIntervalPosets.options.latex_color_decreasing='green'
+            sage: ip.latex_options.color_decreasing
             'green'
-            sage: TamariIntervalPosets.options.reset()
-            sage: ip.latex_options()["color_decreasing"]
+            sage: TamariIntervalPosets.options._reset()
+            sage: ip.latex_options.color_decreasing
             'red'
         """,
         latex_tikz_scale=dict(default=1,

@@ -375,6 +375,10 @@ class DyckWord(CombinatorialElement):
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.set_latex_options({"tikz_scale":2})
             sage: D.set_latex_options({"valleys":True, "color":"blue"})
+
+        TODO::
+
+        - should probably be merged into DyckWord.options
         """
         for opt in D:
             self._latex_options[opt] = D[opt]
@@ -414,6 +418,10 @@ class DyckWord(CombinatorialElement):
              'peaks': False,
              'tikz_scale': 1,
              'valleys': False}
+
+        TODO::
+
+        - should probably be merged into DyckWord.options
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:
@@ -532,7 +540,7 @@ class DyckWord(CombinatorialElement):
             [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
         """
         from sage.typeset.ascii_art import AsciiArt
-        rep = self.parent()._options.ascii_art
+        rep = self.parent().options.ascii_art
         if rep == "path":
             ret = self.to_path_string()
         elif rep == "pretty_output":
@@ -3066,7 +3074,7 @@ class DyckWords(UniqueRepresentation, Parent):
     Element = DyckWord
 
     # add options to class
-    options=GlobalOptions('DyckWords',
+    options=GlobalOptions('DyckWords', module='sage.combinat.dyck_word',
         doc=r"""
         Set and display the options for Dyck words. If no parameters
         are set, then the function returns a copy of the options dictionary.
@@ -3081,7 +3089,7 @@ class DyckWords(UniqueRepresentation, Parent):
             sage: D = DyckWord([1, 1, 0, 1, 0, 0])
             sage: D
             [1, 1, 0, 1, 0, 0]
-            sage: DyckWords.options(display="lattice")
+            sage: DyckWords.options.display="lattice"
             sage: D
                ___
              _| x

@@ -1216,6 +1216,7 @@ class SkewPartitions(UniqueRepresentation, Parent):
 
     # add options to class
     options=GlobalOptions('SkewPartitions',
+        module='sage.combinat.skew_partition',
         doc="""
         Sets and displays the options for elements of the skew partition
         classes.  If no parameters are set, then the function returns a copy of
@@ -1254,7 +1255,7 @@ class SkewPartitions(UniqueRepresentation, Parent):
             **
             **
             ****
-            sage: Tableaux.options(convention="english")
+            sage: Tableaux.options.convention="english"
             sage: SP
                *
              *

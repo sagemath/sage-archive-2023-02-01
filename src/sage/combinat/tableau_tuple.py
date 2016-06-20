@@ -429,7 +429,7 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[],[],[],[]])
             ([], [], [], [])
         """
-        return self.parent().options.dispatch(self,'_repr_','display')
+        return self.parent().options._dispatch(self,'_repr_','display')
 
     def _repr_list(self):
         """
@@ -544,7 +544,7 @@ class TableauTuple(CombinatorialElement):
             } \Bigg)
             sage: TableauTuples.options._reset()
         """
-        return self.parent().options.dispatch(self,'_latex_','latex')
+        return self.parent().options._dispatch(self,'_latex_','latex')
 
     _latex_list = _repr_list
 

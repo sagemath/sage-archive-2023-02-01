@@ -114,8 +114,8 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use directly the rename
-      method as this feature may become deprecated.
+      name of ``self``. It is recommented to use rename method directly
+      because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates
       elements of ``self`` from a list. See also :class:`Parent`.
@@ -123,11 +123,6 @@ class IntegerListsLex(IntegerLists):
     - ``element_class`` -- a class for the elements of ``self``
       (default: `ClonableArray`). This merely sets the attribute
       ``self.Element``. See the examples for details.
-
-    - ``options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
-      object that will be assigned to the attribute
-      ``_options``; for internal use only (subclasses, ...).
-
 
     .. NOTE::
 
@@ -521,8 +516,8 @@ class IntegerListsLex(IntegerLists):
     ``self`` and a list. Here we want the elements to be constructed
     in the class :class:`Partition`::
 
-        sage: IntegerListsLex(3, max_slope=0, element_class=Partition, options=Partitions.options).list()
-        doctest:...: DeprecationWarning: the argument is
+        sage: IntegerListsLex(3, max_slope=0, element_class=Partition, global_options=Partitions.options).list()
+        doctest:...: DeprecationWarning: the global_options argument is
          deprecated since, in general, pickling is broken;
          create your own class instead
         See http://trac.sagemath.org/15525 for details.

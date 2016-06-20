@@ -240,6 +240,40 @@ class AbstractPartitionDiagram(SetPartition):
         self._base_diagram = tuple(sorted(tuple(sorted(i)) for i in d))
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
 
+    # add options to class
+    options=GlobalOptions('Brauer diagram', option_class='AbstractPartitionDiagram',
+        module='sage.combinat.diagram_algebras',
+        doc=r"""
+        Set and display the global options for Brauer diagram (algebras). If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to diagram algebras can be accessed as the method
+        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
+        related classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: BA = BrauerAlgebra(2, q)
+            sage: E = BA([[1,2],[-1,-2]])
+            sage: E
+            B{{-2, -1}, {1, 2}}
+            sage: BrauerAlgebra.options.display="compact"
+            sage: E
+            B[12/12;]
+            sage: BrauerAlgebra.options._reset()
+        """,
+        display=dict(default="normal",
+                       description='Specifies how the Brauer diagrams should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   compact="Using the compact representation"),
+                                   case_sensitive=False),
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     def check(self):
         r"""
         Check the validity of the input for the diagram.
@@ -379,6 +413,8 @@ class AbstractPartitionDiagram(SetPartition):
             0
         """
         return ZZ(sum(1 for part in self._base_diagram if min(part) < 0 and max(part) > 0))
+
+BrauerDiagramOptions = deprecated_function_alias(18555, AbstractPartitionDiagram.options)
 
 class BrauerDiagram(AbstractPartitionDiagram):
     r"""
@@ -806,7 +842,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     ::
 
         sage: bd = da.BrauerDiagrams(3)
-        sage: bd.options(display="compact")
+        sage: bd.options.display="compact"
         sage: bd.list()
         [[/;321],
          [/;312],
@@ -826,6 +862,8 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd.options._reset()
     """
     Element = BrauerDiagram
+    options = AbstractPartitionDiagram.options
+    global_options = deprecated_function_alias(18555, options)
 
     def __init__(self, order, category=None):
         r"""
@@ -1878,39 +1916,6 @@ class BrauerAlgebra(SubPartitionAlgebra):
         """
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
 
-    # add options to class
-    options=GlobalOptions('BrauerAlgebra',
-        doc=r"""
-        Set and display the global options for Brauer diagram (algebras). If no
-        parameters are set, then the function returns a copy of the options
-        dictionary.
-
-        The ``options`` to diagram algebras can be accessed as the method
-        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
-        related classes.
-        """,
-        end_doc=r"""
-        EXAMPLES::
-
-            sage: R.<q> = QQ[]
-            sage: BA = BrauerAlgebra(2, q)
-            sage: E = BA([[1,2],[-1,-2]])
-            sage: E
-            B{{-2, -1}, {1, 2}}
-            sage: BrauerAlgebra.options(display="compact")
-            sage: E
-            B[12/12;]
-            sage: BrauerAlgebra.options._reset()
-        """,
-        display=dict(default="normal",
-                       description='Specifies how the Brauer diagrams should be printed',
-                       values=dict(normal="Using the normal representation",
-                                   compact="Using the compact representation"),
-                                   case_sensitive=False),
-    )
-
-    global_options=deprecated_function_alias(18555, options)
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -2010,8 +2015,6 @@ class BrauerAlgebra(SubPartitionAlgebra):
             d[I([[i,-j],[j,-i]])] = one
             d[I([[i,j],[-i,-j]])] = -one
         return self._from_dict(d, remove_zeros=True)
-
-BrauerAlgberaOptions=deprecated_function_alias(18555, BrauerAlgebra.options)
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""

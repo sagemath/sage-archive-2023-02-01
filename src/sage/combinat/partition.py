@@ -569,7 +569,7 @@ class Partition(CombinatorialElement):
 
             sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.options(display="diagram"); mu
+            sage: Partitions.options.display="diagram"; mu
             *******
             *******
             *******
@@ -583,21 +583,21 @@ class Partition(CombinatorialElement):
             *
             *
             *
-            sage: Partitions.options(display="list"); mu
+            sage: Partitions.options.display="list"; mu
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.options(display="compact_low"); mu
+            sage: Partitions.options.display="compact_low"; mu
             1^7,2,3^2,7^3
-            sage: Partitions.options(display="compact_high"); mu
+            sage: Partitions.options.display="compact_high"; mu
             7^3,3^2,2,1^7
-            sage: Partitions.options(display="exp_low"); mu
+            sage: Partitions.options.display="exp_low"; mu
             1^7, 2, 3^2, 7^3
-            sage: Partitions.options(display="exp_high"); mu
+            sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
-            sage: Partitions.options(convention="French");
+            sage: Partitions.options.convention="French";
             sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             7^3, 3^2, 2, 1^7
-            sage: Partitions.options(display="diagram"); mu
+            sage: Partitions.options.display="diagram"; mu
             *
             *
             *
@@ -611,15 +611,15 @@ class Partition(CombinatorialElement):
             *******
             *******
             *******
-            sage: Partitions.options(display="list"); mu
+            sage: Partitions.options.display="list"; mu
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
-            sage: Partitions.options(display="compact_low"); mu
+            sage: Partitions.options.display="compact_low"; mu
             1^7,2,3^2,7^3
-            sage: Partitions.options(display="compact_high"); mu
+            sage: Partitions.options.display="compact_high"; mu
             7^3,3^2,2,1^7
-            sage: Partitions.options(display="exp_low"); mu
+            sage: Partitions.options.display="exp_low"; mu
             1^7, 2, 3^2, 7^3
-            sage: Partitions.options(display="exp_high"); mu
+            sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
             sage: Partitions.options._reset()
@@ -786,20 +786,20 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             sage: mu = Partition([2, 1])
-            sage: Partitions.options(latex='diagram'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='diagram'; latex(mu)       # indirect doctest
             {\def\lr#1{\multicolumn{1}{@{\hspace{.6ex}}c@{\hspace{.6ex}}}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\\
             \lr{\ast}&\lr{\ast}\\
             \lr{\ast}\\
             \end{array}$}
             }
-            sage: Partitions.options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: Partitions.options.latex='exp_high'; latex(mu)      # indirect doctest
             2,1
-            sage: Partitions.options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='exp_low'; latex(mu)       # indirect doctest
             1,2
-            sage: Partitions.options(latex='list'); latex(mu)          # indirect doctest
+            sage: Partitions.options.latex='list'; latex(mu)          # indirect doctest
             [2, 1]
-            sage: Partitions.options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: Partitions.options.latex='young_diagram'; latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
             \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
@@ -808,13 +808,13 @@ class Partition(CombinatorialElement):
             }
 
             sage: Partitions.options(latex="young_diagram", convention="french")
-            sage: Partitions.options(latex='exp_high'); latex(mu)      # indirect doctest
+            sage: Partitions.options.latex='exp_high'; latex(mu)      # indirect doctest
             2,1
-            sage: Partitions.options(latex='exp_low'); latex(mu)       # indirect doctest
+            sage: Partitions.options.latex='exp_low'; latex(mu)       # indirect doctest
             1,2
-            sage: Partitions.options(latex='list'); latex(mu)          # indirect doctest
+            sage: Partitions.options.latex='list'; latex(mu)          # indirect doctest
             [2, 1]
-            sage: Partitions.options(latex='young_diagram'); latex(mu) # indirect doctest
+            sage: Partitions.options.latex='young_diagram'; latex(mu) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
             \lr{\phantom{x}}\\\cline{1-2}
@@ -939,7 +939,7 @@ class Partition(CombinatorialElement):
             #####
             ##
             #
-            sage: Partitions.options(convention="french")
+            sage: Partitions.options.convention="french"
             sage: print(mu.ferrers_diagram())
             #
             ##
@@ -973,7 +973,7 @@ class Partition(CombinatorialElement):
             *****
             **
             *
-            sage: Partitions.options(convention='French')
+            sage: Partitions.options.convention='French'
             sage: Partition([5,5,2,1]).pp()
             *
             **
@@ -4963,8 +4963,11 @@ class Partitions(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
+    Element = Partition
+
     # add options to class
-    options=GlobalOptions('Partitions',
+    options = GlobalOptions('Partitions', 
+        module='sage.combinat.partition',
         doc=r"""
         Sets and displays the global options for elements of the partition, skew
         partition, and partition tuple classes.  If no parameters are set, then the
@@ -4980,10 +4983,10 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P = Partition([4,2,2,1])
             sage: P
             [4, 2, 2, 1]
-            sage: Partitions.options(display="exp")
+            sage: Partitions.options.display="exp"
             sage: P
             1, 2^2, 4
-            sage: Partitions.options(display="exp_high")
+            sage: Partitions.options.display="exp_high"
             sage: P
             4, 2^2, 1
 
@@ -5014,7 +5017,7 @@ class Partitions(UniqueRepresentation, Parent):
             sage: T.pp()
               4  5
               1  2  3
-            sage: Tableaux.options(convention="english")
+            sage: Tableaux.options.convention="english"
             sage: print(P.ferrers_diagram())
             ****
             **
@@ -5056,8 +5059,6 @@ class Partitions(UniqueRepresentation, Parent):
     )
 
     global_options=deprecated_function_alias(18555, options)
-
-    Element = Partition
 
     def __reversed__(self):
         """
@@ -6694,6 +6695,8 @@ class Partitions_with_constraints(IntegerListsLex):
 #        IntegerListsLex.__init__(self, n, **kwargs)
 
     Element = Partition
+    options = Partitions.options
+    global_options = deprecated_function_alias(18555, options)
 
 ######################
 # Regular Partitions #

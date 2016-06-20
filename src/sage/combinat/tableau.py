@@ -328,14 +328,14 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[4,5]])
-            sage: Tableaux.options(display="list")
+            sage: Tableaux.options.display="list"
             sage: t
             [[1, 2, 3], [4, 5]]
-            sage: Tableaux.options(display="array")
+            sage: Tableaux.options.display="array"
             sage: t
               1  2  3
               4  5
-            sage: Tableaux.options(display="compact"); t
+            sage: Tableaux.options.display="compact"; t
             1,2,3/4,5
             sage: Tableaux.options._reset()
         """
@@ -368,7 +368,7 @@ class Tableau(ClonableList):
             sage: print(t._repr_diagram())
               1  2  3
               4  5
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: print(t._repr_diagram())
               4  5
               1  2  3
@@ -483,7 +483,7 @@ class Tableau(ClonableList):
             +---+---+---+
             | 4 | 5 |
             +---+---+
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: print(t._ascii_art_table())
             +---+---+
             | 4 | 5 |
@@ -515,7 +515,7 @@ class Tableau(ClonableList):
             +----+----+
             |  9 |
             +----+
-            sage: Tableaux.options(convention='french')
+            sage: Tableaux.options.convention='french'
             sage: ascii_art(t)
             +----+
             |  9 |
@@ -541,7 +541,7 @@ class Tableau(ClonableList):
             ├────┼────┘
             │ 9  │
             └────┘
-            sage: Tableaux().options(convention='french')
+            sage: Tableaux().options.convention='french'
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
             sage: print(t._ascii_art_table(unicode=True))
             ┌────┐
@@ -637,7 +637,7 @@ class Tableau(ClonableList):
             sage: print(t._ascii_art_compact())
             |1|2|3|
             |4|5|
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: print(t._ascii_art_compact())
             |4|5|
             |1|2|3|
@@ -687,7 +687,7 @@ class Tableau(ClonableList):
             \lr{3}\\\cline{1-1}
             \end{array}$}
             }
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: latex(t)    # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{3}c}\cline{1-1}
@@ -898,7 +898,7 @@ class Tableau(ClonableList):
               1  2  3
               3  4
               5
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: T.pp()
               5
               3  4
@@ -4465,6 +4465,7 @@ class Tableaux(UniqueRepresentation, Parent):
 
     # add options to class
     options=GlobalOptions('Tableaux',
+        module='sage.combinat.tableau',
         doc=r"""
         Sets the global options for elements of the tableau, skew_tableau,
         and tableau tuple classes. The defaults are for tableau to be
@@ -4486,11 +4487,11 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: T = Tableau([[1,2,3],[4,5]])
             sage: T
             [[1, 2, 3], [4, 5]]
-            sage: Tableaux.options(display="array")
+            sage: Tableaux.options.display="array"
             sage: T
               1  2  3
               4  5
-            sage: Tableaux.options(convention="french")
+            sage: Tableaux.options.convention="french"
             sage: T
               4  5
               1  2  3
@@ -4503,7 +4504,7 @@ class Tableaux(UniqueRepresentation, Parent):
             *
             ***
             ***
-            sage: Partitions.options(convention="english")
+            sage: Partitions.options.convention="english"
             sage: print(P.ferrers_diagram())
             ***
             ***
@@ -4518,14 +4519,14 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: ascii_art(t)
               1  2  3
               4  5
-            sage: Tableaux.options(ascii_art="table")
+            sage: Tableaux.options.ascii_art="table"
             sage: ascii_art(t)
             +---+---+
             | 4 | 5 |
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
-            sage: Tableaux.options(ascii_art="compact")
+            sage: Tableaux.options.ascii_art="compact"
             sage: ascii_art(t)
             |4|5|
             |1|2|3|
@@ -4557,7 +4558,6 @@ class Tableaux(UniqueRepresentation, Parent):
     )
 
     global_options=deprecated_function_alias(18555, options)
-
 
     def _element_constructor_(self, t):
         r"""

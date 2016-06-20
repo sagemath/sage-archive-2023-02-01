@@ -2687,6 +2687,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [0 1 0]
             [0 0 1]
             ]
+
+        ::
+
+            sage: K.<w> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: D6 = H([y^2,x^2])
+            sage: D6.automorphism_group()
+            [
+            [1 0]  [0 w]  [0 1]  [w 0]  [-w - 1      0]  [     0 -w - 1]
+            [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
+            ]
         """
 
         alg = kwds.get('algorithm', None)
@@ -4436,13 +4448,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def conjugating_set(self, other):
         r"""
-        Returns the set of elements in PGL that create homomorphisms between the two maps given.
+        Returns the set of elements in PGL that conjugates one mape to the other.
 
         Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
-        conjugates one rational function to another. It does this by taking the fixed points of 'self' and mapping
-        them to all unique permutations of the fixed points of 'other'. If there are not enoiught fixed points the
-        function compares the mapping betwewn preimages of fixed points and the preimeages of the preimages of
-        fixed points until there are enough points, at least n+1 of which are lineraly independent.
+        conjugates one rational function to another. It does this by taking the fixed points of one map and mapping
+        them to all unique permutations of the fixed points of the other map. If there are not enough fixed points the
+        function compares the mapping between rational preimages of fixed points and the rational preimages of the preimages of
+        fixed points until there are enough points; such that there are n+2 points with all  n+1 subsets linearly independent.
 
         ALGORITHIM:
 
@@ -4451,7 +4463,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         INPUT: Two nonconstant rational functions of same degree
 
-        OUTPUT: Set of conjugating n+1 matrices.
+        OUTPUT: Set of conjugating `n+1` by `n+1` matrices.
 
         AUTHORS:
 
@@ -4463,7 +4475,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: f = H([x**2 - 2*y**2, y**2])
+            sage: f = H([x^2 - 2*y^2, y^2])
             sage: m = matrix(QQbar, 2, 2, [-1, 3, 2, 1])
             sage: g = f.conjugate(m)
             sage: f.conjugating_set(g)
@@ -4474,15 +4486,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: K.<w> = QuadraticField(-1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x**2 + x*y,y**2])
-            sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
+            sage: f = H([x^2 + y^2, x*y])
+            sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.conjugating_set(g)
+            sage: f.conjugating_set(g) # long test
             [
-            [1 1]
-            [2 1]
+            [1 1]  [-1 -1]
+            [2 1], [ 2  1]
             ]
 
         ::
@@ -4490,7 +4503,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<i> = QuadraticField(-1)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: D8 = H([y**3, x**3])
+            sage: D8 = H([y^3, x^3])
             sage: D8.conjugating_set(D8) # long test
             [
             [1 0]  [0 1]  [ 0 -i]  [i 0]  [ 0 -1]  [-1  0]  [-i  0]  [0 i]
@@ -4501,17 +4514,28 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: D8 = H([y**2, x**2])
+            sage: D8 = H([y^2, x^2])
             sage: D8.conjugating_set(D8)
             Traceback (most recent call last):
             ...
             ValueError: not enough rational preimages
 
         ::
+        
+            sage: P.<x,y> = ProjectiveSpace(GF(7),1)
+            sage: H = End(P)
+            sage: D6 = H([y^2, x^2])
+            sage: D6.conjugating_set(D6)
+            [
+            [1 0]  [0 1]  [0 2]  [4 0]  [2 0]  [0 4]
+            [0 1], [1 0], [1 0], [0 1], [0 1], [1 0]
+            ]
+
+        ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
-            sage: f = H([x**2 + x*z, y**2, z**2])
+            sage: f = H([x^2 + x*z, y^2, z^2])
             sage: f.conjugating_set(f) # long test
             [
             [1 0 0]
@@ -4537,7 +4561,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2):# makes sure at least n+1  points are linearly independent
+            for i in Subsets(L, n+2):# makes sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
                 if not any([j == 0 for j in Ml.minors(n+1)]):
                     Tf = list(i)
@@ -4550,20 +4574,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 return []
             L = L.union(Set(Tl))
             K = K.union(Set(Tk))
-            if d == len(L):
-                raise ValueError("not enough rational preimages") # if no more preimages function breaks
+            if d == len(L): # if no new preimages then not enough points
+                raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n+2:
+            if d >= n+2: # makes sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2):
-                    r = f.domain().base_ring()
                     Ml = matrix(r, [list(s) for s in i])
                     if not any([j == 0 for j in Ml.minors(n+1)]):
                         more = False
                         Tf = list(i)
                         break
         Conj = []
-        for i in Arrangements(K,(n+2)): # checks at least n+1 are linearly independent
-            try:
+        for i in Arrangements(K,(n+2)): # try all possible conjugations between invariant sets
+            try: # need all n+1 subsets linearly independenet
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
@@ -4596,9 +4619,47 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: K.<w> = CyclotomicField(3)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: D8 = H([y**2, x**2])
+            sage: D8 = H([y^2, x^2])
             sage: D8.is_conjugate(D8)
             True
+
+        ::
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y,y^2])
+            sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g) # long test
+            True
+            
+        ::
+        
+            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
+            sage: H = End(P)
+            sage: f = H([x^3 + x*y^2,y^3])
+            sage: m = matrix(GF(5), 2, 2, [1, 3, 2, 9])
+            sage: g = f.conjugate(m)
+            sage: f.is_conjugate(g)
+            True
+            
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y,y^2])
+            sage: g = H([x^3 + x^2*y, y^3])
+            sage: f.is_conjugate(g) 
+            False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y, y^2])
+            sage: g = H([x^2 - 2*y^2, y^2])
+            sage: f.is_conjugate(g)
+            False
         """
         f = copy(self)
         g = copy(other)
@@ -4618,7 +4679,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2): # makes sure at least n+1  points are linearly independent
+            for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
                 if not any([j == 0 for j in Ml.minors(n+1)]):
                     Tf = list(i)
@@ -4631,20 +4692,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 return False
             L = L.union(Set(Tl))
             K = K.union(Set(Tk))
-            if d == len(L):
-                raise ValueError("not enough rational preimages") # if no more preimages function breaks
+            if d == len(L):# if no new preimages then not enough points
+                raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n+2:
+            if d >= n+2: # makes sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
-                    r = f.domain().base_ring()
                     Ml = matrix(r, [list(s) for s in i])
                     if not any([j == 0 for j in Ml.minors(n+1)]):
                         more = False
                         Tf = list(i)
                         break
         Conj = []
-        for i in Arrangements(K,n+2):
-            try:
+        for i in Arrangements(K,n+2):# try all possible conjugations between invariant sets
+            try: # need all n+1 subsets linearly independenet
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True

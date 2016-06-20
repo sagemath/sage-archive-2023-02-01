@@ -1312,11 +1312,6 @@ cdef class ModuleElement(Element):
     cpdef _add_(left, right):
         raise TypeError(arith_error_message(left, right, add))
 
-    def __iadd__(left, right):
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._add_(right)
-        return coercion_model.bin_op(left, right, iadd)
-
     ##################################################
     # Subtraction
     ##################################################
@@ -1334,11 +1329,6 @@ cdef class ModuleElement(Element):
         # default implementation is to use the negation and addition
         # dispatchers:
         return left._add_(-right)
-
-    def __isub__(left, right):
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._sub_(right)
-        return coercion_model.bin_op(left, right, isub)
 
     ##################################################
     # Negation
@@ -1370,11 +1360,6 @@ cdef class ModuleElement(Element):
         if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
         return coercion_model.bin_op(left, right, mul)
-
-    def __imul__(left, right):
-        if have_same_parent_c(left, right):
-             raise TypeError
-        return coercion_model.bin_op(left, right, imul)
 
     # rmul -- left * self
     cpdef _rmul_(self, RingElement left):
@@ -1797,11 +1782,6 @@ cdef class RingElement(ModuleElement):
         """
         raise TypeError(arith_error_message(self, right, mul))
 
-    def __imul__(left, right):
-        if have_same_parent_c(left, right):
-            return (<RingElement>left)._mul_(right)
-        return coercion_model.bin_op(left, right, imul)
-
     def __pow__(self, n, dummy):
         """
         Return the (integral) power of self.
@@ -1915,26 +1895,6 @@ cdef class RingElement(ModuleElement):
             return (<RingElement>self)._div_(right)
         return coercion_model.bin_op(self, right, truediv)
 
-    def __itruediv__(self, right):
-        """
-        Top-level in-place true division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-
-        If two elements have the same parent, we just call ``_div_``
-        because all divisions of Sage elements are really true
-        divisions.
-
-        EXAMPLES::
-
-            sage: operator.itruediv(2, 3)
-            2/3
-            sage: operator.itruediv(pi, 3)
-            1/3*pi
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(right)
-        return coercion_model.bin_op(self, right, itruediv)
-
     def __div__(self, right):
         """
         Top-level division operator for ring elements.
@@ -1956,15 +1916,6 @@ cdef class RingElement(ModuleElement):
                 raise ZeroDivisionError("Cannot divide by zero")
             else:
                 raise TypeError(arith_error_message(self, right, div))
-
-    def __idiv__(self, right):
-        """
-        Top-level division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(right)
-        return coercion_model.bin_op(self, right, idiv)
 
     def __floordiv__(self, right):
         """
@@ -2001,22 +1952,6 @@ cdef class RingElement(ModuleElement):
             4
         """
         raise TypeError(arith_error_message(self, right, floordiv))
-
-    def __ifloordiv__(self, right):
-        """
-        Top-level in-place floor division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-
-        EXAMPLES::
-
-            sage: x = 23
-            sage: x //= 7
-            sage: x
-            3
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._floordiv_(right)
-        return coercion_model.bin_op(self, right, ifloordiv)
 
     def __invert__(self):
         if self.is_one():
@@ -2521,11 +2456,6 @@ cdef class Vector(ModuleElement):
     cdef bint is_dense_c(self):
         raise NotImplementedError
 
-    def __imul__(left, right):
-        if have_same_parent_c(left, right):
-            return (<Vector>left)._dot_product_(<Vector>right)
-        return coercion_model.bin_op(left, right, imul)
-
     def __mul__(left, right):
         """
         Multiplication of vector by vector, matrix, or scalar
@@ -2766,11 +2696,6 @@ cdef class Matrix(ModuleElement):
 
     cdef bint is_dense_c(self):
         raise NotImplementedError
-
-    def __imul__(left, right):
-        if have_same_parent_c(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        return coercion_model.bin_op(left, right, imul)
 
     def __mul__(left, right):
         """

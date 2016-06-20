@@ -1073,7 +1073,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import rightnormalform
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         l = rightnormalform(self)
         B = self.parent()
         return tuple([B(b) for b in l[:-1]] + [B.Delta() ** l[-1][0]])
@@ -1096,7 +1096,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import centralizer
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         l = centralizer(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
@@ -1122,7 +1122,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import supersummitset
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         l = supersummitset(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
@@ -1152,7 +1152,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import greatestcommondivisor
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         B = self.parent()
         b = greatestcommondivisor(self, other)
         return B._element_from_libbraiding(b)
@@ -1180,7 +1180,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import leastcommonmultiple
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         B = self.parent()
         b = leastcommonmultiple(self, other)
         return B._element_from_libbraiding(b)
@@ -1213,7 +1213,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import conjugatingbraid
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         l = conjugatingbraid(self, other)
         if not l:
             return None
@@ -1246,7 +1246,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import conjugatingbraid
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         l = conjugatingbraid(self, other)
         return bool(l)
     
@@ -1283,7 +1283,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import ultrasummitset
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         uss = ultrasummitset(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in uss]
@@ -1316,7 +1316,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import thurston_type
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         return thurston_type(self)
     
     def is_reducible(self):
@@ -1403,7 +1403,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import rigidity
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         return Integer(rigidity(self))
     
     def sliding_circuits(self):
@@ -1443,7 +1443,7 @@ class Braid(FinitelyPresentedGroupElement):
         try:
             from sage.libs.braiding import sliding_circuits
         except ImportError:
-            raise PackageNotFoundError("This functionality requires the libbraiding package")
+            raise PackageNotFoundError("libbraiding")
         slc = sliding_circuits(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]

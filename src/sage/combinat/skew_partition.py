@@ -147,9 +147,10 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
@@ -1213,6 +1214,83 @@ class SkewPartitions(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
+    # add options to class
+    options=GlobalOptions('SkewPartitions',
+        doc="""
+        Sets and displays the options for elements of the skew partition
+        classes.  If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to skew partitions can be accessed as the method
+        :obj:`SkewPartitions.options` of :class:`SkewPartitions` and
+        related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: SP = SkewPartition([[4,2,2,1], [3, 1, 1]])
+            sage: SP
+            [4, 2, 2, 1] / [3, 1, 1]
+            sage: SkewPartitions.options.display="lists"
+            sage: SP
+            [[4, 2, 2, 1], [3, 1, 1]]
+
+        Changing the ``convention`` for skew partitions also changes the
+        ``convention`` option for partitions and tableaux and vice versa::
+
+            sage: SkewPartitions.options(display="diagram", convention='French')
+            sage: SP
+            *
+             *
+             *
+               *
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: P = Partition([4, 2, 2, 1])
+            sage: P.pp()
+            *
+            **
+            **
+            ****
+            sage: Tableaux.options(convention="english")
+            sage: SP
+               *
+             *
+             *
+            *
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: SkewPartitions.options._reset()
+        """,
+        display=dict(default="quotient",
+                     description='Specifies how skew partitions should be printed',
+                     values=dict(lists='displayed as a pair of lists',
+                                 quotient='displayed as a quotient of partitions',
+                                 diagram='as a skew Ferrers diagram'),
+                     alias=dict(array="diagram", ferrers_diagram="diagram",
+                                young_diagram="diagram", pair="lists"),
+                     case_sensitive=False),
+        latex=dict(default="young_diagram",
+                   description='Specifies how skew partitions should be latexed',
+                   values=dict(diagram='latex as a skew Ferrers diagram',
+                               young_diagram='latex as a skew Young diagram',
+                               marked='latex as a partition where the skew shape is marked'),
+                   alias=dict(array="diagram", ferrers_diagram="diagram"),
+                   case_sensitive=False),
+        diagram_str=dict(link_to=(Partitions.options,'diagram_str')),
+        latex_diagram_str=dict(link_to=(Partitions.options,'latex_diagram_str')),
+        latex_marking_str=dict(default="X",
+                         description='The character used to marked the deleted cells when latexing marked partitions',
+                         checker=lambda char: isinstance(char, str)),
+        convention=dict(link_to=(Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     Element = SkewPartition
 
     def _element_constructor_(self, skp):
@@ -1379,81 +1457,6 @@ class SkewPartitions(UniqueRepresentation, Parent):
             while colL_new != [] and colL_new[-1] == 0:
                 colL_new.pop()
         return self.element_class(self, [resOut, [x for x in resIn if x]])
-
-AddOptionsToClass(SkewPartitions,
-    doc="""
-    Sets and displays the options for elements of the skew partition
-    classes.  If no parameters are set, then the function returns a copy of
-    the options dictionary.
-
-    The ``options`` to skew partitions can be accessed as the method
-    :obj:`SkewPartitions.options` of :class:`SkewPartitions` and
-    related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: SP = SkewPartition([[4,2,2,1], [3, 1, 1]])
-        sage: SP
-        [4, 2, 2, 1] / [3, 1, 1]
-        sage: SkewPartitions.options.display="lists"
-        sage: SP
-        [[4, 2, 2, 1], [3, 1, 1]]
-
-    Changing the ``convention`` for skew partitions also changes the
-    ``convention`` option for partitions and tableaux and vice versa::
-
-        sage: SkewPartitions.options(display="diagram", convention='French')
-        sage: SP
-        *
-         *
-         *
-           *
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: P = Partition([4, 2, 2, 1])
-        sage: P.pp()
-        *
-        **
-        **
-        ****
-        sage: Tableaux.options(convention="english")
-        sage: SP
-           *
-         *
-         *
-        *
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: SkewPartitions.options._reset()
-    """,
-    display=dict(default="quotient",
-                 description='Specifies how skew partitions should be printed',
-                 values=dict(lists='displayed as a pair of lists',
-                             quotient='displayed as a quotient of partitions',
-                             diagram='as a skew Ferrers diagram'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram",
-                            young_diagram="diagram", pair="lists"),
-                 case_sensitive=False),
-    latex=dict(default="young_diagram",
-               description='Specifies how skew partitions should be latexed',
-               values=dict(diagram='latex as a skew Ferrers diagram',
-                           young_diagram='latex as a skew Young diagram',
-                           marked='latex as a partition where the skew shape is marked'),
-               alias=dict(array="diagram", ferrers_diagram="diagram"),
-               case_sensitive=False),
-    diagram_str=dict(link_to=(Partitions.options,'diagram_str')),
-    latex_diagram_str=dict(link_to=(Partitions.options,'latex_diagram_str')),
-    latex_marking_str=dict(default="X",
-                     description='The character used to marked the deleted cells when latexing marked partitions',
-                     checker=lambda char: isinstance(char, str)),
-    convention=dict(link_to=(Tableaux.options,'convention')),
-    notation = dict(alt_name='convention')
-)
-
 
 class SkewPartitions_all(SkewPartitions):
     """

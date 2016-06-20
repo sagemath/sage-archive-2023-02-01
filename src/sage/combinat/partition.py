@@ -283,7 +283,7 @@ from sage.interfaces.all import gap
 from sage.libs.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import var
@@ -4963,6 +4963,100 @@ class Partitions(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
+    # add options to class
+    options=GlobalOptions('Partitions',
+        doc=r"""
+        Sets and displays the global options for elements of the partition, skew
+        partition, and partition tuple classes.  If no parameters are set, then the
+        function returns a copy of the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`Partitions.options` of :class:`Partitions` and
+        related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: P = Partition([4,2,2,1])
+            sage: P
+            [4, 2, 2, 1]
+            sage: Partitions.options(display="exp")
+            sage: P
+            1, 2^2, 4
+            sage: Partitions.options(display="exp_high")
+            sage: P
+            4, 2^2, 1
+
+        It is also possible to use user defined functions for the ``display`` and
+        ``latex`` options::
+
+            sage: Partitions.options(display=lambda mu: '<%s>' % ','.join('%s'%m for m in mu._list)); P
+            <4,2,2,1>
+            sage: Partitions.options(latex=lambda mu: '\\Diagram{%s}' % ','.join('%s'%m for m in mu._list)); latex(P)
+            \Diagram{4,2,2,1}
+            sage: Partitions.options(display="diagram", diagram_str="#")
+            sage: P
+            ####
+            ##
+            ##
+            #
+            sage: Partitions.options(diagram_str="*", convention="french")
+            sage: print(P.ferrers_diagram())
+            *
+            **
+            **
+            ****
+
+        Changing the ``convention`` for partitions also changes the ``convention``
+        option for tableaux and vice versa::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: Tableaux.options(convention="english")
+            sage: print(P.ferrers_diagram())
+            ****
+            **
+            **
+            *
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: Partitions.options._reset()
+        """,
+        display=dict(default="list",
+                     description='Specifies how partitions should be printed',
+                     values=dict(list='displayed as a list',
+                               exp_low='in exponential form (lowest first)',
+                               exp_high='in exponential form (highest first)',
+                               diagram='as a Ferrers diagram',
+                               compact_low='compact form of ``exp_low``',
+                               compact_high='compact form of ``exp_high``'),
+                     alias=dict(exp="exp_low", compact="compact_low", array="diagram",
+                               ferrers_diagram="diagram", young_diagram="diagram"),
+                     case_sensitive=False),
+        latex=dict(default="young_diagram",
+                   description='Specifies how partitions should be latexed',
+                   values=dict(diagram='latex as a Ferrers diagram',
+                               young_diagram='latex as a Young diagram',
+                               list='latex as a list',
+                               exp_high='latex as a list in exponential notation (highest first)',
+                               exp_low='as a list latex in exponential notation (lowest first)'),
+                   alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
+                   case_sensitive=False),
+        diagram_str=dict(default="*",
+                         description='The character used for the cells when printing Ferrers diagrams',
+                         checker=lambda char: isinstance(char,str)),
+        latex_diagram_str=dict(default="\\ast",
+                         description='The character used for the cells when latexing Ferrers diagrams',
+                         checker=lambda char: isinstance(char,str)),
+        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     Element = Partition
 
     def __reversed__(self):
@@ -5065,97 +5159,6 @@ class Partitions(UniqueRepresentation, Parent):
         if len(args) != 0 or len(kwargs) != 0:
             raise ValueError("Invalid combination of arguments")
         return self
-
-AddOptionsToClass('Partitions',
-    doc=r"""
-    Sets and displays the global options for elements of the partition, skew
-    partition, and partition tuple classes.  If no parameters are set, then the
-    function returns a copy of the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`Partitions.options` of :class:`Partitions` and
-    related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: P = Partition([4,2,2,1])
-        sage: P
-        [4, 2, 2, 1]
-        sage: Partitions.options(display="exp")
-        sage: P
-        1, 2^2, 4
-        sage: Partitions.options(display="exp_high")
-        sage: P
-        4, 2^2, 1
-
-    It is also possible to use user defined functions for the ``display`` and
-    ``latex`` options::
-
-        sage: Partitions.options(display=lambda mu: '<%s>' % ','.join('%s'%m for m in mu._list)); P
-        <4,2,2,1>
-        sage: Partitions.options(latex=lambda mu: '\\Diagram{%s}' % ','.join('%s'%m for m in mu._list)); latex(P)
-        \Diagram{4,2,2,1}
-        sage: Partitions.options(display="diagram", diagram_str="#")
-        sage: P
-        ####
-        ##
-        ##
-        #
-        sage: Partitions.options(diagram_str="*", convention="french")
-        sage: print(P.ferrers_diagram())
-        *
-        **
-        **
-        ****
-
-    Changing the ``convention`` for partitions also changes the ``convention``
-    option for tableaux and vice versa::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: Tableaux.options(convention="english")
-        sage: print(P.ferrers_diagram())
-        ****
-        **
-        **
-        *
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: Partitions.options._reset()
-    """,
-    display=dict(default="list",
-                 description='Specifies how partitions should be printed',
-                 values=dict(list='displayed as a list',
-                           exp_low='in exponential form (lowest first)',
-                           exp_high='in exponential form (highest first)',
-                           diagram='as a Ferrers diagram',
-                           compact_low='compact form of ``exp_low``',
-                           compact_high='compact form of ``exp_high``'),
-                 alias=dict(exp="exp_low", compact="compact_low", array="diagram",
-                           ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    latex=dict(default="young_diagram",
-               description='Specifies how partitions should be latexed',
-               values=dict(diagram='latex as a Ferrers diagram',
-                           young_diagram='latex as a Young diagram',
-                           list='latex as a list',
-                           exp_high='latex as a list in exponential notation (highest first)',
-                           exp_low='as a list latex in exponential notation (lowest first)'),
-               alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
-               case_sensitive=False),
-    diagram_str=dict(default="*",
-                     description='The character used for the cells when printing Ferrers diagrams',
-                     checker=lambda char: isinstance(char,str)),
-    latex_diagram_str=dict(default="\\ast",
-                     description='The character used for the cells when latexing Ferrers diagrams',
-                     checker=lambda char: isinstance(char,str)),
-    convention=dict(link_to=(tableau.Tableaux.options,'convention')),
-    notation = dict(alt_name='convention')
-)
 
 PartitionOptions = deprecated_function_alias(18555, Partitions.options)
 

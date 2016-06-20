@@ -69,13 +69,14 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.integer import Integer
 from sage.rings.all import NN
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.structure.element import Element
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -2125,6 +2126,59 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             raise ValueError("n must be a non negative integer")
         return TamariIntervalPosets_size(Integer(n))
 
+
+    def __init__(self, category):
+        super(TamariIntervalPosets, self).__init__(category=category)
+
+    # add options to class
+    options=GlobalOptions('TamariIntervalPosets',
+        doc=r"""
+        Set and display the options for Tamari interval-posets. If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to Tamari interval-posets can be accessed as the method
+        :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
+        and related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.latex_options()["color_decreasing"]
+            'red'
+            sage: TamariIntervalPosets.options(latex_color_decreasing='green')
+            sage: ip.latex_options()["color_decreasing"]
+            'green'
+            sage: TamariIntervalPosets.options.reset()
+            sage: ip.latex_options()["color_decreasing"]
+            'red'
+        """,
+        latex_tikz_scale=dict(default=1,
+                              description='the default value for the tikz scale when latexed',
+                              checker=lambda x: True),  # More trouble than it's worth to check
+        latex_line_width_scalar=dict(default=0.5,
+                                     description='the default value for the line width as a'
+                                                 'multiple of the tikz scale when latexed',
+                                     checker=lambda x: True),  # More trouble than it's worth to check
+        latex_color_decreasing=dict(default="red",
+                                    description='the default color of decreasing relations when latexed',
+                                    checker=lambda x: True),  # More trouble than it's worth to check
+        latex_color_increasing=dict(default="blue",
+                                    description='the default color of increasing relations when latexed',
+                                    checker=lambda x: True),  # More trouble than it's worth to check
+        latex_hspace=dict(default=1,
+                          description='the default difference between horizontal'
+                                      ' coordinates of vertices when latexed',
+                          checker=lambda x: True),  # More trouble than it's worth to check
+        latex_vspace=dict(default=1,
+                          description='the default difference between vertical'
+                                      ' coordinates of vertices when latexed',
+                          checker=lambda x: True)   # More trouble than it's worth to check
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     @staticmethod
     def check_poset(poset):
         r"""
@@ -2517,53 +2571,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         """
         return el2.contains_interval(el1)
 
-    global_options = TamariIntervalPosetOptions
-
-AddOptionsToClass(TamariIntervalPosets,
-    doc=r"""
-    Set and display the options for Tamari interval-posets. If no
-    parameters are set, then the function returns a copy of the options
-    dictionary.
-
-    The ``options`` to Tamari interval-posets can be accessed as the method
-    :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
-    and related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-        sage: ip.latex_options()["color_decreasing"]
-        'red'
-        sage: TamariIntervalPosets.options(latex_color_decreasing='green')
-        sage: ip.latex_options()["color_decreasing"]
-        'green'
-        sage: TamariIntervalPosets.options.reset()
-        sage: ip.latex_options()["color_decreasing"]
-        'red'
-    """,
-    latex_tikz_scale=dict(default=1,
-                          description='the default value for the tikz scale when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-    latex_line_width_scalar=dict(default=0.5,
-                                 description='the default value for the line width as a'
-                                             'multiple of the tikz scale when latexed',
-                                 checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color_decreasing=dict(default="red",
-                                description='the default color of decreasing relations when latexed',
-                                checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color_increasing=dict(default="blue",
-                                description='the default color of increasing relations when latexed',
-                                checker=lambda x: True),  # More trouble than it's worth to check
-    latex_hspace=dict(default=1,
-                      description='the default difference between horizontal'
-                                  ' coordinates of vertices when latexed',
-                      checker=lambda x: True),  # More trouble than it's worth to check
-    latex_vspace=dict(default=1,
-                      description='the default difference between vertical'
-                                  ' coordinates of vertices when latexed',
-                      checker=lambda x: True)   # More trouble than it's worth to check
-)
+TamariIntervalPosetOptions=deprecated_function_alias(18555, TamariIntervalPosets.options)
 
 #################################################################
 # Enumerated set of all Tamari Interval-posets

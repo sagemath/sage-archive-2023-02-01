@@ -71,11 +71,12 @@ from __future__ import print_function
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.infinity import PlusInfinity
 from sage.arith.all import factorial, binomial
 from sage.rings.integer import Integer
@@ -3988,8 +3989,6 @@ class StandardTableau(SemistandardTableau):
         if sorted(flattened_list) != range(1, len(flattened_list)+1):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
-
-
     def content(self, k, multicharge=[0]):
         """
         Returns the content of ``k`` in a standard tableau. That is, if
@@ -4464,6 +4463,102 @@ class Tableaux(UniqueRepresentation, Parent):
 
     Element = Tableau
 
+    # add options to class
+    options=GlobalOptions('Tableaux',
+        doc=r"""
+        Sets the global options for elements of the tableau, skew_tableau,
+        and tableau tuple classes. The defaults are for tableau to be
+        displayed as a list, latexed as a Young diagram using the English
+        convention.
+        """,
+        end_doc=r"""
+
+        .. NOTE::
+
+            Changing the ``convention`` for tableaux also changes the
+            ``convention`` for partitions.
+
+        If no parameters are set, then the function returns a copy of the
+        options dictionary.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T
+            [[1, 2, 3], [4, 5]]
+            sage: Tableaux.options(display="array")
+            sage: T
+              1  2  3
+              4  5
+            sage: Tableaux.options(convention="french")
+            sage: T
+              4  5
+              1  2  3
+
+        Changing the ``convention`` for tableaux also changes the ``convention``
+        for partitions and vice versa::
+
+            sage: P = Partition([3,3,1])
+            sage: print(P.ferrers_diagram())
+            *
+            ***
+            ***
+            sage: Partitions.options(convention="english")
+            sage: print(P.ferrers_diagram())
+            ***
+            ***
+            *
+            sage: T
+              1  2  3
+              4  5
+
+        The ASCII art can also be changed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: ascii_art(t)
+              1  2  3
+              4  5
+            sage: Tableaux.options(ascii_art="table")
+            sage: ascii_art(t)
+            +---+---+
+            | 4 | 5 |
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            sage: Tableaux.options(ascii_art="compact")
+            sage: ascii_art(t)
+            |4|5|
+            |1|2|3|
+            sage: Tableaux.options._reset()
+        """,
+        display=dict(default="list",
+                     description='Controls the way in which tableaux are printed',
+                     values=dict(list='print tableaux as lists',
+                                 diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                                 compact='minimal length string representation'),
+                     alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                     case_sensitive=False),
+        ascii_art=dict(default="repr",
+                     description='Controls the ascii art output for tableaux',
+                     values=dict(repr='display using the diagram string representation',
+                                 table='display as a table',
+                                 compact='minimal length ascii art'),
+                     case_sensitive=False),
+        latex=dict(default="diagram",
+                   description='Controls the way in which tableaux are latexed',
+                   values=dict(list='as a list', diagram='as a Young diagram'),
+                   alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                   case_sensitive=False),
+        convention=dict(default="English",
+                        description='Sets the convention used for displaying tableaux and partitions',
+                        values=dict(English='use the English convention',French='use the French convention'),
+                        case_sensitive=False),
+        notation = dict(alt_name="convention")
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
+
     def _element_constructor_(self, t):
         r"""
         Constructs an object from ``t`` as an element of ``self``, if
@@ -4534,99 +4629,6 @@ class Tableaux(UniqueRepresentation, Parent):
             return [len(_) for _ in x] in _Partitions
         else:
             return False
-
-AddOptionsToClass(Tableaux,
-    doc=r"""
-    Sets the global options for elements of the tableau, skew_tableau,
-    and tableau tuple classes. The defaults are for tableau to be
-    displayed as a list, latexed as a Young diagram using the English
-    convention.
-    """,
-    end_doc=r"""
-
-    .. NOTE::
-
-        Changing the ``convention`` for tableaux also changes the
-        ``convention`` for partitions.
-
-    If no parameters are set, then the function returns a copy of the
-    options dictionary.
-
-    EXAMPLES::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T
-        [[1, 2, 3], [4, 5]]
-        sage: Tableaux.options(display="array")
-        sage: T
-          1  2  3
-          4  5
-        sage: Tableaux.options(convention="french")
-        sage: T
-          4  5
-          1  2  3
-
-    Changing the ``convention`` for tableaux also changes the ``convention``
-    for partitions and vice versa::
-
-        sage: P = Partition([3,3,1])
-        sage: print(P.ferrers_diagram())
-        *
-        ***
-        ***
-        sage: Partitions.options(convention="english")
-        sage: print(P.ferrers_diagram())
-        ***
-        ***
-        *
-        sage: T
-          1  2  3
-          4  5
-
-    The ASCII art can also be changed::
-
-        sage: t = Tableau([[1,2,3],[4,5]])
-        sage: ascii_art(t)
-          1  2  3
-          4  5
-        sage: Tableaux.options(ascii_art="table")
-        sage: ascii_art(t)
-        +---+---+
-        | 4 | 5 |
-        +---+---+---+
-        | 1 | 2 | 3 |
-        +---+---+---+
-        sage: Tableaux.options(ascii_art="compact")
-        sage: ascii_art(t)
-        |4|5|
-        |1|2|3|
-        sage: Tableaux.options._reset()
-    """,
-    display=dict(default="list",
-                 description='Controls the way in which tableaux are printed',
-                 values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
-                             compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                 case_sensitive=False),
-    ascii_art=dict(default="repr",
-                 description='Controls the ascii art output for tableaux',
-                 values=dict(repr='display using the diagram string representation',
-                             table='display as a table',
-                             compact='minimal length ascii art'),
-                 case_sensitive=False),
-    latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
-               values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-               case_sensitive=False),
-    convention=dict(default="English",
-                    description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention'),
-                    case_sensitive=False),
-    notation = dict(alt_name="convention")
-)
-
 
 #    def list(self):
 #        """

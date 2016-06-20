@@ -30,7 +30,7 @@ from sage.combinat.free_module import (CombinatorialFreeModule,
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
@@ -1878,6 +1878,39 @@ class BrauerAlgebra(SubPartitionAlgebra):
         """
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
 
+    # add options to class
+    options=GlobalOptions('BrauerAlgebra',
+        doc=r"""
+        Set and display the global options for Brauer diagram (algebras). If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to diagram algebras can be accessed as the method
+        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
+        related classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: BA = BrauerAlgebra(2, q)
+            sage: E = BA([[1,2],[-1,-2]])
+            sage: E
+            B{{-2, -1}, {1, 2}}
+            sage: BrauerAlgebra.options(display="compact")
+            sage: E
+            B[12/12;]
+            sage: BrauerAlgebra.options._reset()
+        """,
+        display=dict(default="normal",
+                       description='Specifies how the Brauer diagrams should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   compact="Using the compact representation"),
+                                   case_sensitive=False),
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -1978,35 +2011,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
             d[I([[i,j],[-i,-j]])] = -one
         return self._from_dict(d, remove_zeros=True)
 
-AddOptionsToClass(BrauerAlgebra,
-    doc=r"""
-    Set and display the global options for Brauer diagram (algebras). If no
-    parameters are set, then the function returns a copy of the options
-    dictionary.
-
-    The ``options`` to diagram algebras can be accessed as the method
-    :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
-    related classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: R.<q> = QQ[]
-        sage: BA = BrauerAlgebra(2, q)
-        sage: E = BA([[1,2],[-1,-2]])
-        sage: E
-        B{{-2, -1}, {1, 2}}
-        sage: BrauerAlgebra.options(display="compact")
-        sage: E
-        B[12/12;]
-        sage: BrauerAlgebra.options._reset()
-    """,
-    display=dict(default="normal",
-                   description='Specifies how the Brauer diagrams should be printed',
-                   values=dict(normal="Using the normal representation",
-                               compact="Using the compact representation"),
-                   case_sensitive=False),
-)
+BrauerAlgberaOptions=deprecated_function_alias(18555, BrauerAlgebra.options)
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""

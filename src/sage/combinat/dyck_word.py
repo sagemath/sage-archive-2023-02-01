@@ -62,7 +62,7 @@ from combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from backtrack import GenericBacktracker
 
-from sage.structure.global_options import AddOptionsToClass
+from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -74,6 +74,7 @@ from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
+from sage.misc.superseded import deprecated_function_alias
 
 open_symbol = 1
 close_symbol = 0
@@ -3064,6 +3065,76 @@ class DyckWords(UniqueRepresentation, Parent):
 
     Element = DyckWord
 
+    # add options to class
+    options=GlobalOptions('DyckWords',
+        doc=r"""
+        Set and display the options for Dyck words. If no parameters
+        are set, then the function returns a copy of the options dictionary.
+
+        The ``options`` to Dyck words can be accessed as the method
+        :meth:`DyckWords.options` of :class:`DyckWords` and
+        related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: D = DyckWord([1, 1, 0, 1, 0, 0])
+            sage: D
+            [1, 1, 0, 1, 0, 0]
+            sage: DyckWords.options(display="lattice")
+            sage: D
+               ___
+             _| x
+            | x  .
+            |  . .
+            sage: DyckWords.options(diagram_style="line")
+            sage: D
+             /\/\
+            /    \
+            sage: DyckWords.options._reset()
+        """,
+        display=dict(default="list",
+                     description='Specifies how Dyck words should be printed',
+                     values=dict(list='displayed as a list',
+                                 lattice='displayed on the lattice defined by ``diagram_style``'),
+                     case_sensitive=False),
+        ascii_art=dict(default="path",
+                       description='Specifies how the ascii art of Dyck words should be printed',
+                       values=dict(path="Using the path string",
+                                       pretty_output="Using pretty printing"),
+                           alias=dict(pretty_print="pretty_output", path_string="path"),
+                           case_sensitive=False),
+            diagram_style=dict(default="grid",
+                               values=dict(grid='printing as paths on a grid using N and E steps',
+                                           line='printing as paths on a line using NE and SE steps',),
+                               alias={'N-E': 'grid', 'NE-SE': 'line'},
+                               case_sensitive=False),
+            latex_tikz_scale=dict(default=1,
+                                  description='The default value for the tikz scale when latexed',
+                                  checker=lambda x: True),  # More trouble than it's worth to check
+            latex_diagonal=dict(default=False,
+                                description='The default value for displaying the diagonal when latexed',
+                                checker=lambda x: isinstance(x, bool)),
+            latex_line_width_scalar=dict(default=2,
+                                         description='The default value for the line width as a'
+                                                     'multiple of the tikz scale when latexed',
+                                         checker=lambda x: True),  # More trouble than it's worth to check
+            latex_color=dict(default="black",
+                             description='The default value for the color when latexed',
+                             checker=lambda x: isinstance(x, str)),
+            latex_bounce_path=dict(default=False,
+                                   description='The default value for displaying the bounce path when latexed',
+                                   checker=lambda x: isinstance(x, bool)),
+            latex_peaks=dict(default=False,
+                             description='The default value for displaying the peaks when latexed',
+                             checker=lambda x: isinstance(x, bool)),
+            latex_valleys=dict(default=False,
+                              description='The default value for displaying the valleys when latexed',
+                              checker=lambda x: isinstance(x, bool)),
+    )
+
+    global_options=deprecated_function_alias(18555, options)
+
     def _element_constructor_(self, word):
         """
         Construct an element of ``self``.
@@ -3229,74 +3300,7 @@ class DyckWords(UniqueRepresentation, Parent):
                 heights[i-1] = heights[i] - 1
         return self.from_heights(heights)
 
-AddOptionsToClass(DyckWords,
-    doc=r"""
-    Set and display the options for Dyck words. If no parameters
-    are set, then the function returns a copy of the options dictionary.
-
-    The ``options`` to Dyck words can be accessed as the method
-    :meth:`DyckWords.options` of :class:`DyckWords` and
-    related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: D = DyckWord([1, 1, 0, 1, 0, 0])
-        sage: D
-        [1, 1, 0, 1, 0, 0]
-        sage: DyckWords.options(display="lattice")
-        sage: D
-           ___
-         _| x
-        | x  .
-        |  . .
-        sage: DyckWords.options(diagram_style="line")
-        sage: D
-         /\/\
-        /    \
-        sage: DyckWords.options._reset()
-    """,
-    display=dict(default="list",
-                 description='Specifies how Dyck words should be printed',
-                 values=dict(list='displayed as a list',
-                             lattice='displayed on the lattice defined by ``diagram_style``'),
-                 case_sensitive=False),
-    ascii_art=dict(default="path",
-                   description='Specifies how the ascii art of Dyck words should be printed',
-                   values=dict(path="Using the path string",
-                               pretty_output="Using pretty printing"),
-                   alias=dict(pretty_print="pretty_output", path_string="path"),
-                   case_sensitive=False),
-    diagram_style=dict(default="grid",
-                       values=dict(grid='printing as paths on a grid using N and E steps',
-                                   line='printing as paths on a line using NE and SE steps',),
-                       alias={'N-E': 'grid', 'NE-SE': 'line'},
-                       case_sensitive=False),
-    latex_tikz_scale=dict(default=1,
-                          description='The default value for the tikz scale when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-    latex_diagonal=dict(default=False,
-                        description='The default value for displaying the diagonal when latexed',
-                        checker=lambda x: isinstance(x, bool)),
-    latex_line_width_scalar=dict(default=2,
-                                 description='The default value for the line width as a'
-                                             'multiple of the tikz scale when latexed',
-                                 checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color=dict(default="black",
-                     description='The default value for the color when latexed',
-                     checker=lambda x: isinstance(x, str)),
-    latex_bounce_path=dict(default=False,
-                           description='The default value for displaying the bounce path when latexed',
-                           checker=lambda x: isinstance(x, bool)),
-    latex_peaks=dict(default=False,
-                     description='The default value for displaying the peaks when latexed',
-                     checker=lambda x: isinstance(x, bool)),
-    latex_valleys=dict(default=False,
-                      description='The default value for displaying the valleys when latexed',
-                      checker=lambda x: isinstance(x, bool)),
-)
-
-
+DyckWordOptions = deprecated_function_alias(18555, DyckWords.options)
 
 class DyckWords_all(DyckWords):
     """

@@ -25,7 +25,8 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.structure.global_options import AddOptionsToClass
+from sage.misc.superseded import deprecated_function_alias
+from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
@@ -383,6 +384,69 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = cl.cartan_matrix()
         Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+
+    # add options to class
+    options=GlobalOptions('RiggedConfigurations',
+        doc=r"""
+        Sets and displays the options for rigged configurations.
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`RiggedConfigurations.options` of
+        :class:`RiggedConfigurations`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
+            sage: elt = RC(partition_list=[[3,1], [3], [1]])
+            sage: elt
+            <BLANKLINE>
+            -3[ ][ ][ ]-3
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ][ ][ ]1
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: RiggedConfigurations.options(display="horizontal", convention="french")
+            sage: elt
+            -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
+            -3[ ][ ][ ]-3
+
+        Changing the ``convention`` for rigged configurations also changes the
+        ``convention`` option for tableaux and vice versa::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: Tableaux.options(convention="english")
+            sage: elt
+            -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
+            -1[ ]-1
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: RiggedConfigurations.options._reset()
+        """,
+        display=dict(default="vertical",
+                     description='Specifies how rigged configurations should be printed',
+                     values=dict(vertical='displayed vertically',
+                                 horizontal='displayed horizontally'),
+                     case_sensitive=False),
+        element_ascii_art=dict(default=True,
+                         description='display using the repr option ``element_ascii_art``',
+                         checker=lambda x: isinstance(x, bool)),
+        half_width_boxes_type_B=dict(default=True,
+                description='display the last rigged partition in affine type B as half width boxes',
+                checker=lambda x: isinstance(x, bool)),
+        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
+
+    global_options=deprecated_function_alias(18555, options)
 
     def _repr_(self):
         """
@@ -1008,66 +1072,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     Element = KRRCSimplyLacedElement
 
-AddOptionsToClass(RiggedConfigurations,
-    doc=r"""
-    Sets and displays the options for rigged configurations.
-    If no parameters are set, then the function returns a copy of
-    the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`RiggedConfigurations.options` of
-    :class:`RiggedConfigurations`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
-        sage: elt = RC(partition_list=[[3,1], [3], [1]])
-        sage: elt
-        <BLANKLINE>
-        -3[ ][ ][ ]-3
-        -1[ ]-1
-        <BLANKLINE>
-        1[ ][ ][ ]1
-        <BLANKLINE>
-        -1[ ]-1
-        <BLANKLINE>
-        sage: RiggedConfigurations.options(display="horizontal", convention="french")
-        sage: elt
-        -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
-        -3[ ][ ][ ]-3
-
-    Changing the ``convention`` for rigged configurations also changes the
-    ``convention`` option for tableaux and vice versa::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: Tableaux.options(convention="english")
-        sage: elt
-        -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
-        -1[ ]-1
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: RiggedConfigurations.options._reset()
-    """,
-    display=dict(default="vertical",
-                 description='Specifies how rigged configurations should be printed',
-                 values=dict(vertical='displayed vertically',
-                             horizontal='displayed horizontally'),
-                 case_sensitive=False),
-    element_ascii_art=dict(default=True,
-                     description='display using the repr option ``element_ascii_art``',
-                     checker=lambda x: isinstance(x, bool)),
-    
-    half_width_boxes_type_B=dict(default=True,
-            description='display the last rigged partition in affine type B as half width boxes',
-            checker=lambda x: isinstance(x, bool)),
-    convention=dict(link_to=(tableau.Tableaux.options,'convention')),
-    notation = dict(alt_name='convention')
-)
+RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)
 
 class RCNonSimplyLaced(RiggedConfigurations):
     r"""

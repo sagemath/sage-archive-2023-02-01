@@ -6303,7 +6303,7 @@ def sandlib(selector=None):
         print '  Sandpiles in the sandlib:'
         for i in sandpiles:
             print '    ', i, ':', sandpiles[i]['description']
-        print
+        print("")
     elif selector not in sandpiles.keys():
         print selector, 'is not in the sandlib.'
     else:

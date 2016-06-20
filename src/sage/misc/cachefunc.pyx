@@ -3162,8 +3162,6 @@ def cached_method(f, name=None, key=None, do_pickle=None):
         sage: d = loads(dumps(c))
         sage: hash(d) == hash(c)
         True
-        sage: id(d) == hash(d)
-        False
 
     However, the contents of a method's cache are not pickled unless ``do_pickle``
     is set::
@@ -3179,8 +3177,6 @@ def cached_method(f, name=None, key=None, do_pickle=None):
         sage: d = loads(dumps(c))
         sage: hash(d) == hash(c)
         False
-        sage: id(d) == hash(d)
-        True
 
     """
     cdef str fname = name or f.__name__

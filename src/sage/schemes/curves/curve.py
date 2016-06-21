@@ -245,9 +245,6 @@ class Curve_generic(AlgebraicScheme_subscheme):
             raise TypeError("(=%s) must be a point in the ambient space of this curve"%P)
         try:
             P = self(P)
-        except TypeError:
-            return False
-        try:
             P = C(P)
         except TypeError:
             return False

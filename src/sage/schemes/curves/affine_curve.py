@@ -152,9 +152,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
         - ``P`` -- a point in the intersection of this curve with ``C``.
 
-        OUTPUT:
-
-        An integer.
+        OUTPUT: An integer.
 
         EXAMPLES::
 
@@ -425,6 +423,30 @@ class AffinePlaneCurve(AffineCurve):
         """
         I = self.defining_ideal()
         return I.plot(*args, **kwds)
+
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves that is not a singular point of either curve.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            raise TypeError("(=%s) must be a nonsingular point of both (=%s) and this curve"%(P,C))
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
     def rational_points(self, algorithm="enum"):

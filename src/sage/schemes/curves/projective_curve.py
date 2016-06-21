@@ -132,9 +132,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Return whether this projective curve is or is not a complete intersection.
 
-        OUTPUT:
-
-        Boolean.
+        OUTPUT: Boolean.
 
         EXAMPLES::
 
@@ -149,9 +147,14 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = Curve([y - z - w, y^3 - x*w*u, u^2 - x^2 - y^2], P)
             sage: C.is_complete_intersection()
             True
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = Curve([x*z - y^2, z*(y*w - z^2) - w*(x*w - y*z)])
+            sage: X.is_complete_intersection()
+            False
         """
         singular.lib("sing.lib")
-        I = singular.simplify(self.defining_ideal().radical(), 10)
+        I = singular.simplify(self.defining_ideal(), 10)
         L = singular.is_ci(I).sage()
         return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
 
@@ -168,9 +171,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
 
         - ``P`` -- a point in the intersection of this curve with ``C``.
 
-        OUTPUT:
-
-        An integer.
+        OUTPUT: An integer.
 
         EXAMPLES::
 
@@ -511,6 +512,29 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         poly = C.defining_polynomial()
         return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
 
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves that is not a singular point of either curve.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            raise TypeError("(=%s) must be a nonsingular point of both (=%s) and this curve"%(P,C))
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

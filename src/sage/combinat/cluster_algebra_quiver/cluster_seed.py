@@ -140,7 +140,6 @@ class ClusterSeed(SageObject):
             * self._B - the mutable part of self._M.
             * self._b_initial - the initial exchange matrix
             * self._description - the description of the ClusterSeed
-            * self._frozen - a list of frozen vertices or the number of frozen vertices, assumed to be the later vertices, when input is a ClusterQuiver
             * self._use_fpolys - a boolean tracking whether F-polynomials and cluster variables will be tracked as part of every mutation.
             * self._cluster - a list tracking the current names of cluster elements.
             * self._user_labels_prefix - the prefix for every named cluster element. Defaults to 'x'.
@@ -185,7 +184,6 @@ class ClusterSeed(SageObject):
         self._B = None
         self._b_initial = None
         self._description = None
-        self._frozen = 0
         self._use_fpolys = None
         self._cluster = None
         self._user_labels_prefix = None

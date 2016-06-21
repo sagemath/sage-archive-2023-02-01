@@ -20,7 +20,7 @@ positive integers) such that the matrix `M = (m_{ab})` with
     by the pair `(i,-i)`.
 
 For the compendium on the cluster algebra and quiver package see ::
-
+f
     http://arxiv.org/abs/1102.4844.
 
 AUTHORS:
@@ -526,6 +526,9 @@ class ClusterQuiver(SageObject):
             return g1
 
         n, m = self._n, self._m
+        # So that we don't remove elements of these lists later
+        nlist = copy(self._nlist)
+        mlist = copy(self._mlist)
         colors = rainbow(11)
         color_dict = { colors[0]:[], colors[1]:[], colors[6]:[], colors[5]:[] }
         
@@ -539,7 +542,7 @@ class ClusterQuiver(SageObject):
         for edge in dg.edges():
             v1,v2,(a,b) = edge
                 
-            if v1 < n and v2 < n:
+            if v1 in nlist and v2 in nlist:
                 if (a,b) == (1,-1):
                     color_dict[ colors[0] ].append((v1,v2))
                 else:
@@ -556,25 +559,23 @@ class ClusterQuiver(SageObject):
                     dg.set_edge_label( v1,v2,a )
         
         # If a mark is given, then we set that mark appart from the rest
+        # The mark is assumed to be a vertex
         if mark is not None:
-            if mark < n:
-                partition = (range(mark)+range(mark+1,n),range(n,n+m),[mark])
-            elif mark > n:
-                partition = (range(n),range(n,mark)+range(mark+1,n+m),[mark])
+            if mark in nlist:
+                partition = (nlist.remove(mark),mlist,[mark])
+            elif mark in mlist:
+                partition = (nlist,mlist.remove(mark),[mark])
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
-            # The ranges: nr is regular vertex, mr is frozen
-            nr = range(n)
-            mr = range(n,n+m)
             
             # Parititon out the green vertices
             for i in greens:
-                if i < n:
-                    nr.remove(i)
+                if i in nlist:
+                    nlist.remove(i)
                 else:
-                    mr.remove(i)
-            partition = (nr,mr,greens)
+                    mlist.remove(i)
+            partition = (nlist,mlist,greens)
             
         # Update the vertex dictionary
         for i in xrange(2):
@@ -606,6 +607,7 @@ class ClusterQuiver(SageObject):
                 else:
                     vkey = v
                 options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
+                
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):

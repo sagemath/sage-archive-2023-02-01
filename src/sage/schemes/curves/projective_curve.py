@@ -128,6 +128,58 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         from constructor import Curve
         return Curve(AlgebraicScheme_subscheme_projective.affine_patch(self, i, AA))
 
+    def arithmetic_genus(self):
+        r"""
+        Return the arithmetic genus of this projective curve.
+
+        If `P` is the Hilbert polynomial of the defining ideal of this curve, then the
+        arithmetic genus of this curve is `1 - P(0)`.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = P.curve([y*w^3 - x^4, z*w^4 - x^5])
+            sage: C.arithmetic_genus()
+            51
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(GF(17), 3)
+            sage: C = P.curve([y*w - x^2, z*w^2 - x^3])
+            sage: C.arithmetic_genus()
+            4
+        """
+        return 1 - self.defining_ideal().hilbert_polynomial()(0)
+
+    def degree(self):
+        r"""
+        Return the degree of this projective curve.
+
+        This is just the leading coefficient of the Hilbert polynomial of the defining
+        ideal of this curve.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^2 - 2)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = Curve([y^2 - 2*b*z^2 + x*y], P)
+            sage: C.degree()
+            2
+
+        ::
+
+            sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
+            sage: C = P.curve([x^7 - y*z^3*w^2*u, w*x^2 - y*u^2, z^3 + y^3])
+            sage: C.degree()
+            63
+        """
+        return self.defining_ideal().hilbert_polynomial().leading_coefficient()
+
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
         r"""
@@ -165,12 +217,13 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
     def arithmetic_genus(self):
         r"""
-        Return the arithmetic genus of this curve.
+        Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in
-        Hartshorne. If the curve has degree `d` then this is simply
-        `(d-1)(d-2)/2`. It need *not* equal the geometric genus
-        (the genus of the normalization of the curve).
+        This is the arithmetic genus `g_a(C)` as defined in Hartshorne. For a projective
+        plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It need *not* equal
+        the geometric genus (the genus of the normalization of the curve).
+
+        OUTPUT: Integer.
 
         EXAMPLE::
 
@@ -181,6 +234,13 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             28
             sage: C.genus()
             4
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
+            sage: C.arithmetic_genus()
+            3
         """
         d = self.defining_polynomial().total_degree()
         return int((d-1)*(d-2)/2)

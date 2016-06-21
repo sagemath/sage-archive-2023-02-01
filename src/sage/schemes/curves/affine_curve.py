@@ -507,7 +507,21 @@ class AffinePlaneCurve(AffineCurve):
 
         EXAMPLES::
 
-            
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([x^2 + y^2 - 1], A)
+            sage: D = Curve([x - 1], A)
+            sage: Q = A([1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y - x^3], A)
+            sage: D = Curve([y + x], A)
+            sage: Q = A([0,0])
+            sage: C.is_transverse(D, Q)
+            True
         """
         if not self.intersects_at(C, P):
             raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))

@@ -214,20 +214,20 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
             sage: C.is_complete_intersection()
             False
 
         ::
 
-            sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
-            sage: C = Curve([y - z - w, y^3 - x*w*u, u^2 - x^2 - y^2], P)
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
             sage: C.is_complete_intersection()
             True
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: X = Curve([x*z - y^2, z*(y*w - z^2) - w*(x*w - y*z)])
-            sage: X.is_complete_intersection()
+            sage: C = Curve([z^2 - y*w, y*z - x*w, y^2 - x*z], P)
+            sage: C.is_complete_intersection()
             False
         """
         singular.lib("sing.lib")
@@ -727,6 +727,44 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # otherwise they are distinct
         return True
+
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves that is not a singular point of either curve.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - y^2], P)
+            sage: D = Curve([x - y], P)
+            sage: Q = P([1,1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - 2*y^2 - 2*z^2], P)
+            sage: D = Curve([y - z], P)
+            sage: Q = P([2,1,1])
+            sage: C.is_transverse(D, Q)
+            True
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            raise TypeError("(=%s) must be a nonsingular point of both (=%s) and this curve"%(P,C))
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

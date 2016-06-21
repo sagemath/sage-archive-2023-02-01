@@ -389,7 +389,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C = Curve([y^2 - w*z, w^3 - y^3], P)
             sage: D = Curve([x*y - w*z, z^3 - y^3], P)
             sage: C.intersection_points(D, F=K)
-            [(-b - 1 : -b - 1 : b : 1), (b : b : -b - 1 : 1), (1 : 1 : 1 : 1)]
+            [(-b - 1 : -b - 1 : b : 1), (b : b : -b - 1 : 1), (1 : 0 : 0 : 0), (1 : 1 : 1 : 1)]
 
         ::
 

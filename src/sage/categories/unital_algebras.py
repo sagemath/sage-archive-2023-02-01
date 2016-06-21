@@ -152,9 +152,6 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
         """
-        ``Magmas.Element.__mul__`` is preferable to ``Modules.Element.__mul__``
-        since the later does not handle products of two elements of ``self``.
-
         TESTS::
 
             sage: A = AlgebrasWithBasis(QQ).example(); A
@@ -169,7 +166,6 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             + 2*B[word: bab] + 2*B[word: baba] + 3*B[word: babb]
             + B[word: babbab] + 9*B[word: bb] + 3*B[word: bbab]
         """
-        __mul__ = Magmas.ElementMethods.__mul__.__func__
 
     class WithBasis(CategoryWithAxiom_over_base_ring):
 

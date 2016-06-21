@@ -19,6 +19,9 @@ AUTHORS:
 
 - Maarten Derickx (2010-07): added architecture for is_square and sqrt
 
+- Jeroen Demeyer (2016-08): moved all coercion to the base class
+  :class:`Element`, see :trac:`20767`
+
 The Abstract Element Class Hierarchy
 ------------------------------------
 
@@ -71,59 +74,71 @@ followed by both arithmetic implementers and callers.
 
 A quick summary for the impatient:
 
-- To implement addition for any Element class, override ``def _add_()``.
-- If you want to add ``x`` and ``y``, whose parents you know are **identical**,
-  you may call ``_add_(x, y)``. This will be the fastest way to guarantee
-  that the correct implementation gets called. Of course you can still
-  always use ``x + y``.
+- To implement addition for any Element class, override
+  ``def _add_(self, other)`` in Python or ``cpdef _add_(self, other)``
+  in Cython.
+
+- If you want to add ``x`` and ``y``, whose parents you know are
+  **identical**, you may call ``x._add_(y)`` in Cython. This will be the
+  fastest way to guarantee that the correct implementation gets called.
+  Of course you can still always use ``x + y``.
 
 Now in more detail. The aims of this system are to provide (1) an efficient
 calling protocol from both Python and Cython, (2) uniform coercion semantics
 across Sage, (3) ease of use, (4) readability of code.
 
-We will take addition of RingElements as an example; all other
-operators and classes are similar. There are three relevant functions,
-with subtly differing names (``add`` vs.  ``iadd``, single vs. double
-underscores).
+We will take addition as an example; all other operators are similar.
+There are two relevant functions, with differing names
+(single vs. double underscores).
 
--  **def RingElement.__add__**
+-  **def Element.__add__**
 
-   This function is called by Python or Cython when the binary "+" operator
-   is encountered. It **assumes** that at least one of its arguments is a
-   RingElement; only a really twisted programmer would violate this
-   condition. It has a fast pathway to deal with the most common case
-   where the arguments have the same parent. Otherwise, it uses the coercion
-   module to work out how to make them have the same parent. After any
-   necessary coercions have been performed, it calls ``_add_`` to dispatch to
-   the correct underlying addition implementation.
+   This function is called by Python or Cython when the binary "+"
+   operator is encountered. It **assumes** that at least one of its
+   arguments is an :class:`Element`.
 
-   Note that although this function is declared as ``def``, it doesn't have the
-   usual overheads associated with Python functions (either for the caller or
-   for ``__add__`` itself). This is because Python has optimised calling
-   protocols for such special functions.
+   It has a fast pathway to deal with the most common case where both
+   arguments have the same parent. Otherwise, it uses the coercion
+   framework to work out how to make them have the same parent. After
+   any necessary coercions have been performed, it calls ``_add_`` to
+   dispatch to the correct underlying addition implementation.
 
--  **def RingElement._add_**
+   Note that although this function is declared as ``def``, it doesn't
+   have the usual overheads associated with Python functions (either
+   for the caller or for ``__add__`` itself). This is because Python
+   has optimised calling protocols for such special functions.
+
+-  **def Element._add_**
 
    This is the function you should override to implement addition in a
-   subclass of ``RingElement``.
+   subclass of ``Element``.
 
    The two arguments to this function are guaranteed to have the **same
    parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   If you want to add two objects and you know that their parents are
-   the same object, you are encouraged to call this function directly,
-   instead of using ``x + y``.
+   In Cython code, if you want to add two objects and you know that
+   their parents are the same object, you are encouraged to call this
+   function directly, instead of using ``x + y``. This only works if
+   Cython knows that the left argument is an ``Element``. You can
+   always cast explicitly: ``(<Element>x)._add_(y)`` to force this.
 
-   When implementing ``_add_`` in a Cython extension class, use
+   When implementing ``_add_`` in a Cython extension type, use
    ``cpdef _add_`` instead of ``def _add_``.
 """
 
-##################################################################
-# Generic element, so all this functionality must be defined
-# by any element.  Derived class must call __init__
-##################################################################
-from __future__ import print_function
+#*****************************************************************************
+#       Copyright (C) 2006-2016 ...
+#       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, division, print_function
 
 from libc.limits cimport LONG_MAX, LONG_MIN
 
@@ -131,7 +146,6 @@ from cpython cimport *
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
-from cpython.number cimport PyNumber_TrueDivide
 
 import types
 cdef add, sub, mul, div, truediv, floordiv, mod
@@ -166,13 +180,25 @@ def make_element(_class, _dict, parent):
     return make_element_old(_class, _dict, parent)
 
 
-cdef str arith_error_message(x, y, op):
-    name = op.__name__
+cdef un_op_error_message(op, x):
     try:
-        name = _coerce_op_symbols[name]
-    except KeyError:
+        op = op.__name__
+        op = _coerce_op_symbols[op]
+    except (AttributeError, KeyError):
         pass
-    return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(name, parent_c(x), parent_c(y))
+    px = parent(x)
+    return f"unsupported operand parent for {op}: '{px}'"
+
+
+cdef bin_op_error_message(op, x, y):
+    try:
+        op = op.__name__
+        op = _coerce_op_symbols[op]
+    except (AttributeError, KeyError):
+        pass
+    px = parent(x)
+    py = parent(y)
+    return f"unsupported operand parent(s) for {op!r}: '{px}' and '{py}'"
 
 
 def is_Element(x):
@@ -944,9 +970,357 @@ cdef class Element(SageObject):
         msg = LazyFormat("comparison not implemented for %r")%type(left)
         raise NotImplementedError(msg)
 
-    def __mod__(self, other):
+    ##################################################
+    # Arithmetic using the coercion model
+    ##################################################
+
+    def __add__(left, right):
         """
-        Top-level modulo operator for :class:`Element`.
+        Top-level addition operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import RingElement
+            sage: e = RingElement(Parent())
+            sage: e + e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: 1 + e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: e + 1
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: int(1) + e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for +: 'int' and 'sage.structure.element.RingElement'
+            sage: e + int(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'int'
+            sage: None + e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for +: 'NoneType' and 'sage.structure.element.RingElement'
+            sage: e + None
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for +: 'sage.structure.element.RingElement' and 'NoneType'
+        """
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._add_(right)
+        # Left and right are Sage elements => use coercion model
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, add)
+
+        try:
+            # Special case addition with Python int
+            if isinstance(right, int):
+                return (<Element>left)._add_long(PyInt_AS_LONG(right))
+            if isinstance(left, int):
+                return (<Element>right)._add_long(PyInt_AS_LONG(left))
+            return coercion_model.bin_op(left, right, add)
+        except TypeError:
+            # Either coercion failed or arithmetic is not defined.
+            #
+            # According to the Python convention, we should return
+            # NotImplemented now. This will cause Python to try the
+            # reversed addition (__radd__).
+            return NotImplemented
+
+    cdef _add_(self, other):
+        """
+        Virtual addition method for elements with identical parents.
+
+        This is meant to implement the fact that there is no ``_add_``
+        method: it looks up a Python ``_add_`` method and calls that.
+        This indirectly also looks up ``_add_`` in the category.
+        If there is no Python ``_add_`` method, an exception is raised
+        saying that addition is not implemented.
+
+        EXAMPLES::
+
+            sage: 23._add_(5)
+            28
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._add_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_add_'
+        """
+        try:
+            python_op = (<object>self)._add_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('+', self, other))
+        else:
+            return python_op(other)
+
+    cdef _add_long(self, long n):
+        """
+        Generic path for adding a C long, assumed to commute.
+        """
+        return coercion_model.bin_op(self, n, add)
+
+    def __sub__(left, right):
+        """
+        Top-level subtraction operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e - e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '-': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        # See __add__ for comments
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._sub_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, sub)
+
+        try:
+            return coercion_model.bin_op(left, right, sub)
+        except TypeError:
+            return NotImplemented
+
+    cdef _sub_(self, other):
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._sub_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('-', self, other))
+        else:
+            return python_op(other)
+
+    def __neg__(self):
+        """
+        Top-level negation operator for :class:`Element`.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: -e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent for unary -: '<type 'sage.structure.parent.Parent'>'
+        """
+        return self._neg_()
+
+    cdef _neg_(self):
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._neg_
+        except AttributeError:
+            raise TypeError(un_op_error_message('unary -', self))
+        else:
+            return python_op()
+
+    def __mul__(left, right):
+        """
+        Top-level multiplication operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e * e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._mul_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mul)
+
+        try:
+            if isinstance(right, int):
+                return (<Element>left)._mul_long(PyInt_AS_LONG(right))
+            if isinstance(left, int):
+                return (<Element>right)._mul_long(PyInt_AS_LONG(left))
+            return coercion_model.bin_op(left, right, mul)
+        except TypeError:
+            return NotImplemented
+
+    cdef _mul_(self, other):
+        """
+        Multiplication method for elements with identical parents.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._mul_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('*', self, other))
+        else:
+            return python_op(other)
+
+    cdef _mul_long(self, long n):
+        """
+        Generic path for multiplying by a C long, assumed to commute.
+        """
+        return coercion_model.bin_op(self, n, mul)
+
+    def __div__(left, right):
+        """
+        Top-level division operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 2 / 3
+            2/3
+            sage: pi / 3
+            1/3*pi
+            sage: K.<i> = NumberField(x^2+1)
+            sage: 2 / K.ideal(i+1)
+            Fractional ideal (-i + 1)
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e / e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        # See __add__ for comments
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._div_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, div)
+
+        try:
+            return coercion_model.bin_op(left, right, div)
+        except TypeError:
+            return NotImplemented
+
+    def __truediv__(left, right):
+        """
+        Top-level true division operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: operator.truediv(2, 3)
+            2/3
+            sage: operator.truediv(pi, 3)
+            1/3*pi
+            sage: K.<i> = NumberField(x^2+1)
+            sage: operator.truediv(2, K.ideal(i+1))
+            Fractional ideal (-i + 1)
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: operator.truediv(e, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        # See __add__ for comments
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._div_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, truediv)
+
+        try:
+            return coercion_model.bin_op(left, right, truediv)
+        except TypeError:
+            return NotImplemented
+
+    cdef _div_(self, other):
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._div_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('/', self, other))
+        else:
+            return python_op(other)
+
+    def __floordiv__(left, right):
+        """
+        Top-level floor division operator for :class:`Element` invoking
+        the coercion model.
+
+        See extensive documentation at the top of element.pyx.
+
+        EXAMPLES::
+
+            sage: 7 // 3
+            2
+            sage: 7 // int(3)
+            2
+            sage: int(7) // 3
+            2
+
+        ::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e // e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+        """
+        # See __add__ for comments
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._floordiv_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, floordiv)
+
+        try:
+            return coercion_model.bin_op(left, right, floordiv)
+        except TypeError:
+            return NotImplemented
+
+    cdef _floordiv_(self, other):
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._floordiv_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('//', self, other))
+        else:
+            return python_op(other)
+
+    def __mod__(left, right):
+        """
+        Top-level modulo operator for :class:`Element` invoking
+        the coercion model.
+
         See extensive documentation at the top of element.pyx.
 
         EXAMPLES::
@@ -967,31 +1341,31 @@ cdef class Element(SageObject):
             ...
             TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
         """
-        if have_same_parent_c(self, other):
-            return (<Element>self)._mod_(<Element>other)
-        return coercion_model.bin_op(self, other, mod)
+        # See __add__ for comments
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._mod_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mod)
 
-    cpdef _mod_(self, other):
+        try:
+            return coercion_model.bin_op(left, right, mod)
+        except TypeError:
+            return NotImplemented
+
+    cdef _mod_(self, other):
         """
-        Cython classes should override this function to implement
-        remaindering.
+        Modulo method for elements with identical parents.
+
         See extensive documentation at the top of element.pyx.
-
-        EXAMPLES::
-
-            sage: 23._mod_(5)
-            3
-
-        ::
-
-            sage: from sage.structure.element import Element
-            sage: e = Element(Parent())
-            sage: e._mod_(e)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '%': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
         """
-        raise TypeError(arith_error_message(self, other, mod))
+        # See _add_ for documentation
+        try:
+            python_op = (<object>self)._mod_
+        except AttributeError:
+            raise TypeError(bin_op_error_message('%', self, other))
+        else:
+            return python_op(other)
 
 
 def is_ModuleElement(x):
@@ -1220,77 +1594,35 @@ cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
-
-    ##################################################
-    # Addition
-    ##################################################
-    def __add__(left, right):
+    cdef _add_long(self, long n):
         """
-        Top-level addition operator for ModuleElements.
-
-        See extensive documentation at the top of element.pyx.
+        Generic path for adding a C long, assumed to commute.
         """
-        # Try fast pathway if they are both ModuleElements and the parents
-        # match.
+        if n == 0:
+            return self
+        return coercion_model.bin_op(self, n, add)
 
-        # (We know at least one of the arguments is a ModuleElement. So if
-        # their types are *equal* (fast to check) then they are both
-        # ModuleElements. Otherwise use the slower test via isinstance.)
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._add_(right)
-        return coercion_model.bin_op(left, right, add)
-
-    cpdef _add_(left, right):
-        raise TypeError(arith_error_message(left, right, add))
-
-    ##################################################
-    # Subtraction
-    ##################################################
-
-    def __sub__(left, right):
+    cpdef _sub_(self, other):
         """
-        Top-level subtraction operator for ModuleElements.
-        See extensive documentation at the top of element.pyx.
+        Default implementation of subtraction using addition and
+        negation.
         """
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._sub_(right)
-        return coercion_model.bin_op(left, right, sub)
-
-    cpdef _sub_(left, right):
-        # default implementation is to use the negation and addition
-        # dispatchers:
-        return left._add_(-right)
-
-    ##################################################
-    # Negation
-    ##################################################
-
-    def __neg__(self):
-        """
-        Top-level negation operator for ModuleElements, which
-        may choose to implement _neg_ rather than __neg__ for
-        consistency.
-        """
-        return self._neg_()
+        return self + (-other)
 
     cpdef _neg_(self):
-        # default implementation is to try multiplying by -1.
-        if self._parent._base is None:
-            return coercion_model.bin_op(-1, self, mul)
-        else:
-            return coercion_model.bin_op(self._parent._base(-1), self, mul)
+        """
+        Default implementation of negation using multiplication
+        with -1.
+        """
+        return self._mul_long(-1)
 
-    ##################################################
-    # Module element multiplication (scalars, etc.)
-    ##################################################
-    def __mul__(left, right):
-        if type(right) is int:
-            return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        if type(left) is int:
-            return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
-        if have_same_parent_c(left, right):
-            raise TypeError(arith_error_message(left, right, mul))
-        return coercion_model.bin_op(left, right, mul)
+    cdef _mul_long(self, long n):
+        """
+        Generic path for multiplying by a C long, assumed to commute.
+        """
+        if n == 1:
+            return self
+        return coercion_model.bin_op(self, n, mul)
 
     # rmul -- left * self
     cpdef _rmul_(self, RingElement left):
@@ -1311,12 +1643,6 @@ cdef class ModuleElement(Element):
         Returning None indicates that this action is not implemented here.
         """
         return None
-
-    cdef _mul_long(self, long n):
-        """
-        Generic path for multiplying by a C long, assumed to commute.
-        """
-        return coercion_model.bin_op(self, n, mul)
 
     ##################################################
     # Other properties
@@ -1347,33 +1673,6 @@ cdef class MonoidElement(Element):
     """
     Generic element of a monoid.
     """
-
-    #############################################################
-    # Multiplication
-    #############################################################
-    def __mul__(left, right):
-        """
-        Top-level multiplication operator for monoid elements.
-        See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(left, right):
-            return (<MonoidElement>left)._mul_(right)
-        try:
-            return coercion_model.bin_op(left, right, mul)
-        except TypeError as msg:
-            if isinstance(left, (int, long)) and left==1:
-                return right
-            elif isinstance(right, (int, long)) and right==1:
-                return left
-            raise
-
-
-    cpdef _mul_(left, right):
-        """
-        Cython classes should override this function to implement multiplication.
-        See extensive documentation at the top of element.pyx.
-        """
-        raise TypeError
 
     #############################################################
     # Other generic functions that should be available to
@@ -1460,42 +1759,10 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         """
         return self.multiplicative_order()
 
-    def _add_(self, x):
-        raise ArithmeticError("addition not defined in a multiplicative group")
-
-    def __truediv__(left, right):
-        """
-        Top-level true division operator for multiplicative group
-        elements. See extensive documentation at the top of
-        element.pyx.
-
-        If two elements have the same parent, we just call ``_div_``
-        because all divisions of Sage elements are really true
-        divisions.
-
-        EXAMPLES::
-
-            sage: K.<i> = NumberField(x^2+1)
-            sage: operator.truediv(2, K.ideal(i+1))
-            Fractional ideal (-i + 1)
-        """
-        if have_same_parent_c(left, right):
-            return (<MultiplicativeGroupElement>left)._div_(right)
-        return coercion_model.bin_op(left, right, truediv)
-
-    def __div__(left, right):
-        """
-        Top-level division operator for multiplicative group elements.
-        See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(left, right):
-            return (<MultiplicativeGroupElement>left)._div_(right)
-        return coercion_model.bin_op(left, right, div)
-
     cpdef _div_(self, right):
         """
-        Cython classes should override this function to implement division.
-        See extensive documentation at the top of element.pyx.
+        Default implementation of division using multiplication by
+        the inverse.
         """
         return self * ~right
 
@@ -1503,9 +1770,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         r"""
         Return the inverse of ``self``.
         """
-        if self.is_one():
-            return self
-        return self.parent().one()/self
+        return self._parent.one() / self
 
 
 def is_RingElement(x):
@@ -1515,180 +1780,8 @@ def is_RingElement(x):
     return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
-    ##################################################
     def is_one(self):
         return self == self._parent.one()
-
-    ##################################
-    # Fast long add/sub path.
-    ##################################
-
-    def __add__(left, right):
-        """
-        Top-level addition operator for RingElements.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._add_(right)
-        if type(right) is int:
-            return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
-        elif type(left) is int:
-            return (<RingElement>right)._add_long(PyInt_AS_LONG(left))
-        return coercion_model.bin_op(left, right, add)
-
-    cdef _add_long(self, long n):
-        """
-        Generic path for adding a C long, assumed to commute.
-        """
-        return coercion_model.bin_op(self, n, add)
-
-    def __sub__(left, right):
-        """
-        Top-level subtraction operator for RingElements.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        cdef long n
-        if have_same_parent_c(left, right):
-            return (<ModuleElement>left)._sub_(right)
-        if type(right) is int:
-            n = PyInt_AS_LONG(right)
-            # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
-            if (n == 0) | (<unsigned long>n != 0 - <unsigned long>n):
-                return (<RingElement>left)._add_long(-n)
-        return coercion_model.bin_op(left, right, sub)
-
-    ##################################
-    # Multiplication
-    ##################################
-
-    def __mul__(left, right):
-        """
-        Top-level multiplication operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-
-        AUTHOR:
-
-        - Gonzalo Tornaria (2007-06-25) - write base-extending test cases and fix them
-
-        TESTS:
-
-        Here we test (scalar * vector) multiplication::
-
-            sage: parent(ZZ(1)*vector(ZZ,[1,2]))
-            Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            sage: parent(QQ(1)*vector(ZZ,[1,2]))
-            Vector space of dimension 2 over Rational Field
-            sage: parent(ZZ(1)*vector(QQ,[1,2]))
-            Vector space of dimension 2 over Rational Field
-            sage: parent(QQ(1)*vector(QQ,[1,2]))
-            Vector space of dimension 2 over Rational Field
-
-            sage: parent(QQ(1)*vector(ZZ['x'],[1,2]))
-            Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x'](1)*vector(QQ,[1,2]))
-            Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ(1)*vector(ZZ['x']['y'],[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*vector(QQ,[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ['x'](1)*vector(ZZ['x']['y'],[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*vector(QQ['x'],[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ['y'](1)*vector(ZZ['x']['y'],[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*vector(QQ['y'],[1,2]))
-            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(ZZ['x'](1)*vector(ZZ['y'],[1,2]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(ZZ['x'](1)*vector(QQ['y'],[1,2]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
-            sage: parent(QQ['x'](1)*vector(ZZ['y'],[1,2]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(QQ['x'](1)*vector(QQ['y'],[1,2]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
-
-        Here we test (scalar * matrix) multiplication::
-
-            sage: parent(ZZ(1)*matrix(ZZ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-            sage: parent(QQ(1)*matrix(ZZ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-            sage: parent(ZZ(1)*matrix(QQ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-            sage: parent(QQ(1)*matrix(QQ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-
-            sage: parent(QQ(1)*matrix(ZZ['x'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x'](1)*matrix(QQ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ(1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*matrix(QQ,2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ['x'](1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*matrix(QQ['x'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(QQ['y'](1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(ZZ['x']['y'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
-            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-            sage: parent(ZZ['x'](1)*matrix(ZZ['y'],2,2,[1,2,3,4]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(ZZ['x'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
-            sage: parent(QQ['x'](1)*matrix(ZZ['y'],2,2,[1,2,3,4]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(QQ['x'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
-
-        """
-        # Try fast pathway if they are both RingElements and the parents match.
-        # (We know at least one of the arguments is a RingElement. So if their
-        # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via isinstance.)
-        if have_same_parent_c(left, right):
-            return (<RingElement>left)._mul_(right)
-        if type(right) is int:
-            return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
-        elif type(left) is int:
-            return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
-        return coercion_model.bin_op(left, right, mul)
-
-    cpdef _mul_(self, right):
-        """
-        Cython classes should override this function to implement multiplication.
-        See extensive documentation at the top of element.pyx.
-        """
-        raise TypeError(arith_error_message(self, right, mul))
 
     def __pow__(self, n, dummy):
         """
@@ -1779,92 +1872,18 @@ cdef class RingElement(ModuleElement):
             l.append(x)
         return l
 
-    ##################################
-    # Division
-    ##################################
-
-    def __truediv__(self, right):
+    cpdef _div_(self, other):
         """
-        Top-level true division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-
-        If two elements have the same parent, we just call ``_div_``
-        because all divisions of Sage elements are really true
-        divisions.
-
-        EXAMPLES::
-
-            sage: operator.truediv(2, 3)
-            2/3
-            sage: operator.truediv(pi, 3)
-            1/3*pi
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(right)
-        return coercion_model.bin_op(self, right, truediv)
-
-    def __div__(self, right):
-        """
-        Top-level division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._div_(right)
-        return coercion_model.bin_op(self, right, div)
-
-    cpdef _div_(self, right):
-        """
-        Cython classes should override this function to implement division.
-        See extensive documentation at the top of element.pyx.
+        Default implementation of division using the fraction field.
         """
         try:
-            return self._parent.fraction_field()(self, right)
+            frac = self._parent.fraction_field()
         except AttributeError:
-            if not right:
-                raise ZeroDivisionError("Cannot divide by zero")
-            else:
-                raise TypeError(arith_error_message(self, right, div))
-
-    def __floordiv__(self, right):
-        """
-        Top-level floor division operator for ring elements.
-        See extensive documentation at the top of element.pyx.
-
-        EXAMPLES::
-
-            sage: 7 // 3
-            2
-            sage: 7 // int(3)
-            2
-            sage: int(7) // 3
-            2
-            sage: p = Parent()
-            sage: e = RingElement(p)
-            sage: e // e
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '//': '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
-        """
-        if have_same_parent_c(self, right):
-            return (<RingElement>self)._floordiv_(right)
-        return coercion_model.bin_op(self, right, floordiv)
-
-    cpdef _floordiv_(self, right):
-        """
-        Cython classes should override this function to implement floor
-        division. See extensive documentation at the top of element.pyx.
-
-        EXAMPLES::
-
-            sage: 23._floordiv_(5)
-            4
-        """
-        raise TypeError(arith_error_message(self, right, floordiv))
+            raise TypeError(bin_op_error_message('/', self, other))
+        return frac(self, other)
 
     def __invert__(self):
-        if self.is_one():
-            return self
-        return 1/self
+        return self._parent.one() / self
 
     def additive_order(self):
         """
@@ -2520,8 +2539,55 @@ cdef class Vector(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
+        Here we test (scalar * vector) multiplication::
+
+            sage: parent(ZZ(1)*vector(ZZ,[1,2]))
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: parent(QQ(1)*vector(ZZ,[1,2]))
+            Vector space of dimension 2 over Rational Field
+            sage: parent(ZZ(1)*vector(QQ,[1,2]))
+            Vector space of dimension 2 over Rational Field
+            sage: parent(QQ(1)*vector(QQ,[1,2]))
+            Vector space of dimension 2 over Rational Field
+
+            sage: parent(QQ(1)*vector(ZZ['x'],[1,2]))
+            Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x'](1)*vector(QQ,[1,2]))
+            Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ(1)*vector(ZZ['x']['y'],[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*vector(QQ,[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ['x'](1)*vector(ZZ['x']['y'],[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*vector(QQ['x'],[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ['y'](1)*vector(ZZ['x']['y'],[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*vector(QQ['y'],[1,2]))
+            Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(ZZ['x'](1)*vector(ZZ['y'],[1,2]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
+            sage: parent(ZZ['x'](1)*vector(QQ['y'],[1,2]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
+            sage: parent(QQ['x'](1)*vector(ZZ['y'],[1,2]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
+            sage: parent(QQ['x'](1)*vector(QQ['y'],[1,2]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
         """
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
         return coercion_model.bin_op(left, right, mul)
 
@@ -2529,10 +2595,13 @@ cdef class Vector(ModuleElement):
         return left._dot_product_coerce_(right)
 
     cpdef _dot_product_coerce_(Vector left, Vector right):
-        raise TypeError(arith_error_message(left, right, mul))
+        raise TypeError(bin_op_error_message('*', left, right))
 
     cpdef _pairwise_product_(Vector left, Vector right):
-        raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
+        raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
+
+    def __div__(self, other):
+        return self / other
 
     def __truediv__(self, right):
         right = py_scalar_to_element(right)
@@ -2548,10 +2617,7 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError("division by zero vector")
                 else:
                     raise ArithmeticError("vector is not in free module")
-        raise TypeError(arith_error_message(self, right, div))
-
-    def __div__(self, right):
-        return PyNumber_TrueDivide(self, right)
+        raise TypeError(bin_op_error_message('/', self, right))
 
     def _magma_init_(self, magma):
         """
@@ -2760,6 +2826,54 @@ cdef class Matrix(ModuleElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
+
+        Here we test (scalar * matrix) multiplication::
+
+            sage: parent(ZZ(1)*matrix(ZZ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+            sage: parent(QQ(1)*matrix(ZZ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: parent(ZZ(1)*matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: parent(QQ(1)*matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+            sage: parent(QQ(1)*matrix(ZZ['x'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x'](1)*matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ(1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*matrix(QQ,2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ['x'](1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*matrix(QQ['x'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(QQ['y'](1)*matrix(ZZ['x']['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(ZZ['x']['y'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+            sage: parent(ZZ['x'](1)*matrix(ZZ['y'],2,2,[1,2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
+            sage: parent(ZZ['x'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Integer Ring' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
+            sage: parent(QQ['x'](1)*matrix(ZZ['y'],2,2,[1,2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Integer Ring'
+            sage: parent(QQ['x'](1)*matrix(QQ['y'],2,2,[1,2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
         Examples with matrices having matrix coefficients::
 
@@ -3209,7 +3323,7 @@ cdef class CoercionModel:
     cpdef bin_op(self, x, y, op):
         if parent(x) is parent(y):
             return op(x,y)
-        raise TypeError(arith_error_message(x,y,op))
+        raise TypeError(bin_op_error_message(op, x, y))
 
     cpdef richcmp(self, x, y, int op):
         x, y = self.canonical_coercion(x, y)

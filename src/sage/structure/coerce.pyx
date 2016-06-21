@@ -87,7 +87,7 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport arith_error_message, parent_c, Element
+from .element cimport bin_op_error_message, parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
@@ -1087,7 +1087,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # We should really include the underlying error.
         # This causes so much headache.
-        raise TypeError(arith_error_message(x,y,op))
+        raise TypeError(bin_op_error_message(op, x, y))
 
     cpdef canonical_coercion(self, x, y):
         r"""

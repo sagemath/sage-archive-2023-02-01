@@ -762,6 +762,8 @@ cdef class Parent(category_object.CategoryObject):
         ``self`` being an instance of both ``Parent`` and
         ``cat.parent_class``, in that order, for attribute lookup.
 
+        This attribute lookup is cached for speed.
+
         EXAMPLES:
 
         We test that ZZ (an extension type) inherits the methods from

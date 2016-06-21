@@ -742,7 +742,7 @@ class Rings(CategoryWithAxiom):
                 sage: k.<t> = GF(5^3)
                 sage: Frob = k.frobenius_endomorphism()
                 sage: k['x',Frob]
-                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by Frobenius Endomorphism x |-> x^5 on Finite Field in t of size 5^3
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             We can also create power series rings by using double brackets::
 

@@ -2118,7 +2118,7 @@ cdef class NumberFieldElement(FieldElement):
             ...
             ZeroDivisionError: number field element division by zero
         """
-        return self._mul_(right.__invert__())
+        return self._mul_(~right)
 
     def __nonzero__(self):
         """
@@ -2243,9 +2243,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: (2*I).__invert__()
             -1/2*I
 
-        We check that the issue underlying :trac:`20693` has been resolved, i.e.
-        number field elements with huge denominator can be inverted.
-        ::
+        We check that :trac:`20693` has been resolved, i.e. number
+        field elements with huge denominator can be inverted::
 
             sage: K.<zeta22> = CyclotomicField(22)
             sage: x = polygen(K)

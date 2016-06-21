@@ -1123,7 +1123,6 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: ModularSymbols(14).cuspidal_subspace().simple_factors()[1].dual_eigenvector()
             (0, 1, 0, 0, 0)
-                
         """
         # TODO -- optimize by computing the answer for i not None in terms
         # of the answer for a given i if known !!

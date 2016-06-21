@@ -19,10 +19,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
+#from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
-
+import cysignals
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.categories.morphism import Morphism, IdentityMorphism
 from sage.rings.morphism import RingHomomorphism
@@ -123,9 +124,7 @@ def SkewPolynomialRing(base_ring,sigma=None,name=None,names=None,sparse=False):
         sage: Sz.<z> = R[sigma]
         Traceback (most recent call last):
         ...
-        ValueError: variable names must be alphanumeric, but one is 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-          Defn: t |--> t + 1' which is not.
-
+        ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
 
     Rings with different variables names are different::
 

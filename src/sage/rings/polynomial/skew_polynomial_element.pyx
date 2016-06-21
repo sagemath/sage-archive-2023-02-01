@@ -277,10 +277,8 @@ cdef class SkewPolynomial(AlgebraElement):
     # ----------
 
     def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right,op)
+        return (<Element>left)._richcmp_(right, op)
 
-
-#    cdef int _cmp_c_impl(self, Element other) except -2:
     cpdef int _cmp_(self, Element other) except -2:
         """
         Compare the two skew polynomials self and other.
@@ -635,7 +633,8 @@ cdef class SkewPolynomial(AlgebraElement):
             False
         """
         if left == 0:
-            return self.parent().zero_element()
+            return self.parent().zero()
+#            return self.parent().zero_element()
         cdef list x = (<SkewPolynomial>self)._list_c()
         cdef Py_ssize_t i
         map = self._parent._map
@@ -2135,9 +2134,11 @@ cdef class SkewPolynomial(AlgebraElement):
         if self.is_zero() or other.is_zero():
             raise ZeroDivisionError
         R = self.parent()
-        U = R.one_element()
+#        U = R.one_element()
+        U = R.one()
         G = self
-        V1 = R.zero_element()
+#        V1 = R.zero_element()
+        V1 = R.zero()
         V3 = other
         while not V3.is_zero():
             Q, R = G.lquo_rem(V3)
@@ -2421,7 +2422,8 @@ cdef class SkewPolynomial(AlgebraElement):
         if n == 0 or self.degree() < 0:
             return self
         if n > 0:
-            return self._parent(n*[self.base_ring().zero_element()] + self.list(), check=False)
+            return self._parent(n*[self.base_ring().zero()] + self.list(), check=False)
+#            return self._parent(n*[self.base_ring().zero_element()] + self.list(), check=False)
         if n < 0:
             if n > self.degree():
                 return self._parent([])
@@ -2654,7 +2656,8 @@ cdef class SkewPolynomial(AlgebraElement):
         if n < 0:
             raise ValueError("n must be at least 0")
         if len(v) < n:
-            z = self._parent.base_ring().zero_element()
+            z = self._parent.base_ring().zero()
+#            z = self._parent.base_ring().zero_element()
             return v + [z]*(n - len(v))
         else:
             return v[:int(n)]
@@ -2760,7 +2763,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero_element())
+            x = self._dict_to_list(x, R.zero())
+#            x = self._dict_to_list(x, R.zero_element())
 
         elif not isinstance(x, list):
             # We trust that the element constructors do not send x=0
@@ -3000,7 +3004,8 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         if self == self.parent().gen(): # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
-            v = [R.zero_element()]*exp + [R.one_element()]
+#            v = [R.zero_element()]*exp + [R.one_element()]
+            v = [R.zero()]*exp + [R.one()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
         else:
             r = <SkewPolynomial_generic_dense>self._new_c(list(self.__coeffs),self._parent)
@@ -3081,8 +3086,15 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
+    def an_element(self):
+        return self._an_element
+
+    def new_constant_poly_(self):
+        return self._new_constant_poly_
+
     cpdef Element _call_(self, x):
         return self._new_constant_poly_(x, self._codomain)
+#        return self._new_constant_poly_(x, self._codomain)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:

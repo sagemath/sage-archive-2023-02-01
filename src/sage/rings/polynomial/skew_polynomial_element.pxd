@@ -1,4 +1,5 @@
-include "../../ext/interrupt.pxi"
+#include "../../ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "../../ext/cdefs.pxi"
 include '../../ext/stdsage.pxi'
 

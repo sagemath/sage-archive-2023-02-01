@@ -135,7 +135,8 @@ AUTHOR::
 
 
 include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+#include "../../ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 import operator, copy, re
 
@@ -170,6 +171,7 @@ from sage.misc.mrange import xmrange_iter
 
 
 cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
+
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         SkewPolynomial_generic_dense.__init__ (self, parent, x, check, is_gen, construct, **kwds)
         self._init_cache()
@@ -194,14 +196,25 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         """
 #        cdef SkewPolynomial_finite_field_dense f = <SkewPolynomial_finite_field_dense>PY_NEW_SAME_TYPE(self)
         cdef type t = type(self)
-        cdef SkewPolynomial_generic_dense f = t.__new__(t)
+        cdef SkewPolynomial_finite_field_dense f = t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
         f._init_cache()
         if check:
             f.__normalize()
         return f
+    
+    def norm(self):
+        """
+        Return norm of `self`
+        """
+        return self._norm
 
+    def norm_factor(self):
+        """
+        Return norm_factor of `self`
+        """
+        return self._norm_factor
 
     # Skew multiplication
     # -------------------
@@ -703,7 +716,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         if self == self.parent().gen(): # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
-            v = [R.zero_element()]*right + [R.one_element()]
+            v = [R.zero()]*right + [R.one()]
+#            v = [R.zero_element()]*right + [R.one_element()]
             r = <SkewPolynomial_generic_dense>self._parent(v)
             sig_on()
             if modulus:
@@ -996,7 +1010,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         A = <SkewPolynomial_finite_field_dense>A._new_c(A.__coeffs[:],A._parent)
         B = <SkewPolynomial_finite_field_dense>A._new_c(B.__coeffs[:],B._parent)
         cdef parent = self._parent
-        cdef RingElement one = self.base_ring().one_element()
+        cdef RingElement one = self.base_ring().one()
+#        cdef RingElement one = self.base_ring().one_element()
         cdef SkewPolynomial_finite_field_dense U = self._new_c([one],parent)
         cdef SkewPolynomial_finite_field_dense V = self._new_c([],parent)
         cdef SkewPolynomial_finite_field_dense Q, R
@@ -1179,9 +1194,12 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
             sage: a.reduced_norm() * b.reduced_norm() == (a*b).reduced_norm()
             True
         """
+#        norm = self.norm()
         if self._norm is None:
+#        if norm is None:
             center = self.parent().center()
             if self.is_zero():
+#                norm = center(0)
                 self._norm = center(0)
             else:
                 section = center._embed_basering.section()
@@ -1190,11 +1208,14 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
                 lc = section(self.leading_coefficient()**exp)
                 if order < self.degree():
                     M = self._matmul_c()
+#                    norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
                     self._norm = center([ lc*section(x) for x in M.determinant().monic().list() ])
                 else:
                     charpoly = self._matphir_c().characteristic_polynomial()
+#                    norm = center([ lc*section(x) for x in charpoly.list() ])
                     self._norm = center([ lc*section(x) for x in charpoly.list() ])
         return self._norm
+#        return norm
 
 
     def reduced_norm_factor(self):
@@ -2046,7 +2067,8 @@ cdef class SkewPolynomial_finite_field_dense (SkewPolynomial_generic_dense):
         cdef SkewPolynomial_finite_field_dense poly = <SkewPolynomial_finite_field_dense>self.rmonic()
         cdef val = poly._val_inplace_unit()
         if val == -1:
-            return Factorization([], sort=False, unit=skew_ring.zero_element())
+            return Factorization([], sort=False, unit=skew_ring.zero())
+#            return Factorization([], sort=False, unit=skew_ring.zero_element())
         cdef list factors = [ (skew_ring.gen(), val) ]
         cdef SkewPolynomial_finite_field_dense P, Q, P1, NS, g, right, Pn
         cdef SkewPolynomial_finite_field_dense right2 = skew_ring(1) << val

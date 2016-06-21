@@ -42,8 +42,7 @@ If we omit it in RHS, sage tries to create a polynomial ring and fails::
     sage: Sz.<z> = R[sigma]
     Traceback (most recent call last):
     ...
-    ValueError: variable names must be alphanumeric, but one is 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-      Defn: t |--> t + 1' which is not.
+    ValueError: variable name 'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1' is not alphanumeric
 
 As for polynomials, skew polynomial rings with different variable names
 are not equal::
@@ -107,7 +106,8 @@ from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
 
-from sage.structure.parent_gens import normalize_names
+from sage.structure.category_object import normalize_names
+#from sage.structure.parent_gens import normalize_names
 from sage.misc.prandom import randint
 
 from sage.categories.morphism import Morphism
@@ -124,7 +124,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
 from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
 import copy, re
-
+import cysignals
+from sage.rings.polynomial.skew_polynomial_element import SkewPolynomial
 
 def is_SkewPolynomialRing(S):
     """
@@ -198,7 +199,7 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
             raise TypeError("%s is not a Skew Polynomial Ring" % skew_ring)
         self._skew_ring = skew_ring
         base_ring = skew_ring.base_ring()
-        kfixed, embed = skew_ring._map.fixed_points()
+        kfixed, embed = skew_ring._map.fixed_field()
         self._embed_basering = embed
         order = skew_ring._map.order()
         if order == Infinity:
@@ -213,6 +214,7 @@ class CenterSkewPolynomialRing(PolynomialRing_general):
             else:
                 self._polynomial_class = sage.rings.polynomial.skew_polynomial_element.CenterSkewPolynomial_generic_dense
 
+        self.Element = self._polynomial_class
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
         # tries to provide a conversion from the base ring, if it does not exist.
         # This is for algebras that only do the generic stuff in their initialisation.
@@ -356,6 +358,7 @@ class SkewPolynomialRing_general(sage.algebras.algebra.Algebra,UniqueRepresentat
     """
     Skew Univariate polynomial ring over a ring.
     """
+    Element = SkewPolynomial
     @staticmethod
     def __classcall__(cls, base_ring, map, name=None, sparse=False, element_class=None):
         if not element_class:

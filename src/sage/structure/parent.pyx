@@ -105,13 +105,13 @@ This came up in some subtle bug once::
 from __future__ import print_function
 
 from types import MethodType
-from .element cimport parent_c, coercion_model
+from sage.structure.element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from .debug_options import debug
-from .sage_object cimport SageObject, rich_to_bool
-from .misc import dir_with_other_class, is_extension_type
-from .misc cimport getattr_from_other_class
+from sage.structure.debug_options import debug
+from sage.structure.sage_object cimport SageObject, rich_to_bool
+from sage.structure.misc import dir_with_other_class, is_extension_type
+from sage.structure.misc cimport getattr_from_other_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy

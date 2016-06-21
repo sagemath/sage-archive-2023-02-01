@@ -147,11 +147,11 @@ cdef dict _coerce_op_symbols = dict(
 cdef MethodType
 from types import MethodType
 
-from .sage_object cimport rich_to_bool
-from .coerce cimport py_scalar_to_element
-from .parent cimport Parent
-from .misc import is_extension_type
-from .misc cimport getattr_from_other_class
+from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.parent cimport Parent
+from sage.structure.misc import is_extension_type
+from sage.structure.misc cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass

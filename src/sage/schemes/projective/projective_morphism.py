@@ -4448,28 +4448,28 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def conjugating_set(self, other):
         r"""
-        Returns the set of elements in PGL that conjugates one mape to the other.
+        Returns the set of elements in PGL that conjugates one map to the other.
 
         Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
         conjugates one rational function to another. It does this by taking the fixed points of one map and mapping
         them to all unique permutations of the fixed points of the other map. If there are not enough fixed points the
         function compares the mapping between rational preimages of fixed points and the rational preimages of the preimages of
-        fixed points until there are enough points; such that there are n+2 points with all  n+1 subsets linearly independent.
+        fixed points until there are enough points; such that there are `n+2` points with all `n+1` subsets linearly independent.
 
-        ALGORITHIM:
-
-        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages of fixed points is
+        ALGORITHM:
+        
+        Implimenting invariant set algorithim from the paper [FMV]_. Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that take one set to another.
 
-        INPUT: Two nonconstant rational functions of same degree
+        INPUT: Two nonconstant rational functions of same degree.
 
         OUTPUT: Set of conjugating `n+1` by `n+1` matrices.
 
         AUTHORS:
-
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray[FMV]_.
-
-        - Implimented by Rebecca Lauren Miller, as part pf GSOC 2016.
+        
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_.
+        
+        - Implimented by Rebecca Lauren Miller, as part of GSOC 2016.
 
         EXAMPLES::
 
@@ -4598,15 +4598,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Returns whether or not two maps are conjugate.
 
-        ALGORITHIM:
+        ALGORITHM:
 
+        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n` th preimages is
+        invariant under conjugation this function finds whether two maps are conjugate.
 
-        Implimenting invariant set algorithim from the paper[FMV]_. Given that the set of `n`th preimages is
-        invariant under conjugation this function finds whether two maps are conjugate
+        INPUT: Two nonconstant rational functions of same degree.
 
-        INPUT: Two nonconstant rational functions of same degree
-
-        OUTPUT: Boolean
+        OUTPUT: Boolean.
 
         AUTHORS:
 

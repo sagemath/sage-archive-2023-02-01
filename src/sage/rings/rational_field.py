@@ -53,7 +53,7 @@ from __future__ import print_function, absolute_import
 
 from .rational import Rational
 from .integer import Integer
-from . import infinity
+
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
@@ -312,7 +312,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
         """
-        if p == infinity.Infinity:
+        from sage.rings.infinity import Infinity
+        if p == Infinity:
             from sage.rings.real_mpfr import create_RealField
             return create_RealField(prec, **extras)
         else:
@@ -623,13 +624,14 @@ class RationalField(Singleton, number_field_base.NumberField):
               Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
         """
         import sage.rings.all
+        from sage.rings.infinity import Infinity
         if prec is None:
             R = sage.rings.all.RR
             C = sage.rings.all.CC
         elif prec == 53:
             R = sage.rings.all.RDF
             C = sage.rings.all.CDF
-        elif prec == infinity.Infinity:
+        elif prec == Infinity:
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
         else:
@@ -918,7 +920,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.order()
             +Infinity
         """
-        return infinity.infinity
+        from sage.rings.infinity import Infinity
+        return Infinity
 
     def _an_element_(self):
         r"""

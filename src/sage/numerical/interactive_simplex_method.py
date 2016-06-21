@@ -3167,6 +3167,26 @@ class LPAbstractDictionary(SageObject):
         """
 
     @abstract_method
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        
+        OUTPUT:
+        
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_name()
+            z
+        """
+
+    @abstract_method
     def objective_value(self):
         r"""
         Return the value of the objective at the
@@ -3982,6 +4002,26 @@ class LPDictionary(LPAbstractDictionary):
             (10, 5)
         """
         return self._AbcvBNz[2]
+
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        
+        OUTPUT:
+        
+        - a symbolic expression
+        
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_name()
+            z
+        """
+        return self._AbcvBNz[6]
 
     def objective_value(self):
         r"""
@@ -4931,6 +4971,26 @@ class LPRevisedDictionary(LPAbstractDictionary):
             (10, 5)
         """
         return self.c_N() - self.y() * self.A_N()
+
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        
+        OUTPUT:
+        
+        - a symbolic expression
+        
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.objective_name()
+            z
+        """
+        return self.problem().objective_name()
 
     def objective_value(self):
         r"""

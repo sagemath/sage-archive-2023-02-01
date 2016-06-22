@@ -30,18 +30,14 @@ class FiniteMonoids(CategoryWithAxiom):
     """
     class ParentMethods:
 
-        def nerve_n_skeleton(self, n):
+        def nerve(self):
             r"""
-            The $n$-skeleton of the nerve (classifying space) of this monoid.
+            The nerve (classifying space) of this monoid.
 
-            INPUT:
-
-            - ``n`` -- a non-negative integer
-
-            OUTPUT: the $n$-skeleton of the nerve $BG$ (if $G$ denotes
-            this monoid), as a simplicial set.  The $k$-dimensional
-            simplices of this object are indexed by products of $k$
-            elements in the monoid:
+            OUTPUT: the nerve $BG$ (if $G$ denotes this monoid), as a
+            simplicial set.  The $k$-dimensional simplices of this
+            object are indexed by products of $k$ elements in the
+            monoid:
 
             .. MATH::
 
@@ -79,7 +75,7 @@ class FiniteMonoids(CategoryWithAxiom):
             2 is infinite-dimensional real projective space. ::
 
                 sage: Sigma2 = groups.permutation.Cyclic(2)
-                sage: BSigma2 = Sigma2.nerve_n_skeleton(5)
+                sage: BSigma2 = Sigma2.nerve()
                 sage: BSigma2.cohomology(4, base_ring=GF(2))
                 Vector space of dimension 1 over Finite Field of size 2
 
@@ -98,7 +94,7 @@ class FiniteMonoids(CategoryWithAxiom):
             for its elements::
 
                 sage: C2 = groups.misc.MultiplicativeAbelian([2])
-                sage: BC2 = C2.nerve_n_skeleton(5)
+                sage: BC2 = C2.nerve()
                 sage: BC2.n_cells(0)
                 [1]
                 sage: BC2.n_cells(1)
@@ -110,35 +106,24 @@ class FiniteMonoids(CategoryWithAxiom):
             first nonvanishing homology group in dimension `p`::
 
                 sage: Sigma3 = groups.permutation.Symmetric(3)
-                sage: BSigma3 = Sigma3.nerve_n_skeleton(4)
-                sage: BSigma3.homology(base_ring=GF(3))
+                sage: BSigma3 = Sigma3.nerve()
+                sage: BSigma3.homology(range(4), base_ring=GF(3))
                 {0: Vector space of dimension 0 over Finite Field of size 3,
                 1: Vector space of dimension 0 over Finite Field of size 3,
                 2: Vector space of dimension 0 over Finite Field of size 3,
-                3: Vector space of dimension 1 over Finite Field of size 3,
-                4: Vector space of dimension 521 over Finite Field of size 3}
+                3: Vector space of dimension 1 over Finite Field of size 3}
 
-            As this example illustrates, the homology of the
-            `n`-skeleton will probably be "wrong" (compared to the
-            homology of the full classifying space) in dimension
-            `n`. In the case of `B\Sigma_2`, infinite dimensional real
-            projective space, the skeleton constructed here has one
-            non-degenerate simplex in each dimension, so it actually
-            gives the right answer::
-
-                sage: BSigma2.cohomology(5, base_ring=GF(2))
-                Vector space of dimension 1 over Finite Field of size 2
-
-            For this reason, we can construct the `n`-skeleton for
+            Note that we can construct the `n`-skeleton for
             `B\Sigma_2` for relatively large values of `n`, while for
             `B\Sigma_3`, the complexes get large pretty quickly::
 
-                sage: Sigma2.nerve_n_skeleton(14)
+                sage: Sigma2.nerve().n_skeleton(14)
                 Simplicial set with 15 non-degenerate simplices
 
-                sage: Sigma3.nerve_n_skeleton(3)
+                sage: BSigma3 = Sigma3.nerve()
+                sage: BSigma3.n_skeleton(3)
                 Simplicial set with 156 non-degenerate simplices
-                sage: Sigma3.nerve_n_skeleton(4)
+                sage: BSigma3.n_skeleton(4)
                 Simplicial set with 781 non-degenerate simplices
 
             Finally, note that the classifying space of the order `p`
@@ -149,7 +134,7 @@ class FiniteMonoids(CategoryWithAxiom):
                 sage: C3 = groups.misc.MultiplicativeAbelian([3])
                 sage: list(C3)
                 [1, f, f^2]
-                sage: BC3 = C3.nerve_n_skeleton(4)
+                sage: BC3 = C3.nerve()
                 sage: BC3.n_cells(1)
                 [f, f^2]
                 sage: BC3.n_cells(2)
@@ -161,79 +146,23 @@ class FiniteMonoids(CategoryWithAxiom):
                 sage: len(BSigma3.n_cells(3))
                 125
 
-                sage: BC3.homology(base_ring=GF(3))
+                sage: BC3.homology(range(5), base_ring=GF(3))
                 {0: Vector space of dimension 0 over Finite Field of size 3,
                  1: Vector space of dimension 1 over Finite Field of size 3,
                  2: Vector space of dimension 1 over Finite Field of size 3,
                  3: Vector space of dimension 1 over Finite Field of size 3,
-                 4: Vector space of dimension 11 over Finite Field of size 3}
+                 4: Vector space of dimension 1 over Finite Field of size 3}
 
-                sage: BC5 = groups.permutation.Cyclic(5).nerve_n_skeleton(4)
-                sage: BC5.homology(base_ring=GF(5))
+                sage: BC5 = groups.permutation.Cyclic(5).nerve()
+                sage: BC5.homology(range(5), base_ring=GF(5))
                 {0: Vector space of dimension 0 over Finite Field of size 5,
                 1: Vector space of dimension 1 over Finite Field of size 5,
                 2: Vector space of dimension 1 over Finite Field of size 5,
                 3: Vector space of dimension 1 over Finite Field of size 5,
-                4: Vector space of dimension 205 over Finite Field of size 5}
+                4: Vector space of dimension 1 over Finite Field of size 5}
             """
-            from sage.homology.simplicial_set import SimplicialSet, AbstractSimplex
-            # There is a single vertex. Name it after the identity
-            # element of the monoid.
-            one = self.one()
-            e = AbstractSimplex(0, name=str(one))
-
-            # Build the dictionary simplices, to be used for
-            # constructing the simplicial set.
-            simplices = {e: None}
-
-            # face_dict: dictionary of simplices: keys are
-            # composites of monoid elements (as tuples), values are
-            # the corresponding simplices.
-            face_dict = {}
-
-            # Build up chains of elements inductively, from dimension
-            # d-1 to dimension d. So we do dimension 1 by hand,
-            # because we don't want to build up from the identity
-            # element in dimension 0.
-            for g in self:
-                if g != one:
-                    x = AbstractSimplex(1, name=str(g))
-                    simplices[x] = (e, e)
-                    face_dict[(g,)] = x
-
-            for d in range(2, n+1):
-                for g in self:
-                    if g == one:
-                        continue
-                    new_faces = {}
-                    for t in face_dict.keys():
-                        if len(t) != d-1:
-                            continue
-                        # chain: chain of group elements to multiply,
-                        # as a tuple.
-                        chain = t + (g,)
-                        x = AbstractSimplex(d,
-                                            name=' * '.join(str(_) for _ in chain))
-                        new_faces[chain] = x
-
-                        # Compute faces of x.
-                        faces = [face_dict[chain[1:]]]
-                        for i in range(d-1):
-                            product = chain[i] * chain[i+1]
-                            if product == one:
-                                # Degenerate.
-                                if d == 2:
-                                    face = e.apply_degeneracies(i)
-                                else:
-                                    face = face_dict[chain[:i] + chain[i+2:]].apply_degeneracies(i)
-                            else:
-                                # Non-degenerate.
-                                face = face_dict[chain[:i] + (product,) + chain[i+2:]]
-                            faces.append(face)
-                        faces.append(face_dict[chain[:-1]])
-                        simplices[x] = faces
-                    face_dict.update(new_faces)
-            return SimplicialSet(simplices, base_point=e)
+            from sage.homology.simplicial_set import Nerve
+            return Nerve(self)
 
     class ElementMethods:
         def pseudo_order(self):

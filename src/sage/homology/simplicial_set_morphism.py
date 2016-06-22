@@ -25,7 +25,7 @@ This module implements morphisms and homsets of simplicial sets.
 #
 #*****************************************************************************
 
-from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet, \
+from sage.homology.simplicial_set import SimplicialSet_infinite, \
     PushoutOfSimplicialSets, PullbackOfSimplicialSets
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.rings.integer_ring import ZZ
@@ -33,7 +33,7 @@ from sage.homology.chain_complex_morphism import ChainComplexMorphism
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
 from sage.categories.simplicial_sets import SimplicialSets
-import copy
+from sage.homology.homology_morphism import InducedHomologyMorphism
 
 class SimplicialSetHomset(Homset):
     r"""
@@ -236,7 +236,8 @@ class SimplicialSetMorphism(Morphism):
             ...
             ValueError: the image of at least one simplex in the domain is not defined
         """
-        if not isinstance(domain, SimplicialSet) or not isinstance(codomain, SimplicialSet):
+        if (not isinstance(domain, SimplicialSet_infinite)
+            or not isinstance(codomain, SimplicialSet_infinite)):
             raise ValueError('the domain and codomain must be simplicial sets')
 
         if any(x.nondegenerate() not in
@@ -830,5 +831,4 @@ class SimplicialSetMorphism(Morphism):
             [-+-]
             [0|1]
         """
-        from homology_morphism import InducedHomologyMorphism
         return InducedHomologyMorphism(self, base_ring, cohomology)

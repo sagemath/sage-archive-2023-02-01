@@ -188,7 +188,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         sage: e = EllipticCurve('11a')
         sage: L = e.padic_lseries(3, implementation = 'pollackstevens', precision = 5)
         sage: L.series(3)
-        2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + 2*3^2 + O(3^3))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + O(3^0)*T^4
+        2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + 2*3^2 + O(3^3))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + O(3^0)*T^4 + O(T^5)
         sage: L[3]
         O(3)
 

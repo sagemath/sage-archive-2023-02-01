@@ -742,13 +742,13 @@ class PSModularSymbolElement(ModuleElement):
 
             sage: E = EllipticCurve('17a1')
             sage: L = E.padic_lseries(5, implementation="pollackstevens", precision=4) #long time
-            sage: D = L.quadratic_twist()
+            sage: D = L.quadratic_twist()          # long time
             sage: L.symbol().evaluate_twisted(1,D) # long time
             (1 + 5 + 3*5^2 + 5^3 + O(5^4), 5^2 + O(5^3), 1 + O(5^2), 2 + O(5))
 
             sage: E = EllipticCurve('40a4')
             sage: L = E.padic_lseries(7, implementation="pollackstevens", precision=4) #long time
-            sage: D = L.quadratic_twist()
+            sage: D = L.quadratic_twist()          # long time
             sage: L.symbol().evaluate_twisted(1,D) # long time
             (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
         """

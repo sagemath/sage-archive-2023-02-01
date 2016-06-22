@@ -205,8 +205,8 @@ class OverconvergentDistributions_abstract(Module):
 
     INPUT:
 
-    - `k`             -- integer; `k` is the usual modular forms weight minus 2
-    - `p`             -- None or prime
+    - ``k``           -- integer; `k` is the usual modular forms weight minus 2
+    - ``p``           -- None or prime
     - ``prec_cap``    -- None or positive integer
     - ``base``        -- None or the base ring over which to construct the distributions
     - ``character``   -- None or Dirichlet character
@@ -551,7 +551,7 @@ class OverconvergentDistributions_abstract(Module):
         INPUT:
 
         - ``M`` -- (Default: None) If not None, specifies the ``M``-th approximation module,
-        in case that this makes sense.
+          in case that this makes sense.
 
         EXAMPLES::
 

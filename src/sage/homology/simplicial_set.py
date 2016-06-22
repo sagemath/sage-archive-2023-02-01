@@ -1161,9 +1161,9 @@ class SimplicialSet(GenericCellComplex, Parent):
             self._basepoint = base_point
         if category is None:
             if base_point is None:
-                category = category=SimplicialSets().Finite()
+                category = SimplicialSets().Finite()
             else:
-                category = category=SimplicialSets().Finite().Pointed()
+                category = SimplicialSets().Finite().Pointed()
         Parent.__init__(self, category=category)
         if name:
             self.rename(name)

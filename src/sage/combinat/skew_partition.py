@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Skew Partitions
 
@@ -503,6 +504,66 @@ class SkewPartition(CombinatorialElement):
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self.diagram().splitlines())
+
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: unicode_art(SkewPartitions(3).list())
+            ⎡                             ┌┐   ┌┐   ┌┐    ┌┐ ⎤
+            ⎢       ┌┬┐   ┌┬┐   ┌┐    ┌┐  ├┤   ├┤  ┌┼┘   ┌┼┘ ⎥
+            ⎢ ┌┬┬┐  ├┼┘  ┌┼┴┘  ┌┼┤  ┌┬┼┘  ├┤  ┌┼┘  ├┤   ┌┼┘  ⎥
+            ⎣ └┴┴┘, └┘ , └┘  , └┴┘, └┴┘ , └┘, └┘ , └┘ , └┘   ⎦
+            sage: SkewPartitions.global_options(convention="French")
+            sage: unicode_art(SkewPartitions(3).list())
+            ⎡                             ┌┐  ┌┐   ┌┐   ┌┐   ⎤
+            ⎢       ┌┐   ┌┐    ┌┬┐  ┌┬┐   ├┤  └┼┐  ├┤   └┼┐  ⎥
+            ⎢ ┌┬┬┐  ├┼┐  └┼┬┐  └┼┤  └┴┼┐  ├┤   ├┤  └┼┐   └┼┐ ⎥
+            ⎣ └┴┴┘, └┴┘,  └┴┘,  └┘,   └┘, └┘,  └┘,  └┘,   └┘ ⎦
+            sage: SkewPartitions.global_options.reset()
+        """
+        out, inn = self
+        inn = inn + [0] * (len(out) - len(inn))
+        if not self._list:
+            return u'∅'
+        if self.parent().global_options('convention') == "French":
+            s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
+        else:
+            s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┬┴├┤┐┌┘└┼─')
+
+        # working with English conventions
+        txt = [s * inn[0] + tl + t * (out[0] - inn[0] - 1) + tr]
+        for i in range(len(out) - 1):
+            o0 = out[i]
+            o1 = out[i + 1]
+            i0 = inn[i]
+            i1 = inn[i + 1]
+
+            if i0 == i1:
+                start = u' ' * i1 + l
+                d0 = 1
+            else:
+                start = u' ' * i1 + tl
+                d0 = 0
+
+            if o0 == o1:
+                end = r
+                d1 = 1
+            else:
+                end = br
+                d1 = 0
+
+            middle = t * (i0 - i1 - 1 + d0)
+            middle += x * (o1 - i0 + 1 - d0 - d1)
+            middle += b * (o0 - o1 - 1 + d1)
+
+            txt += [start + middle + end]
+        txt += [s * inn[-1] + bl + b * (out[-1] - inn[-1] - 1) + br]
+
+        if self.parent().global_options('convention') == "French":
+            txt = list(reversed(txt))
+        from sage.typeset.unicode_art import UnicodeArt        
+        return UnicodeArt(txt, baseline=0)
 
     def inner(self):
         """

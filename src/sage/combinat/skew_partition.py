@@ -507,6 +507,10 @@ class SkewPartition(CombinatorialElement):
 
     def _unicode_art_(self):
         """
+        .. WARNING::
+
+            not working in presence of empty lines or columns
+
         TESTS::
 
             sage: unicode_art(SkewPartitions(3).list())

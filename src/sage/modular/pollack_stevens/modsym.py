@@ -2,7 +2,7 @@
 r"""
 Title
 
-E
+
 """## mm TODO
 #*****************************************************************************
 #        Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>

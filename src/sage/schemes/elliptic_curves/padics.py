@@ -183,7 +183,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
 
-    Finally, we can use the overconvergent method of Pollack-Stevens. Note the difference in results, due to the different normalizations used.::
+    Finally, we can use the overconvergent method of Pollack-Stevens.::
 
         sage: e = EllipticCurve('11a')
         sage: L = e.padic_lseries(3, implementation = 'pollackstevens', precision = 5)

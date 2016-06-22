@@ -613,9 +613,6 @@ class PollackStevensModularSymbolspace(Module):
         return PollackStevensModularSymbols(self.group(), coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
     def _an_element_(self):
-#        WARNING -- THIS ISN'T REALLY AN ELEMENT OF THE SPACE BECAUSE IT DOESN'T
-#       SATISFY THE MANIN RELATIONS ##mm TODO should be in the docstring
-
         r"""
         Return the cusps associated to an element of a congruence subgroup.
 
@@ -625,6 +622,11 @@ class PollackStevensModularSymbolspace(Module):
 
         Returns a "typical" element of this space; in this case the constant
         map sending every element to an element of the coefficient module.
+
+        .. WARNING::
+
+        This isn't really an element of the space becuase it doesn't satisfy
+        the Manin relations.
 
         EXAMPLES::
 

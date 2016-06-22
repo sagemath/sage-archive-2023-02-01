@@ -1288,8 +1288,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def pollack_stevens_modular_symbol(self, sign=0, use_eclib=True):
         """
-        Create the overconvergent modular symbol attached to the
-        elliptic curve.
+        Create the modular symbol attached to the elliptic curve,
+        suitable for overconvergent calculations.
 
         INPUT:
 
@@ -1313,7 +1313,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: symb.values()
             [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
         """
-        return ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
+        typ = (sign, use_eclib)
+        try:
+            return self.__modular_symbol[typ] # Doesn't collide with original implementation because tuple is length two here.
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ps_modsym_from_elliptic_curve(self, sign, use_eclib=use_eclib)
+        self.__modular_symbol[typ] = M
+        return M
 
     _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries

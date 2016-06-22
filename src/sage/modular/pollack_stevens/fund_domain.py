@@ -47,7 +47,7 @@ def M2Z(x):
     r"""
     Create an immutable `2 \times 2` integer matrix from ``x``.
 
-    INPUT: ##mm TODO
+    INPUT: anything that can be converted into a `2 \times 2` matrix.
 
     EXAMPLES::
 
@@ -55,6 +55,9 @@ def M2Z(x):
         sage: M2Z([1,2,3,4])
         [1 2]
         [3 4]
+        sage: M2Z(1)
+        [1 0]
+        [0 1]
     """
     x = M2ZSpace(x)
     x.set_immutable()

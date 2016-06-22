@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-The monoid `\Sigma_0(N)`.
+The matrix monoid `\Sigma_0(N)`.
 
 This stands for a monoid of matrices over `\ZZ`, `\QQ`, `\ZZ_p`, or `\QQ_p`,
 depending on an integer `N \ge 1`. This class exists in order to act on p-adic
@@ -39,7 +39,7 @@ EXAMPLES::
 AUTHORS:
 
     - David Pollack (2012): initial version
-""" ## mm TODO change title
+"""
 
 # Warning to developers: when working with Sigma0 elements it is generally a
 # good idea to avoid using the entries of x.matrix() directly; rather, use the

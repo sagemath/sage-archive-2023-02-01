@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-
+Manin map
 
 Represents maps from a set of right coset representatives to a
 coefficient module.
@@ -32,7 +32,7 @@ EXAMPLES::
     sage: f = ManinMap(S,MR,data)
     sage: f(M2Z([2,3,4,5]))
     1
-"""##mm TODO :One line title of file
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -592,7 +592,11 @@ class ManinMap(object):
         This might be used to normalize, reduce modulo a prime, change
         base ring, etc.
 
-        INPUT: ##mm TODO
+        INPUT:
+
+        - ``f`` -- anything that can be called with elements of the coefficient module
+        - ``codomain`` -- (default: None) the codomain of the return map
+        - ``to_moments`` -- (default: False) if True, will apply ``f`` to each of the moments instead
 
         EXAMPLES::
 

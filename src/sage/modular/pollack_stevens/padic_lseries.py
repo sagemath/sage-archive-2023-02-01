@@ -44,7 +44,7 @@ class pAdicLseries(SageObject):
         sage: L[1]                # long time
         1 + 4*5 + 2*5^2 + O(5^3)
         sage: L.series(prec,3)    # long time
-        O(5^4) + (1 + 4*5 + 2*5^2 + O(5^3))*T + (3 + O(5^2))*T^2
+        O(5^4) + (1 + 4*5 + 2*5^2 + O(5^3))*T + (3 + O(5^2))*T^2 + O(T^3)
 
     ::
 
@@ -54,7 +54,7 @@ class pAdicLseries(SageObject):
         sage: Phi = phi.p_stabilize_and_lift(3, 4) # long time
         sage: L = pAdicLseries(Phi)                # long time
         sage: L.series(prec, 4)                    # long time
-        2*3 + O(3^4) + (3 + O(3^2))*T + (2 + O(3))*T^2 + O(3^0)*T^3
+        2*3 + O(3^4) + (3 + O(3^2))*T + (2 + O(3))*T^2 + O(3^0)*T^3 + O(T^4)
 
     An example of a `p`-adic `L`-series associated to a modular
     abelian surface. This is not tested as it takes too long.::
@@ -91,7 +91,7 @@ class pAdicLseries(SageObject):
             sage: Phi = phi.lift(p, prec,eigensymbol=True) # long time
             sage: L = pAdicLseries(Phi)                    # long time
             sage: L.series(3, prec=3)                      # long time
-            O(11^3) + (2 + 5*11 + O(11^2))*T + (10 + O(11))*T^2
+            O(11^3) + (2 + 5*11 + O(11^2))*T + (10 + O(11))*T^2 + O(T^3)
 
             sage: TestSuite(L).run()                       # long time
         """
@@ -132,7 +132,7 @@ class pAdicLseries(SageObject):
             return self._coefficients[n]
         else:
             p = self.prime()
-            symb = self.symb()
+            symb = self.symbol()
             # ap = symb.Tq_eigenvalue(p)
             gamma = self._gamma
             precision = self._precision
@@ -157,7 +157,7 @@ class pAdicLseries(SageObject):
                 temp = sum((ZZ(K.teichmuller(a)) ** (-j))
                            * self._basic_integral(a, j) for a in range(1, p))
                 dn = dn + cjn * temp
-            self._coefficients[n] = dn + O(p ** precision)
+            self._coefficients[n] = dn.add_bigoh(precision)
             self._coefficients[n] /= self._cinf
             return self._coefficients[n]
 
@@ -178,7 +178,7 @@ class pAdicLseries(SageObject):
                 or cmp(self._gamma, other._gamma)
                 or cmp(self._precision, other._precision))
 
-    def symb(self):
+    def symbol(self):
         r"""
         Return the overconvergent modular symbol
 
@@ -189,9 +189,9 @@ class pAdicLseries(SageObject):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(2,5)   # long time
             sage: L = pAdicLseries(Phi)                 # long time
-            sage: L.symb()                              # long time
+            sage: L.symbol()                              # long time
             Modular symbol of level 42 with values in Space of 2-adic distributions with k=0 action and precision cap 15
-            sage: L.symb() is Phi                       # long time
+            sage: L.symbol() is Phi                       # long time
             True
         """
         return self._symb
@@ -236,7 +236,7 @@ class pAdicLseries(SageObject):
             sage: L._repr_()                           # long time
             '3-adic L-series of Modular symbol of level 42 with values in Space of 3-adic distributions with k=0 action and precision cap 8'
         """
-        return "%s-adic L-series of %s" % (self.prime(), self.symb())
+        return "%s-adic L-series of %s" % (self.prime(), self.symbol())
 
     def series(self, n, prec=5):
         r"""
@@ -257,25 +257,25 @@ class pAdicLseries(SageObject):
             sage: prec = 6
             sage: L = E.padic_lseries(p,implementation="pollackstevens",precision=prec) # long time
             sage: L.series(prec, 4)          # long time
-            2*3 + 3^4 + 3^5 + O(3^6) + (2*3 + 3^2 + O(3^4))*T + (2*3 + O(3^2))*T^2 + (3 + O(3^2))*T^3
+            2*3 + 3^4 + 3^5 + O(3^6) + (2*3 + 3^2 + O(3^4))*T + (2*3 + O(3^2))*T^2 + (3 + O(3^2))*T^3 + O(T^4)
 
             sage: E = EllipticCurve("15a3")
             sage: L = E.padic_lseries(5,implementation="pollackstevens",precision=15)  # long time
             sage: L.series(10, 3)            # long time
-            O(5^15) + (2 + 4*5^2 + 3*5^3 + 5^5 + 2*5^6 + 3*5^7 + 3*5^8 + 2*5^9 + 2*5^10 + 3*5^11 + 5^12 + O(5^13))*T + (4*5 + 4*5^3 + 3*5^4 + 4*5^5 + 3*5^6 + 2*5^7 + 5^8 + 4*5^9 + 3*5^10 + O(5^11))*T^2
+            O(5^15) + (2 + 4*5^2 + 3*5^3 + 5^5 + 2*5^6 + 3*5^7 + 3*5^8 + 2*5^9 + 2*5^10 + 3*5^11 + 5^12 + O(5^13))*T + (4*5 + 4*5^3 + 3*5^4 + 4*5^5 + 3*5^6 + 2*5^7 + 5^8 + 4*5^9 + 3*5^10 + O(5^11))*T^2 + O(T^3)
 
             sage: E = EllipticCurve("79a1")
             sage: L = E.padic_lseries(2,implementation="pollackstevens",precision=10) # not tested
             sage: L.series(10, 4)  # not tested
-            O(2^9) + (2^3 + O(2^4))*T + O(2^0)*T^2 + (O(2^-3))*T^3
+            O(2^9) + (2^3 + O(2^4))*T + O(2^0)*T^2 + (O(2^-3))*T^3 + O(T^4)
         """
         p = self.prime()
-        M = self.symb().precision_relative()
+        M = self.symbol().precision_relative()
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names='T')
         T = R.gens()[0]
         R.set_default_prec(n)
-        return sum(self[i] * T ** i for i in range(prec))
+        return (sum(self[i] * T ** i for i in range(prec))).add_bigoh(prec)
 
     def interpolation_factor(self, ap, chip=1, psi=None):
         r"""
@@ -307,7 +307,7 @@ class pAdicLseries(SageObject):
             sage: (1-1/L.alpha(prec=4))^2
             3^2 + 3^3 + O(3^5)
         """
-        M = self.symb().precision_relative()
+        M = self.symbol().precision_relative()
         p = self.prime()
         if p == 2:
             R = pAdicField(2, M + 1)
@@ -324,49 +324,6 @@ class pAdicLseries(SageObject):
         alpha = v0
         return (1 - 1 / alpha) ** 2
 
-    def eval_twisted_symbol_on_Da(self, a):  # rename! should this be in modsym? ##mm TODO
-        r"""
-        Return `\Phi_{\chi}(\{a/p\}-\{\infty\})` where `\Phi` is the overconvergent modular symbol and
-        `\chi` is a the quadratic character corresponding to self
-
-        INPUT:
-
-        - ``a`` -- integer in range(p)
-
-        OUTPUT:
-
-        The distribution `\Phi_{\chi}(\{a/p\}-\{\infty\})`.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('17a1')
-            sage: L = E.padic_lseries(5, implementation="pollackstevens", precision=4) #long time
-            sage: L.eval_twisted_symbol_on_Da(1) # long time
-            (1 + 5 + 3*5^2 + 5^3 + O(5^4), 5^2 + O(5^3), 1 + O(5^2), 2 + O(5))
-
-            sage: E = EllipticCurve('40a4')
-            sage: L = E.padic_lseries(7, implementation="pollackstevens", precision=4) #long time
-            sage: L.eval_twisted_symbol_on_Da(1) # long time
-            (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
-        """
-        symb = self.symb()
-        p = symb.parent().prime()
-        S0p = Sigma0(p)
-        Dists = symb.parent().coefficient_module()
-        M = Dists.precision_cap()
-        p = Dists.prime()
-        twisted_dist = Dists.zero()
-        m_map = symb._map
-        D = self._quadratic_twist
-        for b in range(1, abs(D) + 1):
-            if gcd(b, D) == 1:
-                M1 = S0p([1, (b / abs(D)) % p ** M, 0, 1])
-                new_dist = m_map(M1 * M2Z([a, 1, p, 0])) * M1
-                new_dist = new_dist.scale(kronecker(D, b)).normalize()
-                twisted_dist = twisted_dist + new_dist
-                #ans = ans + self.eval(M1 * M2Z[a, 1, p, 0])._right_action(M1)._lmul_(kronecker(D, b)).normalize()
-        return twisted_dist.normalize()
-
     def _basic_integral(self, a, j):
         r"""
         Return `\int_{a+pZ_p} (z-{a})^j d\Phi(0-infty)`
@@ -375,7 +332,7 @@ class pAdicLseries(SageObject):
         INPUT:
 
         - ``a`` -- integer in range(p)
-        - ``j`` -- integer in range(self.symb().precision_relative())
+        - ``j`` -- integer in range(self.symbol().precision_relative())
 
         EXAMPLES::
 
@@ -385,7 +342,7 @@ class pAdicLseries(SageObject):
             sage: L._basic_integral(1,2) # long time
             2*5^2 + 5^3 + O(5^4)
         """
-        symb = self.symb()
+        symb = self.symbol()
         M = symb.precision_relative()
         if j > M:
             raise PrecisionError("Too many moments requested")
@@ -394,7 +351,7 @@ class pAdicLseries(SageObject):
         D = self._quadratic_twist
         ap = ap * kronecker(D, p)
         K = pAdicField(p, M)
-        symb_twisted = self.eval_twisted_symbol_on_Da(a)
+        symb_twisted = symb.evaluate_twisted(a, D)
         return ( sum(binomial(j, r)
                  * ((a - ZZ(K.teichmuller(a))) ** (j - r))
                  * (p ** r)

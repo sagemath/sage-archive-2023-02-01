@@ -21,7 +21,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime
+from sage.arith.all import next_prime, binomial, gcd, kronecker
 from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
@@ -29,6 +29,7 @@ from sage.categories.action import Action
 from manin_map import ManinMap
 from sigma0 import Sigma0
 from sage.misc.misc import walltime
+from fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
 
@@ -723,6 +724,49 @@ class PSModularSymbolElement(ModuleElement):
         aq = self.Tq_eigenvalue(q)
         return aq.valuation(p) == 0
 
+    def evaluate_twisted(self, a, chi):
+        r"""
+        Return `\Phi_{\chi}(\{a/p\}-\{\infty\})` where `\Phi` is ``self`` and
+        `\chi` is a quadratic character
+
+        INPUT:
+
+        - ``a`` -- integer in the range range(p)
+        - ``chi`` -- the modulus of a quadratic character.
+
+        OUTPUT:
+
+        The distribution `\Phi_{\chi}(\{a/p\}-\{\infty\})`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('17a1')
+            sage: L = E.padic_lseries(5, implementation="pollackstevens", precision=4) #long time
+            sage: D = L.quadratic_twist()
+            sage: L.symbol().evaluate_twisted(1,D) # long time
+            (1 + 5 + 3*5^2 + 5^3 + O(5^4), 5^2 + O(5^3), 1 + O(5^2), 2 + O(5))
+
+            sage: E = EllipticCurve('40a4')
+            sage: L = E.padic_lseries(7, implementation="pollackstevens", precision=4) #long time
+            sage: D = L.quadratic_twist()
+            sage: L.symbol().evaluate_twisted(1,D) # long time
+            (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
+        """
+        p = self.parent().prime()
+        S0p = Sigma0(p)
+        Dists = self.parent().coefficient_module()
+        M = Dists.precision_cap()
+        p = Dists.prime()
+        twisted_dist = Dists.zero()
+        m_map = self._map
+        for b in range(1, abs(chi) + 1):
+            if gcd(b, chi) == 1:
+                M1 = S0p([1, (b / abs(chi)) % p ** M, 0, 1])
+                new_dist = m_map(M1 * M2Z([a, 1, p, 0])) * M1
+                new_dist = new_dist.scale(kronecker(chi, b)).normalize()
+                twisted_dist += new_dist
+        return twisted_dist.normalize()
+
     def _consistency_check(self):
         """
         Check that the map really does satisfy the Manin relations loop (for debugging).
@@ -1113,7 +1157,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: Phi = phi.p_stabilize_and_lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True) #long time
             sage: L = pAdicLseries(Phi)          # long time
-            sage: L.symb() is Phi                # long time
+            sage: L.symbol() is Phi              # long time
             True
 
        Examples using Greenberg's algorithm::
@@ -1491,7 +1535,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
             sage: L = phi.lift(37, M=6, eigensymbol=True).padic_lseries(); L  # long time
             37-adic L-series of Modular symbol of level 37 with values in Space of 37-adic distributions with k=0 action and precision cap 7
             sage: L.series(6,2) # long time
-            O(37^6) + (4 + 37 + 36*37^2 + 19*37^3 + 21*37^4 + O(37^5))*T
+            O(37^6) + (4 + 37 + 36*37^2 + 19*37^3 + 21*37^4 + O(37^5))*T + O(T^2)
         """
         from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
         return pAdicLseries(self, *args, **kwds)

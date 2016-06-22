@@ -203,30 +203,37 @@ class OverconvergentDistributions_abstract(Module):
     Parent object for distributions. Not to be used directly, see derived
     classes :class:`Symk_class` and :class:`OverconvergentDistributions_class`.
 
+    INPUT:
+
+    - `k`             -- integer; `k` is the usual modular forms weight minus 2
+    - `p`             -- None or prime
+    - ``prec_cap``    -- None or positive integer
+    - ``base``        -- None or the base ring over which to construct the distributions
+    - ``character``   -- None or Dirichlet character
+    - ``adjuster``    -- None or a way to specify the action among different conventions
+    - ``act_on_left`` -- bool (default: False)
+    - ``dettwist``    -- None or integer (twist by determinant). Ignored for Symk spaces
+    - ``act_padic``   -- bool (default: False) If true, will allow
+      action by `p`-adic matrices.
+    - ``implementation`` -- string (default: None) Either automatic (if None),
+      'vector' or 'long'.
+
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import OverconvergentDistributions
         sage: OverconvergentDistributions(2, 17, 100)
         Space of 17-adic distributions with k=2 action and precision cap 100
-    """## mm TODO, I guess the documentation should move from init to the class
+
+        sage: D = OverconvergentDistributions(2, 3, 5); D
+        Space of 3-adic distributions with k=2 action and precision cap 5
+        sage: type(D)
+        <class 'sage.modular.pollack_stevens.distributions.OverconvergentDistributions_class_with_category'>
+    """
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None,
                  adjuster=None, act_on_left=False, dettwist=None,
                  act_padic=False, implementation=None):
         """
-        INPUT:
-
-        - `k`             -- integer; `k` is the usual modular forms weight minus 2
-        - `p`             -- None or prime
-        - ``prec_cap``    -- None or positive integer
-        - ``base``        -- None or #mm TODO
-        - ``character``   -- None or Dirichlet character
-        - ``adjuster``    -- None or #mm TODO
-        - ``act_on_left`` -- bool (default: False)
-        - ``dettwist``    -- None or integer (twist by determinant). Ignored for Symk spaces
-        - ``act_padic``   -- bool (default: False) If true, will allow
-          action by `p`-adic matrices.
-        - ``implementation`` -- string (default: None) Either automatic (if None),
-          'vector' or 'long'.
+        See ``OverconvergentDistributions_abstract`` for full documentation.
 
         EXAMPLES::
 
@@ -543,7 +550,8 @@ class OverconvergentDistributions_abstract(Module):
 
         INPUT:
 
-        - ``M`` -- ##mm TODO
+        - ``M`` -- (Default: None) If not None, specifies the ``M``-th approximation module,
+        in case that this makes sense.
 
         EXAMPLES::
 
@@ -555,10 +563,16 @@ class OverconvergentDistributions_abstract(Module):
              (O(7^4), 1 + O(7^3), O(7^2), O(7)),
              (O(7^4), O(7^3), 1 + O(7^2), O(7)),
              (O(7^4), O(7^3), O(7^2), 1 + O(7))]
+            sage: D.basis(2)
+            [(1 + O(7^2), O(7)), (O(7^2), 1 + O(7))]
             sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+            sage: D.basis(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Sym^k objects do not support approximation modules
         """
         V = self.approx_module(M)
         return [self(v) for v in V.basis()]
@@ -766,7 +780,7 @@ class OverconvergentDistributions_class(OverconvergentDistributions_abstract):
         """
         Return space of distributions like this one, but with the base ring changed.
 
-        INPUT: ##mm TODO
+        INPUT: a ring over which the distribution can be coerced.
 
         EXAMPLES::
 

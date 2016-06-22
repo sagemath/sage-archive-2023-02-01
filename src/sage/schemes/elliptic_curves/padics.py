@@ -186,14 +186,20 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
     Finally, we can use the overconvergent method of Pollack-Stevens. Note the difference in results, due to the different normalizations used.::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(5,implementation = 'pollackstevens', precision = 5)
+        sage: L = e.padic_lseries(3, implementation = 'pollackstevens', precision = 5)
         sage: L.series(3)
-        5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + 3*5^2 + O(5^3))*T + (5 + 2*5^2 + O(5^3))*T^2 + (4*5 + O(5^2))*T^3 + O(5)*T^4
+        2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + 2*3^2 + O(3^3))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + O(3^0)*T^4
+        sage: L[3]
+        O(3)
+
+    Another example with a semistable prime.::
 
         sage: E = EllipticCurve("11a1")
-        sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=3)
+        sage: L = E.padic_lseries(11, implementation = 'pollackstevens', precision=3)
+        sage: L[1]
+        10 + 3*11 + O(11^2)
         sage: L[3]
-        BOUM ## mm TODO
+        O(11^0)
     """
     p, normalize, implementation, precision = self._normalize_padic_lseries(p,\
                              normalize, use_eclib, implementation, precision)

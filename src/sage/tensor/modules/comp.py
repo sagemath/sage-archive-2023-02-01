@@ -1093,7 +1093,11 @@ class Components(SageObject):
         if it differs from the text symbol::
 
             sage: latex(c.display('c', latex_symbol=r'\Gamma', index_positions='udd'))
-            \begin{array}{lcl} \Gamma_{\phantom{\, 0}\,1\,0}^{\,0\phantom{\, 1}\phantom{\, 0}} & = & -2 \\ \Gamma_{\phantom{\, 1}\,0\,1}^{\,1\phantom{\, 0}\phantom{\, 1}} & = & 5 \\ \Gamma_{\phantom{\, 1}\,1\,1}^{\,1\phantom{\, 1}\phantom{\, 1}} & = & 3 \end{array}
+            \begin{array}{lcl}
+             \Gamma_{\phantom{\, 0}\,1\,0}^{\,0\phantom{\, 1}\phantom{\, 0}} & = & -2 \\
+             \Gamma_{\phantom{\, 1}\,0\,1}^{\,1\phantom{\, 0}\phantom{\, 1}} & = & 5 \\
+             \Gamma_{\phantom{\, 1}\,1\,1}^{\,1\phantom{\, 1}\phantom{\, 1}} & = & 3
+            \end{array}
 
         The index labels can differ from integers::
 
@@ -1167,8 +1171,8 @@ class Components(SageObject):
             raise ValueError("the argument 'index_labels' must contain " +
                              "{} items".format(self._dim))
         # Index separator:
-        max_len_symbols = max([len(s) for s in index_labels])
-        if max_len_symbols==1:
+        max_len_symbols = max(len(s) for s in index_labels)
+        if max_len_symbols == 1:
             sep = ''
         else:
             sep = ','
@@ -1193,27 +1197,25 @@ class Components(SageObject):
                 previous = None  # position of previous index
                 for k in range(self._nid):
                     i = ind[k] - si
-                    if index_positions[k]=='d':
+                    if index_positions[k] == 'd':
                         if previous == 'd':
                             indices += sep + index_labels[i]
                         else:
                             indices += '_' + index_labels[i]
                         d_indices += r'\,' + index_latex_labels[i]
-                        u_indices += r'\phantom{\, ' + index_latex_labels[i] + \
-                                     r'}'
+                        u_indices += r'\phantom{{\, {}}}'.format(index_latex_labels[i])
                         previous = 'd'
                     else:
                         if previous == 'u':
                             indices += sep + index_labels[i]
                         else:
                             indices += '^' + index_labels[i]
-                        d_indices += r'\phantom{\, ' + index_latex_labels[i] + \
-                                     r'}'
+                        d_indices += r'\phantom{{\, {}}}'.format(index_latex_labels[i])
                         u_indices += r'\,' + index_latex_labels[i]
                         previous = 'u'
                 rtxt += symbol + indices + ' = {} \n'.format(val)
-                rlatex += latex_symbol + r'_{' + d_indices + r'}^{' + \
-                              u_indices + r'} & = & ' + latex(val) + r'\\'
+                rlatex += (latex_symbol + r'_{' + d_indices + r'}^{'
+                           + u_indices + r'} & = & ' + latex(val) + r'\\')
         if rtxt == '':
             # no component has been displayed
             rlatex = ''

@@ -390,14 +390,14 @@ class DiffChart(Chart):
 
     def frame(self):
         r"""
-        Return the vector frame (coordinate frame) associated with the chart.
+        Return the vector frame (coordinate frame) associated with ``self``.
 
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
-          representing the coordinate frame.
+          representing the coordinate frame
 
-        EXAMPLE:
+        EXAMPLES:
 
         Coordinate frame associated with some chart on a 2-dimensional
         manifold::
@@ -435,14 +435,14 @@ class DiffChart(Chart):
     def coframe(self):
         r"""
         Return the coframe (basis of coordinate differentials) associated
-        with the chart.
+        with ``self``.
 
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.differentiable.vectorframe.CoordCoFrame`
-          representing the coframe.
+          representing the coframe
 
-        EXAMPLE:
+        EXAMPLES:
 
         Coordinate coframe associated with some chart on a 2-dimensional
         manifold::
@@ -455,7 +455,7 @@ class DiffChart(Chart):
             <class 'sage.manifolds.differentiable.vectorframe.CoordCoFrame'>
 
         Check that ``c_xy.coframe()`` is indeed the coordinate coframe
-        associated with the coordinates `(x,y)`::
+        associated with the coordinates `(x, y)`::
 
             sage: dx = c_xy.coframe()[0] ; dx
             1-form dx on the 2-dimensional differentiable manifold M
@@ -483,11 +483,11 @@ class DiffChart(Chart):
 
     def restrict(self, subset, restrictions=None):
         r"""
-        Return the restriction of the chart to some subset.
+        Return the restriction of ``self`` to some subset.
 
-        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
-        of it is a chart `(V,\psi)` such that `V\subset U` and
-        `\psi = \varphi |_V`.
+        If the current chart is `(U, \varphi)`, a *restriction* (or
+        *subchart*) is a chart `(V, \psi)` such that `V \subset U`
+        and `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
@@ -497,24 +497,26 @@ class DiffChart(Chart):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U`
-        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
-          defining the subset `V`.
-          A restriction can be any symbolic equality or
-          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
-          The items of the list ``restrictions`` are combined with the ``and``
-          operator; if some restrictions are to be combined with the ``or``
-          operator instead, they have to be passed as a tuple in some single
-          item of the list ``restrictions``. For example, ``restrictions``
-          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
-          and (z^2<x). If the list ``restrictions`` contains only one item,
-          this item can be passed as such, i.e. writing x>y instead of the
-          single element list [x>y]. Note that the argument ``restrictions``
-          can be omitted if the subchart has been already initialized by a
-          previous call.
+        - ``restrictions`` -- (default: ``None``) list of coordinate
+          restrictions defining the subset `V`
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`DiffChart`.
+        - a :class:`DiffChart` `(V, \psi)`
 
         EXAMPLES:
 
@@ -817,36 +819,38 @@ class RealDiffChart(DiffChart, RealChart):
         r"""
         Return the restriction of the chart to some subset.
 
-        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
-        of it is a chart `(V,\psi)` such that `V\subset U` and
-        `\psi = \varphi |_V`.
+        If the current chart is `(U, \varphi)`, a *restriction* (or
+        *subchart*) is a chart `(V, \psi)` such that `V \subset U`
+        and `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
         The coordinates of the subchart bare the same names as the coordinates
-        of the mother chart.
+        of the parent chart.
 
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U`
         - ``restrictions`` -- (default: ``None``) list of coordinate
-          restrictions defining the subset `V`.
-          A restriction can be any symbolic equality or
-          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
-          The items of the list ``restrictions`` are combined with the ``and``
-          operator; if some restrictions are to be combined with the ``or``
-          operator instead, they have to be passed as a tuple in some single
-          item of the list ``restrictions``. For example, ``restrictions``
-          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
-          and (z^2<x). If the list ``restrictions`` contains only one item,
-          this item can be passed as such, i.e. writing x>y instead of the
-          single element list [x>y]. Note that the argument ``restrictions``
-          can be omitted if the subchart has been already initialized by a
-          previous call.
+          restrictions defining the subset `V`
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list ``restrictions`` are combined with the ``and`` operator;
+        if some restrictions are to be combined with the ``or`` operator
+        instead, they have to be passed as a tuple in some single item
+        of the list ``restrictions``. For example::
+
+          restrictions = [x > y, (x != 0, y != 0), z^2 < x]
+
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`RealDiffChart`.
+        - a :class:`RealDiffChart` `(V, \psi)`
 
         EXAMPLES:
 
@@ -864,7 +868,7 @@ class RealDiffChart(DiffChart, RealChart):
             sage: q in D
             False
 
-        Cartesian coordinates on the annulus `1<\sqrt{x^2+y^2}<2`::
+        Cartesian coordinates on the annulus `1 < \sqrt{x^2+y^2} < 2`::
 
             sage: A = M.open_subset('A')
             sage: c_cart_A = c_cart.restrict(A, [x^2+y^2>1, x^2+y^2<4])

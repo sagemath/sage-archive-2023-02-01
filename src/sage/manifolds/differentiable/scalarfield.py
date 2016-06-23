@@ -20,13 +20,13 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963)
-.. [2] \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-   (New York) (2013)
-.. [3] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego)
-   (1983)
+.. [ONeill83] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
+   (San Diego) (1983)
 
+- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+  (New York) (2013)
 """
 
 #******************************************************************************
@@ -648,10 +648,9 @@ class DiffScalarField(ScalarField):
             sage: f._init_derived()
 
         """
-        ScalarField._init_derived(self) # derived quantities of the mother class
+        ScalarField._init_derived(self) # derived quantities of the parent class
         self._differential = None  # differential 1-form of the scalar field
-        self._lie_derivatives = {} # dict. of Lie derivatives of self
-                                   # (keys: id(vector))
+        self._lie_derivatives = {} # dict. of Lie derivatives of self, (keys: id(vector))
 
     def _del_derived(self):
         r"""
@@ -685,12 +684,12 @@ class DiffScalarField(ScalarField):
 
     def tensor_type(self):
         r"""
-        Return the tensor type of the scalar field, when the latter is
-        considered as a tensor field on the manifold. This is always (0,0).
+        Return the tensor type of ``self``, when the latter is considered
+        as a tensor field on the manifold. This is always `(0, 0)`.
 
         OUTPUT:
 
-        - always (0,0)
+        - always `(0, 0)`
 
         EXAMPLE::
 
@@ -705,15 +704,14 @@ class DiffScalarField(ScalarField):
 
     def differential(self):
         r"""
-        Return the differential of the scalar field.
+        Return the differential of ``self``.
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.diff_form.DiffForm` (or of
+        - a :class:`~sage.manifolds.differentiable.diff_form.DiffForm` (or of
           :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal` if
           the scalar field's domain is parallelizable) representing the 1-form
-          that is the differential of the scalar field.
+          that is the differential of the scalar field
 
         EXAMPLES:
 
@@ -739,10 +737,10 @@ class DiffScalarField(ScalarField):
             True
 
         Since the exterior derivative of a scalar field (considered a 0-form)
-        is nothing but its differential, ``exterior_der()`` is an alias of
-        ``differential()``::
+        is nothing but its differential, ``exterior_derivative()`` is an
+        alias of ``differential()``::
 
-            sage: df = f.exterior_der() ; df
+            sage: df = f.exterior_derivative() ; df
             1-form df on the 3-dimensional differentiable manifold M
             sage: df.display()
             df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
@@ -750,10 +748,10 @@ class DiffScalarField(ScalarField):
             \mathrm{d}f
 
         One may also use the global function
-        :func:`~sage.manifolds.utilities.xder` instead of the method
-        ``exterior_der()``::
+        :func:`~sage.manifolds.utilities.exterior_derivative` instead
+        of the method ``exterior_derivative()``::
 
-            sage: xder(f) is f.exterior_der()
+            sage: exterior_derivative(f) is f.exterior_derivative()
             True
 
         Differential computed on a chart that is not the default one::
@@ -772,7 +770,7 @@ class DiffScalarField(ScalarField):
 
         The exterior derivative is nilpotent::
 
-            sage: ddf = df.exterior_der() ; ddf
+            sage: ddf = df.exterior_derivative() ; ddf
             2-form ddf on the 3-dimensional differentiable manifold M
             sage: ddf == 0
             True
@@ -780,20 +778,20 @@ class DiffScalarField(ScalarField):
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: ddg = dg.exterior_der() ; ddg
+            sage: ddg = dg.exterior_derivative() ; ddg
             2-form ddg on the 3-dimensional differentiable manifold M
             sage: ddg == 0
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
+        from sage.tensor.modules.format_utilities import (format_unop_txt,
+                                                          format_unop_latex)
         if self._differential is None:
             # A new computation is necessary:
             rname = format_unop_txt('d', self._name)
             rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
             self._differential = self._domain.one_form(name=rname,
-                                                             latex_name=rlname)
+                                                       latex_name=rlname)
             if self._is_zero:
                 for chart in self._domain._atlas:
                     self._differential.add_comp(chart._frame) # since a newly
@@ -805,16 +803,11 @@ class DiffScalarField(ScalarField):
                         diff_func[i, chart] = func.diff(i)
         return self._differential
 
-    exterior_der = differential
+    exterior_derivative = differential
 
     def lie_der(self, vector):
         r"""
         Compute the Lie derivative with respect to a vector field.
-
-        The Lie derivative is stored in the dictionary
-        :attr:`_lie_derivatives`, so that there is no need to
-        recompute it at the next call if neither the scalar field nor ``vector``
-        have been modified meanwhile.
 
         In the present case (scalar field), the Lie derivative is equal to
         the scalar field resulting from the action of the vector field on
@@ -859,9 +852,14 @@ class DiffScalarField(ScalarField):
             (x, y) |--> 0
 
         """
+        # The Lie derivative is cached in _lie_derivatives if neither
+        #   the scalar field nor ``vector`` have been modified.
         if id(vector) not in self._lie_derivatives:
             # A new computation must be performed
             res = vector(self)
             self._lie_derivatives[id(vector)] = (vector, res)
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
+
+    lie_derivative = lie_der
+

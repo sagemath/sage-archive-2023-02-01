@@ -40,28 +40,25 @@ class AutomorphismField(TensorField):
 
     .. MATH::
 
-        a:\ U  \longrightarrow T^{(1,1)}M
+        a:\ U  \longrightarrow T^{(1,1)} M,
 
-    (`T^{(1,1)}M` being the tensor bundle of type `(1,1)` over `M`) such
-    that
+    with `T^{(1,1)} M` being the tensor bundle of type `(1,1)` over `M`,
+    such that
 
     .. MATH::
 
-        \forall p \in U,\ a(p) \in \mathrm{Aut}(T_{\Phi(p)} M)
+        \forall p \in U,\ a(p) \in \mathrm{Aut}(T_{\Phi(p)} M),
 
     i.e. `a(p)` is an automorphism of the tangent space to `M` at the point
     `\Phi(p)`.
 
     The standard case of a field of tangent-space automorphisms *on* a
-    manifold corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other
-    common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
-    (`U` is then an open interval of `\RR`).
+    manifold corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other
+    common cases are `\Phi` being an immersion and `\Phi` being a curve
+    in `M` (`U` is then an open interval of `\RR`).
 
     If `M` is parallelizable, the class :class:`AutomorphismFieldParal`
     must be used instead.
-
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`.
 
     INPUT:
 
@@ -488,8 +485,8 @@ class AutomorphismField(TensorField):
         r"""
         Automorphism composition.
 
-        This implements the group law of GL(X(U,Phi)), X(U,Phi) being the
-        module of ``self``.
+        This implements the group law of `GL(X(U,\Phi))`, with `X(U,\Phi)`
+        being the module of ``self``.
 
         INPUT:
 
@@ -498,9 +495,9 @@ class AutomorphismField(TensorField):
         OUPUT:
 
         - the automorphism resulting from the composition of ``other`` and
-        ``self.``
+        ``self``
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -535,7 +532,7 @@ class AutomorphismField(TensorField):
             sage: w = M.vector_field(name='w')
             sage: w[e_xy, :] = [3, 1]
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: s(w) == a(b(w))
+            sage: s(w) == a(b(w))  # long time
             True
 
         """
@@ -590,7 +587,7 @@ class AutomorphismField(TensorField):
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = a.__mul__(b); s  # automorphism composition
             Field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
-            sage: s(w) == a(b(w))
+            sage: s(w) == a(b(w))  # long time
             True
             sage: s = a.__mul__(w); s  # tensor product
             Tensor field of type (2,1) on the 2-dimensional differentiable manifold M

@@ -492,11 +492,10 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            \Phi: M \longrightarrow  N
-
+            \Phi: M \longrightarrow  N,
 
         where `M` and `N` are differentiable manifolds, the *differential* of
-        `\Phi` at a point `p\in M` is the tangent space linear map:
+        `\Phi` at a point `p \in M` is the tangent space linear map:
 
         .. MATH::
 
@@ -516,16 +515,16 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            y^i = Y^i(x^1,\ldots,x^n)  \quad 1\leq i \leq m
+            y^i = Y^i(x^1, \ldots, x^n), \quad 1 \leq i \leq m,
 
-        where $(x^1,\ldots,x^n)$ are coordinates of a chart on `M` and
-        $(y^1,\ldots,y^m)$ are coordinates of a chart on `\Phi(M)`, the
+        where `(x^1, \ldots, x^n)` are coordinates of a chart on `M` and
+        `(y^1, \ldots, y^m)` are coordinates of a chart on `\Phi(M)`, the
         expression of the differential of `\Phi` w.r.t to these coordinates is
 
         .. MATH::
 
             J_{ij} = \frac{\partial Y^i}{\partial x^j} \quad 1\leq i \leq m,
-                            \quad 1\leq j \leq n
+                            \qquad 1 \leq j \leq n
 
         `\left. J_{ij} \right|_p` is then the matrix of the linear map
         `\mathrm{d}\Phi_p` with respect to the bases of `T_p M` and
@@ -533,8 +532,8 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            \mathrm{d}\Phi_p\left(  \left. \frac{\partial}{\partial x^j}
-               \right| _p \right) = \left. J_{ij} \right|_p \;
+            \mathrm{d}\Phi_p\left( \left. \frac{\partial}{\partial x^j}
+               \right|_p \right) = \left. J_{ij} \right|_p \;
              \left. \frac{\partial}{\partial y^i} \right| _{\Phi(p)}
 
         INPUT:
@@ -550,14 +549,15 @@ class DiffMap(ContinuousMap):
 
         - the functions `J_{ij}` as a double array, `J_{ij}` being the element
           ``[i][j]`` represented by an instance of
-          :class:`~sage.manifolds.coord_func.CoordFunction`.
-          To get symbolic expressions, use the method
-          :meth:`jacobian_matrix` instead.
+          :class:`~sage.manifolds.coord_func.CoordFunction`
+
+        To get symbolic expressions, use the method
+        :meth:`jacobian_matrix` instead.
 
         EXAMPLES:
 
-        Differential functions of a map between a 2-dimensional manifold and
-        a 3-dimensional one::
+        Differential functions of a map between a 2-dimensional manifold
+        and a 3-dimensional one::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -575,7 +575,8 @@ class DiffMap(ContinuousMap):
             sage: Phi.differential_functions(X, Y) is J
             True
 
-        The elements of ``J`` are functions of the coordinates of chart ``X``::
+        The elements of ``J`` are functions of the coordinates of
+        the chart ``X``::
 
             sage: J[2][0]
             2*x
@@ -611,25 +612,25 @@ class DiffMap(ContinuousMap):
 
     def jacobian_matrix(self, chart1=None, chart2=None):
         r"""
-        Return the Jacobian matrix resulting from the coordinate expression of
-        the differentiable map w.r.t. a pair of charts.
+        Return the Jacobian matrix resulting from the coordinate expression
+        of the differentiable map w.r.t. a pair of charts.
 
         If `\Phi` is the current differentiable map and its coordinate
         expression is
 
         .. MATH::
 
-            y^i = Y^i(x^1,\ldots,x^n)  \quad 1\leq i \leq m
+            y^i = Y^i(x^1, \ldots, x^n),  \quad 1 \leq i \leq m,
 
-        where $(x^1,\ldots,x^n)$ are coordinates of a chart `X` on the
-        domain of `\Phi` and $(y^1,\ldots,y^m)$ are coordinates of a chart
+        where `(x^1, \ldots, x^n)` are coordinates of a chart `X` on the
+        domain of `\Phi` and `(y^1, \ldots, y^m)` are coordinates of a chart
         `Y` on the codomain of `\Phi`, the *Jacobian matrix* of the
         differentiable map `\Phi` w.r.t. to charts `X` and `Y` is
 
         .. MATH::
 
             J = \left( \frac{\partial Y^i}{\partial x^j}
-              \right) _{{1\leq i \leq m\atop 1\leq j \leq n}},
+              \right)_{{1 \leq i \leq m \atop 1 \leq j \leq n}},
 
         where `i` is the row index and `j` the column one.
 
@@ -671,30 +672,29 @@ class DiffMap(ContinuousMap):
         diff_funct = self.differential_functions(chart1, chart2)
         n1 = self._domain.dim()
         n2 = self._codomain.dim()
-        return matrix( [[diff_funct[i][j].expr() for j in range(n1)]
-                                                          for i in range(n2)] )
+        return matrix([[diff_funct[i][j].expr() for j in range(n1)]
+                       for i in range(n2)])
 
     def pullback(self, tensor):
         r"""
-        Pullback operator associated with the differentiable map.
+        Pullback operator associated with ``self``.
 
-        In what follows, let `\Phi` denote the differentiable map, `M` its
+        In what follows, let `\Phi` denote a differentiable map, `M` its
         domain and `N` its codomain.
 
         INPUT:
 
-        - ``tensor`` -- instance of class
+        - ``tensor`` --
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field `T` on `N`, i.e. a tensor
-          field of type (0,p), with p a positive or zero integer. The case p=0
-          corresponds to a scalar field.
+          field of type `(0, p)`, with `p` a positive or zero integer; the
+          case `p = 0` corresponds to a scalar field
 
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field on `M` that is the
-          pullback of `T` by `\Phi`.
+          pullback of `T` by `\Phi`
 
         EXAMPLES:
 
@@ -744,11 +744,10 @@ class DiffMap(ContinuousMap):
             Phi_*(A) = 0
 
         """
-        from sage.manifolds.differentiable.tensorfield_paral import \
-                                                               TensorFieldParal
+        from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.tensor.modules.comp import Components, CompWithSym, \
-                                                 CompFullySym, CompFullyAntiSym
+        from sage.tensor.modules.comp import (Components, CompWithSym,
+                                              CompFullySym, CompFullyAntiSym)
 
         def _pullback_paral(self, tensor):
             r"""
@@ -822,8 +821,7 @@ class DiffMap(ContinuousMap):
         dom2 = self._codomain
         tdom = tensor._domain
         if not tdom.is_subset(dom2):
-            raise ValueError("the tensor field is not defined on the map " +
-                             "codomain")
+            raise ValueError("the tensor field is not defined on the map codomain")
         (ncon, ncov) = tensor._tensor_type
         if ncon != 0:
             raise TypeError("the pullback cannot be taken on a tensor " +
@@ -857,7 +855,7 @@ class DiffMap(ContinuousMap):
                                 "fields on {}".format(dom2))
             resu_rst = []
             for chart_pair in self._coord_expression:
-                chart1 = chart_pair[0] ; chart2 = chart_pair[1]
+                chart1 = chart_pair[0]; chart2 = chart_pair[1]
                 ch2dom = chart2._domain
                 if ch2dom.is_subset(tdom):
                     self_r = self.restrict(chart1._domain, subcodomain=ch2dom)
@@ -882,24 +880,23 @@ class DiffMap(ContinuousMap):
 
     def pushforward(self, tensor):
         r"""
-        Pushforward operator associated with the differentiable map.
+        Pushforward operator associated with ``self``.
 
         In what follows, let `\Phi` denote the differentiable map, `M` its
         domain and `N` its codomain.
 
         INPUT:
 
-        - ``tensor`` -- instance of class
+        - ``tensor`` --
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully contrariant tensor field `T` on `M`, i.e. a
-          tensor field of type (p,0), with p a positive integer.
+          tensor field of type `(p, 0)`, with `p` a positive integer
 
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully contravariant tensor field along `M` with
-          values in `N`, which is the pushforward of `T` by `\Phi`.
+          values in `N`, which is the pushforward of `T` by `\Phi`
 
         EXAMPLES:
 
@@ -943,10 +940,9 @@ class DiffMap(ContinuousMap):
             Psi^*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
 
         """
-        from sage.tensor.modules.comp import Components, CompWithSym, \
-                                                 CompFullySym, CompFullyAntiSym
-        from sage.manifolds.differentiable.tensorfield_paral import \
-                                                               TensorFieldParal
+        from sage.tensor.modules.comp import (Components, CompWithSym,
+                                              CompFullySym, CompFullyAntiSym)
+        from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
         vmodule = tensor.base_module()
         dest_map = vmodule.destination_map()
         dom1 = tensor.domain()
@@ -973,14 +969,14 @@ class DiffMap(ContinuousMap):
         chart1 = None; chart2 = None
         def_chart1 = dom1.default_chart()
         def_chart2 = self._codomain.default_chart()
-        if def_chart1._frame in tensor._components and \
-                            (def_chart1, def_chart2) in self._coord_expression:
+        if (def_chart1._frame in tensor._components
+                and (def_chart1, def_chart2) in self._coord_expression):
             chart1 = def_chart1
             chart2 = def_chart2
         else:
             for (chart1n, chart2n) in self._coord_expression:
-                if chart2n == def_chart2 and \
-                                          chart1n._frame in tensor._components:
+                if (chart2n == def_chart2
+                         and chart1n._frame in tensor._components):
                     chart1 = chart1n
                     chart2 = def_chart2
                     break
@@ -1052,3 +1048,4 @@ class DiffMap(ContinuousMap):
         resu = fmodule2.tensor_from_comp((ncon, 0), ptcomp, name=resu_name,
                                          latex_name=resu_latex_name)
         return resu
+

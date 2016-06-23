@@ -18,7 +18,6 @@ fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for differential
   forms (fully antisymmetric covariant tensor fields)
 
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
@@ -76,7 +75,7 @@ class TensorField(ModuleElement):
         \forall p \in U,\ t(p) \in T^{(k,l)}(T_q M)
 
     i.e. `t(p)` is a tensor of type `(k,l)` on the tangent space `T_q M` at
-    the point `q=\Phi(p)`, that is to say a multilinear map
+    the point `q = \Phi(p)`, that is to say a multilinear map
 
     .. MATH::
 
@@ -113,15 +112,15 @@ class TensorField(ModuleElement):
       field; if none is provided, the LaTeX symbol is set to ``name``
     - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
       the tensor arguments: each symmetry is described by a tuple containing
-      the positions of the involved arguments, with the convention position=0
-      for the first argument. For instance:
+      the positions of the involved arguments, with the convention
+      ``position = 0`` for the first argument; for instance:
 
-      * ``sym=(0,1)`` for a symmetry between the 1st and 2nd arguments
-      * ``sym=[(0,2),(1,3,4)]`` for a symmetry between the 1st and 3rd
+      * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+      * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
         arguments and a symmetry between the 2nd, 4th and 5th arguments.
 
     - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
-      among the arguments, with the same convention as for ``sym``.
+      among the arguments, with the same convention as for ``sym``
     - ``parent`` -- (default: ``None``) some specific parent (e.g. exterior
       power for differential forms); if ``None``,
       ``vector_field_module.tensor_module(k,l)`` is used
@@ -207,10 +206,10 @@ class TensorField(ModuleElement):
         b = ((2*u + 1)*v^3 + (2*u^3 - u^2)*v)/(u^2 + v^2) d/du
          - (u^4 - v^4 + 2*u*v^2)/(u^2 + v^2) d/dv
 
-    As a tensor field of type (0,2), `t` acts on the pair `(a,b)`, resulting in
-    a scalar field::
+    As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
+    resulting in a scalar field::
 
-        sage: f = t(a,b) ; f
+        sage: f = t(a,b); f
         Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
         sage: f.display()
         t(a,b): S^2 --> R
@@ -238,7 +237,7 @@ class TensorField(ModuleElement):
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
 
-        sage: s = t.restrict(V)(a,b) ; s
+        sage: s = t.restrict(V)(a,b); s
         Scalar field t(a,b) on the Open subset V of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()
@@ -250,17 +249,17 @@ class TensorField(ModuleElement):
 
         sage: t.parent().base_ring() is f.parent()
         True
-        sage: s = f*t ; s
+        sage: s = f*t; s  # long time
         Tensor field of type (0,2) on the 2-dimensional differentiable
          manifold S^2
-        sage: s[[0,0]] == f*t[[0,0]]
+        sage: s[[0,0]] == f*t[[0,0]]  # long time
         True
-        sage: s.restrict(U) == f.restrict(U)*t.restrict(U)
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
-        sage: s = f*t.restrict(U) ; s
+        sage: s = f*t.restrict(U); s  # long time
         Tensor field of type (0,2) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
-        sage: s.restrict(U) == f.restrict(U)*t.restrict(U)
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
 
     """
@@ -333,7 +332,7 @@ class TensorField(ModuleElement):
             for isym in sym:
                 if len(isym) > 1:
                     for i in isym:
-                        if i<0 or i>self._tensor_rank-1:
+                        if i < 0 or i > self._tensor_rank - 1:
                             raise IndexError("invalid position: {}".format(i) +
                                  " not in [0,{}]".format(self._tensor_rank-1))
                     self._sym.append(tuple(isym))
@@ -522,7 +521,7 @@ class TensorField(ModuleElement):
 
         """
         return type(self)(self._vmodule, self._tensor_type, sym=self._sym,
-                          antisym=self._antisym)
+                          antisym=self._antisym, parent=self.parent())
 
     def _final_repr(self, description):
         r"""
@@ -555,8 +554,7 @@ class TensorField(ModuleElement):
             sage: t._init_derived()
 
         """
-        self._lie_derivatives = {} # dict. of Lie derivatives of self
-                                   # (keys: id(vector))
+        self._lie_derivatives = {} # dict. of Lie derivatives of self (keys: id(vector))
 
     def _del_derived(self):
         r"""
@@ -714,19 +712,19 @@ class TensorField(ModuleElement):
             no symmetry;  antisymmetries: [(0, 1), (2, 3)]
 
         """
-        if len(self._sym) == 0:
+        if not self._sym:
             s = "no symmetry; "
         elif len(self._sym) == 1:
-            s = "symmetry: " + str(self._sym[0]) + "; "
+            s = "symmetry: {}; ".format(self._sym[0])
         else:
-            s = "symmetries: " + str(self._sym) + "; "
-        if len(self._antisym) == 0:
+            s = "symmetries: {}; ".format(self._sym)
+        if not self._antisym:
             a = "no antisymmetry"
         elif len(self._antisym) == 1:
-            a = "antisymmetry: " + str(self._antisym[0])
+            a = "antisymmetry: {}".format(self._antisym[0])
         else:
-            a = "antisymmetries: " + str(self._antisym)
-        print(s+a)
+            a = "antisymmetries: {}".format(self._antisym)
+        print(s + a)
 
     #### End of simple accessors #####
 
@@ -795,18 +793,17 @@ class TensorField(ModuleElement):
         - ``subdomain`` -- open subset `U` of the tensor field domain `S`
           (must be an instance of
           :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Psi:\ U \rightarrow V`, where `V` is an open subset of the manifold
-          `M` where the tensor field takes it values
-          (must be an instance of
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`).
-          If ``None``, the restriction of `\Phi` to `U` is used, `\Phi` being
-          the differentiable map `S\rightarrow M` associated with the tensor
-          field.
+        - ``dest_map`` --
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          (default: ``None``); destination map `\Psi:\ U \rightarrow V`,
+          where `V` is an open subset of the manifold `M` where the tensor
+          field takes it values; if ``None``, the restriction of `\Phi`
+          to `U` is used, `\Phi` being the differentiable map
+          `S \rightarrow M` associated with the tensor field
 
         OUTPUT:
 
-        - instance of :class:`TensorField` representing the restriction.
+        - :class:`TensorField` representing the restriction
 
         EXAMPLES:
 
@@ -869,8 +866,8 @@ class TensorField(ModuleElement):
             True
 
         """
-        if subdomain == self._domain and \
-                    (dest_map is None or dest_map == self._vmodule._dest_map) :
+        if (subdomain == self._domain
+                and (dest_map is None or dest_map == self._vmodule._dest_map)):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
@@ -910,17 +907,17 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame in which the components
-          are defined; if none is provided, the components are assumed to refer
-          to the tensor field domain's default frame.
+        - ``basis`` -- (default: ``None``) vector frame in which the
+          components are defined; if none is provided, the components are
+          assumed to refer to the tensor field domain's default frame
 
         OUTPUT:
 
-        - components in the given frame, as an instance of the
-          class :class:`~sage.tensor.modules.comp.Components`; if such
-          components did not exist previously, they are created.
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -973,17 +970,16 @@ class TensorField(ModuleElement):
         INPUT:
 
         - ``basis`` -- (default: ``None``) vector frame in which the components
-          are defined; if none is provided, the components are assumed to refer
-          to the tensor field domain's default frame.
+          are defined; if ``None``, the components are assumed to refer
+          to the tensor field domain's default frame
 
         OUTPUT:
 
-        - components in the given frame, as an instance of the
-          class :class:`~sage.tensor.modules.comp.Components`; if such
-          components did not exist previously, they are created.
+        - components in the given frame, as a
+          :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created
 
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -1026,8 +1022,8 @@ class TensorField(ModuleElement):
         coordinate expression of the components in a subframe.
 
         The continuation is performed by demanding that the components have
-        the same coordinate expression as those on the restriction of the frame
-        to a given subdomain.
+        the same coordinate expression as those on the restriction of the
+        frame to a given subdomain.
 
         INPUT:
 
@@ -1058,20 +1054,20 @@ class TensorField(ModuleElement):
             sage: a[eU,:] = [x, 2+y]
 
         At this stage, the vector field has been defined only on the open
-        subset U (through its components in the frame eU)::
+        subset ````U (through its components in the frame ``eU``)::
 
             sage: a.display(eU)
             a = x d/dx + (y + 2) d/dy
 
-        The components with respect to the restriction of eV to the common
-        subdomain W, in terms of the (u,v) coordinates, are obtained by a
-        change-of-frame formula on W::
+        The components with respect to the restriction of ``eV`` to the common
+        subdomain ``W``, in terms of the ``(u,v)`` coordinates, are obtained
+        by a change-of-frame formula on ``W``::
 
             sage: a.display(eV.restrict(W), c_uv.restrict(W))
             a = (-4*u*v - u) d/du + (2*u^2 - 2*v^2 - v) d/dv
 
         The continuation consists in extending the definition of the vector
-        field to the whole open subset V by demanding that the components in
+        field to the whole open subset ``V`` by demanding that the components in
         the frame eV have the same coordinate expression as the above one::
 
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
@@ -1115,12 +1111,13 @@ class TensorField(ModuleElement):
 
         OUTPUT:
 
-        - components in the vector frame ``basis``, as an instance of the
-          class :class:`~sage.tensor.modules.comp.Components`
+        - components in the vector frame ``basis``, as a
+          :class:`~sage.tensor.modules.comp.Components`
 
         EXAMPLES:
 
-        Components of a type-(1,1) tensor field defined on two open subsets::
+        Components of a type-`(1,1)` tensor field defined on two
+        open subsets::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
@@ -1147,7 +1144,8 @@ class TensorField(ModuleElement):
             [   0    0]
             [   0 -u*v]
 
-        Since e is M's default frame, the argument e can be omitted::
+        Since ``e`` is ``M``'s default frame, the argument ``e`` can
+        be omitted::
 
             sage: e is M.default_frame()
             True
@@ -1182,16 +1180,15 @@ class TensorField(ModuleElement):
         INPUT:
 
         - ``basis`` -- (default: ``None``) vector frame with respect to
-          which the tensor is expanded; if none is provided, the default frame
-          of the domain of definition of the tensor field is assumed.
+          which the tensor is expanded; if ``None``, the default frame
+          of the domain of definition of the tensor field is assumed
         - ``chart`` -- (default: ``None``) chart with respect to which the
           components of the tensor field in the selected frame are expressed;
-          if none is provided, the default chart of the vector frame domain
-          is assumed.
+          if ``None``, the default chart of the vector frame domain is assumed
 
         EXAMPLES:
 
-        Display of a type-(1,1) tensor field defined on two open subsets::
+        Display of a type-`(1,1)` tensor field defined on two open subsets::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
@@ -1212,21 +1209,22 @@ class TensorField(ModuleElement):
             sage: t.display(f)
             t = -u*v d/dv*dv
 
-        Since e is M's default frame, the argument e can be omitted::
+        Since ``e`` is ``M``'s default frame, the argument ``e`` can
+        be omitted::
 
             sage: e is M.default_frame()
             True
             sage: t.display()
             t = (y^3 - x) d/dx*dx + (x + 2) d/dx*dy
 
-        Similarly, since f is V's default frame, the argument f can be omitted
-        when considering the restriction of t to V::
+        Similarly, since ``f`` is ``V``'s default frame, the argument ``f``
+        can be omitted when considering the restriction of ``t`` to ``V``::
 
             sage: t.restrict(V).display()
             t = -u*v d/dv*dv
 
-        Display w.r.t a frame in which t has not been initialized (automatic
-        use of a change-of-frame formula)::
+        Display w.r.t a frame in which ``t`` has not been initialized
+        (automatic use of a change-of-frame formula)::
 
             sage: a = V.automorphism_field()
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]
@@ -1270,9 +1268,9 @@ class TensorField(ModuleElement):
         - ``frame`` -- (default: ``None``) vector frame with respect to which
           the tensor field components are defined; if ``None``, then
 
-          - if ``chart`` is not ``None``, the coordinate frame associated to
+          * if ``chart`` is not ``None``, the coordinate frame associated to
             ``chart`` is used
-          - otherwise, the default basis of the vector field module on which
+          * otherwise, the default basis of the vector field module on which
             the tensor field is defined is used
 
         - ``chart`` -- (default: ``None``) chart specifying the coordinate
@@ -1288,8 +1286,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES:
 
-        Display of the components of a type-(1,1) tensor field defined on two
-        open subsets::
+        Display of the components of a type-`(1,1)` tensor field defined
+        on two open subsets::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
@@ -1356,10 +1354,10 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``args`` -- list of indices defining the component; if [:] is
+        - ``args`` -- list of indices defining the component; if ``[:]`` is
           provided, all the components are returned. The frame can be passed
           as the first item of ``args``; if not, the default frame of the
-          tensor field's domain is assumed.
+          tensor field's domain is assumed
 
         TESTS::
 
@@ -1415,11 +1413,11 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-       - ``args`` -- list of indices; if [:] is provided, all the components
+        - ``args`` -- list of indices; if [:] is provided, all the components
           are set. The frame can be passed as the first item of ``args``; if
-          not, the default frame of the tensor field's domain is assumed.
-        - ``value`` -- the value to be set or a list of values if ``args``
-          == ``[:]``
+          not, the default frame of the tensor field's domain is assumed
+        - ``value`` -- the value to be set or a list of values if
+          ``args = [:]``
 
         TESTS::
 
@@ -1465,9 +1463,9 @@ class TensorField(ModuleElement):
 
         The name and the derived quantities are not copied.
 
-        EXAMPLE:
+        EXAMPLES:
 
-        Copy of a type-(1,1) tensor field on the 2-sphere::
+        Copy of a type-`(1,1)` tensor field on the 2-sphere::
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -1484,8 +1482,8 @@ class TensorField(ModuleElement):
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.copy(); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable
-             manifold M
+            Tensor field of type (1,1) on
+             the 2-dimensional differentiable manifold M
             sage: s.display(e_xy)
             (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
@@ -1527,21 +1525,21 @@ class TensorField(ModuleElement):
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
-            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: t._common_subdomains(t)  # random
-            [Open subset V of the 2-dimensional differentiable manifold M,
-             Open subset U of the 2-dimensional differentiable manifold M,
+            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)  # long time
+            sage: sorted(t._common_subdomains(t), key=str)  # long time
+            [Open subset U of the 2-dimensional differentiable manifold M,
+             Open subset V of the 2-dimensional differentiable manifold M,
              Open subset W of the 2-dimensional differentiable manifold M]
             sage: a = M.tensor_field(1, 1, name='a')
-            sage: t._common_subdomains(a)
+            sage: t._common_subdomains(a)  # long time
             []
             sage: a[e_xy, 0, 1] = 0
-            sage: t._common_subdomains(a)
+            sage: t._common_subdomains(a)  # long time
             [Open subset U of the 2-dimensional differentiable manifold M]
             sage: a[e_uv, 0, 0] = 0
-            sage: t._common_subdomains(a)  # random
-            [Open subset V of the 2-dimensional differentiable manifold M,
-             Open subset U of the 2-dimensional differentiable manifold M]
+            sage: sorted(t._common_subdomains(a), key=str)  # long time
+            [Open subset U of the 2-dimensional differentiable manifold M,
+             Open subset V of the 2-dimensional differentiable manifold M]
 
         """
         resu = []
@@ -1787,7 +1785,8 @@ class TensorField(ModuleElement):
 
         OUPUT:
 
-        - the tensor field resulting from the addition of ``self`` and ``other``
+        - the tensor field resulting from the addition of ``self``
+          and ``other``
 
         TESTS::
 
@@ -1855,8 +1854,8 @@ class TensorField(ModuleElement):
 
         OUPUT:
 
-        - the tensor field resulting from the subtraction of ``other`` from
-          ``self``
+        - the tensor field resulting from the subtraction of ``other``
+          from ``self``
 
         TESTS::
 
@@ -1986,6 +1985,7 @@ class TensorField(ModuleElement):
 
     ######### End of ModuleElement arithmetic operators ########
 
+    # TODO: Move to acted_upon or _rmul_
     def __mul__(self, other):
         r"""
         Tensor product (or multiplication of the right by a scalar).
@@ -2189,15 +2189,15 @@ class TensorField(ModuleElement):
         The tensor field acting on 1-forms and vector fields as a multilinear
         map.
 
-        In the particular case of tensor field of type (1,1), the action can
+        In the particular case of tensor field of type `(1,1)`, the action can
         be on a single vector field, the tensor field being identified to a
         field of tangent-space endomorphisms. The output is then a vector
         field.
 
         INPUT:
 
-        - ``*args`` -- list of k 1-forms and l vector fields, ``self``
-          being a tensor of type (k,l).
+        - ``*args`` -- list of `k` 1-forms and `l` vector fields, ``self``
+          being a tensor of type `(k,l)`
 
         OUTPUT:
 
@@ -2208,7 +2208,7 @@ class TensorField(ModuleElement):
 
         TESTS:
 
-        Action of a tensor field of type (1,1) on the 2-sphere::
+        Action of a tensor field of type `(1,1)` on the 2-sphere::
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -2377,11 +2377,11 @@ class TensorField(ModuleElement):
 
         OUTPUT:
 
-        - tensor field resulting from the (pos1, pos2) contraction
+        - tensor field resulting from the ``(pos1, pos2)`` contraction
 
         EXAMPLES:
 
-        Trace of a type-(1,1) tensor field on a 2-dimensional
+        Trace of a type-`(1,1)` tensor field on a 2-dimensional
         non-parallelizable manifold::
 
             sage: M = Manifold(2, 'M')
@@ -2509,18 +2509,19 @@ class TensorField(ModuleElement):
 
     def contract(self, *args):
         r"""
-        Contraction with another tensor field, on one or more indices.
+        Contraction of ``self`` with another tensor field on one or
+        more indices.
 
         INPUT:
 
         - ``pos1`` -- positions of the indices in the current tensor field
           involved in the contraction; ``pos1`` must be a sequence of integers,
           with 0 standing for the first index position, 1 for the second one,
-          etc. If ``pos1`` is not provided, a single contraction on the last
+          etc.; if ``pos1`` is not provided, a single contraction on the last
           index position of the tensor field is assumed
         - ``other`` -- the tensor field to contract with
         - ``pos2`` -- positions of the indices in ``other`` involved in the
-          contraction, with the same conventions as for ``pos1``. If ``pos2``
+          contraction, with the same conventions as for ``pos1``; if ``pos2``
           is not provided, a single contraction on the first index position of
           ``other`` is assumed
 
@@ -2531,8 +2532,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES:
 
-        Contractions of a type-(1,1) tensor field with a type-(2,0) one on
-        a 2-dimensional non-parallelizable manifold::
+        Contractions of a type-`(1,1)` tensor field with a type-`(2,0)`
+        one on a 2-dimensional non-parallelizable manifold::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -2553,13 +2554,13 @@ class TensorField(ModuleElement):
             Tensor field of type (2,0) on the 2-dimensional differentiable
              manifold M
 
-        Check 1: components w.r.t. the manifold's default frame (eU)::
+        Check 1: components w.r.t. the manifold's default frame (``eU``)::
 
             sage: [[bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
             ....:   for j in M.irange()] for i in M.irange()]
             [[True, True], [True, True]]
 
-        Check 2: components w.r.t. frame eV::
+        Check 2: components w.r.t. frame ``eV``::
 
             sage: [[bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
             ....:                         for k in M.irange()))
@@ -2584,7 +2585,7 @@ class TensorField(ModuleElement):
             sage: a['^{i}_{k}']*b['^{kj}'] == s
             True
 
-        Contraction on the last index of a and last index of b::
+        Contraction on the last index of ``a`` and last index of ``b``::
 
             sage: s = a.contract(b, 1) ; s
             Tensor field of type (2,0) on the 2-dimensional differentiable
@@ -2592,7 +2593,7 @@ class TensorField(ModuleElement):
             sage: a['^i_k']*b['^jk'] == s
             True
 
-        Contraction on the first index of b and the last index of a::
+        Contraction on the first index of ``b`` and the last index of ``a``::
 
             sage: s = b.contract(0,a,1) ; s
             Tensor field of type (2,0) on the 2-dimensional differentiable
@@ -2600,8 +2601,8 @@ class TensorField(ModuleElement):
             sage: b['^ki']*a['^j_k'] == s
             True
 
-        The domain of the result is the intersection of the domains of the two
-        tensor fields::
+        The domain of the result is the intersection of the domains of
+        the two tensor fields::
 
             sage: aU = a.restrict(U) ; bV = b.restrict(V)
             sage: s = aU.contract(b) ; s
@@ -2617,9 +2618,9 @@ class TensorField(ModuleElement):
             sage: s == s0.restrict(W)
             True
 
-        The contraction can be performed on more than one index: c being a
-        type-(2,2) tensor, contracting the indices in positions 2 and 3 of c
-        with respectively those in positions 0 and 1 of b is::
+        The contraction can be performed on more than one index: ``c`` being a
+        type-`(2,2)` tensor, contracting the indices in positions 2 and 3
+        of ``c`` with respectively those in positions 0 and 1 of ``b`` is::
 
             sage: c = a*a ; c
             Tensor field of type (2,2) on the 2-dimensional differentiable
@@ -2685,7 +2686,7 @@ class TensorField(ModuleElement):
                 break
         else:
             raise TypeError("a tensor field must be provided in the " +
-                            "argument list.")
+                            "argument list")
         if it == 0:
             pos1 = (self._tensor_rank - 1,)
         else:
@@ -2758,10 +2759,10 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``pos`` -- (default: ``None``) list of argument positions involved in
-          the symmetrization (with the convention position=0 for the first
-          argument); if ``None``, the symmetrization is performed over all the
-          arguments
+        - ``pos`` -- (default: ``None``) list of argument positions involved
+          in the symmetrization (with the convention ``position=0`` for the
+          first argument); if ``None``, the symmetrization is performed
+          over all the arguments
 
         OUTPUT:
 
@@ -2769,7 +2770,7 @@ class TensorField(ModuleElement):
 
         EXAMPLES:
 
-        Symmetrization of a type-(0,2) tensor field on a 2-dimensional
+        Symmetrization of a type-`(0,2)` tensor field on a 2-dimensional
         non-parallelizable manifold::
 
             sage: M = Manifold(2, 'M')
@@ -2819,10 +2820,10 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``pos`` -- (default: ``None``) list of argument positions involved in
-          the antisymmetrization (with the convention position=0 for the first
-          argument); if ``None``, the antisymmetrization is performed over all
-          the arguments
+        - ``pos`` -- (default: ``None``) list of argument positions involved
+          in the antisymmetrization (with the convention ``position=0`` for
+          the first argument); if ``None``, the antisymmetrization is
+          performed over all the arguments
 
         OUTPUT:
 
@@ -2830,7 +2831,7 @@ class TensorField(ModuleElement):
 
         EXAMPLES:
 
-        Antisymmetrization of a type-(0,2) tensor field on a 2-dimensional
+        Antisymmetrization of a type-`(0,2)` tensor field on a 2-dimensional
         non-parallelizable manifold::
 
             sage: M = Manifold(2, 'M')
@@ -2879,11 +2880,6 @@ class TensorField(ModuleElement):
         r"""
         Lie derivative of the tensor field with respect to a vector field.
 
-        The Lie derivative is stored in the dictionary
-        :attr:`_lie_derivatives`, so that there is no need to
-        recompute it at the next call if neither the tensor field nor ``vector``
-        have been modified meanwhile.
-
         INPUT:
 
         - ``vector`` -- vector field with respect to which the Lie derivative
@@ -2923,10 +2919,15 @@ class TensorField(ModuleElement):
             (-y^2 + 2*x) d/dx*dx + 2*x*y d/dx*dy - x^2 d/dy*dx
              + (2*y^2 - 2*x) d/dy*dy
             sage: lt.display(e_uv)
-            (2*u^7 + (2*u - 1)*v^6 - 2*u^5*v + 2*u^3*v^3 - 2*(5*u^3 - 3*u^2)*v^4 - (10*u^5 - 3*u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*du
-             - 2*(2*u^4*v^2 + u^3*v^3 + 2*(2*u^2 - u)*v^5 - (4*u^6 - u^5)*v)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*dv
-             + (8*u^6*v + u^6 - 2*u^4*v^2 + 2*u^3*v^3 + u^2*v^4 - 2*(4*u^2 - 3*u)*v^5)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*du
-             - 2*(u^7 + (u - 1)*v^6 - u^5*v + u^3*v^3 - (5*u^3 - 2*u^2)*v^4 - (5*u^5 - u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*dv
+            (2*u^7 + (2*u - 1)*v^6 - 2*u^5*v + 2*u^3*v^3
+             - 2*(5*u^3 - 3*u^2)*v^4
+             - (10*u^5 - 3*u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*du
+             - 2*(2*u^4*v^2 + u^3*v^3 + 2*(2*u^2 - u)*v^5
+             - (4*u^6 - u^5)*v)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/du*dv
+             + (8*u^6*v + u^6 - 2*u^4*v^2 + 2*u^3*v^3 + u^2*v^4
+             - 2*(4*u^2 - 3*u)*v^5)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*du
+             - 2*(u^7 + (u - 1)*v^6 - u^5*v + u^3*v^3 - (5*u^3 - 2*u^2)*v^4
+             - (5*u^5 - u^4)*v^2)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) d/dv*dv
 
         The result is cached::
 
@@ -2955,12 +2956,15 @@ class TensorField(ModuleElement):
 
             sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
             ....:                     c_uv: (u^2+v^2)/(1+u^2+v^2)})
-            sage: a.lie_der(w)(f) == w(a(f)) - a(w(f))
+            sage: a.lie_der(w)(f) == w(a(f)) - a(w(f))  # long time
             True
 
         """
         if vector._tensor_type != (1,0):
-            raise TypeError("the argument must be a vector field.")
+            raise TypeError("the argument must be a vector field")
+
+        # The Lie derivative is cached in _lie_derivates while neither
+        #    the tensor field nor ``vector`` have been modified
         if id(vector) not in self._lie_derivatives:
             # the computation must be performed:
             resu_rst = []
@@ -2974,3 +2978,4 @@ class TensorField(ModuleElement):
             self._lie_derivatives[id(vector)] = (vector, resu)
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
+

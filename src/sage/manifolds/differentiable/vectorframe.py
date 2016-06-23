@@ -1217,9 +1217,9 @@ class CoordCoFrame(CoFrame):
 
     Each 1-form of a coordinate coframe is closed::
 
-        sage: dX[1].exterior_der()
+        sage: dX[1].exterior_derivative()
         2-form ddx on the 3-dimensional differentiable manifold M
-        sage: dX[1].exterior_der() == 0
+        sage: dX[1].exterior_derivative() == 0
         True
 
     """

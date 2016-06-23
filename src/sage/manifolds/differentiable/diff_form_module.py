@@ -1,12 +1,12 @@
 r"""
 Differential Form Modules
 
-The set `\Lambda^p(U,\Phi)` of `p`-forms along a differentiable manifold `U`
+The set `\Lambda^p(U, \Phi)` of `p`-forms along a differentiable manifold `U`
 with values on a differentiable manifold `M` via a differentiable map
-`\Phi:\ U\rightarrow M` (possibly `U=M` and `\Phi=\mathrm{Id}_M`)
+`\Phi:\ U \rightarrow M` (possibly `U = M` and `\Phi = \mathrm{Id}_M`)
 is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`.
-It is a free module iff `M` is parallelizable. Accordingly, two classes
-implement `\Lambda^p(U,\Phi)`:
+It is a free module if and only if `M` is parallelizable. Accordingly,
+two classesimplement `\Lambda^p(U, \Phi)`:
 
 - :class:`DiffFormModule` for differential forms with values on a generic (in
   practice, not parallelizable) differentiable manifold `M`
@@ -19,10 +19,10 @@ AUTHORS:
 
 REFERENCES:
 
-- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+  vol. 1, Interscience Publishers (New York) (1963)
+- \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
+  Springer (New York) (2013)
 
 """
 #******************************************************************************
@@ -49,12 +49,12 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     Given a differentiable manifold `U` and a differentiable map
     `\Phi:\; U \rightarrow M` to a differentiable manifold `M`, the set
-    `\Lambda^p(U,\Phi)` of `p`-forms along `U` with values on `M` is a module
+    `\Lambda^p(U, \Phi)` of `p`-forms along `U` with values on `M` is a module
     over `C^k(U)`, the commutative algebra of differentiable scalar fields
     on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a differentiable manifold `M`
-    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
     `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
     open interval of `\RR`).
 
@@ -68,8 +68,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `M` via the map `\Phi: U \rightarrow M`.
+    - ``vector_field_module`` -- module `\mathcal{X}(U, \Phi)` of vector
+      fields along `U` with values on `M` via the map `\Phi: U \rightarrow M`
     - ``degree`` -- positive integer; the degree `p` of the differential forms
 
     EXAMPLES:
@@ -171,8 +171,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
         sage: a.display(eV)
         a = (-3/4*u - 3/4*v) du/\dv
 
-    The module `\Lambda^1(M)` is nothing but the dual of `\mathcal{X}(M)` (the
-    module of vector fields on `M`)::
+    The module `\Lambda^1(M)` is nothing but the dual of `\mathcal{X}(M)`
+    (the module of vector fields on `M`)::
 
         sage: L1 = M.diff_form_module(1) ; L1
         Module /\^1(M) of 1-forms on the 2-dimensional differentiable manifold M
@@ -193,7 +193,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         sage: T01.has_coerce_map_from(L1)
         True
 
-    For a degree `p\geq 2`, the coercion holds only in the direction
+    For a degree `p \geq 2`, the coercion holds only in the direction
     `\Lambda^p(M)\rightarrow T^{(0,p)}(M)`::
 
         sage: T02 = M.tensor_field_module((0,2)) ; T02
@@ -269,7 +269,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         r"""
         Construction a module of differential forms.
 
-        TEST:
+        TESTS:
 
         Module of 2-forms on a non-parallelizable 2-dimensional manifold::
 
@@ -288,16 +288,15 @@ class DiffFormModule(UniqueRepresentation, Parent):
              manifold M
             sage: TestSuite(A).run(skip='_test_elements')
 
-        In the above test suite, _test_elements is skipped because of the
-        _test_pickling error of the elements (to be fixed in class
-        TensorField)
+        In the above test suite, ``_test_elements`` is skipped because of the
+        ``_test_pickling`` error of the elements (to be fixed in
+        :class:`sage.manifolds.differentialbe.tensorfield.TensorField`)
 
         """
         domain = vector_field_module._domain
         dest_map = vector_field_module._dest_map
         name = "/\^{}(".format(degree) + domain._name
-        latex_name = r"\Lambda^{" + str(degree) + r"}\left(" + \
-                     domain._latex_name
+        latex_name = r"\Lambda^{" + str(degree) + r"}\left(" + domain._latex_name
         if dest_map is domain.identity_map():
             name += ")"
             latex_name += r"\right)"
@@ -345,16 +344,15 @@ class DiffFormModule(UniqueRepresentation, Parent):
                 self._zero_element = self._element_constructor_(name='zero',
                                                                 latex_name='0')
                 for frame in self._domain._frames:
-                    if self._dest_map.restrict(frame._domain) == \
-                                                               frame._dest_map:
+                    if self._dest_map.restrict(frame._domain) == frame._dest_map:
                         self._zero_element.add_comp(frame)
                         # (since new components are initialized to zero)
             return self._zero_element
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
-            if self._degree == comp._tensor_type[1] and \
-               self._domain.is_subset(comp._domain) and \
-               self._ambient_domain.is_subset(comp._ambient_domain):
+            if (self._degree == comp._tensor_type[1]
+                   and self._domain.is_subset(comp._domain)
+                   and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
@@ -362,8 +360,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
         if isinstance(comp, TensorField):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
-            if tensor.tensor_type() == (0,1) and self._degree == 1 and \
-                                         tensor._vmodule is self._vmodule:
+            if (tensor.tensor_type() == (0,1) and self._degree == 1
+                     and tensor._vmodule is self._vmodule):
                 resu = self.element_class(self._vmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
                 for dom, rst in tensor._restrictions.iteritems():
@@ -401,8 +399,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         if open_covers != []:
             oc = open_covers[0]  # the first non-trivial open cover is selected
             for dom in oc:
-                vmodule_dom = dom.vector_field_module(
-                                         dest_map=self._dest_map.restrict(dom))
+                vmodule_dom = dom.vector_field_module(dest_map=self._dest_map.restrict(dom))
                 dmodule_dom = vmodule_dom.dual_exterior_power(self._degree)
                 resu.set_restriction(dmodule_dom._an_element_())
         return resu
@@ -432,13 +429,13 @@ class DiffFormModule(UniqueRepresentation, Parent):
                                                               TensorFieldModule
         if isinstance(other, (DiffFormModule, DiffFormFreeModule)):
             # coercion by domain restriction
-            return self._degree == other._degree and \
-                   self._domain.is_subset(other._domain) and \
-                   self._ambient_domain.is_subset(other._ambient_domain)
+            return (self._degree == other._degree
+                    and self._domain.is_subset(other._domain)
+                    and self._ambient_domain.is_subset(other._ambient_domain))
         if isinstance(other, TensorFieldModule):
             # coercion of a type-(0,1) tensor to a linear form
-            return self._vmodule is other._vmodule and self._degree == 1 and \
-               other.tensor_type() == (0,1)
+            return (self._vmodule is other._vmodule and self._degree == 1
+                    and other.tensor_type() == (0,1))
         return False
 
     #### End of Parent methods
@@ -447,17 +444,13 @@ class DiffFormModule(UniqueRepresentation, Parent):
         r"""
         Return a string representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: A2 = M.diff_form_module(2)
-            sage: A2._repr_()
-            'Module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
-            sage: repr(A2)  # indirect doctest
-            'Module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
-            sage: A2  # indirect doctest
-            Module /\^2(M) of 2-forms on the 3-dimensional differentiable
-             manifold M
+            sage: A2
+            Module /\^2(M) of 2-forms on
+             the 3-dimensional differentiable manifold M
 
         """
         description = "Module "
@@ -475,7 +468,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         r"""
         Return a LaTeX representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
             sage: A2 = M.diff_form_module(2)
@@ -497,7 +490,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - instance of class
+        - a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           representing the module on which the differential form module is
           defined.
@@ -531,7 +524,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - integer `p` such that the module is a set of p-forms
+        - integer `p` such that the module is a set of `p`-forms
 
         EXAMPLES::
 
@@ -555,17 +548,17 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
     Given a differentiable manifold `U` and a differentiable map
     `\Phi:\; U \rightarrow M` to a parallelizable manifold `M`, the set
-    `\Lambda^p(U,\Phi)` of `p`-forms along `U` with values on `M` is a
+    `\Lambda^p(U, \Phi)` of `p`-forms along `U` with values on `M` is a
     free module over `C^k(U)`, the commutative algebra of differentiable
     scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a differentiable manifold `M`
-    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
     `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
     open interval of `\RR`).
 
-    This class implements `\Lambda^p(U,\Phi)` in the case where `M` is
-    parallelizable; `\Lambda^p(U,\Phi)` is then a *free* module. If `M` is not
+    This class implements `\Lambda^p(U, \Phi)` in the case where `M` is
+    parallelizable; `\Lambda^p(U, \Phi)` is then a *free* module. If `M` is not
     parallelizable, the class :class:`DiffFormModule` must be used instead.
 
     This is a Sage *parent* class, whose *element* class is
@@ -574,7 +567,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow V`
     - ``degree`` -- positive integer; the degree `p` of the differential forms
 
     EXAMPLES:
@@ -586,8 +579,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: XM = M.vector_field_module() ; XM
         Free module X(M) of vector fields on the 3-dimensional differentiable
          manifold M
-        sage: from sage.manifolds.differentiable.diff_form_module import \
-        ....:                                                DiffFormFreeModule
+        sage: from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
         sage: A = DiffFormFreeModule(XM, 2) ; A
         Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
          manifold M
@@ -611,8 +603,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: A is M.diff_form_module(2)
         True
 
-    A is a module over the algebra `C^k(M)` of (differentiable) scalar fields
-    on M::
+    `A` is a module over the algebra `C^k(M)` of (differentiable)
+    scalar fields on `M`::
 
         sage: A.category()
         Category of finite dimensional modules over Algebra of differentiable
@@ -633,25 +625,19 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: A.rank()
         3
 
-    A is a *parent* object, whose elements are 2-forms, represented by
-    instances of the class
-    :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`::
+    A is a *parent* object, whose elements are 2-forms::
 
-        sage: A.Element
-        <class 'sage.manifolds.differentiable.diff_form.DiffFormParal'>
         sage: a = A.an_element() ; a
         2-form on the 3-dimensional differentiable manifold M
         sage: a.display()
         2 dx/\dy
-        sage: type(a)
-        <class 'sage.manifolds.differentiable.diff_form.DiffFormFreeModule_with_category.element_class'>
         sage: a in A
         True
         sage: A.is_parent_of(a)
         True
 
-    Elements can be constructed from A. In particular, 0 yields the zero
-    element of A::
+    Elements can be constructed from `A`. In particular, 0 yields the zero
+    element of `A`::
 
         sage: A(0)
         2-form zero on the 3-dimensional differentiable manifold M
@@ -677,8 +663,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: a.display()
         a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
 
-    The module `\Lambda^1(M)` is nothing but the dual of `\mathcal{X}(M)` (the
-    free module of vector fields on `M`)::
+    The module `\Lambda^1(M)` is nothing but the dual of `\mathcal{X}(M)`
+    (the free module of vector fields on `M`)::
 
         sage: L1 = M.diff_form_module(1) ; L1
         Free module /\^1(M) of 1-forms on the 3-dimensional differentiable
@@ -700,8 +686,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: T01.has_coerce_map_from(L1)
         True
 
-    For a degree `p\geq 2`, the coercion holds only in the direction
-    `\Lambda^p(M)\rightarrow T^{(0,p)}(M)`::
+    For a degree `p \geq 2`, the coercion holds only in the direction
+    `\Lambda^p(M) \rightarrow T^{(0,p)}(M)`::
 
         sage: T02 = M.tensor_field_module((0,2)) ; T02
         Free module T^(0,2)(M) of type-(0,2) tensors fields on the
@@ -746,8 +732,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: ta.symmetries()  # the antisymmetry is preserved
         no symmetry;  antisymmetry: (0, 1)
 
-    There is also coercion to subdomains, which is nothing but the restriction
-    of the differential form to some subset of its domain::
+    There is also coercion to subdomains, which is nothing but the
+    restrictionof the differential form to some subset of its domain::
 
         sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})
         sage: B = U.diff_form_module(2) ; B
@@ -769,7 +755,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         r"""
         Construct a free module of differential forms.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
@@ -822,9 +808,9 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             return self._zero_element
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
-            if self._degree == comp._tensor_type[1] and \
-               self._domain.is_subset(comp._domain) and \
-               self._ambient_domain.is_subset(comp._ambient_domain):
+            if (self._degree == comp._tensor_type[1] 
+                    and self._domain.is_subset(comp._domain)
+                    and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
                 raise TypeError("cannot convert the {} ".format(comp) +
@@ -832,8 +818,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         if isinstance(comp, TensorFieldParal):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
-            if tensor.tensor_type() == (0,1) and self._degree == 1 and \
-                                         tensor._fmodule is self._fmodule:
+            if (tensor.tensor_type() == (0,1) and self._degree == 1
+                     and tensor._fmodule is self._fmodule):
                 resu = self.element_class(self._fmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
                 for frame, comp in tensor._components.iteritems():
@@ -874,37 +860,32 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             False
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import \
-                                                          TensorFieldFreeModule
+        from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
         if isinstance(other, (DiffFormModule, DiffFormFreeModule)):
             # coercion by domain restriction
-            return self._degree == other._degree and \
-                   self._domain.is_subset(other._domain) and \
-                   self._ambient_domain.is_subset(other._ambient_domain)
+            return (self._degree == other._degree
+                    and self._domain.is_subset(other._domain)
+                    and self._ambient_domain.is_subset(other._ambient_domain))
         if isinstance(other, TensorFieldFreeModule):
             # coercion of a type-(0,1) tensor to a linear form
-            return self._fmodule is other._fmodule and self._degree == 1 and \
-               other.tensor_type() == (0,1)
+            return (self._fmodule is other._fmodule and self._degree == 1
+                    and other.tensor_type() == (0,1))
         return False
 
     #### End of Parent methods
 
     def _repr_(self):
         r"""
-        Return a string representation of the object.
+        Return a string representation of ``self``.
 
         TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: A = M.diff_form_module(2)
-            sage: A._repr_()
-            'Free module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
-            sage: repr(A)  # indirect doctest
-            'Free module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
-            sage: A  # indirect doctest
-            Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
-             manifold M
+            sage: A
+            Free module /\^2(M) of 2-forms on
+             the 3-dimensional differentiable manifold M
 
         """
         description = "Free module "
@@ -917,3 +898,4 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             description += "along the {} mapped into the {}".format(
                                             self._domain, self._ambient_domain)
         return description
+

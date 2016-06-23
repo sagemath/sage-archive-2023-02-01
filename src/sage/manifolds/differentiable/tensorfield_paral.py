@@ -1164,7 +1164,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Check of Cartan identity::
 
-            sage: om.lie_der(v) == v.contract(0,om.exterior_der(),0) + (om(v)).exterior_der()
+            sage: om.lie_der(v) == (v.contract(0, om.exterior_derivative(), 0)
+            ....:                   + om(v).exterior_derivative())
             True
 
         """

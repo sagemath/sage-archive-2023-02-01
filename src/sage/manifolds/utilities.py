@@ -891,7 +891,7 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
     graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
     return graph
 
-def xder(form):
+def exterior_derivative(form):
     r"""
     Exterior derivative of a differential form.
 
@@ -899,13 +899,12 @@ def xder(form):
 
     - ``form`` -- a differential form; this must an instance of either
 
-      - :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+      * :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
         for a 0-form (scalar field)
-      - :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal` for
+      * :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal` for
         a `p`-form (`p\geq 1`) on a parallelizable manifold
-      - :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a
+      * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a
         a `p`-form (`p\geq 1`) on a non-parallelizable manifold
-
 
     OUTPUT:
 
@@ -918,7 +917,7 @@ def xder(form):
         sage: M = Manifold(3, 'M')
         sage: X.<x,y,z> = M.chart()
         sage: f = M.scalar_field({X: x+y^2+z^3}, name='f')
-        sage: df = xder(f); df
+        sage: df = exterior_derivative(f); df
         1-form df on the 3-dimensional differentiable manifold M
         sage: df.display()
         df = dx + 2*y dy + 3*z^2 dz
@@ -936,11 +935,14 @@ def xder(form):
         sage: dda.display()
         dda = 0
 
-    See
-    :class:`sage.manifolds.differentiable.diff_form.DiffFormParal.exterior_der`
-    or
-    :class:`sage.manifolds.differentiable.diff_form.DiffForm.exterior_der`
-    for more examples.
+    .. SEEALSO::
+
+        :class:`sage.manifolds.differentiable.diff_form.DiffFormParal.exterior_der`
+        or :class:`sage.manifolds.differentiable.diff_form.DiffForm.exterior_der`
+        for more examples.
 
     """
-    return form.exterior_der()
+    return form.exterior_derivative()
+
+xder = exterior_derivative
+

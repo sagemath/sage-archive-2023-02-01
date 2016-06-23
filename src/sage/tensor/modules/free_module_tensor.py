@@ -724,16 +724,16 @@ class FreeModuleTensor(ModuleElement):
         INPUT:
 
         - ``basis`` -- (default: ``None``) basis of the free module with
-          respect to which the tensor components are defined; if none is
-          provided, the module's default basis is assumed
+          respect to which the tensor components are defined; if ``None``,
+          the module's default basis is assumed
         - ``format_spec`` -- (default: ``None``) format specification passed
           to ``self._fmodule._output_formatter`` to format the output
         - ``symbol`` -- (default: ``None``) string (typically a single letter)
           specifying the symbol for the components; if ``None``, the tensor
-          name is used if it has been set, otherwise 'X' is used
+          name is used if it has been set, otherwise ``'X'`` is used
         - ``latex_symbol`` -- (default: ``None``) string specifying the LaTeX
-          symbol for the components; if ``None``, the tensor
-          LaTeX name is used if it has been set, otherwise 'X' is used
+          symbol for the components; if ``None``, the tensor LaTeX name
+          is used if it has been set, otherwise ``'X'`` is used
         - ``index_labels`` -- (default: ``None``) list of strings representing
           the labels of each of the individual indices; if ``None``, integer
           labels are used
@@ -747,8 +747,8 @@ class FreeModuleTensor(ModuleElement):
 
         EXAMPLES:
 
-        Display of the components of a type-(2,1) tensor on a rank-2 vector
-        space over `\QQ`::
+        Display of the components of a type-`(2,1)` tensor on a rank 2
+        vector space over `\QQ`::
 
             sage: FiniteRankFreeModule._clear_cache_() # for doctests only
             sage: M = FiniteRankFreeModule(QQ, 2, name='M', start_index=1)
@@ -805,8 +805,8 @@ class FreeModuleTensor(ModuleElement):
             T^yx_y = -1/4
             T^yy_y = 3
 
-        Display of the components w.r.t. a basis different from the default
-        one::
+        Display of the components w.r.t. a basis different from the
+        default one::
 
             sage: f = M.basis('f', from_family=(-e[1]+e[2], e[1]+e[2]))
             sage: t.display_comp(basis=f)

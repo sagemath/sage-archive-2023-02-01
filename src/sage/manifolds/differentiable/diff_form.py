@@ -7,7 +7,7 @@ a *differential form of degree* `p`, or *p-form*,
 *along* `U` *with values on* `M` is a field along `U` of alternating
 multilinear forms of degree `p` in the tangent spaces to `M`.
 The standard case of a differential form *on* a differentiable manifold
-corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
 `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an open
 interval of `\RR`).
 
@@ -162,7 +162,7 @@ class DiffForm(TensorField):
 
     The exterior derivative of the 1-form is a 2-form::
 
-        sage: da = a.exterior_der() ; da
+        sage: da = a.exterior_derivative() ; da
         2-form da on the 2-dimensional differentiable manifold M
         sage: da.display(eU)
         da = 2 dx/\dy
@@ -322,7 +322,7 @@ class DiffForm(TensorField):
         TensorField._del_derived(self)
         self._exterior_derivative = None
 
-    def exterior_der(self):
+    def exterior_derivative(self):
         r"""
         Compute the exterior derivative of the differential form.
 
@@ -360,7 +360,7 @@ class DiffForm(TensorField):
 
         Its exterior derivative::
 
-            sage: da = a.exterior_der(); da
+            sage: da = a.exterior_derivative(); da
             2-form da on the 2-dimensional differentiable manifold M
             sage: da.display(e_xy)
             da = (2*x + 2*y) dx/\dy
@@ -369,13 +369,13 @@ class DiffForm(TensorField):
 
         The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
-            sage: a.exterior_der() is da
+            sage: a.exterior_derivative() is da
             True
 
-        Instead of invoking the method ``exterior_der()``, one may use the
-        global function :func:`~sage.manifolds.utilities.xder`::
+        Instead of invoking the method ``exterior_derivative()``, one may
+        use the global function :func:`~sage.manifolds.utilities.xder`::
 
-            sage: xder(a) is a.exterior_der()
+            sage: xder(a) is a.exterior_derivative()
             True
 
         Let us check Cartan's identity::
@@ -383,7 +383,7 @@ class DiffForm(TensorField):
             sage: v = M.vector_field(name='v')
             sage: v[e_xy, :] = -y, x
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))  # long time
             True
 
         """
@@ -396,7 +396,7 @@ class DiffForm(TensorField):
             resu = vmodule.alternating_form(self._tensor_rank+1, name=rname,
                                             latex_name=rlname)
             for dom, rst in self._restrictions.iteritems():
-                resu._restrictions[dom] = rst.exterior_der()
+                resu._restrictions[dom] = rst.exterior_derivative()
             self._exterior_derivative = resu
         return self._exterior_derivative
 
@@ -406,14 +406,13 @@ class DiffForm(TensorField):
 
         INPUT:
 
-        - ``other``: another differential form (on the same manifold)
+        - ``other`` -- another differential form (on the same manifold)
 
         OUTPUT:
 
-        - instance of :class:`DiffForm` representing the exterior
-          product self/\\other.
+        - a :class:`DiffForm` of the exterior product ``self/\other``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Exterior product of two 1-forms on the 2-sphere::
 
@@ -696,15 +695,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     The exterior derivative of a differential form is obtained by means of the
     method :meth:`exterior_der`::
 
-        sage: da = a.exterior_der() ; da
+        sage: da = a.exterior_derivative() ; da
         2-form dA on the 3-dimensional differentiable manifold R3
         sage: da.display()
         dA = -(x + 1)*z dx/\dy - x*y dx/\dz + (x + z) dy/\dz
-        sage: db = b.exterior_der() ; db
+        sage: db = b.exterior_derivative() ; db
         2-form dB on the 3-dimensional differentiable manifold R3
         sage: db.display()
         dB = cos(x) dx/\dy + sin(z) dx/\dz - sin(y) dy/\dz
-        sage: dab = ab.exterior_der() ; dab
+        sage: dab = ab.exterior_derivative() ; dab
         3-form d(A/\B) on the 3-dimensional differentiable manifold R3
 
     As a 3-form over a 3-dimensional manifold, d(A/\\B) is necessarily
@@ -722,14 +721,14 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         sage: v = M.vector_field('v')
         sage: v[:] = (y*z, -x*z, x*y)
-        sage: ab.lie_der(v)
+        sage: ab.lie_der(v)  # long time
         2-form on the 3-dimensional differentiable manifold R3
 
     Let us check Cartan formula, which expresses the Lie derivative in terms
     of exterior derivatives::
 
-        sage: ab.lie_der(v) == v.contract(ab.exterior_der()) + \
-        ....:                  (v.contract(ab)).exterior_der()
+        sage: ab.lie_der(v) == (v.contract(ab.exterior_derivative())  # long time
+        ....:                   + v.contract(ab).exterior_derivative())
         True
 
     A 1-form on a `\RR^3`::
@@ -952,16 +951,16 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         """
         return TensorFieldParal.__call__(self, *args)
 
-    def exterior_der(self):
+    def exterior_derivative(self):
         r"""
-        Compute the exterior derivative of the differential form.
+        Compute the exterior derivative of ``self``..
 
         OUTPUT:
 
-        - instance of :class:`DiffFormParal` representing the exterior
+        - a :class:`DiffFormParal` representing the exterior
           derivative of the differential form
 
-        EXAMPLE:
+        EXAMPLES:
 
         Exterior derivative of a 1-form on a 4-dimensional manifold::
 
@@ -969,7 +968,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: c_txyz.<t,x,y,z> = M.chart()
             sage: a = M.one_form('A')
             sage: a[:] = (t*x*y*z, z*y**2, x*z**2, x**2 + y**2)
-            sage: da = a.exterior_der() ; da
+            sage: da = a.exterior_derivative() ; da
             2-form dA on the 4-dimensional differentiable manifold M
             sage: da.display()
             dA = -t*y*z dt/\dx - t*x*z dt/\dy - t*x*y dt/\dz
@@ -980,18 +979,18 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
-            sage: a.exterior_der() is da
+            sage: a.exterior_derivative() is da
             True
 
-        Instead of invoking the method ``exterior_der()``, one may use the
-        global function :func:`~sage.manifolds.utilities.xder`::
+        Instead of invoking the method :meth:`exterior_derivative`, one may
+        use the global function :func:`~sage.manifolds.utilities.xder`::
 
-            sage: xder(a) is a.exterior_der()
+            sage: xder(a) is a.exterior_derivative()
             True
 
         The exterior derivative is nilpotent::
 
-            sage: dda = da.exterior_der() ; dda
+            sage: dda = da.exterior_derivative() ; dda
             3-form ddA on the 4-dimensional differentiable manifold M
             sage: dda.display()
             ddA = 0
@@ -1002,13 +1001,13 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
             sage: v = M.vector_field(name='v')
             sage: v[:] = -y, x, t, z
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v)) # long time
             True
 
         """
         from sage.calculus.functional import diff
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
+        from sage.tensor.modules.format_utilities import (format_unop_txt,
+                                                          format_unop_latex)
         from sage.tensor.modules.comp import CompFullyAntiSym
         from sage.manifolds.differentiable.vectorframe import CoordFrame
         if self._exterior_derivative is None:
@@ -1026,7 +1025,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             for frame in self._components:
                 if isinstance(frame, CoordFrame):
                     coord_frames.append(frame)
-            if coord_frames == []:
+            if not coord_frames:
                 # A coordinate frame is searched, at the price of a change of
                 # frame, privileging the frame of the domain's default chart
                 dom = self._domain
@@ -1036,7 +1035,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                         self.comp(def_coordf, from_basis=frame)
                         coord_frames = [def_coordf]
                         break
-                if coord_frames == []:
+                if not coord_frames:
                     for chart in dom._atlas:
                         if chart != dom._def_chart: # the case def_chart is
                                                     # treated above
@@ -1046,7 +1045,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                                     self.comp(coordf, from_basis=frame)
                                     coord_frames[coordf]
                                     break
-                            if coord_frames != []:
+                            if coord_frames:
                                 break
             # 2/ The computation:
             for frame in coord_frames:

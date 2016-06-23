@@ -1214,6 +1214,29 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         self.__irreducible_components = C
         return C
 
+    def is_irreducible(self):
+        r"""
+        Return whether this subscheme is or is not irreducible.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme([(y + x - z)^2])
+            sage: X.is_irreducible()
+            True
+
+        ::
+
+            sage: A.<x,y,z,w> = AffineSpace(GF(17), 4)
+            sage: X = A.subscheme([x*y*z^2 - x*y*z*w - z*w^2 + w^3, x^3*y*z*w - x*y^3*z - x^2*y*z*w \
+            - x^2*w^3 + y^2*w^2 + x*w^3])
+            sage: X.is_irreducible()
+            False
+        """
+        return len(self.irreducible_components()) == 1
+
     def Jacobian_matrix(self):
         r"""
         Return the matrix `\frac{\partial f_i}{\partial x_j}` of

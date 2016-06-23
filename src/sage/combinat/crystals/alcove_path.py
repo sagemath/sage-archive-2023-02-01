@@ -1199,6 +1199,34 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         else:
             return 1
 
+    def path(self):
+        """
+        Return the path in the (quantum) Bruhat graph corresponding
+        to ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.AlcovePaths(['B', 3], [3,1,2])
+            sage: b = C.highest_weight_vector().f_string([1,3,2,1,3,1])
+            sage: b.path()
+            [1, s1, s3*s1, s2*s3*s1, s3*s2*s3*s1]
+            sage: b = C.highest_weight_vector().f_string([2,3,3,2])
+            sage: b.path()
+            [1, s2, s3*s2, s2*s3*s2]
+            sage: b = C.highest_weight_vector().f_string([2,3,3,2,1])
+            sage: b.path()
+            [1, s2, s3*s2, s2*s3*s2, s1*s2*s3*s2]
+        """
+        W = WeylGroup(self.parent()._R._cartan_type, prefix='s')
+        s = W.simple_reflections()
+
+        #start at the identity
+        w = W.one()
+        ret = [w]
+        for i in self:
+            ret.append(ret[-1] * prod(s[j] for j in i.root.associated_reflection()))
+        return ret
+
 CrystalOfAlcovePaths.Element = CrystalOfAlcovePathsElement
 
 class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
@@ -1410,11 +1438,14 @@ class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
             y = self.projection()
             return y.weight() - self._shift * P.rho()
 
-        @cached_method
-        def projection(self):
+        def projection(self, k=None):
             r"""
-            Return the projection ``self`` onto `B(k\rho)`, where `k`
-            is as small as possible.
+            Return the projection ``self`` onto `B(k \rho)`.
+
+            INPUT:
+
+            - ``k`` -- (optional) if not given, defaults to the smallest
+              value such that ``self`` is not ``None`` under the projection
 
             EXAMPLES::
 
@@ -1439,14 +1470,23 @@ class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
                 sage: mg.f(1).f(2).projection().parent()
                 Highest weight crystal of alcove paths of type ['G', 2]
                  and weight Lambda[1] + Lambda[2]
-                sage: mg.f_string([1,2,2,1,2]).projection().parent()
+                sage: b = mg.f_string([1,2,2,1,2])
+                sage: b.projection().parent()
                 Highest weight crystal of alcove paths of type ['G', 2]
                  and weight 2*Lambda[1] + 2*Lambda[2]
+                sage: b.projection(3).parent()
+                Highest weight crystal of alcove paths of type ['G', 2]
+                 and weight 3*Lambda[1] + 3*Lambda[2]
+                sage: b.projection(1)
             """
+            if k is None:
+                k = self._shift
+            elif k < self._shift:
+                return None
             s = lambda rt: int(sum(rt.associated_coroot().coefficients()))
             n = self.parent()._cartan_type.rank()
-            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [self._shift]*n)
-            return A(tuple([A._R(rt, h + self._shift*s(rt)) for rt,h in self.value]))
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [k]*n)
+            return A(tuple([A._R(rt, h + k*s(rt)) for rt,h in self.value]))
 
 class RootsWithHeight(UniqueRepresentation, Parent):
     r"""

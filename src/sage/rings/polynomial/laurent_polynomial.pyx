@@ -892,7 +892,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         rl = LaurentPolynomial_univariate(self._parent, r, 0)
         return (ql, rl)
 
-    cpdef int _cmp_(self, Element right_r) except -2:
+    cpdef int _cmp_(self, right_r) except -2:
         r"""
         Comparison of ``self`` and ``right_r``.
 
@@ -2125,7 +2125,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         EXAMPLES::
 

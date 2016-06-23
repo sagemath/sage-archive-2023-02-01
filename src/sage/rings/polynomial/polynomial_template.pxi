@@ -540,7 +540,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLE::
 

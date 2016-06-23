@@ -40,7 +40,7 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.

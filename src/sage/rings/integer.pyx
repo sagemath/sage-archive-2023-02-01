@@ -927,7 +927,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return rich_to_bool_sgn(op, c)
 
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         return (c > 0) - (c < 0)

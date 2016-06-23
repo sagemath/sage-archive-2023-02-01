@@ -1553,7 +1553,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.gethash()
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Create a formal symbolic inequality or equality.
 
@@ -3328,7 +3328,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return 1/self
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare self and right, returning -1, 0, or 1, depending on if
         self < right, self == right, or self > right, respectively.

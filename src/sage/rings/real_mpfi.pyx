@@ -3537,7 +3537,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return mpfi_nan_p(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Implements comparisons between intervals. (See the file header
         comment for more information on interval comparison.)
@@ -3750,7 +3750,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two intervals lexicographically.
 

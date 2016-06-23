@@ -841,7 +841,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 

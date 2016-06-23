@@ -618,7 +618,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Compare group elements ``self`` and ``other``.
 

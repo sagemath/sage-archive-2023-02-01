@@ -2043,7 +2043,7 @@ cdef class RealBall(RingElement):
         """
         return arb_is_exact(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 

@@ -429,7 +429,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.prime_pow = self.prime_pow
         return ans
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare the values.
 

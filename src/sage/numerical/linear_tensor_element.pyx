@@ -454,7 +454,7 @@ cdef class LinearTensor(ModuleElement):
         # see _cmp_() if you want to change the hash function
         return hash_by_id(<void *> self)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Implement comparison of two linear functions.
 

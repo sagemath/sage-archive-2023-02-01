@@ -1475,7 +1475,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         Compares ``self`` with ``right``. While equality and
         inequality are clearly defined, ``<`` and ``>`` are not.  For

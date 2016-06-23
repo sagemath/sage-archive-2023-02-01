@@ -367,7 +367,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cpdef int _cmp_(left,Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLE::
 

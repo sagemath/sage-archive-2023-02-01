@@ -361,7 +361,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         return cmp(self._dict(), right._dict())
 
     def transpose(self):

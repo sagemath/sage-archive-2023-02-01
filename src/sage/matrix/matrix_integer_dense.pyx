@@ -1094,7 +1094,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Compares self with right, examining entries in lexicographic (row
         major) ordering.

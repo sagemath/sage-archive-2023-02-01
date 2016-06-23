@@ -2150,7 +2150,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         return self._hash_c()
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare left and right and return -1, 0, and 1 for <,==, and >
         respectively.

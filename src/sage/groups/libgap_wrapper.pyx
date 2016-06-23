@@ -561,7 +561,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         P = left.parent()
         return P.element_class(P, left.gap() * right.gap())
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         This method implements comparison.
 

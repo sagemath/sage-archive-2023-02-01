@@ -151,7 +151,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
                 mpq_clear(self._entries[i])
             sig_free(self._entries)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 

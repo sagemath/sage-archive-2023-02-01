@@ -795,7 +795,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.

@@ -1455,7 +1455,7 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_real(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 

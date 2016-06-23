@@ -410,7 +410,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         cdef mpq_t *a
         cdef mpq_t *b
         cdef Py_ssize_t i, j

@@ -245,7 +245,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return "(%s; %s, %s)"%(self.v, self.perm.cycle_string(),
                                self.get_autom())
 
-    cpdef int _cmp_(left, Element _right) except -2:
+    cpdef int _cmp_(left, _right) except -2:
         """
         Compare group elements ``self`` and ``right``.
 

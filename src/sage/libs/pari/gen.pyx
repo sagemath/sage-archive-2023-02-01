@@ -1095,7 +1095,7 @@ cdef class gen(gen_auto):
     def __len__(gen self):
         return glength(self.g)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1168,7 +1168,7 @@ cdef class gen(gen_auto):
         sig_off()
         return r
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare ``left`` and ``right``.
 

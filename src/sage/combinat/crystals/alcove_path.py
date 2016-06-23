@@ -5,6 +5,7 @@ AUTHORS:
 
 - Brant Jones (2008): initial version
 - Arthur Lubovsky (2013-03-07): rewritten to implement affine type
+- Travis Scrimshaw (2016-06-23): implemented `\mathcal{B}(\infty)`
 
 Special thanks to: Nicolas Borie, Anne Schilling, Travis Scrimshaw, and
 Nicolas Thiery.
@@ -1199,6 +1200,229 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             return 1
 
 CrystalOfAlcovePaths.Element = CrystalOfAlcovePathsElement
+
+class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
+    r"""
+    `\mathcal{B}(\infty)` crystal of alcove paths.
+    """
+    @staticmethod
+    def __classcall_private__(cls, cartan_type):
+        """
+        Normalize input to ensure a unique representation.
+
+        TESTS::
+
+            sage: A1 = crystals.infinity.AlcovePaths(['A',2])
+            sage: A2 = crystals.infinity.AlcovePaths(CartanType(['A',2]))
+            sage: A3 = crystals.infinity.AlcovePaths('A2')
+            sage: A1 is A2 and A2 is A3
+            True
+        """
+        cartan_type = CartanType(cartan_type)
+        return super(InfinityCrystalOfAlcovePaths, cls).__classcall__(cls, cartan_type)
+
+    def __init__(self, cartan_type):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: A = crystals.infinity.AlcovePaths(['C',3])
+            sage: TestSuite(A).run(max_runs=20)
+
+            sage: A = crystals.infinity.AlcovePaths(['A',2,1])
+            sage: TestSuite(A).run() # long time
+        """
+        self._cartan_type = cartan_type
+        Parent.__init__(self, category=HighestWeightCrystals().Infinite())
+
+        self.module_generators = ( self.element_class(self, (), 0), )
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.infinity.AlcovePaths(['E',6])
+            Infinity crystal of alcove paths of type ['E', 6]
+        """
+        return "Infinity crystal of alcove paths of type {}".format(self._cartan_type)
+
+    class Element(ElementWrapper):
+        def __init__(self, parent, elt, shift):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['F',4])
+                sage: mg = A.highest_weight_vector()
+                sage: x = mg.f_string([2,3,1,4,4,2,3,1])
+                sage: TestSuite(x).run()
+            """
+            CrystalOfAlcovePathsElement.__init__(self, parent, elt)
+            self._shift = shift
+
+        def e(self, i):
+            """
+            Return the action of `e_i` on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['D',5,1])
+                sage: mg = A.highest_weight_vector()
+                sage: x = mg.f_string([1,3,4,2,5,4,5,5])
+                sage: x.f(4).e(5) == x.e(5).f(4)
+                True
+            """
+            n = self.parent()._cartan_type.rank()
+            s = lambda rt: int(sum(rt.associated_coroot().coefficients()))
+
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [self._shift]*n)
+            y = A(tuple([A._R(rt, h + self._shift*s(rt)) for rt,h in self.value])).e(i)
+            if y is None:
+                return None
+            if not y.value:
+                return self.parent().module_generators[0]
+
+            shift = self._shift
+            while y.is_admissible():
+                # The only element with a shift of 0 is the highest weight element.
+                # So we do not need to check for the shift being 0.
+                prev = y
+                shift -= 1
+                A = CrystalOfAlcovePaths(self.parent()._cartan_type, [shift]*n)
+                try:
+                    y = A(tuple([A._R(rt.root, rt.height - s(rt.root)) for rt in y.value]))
+                except ValueError: # Invalid height (and not admissible)
+                    break
+            shift += 1
+            return type(self)(self.parent(),
+                              tuple([(rt.root, rt.height - shift*s(rt.root))
+                                     for rt in prev.value]),
+                              shift)
+
+        def f(self, i):
+            """
+            Return the action of `f_i` on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['E',7,1])
+                sage: mg = A.highest_weight_vector()
+                sage: mg.f_string([1,3,5,6,4,2,0,2,1,0,2,4,7,4,2])
+                ((alpha[2], -3), (alpha[5], -1), (alpha[1], -1),
+                 (alpha[0] + alpha[1], -2),
+                 (alpha[2] + alpha[4] + alpha[5], -2),
+                 (alpha[5] + alpha[6], -1), (alpha[1] + alpha[3], -1),
+                 (alpha[5] + alpha[6] + alpha[7], -1),
+                 (alpha[0] + alpha[1] + alpha[3], -1),
+                 (alpha[1] + alpha[3] + alpha[4] + alpha[5], -1))
+            """
+            n = self.parent()._cartan_type.rank()
+            s = lambda rt: int(sum(rt.associated_coroot().coefficients()))
+
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [self._shift]*n)
+            y = A(tuple([A._R(rt, h + self._shift*s(rt)) for rt,h in self.value])).f(i)
+
+            if y is not None:
+                return type(self)(self.parent(),
+                                  tuple([(rt.root, rt.height - self._shift*s(rt.root))
+                                         for rt in y.value]),
+                                  self._shift)
+
+            shift = self._shift + 1
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [shift]*n)
+            y = A(tuple([A._R(rt, h + shift*s(rt)) for rt,h in self.value])).f(i)
+            return type(self)(self.parent(),
+                              tuple([(rt.root, rt.height - shift*s(rt.root))
+                                     for rt in y.value]),
+                              shift)
+
+        def epsilon(self, i):
+            r"""
+            Return `\varepsilon_i` of ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['A',7,2])
+                sage: mg = A.highest_weight_vector()
+                sage: x = mg.f_string([1,0,2,3,4,4,4,2,3,3,3])
+                sage: [x.epsilon(i) for i in A.index_set()]
+                [0, 0, 0, 3, 0]
+                sage: x = mg.f_string([2,2,1,1,0,1,0,2,3,3,3,4])
+                sage: [x.epsilon(i) for i in A.index_set()]
+                [1, 2, 0, 1, 1]
+            """
+            s = lambda rt: int(sum(rt.associated_coroot().coefficients()))
+            n = self.parent()._cartan_type.rank()
+
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [self._shift]*n)
+            y = A(tuple([A._R(rt, h + self._shift*s(rt)) for rt,h in self.value]))
+            return y.epsilon(i)
+
+        def phi(self, i):
+            r"""
+            Return `\varphi_i` of ``self``.
+
+            Let `A \in \mathcal{B}(\infty)` Define `\varphi_i(A) :=
+            \varepsilon_i(A) + \langle h_i, \mathrm{wt}(A) \rangle`,
+            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(A)`
+            is the :meth:`weight` of `A`.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['A',8,2])
+                sage: mg = A.highest_weight_vector()
+                sage: x = mg.f_string([1,0,2,3,4,4,4,2,3,3,3])
+                sage: [x.phi(i) for i in A.index_set()]
+                [1, 1, 1, 3, -2]
+                sage: x = mg.f_string([2,2,1,1,0,1,0,2,3,3,3,4])
+                sage: [x.phi(i) for i in A.index_set()]
+                [4, -1, 0, 0, 2]
+            """
+            P = self.parent().weight_lattice_realization()
+            h = P.simple_coroots()
+            return self.epsilon(i) + P(self.weight()).scalar(h[i])
+
+        def weight(self):
+            """
+            Return the weight of ``self``.
+
+            EXAMPLES::
+
+                sage: A = crystals.infinity.AlcovePaths(['E',6])
+                sage: mg = A.highest_weight_vector()
+                sage: fstr = [1,3,4,2,1,2,3,6,5,3,2,6,2]
+                sage: x = mg.f_string(fstr)
+                sage: al = A.weight_lattice_realization().simple_roots()
+                sage: x.weight() == -sum(al[i]*fstr.count(i) for i in A.index_set())
+                True
+            """
+            s = lambda rt: int(sum(rt.associated_coroot().coefficients()))
+            n = self.parent()._cartan_type.rank()
+
+            A = CrystalOfAlcovePaths(self.parent()._cartan_type, [self._shift]*n)
+            P = self.parent().weight_lattice_realization()
+            y = A(tuple([A._R(rt, h + self._shift*s(rt)) for rt,h in self.value]))
+            return y.weight() - self._shift * P.rho()
 
 class RootsWithHeight(UniqueRepresentation, Parent):
     r"""

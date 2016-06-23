@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Title
+Element class for Pollack-Stevens' Modular Symbols
 
-
-"""## mm TODO
+"""## mm TODO examples?
 #*****************************************************************************
 #        Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Pollack-Stevens' Overconvergent Modular Symbols Spaces
+Pollack-Stevens' Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
 Stevens' conventions.

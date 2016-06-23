@@ -509,7 +509,7 @@ class SkewPartition(CombinatorialElement):
         """
         .. WARNING::
 
-            not working in presence of empty lines or columns
+            not working in presence of empty lines
 
         TESTS::
 
@@ -525,6 +525,11 @@ class SkewPartition(CombinatorialElement):
             ⎢ ┌┬┬┐  ├┼┐  └┼┬┐  └┼┤  └┴┼┐  ├┤   ├┤  └┼┐   └┼┐ ⎥
             ⎣ └┴┴┘, └┴┘,  └┴┘,  └┘,   └┘, └┘,  └┘,  └┘,   └┘ ⎦
             sage: SkewPartitions.global_options.reset()
+
+            sage: unicode_art(SkewPartition([[3,1],[2]]))
+              ┌┐
+            ┌┬┴┘
+            └┘
         """
         out, inn = self
         inn = inn + [0] * (len(out) - len(inn))
@@ -557,9 +562,14 @@ class SkewPartition(CombinatorialElement):
                 end = br
                 d1 = 0
 
-            middle = t * (i0 - i1 - 1 + d0)
-            middle += x * (o1 - i0 + 1 - d0 - d1)
-            middle += b * (o0 - o1 - 1 + d1)
+            if i0 <= o1:
+                middle = t * (i0 - i1 - 1 + d0)
+                middle += x * (o1 - i0 + 1 - d0 - d1)
+                middle += b * (o0 - o1 - 1 + d1)
+            else:
+                middle = t * (i0 - i1 - 1)
+                middle += h * (i0 - o1 - 1)
+                middle += b * (o0 - o1 - 1)
 
             txt += [start + middle + end]
         txt += [s * inn[-1] + bl + b * (out[-1] - inn[-1] - 1) + br]

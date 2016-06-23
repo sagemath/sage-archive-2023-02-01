@@ -2877,8 +2877,8 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     #        self._CM_points[disc]=all_elts_purged
     #        if c == 1 and 4*h != len(self._CM_points[disc])*K.unit_group().order():
-    #            print 'K.class_number()=',K.class_number()
-    #            print 'Found ',len(self._CM_points[disc]), 'points...'
+    #            print('K.class_number()=', K.class_number())
+    #            print('Found ', len(self._CM_points[disc]), 'points...')
 
     #    all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec=prec) for y in all_elts_purged]
     #    assert not Qp(p,prec)(pol.discriminant()).is_square()
@@ -3193,9 +3193,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             return tmp
         except KeyError:
             pass
-        # print 'v1=',v1
+        # print('v1=',v1)
         chain, v = self._BT.find_path(v1, self.get_vertex_dict())
-        # print 'chain =', chain
+        # print('chain =', chain)
         while len(chain):
             v0 = chain.pop()
             V = [e.target for e in v.leaving_edges]

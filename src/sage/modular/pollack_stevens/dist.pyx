@@ -723,7 +723,7 @@ cdef class Dist(ModuleElement):
         #val = mu.valuation()
         #if val < 0:
         #    # This seems unnatural
-        #    print "scaling by %s^%s to keep things integral" % (p, -val)
+        #    print("scaling by ", p, "^", -val, " to keep things integral")
         #    mu *= p**(-val)
         return mu
 
@@ -1166,7 +1166,7 @@ cdef class Dist_vector(Dist):
             (7 + O(7^4), O(7^3), O(7^2), O(7))
         """
         # assert self._moments[0][0]==0, "not total measure zero"
-        # print "result accurate modulo p^",self.moment(0).valuation(self.p)
+        # print("result accurate modulo p^",self.moment(0).valuation(self.p) )
         #v=[0 for j in range(0,i)]+[binomial(j,i)*bernoulli(j-i) for j in range(i,M)]
         M = self.precision_relative()
         R = self.parent().base_ring()
@@ -1209,7 +1209,7 @@ cdef class Dist_vector(Dist):
             N = len(ans._moments)
             prec_loss = max([N - j - v[j].precision_absolute()
                              for j in range(N)])
-            #            print "precision loss = ", prec_loss
+            #            print("precision loss = ", prec_loss)
             if prec_loss > 0:
                 ans._moments = ans._moments[:(N - prec_loss)]
         return ans

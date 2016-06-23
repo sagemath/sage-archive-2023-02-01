@@ -2097,7 +2097,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         r1 = R1.gen()
         if E is None:
             E = self.parent()._source._BT.find_covering(t1, t2)
-            # print 'Got %s open balls.' % len(E)
+            # print('Got ', len(E), ' open balls.')
         value = 0
         ii = 0
         value_exp = K(1)

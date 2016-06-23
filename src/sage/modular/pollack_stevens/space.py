@@ -704,7 +704,7 @@ class PollackStevensModularSymbolspace(Module):
                 if g in manin.reps_with_three_torsion():
                     gamg = manin.three_torsion_matrix(g)
                     D[g] = 2 * D[g] - D[g] * gamg - D[g] * gamg ** 2
-#            print "post:",D[g]
+                    #            print("post:",D[g])
 
         ## now we compute nu_infty of Prop 5.1 of [PS1]
         t = self.coefficient_module().zero()

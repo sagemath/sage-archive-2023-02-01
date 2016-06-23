@@ -407,7 +407,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.remove_constraint(0)                       # optional - Gurobi
             sage: p.solve()                                    # optional - Gurobi
             10.0
-            sage: p.get_values([x,y])                          # optional - Gurobi
+            sage: p.get_values([x,y])                          # optional - Gurobi, tol 1e-6
             [0.0, 3.0]
         """
         cdef int ind[1]
@@ -441,9 +441,9 @@ cdef class GurobiBackend(GenericBackend):
             sage: p = get_solver(solver = "Gurobi")                                       # optional - Gurobi
             sage: p.add_variables(5)                                                      # optional - Gurobi
             4
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)             # optional - Gurobi
+            sage: p.add_linear_constraint( zip(range(5), range(1, 6)), 2.0, 2.0)          # optional - Gurobi
             sage: p.row(0)                                                                # optional - Gurobi
-            ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
+            ([0, 1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0, 5.0])
             sage: p.row_bounds(0)                                                         # optional - Gurobi
             (2.0, 2.0)
             sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - Gurobi
@@ -511,11 +511,9 @@ cdef class GurobiBackend(GenericBackend):
             sage: p = get_solver(solver = "Gurobi")                                # optional - Gurobi
             sage: p.add_variables(5)                                               # optional - Gurobi
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)           # optional - Gurobi
+            sage: p.add_linear_constraint(zip(range(5), range(1, 6)), 2, 2)        # optional - Gurobi
             sage: p.row(0)                                                         # optional - Gurobi
-            ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
-            sage: p.row_bounds(0)                                                  # optional - Gurobi
-            (2.0, 2.0)
+            ([0, 1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0, 5.0])
         """
         cdef int error
         cdef int fake[1]
@@ -564,9 +562,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p = get_solver(solver = "Gurobi")                                 # optional - Gurobi
             sage: p.add_variables(5)                                                # optional - Gurobi
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)            # optional - Gurobi
-            sage: p.row(0)                                                          # optional - Gurobi
-            ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
+            sage: p.add_linear_constraint(zip(range(5), range(1, 6)), 2, 2)            # optional - Gurobi
             sage: p.row_bounds(0)                                                   # optional - Gurobi
             (2.0, 2.0)
         """
@@ -1124,6 +1120,9 @@ cdef class GurobiBackend(GenericBackend):
         cdef GurobiBackend p = type(self)(maximization = self.is_maximization())
         p.model = GRBcopymodel(self.model)
         p.env = GRBgetenv(p.model)
+        # Gurobi appends '_copy' to the problem name and does not even hesitate to create '(null)_copy'
+        name = self.problem_name()
+        p.problem_name(name)
         return p
 
     def __dealloc__(self):

@@ -2650,8 +2650,8 @@ cdef class BooleanMonomial(MonoidElement):
             raise TypeError("BooleanMonomial.__add__ called with not supported types %s and %s" % (type(right), type(left)))
 
         res = new_BP_from_PBMonom(monom._ring, monom._pbmonom)
-        return res.__iadd__(monom._ring._coerce_c(other))
-
+        res += monom._ring._coerce_c(other)
+        return res
 
     def __floordiv__(BooleanMonomial left, right):
         """

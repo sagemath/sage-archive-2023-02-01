@@ -29,6 +29,8 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-11-02): Added doctests for full coverage
 
+- Eviatar Bach (2013-06): Fixing numerical evaluation of log_gamma
+
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
@@ -4978,7 +4980,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def log_gamma(self):
         """
-        Return the logarithm of gamma of ``self``.
+        Return the principal branch of the log gamma of ``self``. Note that
+        this is not in general equal to log(gamma(``self``)) for negative
+        input.
 
         EXAMPLES::
 
@@ -4987,16 +4991,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
             4.78749174278205
             sage: R(1e10).log_gamma()
             2.20258509288811e11
+            sage: log_gamma(-2.1)
+            1.53171380819509 - 9.42477796076938*I
+            sage: log(gamma(-1.1)) == log_gamma(-1.1)
+            False
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_lngamma(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
-        return x
+        parent = (<RealField_class>self._parent)
+        if not mpfr_sgn(self.value) < 0:
+            if parent.__prec > SIG_PREC_THRESHOLD:
+                sig_on()
+            mpfr_lngamma(x.value, self.value, parent.rnd)
+            if parent.__prec > SIG_PREC_THRESHOLD:
+                sig_off()
+            return x
+        from sage.libs.mpmath.utils import call
+        from mpmath import loggamma
+        return call(loggamma, mpfr_to_mpfval(self.value), parent=parent)
 
     def zeta(self):
         r"""
-        Return the Riemann zeta function evaluated at this real number.
+        Return the Riemann zeta function evaluated at this real number
 
         .. NOTE::
 

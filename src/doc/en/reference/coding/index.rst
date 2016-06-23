@@ -71,4 +71,12 @@ Canonical forms
    sage/coding/codecan/codecan
    sage/coding/codecan/autgroup_can_label
 
+Other tools
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/relative_finite_field_extension
+
 .. include:: ../footer.txt

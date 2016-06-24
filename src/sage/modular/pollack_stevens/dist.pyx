@@ -55,7 +55,7 @@ from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
                                         nmod_poly_pow_trunc,
                                         nmod_poly_get_coeff_ui, nmod_poly_t)
 
-from sage.libs.flint.ulong_extras cimport *
+#from sage.libs.flint.ulong_extras cimport *
 
 from sigma0 import Sigma0
 

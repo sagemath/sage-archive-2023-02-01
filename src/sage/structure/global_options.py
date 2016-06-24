@@ -129,25 +129,27 @@ Continuing the example from :ref:`construction_section`::
       - entree:  soup
       - main:    pizza
       - tip:     10
-    sage: Menu.dessert
+    sage: Menu.options.dessert
     espresso
-    sage: Menu.dessert = 'cake'
-    sage: Menu.dessert
+    sage: Menu.options.dessert = 'cake'
+    sage: Menu.options.dessert
+    cake
 
 Note that, provided there is no ambiguity, options and their values can be
 abbreviated::
 
     sage: Menu.options('d')
-    'espresso'
+    'cake'
     sage: Menu.options('m','t',des='esp', ent='sou')  # get and set several values at once
     ['pizza', 10]
     sage: Menu.options(t=15); 
     sage: Menu.options('tip')
+    15
     sage: Menu.options.tip
     15
     sage: Menu.options(e='s', m='Pi'); Menu.options()
     Current options for menu
-      - dessert: espresso
+      - dessert: cake
       - entree:  soup
       - main:    pizza
       - tip:     15
@@ -180,6 +182,8 @@ the :func:`classmethod` as ``A.setter``::
     ...                              description='An option with a setter',
     ...                              setter=A.setter))
     sage: A.options
+    Current options for A
+    - add: 1
     sage: a = A(); a.state
     1
     sage: a.options()
@@ -239,14 +243,12 @@ the supplied options. For example, the generated documentation for the options
 In addition, help on each option, and its list of possible values, can be
 obtained by (trying to) set the option equal to '?'::
 
-    sage: Menu.options.dessert?
+    sage: Menu.options.dessert?                   #not tested
     - ``dessert`` -- (default: ``espresso``)
       Dessert
-    <BLANKLINE>
       - ``cake``     -- waist begins again
       - ``cream``    -- fluffy, white stuff
       - ``espresso`` -- life begins again
-    <BLANKLINE>
     Current value: espresso
 
 .. _dispatcher:
@@ -340,28 +342,41 @@ Tests
 
 TESTS:
 
-As options classes to not know how they are created they cannot be
+Options classes can only be pickled if they are the options for some standard
+sage class. In this case the class is specified using the arguements to
+:class:`GlobalOptions`. For example
+:meth:`~sage.combinat.partition.Partitions.options` is defined as::
+
+     class Partitions(UniqueRepresentation, Parent):
+        ....
+         options = GlobalOptions(
+             name = 'Partitions', 
+             module='sage.combinat.partition',
+         ...
+
+
+
 pickled::
 
-    sage: class Menu(object): __name__='Menus'
-    sage: GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
-    ...       entree=dict(default='soup',
-    ...                   description='The first course of a meal',
-    ...                   values=dict(soup='soup of the day', bread='oven baked'),
-    ...                   alias=dict(rye='bread')),
-    ...       appetizer=dict(alt_name='entree'),
-    ...       main=dict(default='pizza', description='Main meal',
-    ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
-    ...                 case_sensitive=False),
-    ...       dessert=dict(default='espresso', description='Dessert',
-    ...                    values=dict(espresso='life begins again',
-    ...                                cake='waist begins again',
-    ...                                cream='fluffy, white stuff')),
-    ...       tip=dict(default=10, description='Reward for good service',
-    ...       checker=lambda tip: tip in range(0,20))
-    ...   )
-    sage: TestSuite(Menu.options).run()
-
+    sage: class Menu(object):
+    ...       options = GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
+    ...           entree=dict(default='soup',
+    ...                       description='The first course of a meal',
+    ...                       values=dict(soup='soup of the day', bread='oven baked'),
+    ...                       alias=dict(rye='bread')),
+    ...           appetizer=dict(alt_name='entree'),
+    ...           main=dict(default='pizza', description='Main meal',
+    ...                     values=dict(pizza='thick crust', pasta='penne arrabiata'),
+    ...                     case_sensitive=False),
+    ...           dessert=dict(default='espresso', description='Dessert',
+    ...                        values=dict(espresso='life begins again',
+    ...                                    cake='waist begins again',
+    ...                                    cream='fluffy, white stuff')),
+    ...           tip=dict(default=10, description='Reward for good service',
+    ...           checker=lambda tip: tip in range(0,20))
+    ...       )
+    sage: TestSuite(Menu.options).run( skip = '_test_pickling' ) # not attached to a class => can't pickle
+    sage: TestSuite(Partitions.options).run()
 
 == Slowest module imports (excluding / including children) ==
 exclude/ms include/ms   #parents  module name
@@ -404,8 +419,10 @@ class _Option(object):
         EXAMPLES::
 
             sage: Partitions.options.display           # indirect doctest
+            list
             sage: Partitions.options.display='compact'
             sage: Partitions.options.display('list')
+            sage: Partitions.options._reset()
 
         TESTS::
 
@@ -421,16 +438,12 @@ class _Option(object):
         EXAMPLES::
 
             sage: type(Partitions.options.display)    # indirect doctest
+            <class 'sage.structure.global_options._Option'>
         """
         self._name = name
         self._options = options
         self.__doc__= options._doc[name]
         super(_Option, self).__init__()
-
-
-    def __get__(self, instance, owner):
-        print 'getting {} from {}'.format(self._nme, instance)
-        return instance.__getitem__(self._name)
 
     def __repr__(self):
         r"""
@@ -439,6 +452,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: Partitions.options.display # indirect doctest
+            list
         """
         return '{}'.format(self._options.__getitem__(self._name))
 
@@ -450,7 +464,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: Tableaux.options.convention +' is good' # indirect doc-test
-            English
+            'English is good'
         """
         return self._options.__getitem__(self._name) + other
 
@@ -462,7 +476,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: 'Good '+Tableaux.options.convention # indirect doc-test
-            English
+            'Good English'
         """
         return other + self._options.__getitem__(self._name)
 
@@ -474,7 +488,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: Tableaux.options.convention +' is good' # indirect doc-test
-            English
+            'English is good'
         """
         return self._options.__getitem__(self._name) * other
 
@@ -486,7 +500,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: 'Good '+Tableaux.options.convention # indirect doc-test
-            English
+            'Good English'
         """
         return other * self._options.__getitem__(self._name)
 
@@ -497,8 +511,13 @@ class _Option(object):
         EXAMPLES::
 
             sage: RiggedConfigurations.options.half_width_boxes_type_B
-            sage: Tableaux.options.convention # indirect doc-test
-            English
+            True
+            sage: 'yes' if RiggedConfigurations.options.half_width_boxes_type_B else  'no'
+            'yes'
+            sage: RiggedConfigurations.options.half_width_boxes_type_B=False
+            sage: 'yes' if RiggedConfigurations.options.half_width_boxes_type_B else  'no'
+            'no'
+            sage: RiggedConfigurations.options._reset()
         """
         return bool(self._options.__getitem__(self._name))
 
@@ -512,7 +531,11 @@ class _Option(object):
         EXAMPLES::
 
             sage: Partitions.options.display() # indirect doctest
+            'list'
             sage: Partitions.options.display('exp') # indirect doctest
+            sage: Partitions.options.display() # indirect doctest
+            'exp_low'
+            sage: Partitions.options._reset()
         """
         if value is None:
             return self._options[self._name]
@@ -542,7 +565,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: hash( Tableaux.options.convention ) # indirect doc-test
-            English
+            -6673246059928475433
         """
         return hash(self._options.__getitem__(self._name))
 
@@ -554,7 +577,7 @@ class _Option(object):
         EXAMPLES::
 
             sage: str( Tableaux.options.convention ) # indirect doc-test
-            English
+            'English'
         """
         return '{}'.format(self._options.__getitem__(self._name))
 
@@ -611,25 +634,29 @@ class GlobalOptions(object):
     EXAMPLES::
 
         sage: from sage.structure.global_options import GlobalOptions
-        sage: class Menu(object): __name__='Menus'
-        sage: GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='End of Fancy documentation',
-        ...       entree=dict(default='soup',
-        ...                   description='The first course of a meal',
-        ...                   values=dict(soup='soup of the day', bread='oven baked'),
-        ...                   alias=dict(rye='bread')),
-        ...       appetizer=dict(alt_name='entree'),
-        ...       main=dict(default='pizza', description='Main meal',
-        ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
-        ...                 case_sensitive=False),
-        ...       dessert=dict(default='espresso', description='Dessert',
-        ...                    values=dict(espresso='life begins again',
-        ...                                cake='waist begins again',
-        ...                                cream='fluffy white stuff')),
-        ...       tip=dict(default=10, description='Reward for good service',
-        ...                checker=lambda tip: tip in range(0,20))
-        ...   )
+        sage: class Menu(object):
+        ...       options = GlobalOptions('menu', doc='Fancy documentation\n'+'-'*19, end_doc='End of Fancy documentation',
+        ...           entree=dict(default='soup',
+        ...                       description='The first course of a meal',
+        ...                       values=dict(soup='soup of the day', bread='oven baked'),
+        ...                       alias=dict(rye='bread')),
+        ...           appetizer=dict(alt_name='entree'),
+        ...           main=dict(default='pizza', description='Main meal',
+        ...                     values=dict(pizza='thick crust', pasta='penne arrabiata'),
+        ...                     case_sensitive=False),
+        ...           dessert=dict(default='espresso', description='Dessert',
+        ...                        values=dict(espresso='life begins again',
+        ...                                    cake='waist begins again',
+        ...                                    cream='fluffy white stuff')),
+        ...           tip=dict(default=10, description='Reward for good service',
+        ...                    checker=lambda tip: tip in range(0,20))
+        ...       )
         sage: Menu.options
-        options for menu
+        Current options for menu
+          - dessert: espresso
+          - entree:  soup
+          - main:    pizza
+          - tip:     10
         sage: Menu.options(entree='s')         # unambiguous abbreviations are allowed
         sage: Menu.options(t=15);
         sage: (Menu.options['tip'], Menu.options('t'))
@@ -693,7 +720,7 @@ class GlobalOptions(object):
     The possible values for an individual option can be obtained by
     (trying to) set it equal to '?'::
 
-        sage: menu(des='?')
+        sage: Menu.options(des='?')
         - ``dessert`` -- (default: ``espresso``)
           Dessert
         <BLANKLINE>
@@ -801,7 +828,9 @@ class GlobalOptions(object):
             ...          food=dict(default='apple', values=dict(apple='a nice fruit',pear='fruit')),
             ...          drink=dict(default='water', values=dict(water='wet',milk='white')))
             sage: FoodOptions
-            options for daily meal
+            Current options for daily meal
+              - drink: water
+              - food:  apple
         """
         options=self._value.keys()+self._linked_value.keys()
         for x in self._alt_names:
@@ -955,6 +984,7 @@ class GlobalOptions(object):
         EXAMPLES::
 
             sage: Partitions.options.display # indirect docttest
+            list
         """
         if name == '__doc__':
             return object.__getattribute__(self, '__docstring__')()
@@ -973,7 +1003,11 @@ class GlobalOptions(object):
             EXAMPLES::
 
                 sage: Partitions.options.display='exp'  # indirect doc-test
-                sage: Partitions.options.dispplay='exp' # indirect doc-test
+                sage: Partitions.options.dispplay='list' # indirect doc-test
+                Traceback (most recent call last):
+                ...
+                ValueError: dispplay is not an option for Partitions
+                sage: Partitions.options._reset()
         """
         # Underscore, and "special", attributes are set using object.__setattr__
         # Anything else is assume to be an option and directed to __setitem__.
@@ -993,7 +1027,7 @@ class GlobalOptions(object):
 
         EXAMPLES::
 
-            sage: Partitions.global_options()
+            sage: Partitions.options()
             Current options for Partitions
               - convention:        English
               - diagram_str:       *
@@ -1001,7 +1035,7 @@ class GlobalOptions(object):
               - latex:             young_diagram
               - latex_diagram_str: \ast
             sage: Partitions.options.convention="French"
-            sage: pickle = dumps(Partitions.global_options)
+            sage: pickle = dumps(Partitions.options)
             sage: Partitions.options._reset()        # reset options
             sage: loads(pickle)                      # indirect doctest
             Current options for Partitions
@@ -1010,6 +1044,7 @@ class GlobalOptions(object):
               - display:           list
               - latex:             young_diagram
               - latex_diagram_str: \ast
+            sage: Partitions.options._reset()
         """
         # open the options for the corresponding "parent" and copy all of
         # the data from its' options class into unpickle
@@ -1044,8 +1079,9 @@ class GlobalOptions(object):
 
             sage: Partitions.options._reset()
             sage: Partitions.options.__getstate__()
-                {'convention': 'English',
-                 'options_class': <class 'sage.combinat.partition.Partitions'>}
+             {'convention': 'English',
+             'option_class': 'Partitions',
+             'options_module': 'sage.combinat.partition'}
         """
 
         # options classes can be pickled only if they are the options for an
@@ -1398,11 +1434,11 @@ class GlobalOptions(object):
         EXAMPLES::
 
             sage: from sage.structure.global_options import GlobalOptions
-            sage: class Meal(object): __name__='daily meal'
-            sage: GlobalOptions('daily meal',
-            ...      food=dict(default='bread', values=dict(bread='rye bread', salmon='a fish')),
-            ...      drink=dict(default='water',values=dict(water='essential for life',wine='essential')))
-            sage: Meal.options.food='salmon'; opts()
+            sage: class Meal(object):
+            ...       options = GlobalOptions('daily meal',
+            ...          food=dict(default='bread', values=dict(bread='rye bread', salmon='a fish')),
+            ...          drink=dict(default='water',values=dict(water='essential for life',wine='essential')))
+            sage: Meal.options.food='salmon'; Meal.options
             Current options for daily meal
               - drink: water
               - food:  salmon

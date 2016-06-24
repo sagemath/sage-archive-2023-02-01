@@ -412,7 +412,7 @@ class DyckWord(CombinatorialElement):
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.latex_options()
             {'bounce path': False,
-             'color': 'black',
+             'color': black,
              'diagonal': False,
              'line width': 2,
              'peaks': False,

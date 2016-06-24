@@ -485,7 +485,7 @@ class ManinMap(object):
 
     def __repr__(self):
         """
-        Return print representation of self.
+        Return string representation of self.
 
         EXAMPLES::
 

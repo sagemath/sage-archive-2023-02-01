@@ -227,7 +227,7 @@ class pAdicLseries(SageObject):
 
     def _repr_(self):
         r"""
-        Return the print representation
+        Return the string representation
 
         EXAMPLES::
 

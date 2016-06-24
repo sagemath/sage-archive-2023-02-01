@@ -266,7 +266,7 @@ class PollackStevensModularSymbolspace(Module):
 
     def _repr_(self):
         r"""
-        Return print representation.
+        Return string representation.
 
         EXAMPLES::
 

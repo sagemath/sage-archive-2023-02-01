@@ -145,7 +145,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _repr_(self):
         r"""
-        Return the print representation of the symbol.
+        Return the string representation of the symbol.
 
         EXAMPLES::
 

@@ -31,6 +31,7 @@ from __future__ import print_function
 import argparse
 import copy
 import os
+import stat
 import sys
 import tarfile
 import zipfile
@@ -115,6 +116,7 @@ class SageTarFile(tarfile.TarFile):
     def chmod(self, tarinfo, target):
         tarinfo = copy.copy(tarinfo)
         tarinfo.mode &= ~self.umask
+        tarinfo.mode &= ~(stat.S_ISUID | stat.S_ISGID)
         return super(SageTarFile, self).chmod(tarinfo, target)
 
     def extractall(self, path='.', members=None):

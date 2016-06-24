@@ -1910,7 +1910,7 @@ class AbstractLinearCode(module.Module):
         It is possible to manually choose the encoder amongst the list of the available ones::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'ParityCheck']
+            ['GeneratorMatrix']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
@@ -1963,7 +1963,7 @@ class AbstractLinearCode(module.Module):
         an exception will be raised::
 
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'ParityCheck']
+            ['GeneratorMatrix']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
@@ -1992,11 +1992,10 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.encoders_available()
-            ['GeneratorMatrix', 'ParityCheck']
+            ['GeneratorMatrix']
 
             sage: C.encoders_available(True)
-            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
-            'ParityCheck': <class 'sage.coding.linear_code.LinearCodeParityCheckEncoder'>}
+            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
         """
         if classes == True:
             return copy(self._registered_encoders)

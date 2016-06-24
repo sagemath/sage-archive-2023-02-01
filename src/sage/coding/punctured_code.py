@@ -16,9 +16,7 @@ on the `i`-th position.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+from linear_code import AbstractLinearCode
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.misc.cachefunc import cached_method

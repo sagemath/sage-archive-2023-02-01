@@ -38,9 +38,7 @@ from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from copy import copy
-from linear_code import (AbstractLinearCode,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+from linear_code import AbstractLinearCode
 from encoder import Encoder
 from decoder import Decoder, DecodingError
 from sage.rings.arith import xgcd

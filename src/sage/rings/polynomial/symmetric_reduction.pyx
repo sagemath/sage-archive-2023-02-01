@@ -116,8 +116,12 @@ Symmetric Reduction Strategy is created::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-import copy, operator, sys
+import copy
+import operator
+import sys
+
 
 cdef class SymmetricReductionStrategy:
     """
@@ -547,11 +551,11 @@ cdef class SymmetricReductionStrategy:
         cdef list lml = self._lm
         if not lml:
             if report is not None:
-                print '>'
+                print('>')
             return p
         if p.lm()<self._min_lm:
             if report is not None:
-                print '>'
+                print('>')
             return p
         cdef list REDUCTOR
         while (1):
@@ -579,15 +583,15 @@ cdef class SymmetricReductionStrategy:
         p = new_p
         if (not self._tail) or notail or (p._p==0):
             if report is not None:
-                print '>'
+                print('>')
             return p
         # there remains to perform tail reduction
         REM = p.lt()
         p = p.tail()
         p = self.tailreduce(p, report=report)
         if report is not None:
-            print '>'
-        return p+REM
+            print('>')
+        return p + REM
 
     def tailreduce(self, p, report=None):
         """

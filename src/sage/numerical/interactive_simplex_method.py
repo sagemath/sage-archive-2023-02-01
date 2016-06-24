@@ -3169,7 +3169,7 @@ class LPAbstractDictionary(SageObject):
     @abstract_method
     def objective_name(self):
         r"""
-        Return the objective name used in dictionaries for this problem.
+        Return the objective name of ``self``.
         
         OUTPUT:
         
@@ -4005,7 +4005,7 @@ class LPDictionary(LPAbstractDictionary):
 
     def objective_name(self):
         r"""
-        Return the objective name used in dictionaries for this problem.
+        Return the objective name of ``self``.
         
         OUTPUT:
         
@@ -4974,7 +4974,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
     def objective_name(self):
         r"""
-        Return the objective name used in dictionaries for this problem.
+        Return the objective name of ``self``.
         
         OUTPUT:
         

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Integer partitions
 
@@ -730,6 +731,49 @@ class Partition(CombinatorialElement):
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
+    def _unicode_art_(self):
+        """
+        TESTS::
+
+            sage: unicode_art(Partitions(5).list())
+            ⎡                                      ┌┐ ⎤
+            ⎢                                 ┌┬┐  ├┤ ⎥
+            ⎢                      ┌┬┬┐  ┌┬┐  ├┼┘  ├┤ ⎥
+            ⎢         ┌┬┬┬┐  ┌┬┬┐  ├┼┴┘  ├┼┤  ├┤   ├┤ ⎥
+            ⎢ ┌┬┬┬┬┐  ├┼┴┴┘  ├┼┼┘  ├┤    ├┼┘  ├┤   ├┤ ⎥
+            ⎣ └┴┴┴┴┘, └┘   , └┴┘ , └┘  , └┘ , └┘ , └┘ ⎦
+            sage: Partitions.global_options(convention="French");
+            sage: unicode_art(Partitions(5).list())
+            ⎡                                      ┌┐ ⎤
+            ⎢                                 ┌┐   ├┤ ⎥
+            ⎢                      ┌┐    ┌┐   ├┤   ├┤ ⎥
+            ⎢         ┌┐     ┌┬┐   ├┤    ├┼┐  ├┤   ├┤ ⎥
+            ⎢ ┌┬┬┬┬┐  ├┼┬┬┐  ├┼┼┐  ├┼┬┐  ├┼┤  ├┼┐  ├┤ ⎥
+            ⎣ └┴┴┴┴┘, └┴┴┴┘, └┴┴┘, └┴┴┘, └┴┘, └┴┘, └┘ ⎦
+            sage: Partitions.global_options.reset()
+        """
+        if not self._list:
+            return u'∅'
+        if self.parent().global_options('convention') == "English":
+            data = list(self)
+        else:
+            data = list(reversed(self))
+
+        txt = [u'┌' + u'┬' * (data[0] - 1) + u'┐']
+        for i in range(len(data) - 1):
+            p = data[i]
+            q = data[i + 1]
+            if p < q:
+                txt += [u'├' + u'┼' * p + u'┬' * (q - p - 1) + u'┐']
+            elif p == q:
+                txt += [u'├' + u'┼' * (p - 1) + u'┤']
+            else:
+                txt += [u'├' + u'┼' * q + u'┴' * (p - q - 1) + u'┘']
+        txt += [u'└' + u'┴' * (data[-1] - 1) + u'┘']
+
+        from sage.typeset.unicode_art import UnicodeArt        
+        return UnicodeArt(txt, baseline=0)
+
     def _repr_list(self):
         """
         Return a string representation of ``self`` as a list.
@@ -1046,9 +1090,9 @@ class Partition(CombinatorialElement):
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
         if self.parent().global_options('convention') == "English":
-            return '\n'.join([diag_str*p for p in self])
+            return '\n'.join([diag_str * p for p in self])
         else:
-            return '\n'.join([diag_str*p for p in reversed(self)])
+            return '\n'.join([diag_str * p for p in reversed(self)])
 
     def pp(self):
         r"""

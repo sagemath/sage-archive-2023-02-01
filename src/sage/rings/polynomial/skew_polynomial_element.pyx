@@ -3093,8 +3093,11 @@ cdef class SkewPolynomialBaseringInjection(RingHomomorphism):
         return self._new_constant_poly_
 
     cpdef Element _call_(self, x):
-        return self._new_constant_poly_(x, self._codomain)
-#        return self._new_constant_poly_(x, self._codomain)
+        try:
+            return self._codomain._element_constructor_(x)
+        except AttributeError:
+            # if there is no element constructor, there is a custom call method.
+            return self._codomain(x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         try:

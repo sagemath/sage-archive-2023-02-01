@@ -13,7 +13,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -521,7 +521,7 @@ cdef void singular_ring_delete(ring *doomed):
         sage: _ = gc.collect()
     """
     if doomed==NULL:
-        print 'singular_ring_delete(ring*) called with NULL pointer.'
+        print('singular_ring_delete(ring*) called with NULL pointer.')
         # this function is typically called in __deallocate__, so we can't raise an exception
         import traceback
         traceback.print_stack()
@@ -579,7 +579,6 @@ cpdef poison_currRing(frame, event, arg):
         <built-in function poison_currRing>
         sage: sys.settrace(previous_trace_func)  # switch it off again
     """
-    #print "poisoning currRing"
     global currRing
     currRing = <ring*>NULL
     return poison_currRing
@@ -601,7 +600,7 @@ cpdef print_currRing():
         DEBUG: currRing == 0x0
     """
     cdef size_t addr = <size_t>currRing
-    print "DEBUG: currRing == "+str(hex(addr))
+    print("DEBUG: currRing == " + str(hex(addr)))
 
 def currRing_wrapper():
     """

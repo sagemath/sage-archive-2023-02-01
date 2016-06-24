@@ -969,18 +969,13 @@ class InteractiveLPProblem(SageObject):
             sage: P2 = P.add_constraint(([2, 4, 6]), 2000, new_constraint_type="<=")
             Traceback (most recent call last):
             ...
-            ValueError: A and coefficients have incompatible dimensions
+            TypeError: number of columns must be the same, not 2 and 3
             sage: P3 = P.add_constraint(([2, 4]), 2000, new_constraint_type="<")
             Traceback (most recent call last):
             ...
             ValueError: unknown constraint type
         """
-        if self.n_variables() != matrix(coefficients).ncols():
-            raise ValueError("A and coefficients have incompatible dimensions")
-        if new_constraint_type in ["<=", ">=", "=="]:
-            constraint_type = self._constraint_types + (new_constraint_type,)
-        else:
-            raise ValueError("unknown constraint type")
+        constraint_type = self._constraint_types + (new_constraint_type,)
         A, b, c, x = self.Abcx()
         A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
@@ -2070,10 +2065,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P3 = P.add_constraint(([2, 4, 6]), 2000)
             Traceback (most recent call last):
             ...
-            ValueError: A and coefficients have incompatible dimensions
+            TypeError: number of columns must be the same, not 2 and 3
         """
-        if self.n_variables() != matrix(coefficients).ncols():
-            raise ValueError("A and coefficients have incompatible dimensions")
         A, b, c, x = self.Abcx()
         slack = list(self.slack_variables())
 

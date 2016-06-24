@@ -205,6 +205,36 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         Q = [1/t*Q[j] for j in range(self.ambient_space().dimension_relative())]
         return C.multiplicity(C.ambient_space()(Q))
 
+    def is_complete_intersection(self):
+        r"""
+        Return whether this projective curve is or is not a complete intersection.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x*y - z*w, x^2 - y*w, y^2*w - x*z*w], P)
+            sage: C.is_complete_intersection()
+            False
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([y*w - x^2, z*w^2 - x^3], P)
+            sage: C.is_complete_intersection()
+            True
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([z^2 - y*w, y*z - x*w, y^2 - x*z], P)
+            sage: C.is_complete_intersection()
+            False
+        """
+        singular.lib("sing.lib")
+        I = singular.simplify(self.defining_ideal(), 10)
+        L = singular.is_ci(I).sage()
+        return len(self.ambient_space().gens()) - len(I.sage().gens()) == L[-1]
+
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
         r"""
@@ -647,6 +677,57 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         # otherwise they are distinct
         return True
+
+    def is_transverse(self, C, P):
+        r"""
+        Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
+
+        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
+        tangents of the curves at ``P`` are distinct.
+
+        INPUT:
+
+        - ``C`` -- a curve in the ambient space of this curve.
+
+        - ``P`` -- a point in the intersection of both curves.
+
+        OUPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - y^2], P)
+            sage: D = Curve([x - y], P)
+            sage: Q = P([1,1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: K = QuadraticField(-1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = Curve([y^2*z - K.0*x^3], P)
+            sage: D = Curve([z*x + y^2], P)
+            sage: Q = P([0,0,1])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve([x^2 - 2*y^2 - 2*z^2], P)
+            sage: D = Curve([y - z], P)
+            sage: Q = P([2,1,1])
+            sage: C.is_transverse(D, Q)
+            True
+        """
+        if not self.intersects_at(C, P):
+            raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
+        if self.is_singular(P) or C.is_singular(P):
+            return False
+
+        # there is only one tangent at a nonsingular point of a plane curve
+        return not self.tangents(P)[0] == C.tangents(P)[0]
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
     def rational_points_iterator(self):

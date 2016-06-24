@@ -133,6 +133,8 @@ AUTHORS:
 from sage.categories.number_fields import NumberFields
 from sage.categories.morphism import Morphism
 
+from sage.interfaces.all import singular
+
 from sage.rings.all import ZZ
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
@@ -2020,6 +2022,96 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         self._smooth = (sing_dim == -1)
         return self._smooth
 
+    def intersection_multiplicity(self, X, P):
+        r"""
+        Return the intersection multiplicity of this subscheme and the subscheme ``X`` at the point ``P``.
+
+        The intersection of this subscheme with ``X`` must be proper, that is `\mathrm{codim}(self\cap
+        X) = \mathrm{codim}(self) + \mathrm{codim}(X)`, and must also be finite. We use Serre's Tor
+        formula to compute the intersection multiplicity. If `I`, `J` are the defining ideals of ``self``, ``X``,
+        respectively, then this is `\sum_{i=0}^{\infty}(-1)^i\mathrm{length}(\mathrm{Tor}_{\mathcal{O}_{A,p}}^{i}
+        (\mathcal{O}_{A,p}/I,\mathcal{O}_{A,p}/J))` where `A` is the affine ambient space of these subschemes.
+
+        INPUT:
+
+        - ``X`` -- subscheme in the same ambient space as this subscheme.
+
+        - ``P`` -- a point in the intersection of this subscheme with ``X``.
+
+        OUTPUT: An integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = Curve([y^2 - x^3 - x^2], A)
+            sage: D = Curve([y^2 + x^3], A)
+            sage: Q = A([0,0])
+            sage: C.intersection_multiplicity(D, Q)
+            4
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^6 - 3*a^5 + 5*a^4 - 5*a^3 + 5*a^2 - 3*a + 1)
+            sage: A.<x,y,z,w> = AffineSpace(K, 4)
+            sage: X = A.subscheme([x*y, y*z + 7, w^3 - x^3])
+            sage: Y = A.subscheme([x - z^3 + z + 1])
+            sage: Q = A([0, -7*b^5 + 21*b^4 - 28*b^3 + 21*b^2 - 21*b + 14, -b^5 + 2*b^4 - 3*b^3 \
+            + 2*b^2 - 2*b, 0])
+            sage: X.intersection_multiplicity(Y, Q)
+            3
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: X = A.subscheme([z^2 - 1])
+            sage: Y = A.subscheme([z - 1, y - x^2])
+            sage: Q = A([1,1,1])
+            sage: X.intersection_multiplicity(Y, Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
+            over Rational Field defined by: z - 1, -x^2 + y) must be proper and finite
+
+        ::
+
+            sage: A.<x,y,z,w,t> = AffineSpace(QQ, 5)
+            sage: X = A.subscheme([x*y, t^2*w, w^3*z])
+            sage: Y = A.subscheme([y*w + z])
+            sage: Q = A([0,0,0,0,0])
+            sage: X.intersection_multiplicity(Y, Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 5
+            over Rational Field defined by: y*w + z) must be proper and finite
+        """
+        AA = self.ambient_space()
+        if AA != X.ambient_space():
+            raise TypeError("this subscheme and (=%s) must be defined in the same ambient space"%X)
+        W = self.intersection(X)
+        try:
+            W._check_satisfies_equations(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the intersection of this subscheme and (=%s)"%(P,X))
+        if AA.dimension() != self.dimension() + X.dimension() or W.dimension() != 0:
+            raise TypeError("the intersection of this subscheme and (=%s) must be proper and finite"%X)
+        I = self.defining_ideal()
+        J = X.defining_ideal()
+        # move P to the origin and localize
+        chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
+        R = AA.coordinate_ring().change_ring(order="negdegrevlex")
+        Iloc = R.ideal([f(chng_coords) for f in I.gens()])
+        Jloc = R.ideal([f(chng_coords) for f in J.gens()])
+        # compute the intersection multiplicity with Serre's Tor formula using Singular
+        singular.lib("homolog.lib")
+        i = 0
+        s = 0
+        t = sum(singular.Tor(i, Iloc, Jloc).std().hilb(2).sage())
+        while t != 0:
+            s = s + ((-1)**i)*t
+            i = i + 1
+            t = sum(singular.Tor(i, Iloc, Jloc).std().hilb(2).sage())
+        return s
 
 
 #*******************************************************************
@@ -2957,6 +3049,75 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         J_sat = S.ideal(J_sat_gens)
         L = J_sat.elimination_ideal(z[0: n + 1] + (z[-1],))
         return Pd.subscheme(L.change_ring(Rd))
+
+    def intersection_multiplicity(self, X, P):
+        r"""
+        Return the intersection multiplicity of this subscheme and the subscheme ``X`` at the point ``P``.
+
+        This uses the intersection_multiplicity function for affine subschemes on affine patches of this subscheme
+        and ``X`` that contain ``P``.
+
+        INPUT:
+
+        - ``X`` -- subscheme in the same ambient space as this subscheme.
+
+        - ``P`` -- a point in the intersection of this subscheme with ``X``.
+
+        OUTPUT: An integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve([x^4 - z^2*y^2], P)
+            sage: D = Curve([y^4*z - x^5 - x^3*z^2], P)
+            sage: Q1 = P([0,1,0])
+            sage: C.intersection_multiplicity(D, Q1)
+            4
+            sage: Q2 = P([0,0,1])
+            sage: C.intersection_multiplicity(D, Q2)
+            6
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^4 + 1)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: X = P.subscheme([x^2 + y^2 - z*w])
+            sage: Y = P.subscheme([y*z - x*w, z - w])
+            sage: Q1 = P([b^2,1,0,0])
+            sage: X.intersection_multiplicity(Y, Q1)
+            1
+            sage: Q2 = P([1/2*b^3-1/2*b,1/2*b^3-1/2*b,1,1])
+            sage: X.intersection_multiplicity(Y, Q2)
+            1
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: X = P.subscheme([x^2 - z^2, y^3 - w*x^2])
+            sage: Y = P.subscheme([w^2 - 2*x*y + z^2, y^2 - w^2])
+            sage: Q = P([1,1,-1,1])
+            sage: X.intersection_multiplicity(Y, Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
+            over Rational Field defined by: x1^2 + x2^2 - 2*x0, x0^2 - x2^2) must be proper and finite
+        """
+        try:
+            self.ambient_space()(P)
+        except TypeError:
+            raise TypeError("(=%s) must be a point in the ambient space of this subscheme and (=%s)"%(P,X))
+        # find an affine chart of the ambient space of this curve that contains P
+        n = self.ambient_space().dimension_relative()
+        for i in range(n + 1):
+            if P[i] != 0:
+                break
+        X1 = self.affine_patch(i)
+        X2 = X.affine_patch(i)
+        Q = list(P)
+        t = Q.pop(i)
+        Q = [1/t*Q[j] for j in range(n)]
+        return X1.intersection_multiplicity(X2, X1.ambient_space()(Q))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 

@@ -806,7 +806,6 @@ class AbstractLinearCode(module.Module):
         ### Add here any generic encoder/decoder ###
         #This allows any class which inherits from AbstractLinearCode
         #to use generic decoders/encoders
-        self._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
 

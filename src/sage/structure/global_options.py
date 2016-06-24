@@ -87,25 +87,30 @@ The basic structure for defining a :class:`GlobalOptions` class is best
 illustrated by an example::
 
     sage: from sage.structure.global_options import GlobalOptions
-    sage: class MenuClass(object): __name__='Menus'
-    sage: GlobalOptions(MenuClass, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
-    ...       entree=dict(default='soup',
-    ...                   description='The first course of a meal',
-    ...                   values=dict(soup='soup of the day', bread='oven baked'),
-    ...                   alias=dict(rye='bread')),
-    ...       appetizer=dict(alt_name='entree'),
-    ...       main=dict(default='pizza', description='Main meal',
-    ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
-    ...                 case_sensitive=False),
-    ...       dessert=dict(default='espresso', description='Dessert',
-    ...                    values=dict(espresso='life begins again',
-    ...                                cake='waist begins again',
-    ...                                cream='fluffy, white stuff')),
-    ...       tip=dict(default=10, description='Reward for good service',
-    ...       checker=lambda tip: tip in range(0,20))
-    ...   )
-    sage: MenuClass.options()
-    options for menu
+    sage: class Menu(object): 
+    ....:     options = GlobalOptions('menu',
+    ....:         doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
+    ....:         entree=dict(default='soup',
+    ....:                     description='The first course of a meal',
+    ....:                     values=dict(soup='soup of the day', bread='oven baked'),
+    ....:                     alias=dict(rye='bread')),
+    ....:         appetizer=dict(alt_name='entree'),
+    ....:         main=dict(default='pizza', description='Main meal',
+    ....:                   values=dict(pizza='thick crust', pasta='penne arrabiata'),
+    ....:                   case_sensitive=False),
+    ....:         dessert=dict(default='espresso', description='Dessert',
+    ....:                      values=dict(espresso='life begins again',
+    ....:                                  cake='waist begins again',
+    ....:                                  cream='fluffy, white stuff')),
+    ....:         tip=dict(default=10, description='Reward for good service',
+    ....:         checker=lambda tip: tip in range(0,20))
+    ....:     )
+    sage: Menu.options
+    Current options for menu
+      - dessert: espresso
+      - entree:  soup
+      - main:    pizza
+      - tip:     10
 
 For more details see :class:`GlobalOptions`.
 
@@ -118,33 +123,35 @@ class or by treating the class as an array.
 
 Continuing the example from :ref:`construction_section`::
 
-    sage: menu()
+    sage: Menu.options
     Current options for menu
       - dessert: espresso
       - entree:  soup
       - main:    pizza
       - tip:     10
-    sage: menu('dessert')
-    'espresso'
-    sage: menu['dessert']
-    'espresso'
+    sage: Menu.dessert
+    espresso
+    sage: Menu.dessert = 'cake'
+    sage: Menu.dessert
 
 Note that, provided there is no ambiguity, options and their values can be
 abbreviated::
 
-    sage: menu['d']
+    sage: Menu.options('d')
     'espresso'
-    sage: menu('m','t',des='esp', ent='sou')  # get and set several values at once
+    sage: Menu.options('m','t',des='esp', ent='sou')  # get and set several values at once
     ['pizza', 10]
-    sage: menu(t=15); menu['tip']
+    sage: Menu.options(t=15); 
+    sage: Menu.options('tip')
+    sage: Menu.options.tip
     15
-    sage: menu(e='s', m='Pi'); menu()
+    sage: Menu.options(e='s', m='Pi'); Menu.options()
     Current options for menu
       - dessert: espresso
       - entree:  soup
       - main:    pizza
       - tip:     15
-    sage: menu(m='P')
+    sage: Menu.options(m='P')
     Traceback (most recent call last):
     ...
     ValueError: P is not a valid value for main in the options for menu
@@ -162,19 +169,18 @@ the :func:`classmethod` as ``A.setter``::
 
     sage: from sage.structure.global_options import GlobalOptions
     sage: class A(SageObject):
-    ...       __name__='A'
     ...       state = 0
     ...       @classmethod
     ...       def setter(cls, option, val):
     ...           cls.state += int(val)
     ...
-    sage: GlobalOptions(A,
+    sage: A.options = GlobalOptions('A',
     ...                     add=dict(default=1,
     ...                              checker=lambda v: int(v)>0,
     ...                              description='An option with a setter',
     ...                              setter=A.setter))
     sage: A.options
-    sage: a = A(2); a.state
+    sage: a = A(); a.state
     1
     sage: a.options()
     Current options for A
@@ -233,7 +239,7 @@ the supplied options. For example, the generated documentation for the options
 In addition, help on each option, and its list of possible values, can be
 obtained by (trying to) set the option equal to '?'::
 
-    sage: menu(des='?')
+    sage: Menu.options.dessert?
     - ``dessert`` -- (default: ``espresso``)
       Dessert
     <BLANKLINE>
@@ -337,8 +343,8 @@ TESTS:
 As options classes to not know how they are created they cannot be
 pickled::
 
-    sage: class MenuClass(object): __name__='Menus'
-    sage: GlobalOptions(MenuClass, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
+    sage: class Menu(object): __name__='Menus'
+    sage: GlobalOptions(Menu, doc='Fancy documentation\n'+'-'*19, end_doc='The END!',
     ...       entree=dict(default='soup',
     ...                   description='The first course of a meal',
     ...                   values=dict(soup='soup of the day', bread='oven baked'),
@@ -354,7 +360,7 @@ pickled::
     ...       tip=dict(default=10, description='Reward for good service',
     ...       checker=lambda tip: tip in range(0,20))
     ...   )
-    sage: TestSuite(menu).run()
+    sage: TestSuite(Menu.options).run()
 
 
 == Slowest module imports (excluding / including children) ==
@@ -624,27 +630,27 @@ class GlobalOptions(object):
         ...   )
         sage: Menu.options
         options for menu
-        sage: menu(entree='s')         # unambiguous abbreviations are allowed
-        sage: menu(t=15);
-        sage: (menu['tip'], menu('t'))
+        sage: Menu.options(entree='s')         # unambiguous abbreviations are allowed
+        sage: Menu.options(t=15);
+        sage: (Menu.options['tip'], Menu.options('t'))
         (15, 15)
-        sage: menu()
+        sage: Menu.options()
         Current options for menu
           - dessert: espresso
           - entree:  soup
           - main:    pizza
           - tip:     15
-        sage: menu._reset(); menu()
+        sage: Menu.options._reset(); Menu.options()
         Current options for menu
           - dessert: espresso
           - entree:  soup
           - main:    pizza
           - tip:     10
-        sage: menu['tip']=40
+        sage: Menu.options.tip=40
         Traceback (most recent call last):
         ...
         ValueError: 40 is not a valid value for tip in the options for menu
-        sage: menu(m='p')           # ambiguous abbreviations are not allowed
+        sage: Menu.options(m='p')           # ambiguous abbreviations are not allowed
         Traceback (most recent call last):
         ...
         ValueError: p is not a valid value for main in the options for menu

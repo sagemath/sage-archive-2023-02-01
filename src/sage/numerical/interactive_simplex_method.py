@@ -981,16 +981,14 @@ class InteractiveLPProblem(SageObject):
             constraint_type = self._constraint_types + (new_constraint_type,)
         else:
             raise ValueError("unknown constraint type")
-        A = self.Abcx()[0]
-        b = self.Abcx()[1]
-        c = self.Abcx()[2]
+        A, b, c, x = self.Abcx()
         A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
         if self._is_negative:
             problem_type = "-" + self.problem_type()
         else:
             problem_type = self.problem_type()
-        return InteractiveLPProblem(A, b, c, x=self.Abcx()[3],
+        return InteractiveLPProblem(A, b, c, x,
                     constraint_type=constraint_type,
                     variable_type=self.variable_types(),
                     problem_type=problem_type,
@@ -2037,7 +2035,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         - ``new_b`` -- a constant term of the new constraint
 
         - ``new_slack_variable`` -- (default: depends on :func:`style`)
-        a vector of the slack variable or a string giving the name
+          a string giving the name of the slack variable of the new constraint
 
         OUTPUT:
 
@@ -2076,11 +2074,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         """
         if self.n_variables() != matrix(coefficients).ncols():
             raise ValueError("A and coefficients have incompatible dimensions")
-        A = self.Abcx()[0]
-        b = self.Abcx()[1]
-        c = self.Abcx()[2]
-        R = self._R
-        G = list(R.gens())
+        A, b, c, x = self.Abcx()
         slack = list(self.slack_variables())
 
         if new_slack_variable is None:
@@ -2092,22 +2086,18 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             new_slack_variable = "{}{:d}".format(new_slack_variable, index)
         if not isinstance(new_slack_variable, str):
             new_slack_variable = str(new_slack_variable)
+
         if self._is_negative:
             problem_type = "-" + self.problem_type()
         else:
             problem_type = self.problem_type()
         
-        # Construct a larger ring for variables
-        G.append(new_slack_variable)
-        R1 = PolynomialRing(self.base_ring(), G, order="neglex")
-
-        new_slack_variable = R1.gens()[len(R1.gens())-1]
         slack.append(new_slack_variable)
         A = A.stack(matrix(coefficients))
         b = vector(tuple(b) + (new_b,))
 
         return InteractiveLPProblemStandardForm(
-                    A, b, c, x=self.Abcx()[3],
+                    A, b, c, x,
                     problem_type=problem_type,
                     slack_variables=slack,
                     objective_constant_term=self.objective_constant_term())

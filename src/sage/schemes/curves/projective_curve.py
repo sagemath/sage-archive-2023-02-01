@@ -132,17 +132,18 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Return the arithmetic genus of this projective curve.
 
-        If `P` is the Hilbert polynomial of the defining ideal of this curve, then the
-        arithmetic genus of this curve is `1 - P(0)`. This curve must be irreducible.
+        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. If `P` is the
+        Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
+        of this curve is `1 - P(0)`. This curve must be irreducible.
 
         OUTPUT: Integer.
 
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: C = P.curve([(w - x)^3, w^2 + y^2 + z^2])
+            sage: C = P.curve([w*z - x^2, w^2 + y^2 + z^2])
             sage: C.arithmetic_genus()
-            4
+            1
 
         ::
 
@@ -154,33 +155,6 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
         return 1 - self.defining_ideal().hilbert_polynomial()(0)
-
-    def degree(self):
-        r"""
-        Return the degree of this projective curve.
-
-        This is just the leading coefficient of the Hilbert polynomial of the defining
-        ideal of this curve.
-
-        OUTPUT: Integer.
-
-        EXAMPLES::
-
-            sage: R.<a> = QQ[]
-            sage: K.<b> = NumberField(a^2 - 2)
-            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
-            sage: C = Curve([y^2 - 2*b*z^2 + x*y], P)
-            sage: C.degree()
-            2
-
-        ::
-
-            sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
-            sage: C = P.curve([x^7 - y*z^3*w^2*u, w*x^2 - y*u^2, z^3 + y^3])
-            sage: C.degree()
-            63
-        """
-        return self.defining_ideal().hilbert_polynomial().leading_coefficient()
 
 class ProjectivePlaneCurve(ProjectiveCurve):
     def __init__(self, A, f):
@@ -221,7 +195,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in Hartshorne. For a projective
+        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. For a projective
         plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It need *not* equal
         the geometric genus (the genus of the normalization of the curve). This curve must be
         irreducible.
@@ -244,6 +218,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
             sage: C.arithmetic_genus()
             3
+
+        REFERENCES:
+
+        ..  [Hartshorne] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
         """
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")

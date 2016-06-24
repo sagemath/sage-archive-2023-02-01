@@ -682,11 +682,14 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return whether the intersection of this curve with the curve ``C`` at the point ``P`` is transverse.
 
+        The intersection at ``P`` is transverse if ``P`` is a nonsingular point of both curves, and if the
+        tangents of the curves at ``P`` are distinct.
+
         INPUT:
 
         - ``C`` -- a curve in the ambient space of this curve.
 
-        - ``P`` -- a point in the intersection of both curves that is not a singular point of either curve.
+        - ``P`` -- a point in the intersection of both curves.
 
         OUPUT: Boolean.
 
@@ -696,6 +699,16 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C = Curve([x^2 - y^2], P)
             sage: D = Curve([x - y], P)
             sage: Q = P([1,1,0])
+            sage: C.is_transverse(D, Q)
+            False
+
+        ::
+
+            sage: K = QuadraticField(-1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: C = Curve([y^2*z - K.0*x^3], P)
+            sage: D = Curve([z*x + y^2], P)
+            sage: Q = P([0,0,1])
             sage: C.is_transverse(D, Q)
             False
 
@@ -711,7 +724,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         if not self.intersects_at(C, P):
             raise TypeError("(=%s) must be a point in the intersection of (=%s) and this curve"%(P,C))
         if self.is_singular(P) or C.is_singular(P):
-            raise TypeError("(=%s) must be a nonsingular point of both (=%s) and this curve"%(P,C))
+            return False
 
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]

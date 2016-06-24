@@ -2803,7 +2803,7 @@ class LPAbstractDictionary(SageObject):
 
     @abstract_method
     def add_row(self, nonbasic_coefficients,
-                constant, slack_variable):
+                constant, basic_variable):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -2814,8 +2814,8 @@ class LPAbstractDictionary(SageObject):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- -- (default: depends on :func:`style`)
-        a vector of the slack variable or a string giving the name
+        - ``basic_variable``-- (default: depends on :func:`style`)
+           a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -2828,7 +2828,7 @@ class LPAbstractDictionary(SageObject):
             sage: c = (55/10, 21/10, 14/30)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary("x1", "x2", "x4")
-            sage: D1 = D.add_row([7, 11, 19], 42, slack_variable='c')
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
             sage: D1.row_coefficients("c")
             (7, 11, 19)
             sage: set(D1.constant_terms()).symmetric_difference(
@@ -4057,7 +4057,7 @@ class LPDictionary(LPAbstractDictionary):
         return LatexExpr(result)
 
     def add_row(self, nonbasic_coefficients,
-                constant, slack_variable=None):
+                constant, basic_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
 
@@ -4068,8 +4068,8 @@ class LPDictionary(LPAbstractDictionary):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- (default: depends on :func:`style`)
-        a vector of the slack variable or a string giving the name
+        - ``basic_variable``-- (default: depends on :func:`style`)
+            a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -4091,7 +4091,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: set(D1.basic_variables()).symmetric_difference(
             ....: set(D.basic_variables()))
             {x7}
-            sage: D2 = D.add_row([17, 11, 119], 52, slack_variable="c")
+            sage: D2 = D.add_row([17, 11, 119], 52, basic_variable="c")
             sage: set(D2.basic_variables()).symmetric_difference(
             ....: set(D.basic_variables()))
             {c}
@@ -4107,23 +4107,23 @@ class LPDictionary(LPAbstractDictionary):
         v = vector(self.base_ring(), n, nonbasic_coefficients)
         A = A.stack(v)
 
-        if slack_variable is None:
-            slack_variable = default_variable_name("primal slack")
+        if basic_variable is None:
+            basic_variable = default_variable_name("primal slack")
             if style() == "UAlberta":
                 index = n + m + 1
             elif style() == 'Vanderbei':
                 index = m + 1
-            slack_variable = "{}{:d}".format(slack_variable, index)
-        if not isinstance(slack_variable, str):
-            slack_variable = str(slack_variable)
+            basic_variable = "{}{:d}".format(basic_variable, index)
+        if not isinstance(basic_variable, str):
+            basic_variable = str(basic_variable)
 
         b = vector(tuple(b) + (constant,))
-        B = tuple(B) + (slack_variable,)
+        B = tuple(B) + (basic_variable,)
 
         # Construct a larger ring for variable
         R = B[0].parent()
         G = list(R.gens())
-        G.append(slack_variable)
+        G.append(basic_variable)
         R = PolynomialRing(self.base_ring(), G, order="neglex")
         # Update B and N to the larger ring
         B2 = vector([R(x) for x in B])
@@ -4933,10 +4933,16 @@ class LPRevisedDictionary(LPAbstractDictionary):
         E[l, l] = 1 / d
         return E
 
-    def add_row(self, nonbasic_coefficients, new_b,
-                slack_variable=None):
+    def add_row(self, nonbasic_coefficients, constant,
+                basic_variable=None):
         r"""
         Return a dictionary with an additional row based on a given dictionary.
+
+        The implementation of this method for revised dictionaries
+        adds a new inequality constraint to the problem, in which the given
+        `basic_variable` becomes the slack variable.  The resulting dictionary
+        (with `basic_variable` added to the basis) will have the given
+        `nonbasic_coefficients` and `constant` as a new row.
 
         INPUT:
 
@@ -4944,8 +4950,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         - ``constant``-- a number of the constant term for the new row
 
-        - ``slack_variable``-- (default: depends on :func:`style`)
-        a vector of the slack variable or a string giving the name
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
 
         OUTPUT:
 
@@ -4977,7 +4983,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
-            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, slack_variable='c')
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, basic_variable='c')
             sage: D2.row_coefficients("c")
             (5, 7, 11, 13, 9)
             sage: set(D2.constant_terms()).symmetric_difference(
@@ -5022,11 +5028,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
         for item in slack:
             if item in set_nonbasic:
                 coefficients -= d[d_index] * A[slack_index]
-                new_b -= d[d_index] * b[slack_index]
+                constant -= d[d_index] * b[slack_index]
                 d_index += 1
             slack_index += 1
-        new_problem = problem.add_constraint(coefficients, new_b, 
-                                new_slack_variable=slack_variable)
+        new_problem = problem.add_constraint(coefficients, constant,
+                                             new_slack_variable=basic_variable)
         new_basic_var = [str(i) for i in self.basic_variables()] + [str(new_problem.slack_variables()[-1])]
         R = PolynomialRing(self.base_ring(), new_basic_var, order="neglex")
         return new_problem.revised_dictionary(*R.gens())

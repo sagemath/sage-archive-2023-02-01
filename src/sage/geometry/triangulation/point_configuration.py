@@ -2031,3 +2031,15 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 pass
         m = matrix([ (1,) + p.affine() for p in points])
         return m.left_kernel().matrix()
+
+    def plot(self, **kwds):
+        r"""
+        Produce a graphical representation of the point configuration.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+            sage: p.plot(axes=False)
+            Graphics object consisting of 5 graphics primitives
+        """
+        return self.element_class([], parent=self, check=False).plot(**kwds)

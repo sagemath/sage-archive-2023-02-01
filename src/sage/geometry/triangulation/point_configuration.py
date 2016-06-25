@@ -2068,5 +2068,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p.plot(axes=False)
             Graphics object consisting of 5 graphics primitives
+
+        .. PLOT::
+            :width: 300 px
+
+            p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+            sphinx_plot(p.plot(axes=False))
         """
         return self.element_class([], parent=self, check=False).plot(**kwds)

@@ -47,6 +47,15 @@ A 2-dimensional point configuration::
     A point configuration in QQ^2 consisting of 5 points. The
     triangulations of this point configuration are assumed to
     be connected, not necessarily fine, not necessarily regular.
+
+.. PLOT::
+    :width: 300 px
+
+    p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+    sphinx_plot(p.plot(axes=False))
+
+A triangulation of it::
+
     sage: t = p.triangulate()  # a single triangulation
     sage: t
     (<1,3,4>, <2,3,4>)
@@ -60,6 +69,16 @@ A 2-dimensional point configuration::
     [(1, 3, 4), (2, 3, 4)]
     sage: t.plot(axes=False)
     Graphics object consisting of 12 graphics primitives
+
+.. PLOT::
+    :width: 300 px
+
+    p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+    t = p.triangulate()
+    sphinx_plot(t.plot(axes=False))
+
+List triangulations of it::
+
     sage: list( p.triangulations() )
     [(<1,3,4>, <2,3,4>),
      (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
@@ -81,6 +100,14 @@ A 3-dimensional point configuration::
     sage: triang = points.triangulate()
     sage: triang.plot(axes=False)
     Graphics3d Object
+
+.. PLOT::
+    :width: 300 px
+
+    p = [[0,-1,-1],[0,0,1],[0,1,0], [1,-1,-1],[1,0,1],[1,1,0]]
+    points = PointConfiguration(p)
+    triang = points.triangulate()
+    sphinx_plot(triang.plot(axes=False))
 
 The standard example of a non-regular triangulation (requires TOPCOM)::
 

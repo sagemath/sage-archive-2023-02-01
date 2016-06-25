@@ -8818,7 +8818,7 @@ cdef class Expression(CommutativeRingElement):
         - ``self`` -- an expression with held operations
         - ``exclude`` -- (default: None) a list of operators to exclude from
           evaluation. Excluding arithmetic operators does not yet work (see
-          :trac:`14850`).
+          :trac:`10169`).
 
         OUTPUT:
 

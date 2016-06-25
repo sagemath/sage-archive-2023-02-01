@@ -95,13 +95,9 @@ def setup_glpk_error_handler():
         sage: p.add_constraint(3*x + 2*y <= 6)
         sage: p.add_constraint(x >= 0)
         sage: p.set_objective(x + y)
-        sage: p.solve()
-              0: obj =   3.000000000e+00  infeas =  3.000e+00 (0)
-        *     1: obj =   2.000000000e+00  infeas =  0.000e+00 (0)
-        *     2: obj =   2.400000000e+00  infeas =  0.000e+00 (0)
-        +     2: mip =     not found yet <=              +inf        (1; 0)
-        +     2: >>>>>   2.400000000e+00 <=   2.400000000e+00   0.0% (1; 0)
-        +     2: mip =   2.400000000e+00 <=     tree is empty   0.0% (0; 1)
+        sage: res = p.solve()
+              0: obj = ...
+        sage: res  # rel tol 1e-15
         2.4
     """
     glp_term_hook(sage_glpk_term_hook, NULL)

@@ -238,7 +238,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             except TypeError:
                 return None
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 
@@ -302,7 +302,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix
 
-    cpdef MonoidElement _mul_(self, MonoidElement other):
+    cpdef _mul_(self, other):
         """
         Return the product of ``self`` and`` other``, which must
         have identical parents.
@@ -524,7 +524,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             except TypeError:
                 return None
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 

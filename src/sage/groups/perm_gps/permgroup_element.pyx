@@ -618,7 +618,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Compare group elements ``self`` and ``other``.
 
@@ -842,7 +842,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             elif is_Matrix(left):
                 return left.with_permuted_rows(self)
 
-    cpdef MonoidElement _mul_(left, MonoidElement _right):
+    cpdef _mul_(left, _right):
         """
         EXAMPLES::
 

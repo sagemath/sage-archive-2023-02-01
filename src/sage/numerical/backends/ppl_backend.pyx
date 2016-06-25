@@ -632,7 +632,7 @@ cdef class PPLBackend(GenericBackend):
             self.row_lower_bound.append(lower_bound)
             self.row_upper_bound.append(upper_bound)
             if names is not None:
-                self.row_name_var.append(names)
+                self.row_name_var.append(names[i])
             else:
                 self.row_name_var.append(None)
 
@@ -992,7 +992,7 @@ cdef class PPLBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
-            sage: p.add_linear_constraints(1, 2, None, names="Empty constraint 1")
+            sage: p.add_linear_constraints(1, 2, None, names=["Empty constraint 1"])
             sage: p.row_name(0)
             'Empty constraint 1'
         """
